@@ -1,0 +1,64 @@
+<!-- Sidebar navigation, included by app-docs.html as a Pandoc partial. One
+     sidebar serves the whole site: this repository has a single arc42 tree and a
+     single decision log, so the per-tier sidebars the sibling repositories need
+     would be three copies of the same list here. The active link is marked at
+     runtime by docs.js. Do not put template syntax in this comment - a partial
+     is itself a template. -->
+<aside class="sidebar">
+  <p class="nav-title">Docs</p>
+  <ul>
+    <li><a href="/maintenance-assistant/">Docs home</a></li>
+    <li><a href="/maintenance-assistant/overview.html">Overview</a></li>
+    <li><a href="/maintenance-assistant/overview-de.html">&Uuml;berblick (DE)</a></li>
+    <li><a href="/maintenance-assistant/llm-approach.html">AI &amp; LLM approach</a></li>
+  </ul>
+
+  <p class="nav-title">Requirements</p>
+  <ul>
+    <li><a href="/maintenance-assistant/REQUIREMENTS.html">Requirements &amp; NFRs</a></li>
+    <li><a href="/maintenance-assistant/DOMAIN-MODEL.html">Domain model</a></li>
+  </ul>
+
+  <details class="nav-group">
+    <summary>Architecture (arc42)</summary>
+    <ul>
+      <li><a href="/maintenance-assistant/architecture/index.html">Architecture index</a></li>
+      <li><a href="/maintenance-assistant/architecture/01-introduction-and-goals.html">1 &middot; Introduction &amp; Goals</a></li>
+      <li><a href="/maintenance-assistant/architecture/02-architecture-constraints.html">2 &middot; Constraints</a></li>
+      <li><a href="/maintenance-assistant/architecture/03-context-and-scope.html">3 &middot; Context &amp; Scope</a></li>
+      <li><a href="/maintenance-assistant/architecture/04-solution-strategy.html">4 &middot; Solution Strategy</a></li>
+      <li><a href="/maintenance-assistant/architecture/05-building-block-view.html">5 &middot; Building Blocks</a></li>
+      <li><a href="/maintenance-assistant/architecture/06-runtime-view.html">6 &middot; Runtime View</a></li>
+      <li><a href="/maintenance-assistant/architecture/07-deployment-view.html">7 &middot; Deployment</a></li>
+      <li><a href="/maintenance-assistant/architecture/08-crosscutting-concepts.html">8 &middot; Concepts</a></li>
+      <li><a href="/maintenance-assistant/architecture/09-architecture-decisions.html">9 &middot; Decisions</a></li>
+      <li><a href="/maintenance-assistant/architecture/10-quality-requirements.html">10 &middot; Quality Requirements</a></li>
+      <li><a href="/maintenance-assistant/architecture/11-risks-and-technical-debt.html">11 &middot; Risks &amp; Debt</a></li>
+      <li><a href="/maintenance-assistant/architecture/12-glossary.html">12 &middot; Glossary</a></li>
+    </ul>
+  </details>
+
+  <details class="nav-group">
+    <summary>Decisions (ADRs)</summary>
+    <ul>
+      <li><a href="/maintenance-assistant/adr/index.html">Decision index</a></li>
+      <li><a href="/maintenance-assistant/adr/ADR-001-modular-monolith-first.html">ADR-001 Modular monolith</a></li>
+      <li><a href="/maintenance-assistant/adr/ADR-002-eu-hosted-llm-provider.html">ADR-002 EU LLM provider</a></li>
+      <li><a href="/maintenance-assistant/adr/ADR-003-keycloak-for-iam.html">ADR-003 Keycloak as IdP</a></li>
+      <li><a href="/maintenance-assistant/adr/ADR-004-pgvector-for-vector-search.html">ADR-004 pgvector</a></li>
+    </ul>
+  </details>
+
+  <p class="nav-title">Frontend</p>
+  <ul>
+    <li><a href="/maintenance-assistant/frontend-architecture.html">Frontend architecture</a></li>
+  </ul>
+
+  <p class="nav-title">Quality</p>
+  <ul>
+    <li><a href="/maintenance-assistant/backend/api-docs/index.html">Backend API</a></li>
+    <li><a href="/maintenance-assistant/frontend/api-docs/index.html">Frontend API</a></li>
+    <li><a href="/maintenance-assistant/backend/coverage/index.html">Backend coverage</a></li>
+    <li><a href="/maintenance-assistant/frontend/coverage/index.html">Frontend coverage</a></li>
+  </ul>
+</aside>

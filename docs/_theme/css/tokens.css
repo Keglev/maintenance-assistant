@@ -1,0 +1,72 @@
+/* =============================================================================
+   maintenance-assistant Docs — Design Tokens
+   Single source of truth for color, spacing, and theme values.
+
+   Theme contract: the inline boot script in each template sets
+   data-theme="light|dark" on <html> before first paint, so the cascade never
+   needs a prefers-color-scheme media query and the page never flashes. With
+   JS disabled the attribute is absent and the page falls back to the light
+   :root defaults below.
+
+   Structure is shared with the other portfolio repositories on purpose — only
+   the accent hue differs, so the three sites read as siblings.
+   ========================================================================== */
+
+:root {
+  /* --- Light theme (default) --- */
+  --bg: #f8fafc;
+  --surface: #ffffff;
+  --surface-2: #f1f5f9;
+  --surface-3: rgba(255, 255, 255, 0.85);
+  --border: rgba(15, 23, 42, 0.12);
+  --border-strong: rgba(15, 23, 42, 0.28);
+
+  --text: #1e293b;
+  --muted: #64748b;
+  --heading: #0f172a;
+
+  /* Teal rather than the sibling repositories' sky blue: same family, distinct
+     at a glance. Both clear 4.5:1 on --bg, so links stay readable as body text. */
+  --accent: #0d9488;
+  --link: #0f766e;
+
+  --code-bg: #f1f5f9;
+  --code-border: rgba(13, 148, 136, 0.18);
+
+  /* Diagram edge/arrow color. Node fills are set per-layer in each diagram's
+     classDef (medium tones that read on both themes), not via tokens. */
+  --layer-edge: #0d9488;
+
+  /* --- Layout --- */
+  --radius: 12px;
+  --radius-sm: 8px;
+  --maxw: 1400px;
+  --content-maxw: 820px;
+  --sidebar-w: 260px;
+  --toc-w: 220px;
+  --topbar-h: 56px;
+  --shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
+}
+
+:root[data-theme="dark"] {
+  --bg: #0b1220;
+  --surface: #0f1b2d;
+  --surface-2: #0c1626;
+  --surface-3: rgba(9, 14, 25, 0.72);
+  --border: rgba(148, 163, 184, 0.18);
+  --border-strong: rgba(148, 163, 184, 0.38);
+
+  --text: #e5e7eb;
+  --muted: #a7b0c0;
+  --heading: #f3f4f6;
+
+  --accent: #2dd4bf;
+  --link: #5eead4;
+
+  --code-bg: #0b1424;
+  --code-border: rgba(94, 234, 212, 0.18);
+
+  --layer-edge: #5eead4;
+
+  --shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+}

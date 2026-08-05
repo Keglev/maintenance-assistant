@@ -1,0 +1,67 @@
+/* =============================================================================
+   maintenance-assistant Docs — Content
+   Typography for Markdown rendered into .doc-body by the Pandoc pipeline.
+   Scoped to .doc-body so it never reaches the surrounding chrome.
+   ========================================================================== */
+
+.doc-body h1, .doc-body h2, .doc-body h3, .doc-body h4 {
+  color: var(--heading);
+  line-height: 1.25;
+  margin-top: 1.6rem;
+}
+.doc-body h1 { font-size: 1.85rem; margin-top: 0; }
+.doc-body h2 { font-size: 1.4rem; }
+.doc-body h3 { font-size: 1.15rem; }
+
+.doc-body p, .doc-body li { color: var(--text); }
+.doc-body ul, .doc-body ol { padding-left: 1.4rem; }
+
+.doc-body hr { border: 0; border-top: 1px solid var(--border); margin: 1.5rem 0; }
+
+.doc-body blockquote {
+  margin: 1rem 0;
+  padding: 0.75rem 1rem;
+  border-left: 3px solid var(--accent);
+  background: var(--surface-2);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+}
+
+.doc-body code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.92em;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  padding: 0.12rem 0.3rem;
+  border-radius: var(--radius-sm);
+}
+.doc-body pre {
+  background: var(--code-bg);
+  border: 1px solid var(--code-border);
+  border-radius: var(--radius-sm);
+  padding: 1rem;
+  overflow-x: auto;
+}
+
+/* Reset inside fenced blocks so the inline-code pill styling does not stack. */
+.doc-body pre code { background: none; border: 0; padding: 0; }
+
+.doc-body table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1rem 0;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+.doc-body th, .doc-body td {
+  text-align: left;
+  padding: 0.6rem 0.7rem;
+  border-bottom: 1px solid var(--border-strong);
+  vertical-align: top;
+}
+.doc-body th { color: var(--heading); background: var(--surface-2); font-weight: 600; }
+.doc-body tr:hover td { background: var(--surface-2); }
+
+/* Rendered diagram SVGs (mermaid pre-rendered by generate-diagrams.mjs) sit in
+   the flow like an image and must not overflow the measure. */
+.doc-body img, .doc-body svg { max-width: 100%; height: auto; }

@@ -1,0 +1,141 @@
+{
+  "realm": "maintenance",
+  "displayName": "Maintenance Assistant",
+  "enabled": true,
+  "sslRequired": "external",
+  "registrationAllowed": false,
+  "resetPasswordAllowed": false,
+  "rememberMe": true,
+  "loginWithEmailAllowed": false,
+  "verifyEmail": false,
+  "internationalizationEnabled": true,
+  "supportedLocales": ["de", "en"],
+  "defaultLocale": "de",
+  "accessTokenLifespan": 900,
+  "ssoSessionIdleTimeout": 1800,
+  "ssoSessionMaxLifespan": 36000,
+  "bruteForceProtected": true,
+  "roles": {
+    "realm": [
+      {
+        "name": "operator",
+        "description": "Machine operator. Search only; receives operator-safe instructions and escalation advice, never repair steps."
+      },
+      {
+        "name": "techniker",
+        "description": "Shop-floor technician (Fachkraft). Search only; receives full technical answers including repair steps."
+      },
+      {
+        "name": "schichtleiter",
+        "description": "Shift supervisor. Everything a technician may do, plus the sole write access: create and upload protocols."
+      },
+      {
+        "name": "admin",
+        "description": "System administrator (IT role). Manages users and role assignments in Keycloak."
+      }
+    ]
+  },
+  "users": [
+    {
+      "username": "operator",
+      "enabled": true,
+      "email": "operator@demo.local",
+      "emailVerified": true,
+      "firstName": "Demo",
+      "lastName": "Operator",
+      "credentials": [
+        { "type": "password", "value": "demo1234", "temporary": false }
+      ],
+      "realmRoles": ["operator"]
+    },
+    {
+      "username": "techniker",
+      "enabled": true,
+      "email": "techniker@demo.local",
+      "emailVerified": true,
+      "firstName": "Demo",
+      "lastName": "Techniker",
+      "credentials": [
+        { "type": "password", "value": "demo1234", "temporary": false }
+      ],
+      "realmRoles": ["techniker"]
+    },
+    {
+      "username": "schichtleiter",
+      "enabled": true,
+      "email": "schichtleiter@demo.local",
+      "emailVerified": true,
+      "firstName": "Demo",
+      "lastName": "Schichtleiter",
+      "credentials": [
+        { "type": "password", "value": "demo1234", "temporary": false }
+      ],
+      "realmRoles": ["schichtleiter"]
+    },
+    {
+      "username": "admin",
+      "enabled": true,
+      "email": "admin@demo.local",
+      "emailVerified": true,
+      "firstName": "Demo",
+      "lastName": "Admin",
+      "credentials": [
+        { "type": "password", "value": "demo1234", "temporary": false }
+      ],
+      "realmRoles": ["admin"]
+    }
+  ],
+  "clients": [
+    {
+      "clientId": "frontend",
+      "name": "Angular frontend",
+      "description": "Public browser client. Authorization Code Flow + PKCE (S256); holds no secret.",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "frontchannelLogout": true,
+      "rootUrl": "http://localhost:4200",
+      "baseUrl": "/",
+      "redirectUris": ["http://localhost:4200/*"],
+      "webOrigins": ["http://localhost:4200"],
+      "attributes": {
+        "pkce.code.challenge.method": "S256",
+        "post.logout.redirect.uris": "http://localhost:4200/*"
+      },
+      "protocolMappers": [
+        {
+          "name": "backend-audience",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "consentRequired": false,
+          "config": {
+            "included.client.audience": "backend",
+            "access.token.claim": "true",
+            "introspection.token.claim": "true",
+            "id.token.claim": "false",
+            "lightweight.claim": "false"
+          }
+        }
+      ],
+      "defaultClientScopes": ["acr", "basic", "email", "profile", "roles", "web-origins"],
+      "optionalClientScopes": ["address", "offline_access", "phone"]
+    },
+    {
+      "clientId": "backend",
+      "name": "Spring Boot resource server",
+      "description": "Audience identifier only. The backend validates JWTs offline via JWKS and never performs a login flow, so every flow is disabled here.",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "bearerOnly": true,
+      "standardFlowEnabled": false,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false
+    }
+  ]
+}

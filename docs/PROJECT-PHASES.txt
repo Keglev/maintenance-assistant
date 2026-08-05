@@ -50,7 +50,7 @@ PHASE 1 — WALKING SKELETON  [IN PROGRESS]
 [x] Repo structure: frontend/, backend/, docs/, docker/, .github/
     (only README.md at repo root)
 [x] docs: arc42 skeleton, ADR-001/-003/-004 Accepted, ADR-002 Proposed,
-    Jekyll theme (docs/_themes), mermaid script (docs/scripts)
+    docs theme (docs/_theme, Pandoc), mermaid script (docs/scripts)
 [x] docker-compose: Postgres(pgvector) + Keycloak, realm "maintenance",
     4 roles (operator/techniker/schichtleiter/admin), demo users,
     public client "frontend" (Auth Code Flow + PKCE), realm-export.json
@@ -115,15 +115,17 @@ PIPELINE ARCHITECTURE (.github/workflows/)
                       (JUnit + JaCoCo), OpenAPI spec; upload artifacts
                       on main
 2b. docs-pr-check.yml PR (paths docs/** + the docs workflow files): job
-                      build-and-test — renders the mermaid diagrams and
-                      checks they are up to date. TODO: site build + link
-                      check, marked in the file, lands in a later PR.
+                      build-and-test — renders the mermaid diagrams, builds
+                      the site with build-docs.sh and link-checks it with
+                      lychee. Publishes nothing.
 3. frontend-deploy.yml / backend-deploy.yml
                       push main, after CI success: multi-arch docker
                       build (amd64+arm64) -> GHCR. Hetzner deploy =
                       commented TODO until VPS exists.
 4. docs.yml           a) push main paths docs/**: regenerate mermaid
-                         diagrams, build Jekyll site -> gh-pages
+                         diagrams, build the site with Pandoc via
+                         .github/scripts/docs/build-docs.sh -> gh-pages
+                         (theme: docs/_theme, landing + arc42 + ADRs)
                       b) workflow_run success of frontend-ci/backend-ci:
                          publish coverage + API docs into gh-pages
                          subfolders (/frontend/coverage, /frontend/

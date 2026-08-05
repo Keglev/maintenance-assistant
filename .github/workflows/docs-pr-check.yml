@@ -76,6 +76,15 @@ jobs:
       # prefixing --root-dir to it, so the site is staged under a directory of exactly that name and
       # --root-dir points at its parent; /maintenance-assistant/x.html then resolves to
       # target/link-check/maintenance-assistant/x.html.
+      #
+      # THE TRAP, and why the staging matters: a page linking out of the site with ../.. resolves
+      # ABOVE the staged directory, into --root-dir's parent. Check the same tree in place in the
+      # repository instead and that link silently "works", because the real backend/, docker/ and
+      # .github/ directories happen to sit exactly where it points. That is how a broken
+      # ../../docker/ link passed locally and failed here. Always reproduce a failure against this
+      # staged copy, never against the working tree — and never silence an escaping link with a
+      # lychee exclusion: a page that means to reference repository source uses an absolute GitHub
+      # URL, which `offline = true` skips as external.
       - name: Stage the site for link checking
         run: |
           mkdir -p target/link-check

@@ -38,19 +38,23 @@ no_progress = true
 #      frontend-ci -> Vitest coverage   -> /maintenance-assistant/frontend/coverage/
 #      frontend-ci -> Compodoc          -> /maintenance-assistant/frontend/api-docs/
 #
-# 2. Links from documentation to repository *source* files (a realm export, a
-#    build script). Those deliberately point at the code, which is not part of
-#    the published site; the reader follows them on GitHub, not here.
+# Patterns are matched against the RESOLVED target, which for a file link is an
+# absolute file:// path with NO trailing slash — `backend/coverage/` would not
+# match a link to the directory itself, so the patterns below omit the trailing
+# slash deliberately.
+#
+# There is deliberately NO exclusion for links that leave the site root. A page
+# that needs to point at repository source (the realm export, the compose stack,
+# the diagram generator) uses an absolute GitHub URL, which `offline = true`
+# skips as an external link. An earlier `docker/` entry here existed only to
+# silence such a link, and it silenced it *inconsistently*: lychee resolved
+# `../../docker/` to `<root>/docker` without a trailing slash, so the pattern
+# never matched in CI while a laxer local check accepted it. Escaping links now
+# fail, which is the point — see the note in docs-pr-check.yml.
 # ---------------------------------------------------------------------------
 exclude = [
-  "backend/coverage/",
-  "backend/api-docs/",
-  "frontend/coverage/",
-  "frontend/api-docs/",
-
-  # Links from documentation to repository source, which is not part of the
-  # published site: the Keycloak realm export, the compose stack and the diagram
-  # generator. A reader follows these on GitHub, not here.
-  "docker/",
-  "scripts/generate-diagrams",
+  "backend/coverage",
+  "backend/api-docs",
+  "frontend/coverage",
+  "frontend/api-docs",
 ]

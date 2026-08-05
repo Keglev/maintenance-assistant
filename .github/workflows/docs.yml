@@ -41,9 +41,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: 22
 
@@ -84,7 +84,7 @@ jobs:
     steps:
       # The OpenAPI render needs the build script, so the repository is checked
       # out here as well as in the site job.
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Identify the source project
         id: project
@@ -99,7 +99,7 @@ jobs:
       # CI uploads them only from main, so pull requests can never publish.
       # The paths match what build-openapi-docs.sh looks for.
       - name: Download coverage
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: ${{ steps.project.outputs.name }}-coverage
           path: target/reports/${{ steps.project.outputs.name }}-coverage
@@ -107,7 +107,7 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Download API documentation
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: ${{ steps.project.outputs.name }}-api-docs
           path: target/reports/${{ steps.project.outputs.name }}-api-docs
@@ -117,7 +117,7 @@ jobs:
       # The backend artifact is a raw OpenAPI document, which is not something a
       # reviewer reads. Redocly renders it through the same script the site build
       # calls, so the published page cannot drift from a local build.
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         if: steps.project.outputs.name == 'backend'
         with:
           node-version: 22

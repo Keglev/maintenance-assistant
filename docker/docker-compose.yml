@@ -1,0 +1,100 @@
+# Local development stack for maintenance-assistant.
+#
+#   cp .env.example .env && docker compose up
+#
+# Three containers per ADR-001: the application, PostgreSQL + pgvector, and Keycloak.
+# All images below are published for linux/amd64 and linux/arm64, so the same file runs
+# on an Apple Silicon laptop and on the Hetzner CAX (arm64) target host.
+
+name: maintenance-assistant
+
+services:
+  postgres:
+    image: pgvector/pgvector:0.8.6-pg17
+    container_name: maintenance-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      # Deterministic collation, so ordering does not depend on the host locale.
+      POSTGRES_INITDB_ARGS: "--locale=C --encoding=UTF8"
+    ports:
+      # Bound to loopback: reachable from the IDE, not from the network.
+      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.7
+    container_name: maintenance-keycloak
+    restart: unless-stopped
+    # Dev mode: HTTP without TLS and an in-memory database. Development only —
+    # production uses `start` with an external database and TLS terminated upstream.
+    command: ["start-dev", "--import-realm"]
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: ${KEYCLOAK_ADMIN}
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
+      # Exposes /health/* on the management port (9000) for the healthcheck below.
+      KC_HEALTH_ENABLED: "true"
+    ports:
+      - "${KEYCLOAK_PORT:-8081}:8080"
+    volumes:
+      # Imported on every start, so the realm is reproducible and drift is visible.
+      - ./keycloak/realm-export.json:/opt/keycloak/data/import/realm-export.json:ro
+    healthcheck:
+      # The image ships no curl or wget, so the check speaks HTTP over bash's /dev/tcp.
+      test:
+        - "CMD"
+        - "/bin/bash"
+        - "-c"
+        - "exec 3<>/dev/tcp/127.0.0.1/9000 && printf 'GET /health/ready HTTP/1.1\\r\\nHost: localhost\\r\\nConnection: close\\r\\n\\r\\n' >&3 && grep -q '\"status\": \"UP\"' <&3"
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 40s
+
+  # ---------------------------------------------------------------------------
+  # Application — enabled in Phase 1, once backend/ contains a Spring Boot app.
+  # ---------------------------------------------------------------------------
+  # app:
+  #   build:
+  #     context: ..
+  #     dockerfile: docker/app/Dockerfile
+  #   container_name: maintenance-app
+  #   restart: unless-stopped
+  #   depends_on:
+  #     postgres:
+  #       condition: service_healthy
+  #     keycloak:
+  #       condition: service_healthy
+  #   environment:
+  #     SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB}
+  #     SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
+  #     SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+  #     SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: ${KEYCLOAK_ISSUER_URI}
+  #     LLM_BASE_URL: ${LLM_BASE_URL}
+  #     LLM_API_KEY: ${LLM_API_KEY}
+  #     LLM_CHAT_MODEL: ${LLM_CHAT_MODEL}
+  #     LLM_EMBEDDING_MODEL: ${LLM_EMBEDDING_MODEL}
+  #   ports:
+  #     - "${APP_PORT:-8080}:8080"
+  #   volumes:
+  #     # Original uploaded files live on a volume; the database stores only the path.
+  #     - protocol-files:/var/lib/maintenance/files
+  #   healthcheck:
+  #     test: ["CMD-SHELL", "curl -fsS http://localhost:8080/actuator/health || exit 1"]
+  #     interval: 15s
+  #     timeout: 5s
+  #     retries: 10
+  #     start_period: 60s
+
+volumes:
+  postgres-data:
+  protocol-files:

@@ -1,0 +1,82 @@
+# ---------------------------------------------------------------------------
+# Java / Maven (backend/)
+# ---------------------------------------------------------------------------
+target/
+build/
+!.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+*.class
+*.jar
+*.war
+*.ear
+hs_err_pid*
+replay_pid*
+
+# ---------------------------------------------------------------------------
+# Node / Angular (frontend/)
+# ---------------------------------------------------------------------------
+node_modules/
+.angular/
+dist/
+tmp/
+out-tsc/
+bazel-out/
+npm-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+.npm/
+
+# ---------------------------------------------------------------------------
+# Test & coverage output
+# ---------------------------------------------------------------------------
+coverage/
+.nyc_output/
+/backend/target/site/jacoco/
+*.lcov
+surefire-reports/
+failsafe-reports/
+TEST-*.xml
+
+# ---------------------------------------------------------------------------
+# Secrets & local environment
+# ---------------------------------------------------------------------------
+# Only *.example files are versioned — never a real .env (see docker/.env.example).
+.env
+.env.*
+!.env.example
+!**/.env.example
+*.pem
+*.key
+!**/src/**/*.key
+
+# ---------------------------------------------------------------------------
+# IDE / editor
+# ---------------------------------------------------------------------------
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json.example
+.settings/
+.project
+.classpath
+.factorypath
+*.swp
+*~
+
+# ---------------------------------------------------------------------------
+# OS
+# ---------------------------------------------------------------------------
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ---------------------------------------------------------------------------
+# Generated artifacts
+# ---------------------------------------------------------------------------
+# Mermaid SVGs are generated from .mmd sources by docs/scripts/generate-diagrams.mjs
+# and are NOT versioned; the gh-pages build regenerates them.
+docs/**/diagrams/*.svg

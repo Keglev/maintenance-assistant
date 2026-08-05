@@ -1,0 +1,94 @@
+name: docs-pr-check
+
+# Gives documentation pull requests a check of their own.
+#
+# The required branch-protection check is a *name*, `build-and-test`, not a workflow: a PR with no
+# job reporting under that name can never merge. Without this workflow, the only way to give a docs
+# PR that name would be to let the backend test suite run on it — so changing a Markdown file would
+# build and test a Spring Boot application, which proves nothing about the change and fails for
+# reasons that have nothing to do with it. This runs the docs checks instead, under the same
+# required name, so a docs PR is gated by something that can actually be wrong about it.
+#
+# The paths below and backend-ci.yml's pull_request paths-ignore are maintained as a pair. Every
+# content path in this list is ignored there, and everything else falls through to the backend job.
+# A path that ended up in neither would produce a PR with no `build-and-test` check at all, which is
+# unmergeable — see the comment on that trigger.
+#
+# This workflow's own file is deliberately NOT ignored by backend-ci.yml. Editing the docs gate
+# should run both checks, because getting it wrong is how the repository loses its ability to merge.
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'docs/**'
+      - '.github/workflows/docs.yml'
+      - '.github/workflows/docs-pr-check.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: docs-pr-check-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-test:
+    # Same job id as backend-ci.yml and frontend-ci.yml on purpose: the required branch-protection
+    # check matches this name, so whichever side a PR touches, a job with the required name reports
+    # on it. A PR touching both docs and backend gets two checks under this name, and both must
+    # pass. Do not add a `name:` key — it would override the id and hide the required check.
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      # The diagram sources are versioned but their SVGs are not, so a broken .mmd only surfaces
+      # when something renders it. docs.yml renders them while publishing; this catches a syntax
+      # error on the PR instead of on main, after the site has already failed to build.
+      - name: Render mermaid diagrams
+        run: node docs/scripts/generate-diagrams.mjs
+
+      # Renders again with nothing stale to do. The script re-renders only sources newer than their
+      # SVG, so a second pass proves it is idempotent and that --check agrees with what it just
+      # wrote — the mode docs.yml and any future gate rely on.
+      - name: Verify diagrams are up to date
+        run: node docs/scripts/generate-diagrams.mjs --check
+
+      # TODO(next PR): build the Jekyll site and link-check it.
+      #
+      # Replace this step with the site build once docs.yml's build is extracted into something a
+      # PR can call without publishing. The shape it should take:
+      #
+      #   - name: Stage Jekyll theme
+      #     run: |
+      #       cp docs/_themes/_config.yml docs/
+      #       cp -r docs/_themes/_layouts docs/
+      #
+      #   - name: Build site
+      #     uses: actions/jekyll-build-pages@v1
+      #     with:
+      #       source: ./docs
+      #       destination: ./_site
+      #     env:
+      #       JEKYLL_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #
+      #   - name: Check internal links
+      #     uses: lycheeverse/lychee-action@v2
+      #     with:
+      #       fail: true
+      #       args: --offline --root-dir "${{ github.workspace }}/_site" "_site/**/*.html"
+      #
+      # Nothing is uploaded or deployed from a PR run either way: the question this job answers is
+      # only whether the docs still build and their internal links still resolve. Keep the Node
+      # version and the Jekyll build in step with docs.yml, which remains the source of truth for
+      # how the site is built — it is what publishes it.
+      - name: Site build placeholder
+        run: |
+          echo "Diagram sources render and are up to date."
+          echo "TODO: site build + link check land in the next PR (see comment above)."

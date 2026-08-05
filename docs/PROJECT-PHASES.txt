@@ -66,14 +66,58 @@ PHASE 1 — WALKING SKELETON  [IN PROGRESS]
 [ ] DONE = hello-world with login runs on the VPS via pipeline
 [ ] First release tag v0.1.0 once skeleton runs end-to-end with login
 
+UNIFIED REQUIRED CHECK — "build-and-test"
+Branch protection requires exactly ONE status check name:
+
+    build-and-test
+
+Three workflows gate pull requests, and all three name their job
+`build-and-test` (job id, no `name:` key — the id is what GitHub reports).
+Whichever part of the repo a PR touches, a job under that name reports on
+it. A PR touching two areas gets two checks under the name; both must pass.
+
+The pull_request path lists are a PARTITION and are maintained as a set:
+
+    frontend-ci.yml    paths:        frontend/**
+                                     .github/workflows/frontend-ci.yml
+    docs-pr-check.yml  paths:        docs/**
+                                     .github/workflows/docs.yml
+                                     .github/workflows/docs-pr-check.yml
+    backend-ci.yml     paths-ignore: frontend/**
+                                     docs/**
+                                     .github/workflows/docs.yml
+                       => catch-all: backend/**, docker/**, README.md,
+                          .gitignore, AI-USAGE.md, LICENSE, everything else
+
+INVARIANT — do not break this:
+- A path may be ignored by backend-ci.yml ONLY if another workflow gives
+  that PR a build-and-test check. A path ignored by all three leaves its
+  PRs with no required check and permanently unmergeable.
+- Root files (README.md, .gitignore, AI-USAGE.md, LICENSE) stay with
+  backend-ci on purpose: they live outside docs/, so the docs build never
+  reads them and would gate them on nothing.
+- The gate workflows' own files (frontend-ci.yml, docs-pr-check.yml) are
+  deliberately NOT ignored by backend-ci.yml, so editing a gate runs the
+  backend suite too. Getting these lists wrong is how the repo loses its
+  ability to merge.
+- push triggers are NOT a partition: they exist to produce artifacts and
+  fire the deploy workflows, so they stay narrow (backend-ci on
+  backend/**, frontend-ci on frontend/**). Widening them would publish a
+  new image for a README typo.
+
 PIPELINE ARCHITECTURE (.github/workflows/)
-1. frontend-ci.yml    PR + push main (paths frontend/**): test with
-                      coverage (test runner: vitest in jsdom — no
-                      browser needed on the runner), build; upload
-                      coverage + Compodoc artifacts on main
-2. backend-ci.yml     PR + push main (paths backend/**): mvn verify
+1. frontend-ci.yml    PR (paths frontend/**) + push main: job
+                      build-and-test — test with coverage (test runner:
+                      vitest in jsdom — no browser needed on the runner),
+                      build; upload coverage + Compodoc artifacts on main
+2. backend-ci.yml     PR (catch-all, see partition above) + push main
+                      (paths backend/**): job build-and-test — mvn verify
                       (JUnit + JaCoCo), OpenAPI spec; upload artifacts
                       on main
+2b. docs-pr-check.yml PR (paths docs/** + the docs workflow files): job
+                      build-and-test — renders the mermaid diagrams and
+                      checks they are up to date. TODO: site build + link
+                      check, marked in the file, lands in a later PR.
 3. frontend-deploy.yml / backend-deploy.yml
                       push main, after CI success: multi-arch docker
                       build (amd64+arm64) -> GHCR. Hetzner deploy =

@@ -1,54 +1,130 @@
-PROJECT PHASES — Instandhaltungs-Assistent
-(hand this file + DECISIONS.txt to the next session as context)
+PROJECT PHASES — maintenance-assistant (Wartungsassistent)
+Repo: https://github.com/Keglev/maintenance-assistant
+(This file + DECISIONS.txt are handed to every AI session as context.
+Naming update overriding older docs: project = "maintenance-assistant",
+Keycloak realm = "maintenance". English repo name is intentional.)
 
-PHASE 0 — PREP (before/parallel, ~2 days)
-- Fix stockease: demo login + reachable API docs  [recruiter feedback, highest priority]
-- Add AI-USAGE.md to existing repos
-- ADR-002 spike (1 day): Nebius vs IONOS - multilingual embedding DE<->EN retrieval test,
-  citation prompt test, cost per query, billing limits/prepaid. Also: verify Spring AI
-  compatibility with Spring Boot 4.1 (fallback: plain RestClient).
-- Result: ADR-002 status Proposed -> Accepted
-
-PHASE 1 — WALKING SKELETON (week 1)   <-- NEXT SESSION STARTS HERE
-- Repo structure (monorepo: backend/, frontend/, docs/adr/, docker/, .github/workflows/)
-- docker-compose: app + Postgres(pgvector) + Keycloak (arm64 images, Hetzner CAX)
-- Keycloak realm: 4 roles, demo users, realm-export.json versioned
-- Spring Boot 4.1 skeleton: modules ingestion/query/web, health endpoint, secured hello
-  endpoint validating Keycloak JWT
-- Angular skeleton: login redirect, one protected page showing role from token
-- GitHub Actions: build + test + docker build (multi-arch) + deploy to Hetzner
-- DONE = hello-world with login runs on the VPS via pipeline
-
-PHASE 2 — DATA + INGESTION (week 2)
-- Flyway migrations: machine, protocol, chunk (vector column)
-- Generate synthetic corpus (~150 protocols per DOMAIN-MODEL.md plan, incl. demo seeds)
-- Ingestion module: upload endpoint (Schichtleiter role), file -> volume, text extraction,
-  chunking, embedding call, status RECEIVED -> INDEXED/FAILED, async via Spring events
-- Seed loader for the corpus
-
-PHASE 3 — RAG QUERY + MODES (week 3)
-- Query module: embed question -> filtered pgvector top-5 -> threshold -> Mode A/B
-- Prompting: answer only from sources, cite each claim, answer in user's language,
-  role-based answer filtering (Operator = operator-safe steps only)
-- NFR-7 guards: Bucket4j per-user rate limit, daily budget counter, max_tokens cap,
-  query cache
-- Angular: search view with Mode A/B visual distinction + source links; upload view
-  with status; DE/EN switch
-
-PHASE 4 — POLISH + SHIP (week 4)
-- Tests (JUnit/Mockito; at least: mode routing, role filtering, budget guard)
-- OpenAPI/Swagger reachable (recruiter feedback!)
-- README: problem first (user perspective), 90-second demo walkthrough, architecture
-  diagram, links to ADRs; AI-USAGE.md
-- Deploy on Hetzner CAX (8GB), domain + TLS, demo credentials in README
-- Full recruiter walkthrough test on a phone and a fresh browser
-
-PHASE 5 — EVOLUTION (after applications are out, optional)
-- Extract ingestion service + Kafka (per ADR-001), document as ADR-005
-- Candidates: similar-machine search, OCR stretch goal, downtime stats view,
-  Spring Modulith boundary tests
+=====================================================================
+GIT WORKFLOW (MANDATORY FOR EVERY AI SESSION — no exceptions)
+=====================================================================
+- Work on exactly ONE branch, created from up-to-date main:
+    git checkout main && git pull && git checkout -b <type>/<short-name>
+  Never create additional branches. Never commit or push to main
+  (branch protection rejects it anyway).
+- Commit in small logical units as you work, not one commit at the end.
+- Conventional Commits: type(scope): imperative summary, max 72 chars.
+  Types: feat, fix, chore, docs, ci, test, refactor.
+  Scopes: backend, frontend, docker, docs, ci.
+  Body (wrapped ~72 chars) explaining WHY when not self-evident.
+  Never mention AI, Claude, or "generated" in commit messages.
+- Before finishing: run `git log --oneline main..HEAD`, show the list,
+  reword anything vague (no "update files", no "changes").
+- Push the branch and open the pull request yourself:
+    gh pr create --base main --title "<conventional title>" \
+      --body "<markdown: What / Why / Verification / Out of scope>"
+- Print the PR URL as final output. NEVER merge — merging is done
+  manually by Carlos after review.
 
 RULES CARRIED ACROSS SESSIONS
 - Demo must always work; test before every application sent out
-- Every architecture change gets an ADR
+- Every architecture change gets an ADR (docs/adr/, use ADR-TEMPLATE.md)
 - Requirements v0.2 (7 NFRs) and DECISIONS.txt are the source of truth
+- Docs live in docs/arc42 + docs/adr; published site = gh-pages branch
+- Releases: manual tags v* by Carlos; release.yml creates the GitHub
+  Release. Robots never create tags.
+
+=====================================================================
+PHASE 0 — PREP  [DONE except ADR-002 spike]
+=====================================================================
+[x] Fix stockease: demo login + reachable API docs (recruiter feedback)
+[x] AI-USAGE.md added
+[ ] ADR-002 spike (1 day): Nebius vs IONOS — multilingual embedding
+    DE<->EN retrieval test, citation prompt test, cost per query,
+    billing limits/prepaid. Verify Spring AI compatibility with
+    Spring Boot 4.1 (fallback: plain RestClient).
+    Deadline: before Phase 2 starts. Result: ADR-002 Proposed -> Accepted.
+
+=====================================================================
+PHASE 1 — WALKING SKELETON  [IN PROGRESS]
+=====================================================================
+[x] Repo structure: frontend/, backend/, docs/, docker/, .github/
+    (only README.md at repo root)
+[x] docs: arc42 skeleton, ADR-001/-003/-004 Accepted, ADR-002 Proposed,
+    Jekyll theme (docs/_themes), mermaid script (docs/scripts)
+[x] docker-compose: Postgres(pgvector) + Keycloak, realm "maintenance",
+    4 roles (operator/techniker/schichtleiter/admin), demo users,
+    public client "frontend" (Auth Code Flow + PKCE), realm-export.json
+[x] Branch protection on main (PRs required), squash merges
+[ ] Backend skeleton (Spring Boot 4.1, Java 21, Maven, modules
+    ingestion/query/web, /api/health public, /api/hello JWT-secured,
+    springdoc-openapi, JaCoCo, multi-stage arm64 Dockerfile)
+[ ] Frontend skeleton (Angular standalone, angular-oauth2-oidc PKCE,
+    /login + guarded /home, headless test coverage, Compodoc)
+[ ] CI/CD pipelines (see PIPELINE ARCHITECTURE below)
+[ ] GitHub Pages configured (Settings -> Pages -> gh-pages branch)
+[ ] DONE = hello-world with login runs on the VPS via pipeline
+[ ] First release tag v0.1.0 once skeleton runs end-to-end with login
+
+PIPELINE ARCHITECTURE (.github/workflows/)
+1. frontend-ci.yml    PR + push main (paths frontend/**): test with
+                      coverage, build; upload coverage + Compodoc
+                      artifacts on main
+2. backend-ci.yml     PR + push main (paths backend/**): mvn verify
+                      (JUnit + JaCoCo), OpenAPI spec; upload artifacts
+                      on main
+3. frontend-deploy.yml / backend-deploy.yml
+                      push main, after CI success: multi-arch docker
+                      build (amd64+arm64) -> GHCR. Hetzner deploy =
+                      commented TODO until VPS exists.
+4. docs.yml           a) push main paths docs/**: regenerate mermaid
+                         diagrams, build Jekyll site -> gh-pages
+                      b) workflow_run success of frontend-ci/backend-ci:
+                         publish coverage + API docs into gh-pages
+                         subfolders (/frontend/coverage, /frontend/
+                         api-docs, /backend/coverage, /backend/api-docs)
+                         WITHOUT deleting the rest (keep_files)
+5. release.yml        tag v*: GitHub Release with generated notes
+
+=====================================================================
+PHASE 2 — DATA + INGESTION
+=====================================================================
+- Flyway migrations: machine, protocol, chunk (vector column)
+- Generate synthetic corpus (~150 protocols per DOMAIN-MODEL.md,
+  incl. demo seeds: E-47 Presse 3 x3, Mode-B gap, DE->EN match)
+- Ingestion module: upload endpoint (schichtleiter role), file ->
+  volume, text extraction, chunking, embedding call, status
+  RECEIVED -> INDEXED/FAILED, async via Spring events
+- Seed loader for the corpus
+- PREREQUISITE: ADR-002 spike done and Accepted
+
+=====================================================================
+PHASE 3 — RAG QUERY + MODES
+=====================================================================
+- Query module: embed question -> filtered pgvector top-5 ->
+  threshold -> Mode A/B
+- Prompting: answer only from sources, cite each claim, answer in
+  user's language, role-based filtering (Operator = operator-safe only)
+- NFR-7 guards: Bucket4j per-user rate limit, daily budget counter,
+  max_tokens cap, query cache
+- Angular: search view with Mode A/B visual distinction + source
+  links; upload view with status; DE/EN switch
+
+=====================================================================
+PHASE 4 — POLISH + SHIP
+=====================================================================
+- Tests (JUnit/Mockito; at least: mode routing, role filtering,
+  budget guard)
+- OpenAPI/Swagger reachable in the deployed demo (recruiter feedback!)
+- README: problem first, 90-second demo walkthrough, architecture
+  diagram, links to ADRs and gh-pages docs site; AI-USAGE.md current
+- Deploy on Hetzner CAX (8GB, arm64), domain + TLS, demo credentials
+  in README
+- Full recruiter walkthrough test on a phone and a fresh browser
+- Release v1.0.0
+
+=====================================================================
+PHASE 5 — EVOLUTION (after applications are out, optional)
+=====================================================================
+- Extract ingestion service + Kafka (per ADR-001), document as ADR-005
+- Candidates: similar-machine search, OCR stretch goal, downtime
+  stats view, Spring Modulith boundary tests

@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Decisions · ADR-TEMPLATE · maintenance-assistant Docs</title>
+  <title>Architecture ·
+09-architecture-decisions · maintenance-assistant Docs</title>
 
   <!-- Set the theme before the stylesheet paints, otherwise the page flashes
        the default theme for one frame before the saved choice applies. -->
@@ -121,73 +122,80 @@
     </aside>
     <main class="content" id="main">
       <article class="doc-body">
-        <h1 id="adr-nnn-short-title-in-the-imperative">ADR-NNN: Short
-        Title in the Imperative</h1>
+        <h1 id="architecture-decisions">9. Architecture Decisions</h1>
+        <p>Decisions live as individual records in <a
+        href="../adr/"><code>docs/adr/</code></a>. Every architecture
+        change gets an ADR; records are immutable once accepted, and a
+        changed decision becomes a new record that supersedes the old
+        one.</p>
         <table>
         <colgroup>
-        <col style="width: 50%" />
-        <col style="width: 50%" />
+        <col style="width: 25%" />
+        <col style="width: 25%" />
+        <col style="width: 25%" />
+        <col style="width: 25%" />
         </colgroup>
+        <thead>
+        <tr class="header">
+        <th>ADR</th>
+        <th>Decision</th>
+        <th>Status</th>
+        <th>Drives</th>
+        </tr>
+        </thead>
         <tbody>
         <tr class="odd">
-        <td><strong>Status</strong></td>
-        <td>Proposed | Accepted | Superseded by ADR-NNN |
-        Deprecated</td>
+        <td><a
+        href="../adr/ADR-001-modular-monolith-first.html">ADR-001</a></td>
+        <td>Modular monolith first (<code>ingestion</code> /
+        <code>query</code> / <code>web</code>, Spring events); extract
+        the ingestion service with Kafka in Phase 2</td>
+        <td>Accepted</td>
+        <td>§4.1, §5, §7</td>
         </tr>
         <tr class="even">
-        <td><strong>Date</strong></td>
-        <td>YYYY-MM-DD</td>
+        <td><a
+        href="../adr/ADR-002-eu-hosted-llm-provider.html">ADR-002</a></td>
+        <td>EU-hosted LLM and embedding provider: Nebius Token Factory
+        primary, IONOS AI Model Hub fallback; multilingual embedding
+        model as a hard requirement</td>
+        <td><strong>Proposed</strong> — 1-day spike pending</td>
+        <td>§3.2, §4, NFR-1, NFR-7</td>
         </tr>
         <tr class="odd">
-        <td><strong>Deciders</strong></td>
-        <td></td>
+        <td><a
+        href="../adr/ADR-003-keycloak-for-iam.html">ADR-003</a></td>
+        <td>Keycloak as identity provider; Authorization Code Flow +
+        PKCE in the browser, OAuth2 Resource Server in the backend;
+        realm exported and versioned</td>
+        <td>Accepted</td>
+        <td>§3.2, §8, NFR-3</td>
         </tr>
         <tr class="even">
-        <td><strong>Related</strong></td>
-        <td>Links to other ADRs, requirements (US-n / NFR-n) or config
-        files</td>
+        <td><a
+        href="../adr/ADR-004-pgvector-for-vector-search.html">ADR-004</a></td>
+        <td>PostgreSQL + pgvector rather than a dedicated vector
+        database; relational filter and vector ranking in one query</td>
+        <td>Accepted</td>
+        <td>§4.3, §7, US-3</td>
         </tr>
         </tbody>
         </table>
-        <h2 id="context">Context</h2>
-        <p>The forces at play: requirement, constraint, problem. What
-        makes this a decision rather than an obvious step. No solution
-        here.</p>
-        <h2 id="decision">Decision</h2>
-        <p>What was decided, in the active voice. Concrete enough that
-        someone can implement it.</p>
-        <h2 id="consequences">Consequences</h2>
-        <p><strong>Positive</strong></p>
-        <ul>
-        <li>…</li>
-        </ul>
-        <p><strong>Negative</strong></p>
-        <ul>
-        <li>… (an ADR with no negative consequences has not been thought
-        through)</li>
-        </ul>
-        <h2 id="alternatives-considered">Alternatives considered</h2>
-        <ul>
-        <li><strong>Option</strong> — why it was attractive, why it
-        lost. <em>Rejected.</em></li>
-        </ul>
+        <p><strong>Planned:</strong> ADR-005 will record the Phase 5
+        extraction of the ingestion service and the introduction of
+        Kafka, once that change is actually made.</p>
+        <p><strong>Open decision:</strong> ADR-002 is the only record
+        not yet accepted. Its five open questions and its exit criterion
+        are listed in the record itself; Phase 1 work on the query
+        module waits on it.</p>
       </article>
     </main>
 
         <nav class="toc" aria-label="On this page">
       <p class="toc-title">On this page</p>
       <ul>
-      <li><a href="#adr-nnn-short-title-in-the-imperative"
-      id="toc-adr-nnn-short-title-in-the-imperative">ADR-NNN: Short
-      Title in the Imperative</a>
-      <ul>
-      <li><a href="#context" id="toc-context">Context</a></li>
-      <li><a href="#decision" id="toc-decision">Decision</a></li>
-      <li><a href="#consequences"
-      id="toc-consequences">Consequences</a></li>
-      <li><a href="#alternatives-considered"
-      id="toc-alternatives-considered">Alternatives considered</a></li>
-      </ul></li>
+      <li><a href="#architecture-decisions"
+      id="toc-architecture-decisions">9. Architecture Decisions</a></li>
       </ul>
     </nav>
       </div>

@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Decisions · ADR-TEMPLATE · maintenance-assistant Docs</title>
+  <title>Architecture ·
+04-solution-strategy · maintenance-assistant Docs</title>
 
   <!-- Set the theme before the stylesheet paints, otherwise the page flashes
        the default theme for one frame before the saved choice applies. -->
@@ -121,72 +122,145 @@
     </aside>
     <main class="content" id="main">
       <article class="doc-body">
-        <h1 id="adr-nnn-short-title-in-the-imperative">ADR-NNN: Short
-        Title in the Imperative</h1>
+        <h1 id="solution-strategy">4. Solution Strategy</h1>
         <table>
         <colgroup>
-        <col style="width: 50%" />
-        <col style="width: 50%" />
+        <col style="width: 33%" />
+        <col style="width: 33%" />
+        <col style="width: 33%" />
         </colgroup>
+        <thead>
+        <tr class="header">
+        <th>Quality goal (§1.2)</th>
+        <th>Solution approach</th>
+        <th>Decision</th>
+        </tr>
+        </thead>
         <tbody>
         <tr class="odd">
-        <td><strong>Status</strong></td>
-        <td>Proposed | Accepted | Superseded by ADR-NNN |
-        Deprecated</td>
+        <td>Verifiable answers</td>
+        <td>Retrieval-augmented generation over an indexed protocol
+        corpus. Retrieval hits above a similarity threshold produce
+        <strong>Mode A</strong> with a citation per claim; below the
+        threshold the system states that nothing matched and may offer a
+        labelled <strong>Mode B</strong> suggestion. The mode is runtime
+        behaviour, not a stored attribute.</td>
+        <td>DOMAIN-MODEL §2, NFR-2</td>
         </tr>
         <tr class="even">
-        <td><strong>Date</strong></td>
-        <td>YYYY-MM-DD</td>
+        <td>Data residency</td>
+        <td>Every component is self-hosted on one EU VPS; the only
+        outbound call is to an EU-hosted, OpenAI-compatible LLM
+        endpoint.</td>
+        <td><a
+        href="../adr/ADR-002-eu-hosted-llm-provider.html">ADR-002</a></td>
         </tr>
         <tr class="odd">
-        <td><strong>Deciders</strong></td>
-        <td></td>
+        <td>Role-correct answers</td>
+        <td>Keycloak issues JWTs carrying realm roles; the backend
+        validates them as an OAuth2 Resource Server and applies
+        role-based <strong>answer filtering</strong> server-side — the
+        role shapes the generated content, not just page access.</td>
+        <td><a href="../adr/ADR-003-keycloak-for-iam.html">ADR-003</a>,
+        NFR-3</td>
         </tr>
         <tr class="even">
-        <td><strong>Related</strong></td>
-        <td>Links to other ADRs, requirements (US-n / NFR-n) or config
-        files</td>
+        <td>Operability &amp; solo delivery</td>
+        <td>One Spring Boot application, internally modularised into
+        <code>ingestion</code> / <code>query</code> / <code>web</code>,
+        with in-process Spring events for the asynchronous indexing
+        flow. Three containers total.</td>
+        <td><a
+        href="../adr/ADR-001-modular-monolith-first.html">ADR-001</a></td>
+        </tr>
+        <tr class="odd">
+        <td>Simple, consistent storage</td>
+        <td>One PostgreSQL instance with pgvector: relational filter and
+        cosine ranking in a single query, one backup, no cross-store
+        consistency problem.</td>
+        <td><a
+        href="../adr/ADR-004-pgvector-for-vector-search.html">ADR-004</a></td>
+        </tr>
+        <tr class="even">
+        <td>Cost control</td>
+        <td>Three layers: provider-side prepaid/spending limits,
+        application-side per-user rate limiting + global daily budget +
+        capped answer length + query cache, and daily token-usage
+        logging. Exhaustion produces a friendly message, never an error
+        page.</td>
+        <td>NFR-7</td>
         </tr>
         </tbody>
         </table>
-        <h2 id="context">Context</h2>
-        <p>The forces at play: requirement, constraint, problem. What
-        makes this a decision rather than an obvious step. No solution
-        here.</p>
-        <h2 id="decision">Decision</h2>
-        <p>What was decided, in the active voice. Concrete enough that
-        someone can implement it.</p>
-        <h2 id="consequences">Consequences</h2>
-        <p><strong>Positive</strong></p>
+        <h2 id="decomposition">4.1 Decomposition</h2>
+        <p>Three internal modules, drawn so that the Phase 1 boundary is
+        the Phase 2 extraction seam:</p>
         <ul>
-        <li>…</li>
+        <li><strong><code>ingestion</code></strong> — accepts protocols
+        (form or file), stores the original on a volume, extracts text,
+        chunks it, requests embeddings, writes chunks, drives the status
+        lifecycle <code>RECEIVED → INDEXED / FAILED</code>.</li>
+        <li><strong><code>query</code></strong> — embeds the question,
+        runs the filtered vector search, applies the similarity
+        threshold to pick Mode A or B, builds the prompt including the
+        role constraint, and assembles the answer with its
+        citations.</li>
+        <li><strong><code>web</code></strong> — REST endpoints, security
+        configuration, JWT-to-authority mapping, request
+        validation.</li>
         </ul>
-        <p><strong>Negative</strong></p>
-        <ul>
-        <li>… (an ADR with no negative consequences has not been thought
-        through)</li>
-        </ul>
-        <h2 id="alternatives-considered">Alternatives considered</h2>
-        <ul>
-        <li><strong>Option</strong> — why it was attractive, why it
-        lost. <em>Rejected.</em></li>
-        </ul>
+        <p><code>ingestion</code> and <code>query</code> communicate
+        with the rest of the system through Spring application events;
+        in Phase 2 that transport becomes Kafka topics without a change
+        to the domain model.</p>
+        <h2 id="key-technology-decisions">4.2 Key technology
+        decisions</h2>
+        <p>Java 21 · Spring Boot 4.1 (3.x EOL since 2026-06-30) ·
+        Angular + TypeScript, thin · PostgreSQL + pgvector · Keycloak ·
+        EU-hosted LLM via an OpenAI-compatible API · Docker Compose ·
+        GitHub Actions · Hetzner CAX (arm64, 8 GB). Spring AI is adopted
+        only if it is compatible with Boot 4.1, verified in the ADR-002
+        spike; the fallback is a plain <code>RestClient</code>. Spring
+        Modulith is an optional later upgrade to enforce the ADR-001
+        module boundaries with tests.</p>
+        <h2 id="approach-to-the-data-model">4.3 Approach to the data
+        model</h2>
+        <p>Three entities — <code>MACHINE</code> → <code>PROTOCOL</code>
+        → <code>CHUNK</code> — where the chunk is the <em>search</em>
+        unit, the protocol is the <em>citation</em> unit and the machine
+        is the <em>filter</em> unit. Users are deliberately not in the
+        database: identity and roles live in Keycloak and the
+        application only reads token claims. <code>CHUNK</code> carries
+        a denormalised <code>machine_id</code> and
+        <code>error_code</code> so a filtered vector search is one
+        query. Details and rationale: <a
+        href="../DOMAIN-MODEL.html">DOMAIN-MODEL.md</a>.</p>
+        <h2 id="delivery-strategy">4.4 Delivery strategy</h2>
+        <p>A walking skeleton first: Phase 1 ends when hello-world
+        <em>with login</em> runs on the VPS through the pipeline. Data
+        and ingestion follow in Phase 2, the RAG query and answer modes
+        in Phase 3, tests, OpenAPI, deployment and the demo walkthrough
+        in Phase 4. Full plan: <a
+        href="../PROJECT-PHASES.txt">PROJECT-PHASES.txt</a>.</p>
       </article>
     </main>
 
         <nav class="toc" aria-label="On this page">
       <p class="toc-title">On this page</p>
       <ul>
-      <li><a href="#adr-nnn-short-title-in-the-imperative"
-      id="toc-adr-nnn-short-title-in-the-imperative">ADR-NNN: Short
-      Title in the Imperative</a>
+      <li><a href="#solution-strategy" id="toc-solution-strategy">4.
+      Solution Strategy</a>
       <ul>
-      <li><a href="#context" id="toc-context">Context</a></li>
-      <li><a href="#decision" id="toc-decision">Decision</a></li>
-      <li><a href="#consequences"
-      id="toc-consequences">Consequences</a></li>
-      <li><a href="#alternatives-considered"
-      id="toc-alternatives-considered">Alternatives considered</a></li>
+      <li><a href="#decomposition" id="toc-decomposition">4.1
+      Decomposition</a></li>
+      <li><a href="#key-technology-decisions"
+      id="toc-key-technology-decisions">4.2 Key technology
+      decisions</a></li>
+      <li><a href="#approach-to-the-data-model"
+      id="toc-approach-to-the-data-model">4.3 Approach to the data
+      model</a></li>
+      <li><a href="#delivery-strategy" id="toc-delivery-strategy">4.4
+      Delivery strategy</a></li>
       </ul></li>
       </ul>
     </nav>

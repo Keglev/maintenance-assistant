@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Decisions · ADR-TEMPLATE · maintenance-assistant Docs</title>
+  <title>Architecture ·
+02-architecture-constraints · maintenance-assistant Docs</title>
 
   <!-- Set the theme before the stylesheet paints, otherwise the page flashes
        the default theme for one frame before the saved choice applies. -->
@@ -121,55 +122,161 @@
     </aside>
     <main class="content" id="main">
       <article class="doc-body">
-        <h1 id="adr-nnn-short-title-in-the-imperative">ADR-NNN: Short
-        Title in the Imperative</h1>
+        <h1 id="architecture-constraints">2. Architecture
+        Constraints</h1>
+        <h2 id="technical-constraints">2.1 Technical constraints</h2>
         <table>
         <colgroup>
-        <col style="width: 50%" />
-        <col style="width: 50%" />
+        <col style="width: 33%" />
+        <col style="width: 33%" />
+        <col style="width: 33%" />
         </colgroup>
+        <thead>
+        <tr class="header">
+        <th>#</th>
+        <th>Constraint</th>
+        <th>Background</th>
+        </tr>
+        </thead>
         <tbody>
         <tr class="odd">
-        <td><strong>Status</strong></td>
-        <td>Proposed | Accepted | Superseded by ADR-NNN |
-        Deprecated</td>
+        <td>TC-1</td>
+        <td><strong>All processing on EU infrastructure</strong>, LLM
+        inference via an EU-hosted provider, no training on submitted
+        data.</td>
+        <td>NFR-1; the core product claim. Disqualifies US-hosted model
+        APIs and SaaS vector services outright.</td>
         </tr>
         <tr class="even">
-        <td><strong>Date</strong></td>
-        <td>YYYY-MM-DD</td>
+        <td>TC-2</td>
+        <td><strong>Single VPS, ~8 GB RAM</strong> (Hetzner CAX, arm64).
+        Full stack via one <code>docker compose up</code>.</td>
+        <td>NFR-5 and the cost decisions: 4 GB was rejected (OOM risk
+        during indexing), 8 GB confirmed.</td>
         </tr>
         <tr class="odd">
-        <td><strong>Deciders</strong></td>
-        <td></td>
+        <td>TC-3</td>
+        <td><strong>arm64-compatible container images only</strong>,
+        plus multi-arch CI builds.</td>
+        <td>Consequence of choosing Hetzner CAX (ARM) as the cheapest 8
+        GB option.</td>
         </tr>
         <tr class="even">
-        <td><strong>Related</strong></td>
-        <td>Links to other ADRs, requirements (US-n / NFR-n) or config
-        files</td>
+        <td>TC-4</td>
+        <td><strong>Java 21 · Spring Boot 4.1</strong>. Boot 3.x is EOL
+        since 2026-06-30.</td>
+        <td>Decided stack. Spring AI is used only if compatible with
+        Boot 4.1; fallback is a plain <code>RestClient</code>.</td>
+        </tr>
+        <tr class="odd">
+        <td>TC-5</td>
+        <td><strong>Angular + TypeScript</strong> for the frontend, kept
+        thin (three views: search, upload, login redirect).</td>
+        <td>Decided stack; also a deliberate portfolio choice for the
+        German enterprise market.</td>
+        </tr>
+        <tr class="even">
+        <td>TC-6</td>
+        <td><strong>PostgreSQL + pgvector</strong> as the only
+        datastore; no dedicated vector database.</td>
+        <td><a
+        href="../adr/ADR-004-pgvector-for-vector-search.html">ADR-004</a>.</td>
+        </tr>
+        <tr class="odd">
+        <td>TC-7</td>
+        <td><strong>Keycloak as the identity provider</strong>; the
+        realm is exported and versioned so the stack is
+        reproducible.</td>
+        <td><a
+        href="../adr/ADR-003-keycloak-for-iam.html">ADR-003</a>.</td>
+        </tr>
+        <tr class="even">
+        <td>TC-8</td>
+        <td><strong>Multilingual embedding model is a hard
+        requirement.</strong> Nothing is translated anywhere; texts are
+        stored as written and DE↔︎EN is bridged by the embedding
+        space.</td>
+        <td>DECISIONS.txt; <a
+        href="../adr/ADR-002-eu-hosted-llm-provider.html">ADR-002</a>.</td>
+        </tr>
+        <tr class="odd">
+        <td>TC-9</td>
+        <td><strong>Hard ceiling on LLM spend</strong> at provider,
+        application and logging layers.</td>
+        <td>NFR-7; the demo is public and therefore abusable.</td>
+        </tr>
+        <tr class="even">
+        <td>TC-10</td>
+        <td><strong>CI/CD via GitHub Actions</strong> with automated
+        tests (JUnit/Mockito) on every push.</td>
+        <td>NFR-5.</td>
         </tr>
         </tbody>
         </table>
-        <h2 id="context">Context</h2>
-        <p>The forces at play: requirement, constraint, problem. What
-        makes this a decision rather than an obvious step. No solution
-        here.</p>
-        <h2 id="decision">Decision</h2>
-        <p>What was decided, in the active voice. Concrete enough that
-        someone can implement it.</p>
-        <h2 id="consequences">Consequences</h2>
-        <p><strong>Positive</strong></p>
+        <h2 id="organisational-constraints">2.2 Organisational
+        constraints</h2>
+        <table>
+        <colgroup>
+        <col style="width: 33%" />
+        <col style="width: 33%" />
+        <col style="width: 33%" />
+        </colgroup>
+        <thead>
+        <tr class="header">
+        <th>#</th>
+        <th>Constraint</th>
+        <th>Background</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr class="odd">
+        <td>OC-1</td>
+        <td><strong>Solo developer, 3–4 week budget</strong>, split into
+        phases 1–4 with an optional phase 5.</td>
+        <td>PROJECT-PHASES.txt. Rules out anything that multiplies
+        operational surface — see <a
+        href="../adr/ADR-001-modular-monolith-first.html">ADR-001</a>.</td>
+        </tr>
+        <tr class="even">
+        <td>OC-2</td>
+        <td><strong>The demo must always work</strong>, and is tested
+        before every application sent out.</td>
+        <td>A personal rule following concrete recruiter feedback about
+        a broken demo.</td>
+        </tr>
+        <tr class="odd">
+        <td>OC-3</td>
+        <td><strong>Every architecture change gets an ADR.</strong></td>
+        <td>PROJECT-PHASES.txt, rules carried across sessions.</td>
+        </tr>
+        <tr class="even">
+        <td>OC-4</td>
+        <td><strong>Synthetic data only.</strong> ~150 generated
+        protocols, no real customer documents.</td>
+        <td>NFR-1; also removes any confidentiality question from the
+        public demo.</td>
+        </tr>
+        <tr class="odd">
+        <td>OC-5</td>
+        <td><strong>AI usage is documented</strong> in
+        <code>AI-USAGE.md</code>.</td>
+        <td>NFR-6.</td>
+        </tr>
+        </tbody>
+        </table>
+        <h2 id="conventions">2.3 Conventions</h2>
         <ul>
-        <li>…</li>
-        </ul>
-        <p><strong>Negative</strong></p>
-        <ul>
-        <li>… (an ADR with no negative consequences has not been thought
-        through)</li>
-        </ul>
-        <h2 id="alternatives-considered">Alternatives considered</h2>
-        <ul>
-        <li><strong>Option</strong> — why it was attractive, why it
-        lost. <em>Rejected.</em></li>
+        <li><strong>Documentation in English</strong>, product UI
+        bilingual DE/EN (US-8). Domain terms stay German where they are
+        the real shop-floor vocabulary (<em>Störung</em>,
+        <em>Schichtleiter</em>, <em>Techniker</em>) — see the <a
+        href="12-glossary.html">glossary</a>.</li>
+        <li><strong>arc42</strong> for architecture documentation,
+        <strong>MADR-style ADRs</strong> for decisions.</li>
+        <li><strong>Conventional commits</strong>; small, reviewable
+        commits.</li>
+        <li>Realm name <code>maintenance</code>, repository name
+        <code>maintenance-assistant</code>.</li>
         </ul>
       </article>
     </main>
@@ -177,16 +284,16 @@
         <nav class="toc" aria-label="On this page">
       <p class="toc-title">On this page</p>
       <ul>
-      <li><a href="#adr-nnn-short-title-in-the-imperative"
-      id="toc-adr-nnn-short-title-in-the-imperative">ADR-NNN: Short
-      Title in the Imperative</a>
+      <li><a href="#architecture-constraints"
+      id="toc-architecture-constraints">2. Architecture Constraints</a>
       <ul>
-      <li><a href="#context" id="toc-context">Context</a></li>
-      <li><a href="#decision" id="toc-decision">Decision</a></li>
-      <li><a href="#consequences"
-      id="toc-consequences">Consequences</a></li>
-      <li><a href="#alternatives-considered"
-      id="toc-alternatives-considered">Alternatives considered</a></li>
+      <li><a href="#technical-constraints"
+      id="toc-technical-constraints">2.1 Technical constraints</a></li>
+      <li><a href="#organisational-constraints"
+      id="toc-organisational-constraints">2.2 Organisational
+      constraints</a></li>
+      <li><a href="#conventions" id="toc-conventions">2.3
+      Conventions</a></li>
       </ul></li>
       </ul>
     </nav>

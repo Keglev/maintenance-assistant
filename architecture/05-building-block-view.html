@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Decisions · ADR-TEMPLATE · maintenance-assistant Docs</title>
+  <title>Architecture ·
+05-building-block-view · maintenance-assistant Docs</title>
 
   <!-- Set the theme before the stylesheet paints, otherwise the page flashes
        the default theme for one frame before the saved choice applies. -->
@@ -121,55 +122,31 @@
     </aside>
     <main class="content" id="main">
       <article class="doc-body">
-        <h1 id="adr-nnn-short-title-in-the-imperative">ADR-NNN: Short
-        Title in the Imperative</h1>
-        <table>
-        <colgroup>
-        <col style="width: 50%" />
-        <col style="width: 50%" />
-        </colgroup>
-        <tbody>
-        <tr class="odd">
-        <td><strong>Status</strong></td>
-        <td>Proposed | Accepted | Superseded by ADR-NNN |
-        Deprecated</td>
-        </tr>
-        <tr class="even">
-        <td><strong>Date</strong></td>
-        <td>YYYY-MM-DD</td>
-        </tr>
-        <tr class="odd">
-        <td><strong>Deciders</strong></td>
-        <td></td>
-        </tr>
-        <tr class="even">
-        <td><strong>Related</strong></td>
-        <td>Links to other ADRs, requirements (US-n / NFR-n) or config
-        files</td>
-        </tr>
-        </tbody>
-        </table>
-        <h2 id="context">Context</h2>
-        <p>The forces at play: requirement, constraint, problem. What
-        makes this a decision rather than an obvious step. No solution
-        here.</p>
-        <h2 id="decision">Decision</h2>
-        <p>What was decided, in the active voice. Concrete enough that
-        someone can implement it.</p>
-        <h2 id="consequences">Consequences</h2>
-        <p><strong>Positive</strong></p>
+        <h1 id="building-block-view">5. Building Block View</h1>
+        <blockquote>
+        <p><strong>Stub — to be filled in Phase 1</strong> (backend and
+        frontend skeleton), refined in Phases 2–3.</p>
+        </blockquote>
+        <h2 id="whitebox-overall-system">5.1 Whitebox: overall
+        system</h2>
+        <p>Planned level-1 decomposition of the Spring Boot application
+        into the modules <code>ingestion</code>, <code>query</code> and
+        <code>web</code>, per <a
+        href="../adr/ADR-001-modular-monolith-first.html">ADR-001</a>
+        and <a
+        href="04-solution-strategy.html#41-decomposition">§4.1</a>. To
+        be documented here with a component diagram once the packages
+        exist.</p>
+        <h2 id="level-2">5.2 Level 2</h2>
         <ul>
-        <li>…</li>
-        </ul>
-        <p><strong>Negative</strong></p>
-        <ul>
-        <li>… (an ADR with no negative consequences has not been thought
-        through)</li>
-        </ul>
-        <h2 id="alternatives-considered">Alternatives considered</h2>
-        <ul>
-        <li><strong>Option</strong> — why it was attractive, why it
-        lost. <em>Rejected.</em></li>
+        <li><strong><code>ingestion</code></strong> — whitebox to be
+        documented in Phase 2.</li>
+        <li><strong><code>query</code></strong> — whitebox to be
+        documented in Phase 3.</li>
+        <li><strong><code>web</code></strong> — whitebox to be
+        documented in Phase 1.</li>
+        <li><strong>Angular client</strong> — whitebox to be documented
+        in Phase 1 (search, upload, login redirect).</li>
         </ul>
       </article>
     </main>
@@ -177,16 +154,13 @@
         <nav class="toc" aria-label="On this page">
       <p class="toc-title">On this page</p>
       <ul>
-      <li><a href="#adr-nnn-short-title-in-the-imperative"
-      id="toc-adr-nnn-short-title-in-the-imperative">ADR-NNN: Short
-      Title in the Imperative</a>
+      <li><a href="#building-block-view" id="toc-building-block-view">5.
+      Building Block View</a>
       <ul>
-      <li><a href="#context" id="toc-context">Context</a></li>
-      <li><a href="#decision" id="toc-decision">Decision</a></li>
-      <li><a href="#consequences"
-      id="toc-consequences">Consequences</a></li>
-      <li><a href="#alternatives-considered"
-      id="toc-alternatives-considered">Alternatives considered</a></li>
+      <li><a href="#whitebox-overall-system"
+      id="toc-whitebox-overall-system">5.1 Whitebox: overall
+      system</a></li>
+      <li><a href="#level-2" id="toc-level-2">5.2 Level 2</a></li>
       </ul></li>
       </ul>
     </nav>

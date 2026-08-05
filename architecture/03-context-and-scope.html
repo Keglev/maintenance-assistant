@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Decisions · ADR-TEMPLATE · maintenance-assistant Docs</title>
+  <title>Architecture ·
+03-context-and-scope · maintenance-assistant Docs</title>
 
   <!-- Set the theme before the stylesheet paints, otherwise the page flashes
        the default theme for one frame before the saved choice applies. -->
@@ -121,72 +122,176 @@
     </aside>
     <main class="content" id="main">
       <article class="doc-body">
-        <h1 id="adr-nnn-short-title-in-the-imperative">ADR-NNN: Short
-        Title in the Imperative</h1>
+        <h1 id="context-and-scope">3. Context and Scope</h1>
+        <h2 id="business-context">3.1 Business context</h2>
+        <figure>
+        <img src="diagrams/context.svg" alt="System context" />
+        <figcaption aria-hidden="true">System context</figcaption>
+        </figure>
+        <p><em>Diagram source: <a
+        href="diagrams/context.mmd"><code>diagrams/context.mmd</code></a>.
+        Render with
+        <code>node docs/scripts/generate-diagrams.mjs</code>.</em></p>
         <table>
         <colgroup>
-        <col style="width: 50%" />
-        <col style="width: 50%" />
+        <col style="width: 25%" />
+        <col style="width: 25%" />
+        <col style="width: 25%" />
+        <col style="width: 25%" />
         </colgroup>
+        <thead>
+        <tr class="header">
+        <th>Partner</th>
+        <th>Direction</th>
+        <th>Exchanged</th>
+        <th>Notes</th>
+        </tr>
+        </thead>
         <tbody>
         <tr class="odd">
-        <td><strong>Status</strong></td>
-        <td>Proposed | Accepted | Superseded by ADR-NNN |
-        Deprecated</td>
+        <td><strong>Operator</strong></td>
+        <td>in / out</td>
+        <td>Natural-language question or error code → operator-safe
+        answer with citations, or escalation advice</td>
+        <td>Never receives electrical or mechanical repair steps
+        (NFR-3).</td>
         </tr>
         <tr class="even">
-        <td><strong>Date</strong></td>
-        <td>YYYY-MM-DD</td>
+        <td><strong>Techniker</strong></td>
+        <td>in / out</td>
+        <td>Question, optional machine filter → full technical answer
+        with citations (document + date)</td>
+        <td>Machine filter keeps results relevant (US-3).</td>
         </tr>
         <tr class="odd">
-        <td><strong>Deciders</strong></td>
-        <td></td>
+        <td><strong>Schichtleiter</strong></td>
+        <td>in / out</td>
+        <td>New protocol (form) or uploaded PDF/text → processing status
+        <code>RECEIVED → INDEXED / FAILED</code></td>
+        <td>Sole write access.</td>
         </tr>
         <tr class="even">
-        <td><strong>Related</strong></td>
-        <td>Links to other ADRs, requirements (US-n / NFR-n) or config
-        files</td>
+        <td><strong>Admin</strong></td>
+        <td>in / out</td>
+        <td>User and role administration</td>
+        <td>Happens <strong>in Keycloak</strong>, not in this system’s
+        UI (US-6).</td>
+        </tr>
+        <tr class="odd">
+        <td><strong>Keycloak</strong></td>
+        <td>out / in</td>
+        <td>OIDC authorization requests → ID/access tokens (JWT) with
+        realm roles</td>
+        <td>Realm <code>maintenance</code>. Also the login UI; the app
+        has no login form.</td>
+        </tr>
+        <tr class="even">
+        <td><strong>PostgreSQL + pgvector</strong></td>
+        <td>out / in</td>
+        <td>SQL: protocol metadata, chunks, embeddings → filtered
+        nearest-neighbour results</td>
+        <td>Single datastore, one backup.</td>
+        </tr>
+        <tr class="odd">
+        <td><strong>EU-hosted LLM provider</strong></td>
+        <td>out / in</td>
+        <td>Embedding requests and chat/completion requests → embedding
+        vectors, generated answers</td>
+        <td>OpenAI-compatible API; provider choice pending <a
+        href="../adr/ADR-002-eu-hosted-llm-provider.html">ADR-002</a>.
+        The only external network dependency at query time.</td>
+        </tr>
+        <tr class="even">
+        <td><strong>Docker volume (file storage)</strong></td>
+        <td>out / in</td>
+        <td>Original uploaded files; DB stores only the path</td>
+        <td>No BLOBs in Postgres.</td>
         </tr>
         </tbody>
         </table>
-        <h2 id="context">Context</h2>
-        <p>The forces at play: requirement, constraint, problem. What
-        makes this a decision rather than an obvious step. No solution
-        here.</p>
-        <h2 id="decision">Decision</h2>
-        <p>What was decided, in the active voice. Concrete enough that
-        someone can implement it.</p>
-        <h2 id="consequences">Consequences</h2>
-        <p><strong>Positive</strong></p>
-        <ul>
-        <li>…</li>
-        </ul>
-        <p><strong>Negative</strong></p>
-        <ul>
-        <li>… (an ADR with no negative consequences has not been thought
-        through)</li>
-        </ul>
-        <h2 id="alternatives-considered">Alternatives considered</h2>
-        <ul>
-        <li><strong>Option</strong> — why it was attractive, why it
-        lost. <em>Rejected.</em></li>
-        </ul>
+        <h2 id="technical-context">3.2 Technical context</h2>
+        <table>
+        <colgroup>
+        <col style="width: 33%" />
+        <col style="width: 33%" />
+        <col style="width: 33%" />
+        </colgroup>
+        <thead>
+        <tr class="header">
+        <th>Interface</th>
+        <th>Protocol / technology</th>
+        <th>Purpose</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr class="odd">
+        <td>Browser ↔︎ frontend</td>
+        <td>HTTPS, Angular SPA</td>
+        <td>Three views: search, upload, login redirect.</td>
+        </tr>
+        <tr class="even">
+        <td>Browser ↔︎ Keycloak</td>
+        <td>OIDC Authorization Code Flow + PKCE, public client
+        <code>frontend</code></td>
+        <td>Login and token issuance; redirect URI
+        <code>http://localhost:4200/*</code> in development.</td>
+        </tr>
+        <tr class="odd">
+        <td>Frontend ↔︎ backend</td>
+        <td>HTTPS/REST,
+        <code>Authorization: Bearer &lt;JWT&gt;</code></td>
+        <td>Backend is an OAuth2 Resource Server; realm roles map to
+        Spring Security authorities.</td>
+        </tr>
+        <tr class="even">
+        <td>Backend ↔︎ Keycloak</td>
+        <td>JWKS over HTTPS</td>
+        <td>Token signature validation and audience check; no
+        per-request call to Keycloak.</td>
+        </tr>
+        <tr class="odd">
+        <td>Backend ↔︎ PostgreSQL</td>
+        <td>JDBC, port 5432</td>
+        <td>Relational filter and vector ranking in one query.</td>
+        </tr>
+        <tr class="even">
+        <td>Backend ↔︎ LLM provider</td>
+        <td>HTTPS, OpenAI-compatible REST</td>
+        <td>Embeddings and answer generation; EU region only.</td>
+        </tr>
+        <tr class="odd">
+        <td>Backend ↔︎ volume</td>
+        <td>Filesystem</td>
+        <td>Original files, path stored in
+        <code>PROTOCOL.source_file</code>.</td>
+        </tr>
+        </tbody>
+        </table>
+        <h2 id="explicitly-out-of-scope-phase-1">3.3 Explicitly out of
+        scope (Phase 1)</h2>
+        <p>Kafka and separate microservices (planned Phase 2, <a
+        href="../adr/ADR-001-modular-monolith-first.html">ADR-001</a>);
+        ticketing / escalation workflow / CMMS functionality; OCR for
+        scanned documents and digitisation of paper manuals (stretch
+        goal); multi-tenancy; a mobile app; protocol editing and
+        versioning. Search scope in Phase 1 is the exact machine only —
+        “similar machines” is a Phase 2 candidate.</p>
       </article>
     </main>
 
         <nav class="toc" aria-label="On this page">
       <p class="toc-title">On this page</p>
       <ul>
-      <li><a href="#adr-nnn-short-title-in-the-imperative"
-      id="toc-adr-nnn-short-title-in-the-imperative">ADR-NNN: Short
-      Title in the Imperative</a>
+      <li><a href="#context-and-scope" id="toc-context-and-scope">3.
+      Context and Scope</a>
       <ul>
-      <li><a href="#context" id="toc-context">Context</a></li>
-      <li><a href="#decision" id="toc-decision">Decision</a></li>
-      <li><a href="#consequences"
-      id="toc-consequences">Consequences</a></li>
-      <li><a href="#alternatives-considered"
-      id="toc-alternatives-considered">Alternatives considered</a></li>
+      <li><a href="#business-context" id="toc-business-context">3.1
+      Business context</a></li>
+      <li><a href="#technical-context" id="toc-technical-context">3.2
+      Technical context</a></li>
+      <li><a href="#explicitly-out-of-scope-phase-1"
+      id="toc-explicitly-out-of-scope-phase-1">3.3 Explicitly out of
+      scope (Phase 1)</a></li>
       </ul></li>
       </ul>
     </nav>

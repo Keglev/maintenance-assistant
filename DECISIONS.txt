@@ -1,0 +1,80 @@
+PROJECT DECISIONS — Instandhaltungs-Assistent / Maintenance Protocol Assistant
+Status: end of design phase, 2026-08-05
+(Details in: REQUIREMENTS.md v0.2, DOMAIN-MODEL.md, adr/ADR-001..004, ARCHITECTURE-RATIONALE.md)
+
+== PRODUCT ==
+- Domain: industrial maintenance (Instandhaltung), NOT procurement (already 2 repos there)
+- Problem: maintenance knowledge trapped in PDFs/scans/paper + heads; night shift without
+  technician; faults re-diagnosed although solved last month
+- NOT a ticketing/CMMS system; escalation chain is context only
+- Roles: Operator (operator-safe answers only) / Techniker (full answers) /
+  Schichtleiter (sole write access: create + upload protocols) / Admin (Keycloak IT role only)
+- Write access restricted to Schichtleiter: quality + consistency + anti-garbage.
+  Known limitation (documented): fixer != documenter, depends on shift handover.
+- Two answer modes, visually distinct (anti-hallucination):
+  Mode A "Belegte Antwort" = grounded, every claim cited
+  Mode B "Allgemeiner Vorschlag - keine Quelle im Bestand" = labeled ungrounded troubleshooting;
+  operators get operator-safe steps + escalation advice only
+- Corpus: ~150 synthetic protocols (Claude-generated, documented in AI-USAGE.md),
+  ~70% DE / 30% EN, quality mix incl. messy ones; demo seeds: E-47 on Presse 3 (3x),
+  one Mode-B gap, one DE-query->EN-protocol match
+- NO translation anywhere: texts stored as written; multilingual embeddings bridge DE<->EN
+- Search scope Phase 1: exact machine only ("similar machines" = Phase 2 candidate)
+- Protocol types: STOERUNG | WARTUNG (INSPEKTION dropped - lives in manufacturer manuals)
+- UI: bilingual DE/EN, 3 views (search, upload, login via Keycloak redirect)
+
+== ARCHITECTURE (see ADRs) ==
+- ADR-001: modular monolith first (packages: ingestion/query/web), Spring events for async;
+  Phase 2: extract ingestion service + Kafka. 3 containers Phase 1: app, Postgres+pgvector, Keycloak
+- ADR-002 (Proposed, needs 1-day spike): Nebius Token Factory primary, IONOS AI Model Hub fallback;
+  OpenAI-compatible API = provider swap is config change; multilingual embedding model
+  (BGE-M3 class) is a HARD requirement. Spike: DE->EN retrieval test, citation prompt test,
+  cost per query, billing limits/prepaid (NFR-7)
+- ADR-003: Keycloak as IdP. Angular: Auth Code Flow + PKCE; backend: OAuth2 Resource Server.
+  "Keycloak vs OAuth2" is a category error: OAuth2/OIDC = protocols, Keycloak = implementation.
+  Realm config exported + versioned (realm-export.json)
+- ADR-004: pgvector inside Postgres, no dedicated vector DB. Relational filter + vector ranking
+  in ONE query; one backup; no cross-store consistency problem. Scale ceiling documented.
+- Stack: Java 21, Spring Boot 4.1 (3.x is EOL since 2026-06-30), Angular + TypeScript (thin),
+  PostgreSQL + pgvector, Keycloak, Docker Compose, GitHub Actions, Hetzner VPS
+- Spring AI: use IF compatible with Boot 4.1 (verify in spike); fallback plain RestClient
+- Spring Modulith: optional upgrade, enforces ADR-001 module boundaries with tests
+
+== DATA MODEL ==
+- 3 entities: MACHINE -> PROTOCOL -> CHUNK (chunk = search unit, protocol = citation unit,
+  machine = filter unit)
+- Users NOT in DB (Keycloak claims only; uploaded_by = username string)
+- Original files on Docker volume, path in DB (no BLOBs)
+- CHUNK carries denormalized machine_id + error_code for one-query filtered vector search
+- error_code = free text (real plants: mixed catalogs; code sometimes points to wrong problem
+  -> semantic search on symptom text is the actual retrieval path, code only a hint)
+- status lifecycle: RECEIVED -> INDEXED / FAILED (this transition = Phase 2 Kafka events)
+
+== COSTS & OPERATIONS ==
+- Monthly: VPS ~EUR 10-17 (~95% of cost) + LLM API ~EUR 1-3 (~5%). Corpus size is a non-cost:
+  embedding all 150 docs < EUR 0.01 once; per-query cost independent of corpus size.
+  Decision: KEEP 150 docs (richer demo), do not shrink corpus to save money.
+- VPS cost reduction levers + caveats:
+  1. ARM (Hetzner CAX): cheapest 8GB; caveat: arm64 images (all our images exist) +
+     multi-arch CI build. DECIDED: yes, go ARM.
+  2. Shrink to 4GB: EUR ~5 saved; caveat: OOM risk during indexing (= broken-demo risk),
+     Kafka Phase 2 won't fit. DECIDED: no, stay 8GB.
+  3. Pause = snapshot -> DELETE server (stopped server still bills fully at Hetzner!);
+     snapshot costs cents. Caveats: IP changes on recreate (use DNS/domain), NEVER down
+     while applications are in flight. DECIDED: pay during application phases, snapshot only
+     in real pauses.
+- Token abuse protection = NFR-7, three layers:
+  1. Provider: prepaid credit / spending limits (hard ceiling; verify in spike)
+  2. App: Bucket4j rate limit per user (~10/min), global daily budget counter in Postgres
+     (~200 calls/day, graceful message), capped max_tokens, cache for repeated queries
+  3. Visibility: daily token usage logging
+  Worst case math: 1000 spam queries = few EUR, not hundreds. Risk = surprise, not ruin.
+
+== PORTFOLIO / JOB MARKET ==
+- Frontend Angular (not Thymeleaf: ~6 jobs nationwide, legacy nice-to-have; not React here:
+  portfolio already has one React + one Angular repo; Angular = German enterprise pairing)
+- Recruiter feedback drives everything: working demo login + reachable API docs are sacred;
+  "tested before every application sent out" is a personal rule
+- AI-USAGE.md in every repo (tools used, generated vs. self-written, verification process)
+- Fix stockease (login + API docs) BEFORE/parallel to new project; send recruiter the fixes
+  + AI-USAGE.md early as fast-feedback signal

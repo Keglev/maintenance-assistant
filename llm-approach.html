@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Decisions · ADR-TEMPLATE · maintenance-assistant Docs</title>
+  <title>Docs · llm-approach · maintenance-assistant Docs</title>
 
   <!-- Set the theme before the stylesheet paints, otherwise the page flashes
        the default theme for one frame before the saved choice applies. -->
@@ -121,73 +121,62 @@
     </aside>
     <main class="content" id="main">
       <article class="doc-body">
-        <h1 id="adr-nnn-short-title-in-the-imperative">ADR-NNN: Short
-        Title in the Imperative</h1>
-        <table>
-        <colgroup>
-        <col style="width: 50%" />
-        <col style="width: 50%" />
-        </colgroup>
-        <tbody>
-        <tr class="odd">
-        <td><strong>Status</strong></td>
-        <td>Proposed | Accepted | Superseded by ADR-NNN |
-        Deprecated</td>
-        </tr>
-        <tr class="even">
-        <td><strong>Date</strong></td>
-        <td>YYYY-MM-DD</td>
-        </tr>
-        <tr class="odd">
-        <td><strong>Deciders</strong></td>
-        <td></td>
-        </tr>
-        <tr class="even">
-        <td><strong>Related</strong></td>
-        <td>Links to other ADRs, requirements (US-n / NFR-n) or config
-        files</td>
-        </tr>
-        </tbody>
-        </table>
-        <h2 id="context">Context</h2>
-        <p>The forces at play: requirement, constraint, problem. What
-        makes this a decision rather than an obvious step. No solution
-        here.</p>
-        <h2 id="decision">Decision</h2>
-        <p>What was decided, in the active voice. Concrete enough that
-        someone can implement it.</p>
-        <h2 id="consequences">Consequences</h2>
-        <p><strong>Positive</strong></p>
-        <ul>
-        <li>…</li>
-        </ul>
-        <p><strong>Negative</strong></p>
-        <ul>
-        <li>… (an ADR with no negative consequences has not been thought
-        through)</li>
-        </ul>
-        <h2 id="alternatives-considered">Alternatives considered</h2>
-        <ul>
-        <li><strong>Option</strong> — why it was attractive, why it
-        lost. <em>Rejected.</em></li>
-        </ul>
+        <h1 id="ai-llm-approach">AI &amp; LLM Approach</h1>
+        <p><strong>Grounding comes first.</strong> The assistant does
+        not answer from what a language model happens to know about
+        hydraulic presses. Every question is embedded and used to
+        retrieve the most similar chunks of actual maintenance protocols
+        from the corpus, filtered to the machine in question; the
+        model’s only job is to summarise what was retrieved and cite it.
+        A protocol is the unit of citation, a chunk the unit of search,
+        and a machine the unit of filtering. In a domain where a wrong
+        answer sends someone to a live machine, an answer that cannot be
+        checked against its source is worse than no answer — so every
+        claim carries the document and date it came from.</p>
+        <p><strong>Two answer modes, visually distinct.</strong> When
+        retrieval returns hits above a similarity threshold, the system
+        produces <strong>Mode A — “Belegte Antwort”</strong>: grounded
+        in indexed protocols, every claim cited. When nothing clears the
+        threshold, it says so plainly and may offer <strong>Mode B —
+        “Allgemeiner Vorschlag — keine Quelle im Bestand”</strong>:
+        general troubleshooting, clearly labelled as ungrounded and
+        never presented as fact. The mode is runtime behaviour decided
+        by that threshold, not a stored attribute. Role-based filtering
+        applies on top and is enforced server-side: an Operator receives
+        operator-safe steps and escalation advice only, never electrical
+        or mechanical repair instructions, no matter what the retrieved
+        protocol contains.</p>
+        <p><strong>EU hosting is a requirement, not a
+        preference.</strong> All document and query processing happens
+        on EU infrastructure, with inference through an EU-hosted
+        provider that does not train on submitted data. That rules out
+        the strongest US-hosted models, which is an accepted trade:
+        retrieval narrows the task to “summarise these protocols with
+        citations”, which mid-size open models handle well. A
+        multilingual embedding model is a hard requirement rather than a
+        nice-to-have — the corpus is mixed German and English, nothing
+        is translated anywhere, and a German question must retrieve an
+        English protocol. The provider decision is still open and
+        tracked in <a
+        href="adr/ADR-002-eu-hosted-llm-provider.html">ADR-002</a>,
+        which lists the questions a one-day spike has to answer before
+        the query module is built. Spend is bounded at three layers —
+        provider billing limits, per-user rate limiting with a daily
+        budget in the application, and daily token logging — and
+        exhaustion degrades to a message rather than an error page.</p>
+        <p>Further reading: <a href="REQUIREMENTS.html">Requirements</a>
+        (NFR-1, NFR-2, NFR-7), <a href="DOMAIN-MODEL.html">Domain
+        model</a>, <a
+        href="adr/ADR-004-pgvector-for-vector-search.html">ADR-004 on
+        pgvector</a>.</p>
       </article>
     </main>
 
         <nav class="toc" aria-label="On this page">
       <p class="toc-title">On this page</p>
       <ul>
-      <li><a href="#adr-nnn-short-title-in-the-imperative"
-      id="toc-adr-nnn-short-title-in-the-imperative">ADR-NNN: Short
-      Title in the Imperative</a>
-      <ul>
-      <li><a href="#context" id="toc-context">Context</a></li>
-      <li><a href="#decision" id="toc-decision">Decision</a></li>
-      <li><a href="#consequences"
-      id="toc-consequences">Consequences</a></li>
-      <li><a href="#alternatives-considered"
-      id="toc-alternatives-considered">Alternatives considered</a></li>
-      </ul></li>
+      <li><a href="#ai-llm-approach" id="toc-ai-llm-approach">AI &amp;
+      LLM Approach</a></li>
       </ul>
     </nav>
       </div>

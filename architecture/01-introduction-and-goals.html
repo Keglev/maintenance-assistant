@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Decisions · ADR-TEMPLATE · maintenance-assistant Docs</title>
+  <title>Architecture ·
+01-introduction-and-goals · maintenance-assistant Docs</title>
 
   <!-- Set the theme before the stylesheet paints, otherwise the page flashes
        the default theme for one frame before the saved choice applies. -->
@@ -121,72 +122,169 @@
     </aside>
     <main class="content" id="main">
       <article class="doc-body">
-        <h1 id="adr-nnn-short-title-in-the-imperative">ADR-NNN: Short
-        Title in the Imperative</h1>
+        <h1 id="introduction-and-goals">1. Introduction and Goals</h1>
+        <h2 id="requirements-overview">1.1 Requirements overview</h2>
+        <p>Maintenance knowledge in manufacturing is trapped in
+        scattered PDFs, scans and paper manuals — and in the heads of
+        experienced technicians. Many machines run 15–20 years on
+        minimal software (PLC/SCADA only), so the machine itself offers
+        little diagnostic help beyond an error code. When a machine
+        stops, every escalation step costs downtime, and far too often
+        the fault was already solved last month but nobody can find the
+        protocol. The pain peaks on night shifts with no technician on
+        site.</p>
+        <p><strong>maintenance-assistant</strong> lets shop-floor staff
+        search maintenance protocols in natural language (German or
+        English) and answers with citations to the source documents. All
+        data processing happens exclusively in the EU. It is explicitly
+        <strong>not</strong> a ticketing or CMMS system; the escalation
+        chain is organisational context, not a system feature.</p>
+        <p>Full requirements: <a
+        href="../REQUIREMENTS.html">REQUIREMENTS.md</a>. Phase 1 scope
+        covers user stories US-1 to US-8.</p>
+        <h2 id="quality-goals">1.2 Quality goals</h2>
+        <p>Ordered by architectural weight — these are the drivers that
+        shaped the decisions in section 9.</p>
+        <table>
+        <colgroup>
+        <col style="width: 25%" />
+        <col style="width: 25%" />
+        <col style="width: 25%" />
+        <col style="width: 25%" />
+        </colgroup>
+        <thead>
+        <tr class="header">
+        <th>#</th>
+        <th>Quality goal</th>
+        <th>Motivation</th>
+        <th>Source</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr class="odd">
+        <td>1</td>
+        <td><strong>Verifiability of answers</strong></td>
+        <td>Two visually distinct answer modes: Mode A “Belegte Antwort”
+        (grounded, every claim cited) and Mode B “Allgemeiner Vorschlag
+        — keine Quelle im Bestand” (clearly labelled as ungrounded). An
+        unverifiable answer in maintenance is worse than none.</td>
+        <td>NFR-2</td>
+        </tr>
+        <tr class="even">
+        <td>2</td>
+        <td><strong>Data residency / DSGVO</strong></td>
+        <td>All document and query processing on EU infrastructure; LLM
+        inference via an EU-hosted provider; no data used for model
+        training.</td>
+        <td>NFR-1</td>
+        </tr>
+        <tr class="odd">
+        <td>3</td>
+        <td><strong>Security &amp; role-correct answers</strong></td>
+        <td>Keycloak/OIDC authentication; role-based access
+        <strong>and</strong> role-based answer filtering enforced
+        server-side — an Operator must never receive an electrical or
+        mechanical repair step.</td>
+        <td>NFR-3</td>
+        </tr>
+        <tr class="even">
+        <td>4</td>
+        <td><strong>Operability</strong></td>
+        <td>The full stack runs on a single ~8 GB VPS via one
+        <code>docker compose up</code>; CI on every push.</td>
+        <td>NFR-5</td>
+        </tr>
+        <tr class="odd">
+        <td>5</td>
+        <td><strong>Cost control</strong></td>
+        <td>LLM spend bounded at three layers (provider billing limits,
+        application rate limit + daily budget + caching, usage logging);
+        budget exhaustion degrades gracefully with a user-facing
+        message, never an error page.</td>
+        <td>NFR-7</td>
+        </tr>
+        <tr class="even">
+        <td>6</td>
+        <td><strong>Performance</strong></td>
+        <td>Target ≤ 10 s per answer, up to 30 s acceptable; upload
+        confirmation immediate, indexing asynchronous.</td>
+        <td>NFR-4</td>
+        </tr>
+        <tr class="odd">
+        <td>7</td>
+        <td><strong>AI transparency</strong></td>
+        <td>The repository documents which AI tools were used, what was
+        generated versus self-written, and how it was verified.</td>
+        <td>NFR-6</td>
+        </tr>
+        </tbody>
+        </table>
+        <h2 id="stakeholders">1.3 Stakeholders</h2>
         <table>
         <colgroup>
         <col style="width: 50%" />
         <col style="width: 50%" />
         </colgroup>
+        <thead>
+        <tr class="header">
+        <th>Role</th>
+        <th>Expectation</th>
+        </tr>
+        </thead>
         <tbody>
         <tr class="odd">
-        <td><strong>Status</strong></td>
-        <td>Proposed | Accepted | Superseded by ADR-NNN |
-        Deprecated</td>
+        <td><strong>Operator</strong> (machine operator, incl. legacy
+        terminals with intranet access)</td>
+        <td>Search; receives operator-safe instructions only — clean a
+        sensor, remove material, change a program — never electrical or
+        mechanical repair steps. Told to escalate immediately when a
+        Fachkraft is required.</td>
         </tr>
         <tr class="even">
-        <td><strong>Date</strong></td>
-        <td>YYYY-MM-DD</td>
+        <td><strong>Techniker</strong> (shop-floor technician)</td>
+        <td>Search; receives full technical answers including repair
+        steps, with citations to verify against, and machine filtering
+        to keep results relevant.</td>
         </tr>
         <tr class="odd">
-        <td><strong>Deciders</strong></td>
-        <td></td>
+        <td><strong>Schichtleiter</strong> (shift supervisor)</td>
+        <td>All of the above, plus sole write access: creates and
+        uploads protocols and sees their processing status. Write access
+        is restricted here deliberately, to protect knowledge-base
+        quality.</td>
         </tr>
         <tr class="even">
-        <td><strong>Related</strong></td>
-        <td>Links to other ADRs, requirements (US-n / NFR-n) or config
-        files</td>
+        <td><strong>Admin</strong> (IT role only)</td>
+        <td>Manages users and role assignments in Keycloak without code
+        changes.</td>
+        </tr>
+        <tr class="odd">
+        <td><strong>Project owner / developer</strong></td>
+        <td>Solo developer, 3–4 week budget; the system is also a
+        portfolio artefact and must demonstrably work on demand.</td>
+        </tr>
+        <tr class="even">
+        <td><strong>Recruiter / reviewer</strong> (demo audience)</td>
+        <td>A ≤ 90-second walkthrough that works on a fresh browser and
+        a phone: login, two roles, one Mode-B case, one upload.</td>
         </tr>
         </tbody>
         </table>
-        <h2 id="context">Context</h2>
-        <p>The forces at play: requirement, constraint, problem. What
-        makes this a decision rather than an obvious step. No solution
-        here.</p>
-        <h2 id="decision">Decision</h2>
-        <p>What was decided, in the active voice. Concrete enough that
-        someone can implement it.</p>
-        <h2 id="consequences">Consequences</h2>
-        <p><strong>Positive</strong></p>
-        <ul>
-        <li>…</li>
-        </ul>
-        <p><strong>Negative</strong></p>
-        <ul>
-        <li>… (an ADR with no negative consequences has not been thought
-        through)</li>
-        </ul>
-        <h2 id="alternatives-considered">Alternatives considered</h2>
-        <ul>
-        <li><strong>Option</strong> — why it was attractive, why it
-        lost. <em>Rejected.</em></li>
-        </ul>
       </article>
     </main>
 
         <nav class="toc" aria-label="On this page">
       <p class="toc-title">On this page</p>
       <ul>
-      <li><a href="#adr-nnn-short-title-in-the-imperative"
-      id="toc-adr-nnn-short-title-in-the-imperative">ADR-NNN: Short
-      Title in the Imperative</a>
+      <li><a href="#introduction-and-goals"
+      id="toc-introduction-and-goals">1. Introduction and Goals</a>
       <ul>
-      <li><a href="#context" id="toc-context">Context</a></li>
-      <li><a href="#decision" id="toc-decision">Decision</a></li>
-      <li><a href="#consequences"
-      id="toc-consequences">Consequences</a></li>
-      <li><a href="#alternatives-considered"
-      id="toc-alternatives-considered">Alternatives considered</a></li>
+      <li><a href="#requirements-overview"
+      id="toc-requirements-overview">1.1 Requirements overview</a></li>
+      <li><a href="#quality-goals" id="toc-quality-goals">1.2 Quality
+      goals</a></li>
+      <li><a href="#stakeholders" id="toc-stakeholders">1.3
+      Stakeholders</a></li>
       </ul></li>
       </ul>
     </nav>

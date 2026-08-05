@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Decisions · ADR-TEMPLATE · maintenance-assistant Docs</title>
+  <title>Architecture ·
+08-crosscutting-concepts · maintenance-assistant Docs</title>
 
   <!-- Set the theme before the stylesheet paints, otherwise the page flashes
        the default theme for one frame before the saved choice applies. -->
@@ -121,55 +122,47 @@
     </aside>
     <main class="content" id="main">
       <article class="doc-body">
-        <h1 id="adr-nnn-short-title-in-the-imperative">ADR-NNN: Short
-        Title in the Imperative</h1>
-        <table>
-        <colgroup>
-        <col style="width: 50%" />
-        <col style="width: 50%" />
-        </colgroup>
-        <tbody>
-        <tr class="odd">
-        <td><strong>Status</strong></td>
-        <td>Proposed | Accepted | Superseded by ADR-NNN |
-        Deprecated</td>
-        </tr>
-        <tr class="even">
-        <td><strong>Date</strong></td>
-        <td>YYYY-MM-DD</td>
-        </tr>
-        <tr class="odd">
-        <td><strong>Deciders</strong></td>
-        <td></td>
-        </tr>
-        <tr class="even">
-        <td><strong>Related</strong></td>
-        <td>Links to other ADRs, requirements (US-n / NFR-n) or config
-        files</td>
-        </tr>
-        </tbody>
-        </table>
-        <h2 id="context">Context</h2>
-        <p>The forces at play: requirement, constraint, problem. What
-        makes this a decision rather than an obvious step. No solution
-        here.</p>
-        <h2 id="decision">Decision</h2>
-        <p>What was decided, in the active voice. Concrete enough that
-        someone can implement it.</p>
-        <h2 id="consequences">Consequences</h2>
-        <p><strong>Positive</strong></p>
+        <h1 id="cross-cutting-concepts">8. Cross-cutting Concepts</h1>
+        <blockquote>
+        <p><strong>Stub — to be filled in Phases 2–3</strong>, as each
+        concept is implemented.</p>
+        </blockquote>
+        <p>Concepts that will be documented here, with the decisions
+        that already constrain them:</p>
         <ul>
-        <li>…</li>
-        </ul>
-        <p><strong>Negative</strong></p>
-        <ul>
-        <li>… (an ADR with no negative consequences has not been thought
-        through)</li>
-        </ul>
-        <h2 id="alternatives-considered">Alternatives considered</h2>
-        <ul>
-        <li><strong>Option</strong> — why it was attractive, why it
-        lost. <em>Rejected.</em></li>
+        <li><strong>Domain model</strong> — <code>MACHINE</code> →
+        <code>PROTOCOL</code> → <code>CHUNK</code>; chunk = search unit,
+        protocol = citation unit, machine = filter unit. Already
+        specified in <a
+        href="../DOMAIN-MODEL.html">DOMAIN-MODEL.md</a>.</li>
+        <li><strong>Security</strong> — OIDC login, JWT validation,
+        realm roles as Spring Security authorities, and role-based
+        <strong>answer filtering</strong> as a server-side concern,
+        never a UI-only one.</li>
+        <li><strong>Multilingualism</strong> — nothing is translated;
+        texts are stored as written and a multilingual embedding model
+        bridges DE↔︎EN retrieval. The UI language (US-8) is independent
+        of the corpus language.</li>
+        <li><strong>Answer modes</strong> — the Mode A / Mode B decision
+        is a runtime similarity threshold, configurable, not a stored
+        attribute.</li>
+        <li><strong>Asynchronous processing</strong> — Spring
+        application events in Phase 1; the same seam becomes Kafka in
+        Phase 2.</li>
+        <li><strong>Cost and abuse control (NFR-7)</strong> — per-user
+        rate limiting, a global daily call budget, a capped answer
+        length, a query cache, and daily token-usage logging.</li>
+        <li><strong>Data protection</strong> — synthetic corpus only; no
+        query logging of personal data (if query logging is added, it
+        stores role, timestamp and answer mode — never the
+        username).</li>
+        <li><strong>Error handling</strong> — a failed indexing run ends
+        in status <code>FAILED</code> and stays visible to the
+        Schichtleiter; budget exhaustion and provider outages degrade to
+        a message, never an error page.</li>
+        <li><strong>Testing</strong> — JUnit/Mockito on every push; the
+        minimum set is mode routing, role filtering and the budget
+        guard.</li>
         </ul>
       </article>
     </main>
@@ -177,17 +170,8 @@
         <nav class="toc" aria-label="On this page">
       <p class="toc-title">On this page</p>
       <ul>
-      <li><a href="#adr-nnn-short-title-in-the-imperative"
-      id="toc-adr-nnn-short-title-in-the-imperative">ADR-NNN: Short
-      Title in the Imperative</a>
-      <ul>
-      <li><a href="#context" id="toc-context">Context</a></li>
-      <li><a href="#decision" id="toc-decision">Decision</a></li>
-      <li><a href="#consequences"
-      id="toc-consequences">Consequences</a></li>
-      <li><a href="#alternatives-considered"
-      id="toc-alternatives-considered">Alternatives considered</a></li>
-      </ul></li>
+      <li><a href="#cross-cutting-concepts"
+      id="toc-cross-cutting-concepts">8. Cross-cutting Concepts</a></li>
       </ul>
     </nav>
       </div>

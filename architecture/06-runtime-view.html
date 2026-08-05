@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Decisions · ADR-TEMPLATE · maintenance-assistant Docs</title>
+  <title>Architecture ·
+06-runtime-view · maintenance-assistant Docs</title>
 
   <!-- Set the theme before the stylesheet paints, otherwise the page flashes
        the default theme for one frame before the saved choice applies. -->
@@ -121,73 +122,39 @@
     </aside>
     <main class="content" id="main">
       <article class="doc-body">
-        <h1 id="adr-nnn-short-title-in-the-imperative">ADR-NNN: Short
-        Title in the Imperative</h1>
-        <table>
-        <colgroup>
-        <col style="width: 50%" />
-        <col style="width: 50%" />
-        </colgroup>
-        <tbody>
-        <tr class="odd">
-        <td><strong>Status</strong></td>
-        <td>Proposed | Accepted | Superseded by ADR-NNN |
-        Deprecated</td>
-        </tr>
-        <tr class="even">
-        <td><strong>Date</strong></td>
-        <td>YYYY-MM-DD</td>
-        </tr>
-        <tr class="odd">
-        <td><strong>Deciders</strong></td>
-        <td></td>
-        </tr>
-        <tr class="even">
-        <td><strong>Related</strong></td>
-        <td>Links to other ADRs, requirements (US-n / NFR-n) or config
-        files</td>
-        </tr>
-        </tbody>
-        </table>
-        <h2 id="context">Context</h2>
-        <p>The forces at play: requirement, constraint, problem. What
-        makes this a decision rather than an obvious step. No solution
-        here.</p>
-        <h2 id="decision">Decision</h2>
-        <p>What was decided, in the active voice. Concrete enough that
-        someone can implement it.</p>
-        <h2 id="consequences">Consequences</h2>
-        <p><strong>Positive</strong></p>
-        <ul>
-        <li>…</li>
-        </ul>
-        <p><strong>Negative</strong></p>
-        <ul>
-        <li>… (an ADR with no negative consequences has not been thought
-        through)</li>
-        </ul>
-        <h2 id="alternatives-considered">Alternatives considered</h2>
-        <ul>
-        <li><strong>Option</strong> — why it was attractive, why it
-        lost. <em>Rejected.</em></li>
-        </ul>
+        <h1 id="runtime-view">6. Runtime View</h1>
+        <blockquote>
+        <p><strong>Stub — to be filled in Phase 3</strong>, when the
+        query and ingestion flows exist end to end.</p>
+        </blockquote>
+        <p>Scenarios planned for documentation here, each as a sequence
+        diagram under <a
+        href="diagrams/"><code>diagrams/</code></a>:</p>
+        <ol type="1">
+        <li><strong>Login</strong> — Authorization Code Flow + PKCE
+        between browser, Keycloak and the backend resource server.</li>
+        <li><strong>Search, Mode A</strong> — question → embedding →
+        filtered vector search → hits above threshold → grounded answer
+        with citations, filtered by the caller’s role.</li>
+        <li><strong>Search, Mode B</strong> — same path, no hit above
+        threshold → explicit “no source in the corpus” plus a clearly
+        labelled general suggestion (operator-safe steps and escalation
+        advice for Operators).</li>
+        <li><strong>Upload and indexing</strong> — immediate
+        <code>RECEIVED</code> confirmation, then the asynchronous
+        extract → chunk → embed → <code>INDEXED</code> /
+        <code>FAILED</code> flow driven by Spring events.</li>
+        <li><strong>Budget exhaustion</strong> — daily budget counter
+        reached → graceful user-facing message (NFR-7).</li>
+        </ol>
       </article>
     </main>
 
         <nav class="toc" aria-label="On this page">
       <p class="toc-title">On this page</p>
       <ul>
-      <li><a href="#adr-nnn-short-title-in-the-imperative"
-      id="toc-adr-nnn-short-title-in-the-imperative">ADR-NNN: Short
-      Title in the Imperative</a>
-      <ul>
-      <li><a href="#context" id="toc-context">Context</a></li>
-      <li><a href="#decision" id="toc-decision">Decision</a></li>
-      <li><a href="#consequences"
-      id="toc-consequences">Consequences</a></li>
-      <li><a href="#alternatives-considered"
-      id="toc-alternatives-considered">Alternatives considered</a></li>
-      </ul></li>
+      <li><a href="#runtime-view" id="toc-runtime-view">6. Runtime
+      View</a></li>
       </ul>
     </nav>
       </div>

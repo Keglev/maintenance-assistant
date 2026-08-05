@@ -1,117 +1,236 @@
-<!--
-  Fallback layout, used when the site is built without the remote theme
-  (for example on a local `jekyll serve` with no network). Intentionally plain:
-  readable typography, no assets, no JavaScript.
--->
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>ADR-004: PostgreSQL + pgvector Instead of a Dedicated Vector Database · maintenance-assistant</title>
-    <meta name="description" content="AI assistant that makes maintenance protocols searchable in natural language, with citations and role-correct answers. EU-only data processing." />
-    <style>
-      :root { color-scheme: light dark; }
-      body {
-        max-width: 46rem;
-        margin: 0 auto;
-        padding: 2rem 1.25rem 4rem;
-        font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-        line-height: 1.65;
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Decisions ·
+ADR-004-pgvector-for-vector-search · maintenance-assistant Docs</title>
+
+  <!-- Set the theme before the stylesheet paints, otherwise the page flashes
+       the default theme for one frame before the saved choice applies. -->
+  <script>
+    (function () {
+      try {
+        var t = localStorage.getItem("maintenance-assistant-theme") ||
+          (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+        document.documentElement.setAttribute("data-theme", t);
+      } catch (e) {
+        document.documentElement.setAttribute("data-theme", "light");
       }
-      header a { text-decoration: none; font-weight: 600; }
-      h1, h2, h3 { line-height: 1.25; }
-      table { border-collapse: collapse; width: 100%; display: block; overflow-x: auto; }
-      th, td { border: 1px solid #8884; padding: 0.4rem 0.6rem; text-align: left; vertical-align: top; }
-      pre { overflow-x: auto; padding: 0.75rem; background: #8881; border-radius: 6px; }
-      code { font-size: 0.9em; }
-      img, svg { max-width: 100%; height: auto; }
-      footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid #8884; font-size: 0.9em; opacity: 0.8; }
-    </style>
-  </head>
-  <body>
-    <header><a href="/maintenance-assistant/">maintenance-assistant</a></header>
-    <main><h1 id="adr-004-postgresql--pgvector-instead-of-a-dedicated-vector-database">ADR-004: PostgreSQL + pgvector Instead of a Dedicated Vector Database</h1>
+    })();
+  </script>
 
-<table>
-  <thead>
-    <tr>
-      <th> </th>
-      <th> </th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><strong>Status</strong></td>
-      <td>Accepted</td>
-    </tr>
-    <tr>
-      <td><strong>Date</strong></td>
-      <td>2026-08-05</td>
-    </tr>
-    <tr>
-      <td><strong>Deciders</strong></td>
-      <td>Project owner (solo)</td>
-    </tr>
-    <tr>
-      <td><strong>Related</strong></td>
-      <td><a href="/maintenance-assistant/adr/ADR-001-modular-monolith-first.html">ADR-001</a>; implements US-3 and NFR-5</td>
-    </tr>
-  </tbody>
-</table>
+  <link rel="stylesheet" href="/maintenance-assistant/assets/docs.css" />
+</head>
 
-<h2 id="context">Context</h2>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
 
-<p>RAG requires storing embeddings and running nearest-neighbour similarity search, filtered by
-relational attributes (<code class="language-plaintext highlighter-rouge">machine_id</code>, US-3). Corpus size: ~150 protocols ≈ well under 5,000 chunks.
-Constraint: a single ~8 GB VPS with a minimal container count (NFR-5).</p>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <button class="menu-btn" aria-label="Toggle navigation">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="18" x2="21" y2="18" />
+        </svg>
+      </button>
 
-<h2 id="decision">Decision</h2>
+      <a href="/maintenance-assistant/" class="brand">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <path d="M14.7 6.3a5 5 0 0 0-6.6 6.6l-5 5a2 2 0 1 0 2.8 2.8l5-5a5 5 0 0 0 6.6-6.6l-2.9 2.9-2.1-2.1 2.2-3.6z" />
+        </svg>
+        maintenance-assistant Docs
+      </a>
 
-<p>PostgreSQL with the pgvector extension. Chunks live in a normal table with a <code class="language-plaintext highlighter-rouge">vector</code> column;
-retrieval is one SQL query combining the relational filter and cosine-distance ordering:</p>
+      <div class="topbar-tools">
+        <span class="lang-switch">
+          <a href="/maintenance-assistant/" aria-current="true">EN</a>
+          <a href="/maintenance-assistant/index-de.html">DE</a>
+        </span>
+        <button class="theme-toggle" aria-label="Toggle light or dark theme">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <circle cx="12" cy="12" r="9" /><path d="M12 3a9 9 0 0 0 0 18z" fill="currentColor" stroke="none" />
+          </svg>
+        </button>
+      </div>
+    </div>
+  </header>
 
-<div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">SELECT</span> <span class="p">...</span> <span class="k">FROM</span> <span class="n">chunk</span>
-<span class="k">WHERE</span> <span class="n">machine_id</span> <span class="o">=</span> <span class="p">:</span><span class="n">machine</span>
-<span class="k">ORDER</span> <span class="k">BY</span> <span class="n">embedding</span> <span class="o">&lt;=&gt;</span> <span class="p">:</span><span class="n">query_embedding</span>
-<span class="k">LIMIT</span> <span class="mi">5</span><span class="p">;</span>
-</code></pre></div></div>
+  <div class="layout">
+    <!-- Sidebar navigation, included by app-docs.html as a Pandoc partial. One
+         sidebar serves the whole site: this repository has a single arc42 tree and a
+         single decision log, so the per-tier sidebars the sibling repositories need
+         would be three copies of the same list here. The active link is marked at
+         runtime by docs.js. Do not put template syntax in this comment - a partial
+         is itself a template. -->
+    <aside class="sidebar">
+      <p class="nav-title">Docs</p>
+      <ul>
+        <li><a href="/maintenance-assistant/">Docs home</a></li>
+        <li><a href="/maintenance-assistant/overview.html">Overview</a></li>
+        <li><a href="/maintenance-assistant/overview-de.html">&Uuml;berblick (DE)</a></li>
+        <li><a href="/maintenance-assistant/llm-approach.html">AI &amp; LLM approach</a></li>
+      </ul>
 
-<h2 id="consequences">Consequences</h2>
+      <p class="nav-title">Requirements</p>
+      <ul>
+        <li><a href="/maintenance-assistant/REQUIREMENTS.html">Requirements &amp; NFRs</a></li>
+        <li><a href="/maintenance-assistant/DOMAIN-MODEL.html">Domain model</a></li>
+      </ul>
 
-<p><strong>Positive</strong></p>
+      <details class="nav-group">
+        <summary>Architecture (arc42)</summary>
+        <ul>
+          <li><a href="/maintenance-assistant/architecture/index.html">Architecture index</a></li>
+          <li><a href="/maintenance-assistant/architecture/01-introduction-and-goals.html">1 &middot; Introduction &amp; Goals</a></li>
+          <li><a href="/maintenance-assistant/architecture/02-architecture-constraints.html">2 &middot; Constraints</a></li>
+          <li><a href="/maintenance-assistant/architecture/03-context-and-scope.html">3 &middot; Context &amp; Scope</a></li>
+          <li><a href="/maintenance-assistant/architecture/04-solution-strategy.html">4 &middot; Solution Strategy</a></li>
+          <li><a href="/maintenance-assistant/architecture/05-building-block-view.html">5 &middot; Building Blocks</a></li>
+          <li><a href="/maintenance-assistant/architecture/06-runtime-view.html">6 &middot; Runtime View</a></li>
+          <li><a href="/maintenance-assistant/architecture/07-deployment-view.html">7 &middot; Deployment</a></li>
+          <li><a href="/maintenance-assistant/architecture/08-crosscutting-concepts.html">8 &middot; Concepts</a></li>
+          <li><a href="/maintenance-assistant/architecture/09-architecture-decisions.html">9 &middot; Decisions</a></li>
+          <li><a href="/maintenance-assistant/architecture/10-quality-requirements.html">10 &middot; Quality Requirements</a></li>
+          <li><a href="/maintenance-assistant/architecture/11-risks-and-technical-debt.html">11 &middot; Risks &amp; Debt</a></li>
+          <li><a href="/maintenance-assistant/architecture/12-glossary.html">12 &middot; Glossary</a></li>
+        </ul>
+      </details>
 
-<ul>
-  <li>One database for relational data <strong>and</strong> vectors: fewer containers, one backup, transactional
-consistency between protocol metadata and chunks (no sync problem between two stores).</li>
-  <li>The machine filter and the vector search happen in the same query plan — with a dedicated vector
-DB this requires metadata-filter features and cross-store consistency handling.</li>
-  <li>At this corpus size, exact (non-indexed) search is already fast; an HNSW index can be added with
-one statement if the corpus grows. The scale ceiling is millions of vectors — orders of magnitude
-above this use case.</li>
-</ul>
+      <details class="nav-group">
+        <summary>Decisions (ADRs)</summary>
+        <ul>
+          <li><a href="/maintenance-assistant/adr/index.html">Decision index</a></li>
+          <li><a href="/maintenance-assistant/adr/ADR-001-modular-monolith-first.html">ADR-001 Modular monolith</a></li>
+          <li><a href="/maintenance-assistant/adr/ADR-002-eu-hosted-llm-provider.html">ADR-002 EU LLM provider</a></li>
+          <li><a href="/maintenance-assistant/adr/ADR-003-keycloak-for-iam.html">ADR-003 Keycloak as IdP</a></li>
+          <li><a href="/maintenance-assistant/adr/ADR-004-pgvector-for-vector-search.html">ADR-004 pgvector</a></li>
+        </ul>
+      </details>
 
-<p><strong>Negative</strong></p>
+      <p class="nav-title">Frontend</p>
+      <ul>
+        <li><a href="/maintenance-assistant/frontend-architecture.html">Frontend architecture</a></li>
+      </ul>
 
-<ul>
-  <li>Not the right choice for very large corpora or extreme QPS; documented deliberately as a
-scale-aware decision, not ignorance of the alternatives.</li>
-</ul>
+      <p class="nav-title">Quality</p>
+      <ul>
+        <li><a href="/maintenance-assistant/backend/api-docs/index.html">Backend API</a></li>
+        <li><a href="/maintenance-assistant/frontend/api-docs/index.html">Frontend API</a></li>
+        <li><a href="/maintenance-assistant/backend/coverage/index.html">Backend coverage</a></li>
+        <li><a href="/maintenance-assistant/frontend/coverage/index.html">Frontend coverage</a></li>
+      </ul>
+    </aside>
+    <main class="content" id="main">
+      <article class="doc-body">
+        <h1
+        id="adr-004-postgresql-pgvector-instead-of-a-dedicated-vector-database">ADR-004:
+        PostgreSQL + pgvector Instead of a Dedicated Vector
+        Database</h1>
+        <table>
+        <colgroup>
+        <col style="width: 50%" />
+        <col style="width: 50%" />
+        </colgroup>
+        <tbody>
+        <tr class="odd">
+        <td><strong>Status</strong></td>
+        <td>Accepted</td>
+        </tr>
+        <tr class="even">
+        <td><strong>Date</strong></td>
+        <td>2026-08-05</td>
+        </tr>
+        <tr class="odd">
+        <td><strong>Deciders</strong></td>
+        <td>Project owner (solo)</td>
+        </tr>
+        <tr class="even">
+        <td><strong>Related</strong></td>
+        <td><a href="ADR-001-modular-monolith-first.html">ADR-001</a>;
+        implements US-3 and NFR-5</td>
+        </tr>
+        </tbody>
+        </table>
+        <h2 id="context">Context</h2>
+        <p>RAG requires storing embeddings and running nearest-neighbour
+        similarity search, filtered by relational attributes
+        (<code>machine_id</code>, US-3). Corpus size: ~150 protocols ≈
+        well under 5,000 chunks. Constraint: a single ~8 GB VPS with a
+        minimal container count (NFR-5).</p>
+        <h2 id="decision">Decision</h2>
+        <p>PostgreSQL with the pgvector extension. Chunks live in a
+        normal table with a <code>vector</code> column; retrieval is one
+        SQL query combining the relational filter and cosine-distance
+        ordering:</p>
+        <div class="sourceCode" id="cb1"><pre
+        class="sourceCode sql"><code class="sourceCode sql"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="kw">SELECT</span> <span class="op">..</span>. <span class="kw">FROM</span> <span class="kw">chunk</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="kw">WHERE</span> machine_id <span class="op">=</span> <span class="ch">:machine</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="kw">ORDER</span> <span class="kw">BY</span> embedding <span class="op">&lt;=&gt;</span> <span class="ch">:query_embedding</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="kw">LIMIT</span> <span class="dv">5</span>;</span></code></pre></div>
+        <h2 id="consequences">Consequences</h2>
+        <p><strong>Positive</strong></p>
+        <ul>
+        <li>One database for relational data <strong>and</strong>
+        vectors: fewer containers, one backup, transactional consistency
+        between protocol metadata and chunks (no sync problem between
+        two stores).</li>
+        <li>The machine filter and the vector search happen in the same
+        query plan — with a dedicated vector DB this requires
+        metadata-filter features and cross-store consistency
+        handling.</li>
+        <li>At this corpus size, exact (non-indexed) search is already
+        fast; an HNSW index can be added with one statement if the
+        corpus grows. The scale ceiling is millions of vectors — orders
+        of magnitude above this use case.</li>
+        </ul>
+        <p><strong>Negative</strong></p>
+        <ul>
+        <li>Not the right choice for very large corpora or extreme QPS;
+        documented deliberately as a scale-aware decision, not ignorance
+        of the alternatives.</li>
+        </ul>
+        <h2 id="alternatives-considered">Alternatives considered</h2>
+        <ul>
+        <li><strong>Dedicated vector DB (Qdrant, Weaviate, Milvus,
+        Chroma)</strong> — built for scale this project will never
+        reach; costs an extra container plus a consistency strategy
+        between Postgres and the vector store. Choosing infrastructure
+        for imaginary scale is the same anti-pattern as day-1
+        microservices (see ADR-001). <em>Rejected.</em></li>
+        <li><strong>Managed vector service (Pinecone)</strong> — SaaS
+        dependency, US processing by default; contradicts NFR-1.
+        <em>Rejected.</em></li>
+        <li><strong>Elasticsearch/OpenSearch kNN</strong> — capable, but
+        a heavy JVM container (~1–2 GB) duplicating what Postgres
+        already provides here. <em>Rejected.</em></li>
+        </ul>
+      </article>
+    </main>
 
-<h2 id="alternatives-considered">Alternatives considered</h2>
+        <nav class="toc" aria-label="On this page">
+      <p class="toc-title">On this page</p>
+      <ul>
+      <li><a
+      href="#adr-004-postgresql-pgvector-instead-of-a-dedicated-vector-database"
+      id="toc-adr-004-postgresql-pgvector-instead-of-a-dedicated-vector-database">ADR-004:
+      PostgreSQL + pgvector Instead of a Dedicated Vector Database</a>
+      <ul>
+      <li><a href="#context" id="toc-context">Context</a></li>
+      <li><a href="#decision" id="toc-decision">Decision</a></li>
+      <li><a href="#consequences"
+      id="toc-consequences">Consequences</a></li>
+      <li><a href="#alternatives-considered"
+      id="toc-alternatives-considered">Alternatives considered</a></li>
+      </ul></li>
+      </ul>
+    </nav>
+      </div>
 
-<ul>
-  <li><strong>Dedicated vector DB (Qdrant, Weaviate, Milvus, Chroma)</strong> — built for scale this project will
-never reach; costs an extra container plus a consistency strategy between Postgres and the vector
-store. Choosing infrastructure for imaginary scale is the same anti-pattern as day-1
-microservices (see ADR-001). <em>Rejected.</em></li>
-  <li><strong>Managed vector service (Pinecone)</strong> — SaaS dependency, US processing by default; contradicts
-NFR-1. <em>Rejected.</em></li>
-  <li><strong>Elasticsearch/OpenSearch kNN</strong> — capable, but a heavy JVM container (~1–2 GB) duplicating what
-Postgres already provides here. <em>Rejected.</em></li>
-</ul>
+  <footer class="footer">
+    maintenance-assistant · Generated by the docs pipeline
+  </footer>
 
-</main>
-    <footer>Documentation for maintenance-assistant · arc42 + ADRs · status: in development, Phase 1</footer>
-  </body>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <script src="/maintenance-assistant/assets/docs.js"></script>
+</body>
 </html>

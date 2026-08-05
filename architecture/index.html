@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Decisions · ADR-TEMPLATE · maintenance-assistant Docs</title>
+  <title>Architecture · index · maintenance-assistant Docs</title>
 
   <!-- Set the theme before the stylesheet paints, otherwise the page flashes
        the default theme for one frame before the saved choice applies. -->
@@ -121,73 +121,120 @@
     </aside>
     <main class="content" id="main">
       <article class="doc-body">
-        <h1 id="adr-nnn-short-title-in-the-imperative">ADR-NNN: Short
-        Title in the Imperative</h1>
+        <h1 id="architecture-documentation-arc42">Architecture
+        Documentation (arc42)</h1>
+        <p>Architecture of <strong>maintenance-assistant</strong>,
+        structured along the twelve <a
+        href="https://arc42.org">arc42</a> sections.</p>
+        <p>Sections 1–4 and 9 are written; they are derived from the
+        design documents in <a href="../"><code>docs/</code></a> and
+        must not contradict them. The remaining sections are stubs that
+        fill up as the implementation phases land — an empty section
+        here is an honest “not built yet”, not an oversight.</p>
         <table>
         <colgroup>
-        <col style="width: 50%" />
-        <col style="width: 50%" />
+        <col style="width: 33%" />
+        <col style="width: 33%" />
+        <col style="width: 33%" />
         </colgroup>
+        <thead>
+        <tr class="header">
+        <th>#</th>
+        <th>Section</th>
+        <th>State</th>
+        </tr>
+        </thead>
         <tbody>
         <tr class="odd">
-        <td><strong>Status</strong></td>
-        <td>Proposed | Accepted | Superseded by ADR-NNN |
-        Deprecated</td>
+        <td>01</td>
+        <td><a href="01-introduction-and-goals.html">Introduction and
+        Goals</a></td>
+        <td>written</td>
         </tr>
         <tr class="even">
-        <td><strong>Date</strong></td>
-        <td>YYYY-MM-DD</td>
+        <td>02</td>
+        <td><a href="02-architecture-constraints.html">Architecture
+        Constraints</a></td>
+        <td>written</td>
         </tr>
         <tr class="odd">
-        <td><strong>Deciders</strong></td>
-        <td></td>
+        <td>03</td>
+        <td><a href="03-context-and-scope.html">Context and
+        Scope</a></td>
+        <td>written</td>
         </tr>
         <tr class="even">
-        <td><strong>Related</strong></td>
-        <td>Links to other ADRs, requirements (US-n / NFR-n) or config
-        files</td>
+        <td>04</td>
+        <td><a href="04-solution-strategy.html">Solution
+        Strategy</a></td>
+        <td>written</td>
+        </tr>
+        <tr class="odd">
+        <td>05</td>
+        <td><a href="05-building-block-view.html">Building Block
+        View</a></td>
+        <td>stub — Phase 1</td>
+        </tr>
+        <tr class="even">
+        <td>06</td>
+        <td><a href="06-runtime-view.html">Runtime View</a></td>
+        <td>stub — Phase 3</td>
+        </tr>
+        <tr class="odd">
+        <td>07</td>
+        <td><a href="07-deployment-view.html">Deployment View</a></td>
+        <td>stub — Phase 1</td>
+        </tr>
+        <tr class="even">
+        <td>08</td>
+        <td><a href="08-crosscutting-concepts.html">Cross-cutting
+        Concepts</a></td>
+        <td>stub — Phase 2/3</td>
+        </tr>
+        <tr class="odd">
+        <td>09</td>
+        <td><a href="09-architecture-decisions.html">Architecture
+        Decisions</a></td>
+        <td>written (links to ADRs)</td>
+        </tr>
+        <tr class="even">
+        <td>10</td>
+        <td><a href="10-quality-requirements.html">Quality
+        Requirements</a></td>
+        <td>stub — Phase 4</td>
+        </tr>
+        <tr class="odd">
+        <td>11</td>
+        <td><a href="11-risks-and-technical-debt.html">Risks and
+        Technical Debt</a></td>
+        <td>stub</td>
+        </tr>
+        <tr class="even">
+        <td>12</td>
+        <td><a href="12-glossary.html">Glossary</a></td>
+        <td>written</td>
         </tr>
         </tbody>
         </table>
-        <h2 id="context">Context</h2>
-        <p>The forces at play: requirement, constraint, problem. What
-        makes this a decision rather than an obvious step. No solution
-        here.</p>
-        <h2 id="decision">Decision</h2>
-        <p>What was decided, in the active voice. Concrete enough that
-        someone can implement it.</p>
-        <h2 id="consequences">Consequences</h2>
-        <p><strong>Positive</strong></p>
-        <ul>
-        <li>…</li>
-        </ul>
-        <p><strong>Negative</strong></p>
-        <ul>
-        <li>… (an ADR with no negative consequences has not been thought
-        through)</li>
-        </ul>
-        <h2 id="alternatives-considered">Alternatives considered</h2>
-        <ul>
-        <li><strong>Option</strong> — why it was attractive, why it
-        lost. <em>Rejected.</em></li>
-        </ul>
+        <p><strong>Sources of truth:</strong> <a
+        href="../REQUIREMENTS.html">REQUIREMENTS.md</a>, <a
+        href="../DOMAIN-MODEL.html">DOMAIN-MODEL.md</a>, <a
+        href="../DECISIONS.txt">DECISIONS.txt</a>, <a
+        href="../PROJECT-PHASES.txt">PROJECT-PHASES.txt</a>. Where this
+        documentation and those files disagree, those files win.</p>
+        <p>Diagrams are Mermaid sources (<code>.mmd</code>) under <a
+        href="diagrams/"><code>diagrams/</code></a>, rendered to SVG by
+        <a
+        href="https://github.com/Keglev/maintenance-assistant/blob/main/docs/scripts/generate-diagrams.mjs"><code>docs/scripts/generate-diagrams.mjs</code></a>.</p>
       </article>
     </main>
 
         <nav class="toc" aria-label="On this page">
       <p class="toc-title">On this page</p>
       <ul>
-      <li><a href="#adr-nnn-short-title-in-the-imperative"
-      id="toc-adr-nnn-short-title-in-the-imperative">ADR-NNN: Short
-      Title in the Imperative</a>
-      <ul>
-      <li><a href="#context" id="toc-context">Context</a></li>
-      <li><a href="#decision" id="toc-decision">Decision</a></li>
-      <li><a href="#consequences"
-      id="toc-consequences">Consequences</a></li>
-      <li><a href="#alternatives-considered"
-      id="toc-alternatives-considered">Alternatives considered</a></li>
-      </ul></li>
+      <li><a href="#architecture-documentation-arc42"
+      id="toc-architecture-documentation-arc42">Architecture
+      Documentation (arc42)</a></li>
       </ul>
     </nav>
       </div>

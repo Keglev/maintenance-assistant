@@ -1,0 +1,178 @@
+PROJECT PHASES — maintenance-assistant (Wartungsassistent)
+Repo: https://github.com/Keglev/maintenance-assistant
+(This file + DECISIONS.txt are handed to every AI session as context.
+Naming update overriding older docs: project = "maintenance-assistant",
+Keycloak realm = "maintenance". English repo name is intentional.)
+
+=====================================================================
+GIT WORKFLOW (MANDATORY FOR EVERY AI SESSION — no exceptions)
+=====================================================================
+- Work on exactly ONE branch, created from up-to-date main:
+    git checkout main && git pull && git checkout -b <type>/<short-name>
+  Never create additional branches. Never commit or push to main
+  (branch protection rejects it anyway).
+- Commit in small logical units as you work, not one commit at the end.
+- Conventional Commits: type(scope): imperative summary, max 72 chars.
+  Types: feat, fix, chore, docs, ci, test, refactor.
+  Scopes: backend, frontend, docker, docs, ci.
+  Body (wrapped ~72 chars) explaining WHY when not self-evident.
+  Never mention AI, Claude, or "generated" in commit messages.
+- Before finishing: run `git log --oneline main..HEAD`, show the list,
+  reword anything vague (no "update files", no "changes").
+- Push the branch and open the pull request yourself:
+    gh pr create --base main --title "<conventional title>" \
+      --body "<markdown: What / Why / Verification / Out of scope>"
+- Print the PR URL as final output. NEVER merge — merging is done
+  manually by Carlos after review.
+
+RULES CARRIED ACROSS SESSIONS
+- Demo must always work; test before every application sent out
+- Every architecture change gets an ADR (docs/adr/, use ADR-TEMPLATE.md)
+- Requirements v0.2 (7 NFRs) and DECISIONS.txt are the source of truth
+- Docs live in docs/arc42 + docs/adr; published site = gh-pages branch
+- Releases: manual tags v* by Carlos; release.yml creates the GitHub
+  Release. Robots never create tags.
+
+=====================================================================
+PHASE 0 — PREP  [DONE except ADR-002 spike]
+=====================================================================
+[x] Fix stockease: demo login + reachable API docs (recruiter feedback)
+[x] AI-USAGE.md added
+[ ] ADR-002 spike (1 day): Nebius vs IONOS — multilingual embedding
+    DE<->EN retrieval test, citation prompt test, cost per query,
+    billing limits/prepaid. Verify Spring AI compatibility with
+    Spring Boot 4.1 (fallback: plain RestClient).
+    Deadline: before Phase 2 starts. Result: ADR-002 Proposed -> Accepted.
+
+=====================================================================
+PHASE 1 — WALKING SKELETON  [IN PROGRESS]
+=====================================================================
+[x] Repo structure: frontend/, backend/, docs/, docker/, .github/
+    (only README.md at repo root)
+[x] docs: arc42 skeleton, ADR-001/-003/-004 Accepted, ADR-002 Proposed,
+    docs theme (docs/_theme, Pandoc), mermaid script (docs/scripts)
+[x] docker-compose: Postgres(pgvector) + Keycloak, realm "maintenance",
+    4 roles (operator/techniker/schichtleiter/admin), demo users,
+    public client "frontend" (Auth Code Flow + PKCE), realm-export.json
+[x] Branch protection on main (PRs required), squash merges
+[x] Backend skeleton (Spring Boot 4.1, Java 21, Maven, modules
+    ingestion/query/web, /api/health public, /api/hello JWT-secured,
+    springdoc-openapi, JaCoCo, multi-stage arm64 Dockerfile)
+[x] Frontend skeleton (Angular 22 standalone, angular-oauth2-oidc PKCE,
+    /login + guarded /home, test runner: vitest (jsdom, no browser),
+    coverage in coverage/, Compodoc)
+[x] CI/CD pipelines (see PIPELINE ARCHITECTURE below)
+[ ] GitHub Pages configured (Settings -> Pages -> gh-pages branch)
+[ ] DONE = hello-world with login runs on the VPS via pipeline
+[ ] First release tag v0.1.0 once skeleton runs end-to-end with login
+
+UNIFIED REQUIRED CHECK — "build-and-test"
+Branch protection requires exactly ONE status check name:
+
+    build-and-test
+
+Three workflows gate pull requests, and all three name their job
+`build-and-test` (job id, no `name:` key — the id is what GitHub reports).
+Whichever part of the repo a PR touches, a job under that name reports on
+it. A PR touching two areas gets two checks under the name; both must pass.
+
+The pull_request path lists are a PARTITION and are maintained as a set:
+
+    frontend-ci.yml    paths:        frontend/**
+                                     .github/workflows/frontend-ci.yml
+    docs-pr-check.yml  paths:        docs/**
+                                     .github/workflows/docs.yml
+                                     .github/workflows/docs-pr-check.yml
+    backend-ci.yml     paths-ignore: frontend/**
+                                     docs/**
+                                     .github/workflows/docs.yml
+                       => catch-all: backend/**, docker/**, README.md,
+                          .gitignore, AI-USAGE.md, LICENSE, everything else
+
+INVARIANT — do not break this:
+- A path may be ignored by backend-ci.yml ONLY if another workflow gives
+  that PR a build-and-test check. A path ignored by all three leaves its
+  PRs with no required check and permanently unmergeable.
+- Root files (README.md, .gitignore, AI-USAGE.md, LICENSE) stay with
+  backend-ci on purpose: they live outside docs/, so the docs build never
+  reads them and would gate them on nothing.
+- The gate workflows' own files (frontend-ci.yml, docs-pr-check.yml) are
+  deliberately NOT ignored by backend-ci.yml, so editing a gate runs the
+  backend suite too. Getting these lists wrong is how the repo loses its
+  ability to merge.
+- push triggers are NOT a partition: they exist to produce artifacts and
+  fire the deploy workflows, so they stay narrow (backend-ci on
+  backend/**, frontend-ci on frontend/**). Widening them would publish a
+  new image for a README typo.
+
+PIPELINE ARCHITECTURE (.github/workflows/)
+1. frontend-ci.yml    PR (paths frontend/**) + push main: job
+                      build-and-test — test with coverage (test runner:
+                      vitest in jsdom — no browser needed on the runner),
+                      build; upload coverage + Compodoc artifacts on main
+2. backend-ci.yml     PR (catch-all, see partition above) + push main
+                      (paths backend/**): job build-and-test — mvn verify
+                      (JUnit + JaCoCo), OpenAPI spec; upload artifacts
+                      on main
+2b. docs-pr-check.yml PR (paths docs/** + the docs workflow files): job
+                      build-and-test — renders the mermaid diagrams, builds
+                      the site with build-docs.sh and link-checks it with
+                      lychee. Publishes nothing.
+3. frontend-deploy.yml / backend-deploy.yml
+                      push main, after CI success: multi-arch docker
+                      build (amd64+arm64) -> GHCR. Hetzner deploy =
+                      commented TODO until VPS exists.
+4. docs.yml           a) push main paths docs/**: regenerate mermaid
+                         diagrams, build the site with Pandoc via
+                         .github/scripts/docs/build-docs.sh -> gh-pages
+                         (theme: docs/_theme, landing + arc42 + ADRs)
+                      b) workflow_run success of frontend-ci/backend-ci:
+                         publish coverage + API docs into gh-pages
+                         subfolders (/frontend/coverage, /frontend/
+                         api-docs, /backend/coverage, /backend/api-docs)
+                         WITHOUT deleting the rest (keep_files)
+5. release.yml        tag v*: GitHub Release with generated notes
+
+=====================================================================
+PHASE 2 — DATA + INGESTION
+=====================================================================
+- Flyway migrations: machine, protocol, chunk (vector column)
+- Generate synthetic corpus (~150 protocols per DOMAIN-MODEL.md,
+  incl. demo seeds: E-47 Presse 3 x3, Mode-B gap, DE->EN match)
+- Ingestion module: upload endpoint (schichtleiter role), file ->
+  volume, text extraction, chunking, embedding call, status
+  RECEIVED -> INDEXED/FAILED, async via Spring events
+- Seed loader for the corpus
+- PREREQUISITE: ADR-002 spike done and Accepted
+
+=====================================================================
+PHASE 3 — RAG QUERY + MODES
+=====================================================================
+- Query module: embed question -> filtered pgvector top-5 ->
+  threshold -> Mode A/B
+- Prompting: answer only from sources, cite each claim, answer in
+  user's language, role-based filtering (Operator = operator-safe only)
+- NFR-7 guards: Bucket4j per-user rate limit, daily budget counter,
+  max_tokens cap, query cache
+- Angular: search view with Mode A/B visual distinction + source
+  links; upload view with status; DE/EN switch
+
+=====================================================================
+PHASE 4 — POLISH + SHIP
+=====================================================================
+- Tests (JUnit/Mockito; at least: mode routing, role filtering,
+  budget guard)
+- OpenAPI/Swagger reachable in the deployed demo (recruiter feedback!)
+- README: problem first, 90-second demo walkthrough, architecture
+  diagram, links to ADRs and gh-pages docs site; AI-USAGE.md current
+- Deploy on Hetzner CAX (8GB, arm64), domain + TLS, demo credentials
+  in README
+- Full recruiter walkthrough test on a phone and a fresh browser
+- Release v1.0.0
+
+=====================================================================
+PHASE 5 — EVOLUTION (after applications are out, optional)
+=====================================================================
+- Extract ingestion service + Kafka (per ADR-001), document as ADR-005
+- Candidates: similar-machine search, OCR stretch goal, downtime
+  stats view, Spring Modulith boundary tests

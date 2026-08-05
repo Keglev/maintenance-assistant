@@ -1,0 +1,43 @@
+%% System context — maintenance-assistant (arc42 section 3.1)
+%% Render: node docs/scripts/generate-diagrams.mjs
+flowchart TB
+    operator["👷 Operator<br/><i>operator-safe answers only</i>"]
+    techniker["🔧 Techniker<br/><i>full technical answers</i>"]
+    schichtleiter["📋 Schichtleiter<br/><i>sole write access</i>"]
+    admin["🛠️ Admin<br/><i>IT role</i>"]
+
+    app["<b>maintenance-assistant</b><br/>Spring Boot 4.1 + Angular<br/><i>modules: ingestion · query · web</i>"]
+
+    keycloak[("Keycloak<br/><i>realm: maintenance</i>")]
+    postgres[("PostgreSQL + pgvector<br/><i>machines · protocols · chunks</i>")]
+    llm{{"EU-hosted LLM provider<br/><i>embeddings + answer generation</i>"}}
+    files[("Docker volume<br/><i>original files</i>")]
+
+    operator -- "question / error code<br/>→ safe steps or escalate" --> app
+    techniker -- "question + machine filter<br/>→ answer with citations" --> app
+    schichtleiter -- "create / upload protocol<br/>→ status RECEIVED → INDEXED" --> app
+    admin -- "manage users & roles" --> keycloak
+
+    operator -. "login (OIDC, PKCE)" .-> keycloak
+    techniker -. "login (OIDC, PKCE)" .-> keycloak
+    schichtleiter -. "login (OIDC, PKCE)" .-> keycloak
+
+    app -- "validate JWT (JWKS),<br/>read realm roles" --> keycloak
+    app -- "filtered vector search<br/>(one SQL query)" --> postgres
+    app -- "embed text / generate answer<br/><i>OpenAI-compatible, EU only</i>" --> llm
+    app -- "store / read originals<br/><i>path in DB, no BLOBs</i>" --> files
+
+    subgraph eu["EU infrastructure — all processing (NFR-1)"]
+        app
+        keycloak
+        postgres
+        files
+        llm
+    end
+
+    classDef user fill:#e8f0fe,stroke:#3367d6,color:#111
+    classDef system fill:#fff3cd,stroke:#b8860b,color:#111,font-weight:bold
+    classDef ext fill:#eef7ee,stroke:#2e7d32,color:#111
+    class operator,techniker,schichtleiter,admin user
+    class app system
+    class keycloak,postgres,llm,files ext

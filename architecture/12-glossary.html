@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Decisions · ADR-TEMPLATE · maintenance-assistant Docs</title>
+  <title>Architecture · 12-glossary · maintenance-assistant Docs</title>
 
   <!-- Set the theme before the stylesheet paints, otherwise the page flashes
        the default theme for one frame before the saved choice applies. -->
@@ -121,73 +121,166 @@
     </aside>
     <main class="content" id="main">
       <article class="doc-body">
-        <h1 id="adr-nnn-short-title-in-the-imperative">ADR-NNN: Short
-        Title in the Imperative</h1>
+        <h1 id="glossary">12. Glossary</h1>
+        <p>German shop-floor terms are kept in German where that is the
+        real vocabulary of the domain; the documentation is otherwise
+        English.</p>
         <table>
         <colgroup>
         <col style="width: 50%" />
         <col style="width: 50%" />
         </colgroup>
+        <thead>
+        <tr class="header">
+        <th>Term</th>
+        <th>Meaning</th>
+        </tr>
+        </thead>
         <tbody>
         <tr class="odd">
-        <td><strong>Status</strong></td>
-        <td>Proposed | Accepted | Superseded by ADR-NNN |
-        Deprecated</td>
+        <td><strong>Operator</strong></td>
+        <td>Machine operator. Receives operator-safe instructions only —
+        never electrical or mechanical repair steps.</td>
         </tr>
         <tr class="even">
-        <td><strong>Date</strong></td>
-        <td>YYYY-MM-DD</td>
+        <td><strong>Techniker</strong></td>
+        <td>Shop-floor technician (<em>Fachkraft</em>). Receives full
+        technical answers including repair steps.</td>
         </tr>
         <tr class="odd">
-        <td><strong>Deciders</strong></td>
-        <td></td>
+        <td><strong>Schichtleiter</strong></td>
+        <td>Shift supervisor. Sole write access: creates and uploads
+        protocols.</td>
         </tr>
         <tr class="even">
-        <td><strong>Related</strong></td>
-        <td>Links to other ADRs, requirements (US-n / NFR-n) or config
-        files</td>
+        <td><strong>Admin</strong></td>
+        <td>System administrator, an IT role only. Manages users and
+        roles in Keycloak.</td>
+        </tr>
+        <tr class="odd">
+        <td><strong>Protocol</strong> (<em>Protokoll</em>)</td>
+        <td>A maintenance record for one incident or service: symptom,
+        cause, action, parts used. The <strong>citation unit</strong> of
+        an answer.</td>
+        </tr>
+        <tr class="even">
+        <td><strong>Störung / Wartung</strong></td>
+        <td>The two protocol types: fault (unplanned) and maintenance
+        (planned). <em>Inspektion</em> was dropped — it lives in
+        manufacturer manuals.</td>
+        </tr>
+        <tr class="odd">
+        <td><strong>Chunk</strong></td>
+        <td>A slice of a protocol’s text with its embedding. The
+        <strong>search unit</strong>.</td>
+        </tr>
+        <tr class="even">
+        <td><strong>Machine</strong></td>
+        <td>The equipment a protocol belongs to. The <strong>filter
+        unit</strong> of a search.</td>
+        </tr>
+        <tr class="odd">
+        <td><strong>Mode A — “Belegte Antwort”</strong></td>
+        <td>Grounded answer: every claim cited from an indexed protocol.
+        The default.</td>
+        </tr>
+        <tr class="even">
+        <td><strong>Mode B — “Allgemeiner Vorschlag — keine Quelle im
+        Bestand”</strong></td>
+        <td>Explicitly labelled ungrounded general troubleshooting, used
+        only when no relevant protocol exists. Never presented as
+        fact.</td>
+        </tr>
+        <tr class="odd">
+        <td><strong>Operator-safe</strong></td>
+        <td>Actions an Operator may perform without a Fachkraft:
+        cleaning a sensor, removing jammed material, loading a
+        program.</td>
+        </tr>
+        <tr class="even">
+        <td><strong>Escalation chain</strong></td>
+        <td>The organisational path Operator → Techniker → Schichtleiter
+        → management. Context for the problem, <strong>not</strong> a
+        system feature.</td>
+        </tr>
+        <tr class="odd">
+        <td><strong>RAG</strong></td>
+        <td>Retrieval-Augmented Generation: retrieve relevant chunks
+        first, then let the model answer only from them.</td>
+        </tr>
+        <tr class="even">
+        <td><strong>Embedding</strong></td>
+        <td>A vector representation of text. Multilingual here, so a
+        German query can retrieve an English protocol without
+        translation.</td>
+        </tr>
+        <tr class="odd">
+        <td><strong>pgvector</strong></td>
+        <td>PostgreSQL extension providing the <code>vector</code>
+        column type and distance operators (<code>&lt;=&gt;</code> for
+        cosine distance).</td>
+        </tr>
+        <tr class="even">
+        <td><strong>Keycloak</strong></td>
+        <td>The self-hosted identity provider. Realm:
+        <code>maintenance</code>.</td>
+        </tr>
+        <tr class="odd">
+        <td><strong>OIDC / OAuth2</strong></td>
+        <td>The authentication and authorization <em>protocols</em>.
+        Keycloak is one <em>implementation</em> of them — see <a
+        href="../adr/ADR-003-keycloak-for-iam.html">ADR-003</a>.</td>
+        </tr>
+        <tr class="even">
+        <td><strong>PKCE</strong></td>
+        <td>Proof Key for Code Exchange: the extension that makes the
+        Authorization Code Flow safe for a browser client that cannot
+        hold a secret.</td>
+        </tr>
+        <tr class="odd">
+        <td><strong>Realm role</strong></td>
+        <td>A Keycloak role scoped to the realm, delivered in the JWT
+        under <code>realm_access.roles</code> and mapped to a Spring
+        Security authority.</td>
+        </tr>
+        <tr class="even">
+        <td><strong>Resource Server</strong></td>
+        <td>The backend’s OAuth2 role: it validates incoming JWTs but
+        never issues them.</td>
+        </tr>
+        <tr class="odd">
+        <td><strong>CMMS</strong></td>
+        <td>Computerised Maintenance Management System — ticketing and
+        work-order software. Explicitly <strong>not</strong> what this
+        project is.</td>
+        </tr>
+        <tr class="even">
+        <td><strong>PLC / SCADA</strong></td>
+        <td>Programmable Logic Controller / supervisory control system —
+        the minimal software on the legacy machines in scope.</td>
+        </tr>
+        <tr class="odd">
+        <td><strong>DSGVO</strong></td>
+        <td><em>Datenschutz-Grundverordnung</em>, the German name for
+        the GDPR.</td>
+        </tr>
+        <tr class="even">
+        <td><strong>arc42</strong></td>
+        <td>The template this architecture documentation follows.</td>
+        </tr>
+        <tr class="odd">
+        <td><strong>ADR</strong></td>
+        <td>Architecture Decision Record.</td>
         </tr>
         </tbody>
         </table>
-        <h2 id="context">Context</h2>
-        <p>The forces at play: requirement, constraint, problem. What
-        makes this a decision rather than an obvious step. No solution
-        here.</p>
-        <h2 id="decision">Decision</h2>
-        <p>What was decided, in the active voice. Concrete enough that
-        someone can implement it.</p>
-        <h2 id="consequences">Consequences</h2>
-        <p><strong>Positive</strong></p>
-        <ul>
-        <li>…</li>
-        </ul>
-        <p><strong>Negative</strong></p>
-        <ul>
-        <li>… (an ADR with no negative consequences has not been thought
-        through)</li>
-        </ul>
-        <h2 id="alternatives-considered">Alternatives considered</h2>
-        <ul>
-        <li><strong>Option</strong> — why it was attractive, why it
-        lost. <em>Rejected.</em></li>
-        </ul>
       </article>
     </main>
 
         <nav class="toc" aria-label="On this page">
       <p class="toc-title">On this page</p>
       <ul>
-      <li><a href="#adr-nnn-short-title-in-the-imperative"
-      id="toc-adr-nnn-short-title-in-the-imperative">ADR-NNN: Short
-      Title in the Imperative</a>
-      <ul>
-      <li><a href="#context" id="toc-context">Context</a></li>
-      <li><a href="#decision" id="toc-decision">Decision</a></li>
-      <li><a href="#consequences"
-      id="toc-consequences">Consequences</a></li>
-      <li><a href="#alternatives-considered"
-      id="toc-alternatives-considered">Alternatives considered</a></li>
-      </ul></li>
+      <li><a href="#glossary" id="toc-glossary">12. Glossary</a></li>
       </ul>
     </nav>
       </div>

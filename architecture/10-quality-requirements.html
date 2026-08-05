@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Decisions · ADR-TEMPLATE · maintenance-assistant Docs</title>
+  <title>Architecture ·
+10-quality-requirements · maintenance-assistant Docs</title>
 
   <!-- Set the theme before the stylesheet paints, otherwise the page flashes
        the default theme for one frame before the saved choice applies. -->
@@ -121,72 +122,81 @@
     </aside>
     <main class="content" id="main">
       <article class="doc-body">
-        <h1 id="adr-nnn-short-title-in-the-imperative">ADR-NNN: Short
-        Title in the Imperative</h1>
+        <h1 id="quality-requirements">10. Quality Requirements</h1>
+        <blockquote>
+        <p><strong>Stub — to be filled in Phase 4</strong>, when tests
+        and measurements exist to back the numbers.</p>
+        </blockquote>
+        <h2 id="quality-tree">10.1 Quality tree</h2>
+        <p>To be added. The top-level goals are listed in <a
+        href="01-introduction-and-goals.html#12-quality-goals">§1.2</a>
+        and the full non-functional requirements in <a
+        href="../REQUIREMENTS.html">REQUIREMENTS.md</a> §4 (NFR-1 to
+        NFR-7).</p>
+        <h2 id="quality-scenarios">10.2 Quality scenarios</h2>
+        <p>To be added, with the measured result next to each target.
+        Planned scenarios:</p>
         <table>
         <colgroup>
-        <col style="width: 50%" />
-        <col style="width: 50%" />
+        <col style="width: 33%" />
+        <col style="width: 33%" />
+        <col style="width: 33%" />
         </colgroup>
+        <thead>
+        <tr class="header">
+        <th>Scenario</th>
+        <th>Target</th>
+        <th>Source</th>
+        </tr>
+        </thead>
         <tbody>
         <tr class="odd">
-        <td><strong>Status</strong></td>
-        <td>Proposed | Accepted | Superseded by ADR-NNN |
-        Deprecated</td>
+        <td>A technician asks a question with matching protocols; the
+        answer arrives with citations</td>
+        <td>≤ 10 s, up to 30 s acceptable</td>
+        <td>NFR-4</td>
         </tr>
         <tr class="even">
-        <td><strong>Date</strong></td>
-        <td>YYYY-MM-DD</td>
+        <td>A Schichtleiter uploads a protocol</td>
+        <td>Confirmation immediate; indexing asynchronous</td>
+        <td>NFR-4</td>
         </tr>
         <tr class="odd">
-        <td><strong>Deciders</strong></td>
-        <td></td>
+        <td>An operator asks about a fault whose fix is electrical</td>
+        <td>No repair step is returned; escalation advice instead</td>
+        <td>NFR-3</td>
         </tr>
         <tr class="even">
-        <td><strong>Related</strong></td>
-        <td>Links to other ADRs, requirements (US-n / NFR-n) or config
-        files</td>
+        <td>No protocol matches the question</td>
+        <td>Mode B, explicitly labelled as having no source in the
+        corpus</td>
+        <td>NFR-2</td>
+        </tr>
+        <tr class="odd">
+        <td>The daily LLM budget is exhausted</td>
+        <td>User-facing message, no error page</td>
+        <td>NFR-7</td>
+        </tr>
+        <tr class="even">
+        <td>A fresh <code>docker compose up</code> on an 8 GB host</td>
+        <td>Full stack reaches a healthy state</td>
+        <td>NFR-5</td>
         </tr>
         </tbody>
         </table>
-        <h2 id="context">Context</h2>
-        <p>The forces at play: requirement, constraint, problem. What
-        makes this a decision rather than an obvious step. No solution
-        here.</p>
-        <h2 id="decision">Decision</h2>
-        <p>What was decided, in the active voice. Concrete enough that
-        someone can implement it.</p>
-        <h2 id="consequences">Consequences</h2>
-        <p><strong>Positive</strong></p>
-        <ul>
-        <li>…</li>
-        </ul>
-        <p><strong>Negative</strong></p>
-        <ul>
-        <li>… (an ADR with no negative consequences has not been thought
-        through)</li>
-        </ul>
-        <h2 id="alternatives-considered">Alternatives considered</h2>
-        <ul>
-        <li><strong>Option</strong> — why it was attractive, why it
-        lost. <em>Rejected.</em></li>
-        </ul>
       </article>
     </main>
 
         <nav class="toc" aria-label="On this page">
       <p class="toc-title">On this page</p>
       <ul>
-      <li><a href="#adr-nnn-short-title-in-the-imperative"
-      id="toc-adr-nnn-short-title-in-the-imperative">ADR-NNN: Short
-      Title in the Imperative</a>
+      <li><a href="#quality-requirements"
+      id="toc-quality-requirements">10. Quality Requirements</a>
       <ul>
-      <li><a href="#context" id="toc-context">Context</a></li>
-      <li><a href="#decision" id="toc-decision">Decision</a></li>
-      <li><a href="#consequences"
-      id="toc-consequences">Consequences</a></li>
-      <li><a href="#alternatives-considered"
-      id="toc-alternatives-considered">Alternatives considered</a></li>
+      <li><a href="#quality-tree" id="toc-quality-tree">10.1 Quality
+      tree</a></li>
+      <li><a href="#quality-scenarios" id="toc-quality-scenarios">10.2
+      Quality scenarios</a></li>
       </ul></li>
       </ul>
     </nav>

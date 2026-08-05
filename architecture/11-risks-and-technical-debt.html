@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Decisions · ADR-TEMPLATE · maintenance-assistant Docs</title>
+  <title>Architecture ·
+11-risks-and-technical-debt · maintenance-assistant Docs</title>
 
   <!-- Set the theme before the stylesheet paints, otherwise the page flashes
        the default theme for one frame before the saved choice applies. -->
@@ -121,73 +122,110 @@
     </aside>
     <main class="content" id="main">
       <article class="doc-body">
-        <h1 id="adr-nnn-short-title-in-the-imperative">ADR-NNN: Short
-        Title in the Imperative</h1>
+        <h1 id="risks-and-technical-debt">11. Risks and Technical
+        Debt</h1>
+        <blockquote>
+        <p><strong>Stub — grows with the implementation.</strong> The
+        entries below are the risks already known and accepted at the
+        end of the design phase.</p>
+        </blockquote>
         <table>
         <colgroup>
-        <col style="width: 50%" />
-        <col style="width: 50%" />
+        <col style="width: 25%" />
+        <col style="width: 25%" />
+        <col style="width: 25%" />
+        <col style="width: 25%" />
         </colgroup>
+        <thead>
+        <tr class="header">
+        <th>#</th>
+        <th>Risk / debt</th>
+        <th>Impact</th>
+        <th>Mitigation</th>
+        </tr>
+        </thead>
         <tbody>
         <tr class="odd">
-        <td><strong>Status</strong></td>
-        <td>Proposed | Accepted | Superseded by ADR-NNN |
-        Deprecated</td>
+        <td>R-1</td>
+        <td><strong>ADR-002 is unresolved.</strong> Provider,
+        multilingual retrieval quality, real cost per query and the
+        availability of hard billing limits are all unverified.</td>
+        <td>Blocks the query module; a failed billing-limit check would
+        make the public demo unshippable as designed.</td>
+        <td>1-day spike in Phase 0 with five explicit exit
+        questions.</td>
         </tr>
         <tr class="even">
-        <td><strong>Date</strong></td>
-        <td>YYYY-MM-DD</td>
+        <td>R-2</td>
+        <td><strong>The fixer is not the documenter.</strong> Write
+        access is restricted to the Schichtleiter, so knowledge capture
+        depends on the shift handover.</td>
+        <td>Protocols may be thin or lag behind the actual repair.</td>
+        <td>Accepted deliberately, in exchange for knowledge-base
+        quality; documented as a known limitation.</td>
         </tr>
         <tr class="odd">
-        <td><strong>Deciders</strong></td>
-        <td></td>
+        <td>R-3</td>
+        <td><strong>In-process events are lost on crash</strong> (no
+        persistence).</td>
+        <td>An upload interrupted mid-indexing can be left in
+        <code>RECEIVED</code>.</td>
+        <td>Accepted for Phase 1; it is precisely the argument that
+        later justifies Kafka (<a
+        href="../adr/ADR-001-modular-monolith-first.html">ADR-001</a>).</td>
         </tr>
         <tr class="even">
-        <td><strong>Related</strong></td>
-        <td>Links to other ADRs, requirements (US-n / NFR-n) or config
-        files</td>
+        <td>R-4</td>
+        <td><strong>Public demo, metered LLM.</strong></td>
+        <td>Abuse or a runaway loop costs money.</td>
+        <td>Three-layer NFR-7 guard; worst case is a few euros, not
+        hundreds — the risk is surprise, not ruin.</td>
+        </tr>
+        <tr class="odd">
+        <td>R-5</td>
+        <td><strong>Mode B can still mislead</strong>, even when
+        labelled ungrounded.</td>
+        <td>An operator could act on a generic suggestion.</td>
+        <td>Visual distinction from Mode A; operator-safe steps and
+        escalation advice only for Operators; never presented as
+        fact.</td>
+        </tr>
+        <tr class="even">
+        <td>R-6</td>
+        <td><strong>Single VPS, no redundancy.</strong></td>
+        <td>The demo is down if the host is down.</td>
+        <td>Accepted for a portfolio deployment; recovery is a fresh
+        <code>docker compose up</code> from a snapshot.</td>
+        </tr>
+        <tr class="odd">
+        <td>R-7</td>
+        <td><strong>Keycloak realm drift.</strong> A change made in the
+        admin console but not re-exported disappears on the next fresh
+        start.</td>
+        <td>Demo users or roles could vanish.</td>
+        <td>The realm export is versioned in the repository and imported
+        at startup; re-export is part of any realm change.</td>
+        </tr>
+        <tr class="even">
+        <td>R-8</td>
+        <td><strong>Free-text <code>error_code</code></strong> (no
+        lookup table), and <code>downtime_minutes</code> captured but
+        unused in Phase 1.</td>
+        <td>Minor inconsistency in the data model.</td>
+        <td>Accepted knowingly; both are open review points in <a
+        href="../DOMAIN-MODEL.html">DOMAIN-MODEL.md</a> §4.</td>
         </tr>
         </tbody>
         </table>
-        <h2 id="context">Context</h2>
-        <p>The forces at play: requirement, constraint, problem. What
-        makes this a decision rather than an obvious step. No solution
-        here.</p>
-        <h2 id="decision">Decision</h2>
-        <p>What was decided, in the active voice. Concrete enough that
-        someone can implement it.</p>
-        <h2 id="consequences">Consequences</h2>
-        <p><strong>Positive</strong></p>
-        <ul>
-        <li>…</li>
-        </ul>
-        <p><strong>Negative</strong></p>
-        <ul>
-        <li>… (an ADR with no negative consequences has not been thought
-        through)</li>
-        </ul>
-        <h2 id="alternatives-considered">Alternatives considered</h2>
-        <ul>
-        <li><strong>Option</strong> — why it was attractive, why it
-        lost. <em>Rejected.</em></li>
-        </ul>
       </article>
     </main>
 
         <nav class="toc" aria-label="On this page">
       <p class="toc-title">On this page</p>
       <ul>
-      <li><a href="#adr-nnn-short-title-in-the-imperative"
-      id="toc-adr-nnn-short-title-in-the-imperative">ADR-NNN: Short
-      Title in the Imperative</a>
-      <ul>
-      <li><a href="#context" id="toc-context">Context</a></li>
-      <li><a href="#decision" id="toc-decision">Decision</a></li>
-      <li><a href="#consequences"
-      id="toc-consequences">Consequences</a></li>
-      <li><a href="#alternatives-considered"
-      id="toc-alternatives-considered">Alternatives considered</a></li>
-      </ul></li>
+      <li><a href="#risks-and-technical-debt"
+      id="toc-risks-and-technical-debt">11. Risks and Technical
+      Debt</a></li>
       </ul>
     </nav>
       </div>

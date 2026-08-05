@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Decisions · ADR-TEMPLATE · maintenance-assistant Docs</title>
+  <title>Docs ·
+frontend-architecture · maintenance-assistant Docs</title>
 
   <!-- Set the theme before the stylesheet paints, otherwise the page flashes
        the default theme for one frame before the saved choice applies. -->
@@ -121,72 +122,105 @@
     </aside>
     <main class="content" id="main">
       <article class="doc-body">
-        <h1 id="adr-nnn-short-title-in-the-imperative">ADR-NNN: Short
-        Title in the Imperative</h1>
+        <h1 id="frontend-architecture">Frontend Architecture</h1>
+        <p>The Angular client is deliberately thin: it authenticates, it
+        shows what the caller’s role permits, and it renders what the
+        backend returns. It holds no authorization logic of its own.</p>
+        <blockquote>
+        <p><strong>Phase 1 state.</strong> The walking skeleton covers
+        login and one protected page. The search and upload views arrive
+        in Phase 3; this page grows with them.</p>
+        </blockquote>
+        <h2 id="shape">Shape</h2>
+        <p>Angular 22 with standalone components — no NgModules. Routes
+        are lazy-loaded, so the login page does not pay for the code the
+        home page needs:</p>
         <table>
         <colgroup>
         <col style="width: 50%" />
         <col style="width: 50%" />
         </colgroup>
+        <thead>
+        <tr class="header">
+        <th>Route</th>
+        <th>Purpose</th>
+        </tr>
+        </thead>
         <tbody>
         <tr class="odd">
-        <td><strong>Status</strong></td>
-        <td>Proposed | Accepted | Superseded by ADR-NNN |
-        Deprecated</td>
+        <td><code>/login</code></td>
+        <td>Triggers the redirect to Keycloak. Explicit click rather
+        than automatic redirect, because an automatic one turns a
+        transient Keycloak error into a loop the user cannot
+        escape.</td>
         </tr>
         <tr class="even">
-        <td><strong>Date</strong></td>
-        <td>YYYY-MM-DD</td>
-        </tr>
-        <tr class="odd">
-        <td><strong>Deciders</strong></td>
-        <td></td>
-        </tr>
-        <tr class="even">
-        <td><strong>Related</strong></td>
-        <td>Links to other ADRs, requirements (US-n / NFR-n) or config
-        files</td>
+        <td><code>/home</code></td>
+        <td>Behind the auth guard. Shows the username and realm roles
+        the token carries, and calls <code>/api/hello</code> to prove
+        the backend accepted the same token.</td>
         </tr>
         </tbody>
         </table>
-        <h2 id="context">Context</h2>
-        <p>The forces at play: requirement, constraint, problem. What
-        makes this a decision rather than an obvious step. No solution
-        here.</p>
-        <h2 id="decision">Decision</h2>
-        <p>What was decided, in the active voice. Concrete enough that
-        someone can implement it.</p>
-        <h2 id="consequences">Consequences</h2>
-        <p><strong>Positive</strong></p>
-        <ul>
-        <li>…</li>
-        </ul>
-        <p><strong>Negative</strong></p>
-        <ul>
-        <li>… (an ADR with no negative consequences has not been thought
-        through)</li>
-        </ul>
-        <h2 id="alternatives-considered">Alternatives considered</h2>
-        <ul>
-        <li><strong>Option</strong> — why it was attractive, why it
-        lost. <em>Rejected.</em></li>
-        </ul>
+        <p>State that outlives a component lives in signals on an
+        injectable service; there is no store library and no
+        <code>zone.js</code> change-detection dependency to reason
+        about.</p>
+        <h2 id="authentication">Authentication</h2>
+        <p>Authorization Code Flow with PKCE via
+        <code>angular-oauth2-oidc</code>, against the public client
+        <code>frontend</code> in the Keycloak realm
+        <code>maintenance</code> (<a
+        href="adr/ADR-003-keycloak-for-iam.html">ADR-003</a>). The
+        browser is a public client that cannot keep a secret, which is
+        exactly what PKCE exists for.</p>
+        <p><code>AuthService</code> wraps the OIDC library so components
+        never touch it directly. Discovery and redirect completion run
+        in an application initializer, so a login returning from
+        Keycloak finishes before the first route renders — otherwise the
+        guard would see “not authenticated” mid-flight. Realm roles are
+        read from the <strong>access token</strong>
+        (<code>realm_access.roles</code>), not the ID token, because
+        that is where Keycloak puts them.</p>
+        <p><strong>The guard is convenience, not security.</strong> It
+        keeps an anonymous visitor off a page that would fail anyway;
+        the backend resource server enforces the same roles on every
+        request, and that is the only place an authorization decision
+        counts (NFR-3). Hiding a control is not enforcing it.</p>
+        <h2 id="talking-to-the-backend">Talking to the backend</h2>
+        <p>The access token is attached only to calls to this
+        application’s own API — never to third-party hosts. In
+        development the dev server proxies <code>/api/*</code> to the
+        backend on port 8080, so the browser sees one origin and the
+        backend needs no CORS configuration. In production both sit
+        behind the same reverse proxy, which is why the API base URL is
+        a relative path.</p>
+        <h2 id="build-and-quality">Build and quality</h2>
+        <p>Vitest in jsdom for unit tests, with coverage published to
+        the <a
+        href="/maintenance-assistant/frontend/coverage/index.html">frontend
+        coverage report</a>. Compodoc generates the <a
+        href="/maintenance-assistant/frontend/api-docs/index.html">API
+        reference</a> from the TypeScript sources. The production image
+        is nginx serving the built bundle, with <code>try_files</code>
+        so a reload of <code>/home</code> returns the application rather
+        than a 404.</p>
       </article>
     </main>
 
         <nav class="toc" aria-label="On this page">
       <p class="toc-title">On this page</p>
       <ul>
-      <li><a href="#adr-nnn-short-title-in-the-imperative"
-      id="toc-adr-nnn-short-title-in-the-imperative">ADR-NNN: Short
-      Title in the Imperative</a>
+      <li><a href="#frontend-architecture"
+      id="toc-frontend-architecture">Frontend Architecture</a>
       <ul>
-      <li><a href="#context" id="toc-context">Context</a></li>
-      <li><a href="#decision" id="toc-decision">Decision</a></li>
-      <li><a href="#consequences"
-      id="toc-consequences">Consequences</a></li>
-      <li><a href="#alternatives-considered"
-      id="toc-alternatives-considered">Alternatives considered</a></li>
+      <li><a href="#shape" id="toc-shape">Shape</a></li>
+      <li><a href="#authentication"
+      id="toc-authentication">Authentication</a></li>
+      <li><a href="#talking-to-the-backend"
+      id="toc-talking-to-the-backend">Talking to the backend</a></li>
+      <li><a href="#build-and-quality" id="toc-build-and-quality">Build
+      and quality</a></li>
       </ul></li>
       </ul>
     </nav>

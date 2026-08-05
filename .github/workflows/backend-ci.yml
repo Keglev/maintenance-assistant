@@ -1,16 +1,37 @@
 name: backend-ci
 
-# Runs on every pull request touching the backend, and on main after merge.
+# Runs on every pull request not claimed by another gate, and on main after merge.
 # `mvn verify` covers unit tests, integration tests, the JaCoCo report and the
 # OpenAPI export — no database or Keycloak is needed, because the test profile
 # disables datasource and Flyway auto-configuration and no token is validated.
 on:
   pull_request:
-    paths:
-      - 'backend/**'
-      - '.github/workflows/backend-ci.yml'
+    branches: [main]
+    # This is the catch-all gate. A path may be ignored here ONLY if another
+    # workflow gives that PR a check named build-and-test — the required one. A
+    # path ignored by every workflow leaves its PRs with no such check and
+    # permanently blocked from merging, so this list is not a matter of taste.
+    #
+    # Two workflows earn entries. frontend/** is covered by frontend-ci.yml. The
+    # docs paths are covered by docs-pr-check.yml; they are exactly that
+    # workflow's trigger paths and must stay in step with them. Everything else
+    # falls through to this job — including README.md, .gitignore, AI-USAGE.md,
+    # LICENSE and docker/**, which deliberately stay here rather than joining the
+    # docs list: they are outside docs/, so the docs build never reads them and
+    # would gate them on nothing.
+    #
+    # frontend-ci.yml's and docs-pr-check.yml's own files are deliberately absent
+    # below, so editing a gate runs the backend suite as well as that gate.
+    paths-ignore:
+      - 'frontend/**'
+      - 'docs/**'
+      - '.github/workflows/docs.yml'
   push:
     branches: [main]
+    # Unlike the pull_request trigger above, this list is NOT a partition. A push
+    # run exists to produce artifacts and to trigger backend-deploy.yml, so it
+    # fires only when the backend actually changed. Widening it to a catch-all
+    # would publish a new backend image for a README typo.
     paths:
       - 'backend/**'
       - '.github/workflows/backend-ci.yml'
@@ -23,8 +44,13 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  verify:
-    name: verify
+  build-and-test:
+    # The job id IS the status-check name GitHub reports, and branch protection
+    # requires exactly one name: build-and-test. frontend-ci.yml and
+    # docs-pr-check.yml use the same id on purpose, so whichever side a PR
+    # touches, a job with the required name reports on it. Do not add a `name:`
+    # key here — it would override the id and the required check would never
+    # appear, blocking every merge.
     runs-on: ubuntu-latest
     defaults:
       run:

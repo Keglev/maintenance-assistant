@@ -5,6 +5,15 @@ name: frontend-ci
 # those artifacts to gh-pages and a pull request must not be able to publish.
 on:
   pull_request:
+    branches: [main]
+    # Maintained as a pair with backend-ci.yml's pull_request paths-ignore: every
+    # path listed here is ignored there, and everything else falls through to that
+    # catch-all job. A path in neither list produces a PR with no build-and-test
+    # check at all, which is unmergeable — see the comment on that trigger.
+    #
+    # This workflow's own file is deliberately NOT ignored by backend-ci.yml.
+    # Editing the frontend gate should run both checks, because getting it wrong
+    # is how the repository loses its ability to merge.
     paths:
       - 'frontend/**'
       - '.github/workflows/frontend-ci.yml'
@@ -22,8 +31,12 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  test:
-    name: test and build
+  build-and-test:
+    # Same job id as backend-ci.yml and docs-pr-check.yml on purpose: the required
+    # branch-protection check matches this name, so whichever side a PR touches, a
+    # job with the required name reports on it. A PR touching both frontend and
+    # backend gets two checks under this name, and both must pass. Do not add a
+    # `name:` key — it would override the id and hide the required check.
     runs-on: ubuntu-latest
     defaults:
       run:

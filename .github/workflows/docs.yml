@@ -3,7 +3,7 @@ name: docs
 # Publishes everything that lives on gh-pages, from two independent triggers:
 #
 #   a) push to main under docs/**  -> regenerate mermaid diagrams, build the
-#      Jekyll site, publish it at the root of gh-pages
+#      site with Pandoc, publish it at the root of gh-pages
 #   b) frontend-ci / backend-ci succeeded on main -> publish their coverage and
 #      API documentation into subfolders
 #
@@ -47,35 +47,27 @@ jobs:
         with:
           node-version: 22
 
+      - name: Install Pandoc
+        run: sudo apt-get update -qq && sudo apt-get install -y pandoc
+
       # .mmd sources are versioned, the rendered SVGs are not; they are produced
       # here so the published site always matches the current diagram sources.
       - name: Render mermaid diagrams
         run: node docs/scripts/generate-diagrams.mjs
 
-      # The theme is staged under docs/_themes so the repository stays free of
-      # Jekyll scaffolding; the site build wants it next to the markdown.
-      - name: Stage Jekyll theme
-        run: |
-          cp docs/_themes/_config.yml docs/
-          cp -r docs/_themes/_layouts docs/
-
-      - name: Build site
-        uses: actions/jekyll-build-pages@v1
-        with:
-          source: ./docs
-          destination: ./_site
-        env:
-          # jekyll-remote-theme fetches just-the-docs from GitHub; without a token
-          # it shares the anonymous API rate limit and fails intermittently.
-          JEKYLL_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      # The build is a script, not inline YAML, so the same command produces the
+      # same site on a laptop, in this job, and in the pull-request gate.
+      - name: Build docs site
+        run: bash .github/scripts/docs/build-docs.sh .
 
       - name: Publish site to gh-pages
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./_site
+          publish_dir: ./target/docs
           publish_branch: gh-pages
-          # Leaves /frontend/** and /backend/** untouched.
+          # Leaves /frontend/** and /backend/** untouched - this build regenerates
+          # neither, and the reports job below publishes them independently.
           keep_files: true
           commit_message: 'docs: publish site for ${{ github.sha }}'
 
@@ -90,6 +82,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # The OpenAPI render needs the build script, so the repository is checked
+      # out here as well as in the site job.
+      - uses: actions/checkout@v4
+
       - name: Identify the source project
         id: project
         run: |
@@ -101,11 +97,12 @@ jobs:
 
       # Artifacts live on the CI run, not on this one, so the run id is explicit.
       # CI uploads them only from main, so pull requests can never publish.
+      # The paths match what build-openapi-docs.sh looks for.
       - name: Download coverage
         uses: actions/download-artifact@v4
         with:
           name: ${{ steps.project.outputs.name }}-coverage
-          path: reports/coverage
+          path: target/reports/${{ steps.project.outputs.name }}-coverage
           run-id: ${{ github.event.workflow_run.id }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
@@ -113,50 +110,52 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: ${{ steps.project.outputs.name }}-api-docs
-          path: reports/api-docs
+          path: target/reports/${{ steps.project.outputs.name }}-api-docs
           run-id: ${{ github.event.workflow_run.id }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
-      # The backend artifact is a raw OpenAPI document. A viewer turns the folder
-      # into something a reviewer can actually read, which is the point of it.
-      - name: Add Swagger UI for the OpenAPI spec
+      # The backend artifact is a raw OpenAPI document, which is not something a
+      # reviewer reads. Redocly renders it through the same script the site build
+      # calls, so the published page cannot drift from a local build.
+      - uses: actions/setup-node@v4
         if: steps.project.outputs.name == 'backend'
-        run: |
-          cat > reports/api-docs/index.html <<'HTML'
-          <!doctype html>
-          <html lang="en">
-            <head>
-              <meta charset="utf-8" />
-              <meta name="viewport" content="width=device-width, initial-scale=1" />
-              <title>maintenance-assistant API</title>
-              <link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist@5/swagger-ui.css" />
-            </head>
-            <body>
-              <div id="swagger-ui"></div>
-              <script src="https://unpkg.com/swagger-ui-dist@5/swagger-ui-bundle.js" crossorigin></script>
-              <script>
-                window.onload = () => SwaggerUIBundle({ url: './openapi.json', dom_id: '#swagger-ui' });
-              </script>
-            </body>
-          </html>
-          HTML
+        with:
+          node-version: 22
+
+      - name: Render the OpenAPI reference
+        if: steps.project.outputs.name == 'backend'
+        run: bash .github/scripts/docs/build-openapi-docs.sh .
 
       - name: Publish coverage to gh-pages
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: reports/coverage
+          publish_dir: target/reports/${{ steps.project.outputs.name }}-coverage
           publish_branch: gh-pages
           destination_dir: ${{ steps.project.outputs.name }}/coverage
           keep_files: true
           commit_message: 'docs: publish ${{ steps.project.outputs.name }} coverage'
 
-      - name: Publish API documentation to gh-pages
+      # Backend publishes the rendered Redocly page; frontend publishes the
+      # Compodoc tree the artifact already contains.
+      - name: Publish backend API reference to gh-pages
+        if: steps.project.outputs.name == 'backend'
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: reports/api-docs
+          publish_dir: target/docs/backend/api-docs
           publish_branch: gh-pages
-          destination_dir: ${{ steps.project.outputs.name }}/api-docs
+          destination_dir: backend/api-docs
           keep_files: true
-          commit_message: 'docs: publish ${{ steps.project.outputs.name }} API docs'
+          commit_message: 'docs: publish backend API reference'
+
+      - name: Publish frontend API reference to gh-pages
+        if: steps.project.outputs.name == 'frontend'
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: target/reports/frontend-api-docs
+          publish_branch: gh-pages
+          destination_dir: frontend/api-docs
+          keep_files: true
+          commit_message: 'docs: publish frontend API reference'

@@ -55,20 +55,22 @@ PHASE 1 — WALKING SKELETON  [IN PROGRESS]
     4 roles (operator/techniker/schichtleiter/admin), demo users,
     public client "frontend" (Auth Code Flow + PKCE), realm-export.json
 [x] Branch protection on main (PRs required), squash merges
-[ ] Backend skeleton (Spring Boot 4.1, Java 21, Maven, modules
+[x] Backend skeleton (Spring Boot 4.1, Java 21, Maven, modules
     ingestion/query/web, /api/health public, /api/hello JWT-secured,
     springdoc-openapi, JaCoCo, multi-stage arm64 Dockerfile)
-[ ] Frontend skeleton (Angular standalone, angular-oauth2-oidc PKCE,
-    /login + guarded /home, headless test coverage, Compodoc)
-[ ] CI/CD pipelines (see PIPELINE ARCHITECTURE below)
+[x] Frontend skeleton (Angular 22 standalone, angular-oauth2-oidc PKCE,
+    /login + guarded /home, test runner: vitest (jsdom, no browser),
+    coverage in coverage/, Compodoc)
+[x] CI/CD pipelines (see PIPELINE ARCHITECTURE below)
 [ ] GitHub Pages configured (Settings -> Pages -> gh-pages branch)
 [ ] DONE = hello-world with login runs on the VPS via pipeline
 [ ] First release tag v0.1.0 once skeleton runs end-to-end with login
 
 PIPELINE ARCHITECTURE (.github/workflows/)
 1. frontend-ci.yml    PR + push main (paths frontend/**): test with
-                      coverage, build; upload coverage + Compodoc
-                      artifacts on main
+                      coverage (test runner: vitest in jsdom — no
+                      browser needed on the runner), build; upload
+                      coverage + Compodoc artifacts on main
 2. backend-ci.yml     PR + push main (paths backend/**): mvn verify
                       (JUnit + JaCoCo), OpenAPI spec; upload artifacts
                       on main

@@ -97,7 +97,7 @@ Log in with any demo user — `operator`, `techniker`, `schichtleiter` or `admin
 
 ```bash
 cd backend  && mvn verify        # JUnit + JaCoCo  -> backend/target/site/jacoco/
-cd frontend && npm run test:ci   # ChromeHeadless  -> frontend/coverage/
+cd frontend && npm run test:ci   # vitest (jsdom)  -> frontend/coverage/
 cd frontend && npm run docs      # Compodoc        -> frontend/documentation/
 ```
 

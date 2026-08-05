@@ -33,6 +33,25 @@ the difference does not matter.
 - Implementation code and tests from Phase 1 onward will be AI-assisted; this file is updated as
   that happens.
 
+### Phase 1 sessions (backend, frontend, CI)
+
+Three further AI-assisted sessions, each delivered as one branch and one pull request:
+
+| Session | Generated | Reviewed and verified by hand |
+|---|---|---|
+| **Backend skeleton** — Spring Boot 4.1, module packages, OAuth2 resource server, `/api/health` + `/api/hello`, JaCoCo, Dockerfile | All of it | Ran the compose stack, fetched a **real Keycloak token** for `techniker` and `operator`, and confirmed `/api/hello` returned the right username and `ROLE_*`; confirmed 401 without and with an invalid token. PR read line by line before merge. |
+| **Frontend skeleton** — Angular 22 standalone, OIDC login with PKCE, guarded `/home`, specs, Compodoc | All of it | Ran the dev server against live Keycloak and the backend; checked the proxy, the 401 path, and that Keycloak accepted the real authorization request with our redirect URI and PKCE challenge. PR reviewed before merge. |
+| **CI/CD pipelines** — six workflows, OpenAPI export test, frontend image | All of it | Linted every workflow with `actionlint`; built and ran the frontend image to check the SPA fallback; confirmed the OpenAPI spec is produced without a database or Keycloak. Workflow behaviour that only exists after merge (`workflow_run` triggers) was called out as unverified in the PR rather than claimed as working. |
+
+Two defects were found by that hands-on verification rather than by reading the code, which is the
+argument for doing it: the Keycloak demo users could not log in at all (missing email tripped
+user-profile validation and forced an update-profile screen), and the frontend container refused to
+start as a non-root user. Both were fixed before the respective PR was opened.
+
+**Correction to an earlier claim:** the first version of this file said the scaffold was verified by
+"human diff review on every PR before merge + CI tests". At that point CI did not exist yet — it was
+built in the third session above. Diff review was real; the CI half only became true afterwards.
+
 Rule of thumb for this repository: **AI writes prose and boilerplate, humans make decisions.**
 Where a model proposed a decision, it is recorded as an ADR and I own it.
 

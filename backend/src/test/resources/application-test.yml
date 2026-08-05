@@ -1,0 +1,17 @@
+# Test profile: the web and security layers are the subject here, so the tests must not
+# require a running database. Datasource and Flyway auto-configuration are switched off;
+# they come back under test in Phase 2 with Testcontainers against real Postgres + pgvector.
+spring:
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.jdbc.autoconfigure.DataSourceAutoConfiguration
+      - org.springframework.boot.flyway.autoconfigure.FlywayAutoConfiguration
+  flyway:
+    enabled: false
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          # Never contacted: the tests supply already-validated tokens through
+          # spring-security-test, so no JWKS lookup happens against a live Keycloak.
+          issuer-uri: http://localhost:8081/realms/maintenance

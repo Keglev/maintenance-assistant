@@ -29,11 +29,15 @@ yarn-error.log
 !.vscode/mcp.json
 .history/*
 
+# Generated reports — rebuilt by `npm run test:ci` and `npm run docs`,
+# published to gh-pages by CI rather than committed.
+/coverage
+/documentation
+
 # Miscellaneous
 /.angular/cache
 .sass-cache/
 /connect.lock
-/coverage
 /libpeerconnection.log
 testem.log
 /typings

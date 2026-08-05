@@ -1,0 +1,86 @@
+<!--
+  Fallback layout, used when the site is built without the remote theme
+  (for example on a local `jekyll serve` with no network). Intentionally plain:
+  readable typography, no assets, no JavaScript.
+-->
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Architecture Decisions · maintenance-assistant</title>
+    <meta name="description" content="AI assistant that makes maintenance protocols searchable in natural language, with citations and role-correct answers. EU-only data processing." />
+    <style>
+      :root { color-scheme: light dark; }
+      body {
+        max-width: 46rem;
+        margin: 0 auto;
+        padding: 2rem 1.25rem 4rem;
+        font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+        line-height: 1.65;
+      }
+      header a { text-decoration: none; font-weight: 600; }
+      h1, h2, h3 { line-height: 1.25; }
+      table { border-collapse: collapse; width: 100%; display: block; overflow-x: auto; }
+      th, td { border: 1px solid #8884; padding: 0.4rem 0.6rem; text-align: left; vertical-align: top; }
+      pre { overflow-x: auto; padding: 0.75rem; background: #8881; border-radius: 6px; }
+      code { font-size: 0.9em; }
+      img, svg { max-width: 100%; height: auto; }
+      footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid #8884; font-size: 0.9em; opacity: 0.8; }
+    </style>
+  </head>
+  <body>
+    <header><a href="/maintenance-assistant/">maintenance-assistant</a></header>
+    <main><h1 id="9-architecture-decisions">9. Architecture Decisions</h1>
+
+<p>Decisions live as individual records in <a href="../adr/"><code class="language-plaintext highlighter-rouge">docs/adr/</code></a>. Every architecture change gets an
+ADR; records are immutable once accepted, and a changed decision becomes a new record that
+supersedes the old one.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>ADR</th>
+      <th>Decision</th>
+      <th>Status</th>
+      <th>Drives</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><a href="/maintenance-assistant/adr/ADR-001-modular-monolith-first.html">ADR-001</a></td>
+      <td>Modular monolith first (<code class="language-plaintext highlighter-rouge">ingestion</code> / <code class="language-plaintext highlighter-rouge">query</code> / <code class="language-plaintext highlighter-rouge">web</code>, Spring events); extract the ingestion service with Kafka in Phase 2</td>
+      <td>Accepted</td>
+      <td>§4.1, §5, §7</td>
+    </tr>
+    <tr>
+      <td><a href="/maintenance-assistant/adr/ADR-002-eu-hosted-llm-provider.html">ADR-002</a></td>
+      <td>EU-hosted LLM and embedding provider: Nebius Token Factory primary, IONOS AI Model Hub fallback; multilingual embedding model as a hard requirement</td>
+      <td><strong>Proposed</strong> — 1-day spike pending</td>
+      <td>§3.2, §4, NFR-1, NFR-7</td>
+    </tr>
+    <tr>
+      <td><a href="/maintenance-assistant/adr/ADR-003-keycloak-for-iam.html">ADR-003</a></td>
+      <td>Keycloak as identity provider; Authorization Code Flow + PKCE in the browser, OAuth2 Resource Server in the backend; realm exported and versioned</td>
+      <td>Accepted</td>
+      <td>§3.2, §8, NFR-3</td>
+    </tr>
+    <tr>
+      <td><a href="/maintenance-assistant/adr/ADR-004-pgvector-for-vector-search.html">ADR-004</a></td>
+      <td>PostgreSQL + pgvector rather than a dedicated vector database; relational filter and vector ranking in one query</td>
+      <td>Accepted</td>
+      <td>§4.3, §7, US-3</td>
+    </tr>
+  </tbody>
+</table>
+
+<p><strong>Planned:</strong> ADR-005 will record the Phase 5 extraction of the ingestion service and the
+introduction of Kafka, once that change is actually made.</p>
+
+<p><strong>Open decision:</strong> ADR-002 is the only record not yet accepted. Its five open questions and its exit
+criterion are listed in the record itself; Phase 1 work on the query module waits on it.</p>
+
+</main>
+    <footer>Documentation for maintenance-assistant · arc42 + ADRs · status: in development, Phase 1</footer>
+  </body>
+</html>

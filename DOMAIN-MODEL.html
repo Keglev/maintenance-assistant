@@ -1,0 +1,138 @@
+<!--
+  Fallback layout, used when the site is built without the remote theme
+  (for example on a local `jekyll serve` with no network). Intentionally plain:
+  readable typography, no assets, no JavaScript.
+-->
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Domain Model — v0.1 (Draft for review) · maintenance-assistant</title>
+    <meta name="description" content="AI assistant that makes maintenance protocols searchable in natural language, with citations and role-correct answers. EU-only data processing." />
+    <style>
+      :root { color-scheme: light dark; }
+      body {
+        max-width: 46rem;
+        margin: 0 auto;
+        padding: 2rem 1.25rem 4rem;
+        font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+        line-height: 1.65;
+      }
+      header a { text-decoration: none; font-weight: 600; }
+      h1, h2, h3 { line-height: 1.25; }
+      table { border-collapse: collapse; width: 100%; display: block; overflow-x: auto; }
+      th, td { border: 1px solid #8884; padding: 0.4rem 0.6rem; text-align: left; vertical-align: top; }
+      pre { overflow-x: auto; padding: 0.75rem; background: #8881; border-radius: 6px; }
+      code { font-size: 0.9em; }
+      img, svg { max-width: 100%; height: auto; }
+      footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid #8884; font-size: 0.9em; opacity: 0.8; }
+    </style>
+  </head>
+  <body>
+    <header><a href="/maintenance-assistant/">maintenance-assistant</a></header>
+    <main><h1 id="domain-model--v01-draft-for-review">Domain Model — v0.1 (Draft for review)</h1>
+
+<h2 id="1-entities">1. Entities</h2>
+
+<pre><code class="language-mermaid">erDiagram
+    MACHINE ||--o{ PROTOCOL : has
+    PROTOCOL ||--o{ CHUNK : "split into"
+
+    MACHINE {
+        uuid id PK
+        string machine_no "e.g. PR-03"
+        string name "e.g. Presse 3"
+        string type "e.g. Hydraulikpresse"
+        string manufacturer
+        int year_built "legacy: 15-20 y possible"
+        string control_type "PLC | SCADA | CNC | TERMINAL"
+        string location "hall / line"
+    }
+
+    PROTOCOL {
+        uuid id PK
+        uuid machine_id FK
+        date incident_date
+        string protocol_type "STOERUNG | WARTUNG"
+        string error_code "e.g. E-47, nullable"
+        string title
+        text symptom "what was observed"
+        text cause "Ursache"
+        text action "Massnahme / fix"
+        text parts_used "Ersatzteile, nullable"
+        int downtime_minutes "nullable"
+        string technician_initials
+        string language "de | en"
+        string source_file "path on volume, nullable"
+        string status "RECEIVED | INDEXED | FAILED"
+        string uploaded_by "Keycloak username"
+        timestamp created_at
+    }
+
+    CHUNK {
+        uuid id PK
+        uuid protocol_id FK
+        text content
+        vector embedding "pgvector"
+        string language
+        uuid machine_id "denormalized for filtering"
+        string error_code "denormalized, nullable"
+    }
+</code></pre>
+
+<h2 id="2-design-decisions--assumptions">2. Design decisions &amp; assumptions</h2>
+
+<ul>
+  <li><strong>Users are NOT in the database.</strong> Identity, roles, and credentials live in Keycloak; the app only reads token claims. <code class="language-plaintext highlighter-rouge">uploaded_by</code> stores the username string for traceability, no FK.</li>
+  <li><strong>Original files on a Docker volume,</strong> path stored in <code class="language-plaintext highlighter-rouge">PROTOCOL.source_file</code> — not as BLOBs in Postgres. Keeps the DB small and backups simple. (Phase 2 option: object storage.)</li>
+  <li><strong>Denormalized <code class="language-plaintext highlighter-rouge">machine_id</code> / <code class="language-plaintext highlighter-rouge">error_code</code> on CHUNK</strong> so vector search can filter by machine (US-3) in one query: <code class="language-plaintext highlighter-rouge">WHERE machine_id = ? ORDER BY embedding &lt;=&gt; :query_vector</code>.</li>
+  <li><strong>Structured fields (symptom/cause/action) instead of one text blob.</strong> Real protocols are messy, but the <em>system’s own</em> created protocols (Schichtleiter form) are structured — a quality argument. Uploaded PDFs land in <code class="language-plaintext highlighter-rouge">symptom</code>-like raw text after extraction.</li>
+  <li><strong>Answer-mode logic is not a table.</strong> Mode A vs. Mode B (grounded/ungrounded) is runtime behavior: retrieval returns hits above a similarity threshold → Mode A; below → Mode B. Threshold configurable.</li>
+  <li><strong>No query logging of personal data.</strong> If query logging is added for demo/metrics, it stores role + timestamp + answer mode only, never username — a deliberate DSGVO talking point (Datenminimierung).</li>
+</ul>
+
+<h2 id="3-synthetic-corpus-plan-150-protocols">3. Synthetic corpus plan (~150 protocols)</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th>Aspect</th>
+      <th>Plan</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Machines</td>
+      <td>8–10: e.g. 2 hydraulic presses (one 2005, one 2021 — same type, different age), CNC mill, robot welding cell, packaging line, compressor, conveyor. Mixed control types (PLC-only legacy, SCADA, terminal).</td>
+    </tr>
+    <tr>
+      <td>Languages</td>
+      <td>~70% German, ~30% English (US plant flavor for the EN ones)</td>
+    </tr>
+    <tr>
+      <td>Quality mix</td>
+      <td>~60% structured, ~30% free-text/messy, ~10% short and unhelpful (“repariert, läuft wieder”) — realistic</td>
+    </tr>
+    <tr>
+      <td>Demo seeds</td>
+      <td>Error E-47 on Presse 3 appears 2–3x with consistent cause/fix (US-1/US-2 demo). One machine has deliberately NO protocol for a common error → Mode B demo. One DE query must match an EN protocol (multilingual demo). Operator-safe cases: sensor cleaning, material jam, program change.</td>
+    </tr>
+    <tr>
+      <td>Generation</td>
+      <td>Generated with Claude, structure based on my own experience with maintenance documentation in US and German manufacturing. Documented in AI-USAGE.md.</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="4-open-for-review">4. Open for review</h2>
+
+<ol>
+  <li><code class="language-plaintext highlighter-rouge">error_code</code> is free text, not a lookup table — real plants rarely have a clean code catalog across machine generations. Acceptable?</li>
+  <li><code class="language-plaintext highlighter-rouge">downtime_minutes</code> is captured but unused in Phase 1 (no reporting). Keep (cheap, enables a future stats view) or drop (YAGNI)?</li>
+</ol>
+
+</main>
+    <footer>Documentation for maintenance-assistant · arc42 + ADRs · status: in development, Phase 1</footer>
+  </body>
+</html>

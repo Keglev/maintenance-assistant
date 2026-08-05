@@ -1,0 +1,57 @@
+<!--
+  Fallback layout, used when the site is built without the remote theme
+  (for example on a local `jekyll serve` with no network). Intentionally plain:
+  readable typography, no assets, no JavaScript.
+-->
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Deployment View · maintenance-assistant</title>
+    <meta name="description" content="AI assistant that makes maintenance protocols searchable in natural language, with citations and role-correct answers. EU-only data processing." />
+    <style>
+      :root { color-scheme: light dark; }
+      body {
+        max-width: 46rem;
+        margin: 0 auto;
+        padding: 2rem 1.25rem 4rem;
+        font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+        line-height: 1.65;
+      }
+      header a { text-decoration: none; font-weight: 600; }
+      h1, h2, h3 { line-height: 1.25; }
+      table { border-collapse: collapse; width: 100%; display: block; overflow-x: auto; }
+      th, td { border: 1px solid #8884; padding: 0.4rem 0.6rem; text-align: left; vertical-align: top; }
+      pre { overflow-x: auto; padding: 0.75rem; background: #8881; border-radius: 6px; }
+      code { font-size: 0.9em; }
+      img, svg { max-width: 100%; height: auto; }
+      footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid #8884; font-size: 0.9em; opacity: 0.8; }
+    </style>
+  </head>
+  <body>
+    <header><a href="/maintenance-assistant/">maintenance-assistant</a></header>
+    <main><h1 id="7-deployment-view">7. Deployment View</h1>
+
+<blockquote>
+  <p><strong>Stub — to be filled in Phase 1</strong> (local compose stack) and completed in Phase 4 (VPS, domain,
+TLS).</p>
+</blockquote>
+
+<p>Planned infrastructure, to be documented here with a deployment diagram:</p>
+
+<ul>
+  <li><strong>Local development</strong> — three containers via <code class="language-plaintext highlighter-rouge">docker compose up</code>: the application, PostgreSQL +
+pgvector, and Keycloak (dev mode, realm imported from <code class="language-plaintext highlighter-rouge">docker/keycloak/realm-export.json</code>, exposed
+on port 8081). See <a href="../../docker/"><code class="language-plaintext highlighter-rouge">docker/</code></a>.</li>
+  <li><strong>Production</strong> — a single Hetzner CAX VPS (arm64, 8 GB) running the same compose stack, behind a
+domain with TLS. Images are built multi-arch in CI.</li>
+  <li><strong>Constraints already fixed:</strong> arm64-compatible images only (TC-3), 8 GB is not reduced further
+(OOM risk during indexing), and a paused server is snapshotted and deleted rather than stopped,
+because a stopped Hetzner server still bills in full.</li>
+</ul>
+
+</main>
+    <footer>Documentation for maintenance-assistant · arc42 + ADRs · status: in development, Phase 1</footer>
+  </body>
+</html>

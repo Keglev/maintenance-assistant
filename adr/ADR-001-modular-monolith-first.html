@@ -1,0 +1,113 @@
+<!--
+  Fallback layout, used when the site is built without the remote theme
+  (for example on a local `jekyll serve` with no network). Intentionally plain:
+  readable typography, no assets, no JavaScript.
+-->
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>ADR-001: Modular Monolith First, Service Extraction in Phase 2 · maintenance-assistant</title>
+    <meta name="description" content="AI assistant that makes maintenance protocols searchable in natural language, with citations and role-correct answers. EU-only data processing." />
+    <style>
+      :root { color-scheme: light dark; }
+      body {
+        max-width: 46rem;
+        margin: 0 auto;
+        padding: 2rem 1.25rem 4rem;
+        font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+        line-height: 1.65;
+      }
+      header a { text-decoration: none; font-weight: 600; }
+      h1, h2, h3 { line-height: 1.25; }
+      table { border-collapse: collapse; width: 100%; display: block; overflow-x: auto; }
+      th, td { border: 1px solid #8884; padding: 0.4rem 0.6rem; text-align: left; vertical-align: top; }
+      pre { overflow-x: auto; padding: 0.75rem; background: #8881; border-radius: 6px; }
+      code { font-size: 0.9em; }
+      img, svg { max-width: 100%; height: auto; }
+      footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid #8884; font-size: 0.9em; opacity: 0.8; }
+    </style>
+  </head>
+  <body>
+    <header><a href="/maintenance-assistant/">maintenance-assistant</a></header>
+    <main><h1 id="adr-001-modular-monolith-first-service-extraction-in-phase-2">ADR-001: Modular Monolith First, Service Extraction in Phase 2</h1>
+
+<table>
+  <thead>
+    <tr>
+      <th> </th>
+      <th> </th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Status</strong></td>
+      <td>Accepted</td>
+    </tr>
+    <tr>
+      <td><strong>Date</strong></td>
+      <td>2026-08-05</td>
+    </tr>
+    <tr>
+      <td><strong>Deciders</strong></td>
+      <td>Project owner (solo)</td>
+    </tr>
+    <tr>
+      <td><strong>Related</strong></td>
+      <td><a href="/maintenance-assistant/adr/ADR-004-pgvector-for-vector-search.html">ADR-004</a> — same “no infrastructure for imaginary scale” reasoning</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="context">Context</h2>
+
+<p>The system needs asynchronous document processing (upload → extract → embed → index) and must be
+demoable on a single ~8 GB VPS. The developer is a single person with a 3–4 week budget. Regional
+job ads ask for microservices and Kafka experience, but a portfolio project must above all <em>work</em>
+when a recruiter clicks it (a broken demo was concrete prior feedback).</p>
+
+<h2 id="decision">Decision</h2>
+
+<p>Phase 1 is one Spring Boot application, internally modularized by package (<code class="language-plaintext highlighter-rouge">ingestion</code>, <code class="language-plaintext highlighter-rouge">query</code>,
+<code class="language-plaintext highlighter-rouge">web</code>), with asynchronous processing via Spring application events. Three containers in total:
+app, PostgreSQL + pgvector, Keycloak.</p>
+
+<p>Phase 2 (only after Phase 1 is stable and deployed): extract the <code class="language-plaintext highlighter-rouge">ingestion</code> module into its own
+service and introduce Apache Kafka for the <code class="language-plaintext highlighter-rouge">document.received</code> → <code class="language-plaintext highlighter-rouge">document.indexed</code> event flow.</p>
+
+<h2 id="consequences">Consequences</h2>
+
+<p><strong>Positive</strong></p>
+
+<ul>
+  <li>Fully demoable early; one deployment unit; debugging without distributed tracing.</li>
+  <li>The module boundary drawn in Phase 1 is the extraction seam for Phase 2 — the domain model does
+not change, only the event transport (in-process events → Kafka topics).</li>
+  <li>Git history documents architectural evolution driven by need, not fashion.</li>
+</ul>
+
+<p><strong>Negative</strong></p>
+
+<ul>
+  <li>Phase 1 shows no running Kafka; mitigated by this ADR and the Phase 2 plan being public in the
+repository.</li>
+  <li>In-process events are lost on crash (no persistence); acceptable for Phase 1, and precisely the
+argument that later justifies Kafka.</li>
+</ul>
+
+<h2 id="alternatives-considered">Alternatives considered</h2>
+
+<ul>
+  <li><strong>Microservices from day 1</strong> — highest interview-keyword density, but triples operational
+complexity (service discovery, distributed failures, per-service pipelines) for a solo developer,
+and risks shipping nothing demoable. “Monolith first” is established industry guidance (Fowler).
+<em>Rejected.</em></li>
+  <li><strong>Skipping Kafka entirely</strong> — Kafka appears in most regional Java ads; dropping it forfeits the
+main skill-gap goal. <em>Deferred, not dropped.</em></li>
+</ul>
+
+</main>
+    <footer>Documentation for maintenance-assistant · arc42 + ADRs · status: in development, Phase 1</footer>
+  </body>
+</html>

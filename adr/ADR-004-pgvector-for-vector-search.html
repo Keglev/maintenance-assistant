@@ -1,0 +1,117 @@
+<!--
+  Fallback layout, used when the site is built without the remote theme
+  (for example on a local `jekyll serve` with no network). Intentionally plain:
+  readable typography, no assets, no JavaScript.
+-->
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>ADR-004: PostgreSQL + pgvector Instead of a Dedicated Vector Database · maintenance-assistant</title>
+    <meta name="description" content="AI assistant that makes maintenance protocols searchable in natural language, with citations and role-correct answers. EU-only data processing." />
+    <style>
+      :root { color-scheme: light dark; }
+      body {
+        max-width: 46rem;
+        margin: 0 auto;
+        padding: 2rem 1.25rem 4rem;
+        font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+        line-height: 1.65;
+      }
+      header a { text-decoration: none; font-weight: 600; }
+      h1, h2, h3 { line-height: 1.25; }
+      table { border-collapse: collapse; width: 100%; display: block; overflow-x: auto; }
+      th, td { border: 1px solid #8884; padding: 0.4rem 0.6rem; text-align: left; vertical-align: top; }
+      pre { overflow-x: auto; padding: 0.75rem; background: #8881; border-radius: 6px; }
+      code { font-size: 0.9em; }
+      img, svg { max-width: 100%; height: auto; }
+      footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid #8884; font-size: 0.9em; opacity: 0.8; }
+    </style>
+  </head>
+  <body>
+    <header><a href="/maintenance-assistant/">maintenance-assistant</a></header>
+    <main><h1 id="adr-004-postgresql--pgvector-instead-of-a-dedicated-vector-database">ADR-004: PostgreSQL + pgvector Instead of a Dedicated Vector Database</h1>
+
+<table>
+  <thead>
+    <tr>
+      <th> </th>
+      <th> </th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Status</strong></td>
+      <td>Accepted</td>
+    </tr>
+    <tr>
+      <td><strong>Date</strong></td>
+      <td>2026-08-05</td>
+    </tr>
+    <tr>
+      <td><strong>Deciders</strong></td>
+      <td>Project owner (solo)</td>
+    </tr>
+    <tr>
+      <td><strong>Related</strong></td>
+      <td><a href="/maintenance-assistant/adr/ADR-001-modular-monolith-first.html">ADR-001</a>; implements US-3 and NFR-5</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="context">Context</h2>
+
+<p>RAG requires storing embeddings and running nearest-neighbour similarity search, filtered by
+relational attributes (<code class="language-plaintext highlighter-rouge">machine_id</code>, US-3). Corpus size: ~150 protocols ≈ well under 5,000 chunks.
+Constraint: a single ~8 GB VPS with a minimal container count (NFR-5).</p>
+
+<h2 id="decision">Decision</h2>
+
+<p>PostgreSQL with the pgvector extension. Chunks live in a normal table with a <code class="language-plaintext highlighter-rouge">vector</code> column;
+retrieval is one SQL query combining the relational filter and cosine-distance ordering:</p>
+
+<div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">SELECT</span> <span class="p">...</span> <span class="k">FROM</span> <span class="n">chunk</span>
+<span class="k">WHERE</span> <span class="n">machine_id</span> <span class="o">=</span> <span class="p">:</span><span class="n">machine</span>
+<span class="k">ORDER</span> <span class="k">BY</span> <span class="n">embedding</span> <span class="o">&lt;=&gt;</span> <span class="p">:</span><span class="n">query_embedding</span>
+<span class="k">LIMIT</span> <span class="mi">5</span><span class="p">;</span>
+</code></pre></div></div>
+
+<h2 id="consequences">Consequences</h2>
+
+<p><strong>Positive</strong></p>
+
+<ul>
+  <li>One database for relational data <strong>and</strong> vectors: fewer containers, one backup, transactional
+consistency between protocol metadata and chunks (no sync problem between two stores).</li>
+  <li>The machine filter and the vector search happen in the same query plan — with a dedicated vector
+DB this requires metadata-filter features and cross-store consistency handling.</li>
+  <li>At this corpus size, exact (non-indexed) search is already fast; an HNSW index can be added with
+one statement if the corpus grows. The scale ceiling is millions of vectors — orders of magnitude
+above this use case.</li>
+</ul>
+
+<p><strong>Negative</strong></p>
+
+<ul>
+  <li>Not the right choice for very large corpora or extreme QPS; documented deliberately as a
+scale-aware decision, not ignorance of the alternatives.</li>
+</ul>
+
+<h2 id="alternatives-considered">Alternatives considered</h2>
+
+<ul>
+  <li><strong>Dedicated vector DB (Qdrant, Weaviate, Milvus, Chroma)</strong> — built for scale this project will
+never reach; costs an extra container plus a consistency strategy between Postgres and the vector
+store. Choosing infrastructure for imaginary scale is the same anti-pattern as day-1
+microservices (see ADR-001). <em>Rejected.</em></li>
+  <li><strong>Managed vector service (Pinecone)</strong> — SaaS dependency, US processing by default; contradicts
+NFR-1. <em>Rejected.</em></li>
+  <li><strong>Elasticsearch/OpenSearch kNN</strong> — capable, but a heavy JVM container (~1–2 GB) duplicating what
+Postgres already provides here. <em>Rejected.</em></li>
+</ul>
+
+</main>
+    <footer>Documentation for maintenance-assistant · arc42 + ADRs · status: in development, Phase 1</footer>
+  </body>
+</html>

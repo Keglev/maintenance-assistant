@@ -1,0 +1,125 @@
+<!--
+  Fallback layout, used when the site is built without the remote theme
+  (for example on a local `jekyll serve` with no network). Intentionally plain:
+  readable typography, no assets, no JavaScript.
+-->
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Architecture Documentation (arc42) · maintenance-assistant</title>
+    <meta name="description" content="AI assistant that makes maintenance protocols searchable in natural language, with citations and role-correct answers. EU-only data processing." />
+    <style>
+      :root { color-scheme: light dark; }
+      body {
+        max-width: 46rem;
+        margin: 0 auto;
+        padding: 2rem 1.25rem 4rem;
+        font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+        line-height: 1.65;
+      }
+      header a { text-decoration: none; font-weight: 600; }
+      h1, h2, h3 { line-height: 1.25; }
+      table { border-collapse: collapse; width: 100%; display: block; overflow-x: auto; }
+      th, td { border: 1px solid #8884; padding: 0.4rem 0.6rem; text-align: left; vertical-align: top; }
+      pre { overflow-x: auto; padding: 0.75rem; background: #8881; border-radius: 6px; }
+      code { font-size: 0.9em; }
+      img, svg { max-width: 100%; height: auto; }
+      footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid #8884; font-size: 0.9em; opacity: 0.8; }
+    </style>
+  </head>
+  <body>
+    <header><a href="/maintenance-assistant/">maintenance-assistant</a></header>
+    <main><h1 id="architecture-documentation-arc42">Architecture Documentation (arc42)</h1>
+
+<p>Architecture of <strong>maintenance-assistant</strong>, structured along the twelve
+<a href="https://arc42.org">arc42</a> sections.</p>
+
+<p>Sections 1–4 and 9 are written; they are derived from the design documents in
+<a href="../"><code class="language-plaintext highlighter-rouge">docs/</code></a> and must not contradict them. The remaining sections are stubs that fill up as the
+implementation phases land — an empty section here is an honest “not built yet”, not an oversight.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>#</th>
+      <th>Section</th>
+      <th>State</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>01</td>
+      <td><a href="/maintenance-assistant/arc42/01-introduction-and-goals.html">Introduction and Goals</a></td>
+      <td>written</td>
+    </tr>
+    <tr>
+      <td>02</td>
+      <td><a href="/maintenance-assistant/arc42/02-architecture-constraints.html">Architecture Constraints</a></td>
+      <td>written</td>
+    </tr>
+    <tr>
+      <td>03</td>
+      <td><a href="/maintenance-assistant/arc42/03-context-and-scope.html">Context and Scope</a></td>
+      <td>written</td>
+    </tr>
+    <tr>
+      <td>04</td>
+      <td><a href="/maintenance-assistant/arc42/04-solution-strategy.html">Solution Strategy</a></td>
+      <td>written</td>
+    </tr>
+    <tr>
+      <td>05</td>
+      <td><a href="/maintenance-assistant/arc42/05-building-block-view.html">Building Block View</a></td>
+      <td>stub — Phase 1</td>
+    </tr>
+    <tr>
+      <td>06</td>
+      <td><a href="/maintenance-assistant/arc42/06-runtime-view.html">Runtime View</a></td>
+      <td>stub — Phase 3</td>
+    </tr>
+    <tr>
+      <td>07</td>
+      <td><a href="/maintenance-assistant/arc42/07-deployment-view.html">Deployment View</a></td>
+      <td>stub — Phase 1</td>
+    </tr>
+    <tr>
+      <td>08</td>
+      <td><a href="/maintenance-assistant/arc42/08-crosscutting-concepts.html">Cross-cutting Concepts</a></td>
+      <td>stub — Phase 2/3</td>
+    </tr>
+    <tr>
+      <td>09</td>
+      <td><a href="/maintenance-assistant/arc42/09-architecture-decisions.html">Architecture Decisions</a></td>
+      <td>written (links to ADRs)</td>
+    </tr>
+    <tr>
+      <td>10</td>
+      <td><a href="/maintenance-assistant/arc42/10-quality-requirements.html">Quality Requirements</a></td>
+      <td>stub — Phase 4</td>
+    </tr>
+    <tr>
+      <td>11</td>
+      <td><a href="/maintenance-assistant/arc42/11-risks-and-technical-debt.html">Risks and Technical Debt</a></td>
+      <td>stub</td>
+    </tr>
+    <tr>
+      <td>12</td>
+      <td><a href="/maintenance-assistant/arc42/12-glossary.html">Glossary</a></td>
+      <td>written</td>
+    </tr>
+  </tbody>
+</table>
+
+<p><strong>Sources of truth:</strong> <a href="/maintenance-assistant/REQUIREMENTS.html">REQUIREMENTS.md</a>, <a href="/maintenance-assistant/DOMAIN-MODEL.html">DOMAIN-MODEL.md</a>,
+<a href="../DECISIONS.txt">DECISIONS.txt</a>, <a href="../PROJECT-PHASES.txt">PROJECT-PHASES.txt</a>. Where this
+documentation and those files disagree, those files win.</p>
+
+<p>Diagrams are Mermaid sources (<code class="language-plaintext highlighter-rouge">.mmd</code>) under <a href="diagrams/"><code class="language-plaintext highlighter-rouge">diagrams/</code></a>, rendered to SVG by
+<a href="../scripts/generate-diagrams.mjs"><code class="language-plaintext highlighter-rouge">docs/scripts/generate-diagrams.mjs</code></a>.</p>
+
+</main>
+    <footer>Documentation for maintenance-assistant · arc42 + ADRs · status: in development, Phase 1</footer>
+  </body>
+</html>

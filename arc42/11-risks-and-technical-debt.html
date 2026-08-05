@@ -1,0 +1,105 @@
+<!--
+  Fallback layout, used when the site is built without the remote theme
+  (for example on a local `jekyll serve` with no network). Intentionally plain:
+  readable typography, no assets, no JavaScript.
+-->
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Risks and Technical Debt · maintenance-assistant</title>
+    <meta name="description" content="AI assistant that makes maintenance protocols searchable in natural language, with citations and role-correct answers. EU-only data processing." />
+    <style>
+      :root { color-scheme: light dark; }
+      body {
+        max-width: 46rem;
+        margin: 0 auto;
+        padding: 2rem 1.25rem 4rem;
+        font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+        line-height: 1.65;
+      }
+      header a { text-decoration: none; font-weight: 600; }
+      h1, h2, h3 { line-height: 1.25; }
+      table { border-collapse: collapse; width: 100%; display: block; overflow-x: auto; }
+      th, td { border: 1px solid #8884; padding: 0.4rem 0.6rem; text-align: left; vertical-align: top; }
+      pre { overflow-x: auto; padding: 0.75rem; background: #8881; border-radius: 6px; }
+      code { font-size: 0.9em; }
+      img, svg { max-width: 100%; height: auto; }
+      footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid #8884; font-size: 0.9em; opacity: 0.8; }
+    </style>
+  </head>
+  <body>
+    <header><a href="/maintenance-assistant/">maintenance-assistant</a></header>
+    <main><h1 id="11-risks-and-technical-debt">11. Risks and Technical Debt</h1>
+
+<blockquote>
+  <p><strong>Stub — grows with the implementation.</strong> The entries below are the risks already known and
+accepted at the end of the design phase.</p>
+</blockquote>
+
+<table>
+  <thead>
+    <tr>
+      <th>#</th>
+      <th>Risk / debt</th>
+      <th>Impact</th>
+      <th>Mitigation</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>R-1</td>
+      <td><strong>ADR-002 is unresolved.</strong> Provider, multilingual retrieval quality, real cost per query and the availability of hard billing limits are all unverified.</td>
+      <td>Blocks the query module; a failed billing-limit check would make the public demo unshippable as designed.</td>
+      <td>1-day spike in Phase 0 with five explicit exit questions.</td>
+    </tr>
+    <tr>
+      <td>R-2</td>
+      <td><strong>The fixer is not the documenter.</strong> Write access is restricted to the Schichtleiter, so knowledge capture depends on the shift handover.</td>
+      <td>Protocols may be thin or lag behind the actual repair.</td>
+      <td>Accepted deliberately, in exchange for knowledge-base quality; documented as a known limitation.</td>
+    </tr>
+    <tr>
+      <td>R-3</td>
+      <td><strong>In-process events are lost on crash</strong> (no persistence).</td>
+      <td>An upload interrupted mid-indexing can be left in <code class="language-plaintext highlighter-rouge">RECEIVED</code>.</td>
+      <td>Accepted for Phase 1; it is precisely the argument that later justifies Kafka (<a href="/maintenance-assistant/adr/ADR-001-modular-monolith-first.html">ADR-001</a>).</td>
+    </tr>
+    <tr>
+      <td>R-4</td>
+      <td><strong>Public demo, metered LLM.</strong></td>
+      <td>Abuse or a runaway loop costs money.</td>
+      <td>Three-layer NFR-7 guard; worst case is a few euros, not hundreds — the risk is surprise, not ruin.</td>
+    </tr>
+    <tr>
+      <td>R-5</td>
+      <td><strong>Mode B can still mislead</strong>, even when labelled ungrounded.</td>
+      <td>An operator could act on a generic suggestion.</td>
+      <td>Visual distinction from Mode A; operator-safe steps and escalation advice only for Operators; never presented as fact.</td>
+    </tr>
+    <tr>
+      <td>R-6</td>
+      <td><strong>Single VPS, no redundancy.</strong></td>
+      <td>The demo is down if the host is down.</td>
+      <td>Accepted for a portfolio deployment; recovery is a fresh <code class="language-plaintext highlighter-rouge">docker compose up</code> from a snapshot.</td>
+    </tr>
+    <tr>
+      <td>R-7</td>
+      <td><strong>Keycloak realm drift.</strong> A change made in the admin console but not re-exported disappears on the next fresh start.</td>
+      <td>Demo users or roles could vanish.</td>
+      <td>The realm export is versioned in the repository and imported at startup; re-export is part of any realm change.</td>
+    </tr>
+    <tr>
+      <td>R-8</td>
+      <td><strong>Free-text <code class="language-plaintext highlighter-rouge">error_code</code></strong> (no lookup table), and <code class="language-plaintext highlighter-rouge">downtime_minutes</code> captured but unused in Phase 1.</td>
+      <td>Minor inconsistency in the data model.</td>
+      <td>Accepted knowingly; both are open review points in <a href="/maintenance-assistant/DOMAIN-MODEL.html">DOMAIN-MODEL.md</a> §4.</td>
+    </tr>
+  </tbody>
+</table>
+
+</main>
+    <footer>Documentation for maintenance-assistant · arc42 + ADRs · status: in development, Phase 1</footer>
+  </body>
+</html>

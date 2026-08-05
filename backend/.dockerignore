@@ -1,0 +1,10 @@
+# Keep the build context small and the dependency layer cacheable.
+# The jar is built inside the image, so a local target/ is never needed in the context.
+target/
+.mvn/
+*.iml
+.idea/
+.vscode/
+.env
+.env.*
+!.env.example

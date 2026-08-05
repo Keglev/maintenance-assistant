@@ -1,0 +1,53 @@
+# Local development defaults, matching the compose stack in docker/.
+# Every value is overridable by environment variable, which is how the container is configured.
+spring:
+  application:
+    name: maintenance-assistant
+
+  datasource:
+    # Host-side default. Inside the compose network the host is `postgres`, not `localhost`;
+    # if 5432 is taken on your machine, start compose with POSTGRES_PORT=5433 and adjust here.
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/maintenance}
+    username: ${SPRING_DATASOURCE_USERNAME:maintenance}
+    password: ${SPRING_DATASOURCE_PASSWORD:change-me-locally}
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    # No migrations yet — the schema (machine, protocol, chunk) arrives in Phase 2.
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${KEYCLOAK_ISSUER_URI:http://localhost:8081/realms/maintenance}
+
+server:
+  port: ${SERVER_PORT:8080}
+  error:
+    # Stack traces are never part of an HTTP response.
+    include-stacktrace: never
+    include-message: never
+
+management:
+  endpoints:
+    web:
+      exposure:
+        # Deliberately narrow: /api/health is the public probe, the rest stays closed.
+        include: health,info
+  endpoint:
+    health:
+      probes:
+        enabled: true
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operations-sorter: alpha
+    tags-sorter: alpha
+
+logging:
+  level:
+    org.springframework.security: ${LOG_LEVEL_SECURITY:INFO}

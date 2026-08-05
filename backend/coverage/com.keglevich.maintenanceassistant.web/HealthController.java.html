@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>HealthController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">maintenance-assistant</a> &gt; <a href="index.source.html" class="el_package">com.keglevich.maintenanceassistant.web</a> &gt; <span class="el_source">HealthController.java</span></div><h1>HealthController.java</h1><pre class="source lang-java linenums">package com.keglevich.maintenanceassistant.web;
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.boot.info.BuildProperties;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+/**
+ * Public liveness endpoint.
+ *
+ * &lt;p&gt;Deliberately unauthenticated: it is what a load balancer, the compose healthcheck and a
+ * recruiter clicking the demo URL hit first, and none of them hold a token. It reports no
+ * information an anonymous caller could not already infer.
+ */
+@RestController
+@RequestMapping(&quot;/api&quot;)
+@Tag(name = &quot;System&quot;, description = &quot;Public service information&quot;)
+class HealthController {
+
+  private final String version;
+
+<span class="fc" id="L25">  HealthController(ObjectProvider&lt;BuildProperties&gt; buildProperties) {</span>
+    // Written by the spring-boot-maven-plugin build-info goal; absent when the class is started
+    // straight from an IDE, which is not worth failing over.
+<span class="pc bpc" id="L28" title="1 of 2 branches missed.">    this.version = buildProperties.getIfAvailable() != null</span>
+<span class="fc" id="L29">        ? buildProperties.getObject().getVersion()</span>
+<span class="pc" id="L30">        : &quot;dev&quot;;</span>
+<span class="fc" id="L31">  }</span>
+
+  @GetMapping(&quot;/health&quot;)
+  @Operation(summary = &quot;Service status and version&quot;, description = &quot;Public — no token required.&quot;)
+  HealthResponse health() {
+<span class="fc" id="L36">    return new HealthResponse(&quot;UP&quot;, version);</span>
+  }
+
+<span class="fc" id="L39">  record HealthResponse(String status, String version) {}</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

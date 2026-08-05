@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SecurityConfig.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">maintenance-assistant</a> &gt; <a href="index.source.html" class="el_package">com.keglevich.maintenanceassistant.web</a> &gt; <span class="el_source">SecurityConfig.java</span></div><h1>SecurityConfig.java</h1><pre class="source lang-java linenums">package com.keglevich.maintenanceassistant.web;
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
+import org.springframework.security.web.SecurityFilterChain;
+
+/**
+ * Security configuration: the application is an OAuth2 Resource Server (ADR-003).
+ *
+ * &lt;p&gt;It validates Keycloak-issued JWTs offline against the realm's JWKS — configured through
+ * {@code spring.security.oauth2.resourceserver.jwt.issuer-uri} — and never issues tokens itself.
+ * Realm roles from the token become {@code ROLE_*} authorities via
+ * {@link KeycloakRealmRoleConverter}, so the four roles (operator, techniker, schichtleiter,
+ * admin) are enforceable server-side.
+ */
+@Configuration
+@EnableWebSecurity
+<span class="fc" id="L23">class SecurityConfig {</span>
+
+  /** Readable without a token: the liveness probe and the API documentation. */
+<span class="fc" id="L26">  private static final String[] PUBLIC_PATHS = {</span>
+    &quot;/api/health&quot;, &quot;/actuator/health&quot;, &quot;/actuator/health/**&quot;,
+    &quot;/v3/api-docs&quot;, &quot;/v3/api-docs/**&quot;, &quot;/swagger-ui.html&quot;, &quot;/swagger-ui/**&quot;
+  };
+
+  @Bean
+  SecurityFilterChain securityFilterChain(HttpSecurity http, JwtAuthenticationConverter converter)
+      throws Exception {
+<span class="fc" id="L34">    return http</span>
+        // No cookies, no sessions: every request carries its own bearer token, so there is no
+        // session for a cross-site request to ride on and CSRF protection buys nothing.
+<span class="fc" id="L37">        .csrf(csrf -&gt; csrf.disable())</span>
+<span class="fc" id="L38">        .sessionManagement(session -&gt; session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))</span>
+<span class="fc" id="L39">        .authorizeHttpRequests(auth -&gt; auth</span>
+<span class="fc" id="L40">            .requestMatchers(HttpMethod.GET, PUBLIC_PATHS).permitAll()</span>
+<span class="fc" id="L41">            .anyRequest().authenticated())</span>
+        // Wired explicitly: a custom SecurityFilterChain opts out of Boot's auto-configuration,
+        // so the converter bean would otherwise be ignored and roles would never arrive.
+<span class="fc" id="L44">        .oauth2ResourceServer(oauth2 -&gt; oauth2.jwt(jwt -&gt; jwt.jwtAuthenticationConverter(converter)))</span>
+<span class="fc" id="L45">        .build();</span>
+  }
+
+  /**
+   * Turns a validated JWT into an {@code Authentication}: realm roles become authorities and the
+   * principal name is the Keycloak username rather than the opaque subject id, which is what
+   * {@code uploaded_by} stores for traceability.
+   */
+  @Bean
+  JwtAuthenticationConverter jwtAuthenticationConverter() {
+<span class="fc" id="L55">    JwtAuthenticationConverter converter = new JwtAuthenticationConverter();</span>
+<span class="fc" id="L56">    converter.setJwtGrantedAuthoritiesConverter(new KeycloakRealmRoleConverter());</span>
+<span class="fc" id="L57">    converter.setPrincipalClaimName(&quot;preferred_username&quot;);</span>
+<span class="fc" id="L58">    return converter;</span>
+  }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

@@ -22,6 +22,11 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <springdoc.version>3.1.0</springdoc.version>
     <jacoco.version>0.8.13</jacoco.version>
+
+    <!-- Empty default for the property JaCoCo's prepare-agent fills in. The test
+         plugins below extend it with @{argLine}, which fails to resolve if nothing
+         ever set it - as happens with -Djacoco.skip=true. -->
+    <argLine></argLine>
   </properties>
 
   <dependencies>
@@ -84,6 +89,14 @@
       <artifactId>spring-security-test</artifactId>
       <scope>test</scope>
     </dependency>
+    <!-- Already arrives transitively through starter-test. Declared explicitly so
+         the ${org.mockito:mockito-core:jar} property the test plugins reference is
+         unambiguous, and so the -javaagent wiring below has a visible reason. -->
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-core</artifactId>
+      <scope>test</scope>
+    </dependency>
     <!-- Boot 4 moved MockMvc test auto-configuration out of starter-test into its own module. -->
     <dependency>
       <groupId>org.springframework.boot</groupId>
@@ -107,11 +120,47 @@
         </executions>
       </plugin>
 
+      <!-- Exposes each dependency's resolved path as ${groupId:artifactId:type}, which is
+           how the test plugins below point -javaagent at the mockito-core jar without
+           hardcoding a version or a repository layout. -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>resolve-dependency-paths</id>
+            <goals>
+              <goal>properties</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+      <!-- Mockito is attached as an explicit -javaagent rather than letting it attach
+           itself at runtime. Self-attachment still works but warns, and the JDK has
+           announced it will stop allowing it; this is Mockito's documented replacement.
+
+           @{argLine} is late replacement, not ${argLine}: it expands at execution time
+           to whatever JaCoCo's prepare-agent put there, so the two agents combine
+           instead of this configuration overwriting the coverage one. -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <configuration>
+          <argLine>@{argLine} -javaagent:${org.mockito:mockito-core:jar}</argLine>
+        </configuration>
+      </plugin>
+
       <plugin>
         <!-- Integration tests are named *IT and run in the integration-test phase, so a quick
              `mvn test` stays fast while `mvn verify` runs everything. -->
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-failsafe-plugin</artifactId>
+        <configuration>
+          <!-- Same agents as surefire: the integration tests run in their own JVM, which
+               inherits nothing from the unit-test one. -->
+          <argLine>@{argLine} -javaagent:${org.mockito:mockito-core:jar}</argLine>
+        </configuration>
         <executions>
           <execution>
             <goals>

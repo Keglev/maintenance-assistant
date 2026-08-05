@@ -1,0 +1,162 @@
+name: docs
+
+# Publishes everything that lives on gh-pages, from two independent triggers:
+#
+#   a) push to main under docs/**  -> regenerate mermaid diagrams, build the
+#      Jekyll site, publish it at the root of gh-pages
+#   b) frontend-ci / backend-ci succeeded on main -> publish their coverage and
+#      API documentation into subfolders
+#
+# Both publish steps use keep_files, so the site never deletes the report
+# subfolders and the reports never delete the site.
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'docs/**'
+      - '.github/workflows/docs.yml'
+  workflow_run:
+    workflows: [frontend-ci, backend-ci]
+    types: [completed]
+    branches: [main]
+
+permissions:
+  contents: write # pushes to the gh-pages branch
+  actions: read # downloads artifacts from the triggering CI run
+
+# Serialized, NOT cancelled: every job here pushes to the same gh-pages branch.
+# Cancelling a run in flight would silently drop a published report, and two
+# concurrent pushes would collide on a non-fast-forward.
+concurrency:
+  group: gh-pages
+  cancel-in-progress: false
+
+jobs:
+  # ---------------------------------------------------------------------------
+  # a) The documentation site itself
+  # ---------------------------------------------------------------------------
+  site:
+    name: build and publish site
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      # .mmd sources are versioned, the rendered SVGs are not; they are produced
+      # here so the published site always matches the current diagram sources.
+      - name: Render mermaid diagrams
+        run: node docs/scripts/generate-diagrams.mjs
+
+      # The theme is staged under docs/_themes so the repository stays free of
+      # Jekyll scaffolding; the site build wants it next to the markdown.
+      - name: Stage Jekyll theme
+        run: |
+          cp docs/_themes/_config.yml docs/
+          cp -r docs/_themes/_layouts docs/
+
+      - name: Build site
+        uses: actions/jekyll-build-pages@v1
+        with:
+          source: ./docs
+          destination: ./_site
+        env:
+          # jekyll-remote-theme fetches just-the-docs from GitHub; without a token
+          # it shares the anonymous API rate limit and fails intermittently.
+          JEKYLL_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publish site to gh-pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./_site
+          publish_branch: gh-pages
+          # Leaves /frontend/** and /backend/** untouched.
+          keep_files: true
+          commit_message: 'docs: publish site for ${{ github.sha }}'
+
+  # ---------------------------------------------------------------------------
+  # b) Coverage and API documentation from a successful CI run
+  # ---------------------------------------------------------------------------
+  reports:
+    name: publish ${{ github.event.workflow_run.name }} reports
+    if: >-
+      github.event_name == 'workflow_run' &&
+      github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Identify the source project
+        id: project
+        run: |
+          case "${{ github.event.workflow_run.name }}" in
+            frontend-ci) echo "name=frontend" >> "$GITHUB_OUTPUT" ;;
+            backend-ci)  echo "name=backend"  >> "$GITHUB_OUTPUT" ;;
+            *) echo "Unexpected workflow: ${{ github.event.workflow_run.name }}" >&2; exit 1 ;;
+          esac
+
+      # Artifacts live on the CI run, not on this one, so the run id is explicit.
+      # CI uploads them only from main, so pull requests can never publish.
+      - name: Download coverage
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ steps.project.outputs.name }}-coverage
+          path: reports/coverage
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Download API documentation
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ steps.project.outputs.name }}-api-docs
+          path: reports/api-docs
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      # The backend artifact is a raw OpenAPI document. A viewer turns the folder
+      # into something a reviewer can actually read, which is the point of it.
+      - name: Add Swagger UI for the OpenAPI spec
+        if: steps.project.outputs.name == 'backend'
+        run: |
+          cat > reports/api-docs/index.html <<'HTML'
+          <!doctype html>
+          <html lang="en">
+            <head>
+              <meta charset="utf-8" />
+              <meta name="viewport" content="width=device-width, initial-scale=1" />
+              <title>maintenance-assistant API</title>
+              <link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist@5/swagger-ui.css" />
+            </head>
+            <body>
+              <div id="swagger-ui"></div>
+              <script src="https://unpkg.com/swagger-ui-dist@5/swagger-ui-bundle.js" crossorigin></script>
+              <script>
+                window.onload = () => SwaggerUIBundle({ url: './openapi.json', dom_id: '#swagger-ui' });
+              </script>
+            </body>
+          </html>
+          HTML
+
+      - name: Publish coverage to gh-pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: reports/coverage
+          publish_branch: gh-pages
+          destination_dir: ${{ steps.project.outputs.name }}/coverage
+          keep_files: true
+          commit_message: 'docs: publish ${{ steps.project.outputs.name }} coverage'
+
+      - name: Publish API documentation to gh-pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: reports/api-docs
+          publish_branch: gh-pages
+          destination_dir: ${{ steps.project.outputs.name }}/api-docs
+          keep_files: true
+          commit_message: 'docs: publish ${{ steps.project.outputs.name }} API docs'

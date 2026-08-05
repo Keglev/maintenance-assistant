@@ -1,0 +1,78 @@
+name: backend-deploy
+
+# Publishes the backend image to GHCR after backend-ci succeeded on main.
+#
+# workflow_run rather than `on: push` is deliberate: it is the only trigger that
+# genuinely means "after CI success". A plain push trigger would race the CI run
+# and could publish an image whose tests never passed.
+on:
+  workflow_run:
+    workflows: [backend-ci]
+    types: [completed]
+    branches: [main]
+
+permissions:
+  contents: read
+  packages: write
+
+concurrency:
+  group: backend-deploy-${{ github.event.workflow_run.head_branch }}
+  cancel-in-progress: true
+
+jobs:
+  image:
+    name: build and push image
+    # Skips the run when CI failed or was cancelled.
+    if: github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Build exactly the commit CI validated, not whatever main points at now.
+          ref: ${{ github.event.workflow_run.head_sha }}
+
+      # arm64 is emulated here; the Hetzner CAX target host is arm64.
+      - uses: docker/setup-qemu-action@v3
+      - uses: docker/setup-buildx-action@v3
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository }}/backend
+          tags: |
+            type=raw,value=latest
+            type=sha,format=long
+
+      - uses: docker/build-push-action@v6
+        with:
+          context: backend
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      # TODO(Phase 4): deploy to the Hetzner CAX host once the VPS exists.
+      # Planned shape — pull the freshly pushed image and restart the stack over SSH:
+      #
+      # - name: Deploy to Hetzner
+      #   uses: appleboy/ssh-action@v1
+      #   with:
+      #     host: ${{ secrets.HETZNER_HOST }}
+      #     username: ${{ secrets.HETZNER_USER }}
+      #     key: ${{ secrets.HETZNER_SSH_KEY }}
+      #     script: |
+      #       cd /opt/maintenance-assistant/docker
+      #       docker compose pull app
+      #       docker compose up -d app
+      #
+      # Blocked on: the VPS, a domain with TLS, and the app service in
+      # docker/docker-compose.yml being enabled.

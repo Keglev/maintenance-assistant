@@ -14,6 +14,7 @@
  */
 
 import { spawn } from 'node:child_process';
+import { existsSync } from 'node:fs';
 import { readdir, stat } from 'node:fs/promises';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -49,6 +50,14 @@ function render(source, target) {
   const onWindows = process.platform === 'win32';
   const quote = (value) => (onWindows ? `"${value}"` : value);
 
+  // mermaid-cli drives a headless Chromium. CI containers run as root without a
+  // user namespace, where Chromium refuses to start unless its sandbox is disabled;
+  // the config file carries those flags and is ignored when absent locally.
+  const puppeteerConfig = join(dirname(fileURLToPath(import.meta.url)), 'puppeteer-config.json');
+  const puppeteerArgs = existsSync(puppeteerConfig)
+    ? ['--puppeteerConfigFile', quote(puppeteerConfig)]
+    : [];
+
   return new Promise((done, fail) => {
     const child = spawn(
       onWindows ? 'npx.cmd' : 'npx',
@@ -57,6 +66,7 @@ function render(source, target) {
         '--input', quote(source),
         '--output', quote(target),
         '--backgroundColor', 'transparent',
+        ...puppeteerArgs,
       ],
       { stdio: 'inherit', shell: onWindows },
     );

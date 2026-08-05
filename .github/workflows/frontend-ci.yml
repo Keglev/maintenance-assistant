@@ -1,0 +1,71 @@
+name: frontend-ci
+
+# Runs on every pull request touching the frontend, and on main after merge.
+# Coverage and Compodoc are uploaded only from main, because docs.yml publishes
+# those artifacts to gh-pages and a pull request must not be able to publish.
+on:
+  pull_request:
+    paths:
+      - 'frontend/**'
+      - '.github/workflows/frontend-ci.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'frontend/**'
+      - '.github/workflows/frontend-ci.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: frontend-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: test and build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      # ChromeHeadless and coverage are defaults in angular.json, so this needs no
+      # flags. The runner image ships Google Chrome, which karma discovers on PATH.
+      - name: Test with coverage
+        run: npm run test:ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Generate API documentation
+        run: npm run docs
+
+      - name: Upload coverage
+        if: github.event_name == 'push'
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-coverage
+          path: frontend/coverage/maintenance-assistant-frontend
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Upload API documentation
+        if: github.event_name == 'push'
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-api-docs
+          path: frontend/documentation
+          if-no-files-found: error
+          retention-days: 7

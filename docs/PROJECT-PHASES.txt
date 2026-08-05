@@ -1,0 +1,54 @@
+PROJECT PHASES — Instandhaltungs-Assistent
+(hand this file + DECISIONS.txt to the next session as context)
+
+PHASE 0 — PREP (before/parallel, ~2 days)
+- Fix stockease: demo login + reachable API docs  [recruiter feedback, highest priority]
+- Add AI-USAGE.md to existing repos
+- ADR-002 spike (1 day): Nebius vs IONOS - multilingual embedding DE<->EN retrieval test,
+  citation prompt test, cost per query, billing limits/prepaid. Also: verify Spring AI
+  compatibility with Spring Boot 4.1 (fallback: plain RestClient).
+- Result: ADR-002 status Proposed -> Accepted
+
+PHASE 1 — WALKING SKELETON (week 1)   <-- NEXT SESSION STARTS HERE
+- Repo structure (monorepo: backend/, frontend/, docs/adr/, docker/, .github/workflows/)
+- docker-compose: app + Postgres(pgvector) + Keycloak (arm64 images, Hetzner CAX)
+- Keycloak realm: 4 roles, demo users, realm-export.json versioned
+- Spring Boot 4.1 skeleton: modules ingestion/query/web, health endpoint, secured hello
+  endpoint validating Keycloak JWT
+- Angular skeleton: login redirect, one protected page showing role from token
+- GitHub Actions: build + test + docker build (multi-arch) + deploy to Hetzner
+- DONE = hello-world with login runs on the VPS via pipeline
+
+PHASE 2 — DATA + INGESTION (week 2)
+- Flyway migrations: machine, protocol, chunk (vector column)
+- Generate synthetic corpus (~150 protocols per DOMAIN-MODEL.md plan, incl. demo seeds)
+- Ingestion module: upload endpoint (Schichtleiter role), file -> volume, text extraction,
+  chunking, embedding call, status RECEIVED -> INDEXED/FAILED, async via Spring events
+- Seed loader for the corpus
+
+PHASE 3 — RAG QUERY + MODES (week 3)
+- Query module: embed question -> filtered pgvector top-5 -> threshold -> Mode A/B
+- Prompting: answer only from sources, cite each claim, answer in user's language,
+  role-based answer filtering (Operator = operator-safe steps only)
+- NFR-7 guards: Bucket4j per-user rate limit, daily budget counter, max_tokens cap,
+  query cache
+- Angular: search view with Mode A/B visual distinction + source links; upload view
+  with status; DE/EN switch
+
+PHASE 4 — POLISH + SHIP (week 4)
+- Tests (JUnit/Mockito; at least: mode routing, role filtering, budget guard)
+- OpenAPI/Swagger reachable (recruiter feedback!)
+- README: problem first (user perspective), 90-second demo walkthrough, architecture
+  diagram, links to ADRs; AI-USAGE.md
+- Deploy on Hetzner CAX (8GB), domain + TLS, demo credentials in README
+- Full recruiter walkthrough test on a phone and a fresh browser
+
+PHASE 5 — EVOLUTION (after applications are out, optional)
+- Extract ingestion service + Kafka (per ADR-001), document as ADR-005
+- Candidates: similar-machine search, OCR stretch goal, downtime stats view,
+  Spring Modulith boundary tests
+
+RULES CARRIED ACROSS SESSIONS
+- Demo must always work; test before every application sent out
+- Every architecture change gets an ADR
+- Requirements v0.2 (7 NFRs) and DECISIONS.txt are the source of truth

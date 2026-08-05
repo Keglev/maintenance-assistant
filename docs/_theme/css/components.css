@@ -1,0 +1,228 @@
+/* =============================================================================
+   maintenance-assistant Docs — Components
+   Topbar, navigation sidebar, table of contents, and footer chrome.
+   ========================================================================== */
+
+/* --- Topbar -------------------------------------------------------------- */
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  height: var(--topbar-h);
+  display: flex;
+  align-items: center;
+  background: var(--surface-3);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--border);
+}
+.topbar-inner {
+  width: 100%;
+  max-width: var(--maxw);
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0 1.25rem;
+}
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
+  color: var(--heading);
+  white-space: nowrap;
+}
+.brand:hover { text-decoration: none; opacity: 0.9; }
+
+.topbar-tools {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.lang-switch a {
+  font-size: 0.8rem;
+  padding: 0.25rem 0.55rem;
+  border-radius: var(--radius-sm);
+  color: var(--muted);
+}
+.lang-switch a[aria-current="true"] {
+  background: var(--surface-2);
+  color: var(--heading);
+}
+/* Disabled language (no translation for this page): greyed and inert, with a
+   not-allowed cursor on hover. Removing href already blocks navigation. */
+.lang-switch a[aria-disabled="true"] {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.lang-switch a[aria-disabled="true"]:hover {
+  background: none;
+  color: var(--muted);
+}
+.theme-toggle {
+  display: inline-flex;
+  padding: 0.35rem;
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--muted);
+  cursor: pointer;
+}
+
+/* Hidden until the mobile breakpoint exposes the drawer (see layout.css). */
+.menu-btn { display: none; background: none; border: 0; color: var(--text); cursor: pointer; }
+@media (max-width: 768px) { .menu-btn { display: inline-flex; } }
+
+/* --- Sidebar nav --------------------------------------------------------- */
+.sidebar {
+  position: sticky;
+  top: var(--topbar-h);
+  max-height: calc(100vh - var(--topbar-h));
+  overflow-y: auto;
+  padding: 1.5rem 1rem;
+  background: var(--surface-2);
+  border-right: 1px solid var(--border);
+}
+.nav-title {
+  margin: 1.25rem 0 0.5rem;
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.nav-title:first-child { margin-top: 0; }
+.sidebar ul { list-style: none; margin: 0 0 0.5rem; padding: 0; }
+.sidebar a {
+  display: block;
+  padding: 0.4rem 0.6rem;
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font-size: 0.92rem;
+}
+.sidebar a:hover { background: color-mix(in srgb, var(--accent) 14%, transparent); text-decoration: none; }
+
+/* Current page is marked at runtime by docs.js, for both styling and
+   screen-reader orientation. */
+.sidebar a[aria-current="page"] {
+  background: var(--surface);
+  color: var(--accent);
+  font-weight: 500;
+}
+
+/* --- Collapsible nav groups ---------------------------------------------- */
+/* The arc42 section list and the ADR list are long enough that showing both in
+   full buries everything else. They sit in <details> ranges so the sidebar opens
+   short; docs.js opens the range holding the current page. Native <details>
+   only — the disclosure, the keyboard handling and the state are the element's
+   own. */
+.nav-group > summary {
+  margin: 0.75rem 0 0.35rem;
+  padding: 0.25rem 0.6rem 0.25rem 0;
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  cursor: pointer;
+  list-style: none;             /* Firefox marker */
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  border-radius: var(--radius-sm);
+}
+.nav-group > summary::-webkit-details-marker { display: none; }
+
+/* Disclosure triangle drawn as text so it inherits colour and needs no asset. */
+.nav-group > summary::before {
+  content: "\25B8";             /* ▸ */
+  font-size: 0.85em;
+  line-height: 1;
+  transition: transform 120ms ease;
+}
+.nav-group[open] > summary::before { transform: rotate(90deg); }
+
+.nav-group > summary:hover { color: var(--heading); }
+
+/* Never removed, only replaced: the groups are keyboard-operated, so the focus
+   ring is the only thing telling a keyboard reader which drawer Enter will open. */
+.nav-group > summary:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Indented so a grouped entry reads as belonging to the range above it. */
+.nav-group > ul { padding-left: 0.85rem; }
+
+/* --- Table of contents --------------------------------------------------- */
+.toc {
+  position: sticky;
+  top: var(--topbar-h);
+  max-height: calc(100vh - var(--topbar-h));
+  overflow-y: auto;
+  padding: 2rem 1rem;
+}
+.toc-title {
+  margin: 0 0 0.6rem;
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.toc ul {
+  list-style: none;
+  margin: 0;
+  padding-left: 0.75rem;
+  border-left: 2px solid var(--border);
+}
+.toc li { margin: 0.3rem 0; }
+.toc a { color: var(--muted); font-size: 0.85rem; }
+.toc a:hover { color: var(--heading); text-decoration: none; }
+
+/* The TOC keeps its scrollbar hidden: it mirrors headings the reader can also
+   reach by scrolling the page, so a second bar beside the page bar is noise.
+   It stays scrollable by wheel, trackpad and keyboard. */
+.toc {
+  scrollbar-width: none;        /* Firefox */
+}
+.toc::-webkit-scrollbar {
+  display: none;                /* Chrome, Edge, Safari */
+}
+
+/* The sidebar does show one: with a group open it can outgrow the viewport, and
+   with no bar there is nothing to say so — the content just ends. Thin and
+   theme-coloured rather than the platform default, which is near-invisible on
+   the dark surface. --muted rather than --border-strong: the border token
+   composites to roughly 2:1 against this surface, while --muted clears the 3:1
+   WCAG asks of a non-text control. It resolves per theme from tokens.css, so the
+   bar follows the toggle. */
+.sidebar {
+  scrollbar-width: thin;                                  /* Firefox */
+  scrollbar-color: var(--muted) transparent;              /* thumb, track */
+}
+.sidebar::-webkit-scrollbar {
+  width: 10px;
+}
+.sidebar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.sidebar::-webkit-scrollbar-thumb {
+  background: var(--muted);
+  border-radius: 999px;
+  /* Inset with a transparent border so the thumb reads as a slim pill rather
+     than filling the gutter edge to edge. */
+  border: 3px solid transparent;
+  background-clip: content-box;
+}
+.sidebar::-webkit-scrollbar-thumb:hover {
+  background: var(--heading);
+  background-clip: content-box;
+}
+
+/* --- Footer -------------------------------------------------------------- */
+.footer {
+  border-top: 1px solid var(--border);
+  padding: 1.5rem 1.25rem;
+  text-align: center;
+  font-size: 0.85rem;
+  color: var(--muted);
+}

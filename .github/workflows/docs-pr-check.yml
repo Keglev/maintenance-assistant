@@ -60,35 +60,43 @@ jobs:
       - name: Verify diagrams are up to date
         run: node docs/scripts/generate-diagrams.mjs --check
 
-      # TODO(next PR): build the Jekyll site and link-check it.
+      # Pandoc is the only toolchain the site build needs that the runner lacks. Redocly is not
+      # installed: a PR has no OpenAPI artifact, so build-openapi-docs.sh skips, and lychee excludes
+      # the API path for exactly that reason.
+      - name: Install Pandoc
+        run: sudo apt-get update -qq && sudo apt-get install -y pandoc
+
+      # The same script docs.yml publishes with, so this gate cannot pass on a site that the
+      # publishing build would fail to produce. Keep the Node version in step with that workflow.
+      - name: Build docs site
+        run: bash .github/scripts/docs/build-docs.sh .
+
+      # Every page addresses the site as /maintenance-assistant/..., because that is the prefix it
+      # is served under once deployed to the project page. lychee resolves an absolute link by
+      # prefixing --root-dir to it, so the site is staged under a directory of exactly that name and
+      # --root-dir points at its parent; /maintenance-assistant/x.html then resolves to
+      # target/link-check/maintenance-assistant/x.html.
       #
-      # Replace this step with the site build once docs.yml's build is extracted into something a
-      # PR can call without publishing. The shape it should take:
-      #
-      #   - name: Stage Jekyll theme
-      #     run: |
-      #       cp docs/_themes/_config.yml docs/
-      #       cp -r docs/_themes/_layouts docs/
-      #
-      #   - name: Build site
-      #     uses: actions/jekyll-build-pages@v1
-      #     with:
-      #       source: ./docs
-      #       destination: ./_site
-      #     env:
-      #       JEKYLL_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      #
-      #   - name: Check internal links
-      #     uses: lycheeverse/lychee-action@v2
-      #     with:
-      #       fail: true
-      #       args: --offline --root-dir "${{ github.workspace }}/_site" "_site/**/*.html"
-      #
-      # Nothing is uploaded or deployed from a PR run either way: the question this job answers is
-      # only whether the docs still build and their internal links still resolve. Keep the Node
-      # version and the Jekyll build in step with docs.yml, which remains the source of truth for
-      # how the site is built — it is what publishes it.
-      - name: Site build placeholder
+      # THE TRAP, and why the staging matters: a page linking out of the site with ../.. resolves
+      # ABOVE the staged directory, into --root-dir's parent. Check the same tree in place in the
+      # repository instead and that link silently "works", because the real backend/, docker/ and
+      # .github/ directories happen to sit exactly where it points. That is how a broken
+      # ../../docker/ link passed locally and failed here. Always reproduce a failure against this
+      # staged copy, never against the working tree — and never silence an escaping link with a
+      # lychee exclusion: a page that means to reference repository source uses an absolute GitHub
+      # URL, which `offline = true` skips as external.
+      - name: Stage the site for link checking
         run: |
-          echo "Diagram sources render and are up to date."
-          echo "TODO: site build + link check land in the next PR (see comment above)."
+          mkdir -p target/link-check
+          cp -r target/docs target/link-check/maintenance-assistant
+
+      # The gate. Nothing is uploaded or deployed from a PR run — the question this job answers is
+      # only whether the site still builds and its internal links still resolve.
+      - name: Check internal links
+        uses: lycheeverse/lychee-action@v2
+        with:
+          fail: true
+          args: >-
+            --config lychee.toml
+            --root-dir "${{ github.workspace }}/target/link-check"
+            "target/link-check/maintenance-assistant/**/*.html"

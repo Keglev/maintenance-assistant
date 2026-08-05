@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>maintenance-assistant · Dokumentation</title>
+
+  <!-- Theme vor dem ersten Paint setzen, sonst blitzt eine Frame lang das
+       Standard-Theme auf. Identisch zur englischen Seite und zu den Templates. -->
+  <script>
+    (function () {
+      try {
+        var t = localStorage.getItem("maintenance-assistant-theme") ||
+          (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+        document.documentElement.setAttribute("data-theme", t);
+      } catch (e) {
+        document.documentElement.setAttribute("data-theme", "light");
+      }
+    })();
+  </script>
+
+  <link rel="stylesheet" href="/maintenance-assistant/assets/docs.css" />
+</head>
+
+<body>
+  <a class="skip-link" href="#main">Zum Inhalt springen</a>
+
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a href="/maintenance-assistant/index-de.html" class="brand">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <path d="M14.7 6.3a5 5 0 0 0-6.6 6.6l-5 5a2 2 0 1 0 2.8 2.8l5-5a5 5 0 0 0 6.6-6.6l-2.9 2.9-2.1-2.1 2.2-3.6z" />
+        </svg>
+        maintenance-assistant Doku
+      </a>
+
+      <div class="topbar-tools">
+        <span class="lang-switch">
+          <a href="/maintenance-assistant/">EN</a>
+          <a href="/maintenance-assistant/index-de.html" aria-current="true">DE</a>
+        </span>
+        <button class="theme-toggle" aria-label="Helles oder dunkles Design umschalten">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <circle cx="12" cy="12" r="9" /><path d="M12 3a9 9 0 0 0 0 18z" fill="currentColor" stroke="none" />
+          </svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="home" id="main">
+    <section class="hero">
+      <h1>Instandhaltungswissen, in normaler Sprache auffindbar</h1>
+      <p>Mitarbeitende fragen auf Deutsch oder Englisch und erhalten eine Antwort mit Quellenangaben zu den Protokollen — rollengefiltert und klar gekennzeichnet, wenn kein Protokoll passt. Die gesamte Verarbeitung läuft auf EU-Infrastruktur.</p>
+      <p><strong>Status: in Entwicklung, Phase 1</strong> — Walking Skeleton. Die Berichte unten erscheinen, sobald die Pipelines sie veröffentlichen.</p>
+      <div class="stack">
+        <span>Java 21 · Spring Boot 4.1</span>
+        <span>Angular 22 · TypeScript</span>
+        <span>PostgreSQL · pgvector</span>
+        <span>Keycloak · OIDC</span>
+        <span>EU-gehostetes LLM</span>
+        <span>Docker Compose</span>
+        <span>GitHub Actions</span>
+        <span>JUnit · Vitest</span>
+      </div>
+    </section>
+
+    <!-- Nur die Startseiten und der Überblick sind zweisprachig. Alle übrigen
+         Karten verweisen auf englische Seiten; der Hinweis unter dem Raster sagt
+         das, statt eine Übersetzung zu versprechen, die es nicht gibt. -->
+    <div class="card-grid">
+      <a class="card" href="/maintenance-assistant/overview-de.html">
+        <span class="card-tag">System</span>
+        <h2>Überblick</h2>
+        <p>Was das System tut, wer es nutzt und wie die Lösung aufgebaut ist — der kurze Einstieg. Auf Deutsch verfügbar.</p>
+      </a>
+
+      <a class="card" href="/maintenance-assistant/adr/index.html">
+        <span class="card-tag">System</span>
+        <h2>Architekturentscheidungen (ADRs)</h2>
+        <p>Jede Architekturentscheidung mit Kontext, Konsequenzen und den verworfenen Alternativen. Englisch.</p>
+      </a>
+
+      <a class="card" href="/maintenance-assistant/architecture/index.html">
+        <span class="card-tag">Backend</span>
+        <h2>Backend-Architektur</h2>
+        <p>Die arc42-Dokumentation: Randbedingungen, Kontext, Lösungsstrategie und Bausteine des modularen Monolithen. Englisch.</p>
+      </a>
+
+      <a class="card" href="/maintenance-assistant/backend/api-docs/index.html">
+        <span class="card-tag">Backend</span>
+        <h2>Backend-API</h2>
+        <p>Die REST-API aus der OpenAPI-Spezifikation: Endpunkte, Schemas und das Bearer-Token-Sicherheitsschema. Englisch.</p>
+      </a>
+
+      <a class="card" href="/maintenance-assistant/frontend-architecture.html">
+        <span class="card-tag">Frontend</span>
+        <h2>Frontend-Architektur</h2>
+        <p>Der Angular-Client: Standalone-Komponenten, der OIDC-Login-Flow, Routing und die geschützten Ansichten. Englisch.</p>
+      </a>
+
+      <a class="card" href="/maintenance-assistant/frontend/api-docs/index.html">
+        <span class="card-tag">Frontend</span>
+        <h2>Frontend-API</h2>
+        <p>Komponenten, Services und Modelle, von Compodoc aus den TypeScript-Quellen erzeugt. Englisch.</p>
+      </a>
+
+      <a class="card" href="/maintenance-assistant/backend/coverage/index.html">
+        <span class="card-tag">Backend</span>
+        <h2>Backend-Testabdeckung</h2>
+        <p>JaCoCo-Bericht aus dem Maven-verify-Lauf: Unit- und Integrationstests.</p>
+      </a>
+
+      <a class="card" href="/maintenance-assistant/frontend/coverage/index.html">
+        <span class="card-tag">Frontend</span>
+        <h2>Frontend-Testabdeckung</h2>
+        <p>Vitest-Bericht für die Angular-Komponenten, -Services und -Guards.</p>
+      </a>
+
+      <a class="card" href="/maintenance-assistant/llm-approach.html">
+        <span class="card-tag">System</span>
+        <h2>KI- &amp; LLM-Ansatz</h2>
+        <p>Wie Antworten belegt bleiben: Retrieval über indizierte Protokolle, die zwei Antwortmodi und warum die Inferenz in der EU bleibt. Englisch.</p>
+      </a>
+    </div>
+  </main>
+
+  <footer class="footer">
+    maintenance-assistant · <a href="https://github.com/Keglev/maintenance-assistant">GitHub-Repository</a>
+  </footer>
+
+  <script src="/maintenance-assistant/assets/docs.js"></script>
+</body>
+</html>

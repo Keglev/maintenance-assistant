@@ -27,4 +27,4 @@ implementation phases land — an empty section here is an honest "not built yet
 documentation and those files disagree, those files win.
 
 Diagrams are Mermaid sources (`.mmd`) under [`diagrams/`](diagrams/), rendered to SVG by
-[`docs/scripts/generate-diagrams.mjs`](../scripts/generate-diagrams.mjs).
+[`docs/scripts/generate-diagrams.mjs`](https://github.com/Keglev/maintenance-assistant/blob/main/docs/scripts/generate-diagrams.mjs).

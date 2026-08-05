@@ -1,0 +1,60 @@
+# =============================================================================
+# lychee.toml — link checker settings for the built docs site
+#
+# Used by the "Check internal links" step in .github/workflows/docs-pr-check.yml,
+# which runs lychee against the staged site after build-docs.sh produces it.
+# Settings live here rather than in the workflow for the same reason the build
+# steps live in .github/scripts/docs/: the list has reasons attached, and reasons
+# do not survive being flattened into a YAML `run:` line.
+#
+# `--root-dir` is NOT set here: it has to be an absolute path, which differs
+# between a runner and a laptop, so the workflow computes it at runtime.
+# =============================================================================
+
+# Internal links only. External URLs are never requested: third-party rate limits
+# and outages would turn an unrelated site being down into a red docs build, and
+# nothing here can fix a link on someone else's server anyway.
+offline = true
+
+require_https = false
+
+# Fail on the first pass; no retry loop is meaningful for filesystem lookups.
+max_retries = 0
+
+no_progress = true
+
+# ---------------------------------------------------------------------------
+# Exclusions
+#
+# 1. The four generated trees. None is produced by build-docs.sh: each comes from
+#    a *test* workflow's artifact and is copied in only on the docs run that
+#    workflow triggered. So any single run has at most one of them, a docs-only
+#    push has none, and a local build has none — while the deployed site has all
+#    of them, because the deploy step preserves what a build did not regenerate.
+#    Checking them here would fail every run for links that are live in production.
+#
+#      backend-ci  -> JaCoCo HTML       -> /maintenance-assistant/backend/coverage/
+#      backend-ci  -> OpenAPI spec      -> /maintenance-assistant/backend/api-docs/
+#      frontend-ci -> Vitest coverage   -> /maintenance-assistant/frontend/coverage/
+#      frontend-ci -> Compodoc          -> /maintenance-assistant/frontend/api-docs/
+#
+# Patterns are matched against the RESOLVED target, which for a file link is an
+# absolute file:// path with NO trailing slash — `backend/coverage/` would not
+# match a link to the directory itself, so the patterns below omit the trailing
+# slash deliberately.
+#
+# There is deliberately NO exclusion for links that leave the site root. A page
+# that needs to point at repository source (the realm export, the compose stack,
+# the diagram generator) uses an absolute GitHub URL, which `offline = true`
+# skips as an external link. An earlier `docker/` entry here existed only to
+# silence such a link, and it silenced it *inconsistently*: lychee resolved
+# `../../docker/` to `<root>/docker` without a trailing slash, so the pattern
+# never matched in CI while a laxer local check accepted it. Escaping links now
+# fail, which is the point — see the note in docs-pr-check.yml.
+# ---------------------------------------------------------------------------
+exclude = [
+  "backend/coverage",
+  "backend/api-docs",
+  "frontend/coverage",
+  "frontend/api-docs",
+]

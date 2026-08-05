@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>maintenance-assistant · Documentation</title>
+
+  <!-- Set the theme before paint to avoid a flash; matches the doc templates. -->
+  <script>
+    (function () {
+      try {
+        var t = localStorage.getItem("maintenance-assistant-theme") ||
+          (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+        document.documentElement.setAttribute("data-theme", t);
+      } catch (e) {
+        document.documentElement.setAttribute("data-theme", "light");
+      }
+    })();
+  </script>
+
+  <link rel="stylesheet" href="/maintenance-assistant/assets/docs.css" />
+</head>
+
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a href="/maintenance-assistant/" class="brand">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <path d="M14.7 6.3a5 5 0 0 0-6.6 6.6l-5 5a2 2 0 1 0 2.8 2.8l5-5a5 5 0 0 0 6.6-6.6l-2.9 2.9-2.1-2.1 2.2-3.6z" />
+        </svg>
+        maintenance-assistant Docs
+      </a>
+
+      <div class="topbar-tools">
+        <span class="lang-switch">
+          <a href="/maintenance-assistant/" aria-current="true">EN</a>
+          <a href="/maintenance-assistant/index-de.html">DE</a>
+        </span>
+        <button class="theme-toggle" aria-label="Toggle light or dark theme">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <circle cx="12" cy="12" r="9" /><path d="M12 3a9 9 0 0 0 0 18z" fill="currentColor" stroke="none" />
+          </svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="home" id="main">
+    <section class="hero">
+      <h1>Maintenance knowledge, findable in plain language</h1>
+      <p>Shop-floor staff ask in German or English and get an answer with citations to the source protocols — filtered by role, and explicitly labelled when no protocol matches. All processing on EU infrastructure.</p>
+      <p><strong>Status: in development, Phase 1</strong> — walking skeleton. Reports below appear as their pipelines publish them.</p>
+      <div class="stack">
+        <span>Java 21 · Spring Boot 4.1</span>
+        <span>Angular 22 · TypeScript</span>
+        <span>PostgreSQL · pgvector</span>
+        <span>Keycloak · OIDC</span>
+        <span>EU-hosted LLM</span>
+        <span>Docker Compose</span>
+        <span>GitHub Actions</span>
+        <span>JUnit · Vitest</span>
+      </div>
+    </section>
+
+    <div class="card-grid">
+      <a class="card" href="/maintenance-assistant/overview.html">
+        <span class="card-tag">System</span>
+        <h2>Overview</h2>
+        <p>What the system does, who uses it, and the shape of the solution — the short way in. Also available in German.</p>
+      </a>
+
+      <a class="card" href="/maintenance-assistant/adr/index.html">
+        <span class="card-tag">System</span>
+        <h2>Architecture Decision Records</h2>
+        <p>Every architecture decision with its context, consequences and the alternatives rejected.</p>
+      </a>
+
+      <a class="card" href="/maintenance-assistant/architecture/index.html">
+        <span class="card-tag">Backend</span>
+        <h2>Backend Architecture</h2>
+        <p>The arc42 documentation: constraints, context, solution strategy, and the modular monolith's building blocks.</p>
+      </a>
+
+      <a class="card" href="/maintenance-assistant/backend/api-docs/index.html">
+        <span class="card-tag">Backend</span>
+        <h2>Backend API</h2>
+        <p>The REST API rendered from the OpenAPI specification: endpoints, schemas and the bearer-token security scheme.</p>
+      </a>
+
+      <a class="card" href="/maintenance-assistant/frontend-architecture.html">
+        <span class="card-tag">Frontend</span>
+        <h2>Frontend Architecture</h2>
+        <p>The Angular client: standalone components, the OIDC login flow, routing and the guarded views.</p>
+      </a>
+
+      <a class="card" href="/maintenance-assistant/frontend/api-docs/index.html">
+        <span class="card-tag">Frontend</span>
+        <h2>Frontend API</h2>
+        <p>Components, services and models generated from the Angular TypeScript sources by Compodoc.</p>
+      </a>
+
+      <a class="card" href="/maintenance-assistant/backend/coverage/index.html">
+        <span class="card-tag">Backend</span>
+        <h2>Backend Test Coverage</h2>
+        <p>JaCoCo coverage report from the Maven verify run: unit and integration tests.</p>
+      </a>
+
+      <a class="card" href="/maintenance-assistant/frontend/coverage/index.html">
+        <span class="card-tag">Frontend</span>
+        <h2>Frontend Test Coverage</h2>
+        <p>Vitest coverage report for the Angular components, services and guards.</p>
+      </a>
+
+      <a class="card" href="/maintenance-assistant/llm-approach.html">
+        <span class="card-tag">System</span>
+        <h2>AI &amp; LLM Approach</h2>
+        <p>How answers stay grounded: retrieval over indexed protocols, the two answer modes, and why inference stays in the EU.</p>
+      </a>
+    </div>
+  </main>
+
+  <footer class="footer">
+    maintenance-assistant · <a href="https://github.com/Keglev/maintenance-assistant">GitHub repository</a>
+  </footer>
+
+  <script src="/maintenance-assistant/assets/docs.js"></script>
+</body>
+</html>

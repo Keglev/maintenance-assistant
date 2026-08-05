@@ -1,0 +1,111 @@
+/* =============================================================================
+   maintenance-assistant Docs — Landing page
+   Styles for index.html and index-de.html: hero, stack badges, card grid.
+   ========================================================================== */
+
+/* --- Home wrapper --------------------------------------------------------- */
+.home {
+  max-width: var(--maxw);
+  margin: 0 auto;
+  padding: 3rem 1.25rem 4rem;
+}
+
+/* --- Hero ----------------------------------------------------------------- */
+.hero {
+  text-align: center;
+  padding: 3rem 0 2.5rem;
+}
+.hero h1 {
+  font-size: clamp(1.75rem, 4vw, 2.75rem);
+  font-weight: 700;
+  color: var(--heading);
+  margin: 0 0 1rem;
+  line-height: 1.2;
+}
+.hero p {
+  max-width: 60ch;
+  margin: 0 auto 1.75rem;
+  color: var(--muted);
+  font-size: 1.05rem;
+  line-height: 1.7;
+}
+
+/* --- Technology stack badges --------------------------------------------- */
+.stack {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem;
+}
+.stack span {
+  padding: 0.3rem 0.75rem;
+  border-radius: 999px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  font-size: 0.82rem;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+/* --- Card grid ------------------------------------------------------------ */
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 1.25rem;
+  margin-top: 2.5rem;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding: 1.4rem 1.5rem;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+  text-decoration: none;
+  transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
+}
+.card:hover {
+  border-color: var(--accent);
+  border-width: 2px;
+  background: #dce9e7;
+  box-shadow: 0 4px 20px color-mix(in srgb, var(--accent) 22%, transparent);
+  text-decoration: none;
+}
+.card h2 {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--heading);
+}
+.card p {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.card-tag {
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+/* Dark mode: page bg and --surface-2 sit close together, so lift the card
+   border for separation. The hover rule below is scoped to the same selector
+   depth so it keeps winning the cascade over this base rule. */
+:root[data-theme="dark"] .card {
+  background: #111f33;
+  border-color: rgba(148, 163, 184, 0.40);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.40);
+}
+:root[data-theme="dark"] .card:hover {
+  border-color: var(--accent);
+  border-width: 2px;
+  background: #16303a;
+  box-shadow: 0 4px 24px color-mix(in srgb, var(--accent) 30%, transparent);
+}

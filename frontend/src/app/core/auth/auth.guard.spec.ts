@@ -6,6 +6,7 @@ import {
   UrlTree,
   provideRouter,
 } from '@angular/router';
+import { beforeEach, describe, expect, it } from 'vitest';
 
 import { AuthService } from './auth.service';
 import { authGuard } from './auth.guard';
@@ -15,8 +16,7 @@ describe('authGuard', () => {
 
   function runGuard(): boolean | UrlTree {
     return TestBed.runInInjectionContext(
-      () =>
-        authGuard({} as ActivatedRouteSnapshot, {} as RouterStateSnapshot) as boolean | UrlTree,
+      () => authGuard({} as ActivatedRouteSnapshot, {} as RouterStateSnapshot) as boolean | UrlTree,
     );
   }
 
@@ -33,7 +33,7 @@ describe('authGuard', () => {
   it('allows an authenticated caller through', () => {
     authenticated = true;
 
-    expect(runGuard()).toBeTrue();
+    expect(runGuard()).toBe(true);
   });
 
   it('redirects an anonymous caller to /login', () => {

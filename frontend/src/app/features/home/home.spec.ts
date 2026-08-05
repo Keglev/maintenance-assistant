@@ -1,16 +1,17 @@
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { TestBed } from '@angular/core/testing';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { AuthService } from '../../core/auth/auth.service';
 import { Home } from './home';
 
 describe('Home', () => {
-  let logout: jasmine.Spy;
+  let logout: ReturnType<typeof vi.fn>;
   let httpMock: HttpTestingController;
 
   beforeEach(async () => {
-    logout = jasmine.createSpy('logout');
+    logout = vi.fn();
 
     await TestBed.configureTestingModule({
       imports: [Home],
@@ -35,7 +36,9 @@ describe('Home', () => {
 
   it('shows the username and realm roles from the token', async () => {
     const fixture = TestBed.createComponent(Home);
-    httpMock.expectOne('/api/hello').flush({ username: 'schichtleiter', roles: ['ROLE_SCHICHTLEITER'] });
+    httpMock
+      .expectOne('/api/hello')
+      .flush({ username: 'schichtleiter', roles: ['ROLE_SCHICHTLEITER'] });
     await fixture.whenStable();
 
     const element = fixture.nativeElement as HTMLElement;

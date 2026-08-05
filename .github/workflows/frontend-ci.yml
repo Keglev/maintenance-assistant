@@ -41,8 +41,7 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      # ChromeHeadless and coverage are defaults in angular.json, so this needs no
-      # flags. The runner image ships Google Chrome, which karma discovers on PATH.
+      # vitest in jsdom — no browser, so the runner needs no Chrome and no setup step.
       - name: Test with coverage
         run: npm run test:ci
 

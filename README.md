@@ -46,6 +46,70 @@ In the repository meanwhile:
 - [docs/DOMAIN-MODEL.md](docs/DOMAIN-MODEL.md) — entities and data-model rationale
 - [AI-USAGE.md](AI-USAGE.md) — how AI was used in this repository
 
+## Local Development
+
+Requires Docker, Java 21, Maven and Node 20+. Start the three pieces in this order — each one
+depends on the previous.
+
+**1. Infrastructure** — PostgreSQL + pgvector and Keycloak:
+
+```bash
+cd docker
+cp .env.example .env          # never committed
+docker compose up -d
+```
+
+Wait until `docker compose ps` shows both services `healthy`. Keycloak imports the `maintenance`
+realm on startup: four roles, four demo users (password `demo1234`), and the public `frontend`
+client. Admin console: <http://localhost:8081>.
+
+If port 5432 is already taken by a PostgreSQL on your machine, set `POSTGRES_PORT=5433` in
+`docker/.env` and pass the matching JDBC URL to the backend below.
+
+**2. Backend** — Spring Boot on port 8080:
+
+```bash
+cd backend
+mvn spring-boot:run
+# with a relocated database port:
+# SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5433/maintenance mvn spring-boot:run
+```
+
+Check it: <http://localhost:8080/api/health> answers `{"status":"UP",…}`, and the API docs are at
+<http://localhost:8080/swagger-ui.html>.
+
+**3. Frontend** — Angular dev server on port 4200:
+
+```bash
+cd frontend
+npm install
+npm start
+```
+
+Open <http://localhost:4200>. You are redirected to `/login`; signing in sends you to Keycloak and
+back to `/home`, which shows your username and realm roles. `/api/*` is proxied to the backend on
+port 8080, so the browser stays on one origin and no CORS setup is needed.
+
+Log in with any demo user — `operator`, `techniker`, `schichtleiter` or `admin`, password
+`demo1234`.
+
+### Tests and documentation
+
+```bash
+cd backend  && mvn verify        # JUnit + JaCoCo  -> backend/target/site/jacoco/
+cd frontend && npm run test:ci   # ChromeHeadless  -> frontend/coverage/
+cd frontend && npm run docs      # Compodoc        -> frontend/documentation/
+```
+
+Coverage and generated documentation are not committed; CI regenerates them and publishes them to
+the documentation site.
+
+### Shutting down
+
+```bash
+cd docker && docker compose down     # add -v to also drop the database volume
+```
+
 ## License
 
 [MIT](LICENSE)

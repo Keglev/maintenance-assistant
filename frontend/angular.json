@@ -7,10 +7,10 @@
   "newProjectRoot": "projects",
   "schematics": {
     "@schematics/angular:application": {
-      "testRunner": "karma"
+      "testRunner": "vitest"
     },
     "@schematics/angular:library": {
-      "testRunner": "karma"
+      "testRunner": "vitest"
     }
   },
   "projects": {
@@ -82,9 +82,7 @@
         "test": {
           "builder": "@angular/build:unit-test",
           "options": {
-            "runner": "karma",
-            "browsers": ["ChromeHeadless"],
-            "coverage": true,
+            "runner": "vitest",
             "coverageReporters": ["html", "lcovonly", "text-summary"]
           }
         }

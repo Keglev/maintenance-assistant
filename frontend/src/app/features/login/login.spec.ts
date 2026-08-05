@@ -1,11 +1,12 @@
 import { TestBed } from '@angular/core/testing';
 import { Router, provideRouter } from '@angular/router';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { AuthService } from '../../core/auth/auth.service';
 import { Login } from './login';
 
 describe('Login', () => {
-  let login: jasmine.Spy;
+  let login: ReturnType<typeof vi.fn>;
   let authenticated: boolean;
 
   async function setup() {
@@ -22,7 +23,7 @@ describe('Login', () => {
   }
 
   beforeEach(() => {
-    login = jasmine.createSpy('login');
+    login = vi.fn();
     authenticated = false;
   });
 
@@ -40,7 +41,7 @@ describe('Login', () => {
     authenticated = true;
     await setup();
     const router = TestBed.inject(Router);
-    const navigate = spyOn(router, 'navigate').and.resolveTo(true);
+    const navigate = vi.spyOn(router, 'navigate').mockResolvedValue(true);
 
     const fixture = TestBed.createComponent(Login);
     await fixture.whenStable();

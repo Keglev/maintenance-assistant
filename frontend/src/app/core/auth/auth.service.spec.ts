@@ -1,5 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { OAuthService } from 'angular-oauth2-oidc';
+import { MockInstance, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { AuthService } from './auth.service';
 
@@ -9,20 +10,30 @@ function fakeJwt(claims: Record<string, unknown>): string {
   return `header.${payload}.signature`;
 }
 
+/** Only the members AuthService actually calls; the rest of OAuthService is irrelevant here. */
+type OAuthStub = Pick<
+  OAuthService,
+  | 'configure'
+  | 'loadDiscoveryDocumentAndTryLogin'
+  | 'hasValidAccessToken'
+  | 'getAccessToken'
+  | 'initCodeFlow'
+  | 'logOut'
+>;
+
 describe('AuthService', () => {
-  let oauth: jasmine.SpyObj<OAuthService>;
+  let oauth: { [K in keyof OAuthStub]: MockInstance };
   let service: AuthService;
 
   beforeEach(() => {
-    oauth = jasmine.createSpyObj<OAuthService>('OAuthService', [
-      'configure',
-      'loadDiscoveryDocumentAndTryLogin',
-      'hasValidAccessToken',
-      'getAccessToken',
-      'initCodeFlow',
-      'logOut',
-    ]);
-    oauth.loadDiscoveryDocumentAndTryLogin.and.resolveTo(true);
+    oauth = {
+      configure: vi.fn(),
+      loadDiscoveryDocumentAndTryLogin: vi.fn().mockResolvedValue(true),
+      hasValidAccessToken: vi.fn().mockReturnValue(false),
+      getAccessToken: vi.fn().mockReturnValue(''),
+      initCodeFlow: vi.fn(),
+      logOut: vi.fn(),
+    };
 
     TestBed.configureTestingModule({
       providers: [AuthService, { provide: OAuthService, useValue: oauth }],
@@ -38,37 +49,33 @@ describe('AuthService', () => {
   });
 
   it('stays usable when the discovery document cannot be loaded', async () => {
-    oauth.loadDiscoveryDocumentAndTryLogin.and.rejectWith(new Error('Keycloak down'));
-    oauth.hasValidAccessToken.and.returnValue(false);
+    oauth.loadDiscoveryDocumentAndTryLogin.mockRejectedValue(new Error('Keycloak down'));
 
-    await expectAsync(service.init()).toBeResolved();
-    expect(service.isAuthenticated()).toBeFalse();
+    await expect(service.init()).resolves.toBeUndefined();
+    expect(service.isAuthenticated()).toBe(false);
   });
 
   it('reads username and realm roles from the access token', () => {
-    oauth.hasValidAccessToken.and.returnValue(true);
-    oauth.getAccessToken.and.returnValue(
+    oauth.hasValidAccessToken.mockReturnValue(true);
+    oauth.getAccessToken.mockReturnValue(
       fakeJwt({
         preferred_username: 'techniker',
         realm_access: { roles: ['techniker', 'offline_access'] },
       }),
     );
 
-    expect(service.isAuthenticated()).toBeTrue();
+    expect(service.isAuthenticated()).toBe(true);
     expect(service.username()).toBe('techniker');
     expect(service.realmRoles()).toEqual(['techniker', 'offline_access']);
   });
 
   it('reports no identity without a token', () => {
-    oauth.hasValidAccessToken.and.returnValue(false);
-    oauth.getAccessToken.and.returnValue('');
-
     expect(service.username()).toBe('');
     expect(service.realmRoles()).toEqual([]);
   });
 
   it('treats a malformed token as no identity instead of throwing', () => {
-    oauth.getAccessToken.and.returnValue('not-a-jwt');
+    oauth.getAccessToken.mockReturnValue('not-a-jwt');
 
     expect(() => service.username()).not.toThrow();
     expect(service.realmRoles()).toEqual([]);

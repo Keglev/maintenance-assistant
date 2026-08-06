@@ -1,0 +1,48 @@
+%% Production deployment — maintenance-assistant (arc42 section 7)
+%% Render: node docs/scripts/generate-diagrams.mjs
+flowchart TB
+    browser["🌐 Browser<br/><i>operator · techniker · schichtleiter · admin</i>"]
+    le{{"Let's Encrypt<br/><i>ACME HTTP-01</i>"}}
+    llm{{"EU-hosted LLM provider<br/><i>Phase 3, not yet wired</i>"}}
+
+    subgraph vps["Hetzner CX33 · x86_64 · 4 vCPU · 8 GB · Ubuntu 26.04"]
+        direction TB
+
+        subgraph edge["published ports"]
+            caddy["<b>caddy</b><br/>:80 → :443 redirect<br/><i>TLS termination, auto-renewal</i>"]
+        end
+
+        subgraph internal["compose network — no published ports"]
+            frontend["<b>frontend</b><br/>nginx :8080<br/><i>Angular bundle + config.json</i>"]
+            backend["<b>backend</b><br/>Spring Boot :8080<br/><i>OAuth2 resource server</i>"]
+            keycloak["<b>keycloak</b><br/>:8080 · production mode<br/><i>realm: maintenance</i>"]
+            postgres[("<b>postgres</b> + pgvector<br/><i>maintenance · keycloak</i>")]
+        end
+
+        vol[("named volumes<br/><i>postgres-data · caddy-data<br/>caddy-config · protocol-files</i>")]
+    end
+
+    browser -- "https://maintenance.smartsupply.com.de" --> caddy
+    browser -- "https://auth.smartsupply.com.de" --> caddy
+    caddy -. "certificate issuance<br/>and renewal" .-> le
+
+    caddy -- "/api/*, /swagger-ui*, /v3/api-docs*" --> backend
+    caddy -- "everything else" --> frontend
+    caddy -- "auth hostname<br/><i>X-Forwarded-* preserved</i>" --> keycloak
+
+    backend -- "JDBC" --> postgres
+    keycloak -- "JDBC · own DB and role" --> postgres
+    backend -. "validate JWT via JWKS<br/><i>issuer = public auth URL</i>" .-> keycloak
+    backend -. "Phase 3" .-> llm
+
+    postgres -.- vol
+    caddy -.- vol
+
+    classDef user fill:#e8f0fe,stroke:#3367d6,color:#111
+    classDef edgeNode fill:#fff3cd,stroke:#b8860b,color:#111,font-weight:bold
+    classDef app fill:#eef7ee,stroke:#2e7d32,color:#111
+    classDef ext fill:#f3e8fd,stroke:#7c3aed,color:#111
+    class browser user
+    class caddy edgeNode
+    class frontend,backend,keycloak,postgres app
+    class le,llm ext

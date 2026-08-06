@@ -98,13 +98,19 @@
       "directAccessGrantsEnabled": false,
       "serviceAccountsEnabled": false,
       "frontchannelLogout": true,
-      "rootUrl": "http://localhost:4200",
+      "rootUrl": "",
       "baseUrl": "/",
-      "redirectUris": ["http://localhost:4200/*"],
-      "webOrigins": ["http://localhost:4200"],
+      "redirectUris": [
+        "http://localhost:4200/*",
+        "https://maintenance.smartsupply.com.de/*"
+      ],
+      "webOrigins": [
+        "http://localhost:4200",
+        "https://maintenance.smartsupply.com.de"
+      ],
       "attributes": {
         "pkce.code.challenge.method": "S256",
-        "post.logout.redirect.uris": "http://localhost:4200/*"
+        "post.logout.redirect.uris": "http://localhost:4200/*##https://maintenance.smartsupply.com.de/*"
       },
       "protocolMappers": [
         {

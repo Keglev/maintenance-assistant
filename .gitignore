@@ -47,6 +47,10 @@ TEST-*.xml
 .env.*
 !.env.example
 !**/.env.example
+# Per-environment templates (.env.prod.example and friends) are documentation,
+# not secrets; only the real .env.prod they are copied to stays out.
+!.env.*.example
+!**/.env.*.example
 *.pem
 *.key
 !**/src/**/*.key

@@ -1,0 +1,158 @@
+# Production stack for maintenance-assistant.
+#
+#   cd /opt/maintenance-assistant && docker compose -f docker-compose.prod.yml up -d
+#
+# Differences from the development stack in docker-compose.yml:
+#   - images come from GHCR instead of a local build
+#   - Caddy terminates TLS and is the ONLY service with published ports
+#   - Keycloak runs in production mode against Postgres, not dev mode on H2
+#   - nothing else is reachable from the internet; the compose network is the
+#     only way in
+#
+# Configuration lives in .env.prod, which is never committed — see
+# .env.prod.example for the full list.
+
+name: maintenance-assistant
+
+services:
+  # ---------------------------------------------------------------------------
+  # Reverse proxy and TLS. The only internet-facing container.
+  # ---------------------------------------------------------------------------
+  caddy:
+    image: caddy:2.10-alpine
+    container_name: maintenance-caddy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      APP_DOMAIN: ${APP_DOMAIN}
+      AUTH_DOMAIN: ${AUTH_DOMAIN}
+      ACME_EMAIL: ${ACME_EMAIL}
+    volumes:
+      - ./caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      # Certificates and ACME account keys. Losing caddy_data means re-issuing
+      # every certificate on the next start, which Let's Encrypt rate-limits.
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on:
+      - frontend
+      - backend
+      - keycloak
+
+  # ---------------------------------------------------------------------------
+  # Angular client behind nginx. Environment-agnostic image: the deployment
+  # supplies config.json, so the same tag runs locally and here.
+  # ---------------------------------------------------------------------------
+  frontend:
+    image: ${FRONTEND_IMAGE:-ghcr.io/keglev/maintenance-assistant/frontend:latest}
+    container_name: maintenance-frontend
+    restart: unless-stopped
+    volumes:
+      - ./frontend-config.json:/usr/share/nginx/html/config.json:ro
+    # No ports: reachable only through caddy.
+
+  # ---------------------------------------------------------------------------
+  # Spring Boot API. Validates tokens issued by the public Keycloak URL, which
+  # is why the issuer is the external hostname and not the container name.
+  # ---------------------------------------------------------------------------
+  backend:
+    image: ${BACKEND_IMAGE:-ghcr.io/keglev/maintenance-assistant/backend:latest}
+    container_name: maintenance-backend
+    restart: unless-stopped
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+      # Must match the `iss` claim in tokens the browser obtained, so it is the
+      # public URL even though the container could reach Keycloak internally.
+      KEYCLOAK_ISSUER_URI: https://${AUTH_DOMAIN}/realms/maintenance
+      LLM_BASE_URL: ${LLM_BASE_URL:-}
+      LLM_API_KEY: ${LLM_API_KEY:-}
+      LLM_CHAT_MODEL: ${LLM_CHAT_MODEL:-}
+      LLM_EMBEDDING_MODEL: ${LLM_EMBEDDING_MODEL:-}
+    volumes:
+      - protocol-files:/var/lib/maintenance/files
+    depends_on:
+      postgres:
+        condition: service_healthy
+      keycloak:
+        condition: service_healthy
+    # No ports: reachable only through caddy at /api/*.
+
+  # ---------------------------------------------------------------------------
+  # Keycloak in production mode: persistent Postgres storage, TLS terminated by
+  # Caddy, hostname fixed so issued tokens carry the public URL.
+  # ---------------------------------------------------------------------------
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.7
+    container_name: maintenance-keycloak
+    restart: unless-stopped
+    command: ["start", "--import-realm"]
+    environment:
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgres:5432/${KC_DB_NAME}
+      KC_DB_USERNAME: ${KC_DB_USER}
+      KC_DB_PASSWORD: ${KC_DB_PASSWORD}
+      # Full public URL. Without it Keycloak derives the issuer from the request
+      # and tokens end up claiming an internal hostname the browser never used.
+      KC_HOSTNAME: https://${AUTH_DOMAIN}
+      # TLS ends at Caddy, so Keycloak speaks plain HTTP on the internal network
+      # and trusts the X-Forwarded-* headers Caddy sets.
+      KC_HTTP_ENABLED: "true"
+      KC_PROXY_HEADERS: xforwarded
+      KC_HEALTH_ENABLED: "true"
+      KC_BOOTSTRAP_ADMIN_USERNAME: ${KEYCLOAK_ADMIN}
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
+    volumes:
+      # Imported only when the realm does not already exist, so an admin-console
+      # change is not silently reverted on the next restart.
+      - ./keycloak/realm-export.json:/opt/keycloak/data/import/realm-export.json:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      # The image ships no curl or wget, so the check speaks HTTP over bash's /dev/tcp.
+      test:
+        - "CMD"
+        - "/bin/bash"
+        - "-c"
+        - "exec 3<>/dev/tcp/127.0.0.1/9000 && printf 'GET /health/ready HTTP/1.1\\r\\nHost: localhost\\r\\nConnection: close\\r\\n\\r\\n' >&3 && grep -q '\"status\": \"UP\"' <&3"
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 60s
+    # No ports: reachable only through caddy on the auth hostname.
+
+  # ---------------------------------------------------------------------------
+  # PostgreSQL + pgvector. Holds both the application schema and Keycloak's.
+  # ---------------------------------------------------------------------------
+  postgres:
+    image: pgvector/pgvector:0.8.6-pg17
+    container_name: maintenance-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_INITDB_ARGS: "--locale=C --encoding=UTF8"
+      # Consumed by the init script, which runs once on an empty data directory.
+      KC_DB_NAME: ${KC_DB_NAME}
+      KC_DB_USER: ${KC_DB_USER}
+      KC_DB_PASSWORD: ${KC_DB_PASSWORD}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./postgres/init-keycloak-db.sh:/docker-entrypoint-initdb.d/10-init-keycloak-db.sh:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    # No ports: one database serving two services on the compose network.
+
+volumes:
+  postgres-data:
+  protocol-files:
+  caddy-data:
+  caddy-config:

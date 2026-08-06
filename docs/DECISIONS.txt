@@ -57,6 +57,11 @@ Status: end of design phase, 2026-08-05
 - VPS cost reduction levers + caveats:
   1. ARM (Hetzner CAX): cheapest 8GB; caveat: arm64 images (all our images exist) +
      multi-arch CI build. DECIDED: yes, go ARM.
+     REVISED 2026-08-06: deployed on CX33 (x86_64, 4 vCPU, 8GB) instead. Two reasons:
+     the ARM price advantage disappeared in Hetzner's 2026-06 price restructuring,
+     and CAX was out of stock at order time. CI keeps building amd64+arm64, so the
+     images still run on ARM and moving back is a server swap, not a code change.
+     Nothing in the stack depends on the architecture.
   2. Shrink to 4GB: EUR ~5 saved; caveat: OOM risk during indexing (= broken-demo risk),
      Kafka Phase 2 won't fit. DECIDED: no, stay 8GB.
   3. Pause = snapshot -> DELETE server (stopped server still bills fully at Hetzner!);

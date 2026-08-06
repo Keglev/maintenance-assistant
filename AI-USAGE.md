@@ -43,8 +43,29 @@ Three further AI-assisted sessions, each delivered as one branch and one pull re
 | **Frontend skeleton** — Angular 22 standalone, OIDC login with PKCE, guarded `/home`, specs, Compodoc | All of it | Ran the dev server against live Keycloak and the backend; checked the proxy, the 401 path, and that Keycloak accepted the real authorization request with our redirect URI and PKCE challenge. PR reviewed before merge. |
 | **CI/CD pipelines** — six workflows, OpenAPI export test, frontend image | All of it | Linted every workflow with `actionlint`; built and ran the frontend image to check the SPA fallback; confirmed the OpenAPI spec is produced without a database or Keycloak. Workflow behaviour that only exists after merge (`workflow_run` triggers) was called out as unverified in the PR rather than claimed as working. |
 
-Two defects were found by that hands-on verification rather than by reading the code, which is the
-argument for doing it: the Keycloak demo users could not log in at all (missing email tripped
+### Production deployment session
+
+The provisioning script, the production compose stack, the Caddy configuration and the frontend's
+runtime-config change were AI-generated; the hosting decision behind them (CX33 over the planned
+CAX21) is mine and is recorded in DECISIONS.txt.
+
+Verification was the deployment itself, against the live server: TLS certificates checked for issuer
+and validity, and a **complete Authorization Code + PKCE login driven end to end with curl** for all
+four demo users — real login form, real authorization code, real token exchange — then each token
+used against the deployed `/api/hello` to confirm the roles came back. Nothing about the
+walkthrough was assumed from configuration.
+
+Three defects surfaced only by running it, and all three were fixed rather than worked around: the
+provisioning script's `sshd -t` validation failed because socket-activated sshd has no
+`/run/sshd`; the frontend container reported unhealthy because its healthcheck asked for `localhost`
+while nginx listens on IPv4 only; and the published frontend image had a placeholder Keycloak URL
+compiled into it, which is what prompted the move to runtime configuration.
+
+One thing was deliberately *not* done: the corrected frontend image could not be pushed to GHCR,
+because the available token lacks `write:packages`. It was built on the server from the repository
+Dockerfile instead, and the PR says so rather than implying the registry holds it.
+
+Two earlier defects were found the same way, which is the argument for doing it: the Keycloak demo users could not log in at all (missing email tripped
 user-profile validation and forced an update-profile screen), and the frontend container refused to
 start as a non-root user. Both were fixed before the respective PR was opened.
 

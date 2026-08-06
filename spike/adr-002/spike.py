@@ -96,6 +96,10 @@ PROVIDERS = [
         ],
         "embed_price_per_1m": 0.01,  # console, see comment block above
         "chat_price_per_1m": None,   # filled from /v1/models?verbose=true
+        # Measured in addition to the primary pick because the primary one
+        # breaches NFR-4 on latency; a sparse-MoE model of the same class is
+        # the obvious cheaper/faster candidate. See RESULTS.md.
+        "chat_alternatives": ["Qwen/Qwen3-30B-A3B-Instruct-2507"],
     },
     {
         "key": "ionos",
@@ -304,6 +308,33 @@ def chat(client: OpenAI, model: str, question: str, sources: list[dict]) -> dict
     }
 
 
+def run_chat_tests(client: OpenAI, model_id: str, retrieval: list[dict]) -> dict:
+    """Citation test (query b) and refusal test (query c) for one chat model."""
+    by_id = {p["id"]: p for p in CORPUS}
+    results: dict = {}
+    for q in QUERIES:
+        if q["key"] not in ("b", "c"):
+            continue
+        r = next(x for x in retrieval if x["key"] == q["key"])
+        sources = [by_id[h["id"]] for h in r["top3"]]
+        try:
+            res = chat(client, model_id, q["text"], sources)
+        except Exception as exc:
+            results[q["key"]] = {"error": f"{exc.__class__.__name__}: {exc}"}
+            continue
+        res["model"] = model_id
+        res["sources_given"] = [s["id"] for s in sources]
+        res["language"] = looks_german(res["answer"])
+        if q["kind"] == "hit":
+            res["citations"] = citation_report(res["answer"], q["expected"])
+        else:
+            res["refusal"] = refusal_report(res["answer"])
+        results[q["key"]] = res
+        log(f"  chat ({q['key']}): {res['latency_s']}s, "
+            f"{res['prompt_tokens']}+{res['completion_tokens']} tokens")
+    return results
+
+
 def evaluate(provider: dict) -> dict:
     out: dict = {"provider": provider["key"], "name": provider["name"],
                  "base_url": provider["base_url"], "currency": provider["currency"]}
@@ -404,28 +435,21 @@ def evaluate(provider: dict) -> dict:
         out["reason"] = "no chat model available; retrieval measured, generation not"
         return out
 
-    by_id = {p["id"]: p for p in CORPUS}
-    chat_results = {}
-    for q in QUERIES:
-        if q["key"] not in ("b", "c"):
-            continue
-        r = next(x for x in retrieval if x["key"] == q["key"])
-        sources = [by_id[h["id"]] for h in r["top3"]]
-        try:
-            res = chat(client, chat_pick["id"], q["text"], sources)
-        except Exception as exc:
-            chat_results[q["key"]] = {"error": f"{exc.__class__.__name__}: {exc}"}
-            continue
-        res["sources_given"] = [s["id"] for s in sources]
-        res["language"] = looks_german(res["answer"])
-        if q["kind"] == "hit":
-            res["citations"] = citation_report(res["answer"], q["expected"])
-        else:
-            res["refusal"] = refusal_report(res["answer"])
-        chat_results[q["key"]] = res
-        log(f"  chat ({q['key']}): {res['latency_s']}s, "
-            f"{res['prompt_tokens']}+{res['completion_tokens']} tokens")
+    chat_results = run_chat_tests(client, chat_pick["id"], retrieval)
     out["chat"] = chat_results
+
+    # Secondary chat models, measured only for latency/compliance comparison.
+    alternatives = {}
+    for alt in provider.get("chat_alternatives", []):
+        if alt not in ids:
+            alternatives[alt] = {"error": "not offered by this provider"}
+            continue
+        log(f"  -- alternative chat model: {alt}")
+        alternatives[alt] = run_chat_tests(client, alt, retrieval)
+        alt_in, alt_out = (nebius_chat_price(models, alt) if provider["key"] == "nebius"
+                           else (lookup(IONOS_CHAT_PRICES, alt) or (None, None)))
+        alternatives[alt]["prices_per_1m"] = {"chat_input": alt_in, "chat_output": alt_out}
+    out["chat_alternatives"] = alternatives
 
     # --- 6. cost -----------------------------------------------------------
     b = chat_results.get("b", {})

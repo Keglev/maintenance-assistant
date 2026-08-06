@@ -1,29 +1,40 @@
 name: backend-deploy
 
-# Publishes the backend image to GHCR after backend-ci succeeded on main.
+# Publishes the backend image to GHCR after backend-ci succeeded on main, then
+# rolls it out to the Hetzner host.
 #
 # workflow_run rather than `on: push` is deliberate: it is the only trigger that
 # genuinely means "after CI success". A plain push trigger would race the CI run
 # and could publish an image whose tests never passed.
+#
+# workflow_dispatch redeploys whatever tag .env.prod currently names, without a
+# code change — the button to reach for after editing .env.prod on the server, or
+# when a container has to be recreated.
 on:
   workflow_run:
     workflows: [backend-ci]
     types: [completed]
     branches: [main]
+  workflow_dispatch:
 
 permissions:
   contents: read
   packages: write
 
 concurrency:
-  group: backend-deploy-${{ github.event.workflow_run.head_branch }}
+  # Build-side only. The deploy job below carries its own group, shared with
+  # frontend-deploy, so cancelling a superseded build never cancels a rollout.
+  group: backend-deploy-${{ github.event.workflow_run.head_branch || github.ref }}
   cancel-in-progress: true
 
 jobs:
   image:
     name: build and push image
-    # Skips the run when CI failed or was cancelled.
-    if: github.event.workflow_run.conclusion == 'success'
+    # Skips the run when CI failed or was cancelled. A manual dispatch has no
+    # workflow_run to inspect, so it is admitted on the event name.
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
 
     steps:
@@ -34,9 +45,11 @@ jobs:
       - uses: actions/checkout@v7
         with:
           # Build exactly the commit CI validated, not whatever main points at now.
-          ref: ${{ github.event.workflow_run.head_sha }}
+          # A manual dispatch has no such commit and uses the ref it was started on.
+          ref: ${{ github.event.workflow_run.head_sha || github.ref }}
 
-      # arm64 is emulated here; the Hetzner CAX target host is arm64.
+      # arm64 is emulated here: the host is x86_64 today, but the images stay
+      # multi-arch so moving back to ARM is a server swap and not a code change.
       - uses: docker/setup-qemu-action@v4
       - uses: docker/setup-buildx-action@v4
 
@@ -64,19 +77,89 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      # TODO(Phase 4): deploy to the Hetzner CAX host once the VPS exists.
-      # Planned shape — pull the freshly pushed image and restart the stack over SSH:
-      #
-      # - name: Deploy to Hetzner
-      #   uses: appleboy/ssh-action@v1
-      #   with:
-      #     host: ${{ secrets.HETZNER_HOST }}
-      #     username: ${{ secrets.HETZNER_USER }}
-      #     key: ${{ secrets.HETZNER_SSH_KEY }}
-      #     script: |
-      #       cd /opt/maintenance-assistant/docker
-      #       docker compose pull app
-      #       docker compose up -d app
-      #
-      # Blocked on: the VPS, a domain with TLS, and the app service in
-      # docker/docker-compose.yml being enabled.
+  # ---------------------------------------------------------------------------
+  # Rollout. Separate from the build so the serialisation below covers only the
+  # part that touches the server.
+  # ---------------------------------------------------------------------------
+  deploy:
+    name: deploy to Hetzner
+    needs: image
+    runs-on: ubuntu-latest
+
+    # Shared with frontend-deploy on purpose: both run `docker compose up` against
+    # the same host, and two of those at once race over the same containers and
+    # the same Docker daemon. cancel-in-progress is false because a cancelled
+    # rollout leaves the stack half-updated — a queued deploy is always better
+    # than an interrupted one.
+    concurrency:
+      group: hetzner-deploy
+      cancel-in-progress: false
+
+    env:
+      # Public URL, so it is not a secret and stays readable in the log.
+      HEALTH_URL: https://maintenance.smartsupply.com.de/api/health
+
+    steps:
+      # The key is written from a secret through the environment rather than
+      # interpolated into the script, so it never becomes part of the command
+      # line. `set -x` is deliberately absent from every step in this job.
+      - name: Install the deploy key
+        env:
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+        run: |
+          set -eu
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          printf '%s\n' "$DEPLOY_SSH_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          # Trust on first use. Pinning a known host key would be stronger, but it
+          # would need a fourth secret and rotating the host key would then break
+          # every deploy silently; the connection is to a fixed IP over SSH either
+          # way, and the key it presents is checked for the rest of the session.
+          ssh-keyscan -T 15 "$DEPLOY_HOST" >> ~/.ssh/known_hosts 2>/dev/null
+          chmod 600 ~/.ssh/known_hosts
+
+      - name: Pull and restart the backend service
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+        run: |
+          set -eu
+          ssh -i ~/.ssh/deploy_key -o IdentitiesOnly=yes -o BatchMode=yes \
+            "${DEPLOY_USER}@${DEPLOY_HOST}" \
+            'set -eu
+             cd /opt/maintenance-assistant
+             COMPOSE="docker compose -f /opt/maintenance-assistant/docker-compose.prod.yml --env-file /opt/maintenance-assistant/.env.prod"
+             $COMPOSE pull backend
+             $COMPOSE up -d backend
+             # Superseded layers accumulate on a 75 GB disk otherwise. Dangling
+             # only: tagged images are what a rollback needs.
+             docker image prune -f >/dev/null'
+
+      # Checked from the runner over the public internet, not on the host: that
+      # exercises DNS, TLS and the reverse proxy as well as the container, which
+      # is what "deployed" has to mean. A container can be up while the path to it
+      # is broken.
+      - name: Verify the deployed backend is healthy
+        run: |
+          set -eu
+          for attempt in $(seq 1 20); do
+            body=$(curl -fsS --max-time 10 "$HEALTH_URL" 2>/dev/null || true)
+            case "$body" in
+              *'"status":"UP"'*)
+                echo "healthy after ${attempt} attempt(s): $body"
+                exit 0
+                ;;
+            esac
+            echo "attempt ${attempt}: not healthy yet"
+            sleep 6
+          done
+          echo "::error::Backend did not report UP at ${HEALTH_URL} after 20 attempts"
+          exit 1
+
+      - name: Remove the deploy key
+        # Runs even when a step above failed: the key must not survive the job on
+        # a self-hosted or reused runner.
+        if: always()
+        run: rm -f ~/.ssh/deploy_key

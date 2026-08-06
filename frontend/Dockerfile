@@ -26,5 +26,8 @@ COPY --from=build /build/dist/maintenance-assistant-frontend/browser /usr/share/
 
 EXPOSE 8080
 
+# 127.0.0.1, not localhost: nginx.conf listens on IPv4 only, while `localhost`
+# resolves to ::1 first inside the container and the check would report a
+# perfectly healthy container as unhealthy.
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s \
-  CMD wget --quiet --spider http://localhost:8080/ || exit 1
+  CMD wget --quiet --spider http://127.0.0.1:8080/ || exit 1

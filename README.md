@@ -32,7 +32,23 @@ filtering enforced server-side.
 
 ## Demo
 
-_Placeholder — the hosted demo and its credentials land at the end of Phase 4._
+**<https://maintenance.smartsupply.com.de>**
+
+Sign in with any of the four demo users — the role decides what the answer looks like:
+
+| Username | Role | Password |
+|---|---|---|
+| `operator` | Operator — operator-safe steps and escalation advice only | `demo1234` |
+| `techniker` | Techniker — full technical answers with citations | `demo1234` |
+| `schichtleiter` | Schichtleiter — the above plus protocol upload | `demo1234` |
+| `admin` | Admin — user and role administration | `demo1234` |
+
+Synthetic data only; these credentials are public on purpose. Also reachable:
+[API docs](https://maintenance.smartsupply.com.de/swagger-ui.html) ·
+[Keycloak](https://auth.smartsupply.com.de).
+
+**Phase 1 scope:** signing in works end to end and the protected page shows the identity and realm
+roles the backend read from your token. Search and upload arrive in Phase 3.
 
 ## Documentation
 

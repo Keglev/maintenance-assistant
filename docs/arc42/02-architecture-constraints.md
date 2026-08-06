@@ -5,8 +5,8 @@
 | # | Constraint | Background |
 |---|---|---|
 | TC-1 | **All processing on EU infrastructure**, LLM inference via an EU-hosted provider, no training on submitted data. | NFR-1; the core product claim. Disqualifies US-hosted model APIs and SaaS vector services outright. |
-| TC-2 | **Single VPS, ~8 GB RAM** (Hetzner CAX, arm64). Full stack via one `docker compose up`. | NFR-5 and the cost decisions: 4 GB was rejected (OOM risk during indexing), 8 GB confirmed. |
-| TC-3 | **arm64-compatible container images only**, plus multi-arch CI builds. | Consequence of choosing Hetzner CAX (ARM) as the cheapest 8 GB option. |
+| TC-2 | **Single VPS, ~8 GB RAM** (Hetzner CX33, x86_64 — revised from the planned CAX21/arm64 on 2026-08-06, see DECISIONS.txt). Full stack via one `docker compose up`. | NFR-5 and the cost decisions: 4 GB was rejected (OOM risk during indexing), 8 GB confirmed. |
+| TC-3 | **Architecture-neutral container images**: every image is published for amd64 **and** arm64, and CI builds multi-arch. | Originally a consequence of choosing ARM. Kept after the move to x86 on purpose — it is what makes the host architecture a procurement decision rather than a code one. |
 | TC-4 | **Java 21 · Spring Boot 4.1**. Boot 3.x is EOL since 2026-06-30. | Decided stack. Spring AI is used only if compatible with Boot 4.1; fallback is a plain `RestClient`. |
 | TC-5 | **Angular + TypeScript** for the frontend, kept thin (three views: search, upload, login redirect). | Decided stack; also a deliberate portfolio choice for the German enterprise market. |
 | TC-6 | **PostgreSQL + pgvector** as the only datastore; no dedicated vector database. | [ADR-004](../adr/ADR-004-pgvector-for-vector-search.md). |

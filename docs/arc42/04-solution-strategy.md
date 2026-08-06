@@ -28,7 +28,8 @@ in Phase 2 that transport becomes Kafka topics without a change to the domain mo
 
 Java 21 · Spring Boot 4.1 (3.x EOL since 2026-06-30) · Angular + TypeScript, thin · PostgreSQL +
 pgvector · Keycloak · EU-hosted LLM via an OpenAI-compatible API · Docker Compose · GitHub Actions ·
-Hetzner CAX (arm64, 8 GB). Spring AI is adopted only if it is compatible with Boot 4.1, verified in
+Hetzner CX33 (x86_64, 8 GB; revised from CAX/arm64, see DECISIONS.txt). Spring AI is adopted only
+if it is compatible with Boot 4.1, verified in
 the ADR-002 spike; the fallback is a plain `RestClient`. Spring Modulith is an optional later
 upgrade to enforce the ADR-001 module boundaries with tests.
 

@@ -121,6 +121,12 @@ KbdInteractiveAuthentication no
 CONF
 chmod 0644 /etc/ssh/sshd_config.d/10-hardening.conf
 
+# `sshd -t` refuses to run without its privilege-separation directory, and on a
+# socket-activated sshd (Ubuntu 24.04+) that directory does not exist until the
+# first connection is accepted. /run is a tmpfs recreated at boot, so making it
+# here is both harmless and idempotent.
+install -d -m 0755 /run/sshd
+
 # Validate before reloading: a bad config plus a reload is how a remote host
 # locks everyone out.
 if sshd -t; then

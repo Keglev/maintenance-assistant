@@ -63,6 +63,8 @@ PHASE 1 — WALKING SKELETON  [IN PROGRESS]
     coverage in coverage/, Compodoc)
 [x] CI/CD pipelines (see PIPELINE ARCHITECTURE below)
 [ ] GitHub Pages configured (Settings -> Pages -> gh-pages branch)
+[x] Deploy to the Hetzner host from CI (both deploy workflows ssh in,
+    pull and restart their service, then verify the public endpoint)
 [ ] DONE = hello-world with login runs on the VPS via pipeline
 [ ] First release tag v0.1.0 once skeleton runs end-to-end with login
 
@@ -119,9 +121,25 @@ PIPELINE ARCHITECTURE (.github/workflows/)
                       the site with build-docs.sh and link-checks it with
                       lychee. Publishes nothing.
 3. frontend-deploy.yml / backend-deploy.yml
-                      push main, after CI success: multi-arch docker
-                      build (amd64+arm64) -> GHCR. Hetzner deploy =
-                      commented TODO until VPS exists.
+                      workflow_run success of the matching CI on main,
+                      or manual workflow_dispatch for a redeploy without
+                      a code change. Two jobs:
+                        image  - multi-arch docker build (amd64+arm64)
+                                 -> GHCR, tags :latest and :sha-<commit>
+                        deploy - ssh to the Hetzner host as the deploy
+                                 user, `compose pull <svc> && up -d <svc>`,
+                                 then verify over the PUBLIC url (so DNS,
+                                 TLS and Caddy are exercised too) and fail
+                                 the job if it does not come back healthy
+                      Both deploy jobs share the concurrency group
+                      "hetzner-deploy" with cancel-in-progress: false, so
+                      rollouts to the server serialise and a superseded
+                      build never cancels one in flight.
+                      Secrets (repo level): DEPLOY_SSH_KEY, DEPLOY_HOST,
+                      DEPLOY_USER. The key is a dedicated ed25519 pair
+                      used by CI only; it is passed through the step env,
+                      never interpolated into a command line, and removed
+                      in an always() step.
 4. docs.yml           a) push main paths docs/**: regenerate mermaid
                          diagrams, build the site with Pandoc via
                          .github/scripts/docs/build-docs.sh -> gh-pages

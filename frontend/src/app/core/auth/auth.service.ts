@@ -1,7 +1,8 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { OAuthService } from 'angular-oauth2-oidc';
 
-import { authConfig } from './auth.config';
+import { ConfigService } from '../config/config.service';
+import { buildAuthConfig } from './auth.config';
 
 /** Shape of the Keycloak access token claims this application reads. */
 interface AccessTokenClaims {
@@ -19,6 +20,7 @@ interface AccessTokenClaims {
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private readonly oauth = inject(OAuthService);
+  private readonly configService = inject(ConfigService);
 
   /** Bumped after every login/logout so the derived signals recompute. */
   private readonly authState = signal(0);
@@ -43,7 +45,10 @@ export class AuthService {
    * coming back from Keycloak. Runs once during application startup.
    */
   async init(): Promise<void> {
-    this.oauth.configure(authConfig);
+    // The deployment's config.json decides which Keycloak this talks to, so it
+    // has to be read before the client is configured.
+    await this.configService.load();
+    this.oauth.configure(buildAuthConfig(this.configService.config));
     try {
       await this.oauth.loadDiscoveryDocumentAndTryLogin();
     } catch {

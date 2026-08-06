@@ -28,6 +28,13 @@ yarn-error.log*
 .npm/
 
 # ---------------------------------------------------------------------------
+# Python (spike/)
+# ---------------------------------------------------------------------------
+__pycache__/
+*.py[cod]
+.venv/
+
+# ---------------------------------------------------------------------------
 # Test & coverage output
 # ---------------------------------------------------------------------------
 coverage/
@@ -51,6 +58,9 @@ TEST-*.xml
 # not secrets; only the real .env.prod they are copied to stays out.
 !.env.*.example
 !**/.env.*.example
+# Provider API keys for the ADR-002 spike (spike/adr-002/.env.example is the
+# versioned template).
+spike/adr-002/.env
 *.pem
 *.key
 !**/src/**/*.key

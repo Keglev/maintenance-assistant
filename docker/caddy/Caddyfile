@@ -1,0 +1,63 @@
+# Caddy configuration for the maintenance-assistant deployment.
+#
+# Caddy obtains and renews Let's Encrypt certificates on its own; there is no
+# certbot and no cron entry. That requires ports 80 and 443 to reach this
+# container and the two hostnames to resolve to this host, both of which are
+# preconditions of the deployment rather than settings here.
+#
+# Hostnames come from the environment so the same file serves any domain — see
+# APP_DOMAIN / AUTH_DOMAIN in .env.prod.
+
+{
+	# A contact address turns expiry warnings into email rather than silence.
+	email {$ACME_EMAIL}
+}
+
+# ---------------------------------------------------------------------------
+# The application: Angular at the root, the API under /api.
+# ---------------------------------------------------------------------------
+{$APP_DOMAIN} {
+	encode zstd gzip
+
+	# Matched first, so /api/* never reaches the SPA. The backend maps its own
+	# routes under /api, so the prefix is passed through rather than stripped.
+	handle /api/* {
+		reverse_proxy backend:8080
+	}
+
+	# The OpenAPI UI and spec, published deliberately: reachable API docs are a
+	# requirement of the demo, and both are read-only.
+	handle /swagger-ui* {
+		reverse_proxy backend:8080
+	}
+	handle /v3/api-docs* {
+		reverse_proxy backend:8080
+	}
+
+	# Everything else is the single-page application. nginx inside the container
+	# already falls back to index.html, so deep links survive a reload.
+	handle {
+		reverse_proxy frontend:8080
+	}
+
+	log {
+		output stdout
+		format console
+	}
+}
+
+# ---------------------------------------------------------------------------
+# Keycloak on its own hostname.
+# ---------------------------------------------------------------------------
+{$AUTH_DOMAIN} {
+	encode zstd gzip
+
+	# Keycloak reads X-Forwarded-* (KC_PROXY_HEADERS=xforwarded) to build issuer
+	# and redirect URLs; Caddy sets them by default on reverse_proxy.
+	reverse_proxy keycloak:8080
+
+	log {
+		output stdout
+		format console
+	}
+}

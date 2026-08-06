@@ -100,7 +100,7 @@
                    <compodoc-menu mode="normal"></compodoc-menu>
                </div>
                <!-- START CONTENT -->
-               <div class="content miscellaneous-variables">
+               <div class="content miscellaneous-functions">
                    <div class="content-data">
 
 
@@ -126,7 +126,7 @@
 
 <ol class="breadcrumb">
   <li class="breadcrumb-item">Miscellaneous</li>
-  <li class="breadcrumb-item">Variables</li>
+  <li class="breadcrumb-item">Functions</li>
 </ol>
 
 <section data-compodoc="block-index">
@@ -137,16 +137,7 @@
                 <td class="col-md-4">
                     <ul class="index-list">
                         <li>
-                            <a href="#appConfig" title="src/app/app.config.ts" class="reference-link "><span class="reference-badge reference-badge--variable" aria-hidden="true">V</span><span class="reference-link-label"><b>appConfig</b>&nbsp;&nbsp;&nbsp;(src/.../app.config.ts)</span></a>
-                        </li>
-                        <li>
-                            <a href="#environment" title="src/environments/environment.development.ts" class="reference-link "><span class="reference-badge reference-badge--variable" aria-hidden="true">V</span><span class="reference-link-label"><b>environment</b>&nbsp;&nbsp;&nbsp;(src/.../environment.development.ts)</span></a>
-                        </li>
-                        <li>
-                            <a href="#environment" title="src/environments/environment.ts" class="reference-link "><span class="reference-badge reference-badge--variable" aria-hidden="true">V</span><span class="reference-link-label"><b>environment</b>&nbsp;&nbsp;&nbsp;(src/.../environment.ts)</span></a>
-                        </li>
-                        <li>
-                            <a href="#routes" title="src/app/app.routes.ts" class="reference-link "><span class="reference-badge reference-badge--variable" aria-hidden="true">V</span><span class="reference-link-label"><b>routes</b>&nbsp;&nbsp;&nbsp;(src/.../app.routes.ts)</span></a>
+                            <a href="#buildAuthConfig" title="src/app/core/auth/auth.config.ts" class="reference-link "><span class="reference-badge reference-badge--function" aria-hidden="true">F</span><span class="reference-link-label"><b>buildAuthConfig</b>&nbsp;&nbsp;&nbsp;(src/.../auth.config.ts)</span></a>
                         </li>
                     </ul>
                 </td>
@@ -155,184 +146,75 @@
     </table>
 </section>
 
-    <h3>src/app/app.config.ts</h3>
-    <section data-compodoc="block-properties">
+    <h3>src/app/core/auth/auth.config.ts</h3>
+    <section data-compodoc="block-methods">
     <h3></h3>    <table class="table table-sm table-bordered">
         <tbody>
             <tr>
                 <td class="col-md-4">
-                    <a name="appConfig"></a>
+                    <a name="buildAuthConfig"></a>
                     <span class="name">
-                        <span ><b>appConfig</b></span>
-                        <a href="#appConfig"><span class="icon ion-ios-link"></span></a>
+                        <span ><b>buildAuthConfig</b></span>
+                        <a href="#buildAuthConfig"><span class="icon ion-ios-link"></span></a>
                     </span>
                 </td>
             </tr>
-                <tr>
-                    <td class="col-md-4">
-                        <i>Type : </i>        <code><a href="../components/App.html" target="_self" >ApplicationConfig</a></code>
-
-                    </td>
-                </tr>
-                <tr>
-                    <td class="col-md-4">
-                        <i>Default value : </i><code>{
-  providers: [
-    provideBrowserGlobalErrorListeners(),
-    provideRouter(routes),
-    provideHttpClient(withInterceptorsFromDi()),
-    provideOAuthClient({
-      // The access token is attached only to our own API, never to third-party hosts.
-      resourceServer: {
-        allowedUrls: [environment.apiBaseUrl],
-        sendAccessToken: true,
-      },
-    }),
-    // Discovery document and redirect handling must complete before the first route renders,
-    // otherwise the guard would see &quot;not authenticated&quot; while a login is still in flight.
-    provideAppInitializer(() &#x3D;&gt; inject(AuthService).init()),
-  ],
-}</code>
-                    </td>
-                </tr>
-
-
-        </tbody>
-    </table>
-</section>
-    <h3>src/environments/environment.development.ts</h3>
-    <section data-compodoc="block-properties">
-    <h3></h3>    <table class="table table-sm table-bordered">
-        <tbody>
             <tr>
                 <td class="col-md-4">
-                    <a name="environment"></a>
-                    <span class="name">
-                        <span ><b>environment</b></span>
-                        <a href="#environment"><span class="icon ion-ios-link"></span></a>
-                    </span>
+<code>buildAuthConfig(config: <a href="../interfaces/RuntimeConfig.html" target="_self">RuntimeConfig</a>)</code>
                 </td>
             </tr>
-                <tr>
-                    <td class="col-md-4">
-                        <i>Type : </i>        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/object" target="_blank" >object</a></code>
 
-                    </td>
-                </tr>
-                <tr>
-                    <td class="col-md-4">
-                        <i>Default value : </i><code>{
-  production: false,
-  keycloakIssuer: &#x27;http://localhost:8081/realms/maintenance&#x27;,
-  keycloakClientId: &#x27;frontend&#x27;,
-  apiBaseUrl: &#x27;/api&#x27;,
-}</code>
-                    </td>
-                </tr>
+
+
 
             <tr>
                 <td class="col-md-4">
-                    <div class="io-description"><p>Local development environment, matching the compose stack in docker/.</p>
-<p>Keycloak is reached directly on port 8081, while /api goes through the dev-server proxy
-(proxy.conf.json) so the browser sees a single origin and the backend needs no CORS setup.</p>
+                        <div class="io-description"><p>Builds the OIDC client configuration for the Keycloak realm <code>maintenance</code>
+(ADR-003).</p>
+<p>A function rather than a constant because the issuer is only known once
+<code>/config.json</code> has been read — the image is environment-agnostic, so nothing
+about the deployment can be decided at module-evaluation time.</p>
+<p>Authorization Code Flow with PKCE: the browser is a public client that cannot
+keep a secret, so PKCE replaces the client secret.</p>
 </div>
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                                <td>Type</td>
+                                            <td>Optional</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>config</td>
+                                            <td>
+                                                            <code><a href="../interfaces/RuntimeConfig.html" target="_self" >RuntimeConfig</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>    <code>AuthConfig</code>
+
+                        </div>
+                            <div class="io-description">
+                                
+                            </div>
                 </td>
             </tr>
-
-        </tbody>
-    </table>
-</section>
-    <h3>src/environments/environment.ts</h3>
-    <section data-compodoc="block-properties">
-    <h3></h3>    <table class="table table-sm table-bordered">
-        <tbody>
-            <tr>
-                <td class="col-md-4">
-                    <a name="environment"></a>
-                    <span class="name">
-                        <span ><b>environment</b></span>
-                        <a href="#environment"><span class="icon ion-ios-link"></span></a>
-                    </span>
-                </td>
-            </tr>
-                <tr>
-                    <td class="col-md-4">
-                        <i>Type : </i>        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/object" target="_blank" >object</a></code>
-
-                    </td>
-                </tr>
-                <tr>
-                    <td class="col-md-4">
-                        <i>Default value : </i><code>{
-  production: true,
-
-  /** Keycloak realm base URL — the OIDC issuer (ADR-003). */
-  keycloakIssuer: &#x27;https://auth.smartsupply.com.de/realms/maintenance&#x27;,
-
-  /** Public client from the versioned realm export; Auth Code Flow + PKCE, holds no secret. */
-  keycloakClientId: &#x27;frontend&#x27;,
-
-  /** Backend base URL. Same-origin behind the reverse proxy, so a relative path. */
-  apiBaseUrl: &#x27;/api&#x27;,
-}</code>
-                    </td>
-                </tr>
-
-            <tr>
-                <td class="col-md-4">
-                    <div class="io-description"><p>Production defaults, compiled into the bundle.</p>
-<p>These are only the fallback. The deployment supplies <code>/config.json</code>, which
-ConfigService merges over them at startup, so the same image can be pointed at
-a different Keycloak without a rebuild. They are kept accurate anyway: an
-image that loses its bind mount should still reach the real deployment rather
-than a placeholder host.</p>
-</div>
-                </td>
-            </tr>
-
-        </tbody>
-    </table>
-</section>
-    <h3>src/app/app.routes.ts</h3>
-    <section data-compodoc="block-properties">
-    <h3></h3>    <table class="table table-sm table-bordered">
-        <tbody>
-            <tr>
-                <td class="col-md-4">
-                    <a name="routes"></a>
-                    <span class="name">
-                        <span ><b>routes</b></span>
-                        <a href="#routes"><span class="icon ion-ios-link"></span></a>
-                    </span>
-                </td>
-            </tr>
-                <tr>
-                    <td class="col-md-4">
-                        <i>Type : </i>        <code><a href="https://angular.dev/api/router/Routes" target="_blank" >Routes</a></code>
-
-                    </td>
-                </tr>
-                <tr>
-                    <td class="col-md-4">
-                        <i>Default value : </i><code>[
-  {
-    path: &#x27;login&#x27;,
-    loadComponent: () &#x3D;&gt; &quot;import(&#x27;./features/login/login&#x27;).then((m) &#x3D;&gt; m.Login)&quot;,
-    title: &#x27;Sign in · maintenance-assistant&#x27;,
-  },
-  {
-    path: &#x27;home&#x27;,
-    loadComponent: () &#x3D;&gt; &quot;import(&#x27;./features/home/home&#x27;).then((m) &#x3D;&gt; m.Home)&quot;,
-    canActivate: [authGuard],
-    title: &#x27;Home · maintenance-assistant&#x27;,
-  },
-  { path: &#x27;&#x27;, pathMatch: &#x27;full&#x27;, redirectTo: &#x27;home&#x27; },
-  { path: &#x27;**&#x27;, redirectTo: &#x27;home&#x27; },
-]</code>
-                    </td>
-                </tr>
-
-
         </tbody>
     </table>
 </section>
@@ -364,8 +246,8 @@ than a placeholder host.</p>
 
        <script>
             var COMPODOC_CURRENT_PAGE_DEPTH = 1;
-            var COMPODOC_CURRENT_PAGE_CONTEXT = 'miscellaneous-variables';
-            var COMPODOC_CURRENT_PAGE_URL = 'variables.html';
+            var COMPODOC_CURRENT_PAGE_CONTEXT = 'miscellaneous-functions';
+            var COMPODOC_CURRENT_PAGE_URL = 'functions.html';
             var MAX_SEARCH_RESULTS = 15;
        </script>
 

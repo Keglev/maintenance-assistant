@@ -245,6 +245,12 @@ definition of done.</p>
                                 <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
                                     <span class="modifier">Private</span>
                                     <span class="modifier">Readonly</span>
+                                <a href="#apiBaseUrl" >apiBaseUrl</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
+                                    <span class="modifier">Private</span>
+                                    <span class="modifier">Readonly</span>
                                 <a href="#auth" >auth</a>
                             </li>
                             <li>
@@ -319,7 +325,7 @@ definition of done.</p>
                 </tr>
                         <tr>
                             <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="33" class="link-to-prism">src/app/features/home/home.ts:33</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="34" class="link-to-prism">src/app/features/home/home.ts:34</a></div>
                             </td>
                         </tr>
 
@@ -358,8 +364,8 @@ definition of done.</p>
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="43"
-                                    class="link-to-prism">src/app/features/home/home.ts:43</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="44"
+                                    class="link-to-prism">src/app/features/home/home.ts:44</a></div>
                         </td>
                     </tr>
 
@@ -382,6 +388,39 @@ definition of done.</p>
     <h3 id="inputs">
         Properties
     </h3>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="apiBaseUrl"></a>
+                    <span class="name">
+                            <span class="modifier">Private</span>
+                            <span class="modifier">Readonly</span>
+                        <span ><b>apiBaseUrl</b></span>
+                        <a href="#apiBaseUrl"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>unknown</code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>inject(ConfigService).config.apiBaseUrl</code>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="28" class="link-to-prism">src/app/features/home/home.ts:28</a></div>
+                        </td>
+                    </tr>
+
+
+        </tbody>
+    </table>
     <table class="table table-sm table-bordered">
         <tbody>
             <tr>
@@ -441,7 +480,7 @@ definition of done.</p>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="33" class="link-to-prism">src/app/features/home/home.ts:33</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="34" class="link-to-prism">src/app/features/home/home.ts:34</a></div>
                         </td>
                     </tr>
 
@@ -474,7 +513,7 @@ definition of done.</p>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="32" class="link-to-prism">src/app/features/home/home.ts:32</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="33" class="link-to-prism">src/app/features/home/home.ts:33</a></div>
                         </td>
                     </tr>
 
@@ -540,7 +579,7 @@ definition of done.</p>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="30" class="link-to-prism">src/app/features/home/home.ts:30</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="31" class="link-to-prism">src/app/features/home/home.ts:31</a></div>
                         </td>
                     </tr>
 
@@ -573,7 +612,7 @@ definition of done.</p>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="29" class="link-to-prism">src/app/features/home/home.ts:29</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="30" class="link-to-prism">src/app/features/home/home.ts:30</a></div>
                         </td>
                     </tr>
 
@@ -590,7 +629,7 @@ definition of done.</p>
 import { Component, inject, signal } from &#x27;@angular/core&#x27;;
 
 import { AuthService } from &#x27;../../core/auth/auth.service&#x27;;
-import { environment } from &#x27;../../../environments/environment&#x27;;
+import { ConfigService } from &#x27;../../core/config/config.service&#x27;;
 
 /** What GET /api/hello returns — the backend&#x27;s view of the caller. */
 interface HelloResponse {
@@ -613,6 +652,7 @@ interface HelloResponse {
 export class Home {
   private readonly auth &#x3D; inject(AuthService);
   private readonly http &#x3D; inject(HttpClient);
+  private readonly apiBaseUrl &#x3D; inject(ConfigService).config.apiBaseUrl;
 
   protected readonly username &#x3D; this.auth.username;
   protected readonly realmRoles &#x3D; this.auth.realmRoles;
@@ -621,10 +661,10 @@ export class Home {
   protected readonly backendError &#x3D; signal&lt;string | null&gt;(null);
 
   constructor() {
-    this.http.get&lt;HelloResponse&gt;(&#x60;${environment.apiBaseUrl}/hello&#x60;).subscribe({
+    this.http.get&lt;HelloResponse&gt;(&#x60;${this.apiBaseUrl}/hello&#x60;).subscribe({
       next: (response) &#x3D;&gt; this.backendIdentity.set(response),
       // The page stays useful when the backend is not running; it just says so.
-      error: () &#x3D;&gt; this.backendError.set(&#x27;Backend not reachable at &#x27; + environment.apiBaseUrl),
+      error: () &#x3D;&gt; this.backendError.set(&#x27;Backend not reachable at &#x27; + this.apiBaseUrl),
     });
   }
 

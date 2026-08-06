@@ -85,6 +85,9 @@ customElements.define('compodoc-menu', class extends HTMLElement {
                                 <li class="link">
                                     <a href="injectables/AuthService.html" data-type="entity-link" >AuthService</a>
                                 </li>
+                                <li class="link">
+                                    <a href="injectables/ConfigService.html" data-type="entity-link" >ConfigService</a>
+                                </li>
                             </ul>
                         </li>
                     <li class="chapter">
@@ -114,6 +117,9 @@ customElements.define('compodoc-menu', class extends HTMLElement {
                             <li class="link">
                                 <a href="interfaces/HelloResponse.html" data-type="entity-link" >HelloResponse</a>
                             </li>
+                            <li class="link">
+                                <a href="interfaces/RuntimeConfig.html" data-type="entity-link" >RuntimeConfig</a>
+                            </li>
                         </ul>
                     </li>
                     <li class="chapter">
@@ -124,6 +130,9 @@ customElements.define('compodoc-menu', class extends HTMLElement {
                             <span class="icon ion-ios-arrow-down"></span>
                         </div>
                         <ul class="links collapse " ${ isNormalMode ? 'id="miscellaneous-links"' : 'id="xs-miscellaneous-links"' }>
+                            <li class="link">
+                                <a href="miscellaneous/functions.html" data-type="entity-link">Functions</a>
+                            </li>
                             <li class="link">
                                 <a href="miscellaneous/variables.html" data-type="entity-link">Variables</a>
                             </li>

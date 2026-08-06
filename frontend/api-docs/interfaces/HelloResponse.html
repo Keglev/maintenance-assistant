@@ -284,7 +284,7 @@
 import { Component, inject, signal } from &#x27;@angular/core&#x27;;
 
 import { AuthService } from &#x27;../../core/auth/auth.service&#x27;;
-import { environment } from &#x27;../../../environments/environment&#x27;;
+import { ConfigService } from &#x27;../../core/config/config.service&#x27;;
 
 /** What GET /api/hello returns — the backend&#x27;s view of the caller. */
 interface HelloResponse {
@@ -307,6 +307,7 @@ interface HelloResponse {
 export class Home {
   private readonly auth &#x3D; inject(AuthService);
   private readonly http &#x3D; inject(HttpClient);
+  private readonly apiBaseUrl &#x3D; inject(ConfigService).config.apiBaseUrl;
 
   protected readonly username &#x3D; this.auth.username;
   protected readonly realmRoles &#x3D; this.auth.realmRoles;
@@ -315,10 +316,10 @@ export class Home {
   protected readonly backendError &#x3D; signal&lt;string | null&gt;(null);
 
   constructor() {
-    this.http.get&lt;HelloResponse&gt;(&#x60;${environment.apiBaseUrl}/hello&#x60;).subscribe({
+    this.http.get&lt;HelloResponse&gt;(&#x60;${this.apiBaseUrl}/hello&#x60;).subscribe({
       next: (response) &#x3D;&gt; this.backendIdentity.set(response),
       // The page stays useful when the backend is not running; it just says so.
-      error: () &#x3D;&gt; this.backendError.set(&#x27;Backend not reachable at &#x27; + environment.apiBaseUrl),
+      error: () &#x3D;&gt; this.backendError.set(&#x27;Backend not reachable at &#x27; + this.apiBaseUrl),
     });
   }
 

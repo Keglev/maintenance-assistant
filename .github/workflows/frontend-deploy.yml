@@ -1,25 +1,33 @@
 name: frontend-deploy
 
-# Publishes the frontend image to GHCR after frontend-ci succeeded on main.
-# See backend-deploy.yml for why this uses workflow_run rather than `on: push`.
+# Publishes the frontend image to GHCR after frontend-ci succeeded on main, then
+# rolls it out to the Hetzner host. See backend-deploy.yml for why this uses
+# workflow_run rather than `on: push`.
+#
+# workflow_dispatch redeploys whatever tag .env.prod currently names, without a
+# code change.
 on:
   workflow_run:
     workflows: [frontend-ci]
     types: [completed]
     branches: [main]
+  workflow_dispatch:
 
 permissions:
   contents: read
   packages: write
 
 concurrency:
-  group: frontend-deploy-${{ github.event.workflow_run.head_branch }}
+  # Build-side only; the deploy job carries the shared rollout group.
+  group: frontend-deploy-${{ github.event.workflow_run.head_branch || github.ref }}
   cancel-in-progress: true
 
 jobs:
   image:
     name: build and push image
-    if: github.event.workflow_run.conclusion == 'success'
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
 
     steps:
@@ -27,7 +35,7 @@ jobs:
       # which is the behaviour this job wants before it pushes an image.
       - uses: actions/checkout@v7
         with:
-          ref: ${{ github.event.workflow_run.head_sha }}
+          ref: ${{ github.event.workflow_run.head_sha || github.ref }}
 
       - uses: docker/setup-qemu-action@v4
       - uses: docker/setup-buildx-action@v4
@@ -56,6 +64,79 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      # TODO(Phase 4): deploy to the Hetzner CAX host once the VPS exists.
-      # Same shape as backend-deploy.yml — pull and restart over SSH. Blocked on
-      # the VPS, a domain with TLS, and a reverse proxy in front of this container.
+  # ---------------------------------------------------------------------------
+  # Rollout. Separate from the build so the serialisation below covers only the
+  # part that touches the server.
+  # ---------------------------------------------------------------------------
+  deploy:
+    name: deploy to Hetzner
+    needs: image
+    runs-on: ubuntu-latest
+
+    # Shared with backend-deploy on purpose: both run `docker compose up` against
+    # the same host, and two of those at once race over the same containers and
+    # the same Docker daemon. cancel-in-progress is false because a cancelled
+    # rollout leaves the stack half-updated.
+    concurrency:
+      group: hetzner-deploy
+      cancel-in-progress: false
+
+    env:
+      # Public URL, so it is not a secret and stays readable in the log.
+      APP_URL: https://maintenance.smartsupply.com.de/
+
+    steps:
+      # The key is written from a secret through the environment rather than
+      # interpolated into the script, so it never becomes part of the command
+      # line. `set -x` is deliberately absent from every step in this job.
+      - name: Install the deploy key
+        env:
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+        run: |
+          set -eu
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          printf '%s\n' "$DEPLOY_SSH_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          # Trust on first use — see the same step in backend-deploy.yml.
+          ssh-keyscan -T 15 "$DEPLOY_HOST" >> ~/.ssh/known_hosts 2>/dev/null
+          chmod 600 ~/.ssh/known_hosts
+
+      - name: Pull and restart the frontend service
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+        run: |
+          set -eu
+          ssh -i ~/.ssh/deploy_key -o IdentitiesOnly=yes -o BatchMode=yes \
+            "${DEPLOY_USER}@${DEPLOY_HOST}" \
+            'set -eu
+             cd /opt/maintenance-assistant
+             COMPOSE="docker compose -f /opt/maintenance-assistant/docker-compose.prod.yml --env-file /opt/maintenance-assistant/.env.prod"
+             $COMPOSE pull frontend
+             $COMPOSE up -d frontend
+             docker image prune -f >/dev/null'
+
+      # Checked from the runner over the public internet: that exercises DNS, TLS
+      # and the reverse proxy as well as the container. The application is a SPA,
+      # so a 200 on the root with the app shell in it is the available signal —
+      # there is no server-rendered health endpoint to ask.
+      - name: Verify the deployed frontend is serving
+        run: |
+          set -eu
+          for attempt in $(seq 1 20); do
+            code=$(curl -fsS -o /tmp/index.html -w '%{http_code}' --max-time 10 "$APP_URL" 2>/dev/null || true)
+            if [ "$code" = "200" ] && grep -q '<app-root' /tmp/index.html; then
+              echo "serving the application shell after ${attempt} attempt(s)"
+              exit 0
+            fi
+            echo "attempt ${attempt}: HTTP ${code:-none}, shell not found yet"
+            sleep 6
+          done
+          echo "::error::Frontend did not serve the application shell at ${APP_URL} after 20 attempts"
+          exit 1
+
+      - name: Remove the deploy key
+        if: always()
+        run: rm -f ~/.ssh/deploy_key

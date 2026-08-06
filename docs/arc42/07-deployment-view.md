@@ -60,19 +60,38 @@ The frontend image contains no hostname. It reads `/config.json` at startup, whi
 bind-mounts, so the same image tag runs locally and in production. Image references are per service,
 so a rollback is a value change in `.env.prod` plus `docker compose up -d`.
 
-## 7.5 Host hardening
+## 7.5 Delivery
+
+CI owns the rollout. When `backend-ci` or `frontend-ci` succeeds on `main`, the matching deploy
+workflow builds a multi-arch image, pushes it to GHCR, then connects to the host as the `deploy`
+user and runs `docker compose pull <service> && docker compose up -d <service>` for that one
+service. Both workflows also accept a manual `workflow_dispatch`, which redeploys whatever tag
+`.env.prod` currently names — the button for a config change or a stuck container.
+
+The rollout is verified from the runner against the **public** URL rather than on the host, because
+a container can be up while DNS, TLS or the proxy in front of it is broken; the job fails if the
+endpoint does not come back healthy. Both deploy jobs share one concurrency group with cancelling
+disabled, so two rollouts never race over the same containers and a superseded build never
+interrupts one in flight.
+
+CI authenticates with a dedicated ed25519 key that exists only for this purpose, held in the
+`DEPLOY_SSH_KEY` repository secret alongside `DEPLOY_HOST` and `DEPLOY_USER`. It is written from the
+step environment rather than interpolated into a command line, and deleted in a step that runs even
+when the deploy fails.
+
+## 7.6 Host hardening
 
 `infra/provision.sh` is the record of what the host is, and is safe to re-run:
 unattended security upgrades; Docker from the official repository; an unprivileged `deploy` user
 that owns the stack; sshd with `PasswordAuthentication no` and `PermitRootLogin prohibit-password`
 via a drop-in that survives package upgrades; fail2ban on the sshd jail.
 
-## 7.6 Known gaps
+## 7.7 Known gaps
 
 - **No backups yet.** The Postgres volume is the only copy of the data. Acceptable while the corpus
   is synthetic and reproducible; it stops being acceptable in Phase 2.
-- **Deployment is manual.** `backend-deploy.yml` and `frontend-deploy.yml` publish images but stop
-  short of the host; the SSH step is still a commented TODO.
+- **No staging environment.** A deploy goes straight to the only host there is, so CI on `main` is
+  the last gate before the demo changes under a visitor.
 - **Single host, no redundancy.** Recovery is a fresh `docker compose up -d` on a new server.
 - **`latest` is a moving tag.** Pinning `sha-<commit>` in `.env.prod` is the safer habit once the
   demo is being shown.

@@ -267,7 +267,32 @@
         production. Image references are per service, so a rollback is a
         value change in <code>.env.prod</code> plus
         <code>docker compose up -d</code>.</p>
-        <h2 id="host-hardening">7.5 Host hardening</h2>
+        <h2 id="delivery">7.5 Delivery</h2>
+        <p>CI owns the rollout. When <code>backend-ci</code> or
+        <code>frontend-ci</code> succeeds on <code>main</code>, the
+        matching deploy workflow builds a multi-arch image, pushes it to
+        GHCR, then connects to the host as the <code>deploy</code> user
+        and runs
+        <code>docker compose pull &lt;service&gt; &amp;&amp; docker compose up -d &lt;service&gt;</code>
+        for that one service. Both workflows also accept a manual
+        <code>workflow_dispatch</code>, which redeploys whatever tag
+        <code>.env.prod</code> currently names — the button for a config
+        change or a stuck container.</p>
+        <p>The rollout is verified from the runner against the
+        <strong>public</strong> URL rather than on the host, because a
+        container can be up while DNS, TLS or the proxy in front of it
+        is broken; the job fails if the endpoint does not come back
+        healthy. Both deploy jobs share one concurrency group with
+        cancelling disabled, so two rollouts never race over the same
+        containers and a superseded build never interrupts one in
+        flight.</p>
+        <p>CI authenticates with a dedicated ed25519 key that exists
+        only for this purpose, held in the <code>DEPLOY_SSH_KEY</code>
+        repository secret alongside <code>DEPLOY_HOST</code> and
+        <code>DEPLOY_USER</code>. It is written from the step
+        environment rather than interpolated into a command line, and
+        deleted in a step that runs even when the deploy fails.</p>
+        <h2 id="host-hardening">7.6 Host hardening</h2>
         <p><code>infra/provision.sh</code> is the record of what the
         host is, and is safe to re-run: unattended security upgrades;
         Docker from the official repository; an unprivileged
@@ -275,15 +300,14 @@
         <code>PasswordAuthentication no</code> and
         <code>PermitRootLogin prohibit-password</code> via a drop-in
         that survives package upgrades; fail2ban on the sshd jail.</p>
-        <h2 id="known-gaps">7.6 Known gaps</h2>
+        <h2 id="known-gaps">7.7 Known gaps</h2>
         <ul>
         <li><strong>No backups yet.</strong> The Postgres volume is the
         only copy of the data. Acceptable while the corpus is synthetic
         and reproducible; it stops being acceptable in Phase 2.</li>
-        <li><strong>Deployment is manual.</strong>
-        <code>backend-deploy.yml</code> and
-        <code>frontend-deploy.yml</code> publish images but stop short
-        of the host; the SSH step is still a commented TODO.</li>
+        <li><strong>No staging environment.</strong> A deploy goes
+        straight to the only host there is, so CI on <code>main</code>
+        is the last gate before the demo changes under a visitor.</li>
         <li><strong>Single host, no redundancy.</strong> Recovery is a
         fresh <code>docker compose up -d</code> on a new server.</li>
         <li><strong><code>latest</code> is a moving tag.</strong>
@@ -309,9 +333,10 @@
       <li><a href="#configuration-and-secrets"
       id="toc-configuration-and-secrets">7.4 Configuration and
       secrets</a></li>
-      <li><a href="#host-hardening" id="toc-host-hardening">7.5 Host
+      <li><a href="#delivery" id="toc-delivery">7.5 Delivery</a></li>
+      <li><a href="#host-hardening" id="toc-host-hardening">7.6 Host
       hardening</a></li>
-      <li><a href="#known-gaps" id="toc-known-gaps">7.6 Known
+      <li><a href="#known-gaps" id="toc-known-gaps">7.7 Known
       gaps</a></li>
       </ul></li>
       </ul>

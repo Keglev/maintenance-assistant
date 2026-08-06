@@ -410,8 +410,288 @@
       "name": "IONOS AI Model Hub",
       "base_url": "https://openai.inference.de-txl.ionos.com/v1",
       "currency": "EUR",
-      "status": "skipped",
-      "reason": "IONOS_API_KEY not set in the environment"
+      "models_total": 20,
+      "model_ids": [
+        "BAAI/bge-large-en-v1.5",
+        "BAAI/bge-m3",
+        "Qwen/Qwen3-Coder-Next",
+        "Qwen/Qwen3-VL-Embedding-8B",
+        "Qwen/Qwen3-VL-Reranker-8B",
+        "Qwen/Qwen3.5-397B-A17B",
+        "Qwen/Qwen3.5-9B",
+        "bge-large-en-v1.5-migration",
+        "bge-m3-migration",
+        "black-forest-labs/FLUX.1-schnell",
+        "black-forest-labs/FLUX.2-klein-4B",
+        "lightonai/LightOnOCR-2-1B",
+        "meta-llama/Llama-3.3-70B-Instruct",
+        "meta-llama/Meta-Llama-3.1-405B-Instruct-FP8",
+        "meta-llama/Meta-Llama-3.1-8B-Instruct",
+        "mistralai/Mistral-Nemo-Instruct-2407",
+        "mistralai/Mistral-Small-24B-Instruct",
+        "openai/gpt-oss-120b",
+        "paraphrase-multilingual-mpnet-base-v2-migration",
+        "sentence-transformers/paraphrase-multilingual-mpnet-base-v2"
+      ],
+      "verbose_pricing_available": false,
+      "embedding_model": {
+        "id": "BAAI/bge-m3",
+        "how": "preferred",
+        "rank": 0
+      },
+      "chat_model": {
+        "id": "meta-llama/Llama-3.3-70B-Instruct",
+        "how": "preferred",
+        "rank": 0
+      },
+      "embedding_candidates": [
+        "BAAI/bge-large-en-v1.5",
+        "BAAI/bge-m3",
+        "Qwen/Qwen3-VL-Embedding-8B",
+        "bge-large-en-v1.5-migration",
+        "bge-m3-migration"
+      ],
+      "prices_per_1m": {
+        "embed_input": 0.02,
+        "chat_input": 0.65,
+        "chat_output": 0.65,
+        "source": "IONOS Cloud EUR price list, AI Model Hub section"
+      },
+      "embedding_dims": 1024,
+      "corpus_embed": {
+        "tokens": 1636,
+        "latency_s": 1.265,
+        "protocols": 10,
+        "avg_tokens_per_protocol": 163.6
+      },
+      "threshold": {
+        "lowest_hit_top1": 0.6989,
+        "highest_miss_top1": 0.4677,
+        "margin": 0.2312,
+        "separates": true,
+        "proposed": 0.583
+      },
+      "retrieval": [
+        {
+          "key": "a",
+          "label": "DE query -> DE protocol (same-language baseline)",
+          "query": "Kompressor liefert zu wenig Druck, Netzdruck in der Halle faellt ab",
+          "expected": "P-05",
+          "kind": "hit",
+          "top3": [
+            {
+              "id": "P-05",
+              "lang": "de",
+              "score": 0.7101
+            },
+            {
+              "id": "P-08",
+              "lang": "en",
+              "score": 0.5467
+            },
+            {
+              "id": "P-02",
+              "lang": "de",
+              "score": 0.5338
+            }
+          ],
+          "top1_score": 0.7101,
+          "expected_is_top1": true,
+          "expected_rank": 1,
+          "cross_language": false,
+          "embed_tokens": 17,
+          "embed_latency_s": 1.126
+        },
+        {
+          "key": "b",
+          "label": "DE query -> EN protocol (multilingual case, the hard requirement)",
+          "query": "Presse zeigt Fehler E-47, Druck schwankt",
+          "expected": "P-08",
+          "kind": "hit",
+          "top3": [
+            {
+              "id": "P-08",
+              "lang": "en",
+              "score": 0.6989
+            },
+            {
+              "id": "P-01",
+              "lang": "de",
+              "score": 0.5367
+            },
+            {
+              "id": "P-07",
+              "lang": "de",
+              "score": 0.5314
+            }
+          ],
+          "top1_score": 0.6989,
+          "expected_is_top1": true,
+          "expected_rank": 1,
+          "cross_language": true,
+          "embed_tokens": 10,
+          "embed_latency_s": 6.442
+        },
+        {
+          "key": "c",
+          "label": "DE query with no matching protocol (Mode-B case)",
+          "query": "Lackierroboter traegt die Farbe ungleichmaessig auf, Farbnebel in der Kabine",
+          "expected": null,
+          "kind": "miss",
+          "top3": [
+            {
+              "id": "P-03",
+              "lang": "de",
+              "score": 0.4677
+            },
+            {
+              "id": "P-10",
+              "lang": "en",
+              "score": 0.4442
+            },
+            {
+              "id": "P-05",
+              "lang": "de",
+              "score": 0.4073
+            }
+          ],
+          "top1_score": 0.4677,
+          "expected_is_top1": null,
+          "expected_rank": null,
+          "cross_language": null,
+          "embed_tokens": 24,
+          "embed_latency_s": 1.709
+        }
+      ],
+      "chat": {
+        "b": {
+          "answer": "Das Symptom \"Fehler E-47\" und \"Druck schwankt\" entspricht dem in Protokoll P-08 beschriebenen Fall [P-08]. Die Ursache dafür ist ein Drift auf dem Hauptdrucksensor, der um etwa 12 Prozent gegenüber dem Referenzmanometer verschoben war [P-08]. Die empfohlene Maßnahme ist die Neukalibrierung des Drucksensors gegen ein zertifiziertes Referenzmanometer und die Korrektur des Offsets in den PLC-Parametern [P-08].",
+          "prompt_tokens": 774,
+          "completion_tokens": 129,
+          "total_tokens": 903,
+          "latency_s": 3.9,
+          "finish_reason": "stop",
+          "model": "meta-llama/Llama-3.3-70B-Instruct",
+          "sources_given": [
+            "P-08",
+            "P-01",
+            "P-07"
+          ],
+          "language": {
+            "german_markers": 15,
+            "english_markers": 0,
+            "is_german": true
+          },
+          "citations": {
+            "citation_count": 3,
+            "cited_ids": [
+              "P-08"
+            ],
+            "expected_cited": true,
+            "sentences_total": 3,
+            "sentences_without_citation": 0,
+            "uncited_sentences": []
+          }
+        },
+        "c": {
+          "answer": "No protocol in the knowledge base covers this case.",
+          "prompt_tokens": 768,
+          "completion_tokens": 11,
+          "total_tokens": 779,
+          "latency_s": 7.775,
+          "finish_reason": "stop",
+          "model": "meta-llama/Llama-3.3-70B-Instruct",
+          "sources_given": [
+            "P-03",
+            "P-10",
+            "P-05"
+          ],
+          "language": {
+            "german_markers": 0,
+            "english_markers": 3,
+            "is_german": false
+          },
+          "refusal": {
+            "refusal_phrase_found": true,
+            "citation_count": 0,
+            "length_chars": 51
+          }
+        }
+      },
+      "chat_alternatives": {
+        "Qwen/Qwen3.5-9B": {
+          "b": {
+            "answer": "",
+            "prompt_tokens": 785,
+            "completion_tokens": 500,
+            "total_tokens": 1285,
+            "latency_s": 13.009,
+            "finish_reason": "length",
+            "model": "Qwen/Qwen3.5-9B",
+            "sources_given": [
+              "P-08",
+              "P-01",
+              "P-07"
+            ],
+            "language": {
+              "german_markers": 0,
+              "english_markers": 0,
+              "is_german": false
+            },
+            "citations": {
+              "citation_count": 0,
+              "cited_ids": [],
+              "expected_cited": false,
+              "sentences_total": 0,
+              "sentences_without_citation": 0,
+              "uncited_sentences": []
+            }
+          },
+          "c": {
+            "answer": "",
+            "prompt_tokens": 740,
+            "completion_tokens": 500,
+            "total_tokens": 1240,
+            "latency_s": 13.03,
+            "finish_reason": "length",
+            "model": "Qwen/Qwen3.5-9B",
+            "sources_given": [
+              "P-03",
+              "P-10",
+              "P-05"
+            ],
+            "language": {
+              "german_markers": 0,
+              "english_markers": 0,
+              "is_german": false
+            },
+            "refusal": {
+              "refusal_phrase_found": false,
+              "citation_count": 0,
+              "length_chars": 0
+            }
+          },
+          "prices_per_1m": {
+            "chat_input": 0.1,
+            "chat_output": 0.15
+          }
+        }
+      },
+      "cost": {
+        "basis": "measured usage of query (b), the end-to-end Mode A path",
+        "per_query": 0.00058715,
+        "per_1000_queries": 0.5872,
+        "corpus_150_protocols": 0.0004908,
+        "corpus_tokens_estimated": 24540
+      },
+      "latency": {
+        "corpus_embed_s": 1.265,
+        "query_embed_avg_s": 3.092,
+        "chat_b_s": 3.9,
+        "chat_c_s": 7.775,
+        "end_to_end_b_s": 10.342
+      },
+      "status": "ok"
     }
   ]
 }

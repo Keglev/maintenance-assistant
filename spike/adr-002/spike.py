@@ -107,20 +107,25 @@ PROVIDERS = [
         "env": "IONOS_API_KEY",
         "base_url": "https://openai.inference.de-txl.ionos.com/v1",
         "currency": "EUR",
+        # The catalogue also carries `bge-m3-migration` and two other
+        # `*-migration` aliases; those are compatibility shims for the old
+        # endpoint naming, not separate models. The plain ids are the ones to
+        # use, so they are matched exactly and the aliases are filtered out.
         "embed_preference": [
             "baai/bge-m3",
-            "bge-m3",
-            "paraphrase-multilingual-mpnet-base-v2",
+            "sentence-transformers/paraphrase-multilingual-mpnet-base-v2",
             "intfloat/multilingual-e5-large",
         ],
         "chat_preference": [
             "meta-llama/llama-3.3-70b-instruct",
-            "llama-3.3-70b",
-            "qwen3.5-397b",
-            "qwen/qwen2.5-72b-instruct",
+            "qwen/qwen3.5-9b",
+            "qwen/qwen3.5-397b-a17b",
         ],
         "embed_price_per_1m": None,  # resolved from IONOS_EMBED_PRICES
         "chat_price_per_1m": None,   # resolved from IONOS_CHAT_PRICES
+        # Same reason as on Nebius: measure a second, smaller chat model so the
+        # latency/citation trade-off can be compared within the provider too.
+        "chat_alternatives": ["Qwen/Qwen3.5-9B"],
     },
 ]
 
@@ -155,9 +160,14 @@ def model_ids(models: list[dict]) -> list[str]:
     return [m.get("id", "") for m in models]
 
 
+# Deprecated compatibility aliases that must never be picked automatically:
+# IONOS still lists `bge-m3-migration` & co. next to the real ids.
+ALIAS_IDS = re.compile(r"-migration$", re.IGNORECASE)
+
+
 def pick_model(models: list[dict], preference: list[str], fallback_pattern: str) -> dict:
     """First preference that exists, else first id matching the fallback regex."""
-    ids = model_ids(models)
+    ids = [i for i in model_ids(models) if not ALIAS_IDS.search(i)]
     lowered = {i.lower(): i for i in ids}
     for want in preference:
         if want in lowered:
@@ -265,10 +275,17 @@ def lookup(table: dict, model_id: str):
 
 
 def embed(client: OpenAI, model: str, texts: list[str]) -> tuple[np.ndarray, int, float]:
-    """Return (vectors, prompt_tokens, seconds). Falls back to one call per text."""
+    """Return (vectors, prompt_tokens, seconds). Falls back to one call per text.
+
+    `encoding_format="float"` is not the default of the OpenAI SDK — it sends
+    `base64` and decodes client-side. The IONOS gateway does not implement that
+    and answers HTTP 500 ("cannot unmarshal string into ... []float32"), so the
+    format is pinned explicitly. Nebius accepts it too, so one code path covers
+    both and the two providers stay measured identically.
+    """
     t0 = time.perf_counter()
     try:
-        resp = client.embeddings.create(model=model, input=texts)
+        resp = client.embeddings.create(model=model, input=texts, encoding_format="float")
         vectors = np.array([d.embedding for d in resp.data], dtype=np.float32)
         tokens = getattr(resp.usage, "prompt_tokens", 0) or getattr(resp.usage, "total_tokens", 0)
         return vectors, tokens, time.perf_counter() - t0
@@ -277,7 +294,7 @@ def embed(client: OpenAI, model: str, texts: list[str]) -> tuple[np.ndarray, int
         vectors, tokens = [], 0
         t0 = time.perf_counter()
         for text in texts:
-            resp = client.embeddings.create(model=model, input=text)
+            resp = client.embeddings.create(model=model, input=text, encoding_format="float")
             vectors.append(resp.data[0].embedding)
             tokens += getattr(resp.usage, "prompt_tokens", 0) or 0
         return np.array(vectors, dtype=np.float32), tokens, time.perf_counter() - t0
@@ -496,8 +513,16 @@ def main() -> int:
         f"({sum(1 for p in CORPUS if p['lang'] == 'de')} DE / "
         f"{sum(1 for p in CORPUS if p['lang'] == 'en')} EN), {len(QUERIES)} queries\n")
 
+    # Optional provider filter: `python spike.py ionos` re-runs one provider and
+    # merges into the existing results.json instead of discarding the other
+    # provider's recorded run.
+    selected = [a.lower() for a in sys.argv[1:]] or None
+    providers = [p for p in PROVIDERS if not selected or p["key"] in selected]
+    if selected:
+        log(f"provider filter: {', '.join(selected)}\n")
+
     results = []
-    for provider in PROVIDERS:
+    for provider in providers:
         log(f"== {provider['name']} ==")
         try:
             results.append(evaluate(provider))
@@ -510,12 +535,22 @@ def main() -> int:
             })
         log("")
 
+    merged = results
+    out_path = HERE / "results.json"
+    if selected and out_path.exists():
+        previous = json.loads(out_path.read_text(encoding="utf-8")).get("results", [])
+        fresh = {r["provider"] for r in results}
+        merged = results + [r for r in previous if r.get("provider") not in fresh]
+        merged.sort(key=lambda r: [p["key"] for p in PROVIDERS].index(r["provider"]))
+        log(f"merged with the recorded run of: "
+            f"{', '.join(r['provider'] for r in merged if r['provider'] not in fresh) or 'nothing'}")
+
     payload = {
         "corpus": [{k: v for k, v in p.items()} for p in CORPUS],
         "queries": QUERIES,
         "system_prompt": SYSTEM_PROMPT,
         "max_answer_tokens": MAX_ANSWER_TOKENS,
-        "results": results,
+        "results": merged,
     }
     (HERE / "results.json").write_text(json.dumps(payload, indent=2, ensure_ascii=False),
                                        encoding="utf-8")

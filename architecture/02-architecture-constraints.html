@@ -149,17 +149,21 @@
         </tr>
         <tr class="even">
         <td>TC-2</td>
-        <td><strong>Single VPS, ~8 GB RAM</strong> (Hetzner CAX, arm64).
-        Full stack via one <code>docker compose up</code>.</td>
+        <td><strong>Single VPS, ~8 GB RAM</strong> (Hetzner CX33, x86_64
+        — revised from the planned CAX21/arm64 on 2026-08-06, see
+        DECISIONS.txt). Full stack via one
+        <code>docker compose up</code>.</td>
         <td>NFR-5 and the cost decisions: 4 GB was rejected (OOM risk
         during indexing), 8 GB confirmed.</td>
         </tr>
         <tr class="odd">
         <td>TC-3</td>
-        <td><strong>arm64-compatible container images only</strong>,
-        plus multi-arch CI builds.</td>
-        <td>Consequence of choosing Hetzner CAX (ARM) as the cheapest 8
-        GB option.</td>
+        <td><strong>Architecture-neutral container images</strong>:
+        every image is published for amd64 <strong>and</strong> arm64,
+        and CI builds multi-arch.</td>
+        <td>Originally a consequence of choosing ARM. Kept after the
+        move to x86 on purpose — it is what makes the host architecture
+        a procurement decision rather than a code one.</td>
         </tr>
         <tr class="even">
         <td>TC-4</td>

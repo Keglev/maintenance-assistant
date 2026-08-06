@@ -123,27 +123,173 @@
     <main class="content" id="main">
       <article class="doc-body">
         <h1 id="deployment-view">7. Deployment View</h1>
-        <blockquote>
-        <p><strong>Stub — to be filled in Phase 1</strong> (local
-        compose stack) and completed in Phase 4 (VPS, domain, TLS).</p>
-        </blockquote>
-        <p>Planned infrastructure, to be documented here with a
-        deployment diagram:</p>
+        <p>The system runs as five containers on one Hetzner VPS. Only
+        the reverse proxy is reachable from the internet; everything
+        else exists solely on the compose network.</p>
+        <figure>
+        <img src="diagrams/deployment.svg"
+        alt="Production deployment" />
+        <figcaption aria-hidden="true">Production
+        deployment</figcaption>
+        </figure>
+        <p><em>Diagram source: <a
+        href="diagrams/deployment.mmd"><code>diagrams/deployment.mmd</code></a>.</em></p>
+        <h2 id="infrastructure">7.1 Infrastructure</h2>
+        <table>
+        <colgroup>
+        <col style="width: 50%" />
+        <col style="width: 50%" />
+        </colgroup>
+        <tbody>
+        <tr class="odd">
+        <td><strong>Host</strong></td>
+        <td>Hetzner CX33 — x86_64, 4 vCPU, 8 GB RAM, 75 GB disk, Ubuntu
+        26.04 LTS, Nuremberg</td>
+        </tr>
+        <tr class="even">
+        <td><strong>Application</strong></td>
+        <td><a href="https://maintenance.smartsupply.com.de"
+        class="uri">https://maintenance.smartsupply.com.de</a></td>
+        </tr>
+        <tr class="odd">
+        <td><strong>Identity provider</strong></td>
+        <td><a href="https://auth.smartsupply.com.de"
+        class="uri">https://auth.smartsupply.com.de</a></td>
+        </tr>
+        <tr class="even">
+        <td><strong>Images</strong></td>
+        <td><code>ghcr.io/keglev/maintenance-assistant/{backend,frontend}</code>,
+        built multi-arch (amd64 + arm64)</td>
+        </tr>
+        <tr class="odd">
+        <td><strong>Stack definition</strong></td>
+        <td><a
+        href="https://github.com/Keglev/maintenance-assistant/blob/main/docker/docker-compose.prod.yml"><code>docker/docker-compose.prod.yml</code></a>,
+        deployed to <code>/opt/maintenance-assistant/</code></td>
+        </tr>
+        <tr class="even">
+        <td><strong>Host preparation</strong></td>
+        <td><a
+        href="https://github.com/Keglev/maintenance-assistant/blob/main/infra/provision.sh"><code>infra/provision.sh</code></a>,
+        idempotent</td>
+        </tr>
+        </tbody>
+        </table>
+        <p>The host was planned as a CAX21 (arm64) and is a CX33
+        (x86_64); the reasoning and date are recorded in DECISIONS.txt.
+        Because CI keeps publishing both architectures, that revision
+        changed a purchase order and nothing else.</p>
+        <h2 id="containers">7.2 Containers</h2>
+        <table>
+        <colgroup>
+        <col style="width: 33%" />
+        <col style="width: 33%" />
+        <col style="width: 33%" />
+        </colgroup>
+        <thead>
+        <tr class="header">
+        <th>Container</th>
+        <th>Exposed</th>
+        <th>Purpose</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr class="odd">
+        <td><strong>caddy</strong></td>
+        <td><strong>80, 443</strong></td>
+        <td>The only internet-facing container. Terminates TLS with
+        certificates it obtains and renews from Let’s Encrypt on its
+        own, and routes by hostname and path.</td>
+        </tr>
+        <tr class="even">
+        <td><strong>frontend</strong></td>
+        <td>—</td>
+        <td>nginx serving the Angular bundle. <code>try_files</code>
+        keeps client-side routes working on reload.</td>
+        </tr>
+        <tr class="odd">
+        <td><strong>backend</strong></td>
+        <td>—</td>
+        <td>Spring Boot. Reached only at <code>/api/*</code> plus the
+        two OpenAPI paths.</td>
+        </tr>
+        <tr class="even">
+        <td><strong>keycloak</strong></td>
+        <td>—</td>
+        <td>Production mode (<code>start</code>, not
+        <code>start-dev</code>) against Postgres, behind the proxy.</td>
+        </tr>
+        <tr class="odd">
+        <td><strong>postgres</strong></td>
+        <td>—</td>
+        <td>pgvector image, holding both the application schema and
+        Keycloak’s, separated by role.</td>
+        </tr>
+        </tbody>
+        </table>
+        <p>Nothing but Caddy publishes a port. The database is not
+        merely firewalled off — it has no host port at all, so there is
+        no path to it from outside the compose network.</p>
+        <h2 id="routing-and-tls">7.3 Routing and TLS</h2>
+        <p>Caddy serves two hostnames from one certificate authority
+        account:</p>
         <ul>
-        <li><strong>Local development</strong> — three containers via
-        <code>docker compose up</code>: the application, PostgreSQL +
-        pgvector, and Keycloak (dev mode, realm imported from
-        <code>docker/keycloak/realm-export.json</code>, exposed on port
-        8081). See <a
-        href="https://github.com/Keglev/maintenance-assistant/tree/main/docker"><code>docker/</code></a>.</li>
-        <li><strong>Production</strong> — a single Hetzner CAX VPS
-        (arm64, 8 GB) running the same compose stack, behind a domain
-        with TLS. Images are built multi-arch in CI.</li>
-        <li><strong>Constraints already fixed:</strong> arm64-compatible
-        images only (TC-3), 8 GB is not reduced further (OOM risk during
-        indexing), and a paused server is snapshotted and deleted rather
-        than stopped, because a stopped Hetzner server still bills in
-        full.</li>
+        <li><code>maintenance.smartsupply.com.de</code> →
+        <code>/api/*</code>, <code>/swagger-ui*</code> and
+        <code>/v3/api-docs*</code> to <strong>backend</strong>;
+        everything else to <strong>frontend</strong>. The API is
+        therefore same-origin with the application, which is why the
+        browser needs no CORS grant and the frontend’s
+        <code>apiBaseUrl</code> is a relative path.</li>
+        <li><code>auth.smartsupply.com.de</code> →
+        <strong>keycloak</strong>.</li>
+        </ul>
+        <p>TLS ends at Caddy; the internal network is plain HTTP.
+        Keycloak is told the public URL (<code>KC_HOSTNAME</code>) and
+        to trust the forwarded headers
+        (<code>KC_PROXY_HEADERS=xforwarded</code>), so the tokens it
+        issues carry the address the browser actually used. That matters
+        because the backend validates the <code>iss</code> claim against
+        the same public URL, even though it could reach Keycloak by
+        container name.</p>
+        <h2 id="configuration-and-secrets">7.4 Configuration and
+        secrets</h2>
+        <p>Configuration is environment variables from
+        <code>/opt/maintenance-assistant/.env.prod</code>, which is mode
+        0600, owned by the unprivileged <code>deploy</code> user, and
+        never committed — <a
+        href="https://github.com/Keglev/maintenance-assistant/blob/main/docker/.env.prod.example"><code>docker/.env.prod.example</code></a>
+        documents every variable. Database and Keycloak admin passwords
+        were generated on the host.</p>
+        <p>The frontend image contains no hostname. It reads
+        <code>/config.json</code> at startup, which the deployment
+        bind-mounts, so the same image tag runs locally and in
+        production. Image references are per service, so a rollback is a
+        value change in <code>.env.prod</code> plus
+        <code>docker compose up -d</code>.</p>
+        <h2 id="host-hardening">7.5 Host hardening</h2>
+        <p><code>infra/provision.sh</code> is the record of what the
+        host is, and is safe to re-run: unattended security upgrades;
+        Docker from the official repository; an unprivileged
+        <code>deploy</code> user that owns the stack; sshd with
+        <code>PasswordAuthentication no</code> and
+        <code>PermitRootLogin prohibit-password</code> via a drop-in
+        that survives package upgrades; fail2ban on the sshd jail.</p>
+        <h2 id="known-gaps">7.6 Known gaps</h2>
+        <ul>
+        <li><strong>No backups yet.</strong> The Postgres volume is the
+        only copy of the data. Acceptable while the corpus is synthetic
+        and reproducible; it stops being acceptable in Phase 2.</li>
+        <li><strong>Deployment is manual.</strong>
+        <code>backend-deploy.yml</code> and
+        <code>frontend-deploy.yml</code> publish images but stop short
+        of the host; the SSH step is still a commented TODO.</li>
+        <li><strong>Single host, no redundancy.</strong> Recovery is a
+        fresh <code>docker compose up -d</code> on a new server.</li>
+        <li><strong><code>latest</code> is a moving tag.</strong>
+        Pinning <code>sha-&lt;commit&gt;</code> in
+        <code>.env.prod</code> is the safer habit once the demo is being
+        shown.</li>
         </ul>
       </article>
     </main>
@@ -152,7 +298,22 @@
       <p class="toc-title">On this page</p>
       <ul>
       <li><a href="#deployment-view" id="toc-deployment-view">7.
-      Deployment View</a></li>
+      Deployment View</a>
+      <ul>
+      <li><a href="#infrastructure" id="toc-infrastructure">7.1
+      Infrastructure</a></li>
+      <li><a href="#containers" id="toc-containers">7.2
+      Containers</a></li>
+      <li><a href="#routing-and-tls" id="toc-routing-and-tls">7.3
+      Routing and TLS</a></li>
+      <li><a href="#configuration-and-secrets"
+      id="toc-configuration-and-secrets">7.4 Configuration and
+      secrets</a></li>
+      <li><a href="#host-hardening" id="toc-host-hardening">7.5 Host
+      hardening</a></li>
+      <li><a href="#known-gaps" id="toc-known-gaps">7.6 Known
+      gaps</a></li>
+      </ul></li>
       </ul>
     </nav>
       </div>

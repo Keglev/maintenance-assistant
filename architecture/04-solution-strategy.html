@@ -218,11 +218,12 @@
         <p>Java 21 · Spring Boot 4.1 (3.x EOL since 2026-06-30) ·
         Angular + TypeScript, thin · PostgreSQL + pgvector · Keycloak ·
         EU-hosted LLM via an OpenAI-compatible API · Docker Compose ·
-        GitHub Actions · Hetzner CAX (arm64, 8 GB). Spring AI is adopted
-        only if it is compatible with Boot 4.1, verified in the ADR-002
-        spike; the fallback is a plain <code>RestClient</code>. Spring
-        Modulith is an optional later upgrade to enforce the ADR-001
-        module boundaries with tests.</p>
+        GitHub Actions · Hetzner CX33 (x86_64, 8 GB; revised from
+        CAX/arm64, see DECISIONS.txt). Spring AI is adopted only if it
+        is compatible with Boot 4.1, verified in the ADR-002 spike; the
+        fallback is a plain <code>RestClient</code>. Spring Modulith is
+        an optional later upgrade to enforce the ADR-001 module
+        boundaries with tests.</p>
         <h2 id="approach-to-the-data-model">4.3 Approach to the data
         model</h2>
         <p>Three entities — <code>MACHINE</code> → <code>PROTOCOL</code>

@@ -267,6 +267,86 @@
         production. Image references are per service, so a rollback is a
         value change in <code>.env.prod</code> plus
         <code>docker compose up -d</code>.</p>
+        <h3 id="empty-is-not-unset">Empty is not unset</h3>
+        <p>Compose substitutes an <strong>empty string</strong> for
+        <code>${VAR:-}</code>, and an empty string is a <em>set</em>
+        value. Spring’s <code>${VAR:default}</code> only falls back when
+        the variable is absent entirely. So <code>${VAR:-}</code> in the
+        compose file does not “leave the application’s default alone” —
+        it overrides it with <code>""</code>.</p>
+        <p>This is why the backend ran with an empty
+        <code>LLM_BASE_URL</code> and an empty embedding model name
+        until 2026-08-07: both had correct defaults in
+        <code>application.yml</code> and both were being overwritten by
+        placeholders that looked inert. Two rules follow, and the
+        compose file states them where they apply:</p>
+        <ul>
+        <li>A variable that has a real default in
+        <code>application.yml</code> <strong>repeats that
+        default</strong> in the compose file
+        (<code>${LLM_BASE_URL:-https://openai.inference.de-txl.ionos.com/v1}</code>),
+        or is not listed at all.</li>
+        <li>A variable that is genuinely empty by nature — a secret, or
+        a placeholder for a feature that does not exist yet — keeps
+        <code>${VAR:-}</code> and says so in a comment.</li>
+        </ul>
+        <p>The same applies to <code>.env.prod</code>: an override you
+        no longer want must be <strong>deleted</strong>, not
+        blanked.</p>
+        <h3 id="protocol-documents-and-the-volume">Protocol documents
+        and the volume</h3>
+        <p><code>protocol.source_file</code> stores a path, never the
+        document (DOMAIN-MODEL.md keeps BLOBs out of Postgres), so the
+        <code>protocol-files</code> volume <em>is</em> the documents.
+        Two things have to line up, and both are now in the compose
+        file:</p>
+        <table>
+        <tbody>
+        <tr class="odd">
+        <td>Mount</td>
+        <td><code>protocol-files:/var/lib/maintenance/files</code></td>
+        </tr>
+        <tr class="even">
+        <td><code>MAINTENANCE_FILES_PATH</code></td>
+        <td><code>/var/lib/maintenance/files</code></td>
+        </tr>
+        </tbody>
+        </table>
+        <p>Without the variable the application uses its
+        local-development default, <code>./data/protocol-files</code>,
+        which inside the container is
+        <code>/app/data/protocol-files</code> — the writable layer.
+        Documents would be written successfully, survive a restart, and
+        vanish on the next <code>compose up -d</code>, leaving rows
+        whose <code>source_file</code> points at nothing. Nothing would
+        report an error at the time.</p>
+        <p><strong>Volume ownership needs no provisioning step, and here
+        is why.</strong> The backend runs as uid 1001, and a fresh named
+        volume is normally root-owned — but Docker seeds an
+        <em>empty</em> volume from the image at the mount path,
+        ownership included, and <code>backend/Dockerfile</code> creates
+        <code>/var/lib/maintenance/files</code> owned by
+        <code>app:app</code> before the volume is ever attached.
+        Verified rather than assumed:</p>
+        <pre class="console"><code># fresh volume at the path the image creates
+$ docker run --rm -v v1:/var/lib/maintenance/files &lt;image&gt; ls -ldn /var/lib/maintenance/files
+drwxr-xr-x 2 1001 1001 …                              -&gt; writes succeed
+
+# fresh volume at a path the image does not create
+$ docker run --rm -v v2:/somewhere/else &lt;image&gt; touch /somewhere/else/probe
+drwxr-xr-x 2 0 0 …            touch: Permission denied</code></pre>
+        <p>That second case is the one to remember, because it is what a
+        future change would look like: if the mount path moves somewhere
+        the image does not create, or the
+        <code>mkdir</code>/<code>chown</code> leaves the Dockerfile, or
+        the volume is replaced by a <strong>host bind mount</strong>
+        (Docker never chowns a host path), the container gets a
+        root-owned directory and every upload fails. The check and the
+        fix:</p>
+        <div class="sourceCode" id="cb2"><pre
+        class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">docker</span> compose exec backend ls <span class="at">-ldn</span> /var/lib/maintenance/files    <span class="co"># expect 1001 1001</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="co"># only if it is not:</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="ex">docker</span> run <span class="at">--rm</span> <span class="at">-v</span> maintenance-assistant_protocol-files:/d alpine chown <span class="at">-R</span> 1001:1001 /d</span></code></pre></div>
         <h2 id="delivery">7.5 Delivery</h2>
         <p>CI owns the rollout. When <code>backend-ci</code> or
         <code>frontend-ci</code> succeeds on <code>main</code>, the
@@ -392,11 +472,11 @@
         it. Losing it costs a re-import, not data.</li>
         </ul>
         <p>Operating it:</p>
-        <div class="sourceCode" id="cb1"><pre
-        class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ssh</span> deploy@<span class="op">&lt;</span>host<span class="op">&gt;</span> maintenance-backup          <span class="co"># run one now</span></span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="ex">journalctl</span> <span class="at">-u</span> maintenance-backup <span class="at">-n</span> 50        <span class="co"># what happened</span></span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="ex">systemctl</span> list-timers maintenance-backup.timer</span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">ls</span> <span class="at">-lh</span> /opt/maintenance-assistant/backups/</span></code></pre></div>
+        <div class="sourceCode" id="cb3"><pre
+        class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ssh</span> deploy@<span class="op">&lt;</span>host<span class="op">&gt;</span> maintenance-backup          <span class="co"># run one now</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="ex">journalctl</span> <span class="at">-u</span> maintenance-backup <span class="at">-n</span> 50        <span class="co"># what happened</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="ex">systemctl</span> list-timers maintenance-backup.timer</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="fu">ls</span> <span class="at">-lh</span> /opt/maintenance-assistant/backups/</span></code></pre></div>
         <h3 id="hetzner-snapshots">7.6.2 Hetzner snapshots</h3>
         <p>The nightly backup protects the <em>data</em>. A snapshot
         protects the <em>host</em> — the compose files,
@@ -488,7 +568,14 @@
       Routing and TLS</a></li>
       <li><a href="#configuration-and-secrets"
       id="toc-configuration-and-secrets">7.4 Configuration and
-      secrets</a></li>
+      secrets</a>
+      <ul>
+      <li><a href="#empty-is-not-unset"
+      id="toc-empty-is-not-unset">Empty is not unset</a></li>
+      <li><a href="#protocol-documents-and-the-volume"
+      id="toc-protocol-documents-and-the-volume">Protocol documents and
+      the volume</a></li>
+      </ul></li>
       <li><a href="#delivery" id="toc-delivery">7.5 Delivery</a></li>
       <li><a href="#backup-and-recovery"
       id="toc-backup-and-recovery">7.6 Backup and recovery</a>

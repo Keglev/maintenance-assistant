@@ -96,13 +96,18 @@ services:
       # NFR-7: the provider has no hard spending cap (ADR-002), so this counter
       # is the actual ceiling. Tunable here without rebuilding the image.
       LLM_DAILY_CALL_BUDGET: ${LLM_DAILY_CALL_BUDGET:-500}
-      # Empty is correct for these two, for different reasons. The key is a
-      # secret with no sensible default, and empty simply means ingestion
-      # cannot embed. The chat model is read by nothing yet — the chat path
-      # arrives in Phase 3 — so it is carried here as a placeholder and
-      # overrides no default.
+      # The chat path arrived in Phase 3, so this now has a real default in
+      # application.yml and repeats it here — as ${LLM_CHAT_MODEL:-} it was the
+      # same empty-override landmine the note above describes, harmless only
+      # because nothing read it yet. Llama-3.3-70B for every role; the
+      # evidence is the ADR-002 note of 2026-08-07.
+      LLM_CHAT_MODEL: ${LLM_CHAT_MODEL:-meta-llama/Llama-3.3-70B-Instruct}
+      # NFR-7 for the query path, the counterpart of the embedding budget above.
+      LLM_CHAT_DAILY_CALL_BUDGET: ${LLM_CHAT_DAILY_CALL_BUDGET:-400}
+      # Genuinely empty by nature: a secret with no sensible default. Empty
+      # means the assistant cannot embed or answer, which is the correct
+      # behaviour for a stack started without a key.
       LLM_API_KEY: ${LLM_API_KEY:-}
-      LLM_CHAT_MODEL: ${LLM_CHAT_MODEL:-}
     volumes:
       # Original uploaded documents. The database stores only the path
       # (DOMAIN-MODEL.md: no BLOBs), so this volume is the documents.

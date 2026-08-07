@@ -23,6 +23,7 @@
     <springdoc.version>3.1.0</springdoc.version>
     <jacoco.version>0.8.13</jacoco.version>
     <testcontainers.version>2.0.5</testcontainers.version>
+    <bucket4j.version>8.14.0</bucket4j.version>
 
     <!-- Empty default for the property JaCoCo's prepare-agent fills in. The test
          plugins below extend it with @{argLine}, which fails to resolve if nothing
@@ -92,6 +93,22 @@
       <groupId>org.flywaydb</groupId>
       <artifactId>flyway-database-postgresql</artifactId>
       <scope>runtime</scope>
+    </dependency>
+
+    <!-- NFR-7, query path. Two small libraries rather than one large one, because the
+         two guards answer different questions: Bucket4j limits how often ONE person may
+         ask, Caffeine stops the same question being paid for twice. Neither needs a
+         second process — this is one application instance, so an in-memory limiter and
+         an in-memory cache are the honest size of the problem. The daily spend ceiling
+         is the one guard that must survive a restart, and that one lives in Postgres. -->
+    <dependency>
+      <groupId>com.bucket4j</groupId>
+      <artifactId>bucket4j_jdk17-core</artifactId>
+      <version>${bucket4j.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.github.ben-manes.caffeine</groupId>
+      <artifactId>caffeine</artifactId>
     </dependency>
 
     <!-- API documentation: Swagger UI at /swagger-ui.html, spec at /v3/api-docs -->

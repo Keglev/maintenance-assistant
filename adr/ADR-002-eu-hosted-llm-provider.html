@@ -132,12 +132,12 @@ ADR-002-eu-hosted-llm-provider · maintenance-assistant Docs</title>
         <tbody>
         <tr class="odd">
         <td><strong>Status</strong></td>
-        <td><strong>Proposed</strong> — blocked on a 1-day spike (Phase
-        0), see <em>Open questions</em> below</td>
+        <td><strong>Accepted</strong> — decided on the measured spike,
+        see <em>Evidence</em></td>
         </tr>
         <tr class="even">
         <td><strong>Date</strong></td>
-        <td>2026-08-05</td>
+        <td>2026-08-06 (proposed 2026-08-05)</td>
         </tr>
         <tr class="odd">
         <td><strong>Deciders</strong></td>
@@ -145,8 +145,13 @@ ADR-002-eu-hosted-llm-provider · maintenance-assistant Docs</title>
         </tr>
         <tr class="even">
         <td><strong>Related</strong></td>
-        <td>Implements NFR-1 (data residency) and NFR-7 (cost
-        control)</td>
+        <td>Implements NFR-1 (data residency) and NFR-7 (cost control);
+        constrains NFR-2 (answer modes) and NFR-4 (latency). Evidence:
+        <a
+        href="https://github.com/Keglev/maintenance-assistant/blob/main/spike/adr-002/RESULTS.html"><code>spike/adr-002/RESULTS.md</code></a>,
+        <a
+        href="https://github.com/Keglev/maintenance-assistant/pull/14">PR
+        #14</a></td>
         </tr>
         </tbody>
         </table>
@@ -159,67 +164,203 @@ ADR-002-eu-hosted-llm-provider · maintenance-assistant Docs</title>
         protocols, and nothing is translated anywhere — and a
         <strong>chat/completion model</strong> for answer generation
         with citations. Both providers under consideration expose
-        OpenAI-compatible APIs, so the integration code is identical
-        either way.</p>
-        <h2 id="decision">Decision</h2>
-        <p><em>(Proposed — to be confirmed or revised by the
-        spike.)</em></p>
-        <p>Primary: <strong>Nebius Token Factory</strong> (EU regions).
-        Reasons: publicly visible per-token pricing (transparent for the
-        portfolio cost story), a broad open-source model catalogue
-        including multilingual embedding models (BGE-M3 class),
-        OpenAI-compatible API.</p>
-        <p>Documented fallback: <strong>IONOS AI Model Hub</strong> —
-        German company, data centres in Germany, ISO 27001; the
-        strongest possible data-residency story, but token prices are
-        only visible after registration.</p>
+        OpenAI-compatible APIs, so the integration code is largely
+        identical either way.</p>
         <p>A multilingual embedding model is a <strong>hard
         requirement</strong>, not a preference. A provider that cannot
         serve one is disqualified regardless of price.</p>
-        <h2 id="open-questions-resolved-by-the-1-day-spike-phase-0">Open
-        questions (resolved by the 1-day spike, Phase 0)</h2>
+        <p>The original proposal named Nebius Token Factory as primary,
+        on the expectation that it served BGE-M3-class multilingual
+        embeddings. That expectation was wrong, and the spike found it
+        out. The decision below reverses the proposal on measured
+        evidence rather than on vendor claims.</p>
+        <h2 id="decision">Decision</h2>
+        <p><strong>Primary: IONOS AI Model Hub. Documented fallback:
+        Nebius Token Factory.</strong></p>
+        <p><strong>Models</strong></p>
+        <ul>
+        <li><strong>Embeddings: <code>BAAI/bge-m3</code>, 1024
+        dimensions.</strong> The pgvector column is sized accordingly
+        (<code>vector(1024)</code>) — this is a schema commitment for
+        the Phase 2 Flyway migration, not a runtime setting.</li>
+        <li><strong>Chat:
+        <code>meta-llama/Llama-3.3-70B-Instruct</code></strong> as the
+        quality default, with
+        <strong><code>Qwen/Qwen3.5-9B</code></strong> as the fast
+        alternative. The final per-role choice is made in <strong>Phase
+        3</strong> against the production prompt, not here — both are
+        measured as viable and the trade between them depends on prompt
+        shape.</li>
+        </ul>
+        <p><strong>Similarity threshold (the NFR-2 Mode A / Mode B
+        switch)</strong></p>
+        <p>The threshold is a <strong>configuration property, not a
+        literal</strong>. Initial value <strong>0.583</strong>, to be
+        revalidated against the real ~150-protocol corpus in Phase
+        2.</p>
+        <p><strong>Provider swap</strong></p>
+        <p>A provider swap remains a configuration change (base URL +
+        model names, OpenAI-compatible APIs), with three measured
+        caveats that the code must carry:</p>
         <ol type="1">
-        <li><strong>DE↔︎EN retrieval</strong> — does the candidate
-        multilingual embedding model retrieve correctly across languages
-        on 10 sample protocols (German query → English protocol)?</li>
-        <li><strong>Citation prompt</strong> — does a mid-size chat
-        model follow the citation-format prompt reliably enough for Mode
-        A (“Belegte Antwort”, every claim cited)?</li>
-        <li><strong>Cost per query</strong> — what is the real measured
-        cost of one end-to-end answer?</li>
-        <li><strong>Billing controls</strong> — are prepaid credit
-        and/or hard spending limits available? Required by NFR-7 layer
-        1; without a hard provider-side ceiling the public demo is not
-        shippable as designed.</li>
-        <li><strong>Spring AI compatibility</strong> — is Spring AI
-        compatible with Spring Boot 4.1? Fallback: a plain
-        <code>RestClient</code> against the OpenAI-compatible endpoint
-        (~50 lines), which keeps this ADR valid either way.</li>
+        <li>IONOS requires an <strong>explicit
+        <code>encoding_format</code></strong> on embedding calls — its
+        gateway returns HTTP 500 on the OpenAI SDK’s default
+        (<code>base64</code>).</li>
+        <li>The <code>*-migration</code> model ids in IONOS’
+        <code>/v1/models</code> are deprecated aliases and must be
+        ignored by any model-selection logic.</li>
+        <li><code>Qwen/Qwen3.5-9B</code> is a reasoning model and needs
+        <strong><code>reasoning_effort="none"</code></strong>; without
+        it, it spends the entire output budget on its reasoning field
+        and returns empty content.</li>
         </ol>
-        <p><strong>Exit criterion:</strong> all five answered → status
-        changes to <em>Accepted</em> (or the fallback provider is
-        promoted to primary) before Phase 1 coding on the query module
-        begins.</p>
+        <h2 id="evidence">Evidence</h2>
+        <p>Measured in <a
+        href="https://github.com/Keglev/maintenance-assistant/tree/main/spike/adr-002"><code>spike/adr-002/</code></a>
+        over two rounds against both live APIs; full numbers in <a
+        href="https://github.com/Keglev/maintenance-assistant/blob/main/spike/adr-002/RESULTS.html"><code>RESULTS.md</code></a>,
+        review discussion in <a
+        href="https://github.com/Keglev/maintenance-assistant/pull/14">PR
+        #14</a>.</p>
+        <p><strong>IONOS won retrieval on every query.</strong> Its
+        cross-language penalty — the score a German query loses when the
+        matching protocol is English — is <strong>−0.011</strong>
+        against Nebius’ <strong>−0.033</strong>, and it ranked the
+        correct protocol first on all three queries. Cross-language
+        retrieval, the blocking question of this ADR, is answered
+        <em>yes</em> on both providers; IONOS is simply better at
+        it.</p>
+        <p><strong>Embedding-model concentration risk decided
+        it.</strong> IONOS serves <strong>three</strong> multilingual
+        embedding models; Nebius publicly serves <strong>exactly
+        one</strong>, which makes the hard requirement of this ADR a
+        single point of failure with no in-provider recovery.
+        <code>BAAI/bge-m3</code> — the model class this ADR was
+        originally written around — is <strong>not offered by Nebius at
+        all</strong>.</p>
+        <p><strong>Data residency is stronger, and it is the point of
+        NFR-1.</strong> IONOS is a German company and the endpoint is
+        <code>de-txl</code>, <strong>Berlin</strong>; Nebius’ EU region
+        is Helsinki. Both satisfy NFR-1, but NFR-1 exists for a DSGVO
+        narrative aimed at German industrial users, and a Berlin data
+        centre states it better than a Finnish one. IONOS also prices in
+        <strong>EUR</strong>, which removes FX noise from a
+        €-denominated cost story.</p>
+        <p><strong>Latency separated the two on an identical
+        model.</strong> <code>meta-llama/Llama-3.3-70B-Instruct</code> —
+        the same weights — stayed inside NFR-4’s 30 s ceiling on IONOS
+        (median ~11 s) while Nebius breached it on two of three repeats
+        (up to 101 s). Both providers offer a small model comfortably
+        under the 10 s target (~3 s), so the demo was shippable either
+        way, but only IONOS leaves the 70B model as a live option.</p>
+        <p><strong>Citation compliance and answer language are prompt
+        and application concerns, not provider concerns — and they are
+        verifiably enforceable.</strong> Round 2 showed a few-shot
+        worked example takes every tested model to <strong>100 %
+        per-claim citation</strong>, and an explicit language pin fixes
+        the English refusals both Llama deployments produced. A
+        structured JSON output shape
+        (<code>{answer_language, claims:[{text, source}]}</code>) works
+        first-try on both providers and makes an uncited claim
+        <em>unrepresentable</em> — that is the application-side
+        enforcement path for Phase 3.</p>
+        <p><strong>Cost decided nothing.</strong> Every measured
+        provider/model combination lands between €1 and €5 per month at
+        demo volume, against a VPS that costs an order of magnitude
+        more.</p>
         <h2 id="consequences">Consequences</h2>
         <p><strong>Positive</strong></p>
         <ul>
-        <li>A provider swap is a base-URL + model-name change
-        (OpenAI-compatible APIs) — itself a talking point: no vendor
-        lock-in.</li>
-        <li>Expected demo cost: low single-digit €/month, ~5% of total
-        running cost (the VPS is ~95%).</li>
+        <li>The hard requirement is met with <strong>margin and
+        redundancy</strong>: three multilingual embedding models at the
+        primary provider, and a fallback provider already measured end
+        to end.</li>
+        <li>A provider swap stays a configuration change
+        (OpenAI-compatible APIs) — no vendor lock-in — with the three
+        caveats above written down rather than discovered later.</li>
+        <li>The Mode A / Mode B threshold mechanism is proven to work,
+        with a comparable clean separation on both providers, so NFR-2’s
+        routing is implementable as designed.</li>
+        <li>Demo cost is low single-digit €/month, ~5 % of total running
+        cost (the VPS is ~95 %).</li>
         </ul>
-        <p><strong>Negative</strong></p>
+        <p><strong>Negative / residual risks</strong></p>
         <ul>
+        <li><strong>No provider-side hard spending cap.</strong> IONOS
+        billing was checked manually: only <strong>cost alerts</strong>
+        exist, not a hard ceiling. A <strong>€7 cost alert is
+        configured</strong>. NFR-7 layer 1 therefore does not exist as
+        originally designed, and <strong>cost control rests on the
+        application layer</strong> — per-user rate limiting, a global
+        daily budget counter, the <code>max_tokens</code> cap and the
+        query cache. This is acceptable because the measured worst case
+        is small: abuse is bounded in cents per thousand queries, and
+        the alert catches a runaway before it becomes money. It is a
+        deliberate, documented deviation, not an oversight.</li>
+        <li><strong>Latency figures are indicative, not
+        conclusive.</strong> Small sample (a handful of calls per
+        model), taken over a residential connection, on shared
+        serverless capacity with no SLA at this tier. Individual calls
+        varied far more than token counts explain, so the numbers are
+        queue-dominated. <strong>Revalidate from the production host in
+        Phase 3</strong> before the chat model is fixed.</li>
+        <li><strong>The threshold 0.583 is
+        <code>bge-m3</code>-specific.</strong> Absolute cosine values
+        are not portable across embedding models. Any change of
+        embedding model invalidates it and requires re-running the spike
+        script to re-tune. It must stay configurable.</li>
+        <li><strong>The few-shot citation prompt must exclude the Mode-B
+        / refusal path.</strong> Leakage was observed: a model appended
+        a citation to a refusal, where the rules require citing nothing.
+        The prompt or the application must keep the two paths
+        separate.</li>
         <li>Open-source models are weaker than frontier models;
         acceptable because RAG narrows the task to “summarise retrieved
         protocols with citations”, which mid-size models handle
         well.</li>
-        <li>Status <em>Proposed</em> means the query module cannot be
-        finalised until the spike closes.</li>
+        <li>IONOS lists per-token prices only in its public price list,
+        not through the API (Nebius exposes them via
+        <code>GET /v1/models?verbose=true</code>), so cost reporting
+        cannot be derived from the API alone.</li>
         </ul>
+        <h2 id="open-questions-closed-by-the-spike">Open questions
+        closed by the spike</h2>
+        <ol type="1">
+        <li><strong>DE↔︎EN retrieval</strong> — <strong>yes</strong>, on
+        both providers; IONOS by a margin. §2 of RESULTS.md.</li>
+        <li><strong>Citation prompt</strong> — <strong>yes</strong>,
+        with a few-shot example rather than a rule; 100 % per-claim
+        citation on every model tested. §7 of RESULTS.md.</li>
+        <li><strong>Cost per query</strong> — measured: €0.0001–0.0008
+        per query, €1–5/month at demo volume. §5.</li>
+        <li><strong>Billing controls</strong> — <strong>answered outside
+        the spike, and the answer is no.</strong> IONOS offers cost
+        alerts only, no hard cap; a €7 alert is configured. See the
+        residual risk above.</li>
+        <li><strong>Spring AI compatibility with Spring Boot
+        4.1</strong> — <strong>still open</strong>, deliberately: the
+        spike was written in Python so it evaluated the
+        <em>provider</em>, not the Java integration. The fallback (a
+        plain <code>RestClient</code> against the OpenAI-compatible
+        endpoint, ~50 lines) keeps this ADR valid either way and is
+        unaffected by anything measured here. Note caveat 1 above — the
+        <code>encoding_format</code> deviation is exactly the kind of
+        thing a Spring AI client can trip over and a
+        <code>RestClient</code> will not. Resolve it in Phase 3 when the
+        query module is built.</li>
+        </ol>
         <h2 id="alternatives-considered">Alternatives considered</h2>
         <ul>
+        <li><strong>Nebius Token Factory as primary</strong> (the
+        original proposal) — publicly visible per-token pricing, the
+        broader chat catalogue, and USD prepaid trial credit that would
+        have given NFR-7 a natural hard ceiling. It lost on the
+        measurements: one public embedding model against three, no
+        <code>bge-m3</code>, weaker cross-language retrieval, Helsinki
+        rather than Berlin, and a 5–10× latency penalty on an identical
+        70B model. <em>Retained as the documented fallback</em> — it is
+        measured, it works, and the swap is a configuration change.</li>
         <li><strong>OpenAI / Anthropic APIs</strong> — best model
         quality, but US processing contradicts the project’s core DSGVO
         claim. <em>Rejected.</em></li>
@@ -228,8 +369,8 @@ ADR-002-eu-hosted-llm-provider · maintenance-assistant Docs</title>
         effort are disproportionate for a portfolio, and contradict the
         pay-as-you-go story. <em>Rejected.</em></li>
         <li><strong>Spring AI as a mandatory abstraction</strong> —
-        desirable, but compatibility with Spring Boot 4.1 must be
-        verified first; see open question 5. <em>Conditional.</em></li>
+        desirable, but compatibility with Spring Boot 4.1 is still
+        unverified; see open question 5. <em>Conditional.</em></li>
         </ul>
       </article>
     </main>
@@ -243,11 +384,12 @@ ADR-002-eu-hosted-llm-provider · maintenance-assistant Docs</title>
       <ul>
       <li><a href="#context" id="toc-context">Context</a></li>
       <li><a href="#decision" id="toc-decision">Decision</a></li>
-      <li><a href="#open-questions-resolved-by-the-1-day-spike-phase-0"
-      id="toc-open-questions-resolved-by-the-1-day-spike-phase-0">Open
-      questions (resolved by the 1-day spike, Phase 0)</a></li>
+      <li><a href="#evidence" id="toc-evidence">Evidence</a></li>
       <li><a href="#consequences"
       id="toc-consequences">Consequences</a></li>
+      <li><a href="#open-questions-closed-by-the-spike"
+      id="toc-open-questions-closed-by-the-spike">Open questions closed
+      by the spike</a></li>
       <li><a href="#alternatives-considered"
       id="toc-alternatives-considered">Alternatives considered</a></li>
       </ul></li>

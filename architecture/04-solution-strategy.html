@@ -150,8 +150,10 @@
         <tr class="even">
         <td>Data residency</td>
         <td>Every component is self-hosted on one EU VPS; the only
-        outbound call is to an EU-hosted, OpenAI-compatible LLM
-        endpoint.</td>
+        outbound call is to an EU-hosted, OpenAI-compatible LLM endpoint
+        — <strong>IONOS AI Model Hub</strong>, Berlin
+        (<code>de-txl</code>), with Nebius Token Factory as the
+        documented fallback.</td>
         <td><a
         href="../adr/ADR-002-eu-hosted-llm-provider.html">ADR-002</a></td>
         </tr>
@@ -183,12 +185,15 @@
         </tr>
         <tr class="even">
         <td>Cost control</td>
-        <td>Three layers: provider-side prepaid/spending limits,
-        application-side per-user rate limiting + global daily budget +
-        capped answer length + query cache, and daily token-usage
-        logging. Exhaustion produces a friendly message, never an error
-        page.</td>
-        <td>NFR-7</td>
+        <td>Application-side per-user rate limiting + global daily
+        budget + capped answer length + query cache, plus daily
+        token-usage logging. Exhaustion produces a friendly message,
+        never an error page. The provider-side layer originally planned
+        <strong>does not exist</strong>: IONOS offers cost alerts, not a
+        hard cap (a €7 alert is configured), so the application layer
+        carries NFR-7 alone — see ADR-002’s residual risks.</td>
+        <td>NFR-7, <a
+        href="../adr/ADR-002-eu-hosted-llm-provider.html">ADR-002</a></td>
         </tr>
         </tbody>
         </table>
@@ -219,11 +224,20 @@
         Angular + TypeScript, thin · PostgreSQL + pgvector · Keycloak ·
         EU-hosted LLM via an OpenAI-compatible API · Docker Compose ·
         GitHub Actions · Hetzner CX33 (x86_64, 8 GB; revised from
-        CAX/arm64, see DECISIONS.txt). Spring AI is adopted only if it
-        is compatible with Boot 4.1, verified in the ADR-002 spike; the
-        fallback is a plain <code>RestClient</code>. Spring Modulith is
-        an optional later upgrade to enforce the ADR-001 module
-        boundaries with tests.</p>
+        CAX/arm64, see DECISIONS.txt). Inference runs on the
+        <strong>IONOS AI Model Hub</strong>: <code>BAAI/bge-m3</code>
+        for embeddings (<strong>1024 dimensions</strong>, which fixes
+        the pgvector column width) and
+        <code>meta-llama/Llama-3.3-70B-Instruct</code> /
+        <code>Qwen/Qwen3.5-9B</code> for generation, with the per-role
+        choice made in Phase 3 (<a
+        href="../adr/ADR-002-eu-hosted-llm-provider.html">ADR-002</a>).
+        Spring AI is adopted only if it is compatible with Boot 4.1;
+        that is still unverified — the ADR-002 spike was written in
+        Python so it measured the provider, not the Java integration —
+        and the fallback is a plain <code>RestClient</code>. Spring
+        Modulith is an optional later upgrade to enforce the ADR-001
+        module boundaries with tests.</p>
         <h2 id="approach-to-the-data-model">4.3 Approach to the data
         model</h2>
         <p>Three entities — <code>MACHINE</code> → <code>PROTOCOL</code>

@@ -156,11 +156,12 @@
         <tr class="even">
         <td><a
         href="../adr/ADR-002-eu-hosted-llm-provider.html">ADR-002</a></td>
-        <td>EU-hosted LLM and embedding provider: Nebius Token Factory
-        primary, IONOS AI Model Hub fallback; multilingual embedding
-        model as a hard requirement</td>
-        <td><strong>Proposed</strong> — 1-day spike pending</td>
-        <td>§3.2, §4, NFR-1, NFR-7</td>
+        <td>EU-hosted LLM and embedding provider: IONOS AI Model Hub
+        primary, Nebius Token Factory documented fallback;
+        <code>bge-m3</code> embeddings at 1024 dimensions, similarity
+        threshold as a configuration property</td>
+        <td>Accepted</td>
+        <td>§3.2, §4, NFR-1, NFR-2, NFR-7</td>
         </tr>
         <tr class="odd">
         <td><a
@@ -184,10 +185,18 @@
         <p><strong>Planned:</strong> ADR-005 will record the Phase 5
         extraction of the ingestion service and the introduction of
         Kafka, once that change is actually made.</p>
-        <p><strong>Open decision:</strong> ADR-002 is the only record
-        not yet accepted. Its five open questions and its exit criterion
-        are listed in the record itself; Phase 1 work on the query
-        module waits on it.</p>
+        <p><strong>All four records are accepted.</strong> ADR-002 was
+        decided on a measured two-round provider spike (<a
+        href="https://github.com/Keglev/maintenance-assistant/blob/main/spike/adr-002/RESULTS.html"><code>spike/adr-002/RESULTS.md</code></a>,
+        <a
+        href="https://github.com/Keglev/maintenance-assistant/pull/14">PR
+        #14</a>) which reversed its original proposal. Two of its
+        questions stay open by design and are tracked in the record:
+        Spring AI compatibility with Spring Boot 4.1 (deferred to Phase
+        3 — the spike was Python, so it measured the provider and not
+        the Java integration), and the fact that no provider-side hard
+        spending cap exists, which leaves NFR-7 resting on the
+        application layer.</p>
       </article>
     </main>
 

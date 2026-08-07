@@ -26,10 +26,27 @@ Status: end of design phase, 2026-08-05
 == ARCHITECTURE (see ADRs) ==
 - ADR-001: modular monolith first (packages: ingestion/query/web), Spring events for async;
   Phase 2: extract ingestion service + Kafka. 3 containers Phase 1: app, Postgres+pgvector, Keycloak
-- ADR-002 (Proposed, needs 1-day spike): Nebius Token Factory primary, IONOS AI Model Hub fallback;
-  OpenAI-compatible API = provider swap is config change; multilingual embedding model
-  (BGE-M3 class) is a HARD requirement. Spike: DE->EN retrieval test, citation prompt test,
-  cost per query, billing limits/prepaid (NFR-7)
+- ADR-002 (ACCEPTED 2026-08-06, decided on the measured spike in spike/adr-002/): IONOS AI Model
+  Hub primary, Nebius Token Factory documented fallback. Multilingual embedding model is a HARD
+  requirement; IONOS serves three, Nebius exactly one public (single point of failure) and no
+  bge-m3 - that reversed the proposal. Also: better cross-language retrieval (-0.011 vs -0.033
+  penalty), Berlin (de-txl) vs Helsinki, EUR pricing, and the identical Llama-3.3-70B inside the
+  NFR-4 30s ceiling (median ~11s) where Nebius breached it.
+  Embeddings: BAAI/bge-m3, 1024 dims -> pgvector column is vector(1024).
+  Chat: meta-llama/Llama-3.3-70B-Instruct (quality) + Qwen/Qwen3.5-9B (fast); per-role choice in
+  Phase 3 against the production prompt.
+  Similarity threshold = CONFIG PROPERTY, initial 0.583, revalidate against the real corpus.
+  Provider swap stays a config change (OpenAI-compatible), with 3 caveats: IONOS needs an explicit
+  encoding_format (gateway 500s on the SDK default base64), ignore the *-migration model aliases,
+  Qwen3.5-9B needs reasoning_effort="none" or it returns empty content.
+  RESIDUAL RISK: no provider-side hard spending cap - IONOS has cost alerts only, EUR 7 alert
+  configured. NFR-7 therefore rests on the application layer as designed; worst-case abuse is
+  measured in cents. Latency figures are indicative (small sample, residential connection) -
+  revalidate from the production host in Phase 3. 0.583 is bge-m3-specific, re-tune on any
+  embedding model change. The few-shot citation prompt must exclude the Mode-B/refusal path
+  (observed leakage: a citation appended to a refusal).
+  Citation compliance and answer language are prompt/app concerns, verified enforceable:
+  few-shot example + language pinning reached 100%, structured JSON as the app-side enforcement.
 - ADR-003: Keycloak as IdP. Angular: Auth Code Flow + PKCE; backend: OAuth2 Resource Server.
   "Keycloak vs OAuth2" is a category error: OAuth2/OIDC = protocols, Keycloak = implementation.
   Realm config exported + versioned (realm-export.json)
@@ -37,7 +54,10 @@ Status: end of design phase, 2026-08-05
   in ONE query; one backup; no cross-store consistency problem. Scale ceiling documented.
 - Stack: Java 21, Spring Boot 4.1 (3.x is EOL since 2026-06-30), Angular + TypeScript (thin),
   PostgreSQL + pgvector, Keycloak, Docker Compose, GitHub Actions, Hetzner VPS
-- Spring AI: use IF compatible with Boot 4.1 (verify in spike); fallback plain RestClient
+- Spring AI: use IF compatible with Boot 4.1; fallback plain RestClient. STILL OPEN after the
+  ADR-002 spike - that spike was Python on purpose, so it measured the provider and not the Java
+  integration. Verify in Phase 3. Note the IONOS encoding_format caveat: a Spring AI client can
+  trip over it, a plain RestClient sending JSON floats will not.
 - Spring Modulith: optional upgrade, enforces ADR-001 module boundaries with tests
 
 == DATA MODEL ==

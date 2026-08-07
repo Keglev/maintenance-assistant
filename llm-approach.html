@@ -156,14 +156,35 @@
         multilingual embedding model is a hard requirement rather than a
         nice-to-have — the corpus is mixed German and English, nothing
         is translated anywhere, and a German question must retrieve an
-        English protocol. The provider decision is still open and
-        tracked in <a
-        href="adr/ADR-002-eu-hosted-llm-provider.html">ADR-002</a>,
-        which lists the questions a one-day spike has to answer before
-        the query module is built. Spend is bounded at three layers —
-        provider billing limits, per-user rate limiting with a daily
-        budget in the application, and daily token logging — and
-        exhaustion degrades to a message rather than an error page.</p>
+        English protocol.</p>
+        <p><strong>The provider was chosen by measurement, not by
+        brochure.</strong> A two-round spike ran both candidates against
+        their live APIs on a purpose-built corpus, and it reversed the
+        original proposal: inference now runs on the <strong>IONOS AI
+        Model Hub</strong> in Berlin, with Nebius Token Factory as a
+        documented fallback. The deciding facts were that IONOS serves
+        three multilingual embedding models where Nebius publicly serves
+        one — leaving this project’s hard requirement without a second
+        option — and that a German query retrieved the English protocol
+        more reliably there, losing only 0.011 of similarity crossing
+        the language boundary. The same 70B chat model also answered
+        five to ten times faster. The spike additionally showed that
+        citation discipline is a <em>prompt</em> problem rather than a
+        model limitation: one worked example took every model tested to
+        a citation on every claim, and a structured output schema can
+        make an uncited claim impossible to express at all. Decision,
+        evidence and residual risks: <a
+        href="adr/ADR-002-eu-hosted-llm-provider.html">ADR-002</a>.</p>
+        <p><strong>Spend is bounded, with one honest gap.</strong> The
+        plan was three layers, the first being a provider-side spending
+        cap — and that layer turned out not to exist: IONOS offers cost
+        alerts, not a hard ceiling, so a €7 alert is configured and the
+        real ceiling is the application’s own per-user rate limiting,
+        daily budget, capped answer length and query cache, backed by
+        daily token logging. Exhaustion degrades to a message rather
+        than an error page. The measured cost makes that acceptable: a
+        full answer costs a fraction of a cent, and demo-volume spend
+        lands in the low single digits of euros per month.</p>
         <p>Further reading: <a href="REQUIREMENTS.html">Requirements</a>
         (NFR-1, NFR-2, NFR-7), <a href="DOMAIN-MODEL.html">Domain
         model</a>, <a

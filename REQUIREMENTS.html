@@ -262,12 +262,18 @@
         <code>AI-USAGE.md</code> documenting AI tools used, generated
         vs. self-written code, and the verification process.</li>
         <li><strong>NFR-7 Cost control (public demo):</strong> LLM spend
-        is bounded at three layers: prepaid/limited API billing
-        (provider), per-user rate limiting + global daily call budget +
-        capped answer length + query caching (application), and daily
+        is bounded at three layers: provider-side billing controls,
+        per-user rate limiting + global daily call budget + capped
+        answer length + query caching (application), and daily
         token-usage logging (visibility). Budget exhaustion degrades
-        gracefully with a user-facing message, never with an error
-        page.</li>
+        gracefully with a user-facing message, never with an error page.
+        <strong>Amended 2026-08-06 (ADR-002):</strong> the chosen
+        provider offers <strong>cost alerts only, no hard spending
+        cap</strong> (a €7 alert is configured), so layer 1 detects
+        rather than prevents and the application layer is the real
+        ceiling. The requirement stands; the measured cost per query (a
+        fraction of a cent) is what makes carrying it in the application
+        acceptable.</li>
         </ul>
         <h2 id="out-of-scope-phase-1">5. Out of Scope (Phase 1)</h2>
         <ul>
@@ -296,9 +302,9 @@
         <h2 id="tech-stack-decided-details-in-adrs">7. Tech Stack
         (decided — details in ADRs)</h2>
         <p>Java 21 · Spring Boot 4.1 · Angular + TypeScript (thin) ·
-        PostgreSQL + pgvector · Keycloak · EU-hosted LLM (Nebius Token
-        Factory or IONOS AI Model Hub, decision in ADR-002) · Docker
-        Compose · GitHub Actions · Hetzner VPS</p>
+        PostgreSQL + pgvector · Keycloak · EU-hosted LLM (IONOS AI Model
+        Hub, Berlin; Nebius Token Factory as documented fallback —
+        ADR-002) · Docker Compose · GitHub Actions · Hetzner VPS</p>
       </article>
     </main>
 

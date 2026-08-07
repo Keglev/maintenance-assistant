@@ -41,7 +41,10 @@ class IonosEmbeddingClient implements EmbeddingClient {
     private final EmbeddingProperties properties;
     private final RestClient restClient;
 
-    IonosEmbeddingClient(EmbeddingProperties properties, RestClient.Builder builder) {
+    // RestClient.builder() rather than the auto-configured builder bean: this client talks to one
+    // external provider with its own timeouts and its own auth header, and should not inherit
+    // interceptors or converters added for the application's own HTTP calls.
+    IonosEmbeddingClient(EmbeddingProperties properties) {
         this.properties = properties;
 
         SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
@@ -50,7 +53,7 @@ class IonosEmbeddingClient implements EmbeddingClient {
         // response is worth waiting for rather than retrying into a second charge.
         requestFactory.setReadTimeout((int) properties.timeout().toMillis());
 
-        this.restClient = builder
+        this.restClient = RestClient.builder()
                 .baseUrl(properties.baseUrl())
                 .defaultHeader(HttpHeaders.AUTHORIZATION, "Bearer " + properties.apiKey())
                 .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)

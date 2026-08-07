@@ -130,6 +130,14 @@
       <artifactId>spring-security-test</artifactId>
       <scope>test</scope>
     </dependency>
+    <!-- The ingestion tests wait for work that finishes on another thread. Awaitility polls
+         with a deadline instead of sleeping for a guessed duration, which is the difference
+         between a test that is slow and one that is flaky. -->
+    <dependency>
+      <groupId>org.awaitility</groupId>
+      <artifactId>awaitility</artifactId>
+      <scope>test</scope>
+    </dependency>
     <!-- Already arrives transitively through starter-test. Declared explicitly so
          the ${org.mockito:mockito-core:jar} property the test plugins reference is
          unambiguous, and so the -javaagent wiring below has a visible reason. -->

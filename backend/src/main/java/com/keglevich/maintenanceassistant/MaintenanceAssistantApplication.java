@@ -2,6 +2,7 @@ package com.keglevich.maintenanceassistant;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 
 /**
  * Entry point of the maintenance-assistant backend.
@@ -11,6 +12,9 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * is extracted into its own service in Phase 2.
  */
 @SpringBootApplication
+// Picks up the @ConfigurationProperties records inside the modules, so each one declares its own
+// configuration next to the code that uses it rather than in a central config class.
+@ConfigurationPropertiesScan
 public class MaintenanceAssistantApplication {
 
   public static void main(String[] args) {

@@ -42,6 +42,44 @@ LIMIT 5;
 - Not the right choice for very large corpora or extreme QPS; documented deliberately as a
   scale-aware decision, not ignorance of the alternatives.
 
+### Note, 2026-08-07 — the vector index is HNSW, not IVFFlat
+
+Implementing the schema (Flyway `V1__baseline_schema.sql`) forced the index choice that the
+third *Positive* point above left open. It is **HNSW**:
+
+```sql
+CREATE INDEX ix_chunk_embedding_hnsw ON chunk
+    USING hnsw (embedding vector_cosine_ops)
+    WITH (m = 16, ef_construction = 64);
+```
+
+**Why not IVFFlat.** IVFFlat partitions the vectors into `lists` cells whose centroids are
+learned by k-means *from the data present when the index is built*. The migration runs against
+an empty table, so an IVFFlat index created there would be trained on nothing; it would have to
+be dropped and rebuilt after each ingestion run, and the `lists` parameter would have to track a
+corpus size that is still changing. That is an operational obligation the project would have to
+remember forever. HNSW builds its graph incrementally and is correct from the first insert — the
+index is simply part of the schema.
+
+**What it costs.** HNSW builds more slowly and uses more memory than IVFFlat, and its index is
+larger. At the scale this project actually has — ~150 protocols, low thousands of chunks, a
+1024-dimension vector each — that is a few tens of MB and a build measured in seconds on the
+8 GB VPS. The trade-off that makes IVFFlat attractive (cheap build over millions of vectors)
+does not apply here, and the trade-off that makes HNSW expensive does not bite here either.
+
+**The honest caveat.** At this corpus size the index is not what makes the query fast. With a
+selective `machine_id` filter the planner will often prefer a bitmap scan plus exact distance
+computation over the HNSW graph, and it is right to: a few hundred chunks per machine are
+scanned faster than the graph is traversed, and exact search cannot lose a result the way
+approximate post-filtering can. The index earns its place as headroom — it means growth to tens
+of thousands of chunks needs no migration — not as a present-day speed-up. Recall tuning
+(`hnsw.ef_search`) is therefore deliberately left at the default until there is a corpus large
+enough to measure it against.
+
+`vector_cosine_ops` is not incidental: it matches the `<=>` operator in the retrieval query
+above. An index built for a different distance function is silently ignored by that query rather
+than reported as an error.
+
 ## Alternatives considered
 
 - **Dedicated vector DB (Qdrant, Weaviate, Milvus, Chroma)** — built for scale this project will

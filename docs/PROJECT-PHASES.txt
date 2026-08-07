@@ -45,8 +45,13 @@ OPEN ITEMS carried forward (not blockers, do not lose):
   (spike figures are from a residential connection; ADR-002 notes it).
 - Re-validate threshold 0.583 against the real ~150-protocol corpus
   (Phase 2/3 boundary; ADR-002 notes it).
-- Backups: nightly pg_dump + Hetzner snapshot routine BEFORE real
-  corpus data exists (arc42 §7.6 known gap). Good early-Phase-2 task.
+- Backups: DONE 2026-08-07. Nightly systemd timer on the host at
+  03:15 UTC: pg_dump (custom format) of the app DB + tar.gz of the
+  protocol-files volume, both self-verified, keep 14, in
+  /opt/maintenance-assistant/backups. Scripted in infra/backup.sh +
+  infra/install-backup.sh, documented in arc42 §7.6 incl. the Hetzner
+  snapshot routine. STILL OPEN by decision: no offsite copy and no
+  restore automation (arc42 §7.8).
 - Citation few-shot prompt must NOT apply to the Mode-B/refusal path
   (observed leakage in the spike).
 - Editor hygiene (Carlos, no repo change): Spring Boot Extension Pack
@@ -241,8 +246,8 @@ PHASE 2 — DATA + INGESTION   <-- NEXT (see CURRENT STATUS for the
   volume, text extraction, chunking, embedding call (bge-m3 @ IONOS),
   status RECEIVED -> INDEXED/FAILED, async via Spring events
 - Seed loader for the corpus
-- Early task: backups (nightly pg_dump + snapshot routine) before
-  real data exists (arc42 §7.6 known gap)
+- [x] Early task: backups (nightly pg_dump + volume archive + snapshot
+      routine) — DONE 2026-08-07, before real data exists, see arc42 §7.6
 - PREREQUISITE: ADR-002 Accepted — MET (2026-08-06). Binds Phase 2:
   chunk vector column is vector(1024) (BAAI/bge-m3 on IONOS), and the
   similarity threshold is a config property (initial 0.583) to be

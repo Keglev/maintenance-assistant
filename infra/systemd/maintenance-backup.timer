@@ -1,0 +1,21 @@
+# Managed by infra/install-backup.sh — edit infra/systemd/, not /etc/systemd/system/.
+
+[Unit]
+Description=Nightly maintenance-assistant backup
+Documentation=https://github.com/Keglev/maintenance-assistant/blob/main/docs/arc42/07-deployment-view.md
+
+[Timer]
+# 03:15 server time (UTC on this host). Well clear of the CI deploy window and
+# of the daily unattended-upgrades run.
+OnCalendar=*-*-* 03:15:00
+# Spread the start over a few minutes. Nothing else competes for this host, but
+# an exact-to-the-second schedule is a habit worth not having.
+RandomizedDelaySec=300
+# The reason this is a timer and not a cron entry. If the host is down or
+# rebooting at 03:15 — a snapshot restore, a kernel update — cron silently skips
+# that night. Persistent=true runs the missed job once the host is back, so a
+# reboot costs a late backup rather than a missing one.
+Persistent=true
+
+[Install]
+WantedBy=timers.target

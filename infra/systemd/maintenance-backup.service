@@ -1,0 +1,33 @@
+# Managed by infra/install-backup.sh — edit infra/systemd/, not /etc/systemd/system/.
+#
+# Type=oneshot: the timer starts it, it runs to completion, and its exit status
+# is what `systemctl status maintenance-backup` reports. A failing backup is
+# therefore visible as a failed unit rather than as an absence of files.
+
+[Unit]
+Description=maintenance-assistant nightly backup (database + protocol files)
+Documentation=https://github.com/Keglev/maintenance-assistant/blob/main/docs/arc42/07-deployment-view.md
+# Nothing to back up before Docker is up, and no point starting the attempt.
+Requires=docker.service
+After=docker.service
+
+[Service]
+Type=oneshot
+# The backup runs unprivileged. It needs exactly two things — the docker socket
+# and read access to .env.prod — and the deploy user has both already. Running
+# it as root would grant it more than the job needs for no gain.
+User=deploy
+Group=deploy
+# Reaching the database and the volume goes through the docker group, which the
+# deploy user is already in for deployments.
+SupplementaryGroups=docker
+ExecStart=/usr/local/bin/maintenance-backup
+# pg_dump of a small database plus a tar of the volume is a minutes job. If it
+# is still running after an hour something is wrong and a hung run must not
+# still be holding on when the next one is due.
+TimeoutStartSec=3600
+Nice=10
+IOSchedulingClass=idle
+
+[Install]
+WantedBy=multi-user.target

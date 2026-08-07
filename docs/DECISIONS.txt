@@ -129,6 +129,54 @@ Status: end of Phase 2 (data + ingestion live in production), 2026-08-07
   summary) — same empty-override pattern #22 fixed elsewhere; fix lands with the Phase 3 chat
   default. arc42 debts (compose-sync rule -> 07, recreate rule -> §7.4) also land in that PR.
 
+== QUERY PATH (Phase 3, 2026-08-07) ==
+- Chat call: PLAIN RESTCLIENT, same proportionality reasoning as the embedding closure. Spring AI
+  was deferred to here on the argument that advisors/chat-memory/tool-calling would earn their
+  weight on the chat path. Built, they do not: there is no conversation to remember (every question
+  is answered from the retrieved chunks alone), no tool to call, and the one advisor-shaped concern
+  - citation enforcement - has to be checked against THIS query's retrieved chunks, which no
+  framework can know. One POST /v1/chat/completions behind a narrow ChatClient interface, provider
+  is OpenAI-COMPATIBLE not OpenAI, typed records for responses (Jackson 3 rule holds).
+- Threshold 0.55, MEASURED against the real corpus through the production path, not the spike:
+  E-47 0.6896 (Mode A), DE->EN 0.5566 (Mode A), Mode-B gap 0.4563 (Mode B). ADR-002's 0.583 would
+  still have refused the cross-language demo. THE CROSS-LANGUAGE MARGIN IS 0.0066 - re-measure it
+  first after any change to chunking, corpus or embedding model.
+- CHAT MODEL: Llama-3.3-70B-Instruct FOR EVERY ROLE. No per-role split - the evidence does not ask
+  for one. Qwen3.5-9B was measured worse on the production prompt in the way that matters: it
+  failed to ground the cross-language case at all (14 completion tokens, no usable claim), so the
+  app's citation validation correctly fell it through to Mode B and the demo would have shown "no
+  source in the corpus". It also fragments (48 claims where Llama uses 11) and is therefore not
+  even faster - the spike's ~3 s was a one-line refusal. Stays a config swap; the client sends
+  reasoning_effort="none" for Qwen3.5 from the model id, not from a flag.
+- TWO PROMPTS, NOT ONE WITH A FLAG. The citation few-shot cannot reach the Mode B path because it
+  is not in that file, and Mode B's schema has no source field, so a leaked citation is a shape the
+  provider will not emit. Mode B does carry a SHAPE example (no source/label/protocol in it) -
+  measured necessary: without one, constrained decoding emitted the opening brace and then spent
+  the whole output budget on whitespace, twice, at two caps. Raising the cap cannot fix that; the
+  answer was never getting longer, only later.
+- Citations are per PROTOCOL, not per chunk: chunk is the search unit, protocol is the citation
+  unit. On the E-47 demo the top 5 chunks come from 4 protocols, and labelling per chunk cited one
+  of them twice as if it were two independent pieces of evidence.
+- Three layers enforce the citation rule and only the last does not depend on the model: few-shot
+  example, JSON schema in which an uncited claim is unrepresentable, and validation against the
+  chunks this query retrieved. A Mode A answer whose claims all fail validation falls through to
+  Mode B - retrieval thought it had an answer, generation could not ground one, and the honest
+  output is the labelled suggestion rather than an empty Mode A.
+- max_tokens 1200, not the spike's 400: that was measured on a one-line refusal, and a
+  claim-per-statement answer over four protocols is 481 tokens. Still runaway protection.
+- NFR-7 query guards: Bucket4j ~10/min per user keyed by JWT sub (in memory - one instance, and the
+  guard that must survive a restart is the daily counter, which is in Postgres); chat_budget table
+  SEPARATE from embedding_budget so a re-index storm cannot exhaust the day's answers; max_tokens
+  attached in the client so no prompt can forget it; Caffeine cache keyed by (normalized question,
+  machineId, ROLE) - the role is in the key because an operator served from a technician's entry
+  would get repair steps, which is a safety bug that is invisible in testing. Cache checked BEFORE
+  the budget: a hit costs no provider call, so it must cost no budget.
+- Role comes from the token, never from the request: it decides what the answer may contain.
+  admin has no query access - it is a Keycloak IT role with no maintenance question to ask.
+- LATENCY: median ~13 s end to end, one of 13 measured queries breached NFR-4's 30 s ceiling at
+  38.9 s. Queue time, not compute (identical question, identical tokens, 12.9 s vs 24.5 s).
+  Re-measuring from the Hetzner host is now the urgent half of that residual risk.
+
 == DATA MODEL ==
 - 3 entities: MACHINE -> PROTOCOL -> CHUNK (chunk = search unit, protocol = citation unit,
   machine = filter unit)

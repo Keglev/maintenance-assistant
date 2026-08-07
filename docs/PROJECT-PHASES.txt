@@ -76,26 +76,44 @@ OPEN ITEMS carried forward (not blockers, do not lose):
   snapshot routine. STILL OPEN by decision: no offsite copy and no
   restore automation (arc42 §7.8).
 - Citation few-shot prompt must NOT apply to the Mode-B/refusal path
-  (observed leakage in the spike).
+  (observed leakage in the spike). DONE in the query PR: two separate
+  prompt classes, and Mode B's schema has no source field at all.
+  NOTE for anyone editing them: Mode B does need a SHAPE example of
+  its own (no source/label/protocol in it) or constrained decoding
+  runs away on whitespace — measured, twice, at two token caps.
+- NEW, and the sharpest number in the project: the cross-language demo
+  clears the threshold by 0.0066 (0.5566 against 0.55). It is the
+  first thing to re-measure after any change to chunking, the corpus
+  or the embedding model. Reproduce with QueryDemoVerificationIT
+  (skipped unless LLM_API_KEY is set).
+- NEW: chat latency median ~13 s end to end, and 1 of 13 measured
+  queries breached NFR-4's 30 s ceiling at 38.9 s — from a
+  residential connection. Re-measuring from the Hetzner host was
+  already an open item; it is now the urgent half of it, because the
+  answer is no longer comfortably inside the ceiling.
 - OPS RULE (learned the hard way, cost ~12 min): the deploy pipeline
   pulls IMAGES ONLY — it never syncs docker-compose.prod.yml or
   .env.prod to the host. Any merged change to those files must be
   applied on the server BY HAND before/with the next deploy (#22 was
   merged in git but absent on the host until an ops session copied
   it; rollback copy at docker-compose.prod.yml.bak-20260807-162246).
-  DOCS DEBT: record this in arc42 07 (deployment) — assigned to the
-  first Phase 3 PR.
+  DOCS DEBT: DONE — arc42 07, "CI deploys images, never configuration",
+  including the .bak rule.
 - OPS RULE 2: an .env.prod edit is INERT until the container is
   recreated (`up -d --force-recreate backend`); env freezes at
   container creation. A container once ran 150 calls into a 401 with
-  a stale key while the file was already correct. DOCS DEBT: add to
-  arc42 §7.4 — assigned to the first Phase 3 PR.
-- LLM_CHAT_MODEL in docker-compose.prod.yml is LIVE with an empty
-  default (${LLM_CHAT_MODEL:-}) — PR #22's summary claimed it was
-  commented out, the code says otherwise. Harmless today (nothing
-  reads it), but it is the exact empty-override landmine #22 fixed
-  for the other vars. FIX in the Phase 3 query PR when the chat
-  default appears in application.yml.
+  a stale key while the file was already correct. DOCS DEBT: DONE —
+  arc42 §7.4, "An .env.prod edit is inert until the container is
+  recreated", with the printenv check.
+- LLM_CHAT_MODEL empty default in docker-compose.prod.yml: FIXED in
+  the query PR — it now repeats application.yml's real default
+  (meta-llama/Llama-3.3-70B-Instruct), and LLM_CHAT_DAILY_CALL_BUDGET
+  joins it. It stopped being harmless the moment the chat path read it.
+- ACTION FOR THE NEXT DEPLOY, and it is the ops rule above in
+  practice: the query PR changes docker-compose.prod.yml, so merging
+  it deploys the new image with the OLD compose file. Copy the file to
+  the host (with a .bak) and `up -d --force-recreate backend`, or the
+  chat model stays empty and every answer fails.
 - CHUNK COUNT, canonical: 150 protocols -> 166 chunks (134x1 + 16x2;
   the arithmetic only works for 166). PR #21's summary and an older
   DECISIONS.txt line said 151/167 — off by one, likely a leftover
@@ -108,24 +126,28 @@ OPEN ITEMS carried forward (not blockers, do not lose):
   in VS Code clears the false "never used" warnings; select the
   Python interpreter for spike/ imports.
 
-NEXT SESSION STARTS WITH: Phase 3 kickoff (query path). Suggested
-split into robot PRs, in order:
-  (1) feat/query-api — backend RAG query path: embed question ->
-      machine-filtered pgvector top-5 -> threshold -> Mode A
-      (grounded, every claim cited) / Mode B (labeled ungrounded;
-      operators get operator-safe steps + escalation only). Chat via
-      IONOS (Llama-3.3-70B quality / Qwen3.5-9B fast — needs
-      reasoning_effort="none"), structured JSON as app-side citation
-      enforcement, language pinning incl. refusals, citation few-shot
-      MUST NOT apply to Mode B. Threshold: set ~0.54-0.55 from the
-      ADR-002 dated evidence and re-verify the three demo cases.
-      NFR-7 query guards: Bucket4j per-user (~10/min), daily budget,
-      max_tokens cap, cache. Re-validate chat latency from the
-      Hetzner host (ADR-002 residual risk). Housekeeping bundled in:
-      LLM_CHAT_MODEL compose default fix + the two arc42 docs debts
-      from OPEN ITEMS.
+NEXT SESSION STARTS WITH: Phase 3 PR 2, the Angular search view.
+  (1) feat/query-api — DONE (PR open, not merged). POST /api/query for
+      operator/techniker/schichtleiter; question embedded, one
+      machine-filtered pgvector top-5, threshold 0.55 -> Mode A / B.
+      Chat = plain RestClient (Spring AI revisited on the chat path
+      and declined again — see DECISIONS.txt == QUERY PATH ==).
+      Llama-3.3-70B FOR EVERY ROLE on measured evidence; Qwen3.5-9B
+      failed to ground the cross-language demo. Two separate prompt
+      classes, structured JSON, citations validated against the
+      retrieved set. NFR-7: Bucket4j 10/min per sub, chat_budget
+      table (V3), max_tokens 1200 in the client, Caffeine cache keyed
+      including the ROLE. Housekeeping done: compose default + both
+      arc42 rules. STILL OPEN from it: latency from the Hetzner host,
+      and the 0.0066 cross-language margin (both in OPEN ITEMS).
   (2) feat/search-ui — Angular search view: Mode A/B visually
       distinct, source links, upload view with status, DE/EN switch.
+      The response DTO is already shaped for it: mode, answer with
+      inline [P1] markers, language, claims (text + source label) and
+      citations (label, protocolId, title, errorCode, incidentDate,
+      similarity). Mode B returns empty claims and citations.
+      NOTE: the view needs a machine picker and there is no endpoint
+      listing machines yet — /api/query takes the machine UUID.
   Then Phase 4 (polish + ship, v1.0.0).
 
 =====================================================================

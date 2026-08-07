@@ -246,7 +246,235 @@
         </tr>
         </tbody>
         </table>
-        <h2 id="open-for-review">4. Open for review</h2>
+        <h2 id="the-corpus-as-built-2026-08-07">4. The corpus as built
+        (2026-08-07)</h2>
+        <p>The plan above is what was intended; this section is what
+        exists. The corpus lives at
+        <code>backend/src/main/resources/corpus/protocols.ndjson</code>
+        — 150 records, ~140 KB, incidents dated 2024-09-11 to
+        2026-07-15. Figures below are counted from that file, not
+        estimated.</p>
+        <h3 id="fault-taxonomy">4.1 Fault taxonomy</h3>
+        <p>Every <code>STOERUNG</code> carries exactly one
+        <strong>root-cause class</strong>. This is corpus metadata
+        (<code>meta.cause_class</code> in the NDJSON) and deliberately
+        <strong>not</strong> a database column — the V1 schema is
+        frozen, and the class exists to control and verify the
+        distribution, not to be queried at runtime.</p>
+        <table style="width:100%;">
+        <colgroup>
+        <col style="width: 21%" />
+        <col style="width: 21%" />
+        <col style="width: 28%" />
+        <col style="width: 28%" />
+        </colgroup>
+        <thead>
+        <tr class="header">
+        <th>Class</th>
+        <th>Meaning</th>
+        <th style="text-align: right;">Count</th>
+        <th style="text-align: right;">Share of faults</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr class="odd">
+        <td><strong>MATERIAL</strong></td>
+        <td>The material was the problem: wrong or out-of-spec batch,
+        damp or contaminated stock, damage that jams the machine,
+        tolerances that push parts out of position</td>
+        <td style="text-align: right;">23</td>
+        <td style="text-align: right;">19%</td>
+        </tr>
+        <tr class="even">
+        <td><strong>BEDIENUNG</strong></td>
+        <td>Operator-induced and operator-fixable: wrong program or
+        offset, wrong clamping, a dirty photo-eye or reflector, skipped
+        cleaning, a blocked ventilation grille, a mistyped
+        parameter</td>
+        <td style="text-align: right;">29</td>
+        <td style="text-align: right;">24%</td>
+        </tr>
+        <tr class="odd">
+        <td><strong>TECHNIK</strong></td>
+        <td>Genuine technical defect, technician-only</td>
+        <td style="text-align: right;">68</td>
+        <td style="text-align: right;">57%</td>
+        </tr>
+        </tbody>
+        </table>
+        <p>The point of the split is that a real plant is
+        <strong>not</strong> all technician-level defects. Roughly two
+        in five faults here are things the shift caused or can fix,
+        which is what makes role-based answers (US: Operator gets
+        operator-safe steps) worth anything.</p>
+        <p><code>TECHNIK</code> is spread across subtypes rather than
+        being one bucket:</p>
+        <table>
+        <thead>
+        <tr class="header">
+        <th>Subtype</th>
+        <th style="text-align: right;">n</th>
+        <th></th>
+        <th>Subtype</th>
+        <th style="text-align: right;">n</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr class="odd">
+        <td>mechanisch</td>
+        <td style="text-align: right;">27</td>
+        <td></td>
+        <td>roboter (TCP, wire feed, tip, gas)</td>
+        <td style="text-align: right;">4</td>
+        </tr>
+        <tr class="even">
+        <td>elektrisch</td>
+        <td style="text-align: right;">14</td>
+        <td></td>
+        <td>software / PLC</td>
+        <td style="text-align: right;">3</td>
+        </tr>
+        <tr class="odd">
+        <td>hydraulisch</td>
+        <td style="text-align: right;">6</td>
+        <td></td>
+        <td>ungeklärt (never found)</td>
+        <td style="text-align: right;">2</td>
+        </tr>
+        <tr class="even">
+        <td>sensorik</td>
+        <td style="text-align: right;">6</td>
+        <td></td>
+        <td>pneumatisch</td>
+        <td style="text-align: right;">2</td>
+        </tr>
+        <tr class="odd">
+        <td>netzwerk (Profinet, SCADA)</td>
+        <td style="text-align: right;">4</td>
+        <td></td>
+        <td></td>
+        <td style="text-align: right;"></td>
+        </tr>
+        </tbody>
+        </table>
+        <p><code>WARTUNG</code> records carry no cause class: planned
+        work has no fault to classify.</p>
+        <h3 id="distribution">4.2 Distribution</h3>
+        <table>
+        <colgroup>
+        <col style="width: 50%" />
+        <col style="width: 50%" />
+        </colgroup>
+        <thead>
+        <tr class="header">
+        <th>Axis</th>
+        <th>Result</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr class="odd">
+        <td><strong>Language</strong></td>
+        <td>108 DE (72%) / 42 EN (28%). Stored <strong>as
+        written</strong> — nothing is translated anywhere.</td>
+        </tr>
+        <tr class="even">
+        <td><strong>Type</strong></td>
+        <td>120 <code>STOERUNG</code> / 30 <code>WARTUNG</code></td>
+        </tr>
+        <tr class="odd">
+        <td><strong>Quality</strong></td>
+        <td>90 structured (60%) / 45 messy shift-note style (30%) / 15
+        short and unhelpful (10%)</td>
+        </tr>
+        <tr class="even">
+        <td><strong>Resolution</strong></td>
+        <td>144 resolved / 4 workaround-only / 2 never explained</td>
+        </tr>
+        <tr class="odd">
+        <td><strong>Error code</strong></td>
+        <td>63 of 120 faults carry one; 87 records have none. Free text,
+        and sometimes pointing at the wrong component on purpose.</td>
+        </tr>
+        <tr class="even">
+        <td><strong>Per machine</strong></td>
+        <td>PR-03 22, FR-01 19, PR-07/RB-02/VP-01 17, FB-04 15,
+        KP-01/SP-05 13, LS-01 11, AB-02 6</td>
+        </tr>
+        </tbody>
+        </table>
+        <p>Twelve records deliberately avoid umlauts
+        (<code>meta.charset: ascii</code>) — the two terminal-only
+        legacy machines, where text was typed on a controller that never
+        had them. The rest is proper German.</p>
+        <p>Resolution realism is visible in the data rather than only
+        asserted: <code>TECHNIK</code> faults name a replaced part in 54
+        of 68 cases and average 193 minutes of downtime;
+        <code>BEDIENUNG</code> faults name a part in 5 of 29 and average
+        52 minutes.</p>
+        <h3 id="demo-scenarios-the-corpus-is-built-around">4.3 Demo
+        scenarios the corpus is built around</h3>
+        <p>Marked with <code>meta.demo</code> in the NDJSON, and guarded
+        by <code>CorpusIntegrityTest</code> so a reword cannot silently
+        break a demo.</p>
+        <ol type="1">
+        <li><strong>Recurring fault, three different root causes —
+        <code>E-47</code> on Presse 3.</strong> Three protocols share
+        the error code and have a <em>different</em> root-cause class
+        each: a worn piston seal (TECHNIK), a mistyped pressure setpoint
+        after a changeover (BEDIENUNG), and a contaminated oil batch
+        that jammed the relief valve (MATERIAL). A fourth, later E-47
+        turns out to be pump wear. This is both the recurring-fault demo
+        and the argument for why the error code is only a hint: four
+        occurrences, four causes.</li>
+        <li><strong>Mode B gap — <code>AB-02</code> Abfüllanlage
+        2.</strong> Its six protocols cover the feed screw, CIP
+        cleaning, labelling, capping torque, the infeed star and an
+        annual inspection. Nothing covers dosing or fill-volume
+        deviation. <em>Intended demo query:</em> „Abfüllanlage 2 dosiert
+        zu wenig, Füllmenge schwankt” → no source above threshold → Mode
+        B.</li>
+        <li><strong>German query, English protocol — <code>FB-04</code>
+        Förderband 4.</strong> Belt mistracking appears
+        <strong>only</strong> in English
+        (<code>Belt tracking off to the right, product falling off the edge</code>,
+        cause: carryback built up on the tail pulley). No German
+        protocol anywhere covers mistracking. <em>Intended demo
+        query:</em> „Förderband läuft schief, Material fällt seitlich
+        herunter” → the top hit must be the English protocol, which is
+        the multilingual-embedding argument in one screen.</li>
+        </ol>
+        <h3 id="realism-patterns">4.4 Realism patterns</h3>
+        <p>Deliberately present, with examples:</p>
+        <ul>
+        <li><strong>Same symptom, different cause on the same
+        machine.</strong> Pressure loss on Presse 3 resolves four
+        different ways (seal, parameter, contaminated oil, pump wear).
+        <code>SV0410</code> on the mill is a broken encoder cable once
+        and a failed servo amplifier the next year. <code>VP-70</code>
+        on the packaging line is a snapped chain once and a seizing
+        gearbox the next.</li>
+        <li><strong>The alarm points at the wrong component.</strong> A
+        servo following-error that was a damaged encoder cable; a
+        spindle over-temperature that was a failed cabinet fan; “sensor
+        defekt” that was a dirty reflector; “motor defekt” that was a
+        run capacitor; a leak-test rejecting good packs because the
+        tester itself had drifted.</li>
+        <li><strong>Cause never found.</strong> Two protocols close with
+        „nach Neustart i.O., Ursache unklar, beobachten” and no part
+        replaced — because that is what actually happens.</li>
+        <li><strong>Workaround only.</strong> Four protocols document a
+        deliberate interim state (manual tool change, reduced cycle
+        rate, a shifted weld program for one part variant, raised
+        neighbouring heater zones), each saying explicitly that it is
+        not a permanent fix.</li>
+        <li><strong>Mixed voice.</strong> Some protocols quote the
+        operator („Presse kommt nicht auf Druck”), some quote the alarm
+        text, some both. Five German protocols quote the controller’s
+        <strong>English</strong> alarm string verbatim inside German
+        prose — real controls throw English, and the retrieval has to
+        cope.</li>
+        </ul>
+        <h2 id="open-for-review">5. Open for review</h2>
         <ol type="1">
         <li><code>error_code</code> is free text, not a lookup table —
         real plants rarely have a clean code catalog across machine
@@ -272,7 +500,21 @@
       <li><a href="#synthetic-corpus-plan-150-protocols"
       id="toc-synthetic-corpus-plan-150-protocols">3. Synthetic corpus
       plan (~150 protocols)</a></li>
-      <li><a href="#open-for-review" id="toc-open-for-review">4. Open
+      <li><a href="#the-corpus-as-built-2026-08-07"
+      id="toc-the-corpus-as-built-2026-08-07">4. The corpus as built
+      (2026-08-07)</a>
+      <ul>
+      <li><a href="#fault-taxonomy" id="toc-fault-taxonomy">4.1 Fault
+      taxonomy</a></li>
+      <li><a href="#distribution" id="toc-distribution">4.2
+      Distribution</a></li>
+      <li><a href="#demo-scenarios-the-corpus-is-built-around"
+      id="toc-demo-scenarios-the-corpus-is-built-around">4.3 Demo
+      scenarios the corpus is built around</a></li>
+      <li><a href="#realism-patterns" id="toc-realism-patterns">4.4
+      Realism patterns</a></li>
+      </ul></li>
+      <li><a href="#open-for-review" id="toc-open-for-review">5. Open
       for review</a></li>
       </ul></li>
       </ul>

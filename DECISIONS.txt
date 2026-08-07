@@ -1,5 +1,5 @@
 PROJECT DECISIONS — Instandhaltungs-Assistent / Maintenance Protocol Assistant
-Status: end of design phase, 2026-08-05
+Status: end of Phase 2 (data + ingestion live in production), 2026-08-07
 (Details in: REQUIREMENTS.md v0.2, DOMAIN-MODEL.md, adr/ADR-001..004, ARCHITECTURE-RATIONALE.md)
 
 == PRODUCT ==
@@ -91,8 +91,10 @@ Status: end of design phase, 2026-08-05
   up to ~900 chars so a two-line protocol stays ONE chunk instead of four weak fragments; an
   oversized section splits on sentence ends with 150 chars overlap. Every chunk is prefixed with
   "<machine> - <error code> - <title>" so a retrieved chunk still says what it is about once it is
-  separated from its row. Measured result on the real corpus: 151 protocols -> 167 chunks
-  (134 protocols = 1 chunk, 16 = 2). That ratio is the point: these are short documents.
+  separated from its row. Measured result on the real corpus: 150 protocols -> 166 chunks
+  (134 protocols = 1 chunk, 16 = 2). CANONICAL as of the 2026-08-07 production run — an earlier
+  151/167 figure was off by one (likely a leftover local test upload); 134x1 + 16x2 = 166 and
+  production token counts matched local exactly. That ratio is the point: short documents.
 - Re-indexing is delete-then-write per protocol, so the catch-up path and any retry are idempotent.
 - NFR-7 for ingestion = a GLOBAL daily embedding-call counter in Postgres (table embedding_budget),
   not per-user limiting: ingestion is background load, so the shape of abuse is a re-index storm,
@@ -103,6 +105,29 @@ Status: end of design phase, 2026-08-05
 - Measured cost of embedding the whole corpus: 150 calls, 27713 input tokens, EUR 0.00055.
   Cents was the estimate; hundredths of a cent is the measurement.
 - Spring Modulith: optional upgrade, enforces ADR-001 module boundaries with tests
+
+== PRODUCTION OPERATIONS (learned 2026-08-07, ops session) ==
+- CI deploys IMAGES ONLY. docker-compose.prod.yml and .env.prod on the host are NEVER touched by
+  the pipeline; merged changes to them must be applied on the server by hand (with a .bak copy)
+  before or with the next deploy. #22 was merged in git and absent on the host until done manually.
+- An .env.prod edit is INERT until `up -d --force-recreate <svc>` — environment freezes at
+  container creation. Verified painfully: a correct key in the file, a stale one in the container.
+- Production state: 150 INDEXED / 0 FAILED, 166 chunks (1024 dims), 150 documents on the volume,
+  E-47 retrieval verified live, flags disarmed, nightly backups carrying real content (752K dump
+  incl. vectors, pg_restore-verified). Full-corpus embedding measured: EUR 0.00055 / 52 s.
+- LLM_API_KEY: 365-day token (exp 2027-08-07) in server .env.prod + password manager ONLY.
+  Rotation ~2 weeks before expiry. Working paste path: Notepad (visual check) -> scp -> tr -d
+  '\r\n' into the file -> verify (dots=2, ~1712 chars, eyJ prefix). Terminal-paste tricks caused
+  a doubled+truncated 4095-char value twice; do not use them for this.
+- 4xx from the provider is terminal, no retry (designed); rejected requests are not billed —
+  two full 401 rounds cost EUR 0.00. The budget counter counts at the CLIENT as served, so failed
+  parses still count (the caller-side version missed 150 paid calls on the first live run).
+- Java base package: com.keglevich.maintenanceassistant — DECIDED 2026-08-07: KEEP. Chosen by
+  convention from the owner's name; a rename (e.g. io.github.keglev) would touch every file for
+  zero functional gain and muddy blame/history mid-project. Robots must not rename it.
+- LLM_CHAT_MODEL in prod compose is live with an empty default (NOT commented, despite #22's
+  summary) — same empty-override pattern #22 fixed elsewhere; fix lands with the Phase 3 chat
+  default. arc42 debts (compose-sync rule -> 07, recreate rule -> §7.4) also land in that PR.
 
 == DATA MODEL ==
 - 3 entities: MACHINE -> PROTOCOL -> CHUNK (chunk = search unit, protocol = citation unit,

@@ -5,9 +5,20 @@ Naming update overriding older docs: project = "maintenance-assistant",
 Keycloak realm = "maintenance". English repo name is intentional.)
 
 =====================================================================
-CURRENT STATUS — 2026-08-06, end of session (SESSION HANDOVER)
+CURRENT STATUS — 2026-08-07, end of session (SESSION HANDOVER)
 =====================================================================
-Phases 0 and 1 are DONE. Release v0.1.0 is tagged. Next: PHASE 2.
+Phases 0, 1 and 2 are DONE. Release v0.1.0 is tagged (v0.2.0 tag for
+Phase 2 is Carlos's call). Next: PHASE 3.
+
+Phase 2 shipped in PRs #18 (Flyway V1 + machines), #19 (150-protocol
+corpus + seed loader), #20 (backups), #21 (ingestion pipeline), #22
+(prod compose fix), all merged, plus one ops session (no commits).
+PRODUCTION IS INDEXED: 150 protocols INDEXED, 0 FAILED, 166 chunks
+(all 1024 dims), 150 documents on the volume (uid 1001), retrieval
+verified live (all four E-47 protocols top the Presse-3 ranking).
+Cost of full corpus embedding: EUR 0.00055 (27,713 input tokens,
+150 calls, 52 s with 4 workers). Seed + backlog flags are DISARMED;
+backups now carry real content (dump 752K incl. vectors, verified).
 
 Live demo:  https://maintenance.smartsupply.com.de  (Angular + Keycloak
             SSO, valid TLS via Caddy/Let's Encrypt, demo users
@@ -31,10 +42,20 @@ LLM:        ADR-002 ACCEPTED — IONOS AI Model Hub primary (Berlin,
             *-migration model aliases. Evidence: spike/adr-002/
             RESULTS.md + PR #14. No provider hard cap — EUR 7 cost
             alert set; NFR-7 rests on the app layer (by design).
-Keys:       IONOS token (TTL 30 days, created 2026-08-06) + Nebius
-            trial key exist ONLY in Carlos's password manager and
-            spike/adr-002/.env (gitignored, local). Phase 3 needs a
-            fresh long-TTL IONOS token for the server .env.prod.
+Keys:       PRODUCTION: 365-day IONOS token (created 2026-08-07,
+            expires 2027-08-07) lives in the server .env.prod and in
+            Carlos's password manager — nowhere else. ROTATION
+            REMINDER: calendar entry ~2 weeks before 2027-08-07;
+            rotation = edit .env.prod + `up -d --force-recreate
+            backend` (see OPEN ITEMS: env edits are inert until
+            recreate). The old 30-day spike token (exp ~2026-09-05)
+            and the Nebius trial key remain in spike/adr-002/.env
+            (gitignored, local) for spike reruns only.
+            Token paste procedure that works (after two mangled
+            attempts — doubled+truncated at 4095 chars): password
+            manager -> Notepad (visual check: one line, eyJ..., two
+            dots) -> scp to server -> tr -d '\r\n' into .env.prod ->
+            verify dots=2, length ~1712, prefix eyJ.
 Config:     Flyway auto-config was DEAD on Boot 4.1 (missing
             spring-boot-flyway module) — fixed and empirically
             verified in PR #16. spring.flyway.* now binds. Error
@@ -56,30 +77,56 @@ OPEN ITEMS carried forward (not blockers, do not lose):
   restore automation (arc42 §7.8).
 - Citation few-shot prompt must NOT apply to the Mode-B/refusal path
   (observed leakage in the spike).
+- OPS RULE (learned the hard way, cost ~12 min): the deploy pipeline
+  pulls IMAGES ONLY — it never syncs docker-compose.prod.yml or
+  .env.prod to the host. Any merged change to those files must be
+  applied on the server BY HAND before/with the next deploy (#22 was
+  merged in git but absent on the host until an ops session copied
+  it; rollback copy at docker-compose.prod.yml.bak-20260807-162246).
+  DOCS DEBT: record this in arc42 07 (deployment) — assigned to the
+  first Phase 3 PR.
+- OPS RULE 2: an .env.prod edit is INERT until the container is
+  recreated (`up -d --force-recreate backend`); env freezes at
+  container creation. A container once ran 150 calls into a 401 with
+  a stale key while the file was already correct. DOCS DEBT: add to
+  arc42 §7.4 — assigned to the first Phase 3 PR.
+- LLM_CHAT_MODEL in docker-compose.prod.yml is LIVE with an empty
+  default (${LLM_CHAT_MODEL:-}) — PR #22's summary claimed it was
+  commented out, the code says otherwise. Harmless today (nothing
+  reads it), but it is the exact empty-override landmine #22 fixed
+  for the other vars. FIX in the Phase 3 query PR when the chat
+  default appears in application.yml.
+- CHUNK COUNT, canonical: 150 protocols -> 166 chunks (134x1 + 16x2;
+  the arithmetic only works for 166). PR #21's summary and an older
+  DECISIONS.txt line said 151/167 — off by one, likely a leftover
+  test upload counted during local verification. Production measured
+  150/166 with token counts matching local exactly. Use 150/166.
+- Java base package DECIDED 2026-08-07: KEEP com.keglevich.
+  maintenanceassistant. Robots must NOT rename it (see DECISIONS.txt
+  == ARCHITECTURE ==).
 - Editor hygiene (Carlos, no repo change): Spring Boot Extension Pack
   in VS Code clears the false "never used" warnings; select the
   Python interpreter for spike/ imports.
 
-NEXT SESSION STARTS WITH: Phase 2 kickoff. Suggested split into three
-robot PRs, in order:
-  (1) feat/db-migrations — Flyway V1: machine, protocol, chunk
-      (vector(1024)), indexes incl. vector index choice (HNSW vs
-      IVFFlat) documented, seed of 8-10 machines per DOMAIN-MODEL.md.
-  (2) feat/synthetic-corpus — generate ~150 protocols per the
-      DOMAIN-MODEL.md corpus plan (demo seeds: E-47 Presse 3 x3,
-      one Mode-B gap, one DE-query->EN-protocol match; 70% DE/30% EN;
-      quality mix incl. messy). Corpus is DATA (json/ndjson) + a
-      seed loader, documented in AI-USAGE.md as Claude-generated.
-  (3) feat/ingestion-pipeline — DONE 2026-08-07. Upload endpoint
-      (schichtleiter), file -> volume, chunking, bge-m3 via IONOS,
-      RECEIVED -> INDEXED/FAILED async on its own pool, admin catch-up
-      endpoint, daily embedding budget (NFR-7), Testcontainers suite.
-      Spring AI CLOSED -> plain RestClient (compatible but
-      disproportionate; spike/spring-ai-boot4/RESULTS.md).
-      Verified live: 150 protocols -> 167 chunks, EUR 0.00055.
-      NEW OPEN ITEM: ADR-002's threshold 0.583 is too high - the
-      cross-language demo measures 0.577 and would be refused. Tune to
-      ~0.54-0.55 in Phase 3 (evidence in the ADR-002 dated note).
+NEXT SESSION STARTS WITH: Phase 3 kickoff (query path). Suggested
+split into robot PRs, in order:
+  (1) feat/query-api — backend RAG query path: embed question ->
+      machine-filtered pgvector top-5 -> threshold -> Mode A
+      (grounded, every claim cited) / Mode B (labeled ungrounded;
+      operators get operator-safe steps + escalation only). Chat via
+      IONOS (Llama-3.3-70B quality / Qwen3.5-9B fast — needs
+      reasoning_effort="none"), structured JSON as app-side citation
+      enforcement, language pinning incl. refusals, citation few-shot
+      MUST NOT apply to Mode B. Threshold: set ~0.54-0.55 from the
+      ADR-002 dated evidence and re-verify the three demo cases.
+      NFR-7 query guards: Bucket4j per-user (~10/min), daily budget,
+      max_tokens cap, cache. Re-validate chat latency from the
+      Hetzner host (ADR-002 residual risk). Housekeeping bundled in:
+      LLM_CHAT_MODEL compose default fix + the two arc42 docs debts
+      from OPEN ITEMS.
+  (2) feat/search-ui — Angular search view: Mode A/B visually
+      distinct, source links, upload view with status, DE/EN switch.
+  Then Phase 4 (polish + ship, v1.0.0).
 
 =====================================================================
 GIT WORKFLOW (MANDATORY FOR EVERY AI SESSION — no exceptions)
@@ -243,22 +290,30 @@ PIPELINE ARCHITECTURE (.github/workflows/)
 5. release.yml        tag v*: GitHub Release with generated notes
 
 =====================================================================
-PHASE 2 — DATA + INGESTION   <-- NEXT (see CURRENT STATUS for the
-                                 suggested three-PR split)
+PHASE 2 — DATA + INGESTION  [DONE — 2026-08-07, PRs #18-#22 + ops]
 =====================================================================
-- Flyway migrations: machine, protocol, chunk (vector(1024) column)
-- Generate synthetic corpus (~150 protocols per DOMAIN-MODEL.md,
-  incl. demo seeds: E-47 Presse 3 x3, Mode-B gap, DE->EN match)
-- Ingestion module: upload endpoint (schichtleiter role), file ->
-  volume, text extraction, chunking, embedding call (bge-m3 @ IONOS),
-  status RECEIVED -> INDEXED/FAILED, async via Spring events
-- Seed loader for the corpus
-- [x] Early task: backups (nightly pg_dump + volume archive + snapshot
-      routine) — DONE 2026-08-07, before real data exists, see arc42 §7.6
-- PREREQUISITE: ADR-002 Accepted — MET (2026-08-06). Binds Phase 2:
-  chunk vector column is vector(1024) (BAAI/bge-m3 on IONOS), and the
-  similarity threshold is a config property (initial 0.583) to be
-  revalidated against the real ~150-protocol corpus.
+[x] Flyway migrations: machine, protocol, chunk (vector(1024)), HNSW
+    vector index (choice documented in ADR-004 dated note), 10-machine
+    repeatable seed with fixed UUIDs (#18)
+[x] Synthetic corpus: 150 protocols (108 DE / 42 EN, 120 STOERUNG /
+    30 WARTUNG, fault taxonomy MATERIAL 23 / BEDIENUNG 29 / TECHNIK 68
+    across 9 subtypes, quality mix 90/45/15). Demo seeds: E-47 on
+    Presse 3 x4 with four DIFFERENT root causes, Mode-B gap on AB-02
+    (dosing), DE-query->EN-protocol on FB-04 (mistracking). Mixed-
+    language protocols included (EN alarm strings inside DE prose).
+    Seed loader = flag-gated ApplicationRunner, idempotent (#19)
+[x] Ingestion pipeline: upload (schichtleiter, 202), file -> volume,
+    paragraph chunking, bge-m3 via plain RestClient (Spring AI CLOSED
+    — see DECISIONS.txt), RECEIVED -> INDEXED/FAILED async, backlog
+    catch-up, client-side budget counter (NFR-7), Testcontainers (#21)
+[x] Prod wiring fix: MAINTENANCE_FILES_PATH, flag passthrough,
+    empty-override defaults (#22) — and applied BY HAND on the host,
+    because CI never syncs compose files (see OPEN ITEMS)
+[x] Production indexed + verified live; flags disarmed (ops session)
+[x] Early task: backups (nightly pg_dump + volume archive + snapshot
+    routine) — DONE 2026-08-07, see arc42 §7.6
+[x] PREREQUISITE ADR-002 — MET. Threshold 0.583 revalidated against
+    the real corpus: TOO HIGH, tune to ~0.54-0.55 in Phase 3.
 
 =====================================================================
 PHASE 3 — RAG QUERY + MODES

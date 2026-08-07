@@ -65,6 +65,37 @@ One thing was deliberately *not* done: the corrected frontend image could not be
 because the available token lacks `write:packages`. It was built on the server from the repository
 Dockerfile instead, and the PR says so rather than implying the registry holds it.
 
+### Phase 2 — database migrations (Flyway V1 + machine seed)
+
+The Flyway baseline schema, the index set, the repeatable machine seed and the schema
+documentation in `docs/arc42/08-crosscutting-concepts.md` were AI-generated from
+`docs/DOMAIN-MODEL.md` and `docs/DECISIONS.txt`, which were handed over as the source of truth.
+The domain model itself — three entities, users outside the database, files on a volume,
+denormalized `machine_id` on the chunk, `error_code` as free text — is mine and predates this
+session.
+
+One decision was genuinely open and was made here: **HNSW over IVFFlat** for the vector index.
+The argument that settled it is that the migration runs against an empty table, where IVFFlat's
+k-means `lists` would be trained on no data and would need rebuilding after every ingestion run.
+It is recorded as a dated note in ADR-004's *Consequences* rather than as a new ADR, because it
+implements that ADR instead of changing it — and the note states plainly that at ~150 protocols
+the index is headroom, not a measured speed-up.
+
+Verification was running it, not asserting it: the compose Postgres was started, the application
+was launched so Flyway applied the migrations, and the result was read back out of `psql` —
+`pg_extension` for pgvector, `\dt` for the tables, `pg_attribute` proving `embedding` is
+`vector(1024)` and not merely declared so, and `pg_indexes` for all seven relational indexes plus
+the HNSW one. A transactional smoke test then inserted a real 1024-dimension vector, ran the
+ADR-004 retrieval query against it, and confirmed that a 3-dimension vector and an invalid
+`status` are both rejected by the database rather than only by the application. Starting the
+application a second time confirmed the repeatable seed does not duplicate rows.
+
+Two things were caught this way rather than assumed. The German umlauts in the seed round-tripped
+correctly, but only because `spring.flyway.encoding` is now stated explicitly — the default would
+have depended on the JVM's platform charset. And the second application start initially failed on
+a port clash, not on anything schema-related; the Flyway output from that run is still valid
+evidence and is reported as such rather than quietly re-run and presented as clean.
+
 Two earlier defects were found the same way, which is the argument for doing it: the Keycloak demo users could not log in at all (missing email tripped
 user-profile validation and forced an update-profile screen), and the frontend container refused to
 start as a non-root user. Both were fixed before the respective PR was opened.

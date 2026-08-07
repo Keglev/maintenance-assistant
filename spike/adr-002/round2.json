@@ -1,0 +1,1137 @@
+{
+  "max_answer_tokens": 400,
+  "latency_repeats": 3,
+  "variants": {
+    "V0": {
+      "label": "baseline (round-1 prompt)",
+      "prompt": "You are a maintenance assistant for an industrial plant. You answer questions from shop-floor staff about maintenance protocols.\nRules:\n1. Answer ONLY from the sources provided in the user message. Never add knowledge from anywhere else.\n2. Cite the source protocol after every factual claim, in the format [P-nn]. A claim without a citation is not allowed.\n3. Answer in the SAME LANGUAGE the question is written in, even if the sources are written in another language.\n4. If the sources do not contain an answer to the question, say in one sentence that no protocol in the knowledge base covers this case, and cite nothing. Do not guess and do not offer a repair procedure."
+    },
+    "V1": {
+      "label": "+ few-shot citation example",
+      "prompt": "You are a maintenance assistant for an industrial plant. You answer questions from shop-floor staff about maintenance protocols.\nRules:\n1. Answer ONLY from the sources provided in the user message. Never add knowledge from anywhere else.\n2. Cite the source protocol after every factual claim, in the format [P-nn]. A claim without a citation is not allowed.\n3. Answer in the SAME LANGUAGE the question is written in, even if the sources are written in another language.\n4. If the sources do not contain an answer to the question, say in one sentence that no protocol in the knowledge base covers this case, and cite nothing. Do not guess and do not offer a repair procedure.\n\nFormat example (this is NOT a source, do not cite P-99 in your answer):\n\n  Sources:\n  [P-99]\n  Protocol P-99 | Pump 7 (PU-07) | fault E-11\n  Symptom: The pump loses suction after ten minutes.\n  Cause: Blocked inlet strainer.\n  Action: Cleaned the strainer, refilled the system, ran a 30 minute test.\n\n  Question: Pumpe 7 verliert Saugleistung, was tun?\n\n  Correct answer:\n  Die Pumpe verliert nach etwa zehn Minuten die Saugleistung [P-99]. Ursache ist\n  ein verstopfter Saugkorb [P-99]. Als Massnahme wurde der Saugkorb gereinigt,\n  die Anlage neu befuellt und 30 Minuten im Testlauf geprueft [P-99].\n\nNote what makes it correct: EVERY sentence carries its own [P-nn] directly at\nthe end of that sentence. A single citation at the end of the whole answer is\nWRONG, even if the answer is otherwise grounded."
+    },
+    "V2": {
+      "label": "+ language pinning",
+      "prompt": "You are a maintenance assistant for an industrial plant. You answer questions from shop-floor staff about maintenance protocols.\nRules:\n1. Answer ONLY from the sources provided in the user message. Never add knowledge from anywhere else.\n2. Cite the source protocol after every factual claim, in the format [P-nn]. A claim without a citation is not allowed.\n3. Answer in the SAME LANGUAGE the question is written in, even if the sources are written in another language.\n4. If the sources do not contain an answer to the question, say in one sentence that no protocol in the knowledge base covers this case, and cite nothing. Do not guess and do not offer a repair procedure.\n\nLANGUAGE RULE (overrides everything else): ALL text you output must be in the\nlanguage of the QUESTION, never the language of the sources. This includes the\n\"no protocol covers this\" case from rule 4: if the question is German, the\nrefusal must be German. There is no exception. Decide the language of the\nquestion first, then write every word of your output in that language."
+    },
+    "V3": {
+      "label": "+ few-shot + language pinning (candidate)",
+      "prompt": "You are a maintenance assistant for an industrial plant. You answer questions from shop-floor staff about maintenance protocols.\nRules:\n1. Answer ONLY from the sources provided in the user message. Never add knowledge from anywhere else.\n2. Cite the source protocol after every factual claim, in the format [P-nn]. A claim without a citation is not allowed.\n3. Answer in the SAME LANGUAGE the question is written in, even if the sources are written in another language.\n4. If the sources do not contain an answer to the question, say in one sentence that no protocol in the knowledge base covers this case, and cite nothing. Do not guess and do not offer a repair procedure.\n\nFormat example (this is NOT a source, do not cite P-99 in your answer):\n\n  Sources:\n  [P-99]\n  Protocol P-99 | Pump 7 (PU-07) | fault E-11\n  Symptom: The pump loses suction after ten minutes.\n  Cause: Blocked inlet strainer.\n  Action: Cleaned the strainer, refilled the system, ran a 30 minute test.\n\n  Question: Pumpe 7 verliert Saugleistung, was tun?\n\n  Correct answer:\n  Die Pumpe verliert nach etwa zehn Minuten die Saugleistung [P-99]. Ursache ist\n  ein verstopfter Saugkorb [P-99]. Als Massnahme wurde der Saugkorb gereinigt,\n  die Anlage neu befuellt und 30 Minuten im Testlauf geprueft [P-99].\n\nNote what makes it correct: EVERY sentence carries its own [P-nn] directly at\nthe end of that sentence. A single citation at the end of the whole answer is\nWRONG, even if the answer is otherwise grounded.\n\nLANGUAGE RULE (overrides everything else): ALL text you output must be in the\nlanguage of the QUESTION, never the language of the sources. This includes the\n\"no protocol covers this\" case from rule 4: if the question is German, the\nrefusal must be German. There is no exception. Decide the language of the\nquestion first, then write every word of your output in that language."
+    }
+  },
+  "json_prompt": "You are a maintenance assistant for an industrial plant. You answer questions from shop-floor staff about maintenance protocols.\nRules:\n1. Answer ONLY from the sources provided in the user message. Never add knowledge from anywhere else.\n2. Cite the source protocol after every factual claim, in the format [P-nn]. A claim without a citation is not allowed.\n3. Answer in the SAME LANGUAGE the question is written in, even if the sources are written in another language.\n4. If the sources do not contain an answer to the question, say in one sentence that no protocol in the knowledge base covers this case, and cite nothing. Do not guess and do not offer a repair procedure.\n\nLANGUAGE RULE (overrides everything else): ALL text you output must be in the\nlanguage of the QUESTION, never the language of the sources. This includes the\n\"no protocol covers this\" case from rule 4: if the question is German, the\nrefusal must be German. There is no exception. Decide the language of the\nquestion first, then write every word of your output in that language.\n\nOUTPUT FORMAT: reply with a single JSON object and nothing else:\n{\"answer_language\": \"<ISO 639-1 code of the QUESTION>\",\n \"claims\": [{\"text\": \"<one factual claim, no citation marker inside>\",\n             \"source\": \"<the P-nn id this claim comes from>\"}]}\nEvery claim MUST carry its source. If the sources do not answer the question,\nreturn {\"answer_language\": \"<code>\", \"claims\": []} and nothing else.\n",
+  "results": [
+    {
+      "provider": "nebius",
+      "model": "meta-llama/Llama-3.3-70B-Instruct",
+      "extra_kwargs": {},
+      "max_tokens": 400,
+      "variants": {
+        "V0": {
+          "label": "baseline (round-1 prompt)",
+          "b": {
+            "answer": "Das Symptom des Fehlers E-47 mit schwankendem Druck auf der Presse entspricht dem in Protokoll P-08 beschriebenen Fall [P-08]. Die Ursache dafür ist ein Drift auf dem Hauptdrucksensor, der um etwa 12 Prozent gegenüber dem Referenzmanometer verschoben ist [P-08]. Die empfohlene Maßnahme besteht darin, den Drucksensor gegen ein zertifiziertes Referenzmanometer zu kalibrieren, den Offset in den PLC-Parametern zu korrigieren und mehrere Testzyklen durchzuführen [P-08].",
+            "reasoning_chars": 0,
+            "empty_answer": false,
+            "prompt_tokens": 786,
+            "completion_tokens": 143,
+            "latency_s": 53.089,
+            "finish_reason": "stop",
+            "language": {
+              "german_markers": 13,
+              "english_markers": 0,
+              "is_german": true
+            },
+            "citations": {
+              "citation_count": 3,
+              "cited_ids": [
+                "P-08"
+              ],
+              "expected_cited": true,
+              "sentences_total": 3,
+              "sentences_without_citation": 0,
+              "uncited_sentences": []
+            }
+          },
+          "c": {
+            "answer": "No protocol in the knowledge base covers this case.",
+            "reasoning_chars": 0,
+            "empty_answer": false,
+            "prompt_tokens": 741,
+            "completion_tokens": 11,
+            "latency_s": 0.441,
+            "finish_reason": "stop",
+            "language": {
+              "german_markers": 0,
+              "english_markers": 3,
+              "is_german": false
+            },
+            "refusal": {
+              "refusal_phrase_found": true,
+              "citation_count": 0,
+              "length_chars": 51,
+              "language_correct": false
+            }
+          }
+        },
+        "V1": {
+          "label": "+ few-shot citation example",
+          "b": {
+            "answer": "Die Presse zeigt Fehler E-47 und der Druck schwankt zwischen 180 und 240 bar, obwohl der Sollwert 210 bar ist [P-08]. Die Ursache für diesen Fehler ist ein Drift auf dem Hauptdrucksensor, der um etwa 12 Prozent gegenüber dem Referenzmanometer verschoben ist [P-08]. Als Maßnahme wurde der Drucksensor gegen ein zertifiziertes Referenzmanometer kalibriert, der Offset in den PLC-Parametern korrigiert und zehn Testzyklen durchgeführt [P-08].",
+            "reasoning_chars": 0,
+            "empty_answer": false,
+            "prompt_tokens": 1025,
+            "completion_tokens": 132,
+            "latency_s": 22.896,
+            "finish_reason": "stop",
+            "language": {
+              "german_markers": 20,
+              "english_markers": 0,
+              "is_german": true
+            },
+            "citations": {
+              "citation_count": 3,
+              "cited_ids": [
+                "P-08"
+              ],
+              "expected_cited": true,
+              "sentences_total": 3,
+              "sentences_without_citation": 0,
+              "uncited_sentences": []
+            }
+          },
+          "c": {
+            "answer": "No protocol in the knowledge base covers this case.",
+            "reasoning_chars": 0,
+            "empty_answer": false,
+            "prompt_tokens": 980,
+            "completion_tokens": 11,
+            "latency_s": 0.507,
+            "finish_reason": "stop",
+            "language": {
+              "german_markers": 0,
+              "english_markers": 3,
+              "is_german": false
+            },
+            "refusal": {
+              "refusal_phrase_found": true,
+              "citation_count": 0,
+              "length_chars": 51,
+              "language_correct": false
+            }
+          }
+        },
+        "V2": {
+          "label": "+ language pinning",
+          "b": {
+            "answer": "Das Symptom \"Fehler E-47\" und der schwankende Druck deuten auf eine Drift im Hauptdrucksensor hin [P-08]. Die Ursache ist wahrscheinlich ein verschobenes Signal des Drucksensors gegenüber dem Referenzmanometer [P-08]. Um dies zu beheben, sollte der Drucksensor gegen ein zertifiziertes Referenzmanometer kalibriert werden [P-08].",
+            "reasoning_chars": 0,
+            "empty_answer": false,
+            "prompt_tokens": 869,
+            "completion_tokens": 96,
+            "latency_s": 2.145,
+            "finish_reason": "stop",
+            "language": {
+              "german_markers": 9,
+              "english_markers": 0,
+              "is_german": true
+            },
+            "citations": {
+              "citation_count": 3,
+              "cited_ids": [
+                "P-08"
+              ],
+              "expected_cited": true,
+              "sentences_total": 3,
+              "sentences_without_citation": 0,
+              "uncited_sentences": []
+            }
+          },
+          "c": {
+            "answer": "Kein Protokoll im Wissensspeicher deckt diesen Fall ab.",
+            "reasoning_chars": 0,
+            "empty_answer": false,
+            "prompt_tokens": 824,
+            "completion_tokens": 18,
+            "latency_s": 70.554,
+            "finish_reason": "stop",
+            "language": {
+              "german_markers": 2,
+              "english_markers": 0,
+              "is_german": true
+            },
+            "refusal": {
+              "refusal_phrase_found": true,
+              "citation_count": 0,
+              "length_chars": 55,
+              "language_correct": true
+            }
+          }
+        },
+        "V3": {
+          "label": "+ few-shot + language pinning (candidate)",
+          "b": {
+            "answer": "Die Presse zeigt Fehler E-47 und der Druck schwankt zwischen 180 und 240 bar, obwohl der Sollwert 210 bar ist [P-08]. Die Ursache für diesen Fehler ist ein Drift auf dem Hauptdrucksensor, der um etwa 12 Prozent gegenüber dem Referenzmanometer verschoben ist [P-08]. Als Maßnahme wurde der Drucksensor gegen ein zertifiziertes Referenzmanometer kalibriert, der Offset in der PLC-Parameterliste korrigiert und zehn Testzyklen durchgeführt [P-08]. Durch diese Maßnahme ist der Druck nun stabil bei 210 bar und der Fehler E-47 trat nicht wieder auf [P-08].",
+            "reasoning_chars": 0,
+            "empty_answer": false,
+            "prompt_tokens": 1108,
+            "completion_tokens": 161,
+            "latency_s": 89.612,
+            "finish_reason": "stop",
+            "language": {
+              "german_markers": 29,
+              "english_markers": 0,
+              "is_german": true
+            },
+            "citations": {
+              "citation_count": 4,
+              "cited_ids": [
+                "P-08"
+              ],
+              "expected_cited": true,
+              "sentences_total": 4,
+              "sentences_without_citation": 0,
+              "uncited_sentences": []
+            }
+          },
+          "c": {
+            "answer": "Kein Protokoll im Wissensspeicher deckt diesen Fall ab.",
+            "reasoning_chars": 0,
+            "empty_answer": false,
+            "prompt_tokens": 1063,
+            "completion_tokens": 18,
+            "latency_s": 30.321,
+            "finish_reason": "stop",
+            "language": {
+              "german_markers": 2,
+              "english_markers": 0,
+              "is_german": true
+            },
+            "refusal": {
+              "refusal_phrase_found": true,
+              "citation_count": 0,
+              "length_chars": 55,
+              "language_correct": true
+            }
+          }
+        }
+      },
+      "latency_v3": {
+        "runs": [
+          {
+            "latency_s": 101.47,
+            "completion_tokens": 166,
+            "finish_reason": "stop"
+          },
+          {
+            "latency_s": 49.6,
+            "completion_tokens": 157,
+            "finish_reason": "stop"
+          },
+          {
+            "latency_s": 24.065,
+            "completion_tokens": 164,
+            "finish_reason": "stop"
+          }
+        ],
+        "min_s": 24.065,
+        "max_s": 101.47,
+        "median_s": 49.6,
+        "meets_nfr4_target_10s": false,
+        "meets_nfr4_ceiling_30s": false
+      },
+      "structured_json": {
+        "b": {
+          "answer": "{\"answer_language\": \"de\",\n \"claims\": [{\"text\": \"Die Ursache für den Fehler E-47 ist ein Drift auf dem Hauptdrucksensor.\", \n             \"source\": \"P-08\"}, \n            {\"text\": \"Die Symptomatik zeigt sich durch eine Fluktuation des Druckwertes zwischen 180 und 240 bar während des Pressstrokes, obwohl der Sollwert bei 210 bar liegt.\", \n             \"source\": \"P-08\"}]}",
+          "reasoning_chars": 0,
+          "empty_answer": false,
+          "prompt_tokens": 963,
+          "completion_tokens": 104,
+          "latency_s": 22.904,
+          "finish_reason": "stop",
+          "response_format": "json_schema",
+          "parsed_ok": true,
+          "parsed": {
+            "answer_language": "de",
+            "claims": [
+              {
+                "text": "Die Ursache für den Fehler E-47 ist ein Drift auf dem Hauptdrucksensor.",
+                "source": "P-08"
+              },
+              {
+                "text": "Die Symptomatik zeigt sich durch eine Fluktuation des Druckwertes zwischen 180 und 240 bar während des Pressstrokes, obwohl der Sollwert bei 210 bar liegt.",
+                "source": "P-08"
+              }
+            ]
+          },
+          "claims_total": 2,
+          "claims_with_source": 2,
+          "answer_language": "de"
+        },
+        "c": {
+          "answer": "{\"answer_language\": \"de\", \"claims\": []}",
+          "reasoning_chars": 0,
+          "empty_answer": false,
+          "prompt_tokens": 918,
+          "completion_tokens": 13,
+          "latency_s": 0.507,
+          "finish_reason": "stop",
+          "response_format": "json_schema",
+          "parsed_ok": true,
+          "parsed": {
+            "answer_language": "de",
+            "claims": []
+          },
+          "claims_total": 0,
+          "claims_with_source": 0,
+          "answer_language": "de"
+        }
+      },
+      "status": "ok"
+    },
+    {
+      "provider": "nebius",
+      "model": "Qwen/Qwen3-30B-A3B-Instruct-2507",
+      "extra_kwargs": {},
+      "max_tokens": 400,
+      "variants": {
+        "V0": {
+          "label": "baseline (round-1 prompt)",
+          "b": {
+            "answer": "Der Fehler E-47 tritt auf, wenn der Druck während des Pressvorgangs zwischen 180 und 240 bar schwankt, obwohl der Sollwert 210 bar beträgt. Die Ursache ist ein Drift des Hauptdrucksensors, der um etwa 12 Prozent gegenüber der Referenzwaage abweicht. Die Hydraulikschaltung selbst ist intakt. Die Maßnahme besteht in der Nachkalibrierung des Drucksensors anhand einer zertifizierten Referenzwaage, der Korrektur des Offset-Werts im PLC-Parameter-Set sowie dem Durchführen von zehn Testzyklen. Danach ist der Druck stabil bei 210 bar und der Fehler E-47 tritt nicht mehr auf [P-08].",
+            "reasoning_chars": 0,
+            "empty_answer": false,
+            "prompt_tokens": 810,
+            "completion_tokens": 181,
+            "latency_s": 25.381,
+            "finish_reason": "stop",
+            "language": {
+              "german_markers": 24,
+              "english_markers": 0,
+              "is_german": true
+            },
+            "citations": {
+              "citation_count": 1,
+              "cited_ids": [
+                "P-08"
+              ],
+              "expected_cited": true,
+              "sentences_total": 5,
+              "sentences_without_citation": 4,
+              "uncited_sentences": [
+                "Der Fehler E-47 tritt auf, wenn der Druck während des Pressvorgangs zwischen 180 und 240 bar schwankt, obwohl der Sollwert 210 bar beträgt.",
+                "Die Ursache ist ein Drift des Hauptdrucksensors, der um etwa 12 Prozent gegenüber der Referenzwaage abweicht.",
+                "Die Hydraulikschaltung selbst ist intakt.",
+                "Die Maßnahme besteht in der Nachkalibrierung des Drucksensors anhand einer zertifizierten Referenzwaage, der Korrektur des Offset-Werts im PLC-Parameter-Set sowie dem Durchführen von zehn Testzyklen."
+              ]
+            }
+          },
+          "c": {
+            "answer": "Kein Protokoll im Wissensbasis deckt diesen Fall ab.",
+            "reasoning_chars": 0,
+            "empty_answer": false,
+            "prompt_tokens": 747,
+            "completion_tokens": 17,
+            "latency_s": 0.605,
+            "finish_reason": "stop",
+            "language": {
+              "german_markers": 2,
+              "english_markers": 0,
+              "is_german": true
+            },
+            "refusal": {
+              "refusal_phrase_found": true,
+              "citation_count": 0,
+              "length_chars": 52,
+              "language_correct": true
+            }
+          }
+        },
+        "V1": {
+          "label": "+ few-shot citation example",
+          "b": {
+            "answer": "Die Hydraulikpresse zeigt Fehler E-47, wobei der Druck während des Pressvorgangs zwischen 180 und 240 bar schwankt, obwohl der Sollwert 210 bar beträgt [P-08]. Ursache ist eine Drift des Hauptdrucksensors, der um etwa 12 Prozent gegenüber der Referenzwaage abgelaufen war; die Hydraulikschaltung selbst war einwandfrei [P-08]. Als Maßnahme wurde der Drucksensor anhand einer zertifizierten Referenzwaage nachkalibriert, der Offset im PLC-Parameter-Set korrigiert und zehn Testzyklen durchgeführt [P-08]. Der Druck ist nun stabil bei 210 bar, und der Fehler E-47 trat nicht erneut auf [P-08].",
+            "reasoning_chars": 0,
+            "empty_answer": false,
+            "prompt_tokens": 1059,
+            "completion_tokens": 195,
+            "latency_s": 6.78,
+            "finish_reason": "stop",
+            "language": {
+              "german_markers": 23,
+              "english_markers": 0,
+              "is_german": true
+            },
+            "citations": {
+              "citation_count": 4,
+              "cited_ids": [
+                "P-08"
+              ],
+              "expected_cited": true,
+              "sentences_total": 4,
+              "sentences_without_citation": 0,
+              "uncited_sentences": []
+            }
+          },
+          "c": {
+            "answer": "Kein Protokoll im Wissensbasis deckt diesen Fall ab, daher kann keine spezifische Maßnahme basierend auf den bereitgestellten Quellen genannt werden.",
+            "reasoning_chars": 0,
+            "empty_answer": false,
+            "prompt_tokens": 996,
+            "completion_tokens": 43,
+            "latency_s": 0.897,
+            "finish_reason": "stop",
+            "language": {
+              "german_markers": 4,
+              "english_markers": 0,
+              "is_german": true
+            },
+            "refusal": {
+              "refusal_phrase_found": true,
+              "citation_count": 0,
+              "length_chars": 149,
+              "language_correct": true
+            }
+          }
+        },
+        "V2": {
+          "label": "+ language pinning",
+          "b": {
+            "answer": "Der Fehler E-47 tritt auf, wenn der Druck während des Pressvorgangs zwischen 180 und 240 bar schwankt, obwohl der Sollwert 210 bar beträgt. Ursache ist ein Drift des Hauptdrucksensors, der um etwa 12 Prozent gegenüber der Referenzwaage abweicht. Die Hydraulikschaltung ist intakt. Maßnahme: Kalibrierung des Drucksensors anhand einer zertifizierten Referenzwaage, Korrektur des Offset im PLC-Parameter-Set und Durchführung von zehn Testzyklen. Der Druck ist danach stabil bei 210 bar, der Fehler E-47 tritt nicht mehr auf [P-08].",
+            "reasoning_chars": 0,
+            "empty_answer": false,
+            "prompt_tokens": 893,
+            "completion_tokens": 171,
+            "latency_s": 4.087,
+            "finish_reason": "stop",
+            "language": {
+              "german_markers": 20,
+              "english_markers": 0,
+              "is_german": true
+            },
+            "citations": {
+              "citation_count": 1,
+              "cited_ids": [
+                "P-08"
+              ],
+              "expected_cited": true,
+              "sentences_total": 5,
+              "sentences_without_citation": 4,
+              "uncited_sentences": [
+                "Der Fehler E-47 tritt auf, wenn der Druck während des Pressvorgangs zwischen 180 und 240 bar schwankt, obwohl der Sollwert 210 bar beträgt.",
+                "Ursache ist ein Drift des Hauptdrucksensors, der um etwa 12 Prozent gegenüber der Referenzwaage abweicht.",
+                "Die Hydraulikschaltung ist intakt.",
+                "Maßnahme: Kalibrierung des Drucksensors anhand einer zertifizierten Referenzwaage, Korrektur des Offset im PLC-Parameter-Set und Durchführung von zehn Testzyklen."
+              ]
+            }
+          },
+          "c": {
+            "answer": "Kein Protokoll im Wissensbasis deckt diesen Fall ab.",
+            "reasoning_chars": 0,
+            "empty_answer": false,
+            "prompt_tokens": 830,
+            "completion_tokens": 17,
+            "latency_s": 0.612,
+            "finish_reason": "stop",
+            "language": {
+              "german_markers": 2,
+              "english_markers": 0,
+              "is_german": true
+            },
+            "refusal": {
+              "refusal_phrase_found": true,
+              "citation_count": 0,
+              "length_chars": 52,
+              "language_correct": true
+            }
+          }
+        },
+        "V3": {
+          "label": "+ few-shot + language pinning (candidate)",
+          "b": {
+            "answer": "Die Presse zeigt Fehler E-47, wobei der Druck während des Pressvorgangs zwischen 180 und 240 bar schwankt, obwohl der Sollwert 210 bar beträgt [P-08]. Ursache ist eine Drift des Hauptdrucksensors, der gegenüber dem Referenzmanometer um etwa 12 Prozent abweicht; die Hydraulikschaltung selbst ist einwandfrei [P-08]. Als Maßnahme wurde der Drucksensor an einem zertifizierten Referenzmanometer nachkalibriert, der Offset im PLC-Parameter-Set korrigiert und zehn Testzyklen durchgeführt [P-08]. Der Druck ist nun stabil bei 210 bar, und der Fehler E-47 trat nicht erneut auf [P-08].",
+            "reasoning_chars": 0,
+            "empty_answer": false,
+            "prompt_tokens": 1142,
+            "completion_tokens": 189,
+            "latency_s": 5.135,
+            "finish_reason": "stop",
+            "language": {
+              "german_markers": 24,
+              "english_markers": 0,
+              "is_german": true
+            },
+            "citations": {
+              "citation_count": 4,
+              "cited_ids": [
+                "P-08"
+              ],
+              "expected_cited": true,
+              "sentences_total": 4,
+              "sentences_without_citation": 0,
+              "uncited_sentences": []
+            }
+          },
+          "c": {
+            "answer": "Kein Protokoll im Wissensbestand behandelt den Fall eines Lackierroboters mit ungleichmäßiger Farbauftragung und Farbnebel in der Kabine [P-03].",
+            "reasoning_chars": 0,
+            "empty_answer": false,
+            "prompt_tokens": 1079,
+            "completion_tokens": 48,
+            "latency_s": 19.664,
+            "finish_reason": "stop",
+            "language": {
+              "german_markers": 4,
+              "english_markers": 0,
+              "is_german": true
+            },
+            "refusal": {
+              "refusal_phrase_found": true,
+              "citation_count": 1,
+              "length_chars": 144,
+              "language_correct": true
+            }
+          }
+        }
+      },
+      "latency_v3": {
+        "runs": [
+          {
+            "latency_s": 3.342,
+            "completion_tokens": 185,
+            "finish_reason": "stop"
+          },
+          {
+            "latency_s": 3.383,
+            "completion_tokens": 191,
+            "finish_reason": "stop"
+          },
+          {
+            "latency_s": 2.356,
+            "completion_tokens": 189,
+            "finish_reason": "stop"
+          }
+        ],
+        "min_s": 2.356,
+        "max_s": 3.383,
+        "median_s": 3.342,
+        "meets_nfr4_target_10s": true,
+        "meets_nfr4_ceiling_30s": true
+      },
+      "structured_json": {
+        "b": {
+          "answer": "{\"answer_language\": \"de\", \"claims\": [{\"text\": \"Der Fehler E-47 tritt auf, wenn der Druck während des Pressvorgangs zwischen 180 und 240 bar schwankt, obwohl der Sollwert 210 bar beträgt.\", \"source\": \"P-08\"}, {\"text\": \"Die Ursache für den Fehler E-47 ist ein Drift des Hauptdrucksensors, wobei das Sensorignal um etwa 12 Prozent gegenüber der Referenzwaage abweichte.\", \"source\": \"P-08\"}, {\"text\": \"Die Maßnahme zur Behebung besteht in der Nachkalibrierung des Drucksensors anhand einer zertifizierten Referenzwaage, der Korrektur des Offset-Werts im PLC-Parameter-Set und dem Durchführen von zehn Testzyklen.\", \"source\": \"P-08\"}]}",
+          "reasoning_chars": 0,
+          "empty_answer": false,
+          "prompt_tokens": 989,
+          "completion_tokens": 205,
+          "latency_s": 2.14,
+          "finish_reason": "stop",
+          "response_format": "json_schema",
+          "parsed_ok": true,
+          "parsed": {
+            "answer_language": "de",
+            "claims": [
+              {
+                "text": "Der Fehler E-47 tritt auf, wenn der Druck während des Pressvorgangs zwischen 180 und 240 bar schwankt, obwohl der Sollwert 210 bar beträgt.",
+                "source": "P-08"
+              },
+              {
+                "text": "Die Ursache für den Fehler E-47 ist ein Drift des Hauptdrucksensors, wobei das Sensorignal um etwa 12 Prozent gegenüber der Referenzwaage abweichte.",
+                "source": "P-08"
+              },
+              {
+                "text": "Die Maßnahme zur Behebung besteht in der Nachkalibrierung des Drucksensors anhand einer zertifizierten Referenzwaage, der Korrektur des Offset-Werts im PLC-Parameter-Set und dem Durchführen von zehn Testzyklen.",
+                "source": "P-08"
+              }
+            ]
+          },
+          "claims_total": 3,
+          "claims_with_source": 3,
+          "answer_language": "de"
+        },
+        "c": {
+          "answer": "{\"answer_language\": \"de\", \"claims\": []}",
+          "reasoning_chars": 0,
+          "empty_answer": false,
+          "prompt_tokens": 926,
+          "completion_tokens": 13,
+          "latency_s": 0.308,
+          "finish_reason": "stop",
+          "response_format": "json_schema",
+          "parsed_ok": true,
+          "parsed": {
+            "answer_language": "de",
+            "claims": []
+          },
+          "claims_total": 0,
+          "claims_with_source": 0,
+          "answer_language": "de"
+        }
+      },
+      "status": "ok"
+    },
+    {
+      "provider": "ionos",
+      "model": "meta-llama/Llama-3.3-70B-Instruct",
+      "extra_kwargs": {},
+      "max_tokens": 400,
+      "variants": {
+        "V0": {
+          "label": "baseline (round-1 prompt)",
+          "b": {
+            "answer": "Das Symptom \"Fehler E-47\" und \"Druck schwankt\" entspricht dem in Protokoll P-08 beschriebenen Fall [P-08]. Die Ursache dafür ist ein Drift auf dem Hauptdrucksensor, der um etwa 12 Prozent gegenüber dem Referenzmanometer verschoben war [P-08]. Die empfohlene Maßnahme ist die Neukalibrierung des Drucksensors gegen ein zertifiziertes Referenzmanometer und die Korrektur des Offsets in den PLC-Parametern [P-08].",
+            "reasoning_chars": 0,
+            "empty_answer": false,
+            "prompt_tokens": 774,
+            "completion_tokens": 129,
+            "latency_s": 3.664,
+            "finish_reason": "stop",
+            "language": {
+              "german_markers": 15,
+              "english_markers": 0,
+              "is_german": true
+            },
+            "citations": {
+              "citation_count": 3,
+              "cited_ids": [
+                "P-08"
+              ],
+              "expected_cited": true,
+              "sentences_total": 3,
+              "sentences_without_citation": 0,
+              "uncited_sentences": []
+            }
+          },
+          "c": {
+            "answer": "No protocol in the knowledge base covers this case.",
+            "reasoning_chars": 0,
+            "empty_answer": false,
+            "prompt_tokens": 768,
+            "completion_tokens": 11,
+            "latency_s": 72.001,
+            "finish_reason": "stop",
+            "language": {
+              "german_markers": 0,
+              "english_markers": 3,
+              "is_german": false
+            },
+            "refusal": {
+              "refusal_phrase_found": true,
+              "citation_count": 0,
+              "length_chars": 51,
+              "language_correct": false
+            }
+          }
+        },
+        "V1": {
+          "label": "+ few-shot citation example",
+          "b": {
+            "answer": "Die Presse zeigt Fehler E-47 und der Druck schwankt zwischen 180 und 240 bar während des Pressstichs, obwohl der Sollwert 210 bar ist [P-08]. Ursache ist ein Drift auf dem Hauptdrucksensor, der Sensor-Signal hatte sich um etwa 12 Prozent gegenüber dem Referenzmanometer verschoben [P-08]. Als Maßnahme wurde der Drucksensor gegen ein zertifiziertes Referenzmanometer justiert, der Offset in der PLC-Parameter-Set korrigiert und zehn Testzyklen durchgeführt [P-08].",
+            "reasoning_chars": 0,
+            "empty_answer": false,
+            "prompt_tokens": 1013,
+            "completion_tokens": 137,
+            "latency_s": 11.766,
+            "finish_reason": "stop",
+            "language": {
+              "german_markers": 19,
+              "english_markers": 1,
+              "is_german": true
+            },
+            "citations": {
+              "citation_count": 3,
+              "cited_ids": [
+                "P-08"
+              ],
+              "expected_cited": true,
+              "sentences_total": 3,
+              "sentences_without_citation": 0,
+              "uncited_sentences": []
+            }
+          },
+          "c": {
+            "answer": "No protocol in the knowledge base covers this case.",
+            "reasoning_chars": 0,
+            "empty_answer": false,
+            "prompt_tokens": 1007,
+            "completion_tokens": 11,
+            "latency_s": 6.343,
+            "finish_reason": "stop",
+            "language": {
+              "german_markers": 0,
+              "english_markers": 3,
+              "is_german": false
+            },
+            "refusal": {
+              "refusal_phrase_found": true,
+              "citation_count": 0,
+              "length_chars": 51,
+              "language_correct": false
+            }
+          }
+        },
+        "V2": {
+          "label": "+ language pinning",
+          "b": {
+            "answer": "Das Symptom, das Sie beschreiben, entspricht dem in Protokoll P-08 beschriebenen Fall [P-08]. Der Fehler E-47 und die Schwankung des Drucks zwischen 180 und 240 bar, obwohl der Sollwert bei 210 bar liegt, deuten auf eine Drift des Hauptdrucksensors hin [P-08]. Die empfohlene Maßnahme wäre, den Drucksensor gegen eine zertifizierte Referenz zu kalibrieren, den Offset in den PLC-Parametern zu korrigieren und einige Testzyklen durchzuführen [P-08].",
+            "reasoning_chars": 0,
+            "empty_answer": false,
+            "prompt_tokens": 857,
+            "completion_tokens": 139,
+            "latency_s": 4.604,
+            "finish_reason": "stop",
+            "language": {
+              "german_markers": 12,
+              "english_markers": 0,
+              "is_german": true
+            },
+            "citations": {
+              "citation_count": 3,
+              "cited_ids": [
+                "P-08"
+              ],
+              "expected_cited": true,
+              "sentences_total": 3,
+              "sentences_without_citation": 0,
+              "uncited_sentences": []
+            }
+          },
+          "c": {
+            "answer": "Kein Protokoll im Wissensspeicher deckt diesen Fall ab.",
+            "reasoning_chars": 0,
+            "empty_answer": false,
+            "prompt_tokens": 851,
+            "completion_tokens": 18,
+            "latency_s": 8.799,
+            "finish_reason": "stop",
+            "language": {
+              "german_markers": 2,
+              "english_markers": 0,
+              "is_german": true
+            },
+            "refusal": {
+              "refusal_phrase_found": true,
+              "citation_count": 0,
+              "length_chars": 55,
+              "language_correct": true
+            }
+          }
+        },
+        "V3": {
+          "label": "+ few-shot + language pinning (candidate)",
+          "b": {
+            "answer": "Die Presse zeigt Fehler E-47 und der Druck schwankt zwischen 180 und 240 bar während des Pressstichs, obwohl der Sollwert 210 bar ist [P-08]. Die Ursache für dieses Verhalten ist ein Drift auf dem Hauptdrucksensor, dessen Signal um etwa 12 Prozent gegenüber dem Referenzmanometer verschoben war [P-08]. Als Maßnahme wurde der Drucksensor gegen ein zertifiziertes Referenzmanometer justiert, der Offset in der PLC-Parameterliste korrigiert und zehn Testzyklen durchgeführt [P-08]. Durch diese Maßnahmen ist der Druck nun stabil bei 210 bar und der Fehler E-47 trat nicht wieder auf [P-08].",
+            "reasoning_chars": 0,
+            "empty_answer": false,
+            "prompt_tokens": 1096,
+            "completion_tokens": 170,
+            "latency_s": 10.134,
+            "finish_reason": "stop",
+            "language": {
+              "german_markers": 25,
+              "english_markers": 0,
+              "is_german": true
+            },
+            "citations": {
+              "citation_count": 4,
+              "cited_ids": [
+                "P-08"
+              ],
+              "expected_cited": true,
+              "sentences_total": 4,
+              "sentences_without_citation": 0,
+              "uncited_sentences": []
+            }
+          },
+          "c": {
+            "answer": "Kein Protokoll im Wissensbasis deckt diesen Fall ab.",
+            "reasoning_chars": 0,
+            "empty_answer": false,
+            "prompt_tokens": 1090,
+            "completion_tokens": 17,
+            "latency_s": 4.092,
+            "finish_reason": "stop",
+            "language": {
+              "german_markers": 2,
+              "english_markers": 0,
+              "is_german": true
+            },
+            "refusal": {
+              "refusal_phrase_found": true,
+              "citation_count": 0,
+              "length_chars": 52,
+              "language_correct": true
+            }
+          }
+        }
+      },
+      "latency_v3": {
+        "runs": [
+          {
+            "latency_s": 10.878,
+            "completion_tokens": 170,
+            "finish_reason": "stop"
+          },
+          {
+            "latency_s": 7.079,
+            "completion_tokens": 170,
+            "finish_reason": "stop"
+          },
+          {
+            "latency_s": 13.001,
+            "completion_tokens": 170,
+            "finish_reason": "stop"
+          }
+        ],
+        "min_s": 7.079,
+        "max_s": 13.001,
+        "median_s": 10.878,
+        "meets_nfr4_target_10s": false,
+        "meets_nfr4_ceiling_30s": true
+      },
+      "structured_json": {
+        "b": {
+          "answer": "{\"answer_language\": \"de\",\n \"claims\": [{\"text\": \"Das Problem liegt am Drift des Hauptdrucksensors, dessen Signal um etwa 12 Prozent gegenüber dem Referenzmanometer verschoben war.\",\n             \"source\": \"P-08\"},\n            {\"text\": \"Die Lösung besteht darin, den Drucksensor gegen ein zertifiziertes Referenzmanometer zu kalibrieren, den Offset in der PLC-Parameterliste zu korrigieren und zehn Testzyklen durchzuführen.\",\n             \"source\": \"P-08\"}]}",
+          "reasoning_chars": 0,
+          "empty_answer": false,
+          "prompt_tokens": 951,
+          "completion_tokens": 126,
+          "latency_s": 6.209,
+          "finish_reason": "stop",
+          "response_format": "json_schema",
+          "parsed_ok": true,
+          "parsed": {
+            "answer_language": "de",
+            "claims": [
+              {
+                "text": "Das Problem liegt am Drift des Hauptdrucksensors, dessen Signal um etwa 12 Prozent gegenüber dem Referenzmanometer verschoben war.",
+                "source": "P-08"
+              },
+              {
+                "text": "Die Lösung besteht darin, den Drucksensor gegen ein zertifiziertes Referenzmanometer zu kalibrieren, den Offset in der PLC-Parameterliste zu korrigieren und zehn Testzyklen durchzuführen.",
+                "source": "P-08"
+              }
+            ]
+          },
+          "claims_total": 2,
+          "claims_with_source": 2,
+          "answer_language": "de"
+        },
+        "c": {
+          "answer": "{\"answer_language\": \"de\", \"claims\": []}",
+          "reasoning_chars": 0,
+          "empty_answer": false,
+          "prompt_tokens": 945,
+          "completion_tokens": 13,
+          "latency_s": 1.431,
+          "finish_reason": "stop",
+          "response_format": "json_schema",
+          "parsed_ok": true,
+          "parsed": {
+            "answer_language": "de",
+            "claims": []
+          },
+          "claims_total": 0,
+          "claims_with_source": 0,
+          "answer_language": "de"
+        }
+      },
+      "status": "ok"
+    },
+    {
+      "provider": "ionos",
+      "model": "Qwen/Qwen3.5-9B",
+      "extra_kwargs": {
+        "reasoning_effort": "none"
+      },
+      "max_tokens": 400,
+      "variants": {
+        "V0": {
+          "label": "baseline (round-1 prompt)",
+          "b": {
+            "answer": "Wenn die Hydraulikpresse Fehler E-47 anzeigt und der Druck schwankt, liegt die Ursache in einem Drift des Hauptdrucksensors, der sein Signal gegen den Referenzmanometer um etwa 12 % verschoben hat, während der Hydraulikkreislauf selbst in Ordnung ist [P-08]. Die Maßnahme besteht darin, den Drucksensor gegen ein zertifiziertes Referenzmanometer neu zu kalibrieren, den Offset im PLC-Parameter-Satz zu korrigieren und zehn Testzyklen durchzuführen, bis der Druck stabil bei 210 bar liegt und der Fehler E-47 nicht erneut auftritt [P-08].",
+            "reasoning_chars": 0,
+            "empty_answer": false,
+            "prompt_tokens": 787,
+            "completion_tokens": 144,
+            "latency_s": 3.37,
+            "finish_reason": "stop",
+            "language": {
+              "german_markers": 19,
+              "english_markers": 0,
+              "is_german": true
+            },
+            "citations": {
+              "citation_count": 2,
+              "cited_ids": [
+                "P-08"
+              ],
+              "expected_cited": true,
+              "sentences_total": 2,
+              "sentences_without_citation": 0,
+              "uncited_sentences": []
+            }
+          },
+          "c": {
+            "answer": "Kein Protokoll im Wissensbestand behandelt den Fall eines Lackierroboters mit ungleichmäßiger Farbauftragung und Farbnebel in der Kabine.",
+            "reasoning_chars": 0,
+            "empty_answer": false,
+            "prompt_tokens": 742,
+            "completion_tokens": 35,
+            "latency_s": 3.473,
+            "finish_reason": "stop",
+            "language": {
+              "german_markers": 4,
+              "english_markers": 0,
+              "is_german": true
+            },
+            "refusal": {
+              "refusal_phrase_found": true,
+              "citation_count": 0,
+              "length_chars": 137,
+              "language_correct": true
+            }
+          }
+        },
+        "V1": {
+          "label": "+ few-shot citation example",
+          "b": {
+            "answer": "Die Hydraulikpresse stoppt mitten im Zyklus und das HMI zeigt den Fehler E-47 an [P-08]. Die Druckanzeige schwankt zwischen 180 und 240 bar, obwohl der Sollwert 210 bar beträgt [P-08]. Die Ursache ist ein Drift des Hauptdrucksensors, dessen Signal sich gegenüber dem Referenzmanometer um etwa 12 Prozent verschoben hat [P-08]. Als Massnahme wurde der Drucksensor gegen ein zertifiziertes Referenzmanometer kalibriert, der Offset im PLC-Parameter-Satz korrigiert und zehn Testzyklen durchgeführt [P-08].",
+            "reasoning_chars": 0,
+            "empty_answer": false,
+            "prompt_tokens": 1036,
+            "completion_tokens": 144,
+            "latency_s": 3.188,
+            "finish_reason": "stop",
+            "language": {
+              "german_markers": 15,
+              "english_markers": 0,
+              "is_german": true
+            },
+            "citations": {
+              "citation_count": 4,
+              "cited_ids": [
+                "P-08"
+              ],
+              "expected_cited": true,
+              "sentences_total": 4,
+              "sentences_without_citation": 0,
+              "uncited_sentences": []
+            }
+          },
+          "c": {
+            "answer": "Kein Protokoll im Wissensbestand behandelt den Fall eines Lackierroboters mit ungleichmäßiger Farbauftragung und Farbnebel.",
+            "reasoning_chars": 0,
+            "empty_answer": false,
+            "prompt_tokens": 991,
+            "completion_tokens": 31,
+            "latency_s": 0.9,
+            "finish_reason": "stop",
+            "language": {
+              "german_markers": 3,
+              "english_markers": 0,
+              "is_german": true
+            },
+            "refusal": {
+              "refusal_phrase_found": true,
+              "citation_count": 0,
+              "length_chars": 123,
+              "language_correct": true
+            }
+          }
+        },
+        "V2": {
+          "label": "+ language pinning",
+          "b": {
+            "answer": "Wenn die Hydraulikpresse im Zyklus abbricht und die HMI den Fehler E-47 anzeigt, liegt dies oft an einer Drift des Hauptdrucksensors, der sein Signal gegen den Referenzmanometer um etwa 12 Prozent verschoben hat, während der Hydraulikkreislauf selbst in Ordnung ist [P-08]. Die Maßnahme besteht darin, den Drucksensor gegen ein zertifiziertes Referenzmanometer neu zu kalibrieren, den Offset im PLC-Parameter-Satz zu korrigieren und zehn Testzyklen durchzuführen, bis der Druck stabil bei 210 bar liegt und der Fehler E-47 nicht erneut auftritt [P-08].",
+            "reasoning_chars": 0,
+            "empty_answer": false,
+            "prompt_tokens": 871,
+            "completion_tokens": 148,
+            "latency_s": 7.06,
+            "finish_reason": "stop",
+            "language": {
+              "german_markers": 16,
+              "english_markers": 0,
+              "is_german": true
+            },
+            "citations": {
+              "citation_count": 2,
+              "cited_ids": [
+                "P-08"
+              ],
+              "expected_cited": true,
+              "sentences_total": 2,
+              "sentences_without_citation": 0,
+              "uncited_sentences": []
+            }
+          },
+          "c": {
+            "answer": "Kein Protokoll im Wissensbestand deckt diesen Fall ab.",
+            "reasoning_chars": 0,
+            "empty_answer": false,
+            "prompt_tokens": 826,
+            "completion_tokens": 15,
+            "latency_s": 0.945,
+            "finish_reason": "stop",
+            "language": {
+              "german_markers": 2,
+              "english_markers": 0,
+              "is_german": true
+            },
+            "refusal": {
+              "refusal_phrase_found": true,
+              "citation_count": 0,
+              "length_chars": 54,
+              "language_correct": true
+            }
+          }
+        },
+        "V3": {
+          "label": "+ few-shot + language pinning (candidate)",
+          "b": {
+            "answer": "Die Presse stoppt mitten im Zyklus und das HMI zeigt den Fehler E-47 an [P-08]. Der Druck schwankt zwischen 180 und 240 bar, obwohl der Sollwert 210 bar beträgt [P-08]. Die Ursache ist ein Drift des Hauptdrucksensors [P-08]. Als Massnahme wurde der Drucksensor gegen ein zertifiziertes Referenzmessgerät kalibriert [P-08]. Der Offset wurde im PLC-Parameter-Satz korrigiert [P-08]. Anschließend wurden zehn Testzyklen durchgeführt [P-08]. Der Druck ist nun stabil bei 210 bar und der Fehler E-47 trat nicht wieder auf [P-08].",
+            "reasoning_chars": 0,
+            "empty_answer": false,
+            "prompt_tokens": 1120,
+            "completion_tokens": 162,
+            "latency_s": 8.781,
+            "finish_reason": "stop",
+            "language": {
+              "german_markers": 24,
+              "english_markers": 0,
+              "is_german": true
+            },
+            "citations": {
+              "citation_count": 7,
+              "cited_ids": [
+                "P-08"
+              ],
+              "expected_cited": true,
+              "sentences_total": 7,
+              "sentences_without_citation": 0,
+              "uncited_sentences": []
+            }
+          },
+          "c": {
+            "answer": "Kein Protokoll im Wissensbestand deckt diesen Fall ab.",
+            "reasoning_chars": 0,
+            "empty_answer": false,
+            "prompt_tokens": 1075,
+            "completion_tokens": 15,
+            "latency_s": 0.908,
+            "finish_reason": "stop",
+            "language": {
+              "german_markers": 2,
+              "english_markers": 0,
+              "is_german": true
+            },
+            "refusal": {
+              "refusal_phrase_found": true,
+              "citation_count": 0,
+              "length_chars": 54,
+              "language_correct": true
+            }
+          }
+        }
+      },
+      "latency_v3": {
+        "runs": [
+          {
+            "latency_s": 5.632,
+            "completion_tokens": 162,
+            "finish_reason": "stop"
+          },
+          {
+            "latency_s": 2.967,
+            "completion_tokens": 162,
+            "finish_reason": "stop"
+          },
+          {
+            "latency_s": 2.874,
+            "completion_tokens": 162,
+            "finish_reason": "stop"
+          }
+        ],
+        "min_s": 2.874,
+        "max_s": 5.632,
+        "median_s": 2.967,
+        "meets_nfr4_target_10s": true,
+        "meets_nfr4_ceiling_30s": true
+      },
+      "structured_json": {
+        "b": {
+          "answer": "{\"answer_language\": \"de\", \"claims\": [{\"text\": \"Der Fehler E-47 tritt auf, wenn die Hydraulikpresse mitten im Zyklus stoppt und der HMI diesen Fehler anzeigt.\", \"source\": \"P-08\"}, {\"text\": \"Der Druck schwankt zwischen 180 und 240 bar, obwohl der Sollwert 210 bar beträgt.\", \"source\": \"P-08\"}, {\"text\": \"Die Ursache für diesen Fehler ist ein Drift am Hauptdrucksensor.\", \"source\": \"P-08\"}, {\"text\": \"Das Sensorsignal hatte sich gegenüber dem Referenzmanometer um etwa 12 Prozent verschoben.\", \"source\": \"P-08\"}, {\"text\": \"Die Maßnahme bestand darin, den Drucksensor gegen ein zertifiziertes Referenzmanometer zu kalibrieren.\", \"source\": \"P-08\"}, {\"text\": \"Der Offset wurde im PLC-Parameter-Satz korrigiert.\", \"source\": \"P-08\"}, {\"text\": \"Es wurden zehn Testzyklen durchgeführt.\", \"source\": \"P-08\"}, {\"text\": \"Der Druck ist nun stabil bei 210 bar und der Fehler E-47 ist nicht erneut aufgetreten.\", \"source\": \"P-08\"}]}",
+          "reasoning_chars": 0,
+          "empty_answer": false,
+          "prompt_tokens": 973,
+          "completion_tokens": 280,
+          "latency_s": 6.449,
+          "finish_reason": "stop",
+          "response_format": "json_schema",
+          "parsed_ok": true,
+          "parsed": {
+            "answer_language": "de",
+            "claims": [
+              {
+                "text": "Der Fehler E-47 tritt auf, wenn die Hydraulikpresse mitten im Zyklus stoppt und der HMI diesen Fehler anzeigt.",
+                "source": "P-08"
+              },
+              {
+                "text": "Der Druck schwankt zwischen 180 und 240 bar, obwohl der Sollwert 210 bar beträgt.",
+                "source": "P-08"
+              },
+              {
+                "text": "Die Ursache für diesen Fehler ist ein Drift am Hauptdrucksensor.",
+                "source": "P-08"
+              },
+              {
+                "text": "Das Sensorsignal hatte sich gegenüber dem Referenzmanometer um etwa 12 Prozent verschoben.",
+                "source": "P-08"
+              },
+              {
+                "text": "Die Maßnahme bestand darin, den Drucksensor gegen ein zertifiziertes Referenzmanometer zu kalibrieren.",
+                "source": "P-08"
+              },
+              {
+                "text": "Der Offset wurde im PLC-Parameter-Satz korrigiert.",
+                "source": "P-08"
+              },
+              {
+                "text": "Es wurden zehn Testzyklen durchgeführt.",
+                "source": "P-08"
+              },
+              {
+                "text": "Der Druck ist nun stabil bei 210 bar und der Fehler E-47 ist nicht erneut aufgetreten.",
+                "source": "P-08"
+              }
+            ]
+          },
+          "claims_total": 8,
+          "claims_with_source": 8,
+          "answer_language": "de"
+        },
+        "c": {
+          "answer": "{\"answer_language\": \"de\", \"claims\": []}",
+          "reasoning_chars": 0,
+          "empty_answer": false,
+          "prompt_tokens": 928,
+          "completion_tokens": 13,
+          "latency_s": 3.194,
+          "finish_reason": "stop",
+          "response_format": "json_schema",
+          "parsed_ok": true,
+          "parsed": {
+            "answer_language": "de",
+            "claims": []
+          },
+          "claims_total": 0,
+          "claims_with_source": 0,
+          "answer_language": "de"
+        }
+      },
+      "status": "ok"
+    }
+  ]
+}

@@ -32,8 +32,8 @@ class IngestionAdminController {
     }
 
     @GetMapping("/status")
-    @PreAuthorize("hasAnyRole('admin', 'schichtleiter')")
-    @Operation(summary = "Protocol counts by indexing status")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SCHICHTLEITER')")
+    @Operation(summary = "Protocol counts by indexing status, and today's embedding usage")
     Map<String, Object> status() {
         List<IngestionBacklogService.StatusCount> counts = backlog.statusCounts();
         return Map.of(
@@ -41,11 +41,14 @@ class IngestionAdminController {
                         java.util.stream.Collectors.toMap(
                                 IngestionBacklogService.StatusCount::status,
                                 IngestionBacklogService.StatusCount::count)),
-                "total", counts.stream().mapToLong(IngestionBacklogService.StatusCount::count).sum());
+                "total", counts.stream().mapToLong(IngestionBacklogService.StatusCount::count).sum(),
+                // NFR-7's third layer is visibility. A spend figure that needs a database session
+                // to read is not visible to whoever is deciding whether to run a re-index.
+                "usageToday", backlog.usageToday());
     }
 
     @PostMapping("/backlog")
-    @PreAuthorize("hasRole('admin')")
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Queue unindexed protocols for indexing",
             description = "Finds protocols in the given statuses and hands them to the indexer. "
                     + "Idempotent: re-indexing replaces a protocol's chunks rather than adding to them. "

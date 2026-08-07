@@ -44,7 +44,7 @@ class ProtocolUploadController {
     }
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    @PreAuthorize("hasRole('schichtleiter')")
+    @PreAuthorize("hasRole('SCHICHTLEITER')")
     @Operation(summary = "Upload a protocol text file",
             description = "Stores the document on the volume, records it as RECEIVED and hands it "
                     + "to the indexer. Text files only — PDF and scan extraction is a later phase.")

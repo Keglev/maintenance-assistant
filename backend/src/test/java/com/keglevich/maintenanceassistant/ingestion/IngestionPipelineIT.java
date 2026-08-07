@@ -345,8 +345,8 @@ class IngestionPipelineIT {
     static class FakeEmbeddingConfig {
         @Bean
         @Primary
-        FakeEmbeddingClient fakeEmbeddingClient() {
-            return new FakeEmbeddingClient();
+        FakeEmbeddingClient fakeEmbeddingClient(EmbeddingBudget budget) {
+            return new FakeEmbeddingClient(budget);
         }
 
         /** Points the file volume at the test temp directory. */
@@ -364,7 +364,12 @@ class IngestionPipelineIT {
     static class FakeEmbeddingClient implements EmbeddingClient {
 
         private final AtomicInteger calls = new AtomicInteger();
+        private final EmbeddingBudget budget;
         private volatile String nextFailure;
+
+        FakeEmbeddingClient(EmbeddingBudget budget) {
+            this.budget = budget;
+        }
 
         void reset() {
             calls.set(0);
@@ -401,6 +406,8 @@ class IngestionPipelineIT {
             // Roughly a token per four characters, so the budget assertions have something real to
             // count without pretending this is the provider's own accounting.
             long tokens = texts.stream().mapToLong(t -> Math.max(1, t.length() / 4)).sum();
+            // Same contract as the real client: the implementation records its own usage.
+            budget.record(1, tokens);
             return new EmbeddingBatch(vectors, 1, tokens);
         }
     }

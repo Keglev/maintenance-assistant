@@ -33,13 +33,16 @@ public class IngestionBacklogService {
     private final JdbcClient jdbc;
     private final ApplicationEventPublisher events;
     private final IngestionProperties properties;
+    private final EmbeddingProperties embeddingProperties;
     private final EmbeddingBudget budget;
 
     IngestionBacklogService(JdbcClient jdbc, ApplicationEventPublisher events,
-                            IngestionProperties properties, EmbeddingBudget budget) {
+                            IngestionProperties properties, EmbeddingProperties embeddingProperties,
+                            EmbeddingBudget budget) {
         this.jdbc = jdbc;
         this.events = events;
         this.properties = properties;
+        this.embeddingProperties = embeddingProperties;
         this.budget = budget;
     }
 
@@ -77,6 +80,30 @@ public class IngestionBacklogService {
                 .list();
     }
 
+    /**
+     * Today's provider usage and what is left of the ceiling.
+     *
+     * <p>Reported alongside the status because the two questions are asked together: whether the
+     * corpus is indexed, and what it cost. NFR-7's third layer is visibility, and a number nobody
+     * can read without a database session is not visible.
+     */
+    public Usage usageToday() {
+        int used = budget.usedToday();
+        long tokens = budget.tokensToday();
+        return new Usage(used, Math.max(0, dailyBudget() - used), tokens,
+                // ADR-002 prices bge-m3 at EUR 0.02 per million input tokens; embeddings bill input
+                // only. Reported in EUR so "measured in cents" stays a measurement.
+                Math.round(tokens / 1_000_000.0 * 0.02 * 100_000.0) / 100_000.0);
+    }
+
+    private int dailyBudget() {
+        return embeddingProperties.dailyCallBudget();
+    }
+
     public record StatusCount(String status, long count) {
+    }
+
+    /** @param estimatedEur input tokens priced at the ADR-002 rate, rounded to five decimals */
+    public record Usage(int callsToday, int callsRemaining, long promptTokensToday, double estimatedEur) {
     }
 }

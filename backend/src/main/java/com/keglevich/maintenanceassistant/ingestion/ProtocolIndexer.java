@@ -84,8 +84,8 @@ class ProtocolIndexer {
                     / embeddingProperties.batchSize();
             budget.checkHeadroom(estimatedCalls);
 
+            // The client records its own usage as each request is served — see EmbeddingClient.
             EmbeddingClient.EmbeddingBatch embedded = embeddingClient.embed(chunks);
-            budget.record(embedded.providerCalls(), embedded.promptTokens());
 
             if (embedded.vectors().size() != chunks.size()) {
                 throw new IllegalStateException("provider returned %d vectors for %d chunks"

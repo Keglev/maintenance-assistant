@@ -23,6 +23,12 @@ public interface EmbeddingClient {
     /**
      * Embeds every text, batching internally as needed.
      *
+     * <p><b>Implementations record their own usage</b> in {@code EmbeddingBudget}, per request, as
+     * the provider serves it — not the caller on success. The money is spent when the request is
+     * answered, whatever happens to the response afterwards. Recording it in the caller is how the
+     * first real run of this pipeline made 150 paid calls the counter never saw: every one of them
+     * failed while converting the response, so the success path that did the counting never ran.
+     *
      * @param texts inputs, in order
      * @return vectors in the same order as {@code texts}, plus what the run cost
      * @throws EmbeddingException on a failure the caller cannot retry away

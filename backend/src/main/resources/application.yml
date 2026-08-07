@@ -33,6 +33,18 @@ spring:
       include-stacktrace: never
       include-message: never
 
+maintenance:
+  files:
+    # Original protocol documents. The container mounts the Docker volume at
+    # /var/lib/maintenance/files and sets this accordingly; the local default is a
+    # git-ignored directory next to the build output so a laptop needs no setup.
+    base-path: ${MAINTENANCE_FILES_PATH:./data/protocol-files}
+  corpus-seed:
+    # Off unless asked for: seeding is idempotent, but it is still a deliberate act.
+    # Enable with CORPUS_SEED_ENABLED=true.
+    enabled: ${CORPUS_SEED_ENABLED:false}
+    resource: classpath:corpus/protocols.ndjson
+
 server:
   port: ${SERVER_PORT:8080}
 

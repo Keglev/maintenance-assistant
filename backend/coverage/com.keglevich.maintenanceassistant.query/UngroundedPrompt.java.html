@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>UngroundedPrompt.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">maintenance-assistant</a> &gt; <a href="index.source.html" class="el_package">com.keglevich.maintenanceassistant.query</a> &gt; <span class="el_source">UngroundedPrompt.java</span></div><h1>UngroundedPrompt.java</h1><pre class="source lang-java linenums">package com.keglevich.maintenanceassistant.query;
+
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * Mode B — &quot;Allgemeiner Vorschlag, keine Quelle im Bestand&quot;: labelled, ungrounded troubleshooting.
+ *
+ * &lt;p&gt;&lt;b&gt;Nothing in this file mentions citations, sources, labels or protocols as things to point
+ * at&lt;/b&gt;, and that is the entire design. ADR-002 recorded citation leakage into a refusal, so the
+ * fix here is structural rather than instructional: this prompt never teaches a citation format, and
+ * the schema it asks for has no {@code source} field, so a citation is not a rule the model might
+ * break — it is a shape it cannot emit. See {@link GroundedPrompt} for the other half of that
+ * reasoning.
+ *
+ * &lt;p&gt;Mode B is &lt;em&gt;not&lt;/em&gt; a refusal in the sense of saying nothing. DECISIONS.txt defines it as a
+ * general suggestion that is honest about being one: the night shift with no technician on site is
+ * better served by &quot;no protocol covers this, here is what is generally worth checking, and here is
+ * who to call&quot; than by a blank page. The visual distinction that keeps that honest is the frontend's
+ * job; making the label unavoidable in the text is this prompt's.
+ */
+final class UngroundedPrompt {
+
+    private UngroundedPrompt() {
+    }
+
+    static final String SCHEMA_NAME = &quot;general_suggestion&quot;;
+
+    static String system(QueryRole role) {
+<span class="fc" id="L31">        return &quot;&quot;&quot;</span>
+                You are a maintenance assistant for an industrial plant. The plant's records contain \
+                NO protocol covering the question you are about to answer. You are answering from \
+                general engineering knowledge only.
+
+                RULES
+                1. Your FIRST step must state plainly that no protocol in the plant's records covers \
+                this case, so the reader knows the rest is a general suggestion and not documented \
+                plant experience.
+                2. The remaining steps are general troubleshooting, ordered from the simplest and \
+                safest to the most involved.
+                3. Never refer to a protocol, a document, a record, a case, a source or an \
+                identifier of any kind. There are none. Do not invent one and do not write anything \
+                in square brackets.
+                4. Be concrete and short. One action per step, one or two sentences each. Give \
+                FOUR TO SIX steps in total, including the statement in step 1 — so at least three \
+                actual troubleshooting steps after it. Do not pad the list; four good steps beat \
+                ten vague ones.
+
+                LANGUAGE RULE (overrides everything else): every word you output must be in the \
+                language of the QUESTION. This includes the statement in step 1 that nothing is \
+                documented — a German question gets a German answer throughout, with no exception. \
+                Decide the language of the question first, then write. Report it as &quot;de&quot; or &quot;en&quot; in \
+                answer_language.
+
+                %s
+
+<span class="fc" id="L58">                %s&quot;&quot;&quot;.formatted(roleBlock(role), FORMAT_EXAMPLE);</span>
+    }
+
+    /**
+     * The role constraint (NFR-3), and the stricter of the two paths for the Operator.
+     *
+     * &lt;p&gt;Mode A at least has a protocol saying that a given repair solved this fault on this
+     * machine. Here there is nothing: an ungrounded repair procedure handed to an operator would be
+     * a guess about live equipment, which is the one output this application must never produce. So
+     * for an Operator, Mode B is checks and escalation, full stop — the request's own words for it.
+     */
+    private static String roleBlock(QueryRole role) {
+<span class="fc bfc" id="L70" title="All 2 branches covered.">        if (role.isOperatorSafeOnly()) {</span>
+<span class="fc" id="L71">            return &quot;&quot;&quot;</span>
+                    WHO IS ASKING: a machine OPERATOR, not a maintenance technician. Nothing here is \
+                    documented, so the limit is absolute:
+                    - Steps may ONLY be things an operator does in normal operation: looking, \
+                    listening, reading displays and gauges, checking that guards and covers are \
+                    closed, checking supply of material or consumables, cleaning accessible \
+                    surfaces, acknowledging an alarm, and restarting according to the operating \
+                    instructions.
+                    - Give NO repair procedure of any kind, not even a general one, and no \
+                    instruction that involves electrics, hydraulics, pneumatics, tools, dismantling, \
+                    parameters or anything behind a guard.
+                    - The LAST step must be to escalate: stop, secure the machine if the operating \
+                    instructions say so, and inform a Techniker or the Schichtleiter with what was \
+                    observed.&quot;&quot;&quot;;
+        }
+<span class="fc" id="L86">        return &quot;&quot;&quot;</span>
+                WHO IS ASKING: a qualified maintenance technician (Techniker or Schichtleiter). \
+                Technical diagnostic steps are appropriate — measurements, component checks, likely \
+                causes to eliminate in order. Keep it a diagnostic path rather than a repair \
+                instruction, since nothing here is documented for this machine.&quot;&quot;&quot;;
+    }
+
+    /**
+     * A format example — and note what is &lt;em&gt;not&lt;/em&gt; in it: no source, no label, no protocol, no
+     * square brackets. This is the shape rule only, and it exists because of a measured failure
+     * rather than by symmetry with {@link GroundedPrompt}.
+     *
+     * &lt;p&gt;MEASURED 2026-08-07 on the Mode B demo case. Llama-3.3-70B emitted
+     * {@code { &quot;answer_language&quot;: &quot;de&quot;,} and then spent its entire output budget on whitespace,
+     * twice, at two different caps — a schema-constrained decoder with nothing telling it what
+     * &quot;finished&quot; looks like. Mode A never did this, and the only structural difference between the
+     * two prompts was that Mode A carries a worked example of compact JSON. Adding one here fixed
+     * it. Raising the cap did not, and could not: the answer was never getting longer, only later.
+     */
+    private static final String FORMAT_EXAMPLE = &quot;&quot;&quot;
+            FORMAT EXAMPLE, for shape only — the machine and the steps below are invented and have \
+            nothing to do with the question. Answer in ONE LINE of compact JSON, exactly like this:
+
+            {&quot;answer_language&quot;:&quot;de&quot;,&quot;steps&quot;:[&quot;Zu dieser Frage liegt kein Protokoll im Bestand vor; \
+            die folgenden Schritte sind ein allgemeiner Vorschlag.&quot;,&quot;Anlage im Stillstand auf \
+            sichtbare Leckagen und lose Verbindungen prüfen.&quot;,&quot;Betriebsdaten am Display mit den \
+            Sollwerten vergleichen.&quot;,&quot;Bei unverändertem Verhalten den Techniker mit den \
+            beobachteten Werten informieren.&quot;]}
+
+            Stop after the closing bracket. Do not indent, do not add blank lines, and do not \
+            write anything before or after the JSON.&quot;&quot;&quot;;
+
+    static String user(String question) {
+<span class="fc" id="L119">        return &quot;Question: &quot; + question.strip();</span>
+    }
+
+    /**
+     * The schema, and the reason a leaked citation is unrepresentable here: there is nowhere to put
+     * one. Steps are plain strings; the object has no source field and forbids extra properties.
+     */
+    static Map&lt;String, Object&gt; schema() {
+<span class="fc" id="L127">        Map&lt;String, Object&gt; steps = new LinkedHashMap&lt;&gt;();</span>
+<span class="fc" id="L128">        steps.put(&quot;type&quot;, &quot;array&quot;);</span>
+<span class="fc" id="L129">        steps.put(&quot;items&quot;, Map.of(&quot;type&quot;, &quot;string&quot;));</span>
+        // The same rule as step 4 of the prompt, stated where it binds. MEASURED 2026-08-07:
+        // asked in prose for at most six steps, Llama-3.3-70B ran past a 1200-token cap on the
+        // Mode B demo case and came back as truncated JSON — twice. Mode A never did, and the
+        // difference is that Mode A's few-shot example shows the model what &quot;done&quot; looks like
+        // while an open-ended list of general advice has no natural end. Capping it in the schema
+        // makes the limit a shape rather than a request.
+<span class="fc" id="L136">        steps.put(&quot;maxItems&quot;, 6);</span>
+        // A floor as well as a ceiling. Step 1 is the &quot;nothing is documented&quot; statement, so an
+        // answer of one or two steps is a refusal wearing a list's clothes — technically valid
+        // against the schema and useless to the night shift this mode exists for. Four is the
+        // disclaimer plus three real steps.
+<span class="fc" id="L141">        steps.put(&quot;minItems&quot;, 4);</span>
+
+<span class="fc" id="L143">        Map&lt;String, Object&gt; schema = new LinkedHashMap&lt;&gt;();</span>
+<span class="fc" id="L144">        schema.put(&quot;type&quot;, &quot;object&quot;);</span>
+<span class="fc" id="L145">        schema.put(&quot;properties&quot;, Map.of(</span>
+<span class="fc" id="L146">                &quot;answer_language&quot;, Map.of(&quot;type&quot;, &quot;string&quot;, &quot;enum&quot;, List.of(&quot;de&quot;, &quot;en&quot;)),</span>
+                &quot;steps&quot;, steps));
+<span class="fc" id="L148">        schema.put(&quot;required&quot;, List.of(&quot;answer_language&quot;, &quot;steps&quot;));</span>
+<span class="fc" id="L149">        schema.put(&quot;additionalProperties&quot;, false);</span>
+<span class="fc" id="L150">        return schema;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

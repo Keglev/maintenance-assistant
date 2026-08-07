@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>QueryAnswer.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">maintenance-assistant</a> &gt; <a href="index.source.html" class="el_package">com.keglevich.maintenanceassistant.query</a> &gt; <span class="el_source">QueryAnswer.java</span></div><h1>QueryAnswer.java</h1><pre class="source lang-java linenums">package com.keglevich.maintenanceassistant.query;
+
+import java.time.LocalDate;
+import java.util.List;
+import java.util.UUID;
+
+/**
+ * The answer, shaped for the search view that renders it.
+ *
+ * &lt;p&gt;NFR-2 asks for two &lt;em&gt;visually distinct&lt;/em&gt; answer modes, and that requirement is met by what
+ * this record hands over, not by prose the client has to interpret. {@link #mode()} is the switch,
+ * {@link #claims()} carries the per-claim citation labels so the view can render a source link
+ * inline rather than a footnote, and {@link #citations()} is the deduplicated source list behind
+ * those labels. A Mode B answer has an empty citation list and empty claims — structurally, because
+ * a Mode B answer is produced by a prompt and a schema that have no source field at all.
+ *
+ * @param mode      A = grounded (&quot;Belegte Antwort&quot;), B = labelled ungrounded suggestion
+ * @param answer    the rendered prose, ready to display. Mode A carries its {@code [P1]} markers
+ *                  inline so a client that does nothing clever still shows a cited answer
+ * @param language  the language the answer was pinned to, as the model reports having written it.
+ *                  The view needs this to set {@code lang} on the element for screen readers and
+ *                  hyphenation, and it is the observable half of the language rule ADR-002 records
+ * @param claims    Mode A only: one statement, one source label. Empty in Mode B
+ * @param citations the sources actually cited, in label order. Empty in Mode B
+ */
+<span class="fc" id="L26">public record QueryAnswer(</span>
+        AnswerMode mode,
+        String answer,
+        String language,
+        List&lt;Claim&gt; claims,
+        List&lt;Citation&gt; citations) {
+
+    /** NFR-2's two modes. Serialised as &quot;A&quot; and &quot;B&quot;. */
+<span class="fc" id="L34">    public enum AnswerMode {</span>
+<span class="fc" id="L35">        A, B</span>
+    }
+
+    /**
+     * One statement and the source it came from.
+     *
+     * @param source the {@code [P1]}-style label, matching a {@link Citation#label()}
+     */
+<span class="fc" id="L43">    public record Claim(String text, String source) {</span>
+    }
+
+    /**
+     * A cited protocol.
+     *
+     * @param label      the {@code P1}..{@code P5} label used in the answer text and in claims
+     * @param similarity what the retrieval scored it, kept so the demo can show why a case is
+     *                   Mode A and the next one is Mode B rather than asserting it
+     */
+<span class="fc" id="L53">    public record Citation(</span>
+            String label,
+            UUID protocolId,
+            String title,
+            String errorCode,
+            LocalDate incidentDate,
+            double similarity) {
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

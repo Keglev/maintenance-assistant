@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ChatProperties.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">maintenance-assistant</a> &gt; <a href="index.source.html" class="el_package">com.keglevich.maintenanceassistant.query</a> &gt; <span class="el_source">ChatProperties.java</span></div><h1>ChatProperties.java</h1><pre class="source lang-java linenums">package com.keglevich.maintenanceassistant.query;
+
+import org.springframework.boot.context.properties.ConfigurationProperties;
+
+import java.time.Duration;
+import java.util.Locale;
+
+/**
+ * Chat provider configuration (ADR-002).
+ *
+ * &lt;p&gt;Separate from {@code maintenance.embedding.*} although both currently name the same gateway.
+ * The two calls differ in every dimension that matters here: an embedding call is background load
+ * with a generous timeout and a batch-shaped budget, a chat call is a person waiting inside NFR-4's
+ * latency budget. Sharing one property block would mean tuning one by breaking the other.
+ *
+ * @param baseUrl         OpenAI-compatible endpoint root, &lt;b&gt;including {@code /v1}&lt;/b&gt; — the base
+ *                        URL deviation ADR-002 records twice, once in Python and once in Java
+ * @param apiKey          bearer token; empty disables answering rather than failing at call time
+ * @param model           model id, e.g. {@code meta-llama/Llama-3.3-70B-Instruct}
+ * @param maxTokens       output cap sent on every request (NFR-7)
+ * @param temperature     low: this is grounded answering, not writing
+ * @param timeout         per-request read timeout
+ * @param maxRetries      retries after the first attempt, for transient failures only
+ * @param retryBackoff    initial backoff, doubled per attempt
+ * @param dailyCallBudget maximum chat calls per day across the whole application (NFR-7)
+ */
+@ConfigurationProperties(prefix = &quot;maintenance.chat&quot;)
+<span class="fc" id="L28">public record ChatProperties(</span>
+        String baseUrl,
+        String apiKey,
+        String model,
+        int maxTokens,
+        double temperature,
+        Duration timeout,
+        int maxRetries,
+        Duration retryBackoff,
+        int dailyCallBudget) {
+
+    /** Answering is inert without a key rather than failing per question at call time. */
+    public boolean isConfigured() {
+<span class="nc bnc" id="L41" title="All 8 branches missed.">        return apiKey != null &amp;&amp; !apiKey.isBlank() &amp;&amp; baseUrl != null &amp;&amp; !baseUrl.isBlank();</span>
+    }
+
+    /**
+     * ADR-002 caveat 3, as a property of the configured model rather than a flag someone has to
+     * remember to set. The Qwen3.5 family are reasoning models: without
+     * {@code reasoning_effort=&quot;none&quot;} they spend the entire output budget on the reasoning field and
+     * return &lt;em&gt;empty content&lt;/em&gt; with {@code finish_reason: &quot;length&quot;}. The spike measured that the
+     * obvious alternatives — {@code enable_thinking: false}, {@code reasoning_effort: &quot;low&quot;},
+     * {@code /no_think} in the prompt — all leave it empty; only this one works.
+     *
+     * &lt;p&gt;It is deliberately keyed off the model id and not off the provider, because the trap
+     * travels with the model: the same id on the Nebius fallback behaves the same way.
+     */
+    boolean isReasoningModel() {
+<span class="pc bpc" id="L56" title="2 of 4 branches missed.">        return model != null &amp;&amp; model.toLowerCase(Locale.ROOT).contains(&quot;qwen3.5&quot;);</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

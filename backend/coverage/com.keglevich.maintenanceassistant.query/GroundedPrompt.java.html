@@ -1,0 +1,212 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>GroundedPrompt.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">maintenance-assistant</a> &gt; <a href="index.source.html" class="el_package">com.keglevich.maintenanceassistant.query</a> &gt; <span class="el_source">GroundedPrompt.java</span></div><h1>GroundedPrompt.java</h1><pre class="source lang-java linenums">package com.keglevich.maintenanceassistant.query;
+
+import java.time.LocalDate;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+
+/**
+ * Mode A — the grounded answer. Every claim comes from a retrieved protocol and carries its label.
+ *
+ * &lt;p&gt;&lt;b&gt;This class and {@link UngroundedPrompt} are deliberately two classes and not one class with
+ * a boolean.&lt;/b&gt; ADR-002 records a measured regression: under the candidate prompt a model appended
+ * a citation to a &lt;em&gt;refusal&lt;/em&gt;, where the rules require citing nothing. The citation drill and
+ * the &quot;cite nothing&quot; rule compete inside one prompt, and the cheapest way to stop them competing is
+ * to make it impossible for the citation instructions to reach the other path at all. A flag would
+ * have kept them in the same file, one edit away from leaking again.
+ *
+ * &lt;p&gt;Two things in here are measured rather than designed, both in {@code spike/adr-002/}:
+ *
+ * &lt;ul&gt;
+ *   &lt;li&gt;&lt;b&gt;The few-shot worked example.&lt;/b&gt; A &lt;em&gt;rule&lt;/em&gt; saying &quot;cite every claim&quot; left one model
+ *       at one citation across five sentences. The example took every model tested to 100 % per-claim
+ *       citation, and the language-pin-only variant changed nothing — so the improvement is
+ *       attributable to the example and not to prompt length.&lt;/li&gt;
+ *   &lt;li&gt;&lt;b&gt;The language pin.&lt;/b&gt; Both Llama deployments answered a German question correctly and then
+ *       refused in English, because the baseline rule reads as being about &lt;em&gt;answers&lt;/em&gt; and a
+ *       model does not treat &quot;no protocol covers this&quot; as an answer. Naming all output, and the
+ *       refusal case explicitly, fixed it on every model.&lt;/li&gt;
+ * &lt;/ul&gt;
+ *
+ * &lt;p&gt;The schema is the third layer and the only one that does not depend on the model behaving: an
+ * uncited claim cannot be represented in it, because {@code source} is required. What the model
+ * cites is still checked against the retrieved set afterwards — see {@link AnswerAssembler}. Three
+ * layers for one property, because a citation that is wrong is worse than no answer in a domain
+ * where the answer becomes someone's repair.
+ */
+final class GroundedPrompt {
+
+    private GroundedPrompt() {
+    }
+
+    static final String SCHEMA_NAME = &quot;grounded_answer&quot;;
+
+    /**
+     * The system prompt.
+     *
+     * &lt;p&gt;Written in English while the answer is in the user's language on purpose: the corpus is
+     * mixed DE/EN, the instructions are not the thing being translated, and the language pin is
+     * clearer when it is visibly about the question rather than about the prompt.
+     */
+    static String system(QueryRole role) {
+<span class="fc" id="L53">        return &quot;&quot;&quot;</span>
+                You are a maintenance assistant for an industrial plant. You answer questions from \
+                shop-floor staff using maintenance protocols retrieved from the plant's own records.
+
+                RULES
+                1. Answer ONLY from the sources in the user message. Never add knowledge from \
+                anywhere else, however obvious it seems.
+                2. Break your answer into single statements. Each statement is one claim and carries \
+                the label of the ONE source it comes from. A claim you cannot attribute to a source \
+                is a claim you must not make.
+                3. Use only the labels that appear in the sources. Never invent a label, and never \
+                cite a source that is not in the list.
+                4. If the sources do not answer the question, return an empty list of claims rather \
+                than guessing.
+                5. Do not repeat the label inside the statement text; the text is the sentence, the \
+                label is the field next to it.
+
+                LANGUAGE RULE (overrides everything else): every word you output must be in the \
+                language of the QUESTION, never the language of the sources. A German question about \
+                an English protocol is answered in German. Decide the language of the question first, \
+                then write. Report it as &quot;de&quot; or &quot;en&quot; in answer_language.
+
+                %s
+
+<span class="fc" id="L77">                %s&quot;&quot;&quot;.formatted(roleBlock(role), FEW_SHOT);</span>
+    }
+
+    /**
+     * The role constraint (NFR-3).
+     *
+     * &lt;p&gt;The Operator variant is the one that matters. It is not &quot;write more simply&quot; — it is a
+     * scope limit on what may be described at all, because the person reading it is standing at a
+     * running machine at 3 a.m. with no technician on site, which is the scenario this whole
+     * application exists for. The instruction to say that the repair exists without describing it
+     * keeps the answer honest: the operator learns the fault is known and solved, and who to call,
+     * rather than being told nothing or being told how to open a hydraulic circuit.
+     */
+    private static String roleBlock(QueryRole role) {
+<span class="fc bfc" id="L91" title="All 2 branches covered.">        if (role.isOperatorSafeOnly()) {</span>
+<span class="fc" id="L92">            return &quot;&quot;&quot;</span>
+                    WHO IS ASKING: a machine OPERATOR, not a maintenance technician. This limits \
+                    WHAT you may describe, not how simply you write it.
+                    - You may describe: what the fault looks like, what it was caused by, visual \
+                    checks, readings from displays and gauges, cleaning, refilling consumables at \
+                    designated points, acknowledging an alarm, and restarting according to the \
+                    operating instructions.
+                    - You must NOT describe repair work of any kind: nothing electrical, nothing \
+                    mechanical, nothing hydraulic or pneumatic, nothing behind a guard or inside a \
+                    control cabinet, no dismantling, no adjustment of parameters or safety devices.
+                    - Where a source's remedy was such a repair, say in one claim that it was \
+                    resolved by maintenance and what was done in general terms (&quot;the cylinder seals \
+                    were replaced by maintenance&quot;), and do NOT give the procedure.
+                    - Finish with one claim advising that this case belongs to a Techniker, cited \
+                    from the source that describes the repair.&quot;&quot;&quot;;
+        }
+<span class="fc" id="L108">        return &quot;&quot;&quot;</span>
+                WHO IS ASKING: a qualified maintenance technician (Techniker or Schichtleiter). \
+                Give the full technical answer as the protocols record it — symptom, cause, the \
+                repair that was carried out, parts, measured values and test results. Do not \
+                simplify and do not omit repair steps.&quot;&quot;&quot;;
+    }
+
+    /**
+     * The measured few-shot example, carried over from the spike and rewritten into the JSON shape
+     * this path actually asks for.
+     *
+     * &lt;p&gt;{@code P-99} is deliberately a label that the real source list can never produce — real
+     * labels are {@code P1}..{@code Pk} — so the example cannot be mistaken for a source and cited.
+     */
+    private static final String FEW_SHOT = &quot;&quot;&quot;
+            FORMAT EXAMPLE. This is NOT a source. P-99 does not exist; never cite it.
+
+              Sources:
+              [P-99] Pumpe 7 (PU-07) · E-11 · Saugleistung faellt ab
+              Symptom: The pump loses suction after about ten minutes.
+              Cause: Blocked inlet strainer.
+              Action: Cleaned the strainer, refilled the system, ran a 30 minute test.
+
+              Question: Pumpe 7 verliert Saugleistung, was tun?
+
+              Correct answer:
+              {&quot;answer_language&quot;:&quot;de&quot;,&quot;claims&quot;:[
+                {&quot;text&quot;:&quot;Die Pumpe verliert nach etwa zehn Minuten die Saugleistung.&quot;,&quot;source&quot;:&quot;P-99&quot;},
+                {&quot;text&quot;:&quot;Ursache war ein verstopfter Saugkorb.&quot;,&quot;source&quot;:&quot;P-99&quot;},
+                {&quot;text&quot;:&quot;Als Massnahme wurde der Saugkorb gereinigt, die Anlage neu befuellt und 30 Minuten im Testlauf geprueft.&quot;,&quot;source&quot;:&quot;P-99&quot;}]}
+
+            Note what makes it correct: EVERY claim is one statement with its OWN source label. \
+            One long claim covering the whole answer is WRONG, even when it is grounded. The answer \
+            is German because the question is German, although the source is written in English.&quot;&quot;&quot;;
+
+    /**
+     * The user message: the sources verbatim, then the question.
+     *
+     * &lt;p&gt;Chunks are passed as ingestion stored them, including the &quot;machine · error code · title&quot;
+     * context line it prefixes every chunk with — which is why a retrieved chunk still says what it
+     * is about after being separated from its row.
+     */
+    static String user(String question, List&lt;LabelledSource&gt; sources) {
+<span class="fc" id="L151">        StringBuilder out = new StringBuilder(512);</span>
+<span class="fc" id="L152">        out.append(&quot;Sources:\n\n&quot;);</span>
+<span class="fc bfc" id="L153" title="All 2 branches covered.">        for (LabelledSource source : sources) {</span>
+<span class="fc" id="L154">            out.append('[').append(source.label()).append(&quot;] &quot;).append(source.title()).append('\n');</span>
+<span class="fc bfc" id="L155" title="All 2 branches covered.">            for (String content : source.contents()) {</span>
+<span class="fc" id="L156">                out.append(content.strip()).append('\n');</span>
+<span class="fc" id="L157">            }</span>
+<span class="fc" id="L158">            out.append('\n');</span>
+<span class="fc" id="L159">        }</span>
+<span class="fc" id="L160">        return out.append(&quot;Question: &quot;).append(question.strip()).toString();</span>
+    }
+
+    /**
+     * The response schema — the enforcement layer that does not depend on the model cooperating.
+     *
+     * &lt;p&gt;{@code additionalProperties: false} and both fields required, so &quot;a claim without a source&quot;
+     * is not a behaviour the model can regress into; it is a shape the provider will not emit.
+     */
+    static Map&lt;String, Object&gt; schema() {
+<span class="fc" id="L170">        Map&lt;String, Object&gt; claim = new LinkedHashMap&lt;&gt;();</span>
+<span class="fc" id="L171">        claim.put(&quot;type&quot;, &quot;object&quot;);</span>
+<span class="fc" id="L172">        claim.put(&quot;properties&quot;, Map.of(</span>
+<span class="fc" id="L173">                &quot;text&quot;, Map.of(&quot;type&quot;, &quot;string&quot;),</span>
+<span class="fc" id="L174">                &quot;source&quot;, Map.of(&quot;type&quot;, &quot;string&quot;)));</span>
+<span class="fc" id="L175">        claim.put(&quot;required&quot;, List.of(&quot;text&quot;, &quot;source&quot;));</span>
+<span class="fc" id="L176">        claim.put(&quot;additionalProperties&quot;, false);</span>
+
+<span class="fc" id="L178">        Map&lt;String, Object&gt; schema = new LinkedHashMap&lt;&gt;();</span>
+<span class="fc" id="L179">        schema.put(&quot;type&quot;, &quot;object&quot;);</span>
+<span class="fc" id="L180">        schema.put(&quot;properties&quot;, Map.of(</span>
+<span class="fc" id="L181">                &quot;answer_language&quot;, Map.of(&quot;type&quot;, &quot;string&quot;, &quot;enum&quot;, List.of(&quot;de&quot;, &quot;en&quot;)),</span>
+<span class="fc" id="L182">                &quot;claims&quot;, Map.of(&quot;type&quot;, &quot;array&quot;, &quot;items&quot;, claim)));</span>
+<span class="fc" id="L183">        schema.put(&quot;required&quot;, List.of(&quot;answer_language&quot;, &quot;claims&quot;));</span>
+<span class="fc" id="L184">        schema.put(&quot;additionalProperties&quot;, false);</span>
+<span class="fc" id="L185">        return schema;</span>
+    }
+
+    /**
+     * One &lt;b&gt;protocol&lt;/b&gt; and the label the model is told to cite it by.
+     *
+     * &lt;p&gt;Per protocol, not per chunk, and that is the data model's own distinction rather than a
+     * convenience: the chunk is the search unit and the protocol is the citation unit. Two chunks of
+     * the same protocol ranking in the same top-k would otherwise become two labels and two entries
+     * in the source list — the reader sees the same protocol cited twice as if it were two
+     * independent pieces of evidence, which is precisely the wrong impression for an application
+     * whose whole claim is that its answers are traceable. Measured on the E-47 demo, where the
+     * top 5 chunks come from 4 protocols.
+     *
+     * @param similarity the best of this protocol's chunks — what the threshold was compared against
+     * @param contents   its retrieved chunks, in rank order
+     */
+<span class="fc" id="L202">    record LabelledSource(</span>
+            String label,
+            UUID protocolId,
+            String title,
+            String errorCode,
+            LocalDate incidentDate,
+            double similarity,
+            List&lt;String&gt; contents) {
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

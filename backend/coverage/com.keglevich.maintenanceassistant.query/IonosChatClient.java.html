@@ -1,0 +1,270 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>IonosChatClient.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">maintenance-assistant</a> &gt; <a href="index.source.html" class="el_package">com.keglevich.maintenanceassistant.query</a> &gt; <span class="el_source">IonosChatClient.java</span></div><h1>IonosChatClient.java</h1><pre class="source lang-java linenums">package com.keglevich.maintenanceassistant.query;
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
+import org.springframework.stereotype.Component;
+import org.springframework.web.client.RestClient;
+import org.springframework.web.client.RestClientException;
+
+import java.time.Duration;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * Chat client for the IONOS AI Model Hub, spoken as plain OpenAI-compatible JSON.
+ *
+ * &lt;p&gt;A {@link RestClient}, for the reasons recorded in DECISIONS.txt and repeated in
+ * {@link ChatClient}: one POST, a provider that is OpenAI-&lt;em&gt;compatible&lt;/em&gt; rather than OpenAI,
+ * and typed records for the response because Boot 4.1's message converters are Jackson 3 while
+ * Jackson 2 is still on the classpath — asking for a {@code com.fasterxml} tree fails at runtime.
+ * That was found by running it, not by reading it: the first live corpus run failed all 150
+ * protocols on exactly that.
+ *
+ * &lt;p&gt;Three things happen here and nowhere else:
+ * &lt;ul&gt;
+ *   &lt;li&gt;the NFR-7 output cap is attached to every request, so no prompt can forget it;&lt;/li&gt;
+ *   &lt;li&gt;{@code reasoning_effort} is sent for reasoning models (ADR-002 caveat 3), decided from the
+ *       configured model id rather than from a flag someone has to remember;&lt;/li&gt;
+ *   &lt;li&gt;usage is recorded per request as the provider serves it, not by the caller on success.&lt;/li&gt;
+ * &lt;/ul&gt;
+ */
+@Component
+class IonosChatClient implements ChatClient {
+
+<span class="fc" id="L39">    private static final Logger log = LoggerFactory.getLogger(IonosChatClient.class);</span>
+
+    private final ChatProperties properties;
+    private final ChatBudget budget;
+    private final RestClient restClient;
+
+    // RestClient.builder() rather than the auto-configured builder bean, for the same reason the
+    // embedding client does it: one external provider, its own timeouts, its own auth header, and
+    // no business inheriting interceptors added for the application's own HTTP calls.
+<span class="fc" id="L48">    IonosChatClient(ChatProperties properties, ChatBudget budget) {</span>
+<span class="fc" id="L49">        this.properties = properties;</span>
+<span class="fc" id="L50">        this.budget = budget;</span>
+
+<span class="fc" id="L52">        SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();</span>
+<span class="fc" id="L53">        requestFactory.setConnectTimeout((int) Duration.ofSeconds(10).toMillis());</span>
+<span class="fc" id="L54">        requestFactory.setReadTimeout((int) properties.timeout().toMillis());</span>
+
+<span class="fc" id="L56">        this.restClient = RestClient.builder()</span>
+<span class="pc bpc" id="L57" title="1 of 2 branches missed.">                .baseUrl(properties.baseUrl() == null ? &quot;&quot; : properties.baseUrl())</span>
+<span class="fc" id="L58">                .defaultHeader(HttpHeaders.AUTHORIZATION, &quot;Bearer &quot; + properties.apiKey())</span>
+<span class="fc" id="L59">                .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)</span>
+<span class="fc" id="L60">                .requestFactory(requestFactory)</span>
+<span class="fc" id="L61">                .build();</span>
+
+<span class="fc" id="L63">        log.info(&quot;Chat provider: {} model={} maxTokens={} temperature={} reasoningModel={} dailyCallBudget={}&quot;,</span>
+<span class="fc" id="L64">                properties.baseUrl(), properties.model(), properties.maxTokens(),</span>
+<span class="fc" id="L65">                properties.temperature(), properties.isReasoningModel(), properties.dailyCallBudget());</span>
+<span class="fc" id="L66">    }</span>
+
+    @Override
+    public String model() {
+<span class="nc" id="L70">        return properties.model();</span>
+    }
+
+    @Override
+    public boolean isConfigured() {
+<span class="nc" id="L75">        return properties.isConfigured();</span>
+    }
+
+    @Override
+    public Completion complete(Prompt prompt) {
+<span class="nc" id="L80">        long startedAt = System.nanoTime();</span>
+<span class="nc" id="L81">        ChatResponse response = callWithRetry(buildBody(prompt));</span>
+<span class="nc" id="L82">        long millis = (System.nanoTime() - startedAt) / 1_000_000L;</span>
+
+<span class="nc" id="L84">        String content = response.content();</span>
+<span class="nc bnc" id="L85" title="All 4 branches missed.">        if (content == null || content.isBlank()) {</span>
+            // Named rather than reported as &quot;the model said nothing&quot;, because the one way this
+            // happens in practice has a fix: a reasoning model without reasoning_effort &quot;none&quot;
+            // burns the whole output cap on its reasoning field (ADR-002 caveat 3), and the
+            // symptom looks like a truncation bug rather than a configuration one.
+<span class="nc" id="L90">            throw new ChatException(&quot;model %s returned empty content (finish_reason=%s)%s&quot;</span>
+<span class="nc" id="L91">                    .formatted(properties.model(), response.finishReason(),</span>
+<span class="nc bnc" id="L92" title="All 2 branches missed.">                            properties.isReasoningModel() ? &quot;&quot; : &quot; — is this a reasoning model?&quot;));</span>
+        }
+<span class="nc bnc" id="L94" title="All 2 branches missed.">        if (&quot;length&quot;.equals(response.finishReason())) {</span>
+            // The answer is JSON, so a truncated one is not a shorter answer, it is an unparseable
+            // one. Failing here names the cap instead of letting a parse error blame the model.
+<span class="nc" id="L97">            throw new ChatException(</span>
+                    &quot;answer truncated at the max-tokens cap of %d after %d completion tokens: %s&quot;
+<span class="nc" id="L99">                            .formatted(properties.maxTokens(), response.completionTokens(),</span>
+<span class="nc" id="L100">                                    preview(content)));</span>
+        }
+
+<span class="nc" id="L103">        log.info(&quot;Chat answer: model={} promptTokens={} completionTokens={} in {} ms&quot;,</span>
+<span class="nc" id="L104">                properties.model(), response.promptTokens(), response.completionTokens(), millis);</span>
+<span class="nc" id="L105">        return new Completion(content, response.promptTokens(), response.completionTokens(), millis);</span>
+    }
+
+    /**
+     * The request body. A {@link LinkedHashMap} rather than {@code Map.of} so the optional
+     * {@code reasoning_effort} is a conditional put and the wire order stays readable in a log.
+     */
+    private Map&lt;String, Object&gt; buildBody(Prompt prompt) {
+<span class="nc" id="L113">        Map&lt;String, Object&gt; body = new LinkedHashMap&lt;&gt;();</span>
+<span class="nc" id="L114">        body.put(&quot;model&quot;, properties.model());</span>
+<span class="nc" id="L115">        body.put(&quot;messages&quot;, List.of(</span>
+<span class="nc" id="L116">                Map.of(&quot;role&quot;, &quot;system&quot;, &quot;content&quot;, prompt.system()),</span>
+<span class="nc" id="L117">                Map.of(&quot;role&quot;, &quot;user&quot;, &quot;content&quot;, prompt.user())));</span>
+        // NFR-7, on every single call. The spike measured that it never binds in practice — the
+        // longest answer was 195 tokens — so this costs nothing in answer quality and is pure
+        // runaway protection, which is the only kind of cap worth having.
+<span class="nc" id="L121">        body.put(&quot;max_tokens&quot;, properties.maxTokens());</span>
+<span class="nc" id="L122">        body.put(&quot;temperature&quot;, properties.temperature());</span>
+        // ADR-002: an uncited claim is unrepresentable in this schema. strict=true was accepted
+        // first try by every model on both providers in the spike, so there is no json_object
+        // fallback here — a provider that cannot do this is a provider change, not a code path.
+<span class="nc" id="L126">        body.put(&quot;response_format&quot;, Map.of(</span>
+                &quot;type&quot;, &quot;json_schema&quot;,
+<span class="nc" id="L128">                &quot;json_schema&quot;, Map.of(</span>
+<span class="nc" id="L129">                        &quot;name&quot;, prompt.schemaName(),</span>
+<span class="nc" id="L130">                        &quot;strict&quot;, true,</span>
+<span class="nc" id="L131">                        &quot;schema&quot;, prompt.schema())));</span>
+<span class="nc bnc" id="L132" title="All 2 branches missed.">        if (properties.isReasoningModel()) {</span>
+<span class="nc" id="L133">            body.put(&quot;reasoning_effort&quot;, &quot;none&quot;);</span>
+        }
+<span class="nc" id="L135">        return body;</span>
+    }
+
+    /**
+     * Retries transient failures only, and barely.
+     *
+     * &lt;p&gt;Deliberately less patient than the embedding client. That one runs on a background worker
+     * where waiting is free, this one runs with a person watching inside NFR-4's 30 s ceiling, so a
+     * second attempt is the most that fits and a third would only make a slow failure slower. A 4xx
+     * other than 429 is terminal for the same reason as in ingestion: retrying a revoked key or a
+     * bad model id spends the same error again — measured, at a cost of EUR 0.00, because rejected
+     * requests are not billed.
+     */
+    private ChatResponse callWithRetry(Map&lt;String, Object&gt; body) {
+<span class="nc" id="L149">        Duration backoff = properties.retryBackoff();</span>
+<span class="nc" id="L150">        RuntimeException last = null;</span>
+
+<span class="nc bnc" id="L152" title="All 2 branches missed.">        for (int attempt = 0; attempt &lt;= properties.maxRetries(); attempt++) {</span>
+<span class="nc bnc" id="L153" title="All 2 branches missed.">            if (last != null) {</span>
+<span class="nc" id="L154">                log.warn(&quot;Chat call failed ({}), retry {} of {} in {}&quot;,</span>
+<span class="nc" id="L155">                        last.getMessage(), attempt, properties.maxRetries(), backoff);</span>
+<span class="nc" id="L156">                sleep(backoff);</span>
+<span class="nc" id="L157">                backoff = backoff.multipliedBy(2);</span>
+            }
+            try {
+<span class="nc" id="L160">                ChatResponse response = restClient.post()</span>
+<span class="nc" id="L161">                        .uri(&quot;/chat/completions&quot;)</span>
+<span class="nc" id="L162">                        .body(body)</span>
+<span class="nc" id="L163">                        .retrieve()</span>
+<span class="nc" id="L164">                        .body(ChatResponse.class);</span>
+                // Counted here, not by the caller: the money is spent when the provider serves the
+                // request, whatever happens to the response afterwards.
+<span class="nc" id="L167">                recordUsage(response);</span>
+<span class="nc bnc" id="L168" title="All 2 branches missed.">                if (response == null) {</span>
+<span class="nc" id="L169">                    throw new ChatException(&quot;provider returned an empty body&quot;);</span>
+                }
+<span class="nc" id="L171">                return response;</span>
+<span class="nc" id="L172">            } catch (org.springframework.http.converter.HttpMessageConversionException e) {</span>
+                // Answered and billed for; we simply could not read it. Terminal, because a retry
+                // produces the same unreadable response at the same price.
+<span class="nc" id="L175">                budget.record(1, 0L, 0L);</span>
+<span class="nc" id="L176">                throw new ChatException(&quot;cannot read the provider response: &quot; + e.getMessage(), e);</span>
+<span class="nc" id="L177">            } catch (org.springframework.web.client.HttpClientErrorException.TooManyRequests e) {</span>
+<span class="nc" id="L178">                last = e;</span>
+<span class="nc" id="L179">            } catch (org.springframework.web.client.HttpClientErrorException e) {</span>
+<span class="nc" id="L180">                throw new ChatException(&quot;chat request rejected: %s %s&quot;</span>
+<span class="nc" id="L181">                        .formatted(e.getStatusCode(), firstLine(e.getResponseBodyAsString())), e);</span>
+<span class="nc" id="L182">            } catch (RestClientException e) {</span>
+<span class="nc" id="L183">                last = e;</span>
+<span class="nc" id="L184">            }</span>
+        }
+<span class="nc" id="L186">        throw new ChatException(&quot;chat provider unavailable after %d attempts: %s&quot;</span>
+<span class="nc bnc" id="L187" title="All 2 branches missed.">                .formatted(properties.maxRetries() + 1, last == null ? &quot;unknown&quot; : last.getMessage()), last);</span>
+    }
+
+    private void recordUsage(ChatResponse response) {
+<span class="nc" id="L191">        budget.record(1,</span>
+<span class="nc bnc" id="L192" title="All 2 branches missed.">                response == null ? 0L : response.promptTokens(),</span>
+<span class="nc bnc" id="L193" title="All 2 branches missed.">                response == null ? 0L : response.completionTokens());</span>
+<span class="nc" id="L194">    }</span>
+
+    /**
+     * The provider's response, typed rather than navigated as a tree — see the class javadoc for
+     * why that is not a style preference on Boot 4.1. The annotations package is shared by both
+     * Jackson generations, so {@code @JsonIgnoreProperties} binds under either.
+     */
+    @JsonIgnoreProperties(ignoreUnknown = true)
+<span class="nc" id="L202">    record ChatResponse(List&lt;Choice&gt; choices, Usage usage) {</span>
+
+        @JsonIgnoreProperties(ignoreUnknown = true)
+<span class="nc" id="L205">        record Choice(Message message, String finish_reason) {</span>
+        }
+
+        @JsonIgnoreProperties(ignoreUnknown = true)
+<span class="nc" id="L209">        record Message(String content) {</span>
+        }
+
+        @JsonIgnoreProperties(ignoreUnknown = true)
+<span class="nc" id="L213">        record Usage(Long prompt_tokens, Long completion_tokens) {</span>
+        }
+
+        String content() {
+<span class="nc bnc" id="L217" title="All 6 branches missed.">            if (choices == null || choices.isEmpty() || choices.get(0).message() == null) {</span>
+<span class="nc" id="L218">                return null;</span>
+            }
+<span class="nc" id="L220">            return choices.get(0).message().content();</span>
+        }
+
+        String finishReason() {
+<span class="nc bnc" id="L224" title="All 4 branches missed.">            return choices == null || choices.isEmpty() ? &quot;none&quot; : choices.get(0).finish_reason();</span>
+        }
+
+        /** Absent usage counts as zero: it costs a metric, not an answer. */
+        long promptTokens() {
+<span class="nc bnc" id="L229" title="All 4 branches missed.">            return usage == null || usage.prompt_tokens() == null ? 0L : usage.prompt_tokens();</span>
+        }
+
+        long completionTokens() {
+<span class="nc bnc" id="L233" title="All 4 branches missed.">            return usage == null || usage.completion_tokens() == null ? 0L : usage.completion_tokens();</span>
+        }
+    }
+
+    /**
+     * A truncated answer on one line. Whitespace is collapsed rather than trimmed, because the
+     * shape of the whitespace is itself the diagnosis: a schema-constrained model that runs away
+     * on indentation looks completely different in this message from one that genuinely had more
+     * to say, and the two need opposite fixes.
+     */
+    private static String preview(String content) {
+<span class="nc bnc" id="L244" title="All 4 branches missed.">        if (content == null || content.isBlank()) {</span>
+<span class="nc" id="L245">            return &quot;(empty)&quot;;</span>
+        }
+<span class="nc" id="L247">        String collapsed = content.replaceAll(&quot;\\s+&quot;, &quot; &quot;).strip();</span>
+<span class="nc bnc" id="L248" title="All 2 branches missed.">        return collapsed.length() &lt;= 200 ? collapsed : collapsed.substring(0, 200) + &quot;…&quot;;</span>
+    }
+
+    private static String firstLine(String body) {
+<span class="nc bnc" id="L252" title="All 4 branches missed.">        if (body == null || body.isBlank()) {</span>
+<span class="nc" id="L253">            return &quot;(no body)&quot;;</span>
+        }
+<span class="nc" id="L255">        String trimmed = body.strip();</span>
+<span class="nc" id="L256">        int newline = trimmed.indexOf('\n');</span>
+<span class="nc bnc" id="L257" title="All 2 branches missed.">        String line = newline &lt; 0 ? trimmed : trimmed.substring(0, newline);</span>
+<span class="nc bnc" id="L258" title="All 2 branches missed.">        return line.length() &gt; 300 ? line.substring(0, 300) + &quot;…&quot; : line;</span>
+    }
+
+    private static void sleep(Duration duration) {
+        try {
+<span class="nc" id="L263">            Thread.sleep(duration.toMillis());</span>
+<span class="nc" id="L264">        } catch (InterruptedException e) {</span>
+<span class="nc" id="L265">            Thread.currentThread().interrupt();</span>
+<span class="nc" id="L266">            throw new ChatException(&quot;interrupted while backing off&quot;, e);</span>
+<span class="nc" id="L267">        }</span>
+<span class="nc" id="L268">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

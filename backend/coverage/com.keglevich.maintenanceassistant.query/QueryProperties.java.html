@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>QueryProperties.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">maintenance-assistant</a> &gt; <a href="index.source.html" class="el_package">com.keglevich.maintenanceassistant.query</a> &gt; <span class="el_source">QueryProperties.java</span></div><h1>QueryProperties.java</h1><pre class="source lang-java linenums">package com.keglevich.maintenanceassistant.query;
+
+import org.springframework.boot.context.properties.ConfigurationProperties;
+
+import java.time.Duration;
+
+/**
+ * Retrieval and guard configuration for the query path.
+ *
+ * @param similarityThreshold the NFR-2 Mode A / Mode B switch. A &lt;b&gt;property, never a literal&lt;/b&gt;
+ *                            (ADR-002): absolute cosine values are specific to the embedding model,
+ *                            so any model change invalidates the number and it has to be re-measured
+ *                            against the corpus rather than reasoned about
+ * @param topK                chunks retrieved per question; also the number of sources the model
+ *                            may cite from
+ * @param rateLimitPerMinute  questions per user per minute (NFR-7)
+ * @param cacheTtl            how long an identical question keeps its answer
+ * @param cacheMaxEntries     cache bound, so a spray of distinct questions cannot grow the heap
+ */
+@ConfigurationProperties(prefix = &quot;maintenance.query&quot;)
+<span class="fc" id="L21">public record QueryProperties(</span>
+        double similarityThreshold,
+        int topK,
+        int rateLimitPerMinute,
+        Duration cacheTtl,
+        int cacheMaxEntries) {
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>RetrievedChunk.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">maintenance-assistant</a> &gt; <a href="index.source.html" class="el_package">com.keglevich.maintenanceassistant.query</a> &gt; <span class="el_source">RetrievedChunk.java</span></div><h1>RetrievedChunk.java</h1><pre class="source lang-java linenums">package com.keglevich.maintenanceassistant.query;
+
+import java.time.LocalDate;
+import java.util.UUID;
+
+/**
+ * One retrieved chunk and everything an answer needs to cite it.
+ *
+ * &lt;p&gt;The chunk is the search unit and the protocol is the citation unit (DECISIONS.txt, DATA MODEL),
+ * which is why this record carries both: the model reasons over {@link #content()} and the answer
+ * points at {@link #protocolId()}. Title, error code and date come from the protocol row rather than
+ * from the chunk text, so a citation says the same thing whichever chunk of a protocol was matched.
+ *
+ * @param similarity cosine similarity in {@code [-1, 1]}, {@code 1 - (embedding &lt;=&gt; question)}.
+ *                   This is the number the Mode A / Mode B threshold is compared against, and the
+ *                   number ADR-002's measured demo cases are quoted in.
+ */
+<span class="fc" id="L18">record RetrievedChunk(</span>
+        UUID chunkId,
+        UUID protocolId,
+        String content,
+        String title,
+        String errorCode,
+        String language,
+        LocalDate incidentDate,
+        double similarity) {
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

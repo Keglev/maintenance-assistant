@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ChatClient.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">maintenance-assistant</a> &gt; <a href="index.source.html" class="el_package">com.keglevich.maintenanceassistant.query</a> &gt; <span class="el_source">ChatClient.java</span></div><h1>ChatClient.java</h1><pre class="source lang-java linenums">package com.keglevich.maintenanceassistant.query;
+
+import java.util.Map;
+
+/**
+ * The one call this application makes to the chat provider.
+ *
+ * &lt;p&gt;Narrow, and narrow for the same reason {@code EmbeddingClient} is: what the query path needs is
+ * a single {@code POST /v1/chat/completions} with a system prompt, a user prompt, an output cap and
+ * a response schema. DECISIONS.txt closed Spring AI for the embedding path on proportion rather than
+ * on compatibility, and the chat path was named there as the place that decision would be revisited
+ * — the place where advisors, chat memory and tool calling would earn their weight. This
+ * implementation uses none of them: there is no conversation to remember (every question is
+ * answered from the retrieved chunks alone), no tool to call, and the one advisor-shaped concern —
+ * citation enforcement — is deliberately done in the application against the retrieved set, because
+ * a framework cannot know which sources &lt;em&gt;this&lt;/em&gt; query actually retrieved. So the same
+ * reasoning lands in the same place, and it is recorded rather than assumed.
+ *
+ * &lt;p&gt;&lt;b&gt;Implementations record their own usage&lt;/b&gt; in {@code ChatBudget}, per request, as the
+ * provider serves it — not the caller on success. That is the ingestion lesson carried over
+ * verbatim: the first live embedding run made 150 paid calls the counter never saw, because every
+ * one of them failed while converting the response and only the success path did the counting.
+ */
+interface ChatClient {
+
+    /** The configured model id. Reported in logs and used to explain a refusal to answer. */
+    String model();
+
+    /** Whether a key and a base URL are present. Without them the query path answers 503. */
+    boolean isConfigured();
+
+    /**
+     * One completion, constrained to a JSON schema.
+     *
+     * &lt;p&gt;The schema is not a convenience: it is the application-side citation enforcement path from
+     * ADR-002. A Mode A answer is a list of {text, source} pairs in which {@code source} is
+     * required, so an uncited claim is &lt;em&gt;unrepresentable&lt;/em&gt; rather than merely discouraged, and
+     * a Mode B answer has no source field at all, so the citation leakage the spike observed on a
+     * refusal cannot be expressed either.
+     *
+     * @throws ChatException on anything that stops an answer being produced
+     */
+    Completion complete(Prompt prompt);
+
+    /**
+     * @param system       system prompt; Mode A and Mode B pass two entirely different strings
+     * @param user         the sources block and the question
+     * @param schemaName   name the provider attaches to the schema
+     * @param schema       JSON Schema the answer must satisfy
+     */
+<span class="fc" id="L51">    record Prompt(String system, String user, String schemaName, Map&lt;String, Object&gt; schema) {</span>
+    }
+
+    /**
+     * @param content           the model's message content — JSON matching the requested schema
+     * @param promptTokens      input tokens as reported by the provider
+     * @param completionTokens  output tokens as reported by the provider
+     * @param durationMillis    wall clock of the provider call, which is most of NFR-4's budget
+     */
+<span class="fc" id="L60">    record Completion(String content, long promptTokens, long completionTokens, long durationMillis) {</span>
+    }
+
+    /** Anything that stops a question being answered. */
+    class ChatException extends RuntimeException {
+        ChatException(String message) {
+<span class="nc" id="L66">            super(message);</span>
+<span class="nc" id="L67">        }</span>
+
+        ChatException(String message, Throwable cause) {
+<span class="nc" id="L70">            super(message, cause);</span>
+<span class="nc" id="L71">        }</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

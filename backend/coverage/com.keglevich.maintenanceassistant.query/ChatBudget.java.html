@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ChatBudget.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">maintenance-assistant</a> &gt; <a href="index.source.html" class="el_package">com.keglevich.maintenanceassistant.query</a> &gt; <span class="el_source">ChatBudget.java</span></div><h1>ChatBudget.java</h1><pre class="source lang-java linenums">package com.keglevich.maintenanceassistant.query;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.jdbc.core.simple.JdbcClient;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDate;
+import java.util.Locale;
+
+/**
+ * The NFR-7 spend ceiling for the query path: a global daily limit on chat calls.
+ *
+ * &lt;p&gt;Global &lt;em&gt;and&lt;/em&gt; per user, unlike ingestion. The per-user Bucket4j limit in
+ * {@link QueryRateLimiter} stops one person hammering the endpoint; this stops the aggregate,
+ * whether it arrives from twenty demo visitors or from one person patiently spacing their requests.
+ * Two different shapes of the same risk, so two different guards — neither substitutes for the
+ * other, which is why the ingestion counter and this one are also separate rows in separate tables.
+ *
+ * &lt;p&gt;Counted in &lt;em&gt;provider calls&lt;/em&gt;, and counted by the client as each request is served rather
+ * than by the caller on success. That is not a preference: the first live run of the ingestion
+ * pipeline made 150 paid calls that a caller-side counter never saw, because every one of them
+ * failed while converting the response and only the success path did the counting.
+ *
+ * &lt;p&gt;ADR-002 records that the provider offers cost alerts and no hard cap, so this counter is the
+ * actual ceiling — which is why it lives in Postgres and survives a restart.
+ */
+@Component
+class ChatBudget {
+
+<span class="fc" id="L33">    private static final Logger log = LoggerFactory.getLogger(ChatBudget.class);</span>
+
+    /** IONOS list price for Llama-3.3-70B-Instruct, EUR per million tokens, input and output alike. */
+    private static final double EUR_PER_MILLION_TOKENS = 0.65;
+
+    private final JdbcClient jdbc;
+    private final ChatProperties properties;
+
+<span class="fc" id="L41">    ChatBudget(JdbcClient jdbc, ChatProperties properties) {</span>
+<span class="fc" id="L42">        this.jdbc = jdbc;</span>
+<span class="fc" id="L43">        this.properties = properties;</span>
+<span class="fc" id="L44">    }</span>
+
+    /**
+     * Checked before a question is sent, not after.
+     *
+     * &lt;p&gt;{@code estimatedCalls} is 2 when a Mode A answer may fall through to Mode B, so a question
+     * cannot start on the last unit of budget and then be unable to finish honestly.
+     *
+     * @throws BudgetExhaustedException if today's ceiling would be exceeded
+     */
+    void checkHeadroom(int estimatedCalls) {
+<span class="fc" id="L55">        int used = usedToday();</span>
+<span class="pc bpc" id="L56" title="1 of 2 branches missed.">        if (used + estimatedCalls &gt; properties.dailyCallBudget()) {</span>
+<span class="nc" id="L57">            throw new BudgetExhaustedException(</span>
+                    &quot;daily chat budget reached: %d of %d calls used today&quot;
+<span class="nc" id="L59">                            .formatted(used, properties.dailyCallBudget()));</span>
+        }
+<span class="fc" id="L61">    }</span>
+
+    /**
+     * Records what a call actually cost.
+     *
+     * &lt;p&gt;Its own transaction, because the money is spent whether or not the surrounding request goes
+     * on to succeed. Rolling the counter back with a failed answer would make a retry loop invisible
+     * to the budget — exactly the case it exists for.
+     */
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    void record(int calls, long promptTokens, long completionTokens) {
+<span class="pc bpc" id="L72" title="1 of 2 branches missed.">        if (calls &lt;= 0) {</span>
+<span class="nc" id="L73">            return;</span>
+        }
+<span class="fc" id="L75">        jdbc.sql(&quot;&quot;&quot;</span>
+                        INSERT INTO chat_budget (usage_date, calls, prompt_tokens, completion_tokens, updated_at)
+                        VALUES (:day, :calls, :promptTokens, :completionTokens, now())
+                        ON CONFLICT (usage_date) DO UPDATE SET
+                            calls             = chat_budget.calls + EXCLUDED.calls,
+                            prompt_tokens     = chat_budget.prompt_tokens + EXCLUDED.prompt_tokens,
+                            completion_tokens = chat_budget.completion_tokens + EXCLUDED.completion_tokens,
+                            updated_at        = now()
+                        &quot;&quot;&quot;)
+<span class="fc" id="L84">                .param(&quot;day&quot;, LocalDate.now())</span>
+<span class="fc" id="L85">                .param(&quot;calls&quot;, calls)</span>
+<span class="fc" id="L86">                .param(&quot;promptTokens&quot;, promptTokens)</span>
+<span class="fc" id="L87">                .param(&quot;completionTokens&quot;, completionTokens)</span>
+<span class="fc" id="L88">                .update();</span>
+<span class="fc" id="L89">    }</span>
+
+    int usedToday() {
+<span class="fc" id="L92">        return jdbc.sql(&quot;SELECT coalesce(max(calls), 0) FROM chat_budget WHERE usage_date = :day&quot;)</span>
+<span class="fc" id="L93">                .param(&quot;day&quot;, LocalDate.now())</span>
+<span class="fc" id="L94">                .query(Integer.class)</span>
+<span class="fc" id="L95">                .single();</span>
+    }
+
+    /** NFR-7's third layer is visibility: a spend nobody can read is not a controlled spend. */
+    Usage usageToday() {
+<span class="fc" id="L100">        return jdbc.sql(&quot;&quot;&quot;</span>
+                        SELECT coalesce(max(calls), 0)             AS calls,
+                               coalesce(max(prompt_tokens), 0)     AS prompt_tokens,
+                               coalesce(max(completion_tokens), 0) AS completion_tokens
+                        FROM chat_budget WHERE usage_date = :day
+                        &quot;&quot;&quot;)
+<span class="fc" id="L106">                .param(&quot;day&quot;, LocalDate.now())</span>
+<span class="fc" id="L107">                .query((rs, rowNum) -&gt; new Usage(</span>
+<span class="fc" id="L108">                        rs.getInt(&quot;calls&quot;),</span>
+<span class="fc" id="L109">                        rs.getLong(&quot;prompt_tokens&quot;),</span>
+<span class="fc" id="L110">                        rs.getLong(&quot;completion_tokens&quot;),</span>
+<span class="fc" id="L111">                        properties.dailyCallBudget()))</span>
+<span class="fc" id="L112">                .single();</span>
+    }
+
+    void logUsage() {
+<span class="fc" id="L116">        Usage usage = usageToday();</span>
+<span class="fc" id="L117">        double eur = (usage.promptTokens() + usage.completionTokens()) / 1_000_000.0 * EUR_PER_MILLION_TOKENS;</span>
+<span class="fc" id="L118">        log.info(&quot;Chat usage today: {} of {} calls, {} in / {} out tokens (~EUR {})&quot;,</span>
+<span class="fc" id="L119">                usage.calls(), usage.dailyCallBudget(), usage.promptTokens(), usage.completionTokens(),</span>
+<span class="fc" id="L120">                String.format(Locale.ROOT, &quot;%.4f&quot;, eur));</span>
+<span class="fc" id="L121">    }</span>
+
+    /** Today's spend, as the ingestion status endpoint reports its own. */
+<span class="fc" id="L124">    record Usage(int calls, long promptTokens, long completionTokens, int dailyCallBudget) {</span>
+    }
+
+    /** Thrown when today's ceiling is reached. Becomes a 503 with a readable message. */
+    static class BudgetExhaustedException extends RuntimeException {
+        BudgetExhaustedException(String message) {
+<span class="fc" id="L130">            super(message);</span>
+<span class="fc" id="L131">        }</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

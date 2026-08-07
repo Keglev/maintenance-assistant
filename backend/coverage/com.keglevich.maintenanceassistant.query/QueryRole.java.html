@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>QueryRole.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">maintenance-assistant</a> &gt; <a href="index.source.html" class="el_package">com.keglevich.maintenanceassistant.query</a> &gt; <span class="el_source">QueryRole.java</span></div><h1>QueryRole.java</h1><pre class="source lang-java linenums">package com.keglevich.maintenanceassistant.query;
+
+/**
+ * Who is asking, expressed as the only thing the answer depends on: how much of a repair the reader
+ * is qualified to carry out.
+ *
+ * &lt;p&gt;Not a copy of the Keycloak realm roles. {@code admin} is an IT role with no question to ask,
+ * and Techniker and Schichtleiter differ in &lt;em&gt;write&lt;/em&gt; access, not in what they may be told —
+ * so four realm roles collapse to two answer depths here, and the web layer does the mapping. That
+ * keeps the query module free of Spring Security and, more usefully, keeps the decision
+ * &quot;which roles get full answers&quot; in one readable place instead of spread across prompt strings.
+ *
+ * &lt;p&gt;This is a safety boundary, not a presentation preference (NFR-3). An Operator is a machine
+ * operator: qualified to look, read, clean, refill and restart, and not qualified to work on
+ * hydraulics, electrics or anything behind a guard. So the constraint is applied server-side, in the
+ * prompt that produces the answer, rather than by hiding text the client already received.
+ */
+<span class="fc" id="L18">public enum QueryRole {</span>
+
+    /** Operator-safe steps and escalation only — never electrical or mechanical repair. */
+<span class="fc" id="L21">    OPERATOR,</span>
+
+    /** Qualified maintenance staff: the full answer, including the repair as it was carried out. */
+<span class="fc" id="L24">    TECHNIKER,</span>
+
+    /** The Schichtleiter is a Techniker who may also write; the answer depth is identical. */
+<span class="fc" id="L27">    SCHICHTLEITER;</span>
+
+    /** True where the answer must stop at checks and escalation. */
+    boolean isOperatorSafeOnly() {
+<span class="fc bfc" id="L31" title="All 2 branches covered.">        return this == OPERATOR;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

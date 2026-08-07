@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>QueryCache.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">maintenance-assistant</a> &gt; <a href="index.source.html" class="el_package">com.keglevich.maintenanceassistant.query</a> &gt; <span class="el_source">QueryCache.java</span></div><h1>QueryCache.java</h1><pre class="source lang-java linenums">package com.keglevich.maintenanceassistant.query;
+
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
+
+import java.util.Locale;
+import java.util.Optional;
+import java.util.UUID;
+
+/**
+ * NFR-7's cheapest guard: the same question is paid for once.
+ *
+ * &lt;p&gt;A hit costs no provider call, so it counts against neither the daily budget nor the day's
+ * tokens — which is the point, and is why the lookup happens before the budget check rather than
+ * after it. It does still cost a rate-limit token, because the rate limit answers a different
+ * question: how hard one person may hammer the endpoint, cached or not.
+ *
+ * &lt;p&gt;&lt;b&gt;The role is part of the key, and that is a correctness requirement rather than a nicety.&lt;/b&gt;
+ * An Operator and a Techniker asking the identical question about the identical machine must get
+ * different answers (NFR-3) — one of them omits the repair. A key without the role would serve a
+ * technician's answer, repair steps and all, to the next operator who asked the same thing. That is
+ * the sort of cache bug that is invisible in testing and unacceptable in production.
+ *
+ * &lt;p&gt;The question is normalised — trimmed, collapsed whitespace, lower-cased — so &quot;E-47?&quot; and
+ * &quot;e-47 ?&quot; are one entry. Deliberately no further cleverness: stemming or fuzzy matching would make
+ * two different questions share an answer, and the saving is measured in fractions of a cent.
+ *
+ * &lt;p&gt;Bounded by size and by TTL. The TTL is what keeps a freshly uploaded protocol from being
+ * invisible for the rest of the day, and it is short enough that &quot;upload, then ask again&quot; works
+ * within a shift.
+ */
+@Component
+class QueryCache {
+
+<span class="fc" id="L38">    private static final Logger log = LoggerFactory.getLogger(QueryCache.class);</span>
+
+    private final Cache&lt;Key, QueryAnswer&gt; cache;
+
+<span class="fc" id="L42">    QueryCache(QueryProperties properties) {</span>
+<span class="fc" id="L43">        this.cache = Caffeine.newBuilder()</span>
+<span class="fc" id="L44">                .maximumSize(properties.cacheMaxEntries())</span>
+<span class="fc" id="L45">                .expireAfterWrite(properties.cacheTtl())</span>
+<span class="fc" id="L46">                .recordStats()</span>
+<span class="fc" id="L47">                .build();</span>
+<span class="fc" id="L48">    }</span>
+
+    Optional&lt;QueryAnswer&gt; get(String question, UUID machineId, QueryRole role) {
+<span class="fc" id="L51">        QueryAnswer hit = cache.getIfPresent(new Key(normalise(question), machineId, role));</span>
+<span class="fc bfc" id="L52" title="All 2 branches covered.">        if (hit != null) {</span>
+<span class="fc" id="L53">            log.debug(&quot;Query cache hit for machine {} as {}&quot;, machineId, role);</span>
+        }
+<span class="fc" id="L55">        return Optional.ofNullable(hit);</span>
+    }
+
+    void put(String question, UUID machineId, QueryRole role, QueryAnswer answer) {
+<span class="fc" id="L59">        cache.put(new Key(normalise(question), machineId, role), answer);</span>
+<span class="fc" id="L60">    }</span>
+
+    /** Test seam and an operational one: a cache nobody can clear is a cache nobody can debug. */
+    void clear() {
+<span class="fc" id="L64">        cache.invalidateAll();</span>
+<span class="fc" id="L65">    }</span>
+
+    long size() {
+<span class="nc" id="L68">        return cache.estimatedSize();</span>
+    }
+
+    static String normalise(String question) {
+<span class="pc bpc" id="L72" title="1 of 2 branches missed.">        return question == null ? &quot;&quot; : question.strip().replaceAll(&quot;\\s+&quot;, &quot; &quot;).toLowerCase(Locale.ROOT);</span>
+    }
+
+<span class="fc" id="L75">    private record Key(String question, UUID machineId, QueryRole role) {</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

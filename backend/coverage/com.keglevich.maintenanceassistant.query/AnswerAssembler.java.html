@@ -1,0 +1,206 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AnswerAssembler.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">maintenance-assistant</a> &gt; <a href="index.source.html" class="el_package">com.keglevich.maintenanceassistant.query</a> &gt; <span class="el_source">AnswerAssembler.java</span></div><h1>AnswerAssembler.java</h1><pre class="source lang-java linenums">package com.keglevich.maintenanceassistant.query;
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
+import tools.jackson.databind.json.JsonMapper;
+
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.regex.Pattern;
+
+/**
+ * Turns the model's JSON into the answer, and enforces the citation rule against what was actually
+ * retrieved.
+ *
+ * &lt;p&gt;This is the layer ADR-002 calls &quot;the application-side enforcement path&quot;, and it is the only one
+ * of the three that cannot be talked out of its job. The prompt asks the model to cite; the schema
+ * makes an uncited claim unrepresentable; and this class checks the citations against the set of
+ * chunks &lt;em&gt;this query&lt;/em&gt; retrieved — which is the one check neither of the other two can make,
+ * because neither the prompt nor the provider knows what came back from the database. A claim citing
+ * a label that was not retrieved is dropped, not repaired: a plausible sentence attributed to a
+ * source that does not support it is the precise failure this application is built to avoid.
+ *
+ * &lt;p&gt;Its own {@link JsonMapper} rather than the injected one. Boot 4.1 ships Jackson 3 as the
+ * message-converter default with Jackson 2 still on the classpath through other libraries, and
+ * DECISIONS.txt records what that cost the first time it was discovered at runtime. Constructing the
+ * mapper here says which generation parses this string, in the file where the parsing happens.
+ */
+@Component
+<span class="fc" id="L35">class AnswerAssembler {</span>
+
+<span class="fc" id="L37">    private static final Logger log = LoggerFactory.getLogger(AnswerAssembler.class);</span>
+
+    /**
+     * Anything in square brackets. Belt and braces over the schema: the Mode B shape has no source
+     * field, but a model that wants to leak a citation badly enough can still write one into a step
+     * string, and the spike saw exactly that behaviour on a refusal.
+     */
+<span class="fc" id="L44">    private static final Pattern BRACKETED = Pattern.compile(&quot;\\s*\\[[^\\]]{0,40}\\]&quot;);</span>
+
+<span class="fc" id="L46">    private final JsonMapper json = JsonMapper.builder().build();</span>
+
+    /**
+     * Mode A.
+     *
+     * @param labelled the retrieved sources with the labels the model was given
+     * @return the assembled answer, or empty if nothing the model said survived validation — which
+     *         the caller treats as &quot;not actually grounded&quot; and answers as Mode B instead
+     */
+    java.util.Optional&lt;QueryAnswer&gt; assembleGrounded(String content, List&lt;GroundedPrompt.LabelledSource&gt; labelled) {
+<span class="fc" id="L56">        GroundedAnswer parsed = parse(content, GroundedAnswer.class);</span>
+
+<span class="fc" id="L58">        Map&lt;String, GroundedPrompt.LabelledSource&gt; byLabel = new LinkedHashMap&lt;&gt;();</span>
+<span class="fc bfc" id="L59" title="All 2 branches covered.">        for (GroundedPrompt.LabelledSource source : labelled) {</span>
+<span class="fc" id="L60">            byLabel.put(source.label().toUpperCase(Locale.ROOT), source);</span>
+<span class="fc" id="L61">        }</span>
+
+<span class="fc" id="L63">        List&lt;QueryAnswer.Claim&gt; claims = new ArrayList&lt;&gt;();</span>
+        // Insertion-ordered, so citations come out in the order the answer first refers to them and
+        // the view can number them as it renders.
+<span class="fc" id="L66">        Map&lt;String, GroundedPrompt.LabelledSource&gt; cited = new LinkedHashMap&lt;&gt;();</span>
+<span class="fc" id="L67">        int dropped = 0;</span>
+
+<span class="fc bfc" id="L69" title="All 2 branches covered.">        for (GroundedAnswer.Claim claim : parsed.safeClaims()) {</span>
+<span class="pc bpc" id="L70" title="1 of 2 branches missed.">            String text = claim.text() == null ? &quot;&quot; : stripMarkers(claim.text());</span>
+<span class="fc" id="L71">            String label = normaliseLabel(claim.source());</span>
+<span class="pc bpc" id="L72" title="1 of 2 branches missed.">            GroundedPrompt.LabelledSource source = label == null ? null : byLabel.get(label);</span>
+<span class="pc bpc" id="L73" title="1 of 4 branches missed.">            if (text.isBlank() || source == null) {</span>
+<span class="fc" id="L74">                dropped++;</span>
+<span class="fc" id="L75">                continue;</span>
+            }
+<span class="fc" id="L77">            claims.add(new QueryAnswer.Claim(text, label));</span>
+<span class="fc" id="L78">            cited.putIfAbsent(label, source);</span>
+<span class="fc" id="L79">        }</span>
+
+<span class="fc bfc" id="L81" title="All 2 branches covered.">        if (dropped &gt; 0) {</span>
+            // Worth a warning rather than a debug line: this is the model citing something it was
+            // never shown, and a rise in it is the signal that a prompt or a model swap regressed.
+<span class="fc" id="L84">            log.warn(&quot;Dropped {} of {} claims citing a source that was not retrieved&quot;,</span>
+<span class="fc" id="L85">                    dropped, parsed.safeClaims().size());</span>
+        }
+<span class="fc bfc" id="L87" title="All 2 branches covered.">        if (claims.isEmpty()) {</span>
+<span class="fc" id="L88">            return java.util.Optional.empty();</span>
+        }
+
+<span class="fc" id="L91">        List&lt;QueryAnswer.Citation&gt; citations = new ArrayList&lt;&gt;();</span>
+<span class="fc bfc" id="L92" title="All 2 branches covered.">        for (Map.Entry&lt;String, GroundedPrompt.LabelledSource&gt; entry : cited.entrySet()) {</span>
+<span class="fc" id="L93">            GroundedPrompt.LabelledSource source = entry.getValue();</span>
+<span class="fc" id="L94">            citations.add(new QueryAnswer.Citation(</span>
+<span class="fc" id="L95">                    entry.getKey(), source.protocolId(), source.title(), source.errorCode(),</span>
+<span class="fc" id="L96">                    source.incidentDate(), round(source.similarity())));</span>
+<span class="fc" id="L97">        }</span>
+
+<span class="fc" id="L99">        String prose = claims.stream()</span>
+<span class="fc" id="L100">                .map(claim -&gt; &quot;%s [%s]&quot;.formatted(claim.text().strip(), claim.source()))</span>
+<span class="pc" id="L101">                .reduce((a, b) -&gt; a + &quot; &quot; + b)</span>
+<span class="fc" id="L102">                .orElse(&quot;&quot;);</span>
+
+<span class="fc" id="L104">        return java.util.Optional.of(new QueryAnswer(</span>
+<span class="fc" id="L105">                QueryAnswer.AnswerMode.A, prose, language(parsed.answerLanguage()), claims, citations));</span>
+    }
+
+    /**
+     * Mode B. No citations by construction, and any bracketed text a step contains is stripped
+     * before it is shown — see {@link #BRACKETED}.
+     */
+    QueryAnswer assembleUngrounded(String content) {
+<span class="fc" id="L113">        UngroundedAnswer parsed = parse(content, UngroundedAnswer.class);</span>
+<span class="fc" id="L114">        List&lt;String&gt; steps = parsed.safeSteps().stream()</span>
+<span class="fc" id="L115">                .map(this::stripMarkers)</span>
+<span class="fc" id="L116">                .map(String::strip)</span>
+<span class="pc bpc" id="L117" title="1 of 2 branches missed.">                .filter(step -&gt; !step.isBlank())</span>
+<span class="fc" id="L118">                .toList();</span>
+
+<span class="pc bpc" id="L120" title="1 of 2 branches missed.">        if (steps.isEmpty()) {</span>
+<span class="nc" id="L121">            throw new ChatClient.ChatException(&quot;model produced no troubleshooting steps&quot;);</span>
+        }
+        // Newline-separated rather than one paragraph: these are steps, and a night-shift reader
+        // works down a list. The frontend renders the lines; it does not have to parse them.
+<span class="fc" id="L125">        String prose = String.join(&quot;\n&quot;, steps);</span>
+<span class="fc" id="L126">        return new QueryAnswer(QueryAnswer.AnswerMode.B, prose, language(parsed.answerLanguage()),</span>
+<span class="fc" id="L127">                List.of(), List.of());</span>
+    }
+
+    private &lt;T&gt; T parse(String content, Class&lt;T&gt; type) {
+        try {
+<span class="fc" id="L132">            T parsed = json.readValue(content, type);</span>
+<span class="pc bpc" id="L133" title="1 of 2 branches missed.">            if (parsed == null) {</span>
+<span class="nc" id="L134">                throw new ChatClient.ChatException(&quot;model returned a null answer object&quot;);</span>
+            }
+<span class="fc" id="L136">            return parsed;</span>
+<span class="nc" id="L137">        } catch (RuntimeException e) {</span>
+            // The provider accepted a strict json_schema, so this should be unreachable; if it ever
+            // fires, the raw content is the only thing that explains why.
+<span class="nc" id="L140">            throw new ChatClient.ChatException(</span>
+<span class="nc" id="L141">                    &quot;cannot parse the model answer as JSON: &quot; + firstChars(content), e);</span>
+        }
+    }
+
+    /** {@code &quot;[P1]&quot;}, {@code &quot;p1&quot;} and {@code &quot;P1&quot;} all mean the same label to a model. */
+    private static String normaliseLabel(String source) {
+<span class="pc bpc" id="L147" title="2 of 4 branches missed.">        if (source == null || source.isBlank()) {</span>
+<span class="nc" id="L148">            return null;</span>
+        }
+<span class="fc" id="L150">        String cleaned = source.strip().toUpperCase(Locale.ROOT);</span>
+<span class="pc bpc" id="L151" title="3 of 4 branches missed.">        if (cleaned.startsWith(&quot;[&quot;) &amp;&amp; cleaned.endsWith(&quot;]&quot;)) {</span>
+<span class="nc" id="L152">            cleaned = cleaned.substring(1, cleaned.length() - 1).strip();</span>
+        }
+<span class="pc bpc" id="L154" title="1 of 2 branches missed.">        return cleaned.isBlank() ? null : cleaned;</span>
+    }
+
+    private String stripMarkers(String text) {
+<span class="fc" id="L158">        return BRACKETED.matcher(text).replaceAll(&quot;&quot;);</span>
+    }
+
+    /** The model's own answer to the language question, kept honest with an allowlist. */
+    private static String language(String reported) {
+<span class="pc bpc" id="L163" title="1 of 2 branches missed.">        if (reported == null) {</span>
+<span class="nc" id="L164">            return &quot;de&quot;;</span>
+        }
+<span class="fc" id="L166">        String lower = reported.strip().toLowerCase(Locale.ROOT);</span>
+<span class="pc bpc" id="L167" title="1 of 2 branches missed.">        return lower.startsWith(&quot;en&quot;) ? &quot;en&quot; : &quot;de&quot;;</span>
+    }
+
+    private static double round(double value) {
+<span class="fc" id="L171">        return Math.round(value * 10_000d) / 10_000d;</span>
+    }
+
+    private static String firstChars(String content) {
+<span class="nc bnc" id="L175" title="All 2 branches missed.">        if (content == null) {</span>
+<span class="nc" id="L176">            return &quot;(null)&quot;;</span>
+        }
+<span class="nc bnc" id="L178" title="All 2 branches missed.">        return content.length() &lt;= 300 ? content : content.substring(0, 300) + &quot;…&quot;;</span>
+    }
+
+    // -----------------------------------------------------------------------------------------
+    // The model's answers, typed. Records bind under either Jackson generation; the annotations
+    // package is shared by both, which is what makes @JsonProperty safe here.
+    // -----------------------------------------------------------------------------------------
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+<span class="fc" id="L187">    record GroundedAnswer(@JsonProperty(&quot;answer_language&quot;) String answerLanguage, List&lt;Claim&gt; claims) {</span>
+
+        @JsonIgnoreProperties(ignoreUnknown = true)
+<span class="fc" id="L190">        record Claim(String text, String source) {</span>
+        }
+
+        List&lt;Claim&gt; safeClaims() {
+<span class="pc bpc" id="L194" title="1 of 2 branches missed.">            return claims == null ? List.of() : claims;</span>
+        }
+    }
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+<span class="fc" id="L199">    record UngroundedAnswer(@JsonProperty(&quot;answer_language&quot;) String answerLanguage, List&lt;String&gt; steps) {</span>
+
+        List&lt;String&gt; safeSteps() {
+<span class="pc bpc" id="L202" title="1 of 2 branches missed.">            return steps == null ? List.of() : steps;</span>
+        }
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

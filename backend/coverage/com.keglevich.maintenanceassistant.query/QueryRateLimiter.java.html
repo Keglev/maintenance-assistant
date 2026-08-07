@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>QueryRateLimiter.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">maintenance-assistant</a> &gt; <a href="index.source.html" class="el_package">com.keglevich.maintenanceassistant.query</a> &gt; <span class="el_source">QueryRateLimiter.java</span></div><h1>QueryRateLimiter.java</h1><pre class="source lang-java linenums">package com.keglevich.maintenanceassistant.query;
+
+import com.github.benmanes.caffeine.cache.Caffeine;
+import io.github.bucket4j.Bandwidth;
+import io.github.bucket4j.Bucket;
+import org.springframework.stereotype.Component;
+
+import java.time.Duration;
+import java.util.concurrent.ConcurrentMap;
+
+/**
+ * NFR-7, per user: how often one person may ask.
+ *
+ * &lt;p&gt;Keyed by the token's {@code sub} claim rather than by username or by IP. {@code sub} is the
+ * stable Keycloak user id — a username can be changed in the admin console and an IP is shared by
+ * everyone behind the plant's NAT, which would make one impatient operator throttle the whole shift.
+ *
+ * &lt;p&gt;In-memory, and honestly so: this is one application instance, so a distributed limiter would be
+ * infrastructure bought for a topology that does not exist. What that costs is that a restart hands
+ * everyone a fresh bucket, which is acceptable because this guard bounds the &lt;em&gt;rate&lt;/em&gt; of spend
+ * and the guard that bounds the &lt;em&gt;total&lt;/em&gt; is {@link ChatBudget}, in Postgres, precisely because
+ * that one must survive a restart. If the application is ever run as more than one replica, this
+ * class is the thing to move to Redis, and the daily counter already behaves correctly.
+ *
+ * &lt;p&gt;The bucket map is a Caffeine cache rather than a plain map so idle users are evicted; an
+ * unbounded map keyed by user id is a slow leak in a system that anyone with a token can add keys to.
+ */
+@Component
+class QueryRateLimiter {
+
+    private final QueryProperties properties;
+    private final ConcurrentMap&lt;String, Bucket&gt; buckets;
+
+<span class="fc" id="L34">    QueryRateLimiter(QueryProperties properties) {</span>
+<span class="fc" id="L35">        this.properties = properties;</span>
+<span class="fc" id="L36">        this.buckets = Caffeine.newBuilder()</span>
+                // Comfortably longer than the refill window, so an active user keeps their bucket
+                // and an inactive one is forgotten rather than accumulating.
+<span class="fc" id="L39">                .expireAfterAccess(Duration.ofMinutes(10))</span>
+<span class="fc" id="L40">                .maximumSize(10_000)</span>
+<span class="fc" id="L41">                .&lt;String, Bucket&gt;build()</span>
+<span class="fc" id="L42">                .asMap();</span>
+<span class="fc" id="L43">    }</span>
+
+    /**
+     * Consumes one token for this user.
+     *
+     * @throws RateLimitExceededException when the user is over their limit; the message says when to
+     *                                    come back, because a limit without a &quot;try again in n
+     *                                    seconds&quot; reads as an outage
+     */
+    void check(String subject) {
+<span class="fc" id="L53">        Bucket bucket = buckets.computeIfAbsent(subject, key -&gt; newBucket());</span>
+<span class="fc" id="L54">        var probe = bucket.tryConsumeAndReturnRemaining(1);</span>
+<span class="fc bfc" id="L55" title="All 2 branches covered.">        if (!probe.isConsumed()) {</span>
+<span class="fc" id="L56">            long retryAfterSeconds = Math.max(1, probe.getNanosToWaitForRefill() / 1_000_000_000L);</span>
+<span class="fc" id="L57">            throw new RateLimitExceededException(retryAfterSeconds,</span>
+                    &quot;Too many questions in a short time (limit %d per minute). Try again in %d seconds.&quot;
+<span class="fc" id="L59">                            .formatted(properties.rateLimitPerMinute(), retryAfterSeconds));</span>
+        }
+<span class="fc" id="L61">    }</span>
+
+    /**
+     * A greedy refill rather than one whole bucket per minute: tokens come back steadily, so a user
+     * who has just run out waits seconds for the next question instead of up to a minute for all of
+     * them. Same ceiling, far better behaviour for a person.
+     */
+    private Bucket newBucket() {
+<span class="fc" id="L69">        return Bucket.builder()</span>
+<span class="fc" id="L70">                .addLimit(Bandwidth.builder()</span>
+<span class="fc" id="L71">                        .capacity(properties.rateLimitPerMinute())</span>
+<span class="fc" id="L72">                        .refillGreedy(properties.rateLimitPerMinute(), Duration.ofMinutes(1))</span>
+<span class="fc" id="L73">                        .build())</span>
+<span class="fc" id="L74">                .build();</span>
+    }
+
+    /** Thrown when a user is over their limit. Becomes a 429. */
+    static class RateLimitExceededException extends RuntimeException {
+
+        private final long retryAfterSeconds;
+
+        RateLimitExceededException(long retryAfterSeconds, String message) {
+<span class="fc" id="L83">            super(message);</span>
+<span class="fc" id="L84">            this.retryAfterSeconds = retryAfterSeconds;</span>
+<span class="fc" id="L85">        }</span>
+
+        long retryAfterSeconds() {
+<span class="fc" id="L88">            return retryAfterSeconds;</span>
+        }
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

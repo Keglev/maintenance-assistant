@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ChunkRetriever.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">maintenance-assistant</a> &gt; <a href="index.source.html" class="el_package">com.keglevich.maintenanceassistant.query</a> &gt; <span class="el_source">ChunkRetriever.java</span></div><h1>ChunkRetriever.java</h1><pre class="source lang-java linenums">package com.keglevich.maintenanceassistant.query;
+
+import org.springframework.jdbc.core.simple.JdbcClient;
+import org.springframework.stereotype.Component;
+
+import java.time.LocalDate;
+import java.util.List;
+import java.util.UUID;
+
+/**
+ * Retrieval: one SQL statement that filters by machine and ranks by vector distance.
+ *
+ * &lt;p&gt;&lt;b&gt;One statement is the whole point of ADR-004.&lt;/b&gt; The alternative architecture — a dedicated
+ * vector database — would make this two lookups against two stores that have to agree with each
+ * other, and the &quot;which machine is this chunk on&quot; half would either be duplicated into the vector
+ * store or applied after ranking, which silently returns fewer than {@code topK} results. Here the
+ * filter is a column on {@code chunk}, denormalized by ingestion for exactly this query, so the
+ * relational predicate and the nearest-neighbour ordering are evaluated together and the answer is
+ * always the top {@code k} &lt;em&gt;of this machine&lt;/em&gt;.
+ *
+ * &lt;p&gt;{@code &lt;=&gt;} is pgvector's cosine distance, and it is the operator the HNSW index in V1 was
+ * built for ({@code vector_cosine_ops}); an index built for a different distance function would be
+ * silently unused by this query. Similarity is reported as {@code 1 - distance}, which is what the
+ * threshold in {@link QueryProperties} is expressed in and what ADR-002's measured demo figures are.
+ */
+@Component
+class ChunkRetriever {
+
+    private final JdbcClient jdbc;
+
+<span class="fc" id="L31">    ChunkRetriever(JdbcClient jdbc) {</span>
+<span class="fc" id="L32">        this.jdbc = jdbc;</span>
+<span class="fc" id="L33">    }</span>
+
+    /**
+     * The top {@code topK} chunks for this machine, best first.
+     *
+     * @param questionVector the embedded question, same model and width as the stored chunks
+     */
+    List&lt;RetrievedChunk&gt; retrieve(UUID machineId, float[] questionVector, int topK) {
+<span class="fc" id="L41">        String vector = toVectorLiteral(questionVector);</span>
+<span class="fc" id="L42">        return jdbc.sql(&quot;&quot;&quot;</span>
+                        SELECT c.id                                                AS chunk_id,
+                               c.protocol_id                                       AS protocol_id,
+                               c.content                                           AS content,
+                               p.title                                             AS title,
+                               p.error_code                                        AS error_code,
+                               p.language                                          AS language,
+                               p.incident_date                                     AS incident_date,
+                               1 - (c.embedding &lt;=&gt; CAST(:vector AS vector))       AS similarity
+                        FROM chunk c
+                        JOIN protocol p ON p.id = c.protocol_id
+                        WHERE c.machine_id = :machineId
+                          AND c.embedding IS NOT NULL
+                        ORDER BY c.embedding &lt;=&gt; CAST(:vector AS vector)
+                        LIMIT :topK
+                        &quot;&quot;&quot;)
+                // CAST(... AS vector) rather than the ::vector shorthand, because the named-parameter
+                // parser reads `::` as a parameter marker — the same trap ProtocolIndexWriter hit.
+<span class="fc" id="L60">                .param(&quot;vector&quot;, vector)</span>
+<span class="fc" id="L61">                .param(&quot;machineId&quot;, machineId)</span>
+<span class="fc" id="L62">                .param(&quot;topK&quot;, topK)</span>
+<span class="fc" id="L63">                .query((rs, rowNum) -&gt; new RetrievedChunk(</span>
+<span class="fc" id="L64">                        rs.getObject(&quot;chunk_id&quot;, UUID.class),</span>
+<span class="fc" id="L65">                        rs.getObject(&quot;protocol_id&quot;, UUID.class),</span>
+<span class="fc" id="L66">                        rs.getString(&quot;content&quot;),</span>
+<span class="fc" id="L67">                        rs.getString(&quot;title&quot;),</span>
+<span class="fc" id="L68">                        rs.getString(&quot;error_code&quot;),</span>
+<span class="fc" id="L69">                        rs.getString(&quot;language&quot;),</span>
+<span class="fc" id="L70">                        rs.getObject(&quot;incident_date&quot;, LocalDate.class),</span>
+<span class="fc" id="L71">                        rs.getDouble(&quot;similarity&quot;)))</span>
+<span class="fc" id="L72">                .list();</span>
+    }
+
+    /** Whether a machine exists at all — an unknown id is the caller's mistake, not an empty answer. */
+    boolean machineExists(UUID machineId) {
+<span class="fc" id="L77">        return jdbc.sql(&quot;SELECT count(*) FROM machine WHERE id = :id&quot;)</span>
+<span class="fc" id="L78">                .param(&quot;id&quot;, machineId)</span>
+<span class="fc" id="L79">                .query(Long.class)</span>
+<span class="pc bpc" id="L80" title="1 of 2 branches missed.">                .single() &gt; 0;</span>
+    }
+
+    /** {@code [0.1,-0.2,…]} — pgvector's own input syntax. */
+    private static String toVectorLiteral(float[] vector) {
+<span class="fc" id="L85">        StringBuilder out = new StringBuilder(vector.length * 12 + 2);</span>
+<span class="fc" id="L86">        out.append('[');</span>
+<span class="fc bfc" id="L87" title="All 2 branches covered.">        for (int i = 0; i &lt; vector.length; i++) {</span>
+<span class="fc bfc" id="L88" title="All 2 branches covered.">            if (i &gt; 0) {</span>
+<span class="fc" id="L89">                out.append(',');</span>
+            }
+<span class="fc" id="L91">            out.append(vector[i]);</span>
+        }
+<span class="fc" id="L93">        return out.append(']').toString();</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

@@ -124,17 +124,375 @@
       <article class="doc-body">
         <h1 id="cross-cutting-concepts">8. Cross-cutting Concepts</h1>
         <blockquote>
+        <p><strong>Partial — filled in as each concept is
+        implemented.</strong> §8.1 (persistence) is done; the rest is
+        still a stub list.</p>
+        </blockquote>
+        <h2 id="persistence-and-the-database-schema">8.1 Persistence and
+        the database schema</h2>
+        <p><code>MACHINE</code> → <code>PROTOCOL</code> →
+        <code>CHUNK</code>: machine is the filter unit, protocol the
+        citation unit, chunk the search unit. <a
+        href="../DOMAIN-MODEL.html">DOMAIN-MODEL.md</a> holds the
+        conceptual model and the reasoning; this section records the
+        schema as it actually exists in the database.</p>
+        <p>The schema is owned by <strong>Flyway</strong>, not by JPA.
+        <code>backend/src/main/resources/db/migration/</code> is the
+        only thing that creates or changes tables; there is no
+        <code>ddl-auto</code> anywhere. Two consequences worth stating:
+        the database is reproducible from an empty volume by starting
+        the application, and a schema change is a reviewable file in a
+        pull request rather than a side effect of an entity edit.</p>
+        <table>
+        <colgroup>
+        <col style="width: 33%" />
+        <col style="width: 33%" />
+        <col style="width: 33%" />
+        </colgroup>
+        <thead>
+        <tr class="header">
+        <th>File</th>
+        <th>Kind</th>
+        <th>Purpose</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr class="odd">
+        <td><code>V1__baseline_schema.sql</code></td>
+        <td>versioned</td>
+        <td>The three tables, their constraints, and every index</td>
+        </tr>
+        <tr class="even">
+        <td><code>R__seed_machines.sql</code></td>
+        <td>repeatable</td>
+        <td>The 10 demo machines — reference data, re-applied when
+        edited</td>
+        </tr>
+        </tbody>
+        </table>
+        <h3 id="tables">Tables</h3>
+        <p><strong><code>machine</code></strong> — equipment master
+        data.</p>
+        <table>
+        <colgroup>
+        <col style="width: 33%" />
+        <col style="width: 33%" />
+        <col style="width: 33%" />
+        </colgroup>
+        <thead>
+        <tr class="header">
+        <th>Column</th>
+        <th>Type</th>
+        <th>Notes</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr class="odd">
+        <td><code>id</code></td>
+        <td><code>uuid</code></td>
+        <td>PK</td>
+        </tr>
+        <tr class="even">
+        <td><code>machine_no</code></td>
+        <td><code>varchar(32)</code></td>
+        <td><strong>unique</strong>; the plant-facing identifier
+        (<code>PR-03</code>)</td>
+        </tr>
+        <tr class="odd">
+        <td><code>name</code>, <code>type</code></td>
+        <td><code>varchar(128)</code></td>
+        <td>not null</td>
+        </tr>
+        <tr class="even">
+        <td><code>manufacturer</code></td>
+        <td><code>varchar(128)</code></td>
+        <td></td>
+        </tr>
+        <tr class="odd">
+        <td><code>year_built</code></td>
+        <td><code>smallint</code></td>
+        <td>check <code>1950..2100</code>; legacy equipment is the
+        normal case</td>
+        </tr>
+        <tr class="even">
+        <td><code>control_type</code></td>
+        <td><code>varchar(16)</code></td>
+        <td>check <code>PLC \| SCADA \| CNC \| TERMINAL</code></td>
+        </tr>
+        <tr class="odd">
+        <td><code>location</code></td>
+        <td><code>varchar(128)</code></td>
+        <td>hall / line</td>
+        </tr>
+        <tr class="even">
+        <td><code>created_at</code></td>
+        <td><code>timestamptz</code></td>
+        <td>default <code>now()</code></td>
+        </tr>
+        </tbody>
+        </table>
+        <p><strong><code>protocol</code></strong> — one maintenance or
+        fault report; the unit an answer cites.</p>
+        <table>
+        <colgroup>
+        <col style="width: 33%" />
+        <col style="width: 33%" />
+        <col style="width: 33%" />
+        </colgroup>
+        <thead>
+        <tr class="header">
+        <th>Column</th>
+        <th>Type</th>
+        <th>Notes</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr class="odd">
+        <td><code>id</code></td>
+        <td><code>uuid</code></td>
+        <td>PK</td>
+        </tr>
+        <tr class="even">
+        <td><code>machine_id</code></td>
+        <td><code>uuid</code></td>
+        <td>FK → <code>machine</code>,
+        <code>ON DELETE CASCADE</code></td>
+        </tr>
+        <tr class="odd">
+        <td><code>incident_date</code></td>
+        <td><code>date</code></td>
+        <td>not null</td>
+        </tr>
+        <tr class="even">
+        <td><code>protocol_type</code></td>
+        <td><code>varchar(16)</code></td>
+        <td>check <code>STOERUNG \| WARTUNG</code></td>
+        </tr>
+        <tr class="odd">
+        <td><code>error_code</code></td>
+        <td><code>varchar(64)</code></td>
+        <td>nullable, <strong>free text by decision</strong> — a
+        retrieval hint, not a key</td>
+        </tr>
+        <tr class="even">
+        <td><code>title</code></td>
+        <td><code>varchar(255)</code></td>
+        <td>not null</td>
+        </tr>
+        <tr class="odd">
+        <td><code>symptom</code>, <code>cause</code>,
+        <code>action</code>, <code>parts_used</code></td>
+        <td><code>text</code></td>
+        <td>nullable; extraction from an uploaded file fills
+        <code>symptom</code> only</td>
+        </tr>
+        <tr class="even">
+        <td><code>downtime_minutes</code></td>
+        <td><code>integer</code></td>
+        <td>nullable, check <code>&gt;= 0</code></td>
+        </tr>
+        <tr class="odd">
+        <td><code>technician_initials</code></td>
+        <td><code>varchar(8)</code></td>
+        <td></td>
+        </tr>
+        <tr class="even">
+        <td><code>language</code></td>
+        <td><code>varchar(2)</code></td>
+        <td>check <code>de \| en</code>; nothing is ever translated</td>
+        </tr>
+        <tr class="odd">
+        <td><code>source_file</code></td>
+        <td><code>varchar(512)</code></td>
+        <td>path on the Docker volume — <strong>no BLOBs in
+        Postgres</strong></td>
+        </tr>
+        <tr class="even">
+        <td><code>status</code></td>
+        <td><code>varchar(16)</code></td>
+        <td>check <code>RECEIVED \| INDEXED \| FAILED</code>, default
+        <code>RECEIVED</code></td>
+        </tr>
+        <tr class="odd">
+        <td><code>uploaded_by</code></td>
+        <td><code>varchar(128)</code></td>
+        <td>Keycloak username string, <strong>deliberately no
+        FK</strong></td>
+        </tr>
+        <tr class="even">
+        <td><code>created_at</code>, <code>updated_at</code></td>
+        <td><code>timestamptz</code></td>
+        <td>default <code>now()</code></td>
+        </tr>
+        </tbody>
+        </table>
+        <p><strong><code>chunk</code></strong> — the embedded search
+        unit.</p>
+        <table>
+        <colgroup>
+        <col style="width: 33%" />
+        <col style="width: 33%" />
+        <col style="width: 33%" />
+        </colgroup>
+        <thead>
+        <tr class="header">
+        <th>Column</th>
+        <th>Type</th>
+        <th>Notes</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr class="odd">
+        <td><code>id</code></td>
+        <td><code>uuid</code></td>
+        <td>PK</td>
+        </tr>
+        <tr class="even">
+        <td><code>protocol_id</code></td>
+        <td><code>uuid</code></td>
+        <td>FK → <code>protocol</code>,
+        <code>ON DELETE CASCADE</code></td>
+        </tr>
+        <tr class="odd">
+        <td><code>chunk_index</code></td>
+        <td><code>integer</code></td>
+        <td>position within the protocol; unique with
+        <code>protocol_id</code></td>
+        </tr>
+        <tr class="even">
+        <td><code>content</code></td>
+        <td><code>text</code></td>
+        <td>not null</td>
+        </tr>
+        <tr class="odd">
+        <td><code>embedding</code></td>
+        <td><code>vector(1024)</code></td>
+        <td>nullable until indexing completes; <strong>1024 =
+        BAAI/bge-m3 (ADR-002)</strong></td>
+        </tr>
+        <tr class="even">
+        <td><code>language</code></td>
+        <td><code>varchar(2)</code></td>
+        <td>check <code>de \| en</code></td>
+        </tr>
+        <tr class="odd">
+        <td><code>machine_id</code></td>
+        <td><code>uuid</code></td>
+        <td>FK → <code>machine</code>; <strong>denormalized</strong>
+        from protocol</td>
+        </tr>
+        <tr class="even">
+        <td><code>error_code</code></td>
+        <td><code>varchar(64)</code></td>
+        <td><strong>denormalized</strong> from protocol, nullable</td>
+        </tr>
+        <tr class="odd">
+        <td><code>created_at</code></td>
+        <td><code>timestamptz</code></td>
+        <td>default <code>now()</code></td>
+        </tr>
+        </tbody>
+        </table>
+        <p><code>chunk_index</code> is the one column not in
+        DOMAIN-MODEL.md. It makes re-indexing a delete-and-reinsert with
+        a stable identity and gives citations a deterministic order.</p>
+        <h3 id="three-schema-level-decisions">Three schema-level
+        decisions</h3>
+        <ul>
+        <li><strong>Users are not rows.</strong> Identity, roles and
+        credentials live in Keycloak (ADR-003). The schema’s only trace
+        of a person is <code>protocol.uploaded_by</code>, a username
+        string with no foreign key — there is nothing for it to point
+        at, by design.</li>
+        <li><strong><code>vector(1024)</code> is a hard coupling to the
+        embedding model.</strong> pgvector encodes dimensionality in the
+        column type, so switching away from bge-m3 is a migration plus a
+        full re-embedding of the corpus, not a configuration change.
+        ADR-002 is what makes 1024 the right number.</li>
+        <li><strong>Denormalizing <code>machine_id</code> and
+        <code>error_code</code> onto <code>chunk</code></strong> is what
+        lets the relational filter and the vector ranking share one
+        query and one index scan (ADR-004). The price is that both
+        columns must be rewritten if a protocol moves to another
+        machine; that only happens during ingestion, where the chunks
+        are rewritten anyway.</li>
+        </ul>
+        <h3 id="indexes">Indexes</h3>
+        <p>The Phase 3 retrieval path filters by machine (optionally
+        narrowed by an error-code hint) and then ranks by cosine
+        distance. The indexes exist to serve exactly that shape.</p>
+        <table>
+        <colgroup>
+        <col style="width: 33%" />
+        <col style="width: 33%" />
+        <col style="width: 33%" />
+        </colgroup>
+        <thead>
+        <tr class="header">
+        <th>Index</th>
+        <th>On</th>
+        <th>Serves</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr class="odd">
+        <td><code>ix_chunk_machine_id</code></td>
+        <td><code>chunk (machine_id)</code></td>
+        <td>the US-3 machine filter</td>
+        </tr>
+        <tr class="even">
+        <td><code>ix_chunk_machine_error</code></td>
+        <td><code>chunk (machine_id, upper(btrim(error_code)))</code>,
+        partial</td>
+        <td>the error-code hint, case- and whitespace-insensitive</td>
+        </tr>
+        <tr class="odd">
+        <td><code>ix_chunk_protocol_id</code></td>
+        <td><code>chunk (protocol_id, chunk_index)</code></td>
+        <td>citation assembly, cascade deletes</td>
+        </tr>
+        <tr class="even">
+        <td><code>ix_chunk_embedding_hnsw</code></td>
+        <td><code>chunk</code> HNSW <code>vector_cosine_ops</code></td>
+        <td>vector ranking — see ADR-004</td>
+        </tr>
+        <tr class="odd">
+        <td><code>ix_protocol_machine_date</code></td>
+        <td><code>protocol (machine_id, incident_date DESC)</code></td>
+        <td>protocol list per machine, newest first</td>
+        </tr>
+        <tr class="even">
+        <td><code>ix_protocol_machine_error</code></td>
+        <td><code>protocol (machine_id, upper(btrim(error_code)))</code>,
+        partial</td>
+        <td>the same hint from the protocol side</td>
+        </tr>
+        <tr class="odd">
+        <td><code>ix_protocol_pending</code></td>
+        <td><code>protocol (status, created_at)</code> where
+        <code>status &lt;&gt; 'INDEXED'</code></td>
+        <td>the ingestion worklist and the “what failed?” view</td>
+        </tr>
+        </tbody>
+        </table>
+        <p>Both <code>error_code</code> indexes are on the
+        <strong>normalized</strong> expression, because a free-text code
+        typed by humans arrives as <code>E-47</code>, <code>e-47</code>
+        and <code>E-47</code> alike; a query that normalizes the same
+        way keeps the index. Both are <strong>partial</strong>, because
+        most rows carry no code at all.</p>
+        <p>The vector index is <strong>HNSW rather than
+        IVFFlat</strong>, and at this corpus size it is headroom rather
+        than a present-day speed-up — the reasoning and the caveats are
+        in <a
+        href="../adr/ADR-004-pgvector-for-vector-search.html">ADR-004</a>,
+        <em>Consequences</em>, note of 2026-08-07.</p>
+        <h2 id="remaining-concepts">8.2 Remaining concepts</h2>
+        <blockquote>
         <p><strong>Stub — to be filled in Phases 2–3</strong>, as each
         concept is implemented.</p>
         </blockquote>
-        <p>Concepts that will be documented here, with the decisions
-        that already constrain them:</p>
         <ul>
-        <li><strong>Domain model</strong> — <code>MACHINE</code> →
-        <code>PROTOCOL</code> → <code>CHUNK</code>; chunk = search unit,
-        protocol = citation unit, machine = filter unit. Already
-        specified in <a
-        href="../DOMAIN-MODEL.html">DOMAIN-MODEL.md</a>.</li>
         <li><strong>Security</strong> — OIDC login, JWT validation,
         realm roles as Spring Security authorities, and role-based
         <strong>answer filtering</strong> as a server-side concern,
@@ -171,7 +529,21 @@
       <p class="toc-title">On this page</p>
       <ul>
       <li><a href="#cross-cutting-concepts"
-      id="toc-cross-cutting-concepts">8. Cross-cutting Concepts</a></li>
+      id="toc-cross-cutting-concepts">8. Cross-cutting Concepts</a>
+      <ul>
+      <li><a href="#persistence-and-the-database-schema"
+      id="toc-persistence-and-the-database-schema">8.1 Persistence and
+      the database schema</a>
+      <ul>
+      <li><a href="#tables" id="toc-tables">Tables</a></li>
+      <li><a href="#three-schema-level-decisions"
+      id="toc-three-schema-level-decisions">Three schema-level
+      decisions</a></li>
+      <li><a href="#indexes" id="toc-indexes">Indexes</a></li>
+      </ul></li>
+      <li><a href="#remaining-concepts" id="toc-remaining-concepts">8.2
+      Remaining concepts</a></li>
+      </ul></li>
       </ul>
     </nav>
       </div>

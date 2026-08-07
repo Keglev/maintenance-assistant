@@ -189,6 +189,53 @@ ADR-004-pgvector-for-vector-search · maintenance-assistant Docs</title>
         documented deliberately as a scale-aware decision, not ignorance
         of the alternatives.</li>
         </ul>
+        <h3
+        id="note-2026-08-07-the-vector-index-is-hnsw-not-ivfflat">Note,
+        2026-08-07 — the vector index is HNSW, not IVFFlat</h3>
+        <p>Implementing the schema (Flyway
+        <code>V1__baseline_schema.sql</code>) forced the index choice
+        that the third <em>Positive</em> point above left open. It is
+        <strong>HNSW</strong>:</p>
+        <div class="sourceCode" id="cb2"><pre
+        class="sourceCode sql"><code class="sourceCode sql"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">INDEX</span> ix_chunk_embedding_hnsw <span class="kw">ON</span> <span class="kw">chunk</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>    <span class="kw">USING</span> hnsw (embedding vector_cosine_ops)</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>    <span class="kw">WITH</span> (m <span class="op">=</span> <span class="dv">16</span>, ef_construction <span class="op">=</span> <span class="dv">64</span>);</span></code></pre></div>
+        <p><strong>Why not IVFFlat.</strong> IVFFlat partitions the
+        vectors into <code>lists</code> cells whose centroids are
+        learned by k-means <em>from the data present when the index is
+        built</em>. The migration runs against an empty table, so an
+        IVFFlat index created there would be trained on nothing; it
+        would have to be dropped and rebuilt after each ingestion run,
+        and the <code>lists</code> parameter would have to track a
+        corpus size that is still changing. That is an operational
+        obligation the project would have to remember forever. HNSW
+        builds its graph incrementally and is correct from the first
+        insert — the index is simply part of the schema.</p>
+        <p><strong>What it costs.</strong> HNSW builds more slowly and
+        uses more memory than IVFFlat, and its index is larger. At the
+        scale this project actually has — ~150 protocols, low thousands
+        of chunks, a 1024-dimension vector each — that is a few tens of
+        MB and a build measured in seconds on the 8 GB VPS. The
+        trade-off that makes IVFFlat attractive (cheap build over
+        millions of vectors) does not apply here, and the trade-off that
+        makes HNSW expensive does not bite here either.</p>
+        <p><strong>The honest caveat.</strong> At this corpus size the
+        index is not what makes the query fast. With a selective
+        <code>machine_id</code> filter the planner will often prefer a
+        bitmap scan plus exact distance computation over the HNSW graph,
+        and it is right to: a few hundred chunks per machine are scanned
+        faster than the graph is traversed, and exact search cannot lose
+        a result the way approximate post-filtering can. The index earns
+        its place as headroom — it means growth to tens of thousands of
+        chunks needs no migration — not as a present-day speed-up.
+        Recall tuning (<code>hnsw.ef_search</code>) is therefore
+        deliberately left at the default until there is a corpus large
+        enough to measure it against.</p>
+        <p><code>vector_cosine_ops</code> is not incidental: it matches
+        the <code>&lt;=&gt;</code> operator in the retrieval query
+        above. An index built for a different distance function is
+        silently ignored by that query rather than reported as an
+        error.</p>
         <h2 id="alternatives-considered">Alternatives considered</h2>
         <ul>
         <li><strong>Dedicated vector DB (Qdrant, Weaviate, Milvus,
@@ -217,8 +264,13 @@ ADR-004-pgvector-for-vector-search · maintenance-assistant Docs</title>
       <ul>
       <li><a href="#context" id="toc-context">Context</a></li>
       <li><a href="#decision" id="toc-decision">Decision</a></li>
-      <li><a href="#consequences"
-      id="toc-consequences">Consequences</a></li>
+      <li><a href="#consequences" id="toc-consequences">Consequences</a>
+      <ul>
+      <li><a
+      href="#note-2026-08-07-the-vector-index-is-hnsw-not-ivfflat"
+      id="toc-note-2026-08-07-the-vector-index-is-hnsw-not-ivfflat">Note,
+      2026-08-07 — the vector index is HNSW, not IVFFlat</a></li>
+      </ul></li>
       <li><a href="#alternatives-considered"
       id="toc-alternatives-considered">Alternatives considered</a></li>
       </ul></li>

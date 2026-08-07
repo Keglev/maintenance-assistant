@@ -60,6 +60,66 @@ The frontend image contains no hostname. It reads `/config.json` at startup, whi
 bind-mounts, so the same image tag runs locally and in production. Image references are per service,
 so a rollback is a value change in `.env.prod` plus `docker compose up -d`.
 
+### Empty is not unset
+
+Compose substitutes an **empty string** for `${VAR:-}`, and an empty string is a *set* value.
+Spring's `${VAR:default}` only falls back when the variable is absent entirely. So `${VAR:-}` in
+the compose file does not "leave the application's default alone" — it overrides it with `""`.
+
+This is why the backend ran with an empty `LLM_BASE_URL` and an empty embedding model name until
+2026-08-07: both had correct defaults in `application.yml` and both were being overwritten by
+placeholders that looked inert. Two rules follow, and the compose file states them where they
+apply:
+
+- A variable that has a real default in `application.yml` **repeats that default** in the compose
+  file (`${LLM_BASE_URL:-https://openai.inference.de-txl.ionos.com/v1}`), or is not listed at all.
+- A variable that is genuinely empty by nature — a secret, or a placeholder for a feature that does
+  not exist yet — keeps `${VAR:-}` and says so in a comment.
+
+The same applies to `.env.prod`: an override you no longer want must be **deleted**, not blanked.
+
+### Protocol documents and the volume
+
+`protocol.source_file` stores a path, never the document (DOMAIN-MODEL.md keeps BLOBs out of
+Postgres), so the `protocol-files` volume *is* the documents. Two things have to line up, and both
+are now in the compose file:
+
+| | |
+|---|---|
+| Mount | `protocol-files:/var/lib/maintenance/files` |
+| `MAINTENANCE_FILES_PATH` | `/var/lib/maintenance/files` |
+
+Without the variable the application uses its local-development default, `./data/protocol-files`,
+which inside the container is `/app/data/protocol-files` — the writable layer. Documents would be
+written successfully, survive a restart, and vanish on the next `compose up -d`, leaving rows whose
+`source_file` points at nothing. Nothing would report an error at the time.
+
+**Volume ownership needs no provisioning step, and here is why.** The backend runs as uid 1001, and
+a fresh named volume is normally root-owned — but Docker seeds an *empty* volume from the image at
+the mount path, ownership included, and `backend/Dockerfile` creates `/var/lib/maintenance/files`
+owned by `app:app` before the volume is ever attached. Verified rather than assumed:
+
+```console
+# fresh volume at the path the image creates
+$ docker run --rm -v v1:/var/lib/maintenance/files <image> ls -ldn /var/lib/maintenance/files
+drwxr-xr-x 2 1001 1001 …                              -> writes succeed
+
+# fresh volume at a path the image does not create
+$ docker run --rm -v v2:/somewhere/else <image> touch /somewhere/else/probe
+drwxr-xr-x 2 0 0 …            touch: Permission denied
+```
+
+That second case is the one to remember, because it is what a future change would look like: if the
+mount path moves somewhere the image does not create, or the `mkdir`/`chown` leaves the Dockerfile,
+or the volume is replaced by a **host bind mount** (Docker never chowns a host path), the container
+gets a root-owned directory and every upload fails. The check and the fix:
+
+```bash
+docker compose exec backend ls -ldn /var/lib/maintenance/files    # expect 1001 1001
+# only if it is not:
+docker run --rm -v maintenance-assistant_protocol-files:/d alpine chown -R 1001:1001 /d
+```
+
 ## 7.5 Delivery
 
 CI owns the rollout. When `backend-ci` or `frontend-ci` succeeds on `main`, the matching deploy

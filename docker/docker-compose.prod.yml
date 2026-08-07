@@ -67,11 +67,45 @@ services:
       # Must match the `iss` claim in tokens the browser obtained, so it is the
       # public URL even though the container could reach Keycloak internally.
       KEYCLOAK_ISSUER_URI: https://${AUTH_DOMAIN}/realms/maintenance
-      LLM_BASE_URL: ${LLM_BASE_URL:-}
+
+      # --- Ingestion ---------------------------------------------------------
+      # Where uploaded protocol documents are written. Must match the volume
+      # mount below: without it the application falls back to its local-dev
+      # default (./data/protocol-files, i.e. /app/data inside the container),
+      # so every document would land in the container's writable layer and
+      # disappear on the next `compose up -d`. The database would keep rows
+      # whose source_file points at nothing.
+      MAINTENANCE_FILES_PATH: /var/lib/maintenance/files
+      # Loads the synthetic corpus into an empty database. Idempotent, but off
+      # unless asked for — see .env.prod.example for the one-time procedure.
+      CORPUS_SEED_ENABLED: ${CORPUS_SEED_ENABLED:-false}
+      # Indexes everything sitting at RECEIVED on startup. Off by default:
+      # indexing spends money at the provider, and a restart for an unrelated
+      # reason must not start spending.
+      INGESTION_BACKLOG_ON_STARTUP: ${INGESTION_BACKLOG_ON_STARTUP:-false}
+
+      # --- LLM provider (ADR-002) --------------------------------------------
+      # NOTE ON THE `:-` DEFAULTS BELOW. Compose substitutes an *empty string*
+      # for an unset variable written as ${VAR:-}, and an empty string is a set
+      # value. Spring's ${VAR:default} only falls back when the variable is
+      # absent entirely, so `${LLM_BASE_URL:-}` did not "leave the default
+      # alone" — it overrode a working default with "". Anything with a real
+      # default in application.yml therefore repeats that default here.
+      LLM_BASE_URL: ${LLM_BASE_URL:-https://openai.inference.de-txl.ionos.com/v1}
+      LLM_EMBEDDING_MODEL: ${LLM_EMBEDDING_MODEL:-BAAI/bge-m3}
+      # NFR-7: the provider has no hard spending cap (ADR-002), so this counter
+      # is the actual ceiling. Tunable here without rebuilding the image.
+      LLM_DAILY_CALL_BUDGET: ${LLM_DAILY_CALL_BUDGET:-500}
+      # Empty is correct for these two, for different reasons. The key is a
+      # secret with no sensible default, and empty simply means ingestion
+      # cannot embed. The chat model is read by nothing yet — the chat path
+      # arrives in Phase 3 — so it is carried here as a placeholder and
+      # overrides no default.
       LLM_API_KEY: ${LLM_API_KEY:-}
       LLM_CHAT_MODEL: ${LLM_CHAT_MODEL:-}
-      LLM_EMBEDDING_MODEL: ${LLM_EMBEDDING_MODEL:-}
     volumes:
+      # Original uploaded documents. The database stores only the path
+      # (DOMAIN-MODEL.md: no BLOBs), so this volume is the documents.
       - protocol-files:/var/lib/maintenance/files
     depends_on:
       postgres:

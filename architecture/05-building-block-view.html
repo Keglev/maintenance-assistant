@@ -124,29 +124,155 @@
       <article class="doc-body">
         <h1 id="building-block-view">5. Building Block View</h1>
         <blockquote>
-        <p><strong>Stub — to be filled in Phase 1</strong> (backend and
-        frontend skeleton), refined in Phases 2–3.</p>
+        <p><strong>Partial.</strong> §5.2 <code>ingestion</code> is
+        implemented and documented; <code>query</code> follows in Phase
+        3.</p>
         </blockquote>
         <h2 id="whitebox-overall-system">5.1 Whitebox: overall
         system</h2>
-        <p>Planned level-1 decomposition of the Spring Boot application
-        into the modules <code>ingestion</code>, <code>query</code> and
-        <code>web</code>, per <a
+        <p>One Spring Boot application, split internally into three
+        packages per <a
         href="../adr/ADR-001-modular-monolith-first.html">ADR-001</a>
         and <a
-        href="04-solution-strategy.html#41-decomposition">§4.1</a>. To
-        be documented here with a component diagram once the packages
-        exist.</p>
-        <h2 id="level-2">5.2 Level 2</h2>
+        href="04-solution-strategy.html#41-decomposition">§4.1</a>:</p>
+        <table>
+        <colgroup>
+        <col style="width: 33%" />
+        <col style="width: 33%" />
+        <col style="width: 33%" />
+        </colgroup>
+        <thead>
+        <tr class="header">
+        <th>Module</th>
+        <th>Responsibility</th>
+        <th>State</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr class="odd">
+        <td><strong><code>ingestion</code></strong></td>
+        <td>Everything that turns a submitted protocol into searchable
+        content</td>
+        <td>Implemented (Phase 2)</td>
+        </tr>
+        <tr class="even">
+        <td><strong><code>query</code></strong></td>
+        <td>Question → retrieval → grounded or ungrounded answer</td>
+        <td>Phase 3</td>
+        </tr>
+        <tr class="odd">
+        <td><strong><code>web</code></strong></td>
+        <td>HTTP surface, authentication, role checks</td>
+        <td>Implemented</td>
+        </tr>
+        </tbody>
+        </table>
+        <p>The dependency direction is one-way: <code>web</code> calls
+        into <code>ingestion</code> through two application services and
+        never reaches past them. That is what makes the Phase 5
+        extraction of <code>ingestion</code> into its own service a
+        deployment change rather than an untangling.</p>
+        <h2 id="level-2-ingestion-whitebox">5.2 Level 2 —
+        <code>ingestion</code> whitebox</h2>
+        <pre><code>web ─── ProtocolIntakeService ──┐                          ┌── ProtocolChunker
+        (upload: file + row)    │                          │
+                                ├─► ProtocolReceivedEvent ─┼── EmbeddingClient ── IONOS
+web ─── IngestionBacklogService ┘   (async, own pool)      │   └ EmbeddingBudget (NFR-7)
+        (catch-up by state)         IngestionEventListener │
+                                    └► ProtocolIndexer ────┴── ProtocolIndexWriter ── Postgres</code></pre>
+        <table>
+        <colgroup>
+        <col style="width: 50%" />
+        <col style="width: 50%" />
+        </colgroup>
+        <thead>
+        <tr class="header">
+        <th>Component</th>
+        <th>Purpose</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr class="odd">
+        <td><code>ProtocolIntakeService</code></td>
+        <td>Writes the document to the volume and the row as
+        <code>RECEIVED</code>, publishes the event. Does no indexing —
+        confirmation is immediate (NFR-4).</td>
+        </tr>
+        <tr class="even">
+        <td><code>IngestionBacklogService</code></td>
+        <td>Finds protocols by <strong>state</strong> rather than by
+        event and republishes the same event. The catch-up path for
+        seeded protocols and for retrying failures.</td>
+        </tr>
+        <tr class="odd">
+        <td><code>ProtocolReceivedEvent</code></td>
+        <td>Carries a protocol id and nothing else. <strong>This is the
+        Kafka seam</strong> (ADR-001).</td>
+        </tr>
+        <tr class="even">
+        <td><code>IngestionEventListener</code></td>
+        <td><code>@Async</code> + <code>AFTER_COMMIT</code>.
+        Deliberately logic-free: it becomes a Kafka consumer and nothing
+        else changes.</td>
+        </tr>
+        <tr class="odd">
+        <td><code>ProtocolIndexer</code></td>
+        <td>The pipeline. Reads, chunks, embeds, writes, sets status.
+        Never throws — a failure is a recorded state.</td>
+        </tr>
+        <tr class="even">
+        <td><code>ProtocolChunker</code></td>
+        <td>Paragraph-based splitting with a size cap and a context
+        prefix (see §8.2).</td>
+        </tr>
+        <tr class="odd">
+        <td><code>EmbeddingClient</code></td>
+        <td>One method. <code>IonosEmbeddingClient</code> is a plain
+        <code>RestClient</code>; the interface exists so the Phase 3
+        chat path can revisit Spring AI, and so tests run with a
+        fake.</td>
+        </tr>
+        <tr class="even">
+        <td><code>EmbeddingBudget</code></td>
+        <td>The global daily call ceiling (NFR-7), counted in Postgres
+        so it survives a restart.</td>
+        </tr>
+        <tr class="odd">
+        <td><code>ProtocolIndexWriter</code></td>
+        <td>The short transaction that replaces a protocol’s chunks and
+        moves its status. Separate from the indexer <strong>so the
+        transaction does not span the embedding call</strong>.</td>
+        </tr>
+        </tbody>
+        </table>
+        <h3 id="why-the-seams-sit-where-they-do">Why the seams sit where
+        they do</h3>
         <ul>
-        <li><strong><code>ingestion</code></strong> — whitebox to be
-        documented in Phase 2.</li>
-        <li><strong><code>query</code></strong> — whitebox to be
-        documented in Phase 3.</li>
-        <li><strong><code>web</code></strong> — whitebox to be
-        documented in Phase 1.</li>
-        <li><strong>Angular client</strong> — whitebox to be documented
-        in Phase 1 (search, upload, login redirect).</li>
+        <li><strong>The event is an id, not a payload.</strong> Anything
+        richer would need serialisation, versioning and a consumer
+        running an older schema. An id means both sides read the same
+        row.</li>
+        <li><strong>The writer is separate from the indexer.</strong>
+        Embedding is an HTTP round trip measured in seconds; holding a
+        pooled connection across it would let one slow provider response
+        starve the web layer.</li>
+        <li><strong>The backlog reads state, not a queue.</strong> The
+        150 seeded protocols never produced an event, and a protocol
+        that failed during an outage has lost the one it had.
+        <code>status</code> <em>is</em> the queue.</li>
+        </ul>
+        <h2 id="level-2-other-modules">5.3 Level 2 — other modules</h2>
+        <ul>
+        <li><strong><code>query</code></strong> — Phase 3.</li>
+        <li><strong><code>web</code></strong> —
+        <code>SecurityConfig</code> (resource server, realm roles →
+        <code>ROLE_*</code>), <code>HealthController</code>,
+        <code>HelloController</code>,
+        <code>ProtocolUploadController</code> (Schichtleiter only),
+        <code>IngestionAdminController</code> (admin),
+        <code>OpenApiConfig</code>.</li>
+        <li><strong>Angular client</strong> — login redirect and guarded
+        home; search and upload views in Phase 3.</li>
         </ul>
       </article>
     </main>
@@ -160,7 +286,17 @@
       <li><a href="#whitebox-overall-system"
       id="toc-whitebox-overall-system">5.1 Whitebox: overall
       system</a></li>
-      <li><a href="#level-2" id="toc-level-2">5.2 Level 2</a></li>
+      <li><a href="#level-2-ingestion-whitebox"
+      id="toc-level-2-ingestion-whitebox">5.2 Level 2 —
+      <code>ingestion</code> whitebox</a>
+      <ul>
+      <li><a href="#why-the-seams-sit-where-they-do"
+      id="toc-why-the-seams-sit-where-they-do">Why the seams sit where
+      they do</a></li>
+      </ul></li>
+      <li><a href="#level-2-other-modules"
+      id="toc-level-2-other-modules">5.3 Level 2 — other
+      modules</a></li>
       </ul></li>
       </ul>
     </nav>

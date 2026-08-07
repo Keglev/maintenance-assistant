@@ -22,12 +22,17 @@ spring:
         jwt:
           issuer-uri: ${KEYCLOAK_ISSUER_URI:http://localhost:8081/realms/maintenance}
 
+  web:
+    error:
+      # Stack traces are never part of an HTTP response. Boot 4 moved these out of
+      # server.error.* with no deprecation alias, so under the old key they were not
+      # read at all -- the values happened to match the defaults, which is why nothing
+      # looked wrong. Stated here they are enforced rather than coincidental.
+      include-stacktrace: never
+      include-message: never
+
 server:
   port: ${SERVER_PORT:8080}
-  error:
-    # Stack traces are never part of an HTTP response.
-    include-stacktrace: never
-    include-message: never
 
 management:
   endpoints:
@@ -50,4 +55,6 @@ springdoc:
 
 logging:
   level:
-    org.springframework.security: ${LOG_LEVEL_SECURITY:INFO}
+    # Bracketed because the key contains dots: unescaped, relaxed binding reads it as
+    # nested maps rather than one logger name.
+    "[org.springframework.security]": ${LOG_LEVEL_SECURITY:INFO}

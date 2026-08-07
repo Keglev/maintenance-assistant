@@ -5,6 +5,71 @@ Naming update overriding older docs: project = "maintenance-assistant",
 Keycloak realm = "maintenance". English repo name is intentional.)
 
 =====================================================================
+CURRENT STATUS — 2026-08-06, end of session (SESSION HANDOVER)
+=====================================================================
+Phases 0 and 1 are DONE. Release v0.1.0 is tagged. Next: PHASE 2.
+
+Live demo:  https://maintenance.smartsupply.com.de  (Angular + Keycloak
+            SSO, valid TLS via Caddy/Let's Encrypt, demo users
+            operator/techniker/schichtleiter/admin, password demo1234)
+Auth:       https://auth.smartsupply.com.de (Keycloak, prod mode)
+Docs site:  https://keglev.github.io/maintenance-assistant/
+Server:     Hetzner CX33 (x86_64, 4 vCPU, 8 GB), Nuremberg, Ubuntu
+            26.04. Stack at /opt/maintenance-assistant (compose:
+            caddy, frontend, backend, keycloak, postgres+pgvector).
+            Secrets in /opt/maintenance-assistant/.env.prod (0600),
+            copies in Carlos's password manager. SSH: root + deploy
+            user (deploy = CI key). Hetzner firewall: TCP 22/80/443.
+CI/CD:      push to main -> CI -> GHCR (:latest + :sha) -> ssh deploy
+            -> public health verify. Manual redeploy: workflow_dispatch.
+LLM:        ADR-002 ACCEPTED — IONOS AI Model Hub primary (Berlin,
+            de-txl), Nebius Token Factory fallback. Embeddings
+            BAAI/bge-m3 (1024 dims), chat Llama-3.3-70B-Instruct
+            (quality) / Qwen3.5-9B (fast, needs reasoning_effort=
+            "none"). Threshold = config property, initial 0.583.
+            IONOS gateway needs explicit encoding_format; ignore
+            *-migration model aliases. Evidence: spike/adr-002/
+            RESULTS.md + PR #14. No provider hard cap — EUR 7 cost
+            alert set; NFR-7 rests on the app layer (by design).
+Keys:       IONOS token (TTL 30 days, created 2026-08-06) + Nebius
+            trial key exist ONLY in Carlos's password manager and
+            spike/adr-002/.env (gitignored, local). Phase 3 needs a
+            fresh long-TTL IONOS token for the server .env.prod.
+Config:     Flyway auto-config was DEAD on Boot 4.1 (missing
+            spring-boot-flyway module) — fixed and empirically
+            verified in PR #16. spring.flyway.* now binds. Error
+            properties moved to spring.web.error.*.
+
+OPEN ITEMS carried forward (not blockers, do not lose):
+- Re-validate chat latency from the Hetzner host during Phase 3
+  (spike figures are from a residential connection; ADR-002 notes it).
+- Re-validate threshold 0.583 against the real ~150-protocol corpus
+  (Phase 2/3 boundary; ADR-002 notes it).
+- Backups: nightly pg_dump + Hetzner snapshot routine BEFORE real
+  corpus data exists (arc42 §7.6 known gap). Good early-Phase-2 task.
+- Citation few-shot prompt must NOT apply to the Mode-B/refusal path
+  (observed leakage in the spike).
+- Editor hygiene (Carlos, no repo change): Spring Boot Extension Pack
+  in VS Code clears the false "never used" warnings; select the
+  Python interpreter for spike/ imports.
+
+NEXT SESSION STARTS WITH: Phase 2 kickoff. Suggested split into three
+robot PRs, in order:
+  (1) feat/db-migrations — Flyway V1: machine, protocol, chunk
+      (vector(1024)), indexes incl. vector index choice (HNSW vs
+      IVFFlat) documented, seed of 8-10 machines per DOMAIN-MODEL.md.
+  (2) feat/synthetic-corpus — generate ~150 protocols per the
+      DOMAIN-MODEL.md corpus plan (demo seeds: E-47 Presse 3 x3,
+      one Mode-B gap, one DE-query->EN-protocol match; 70% DE/30% EN;
+      quality mix incl. messy). Corpus is DATA (json/ndjson) + a
+      seed loader, documented in AI-USAGE.md as Claude-generated.
+  (3) feat/ingestion-module — upload endpoint (schichtleiter only),
+      file -> volume, text extraction, chunking, bge-m3 embedding
+      call via IONOS, status RECEIVED -> INDEXED/FAILED, async via
+      Spring events. Spring AI vs plain RestClient is decided here
+      (open from ADR-002; fallback RestClient).
+
+=====================================================================
 GIT WORKFLOW (MANDATORY FOR EVERY AI SESSION — no exceptions)
 =====================================================================
 - Work on exactly ONE branch, created from up-to-date main:
@@ -24,6 +89,9 @@ GIT WORKFLOW (MANDATORY FOR EVERY AI SESSION — no exceptions)
       --body "<markdown: What / Why / Verification / Out of scope>"
 - Print the PR URL as final output. NEVER merge — merging is done
   manually by Carlos after review.
+- After every merge Carlos refreshes local main with
+  `git fetch && git reset --hard origin/main` (squash merges — never
+  plain `git pull` after a merge).
 
 RULES CARRIED ACROSS SESSIONS
 - Demo must always work; test before every application sent out
@@ -50,7 +118,7 @@ PHASE 0 — PREP  [DONE]
     it moves to Phase 3, fallback stays a plain RestClient.
 
 =====================================================================
-PHASE 1 — WALKING SKELETON  [IN PROGRESS]
+PHASE 1 — WALKING SKELETON  [DONE — Release v0.1.0, 2026-08-06]
 =====================================================================
 [x] Repo structure: frontend/, backend/, docs/, docker/, .github/
     (only README.md at repo root)
@@ -59,19 +127,24 @@ PHASE 1 — WALKING SKELETON  [IN PROGRESS]
 [x] docker-compose: Postgres(pgvector) + Keycloak, realm "maintenance",
     4 roles (operator/techniker/schichtleiter/admin), demo users,
     public client "frontend" (Auth Code Flow + PKCE), realm-export.json
-[x] Branch protection on main (PRs required), squash merges
+[x] Branch protection on main (PRs required), squash merges; single
+    required check "build-and-test" (see partition below)
 [x] Backend skeleton (Spring Boot 4.1, Java 21, Maven, modules
     ingestion/query/web, /api/health public, /api/hello JWT-secured,
-    springdoc-openapi, JaCoCo, multi-stage arm64 Dockerfile)
+    springdoc-openapi, JaCoCo, multi-stage Dockerfile)
 [x] Frontend skeleton (Angular 22 standalone, angular-oauth2-oidc PKCE,
     /login + guarded /home, test runner: vitest (jsdom, no browser),
     coverage in coverage/, Compodoc)
 [x] CI/CD pipelines (see PIPELINE ARCHITECTURE below)
-[ ] GitHub Pages configured (Settings -> Pages -> gh-pages branch)
-[x] Deploy to the Hetzner host from CI (both deploy workflows ssh in,
-    pull and restart their service, then verify the public endpoint)
-[ ] DONE = hello-world with login runs on the VPS via pipeline
-[ ] First release tag v0.1.0 once skeleton runs end-to-end with login
+[x] GitHub Pages configured — docs site live on gh-pages
+[x] Production deploy: Hetzner CX33 (x86 — hosting revision: CAX/ARM
+    price advantage disappeared 2026-06 + out of stock at order time;
+    CI still builds multi-arch so ARM stays an option), Caddy TLS,
+    Keycloak prod mode, full stack via docker compose; CI deploys
+    over ssh with public-URL health verification
+[x] DONE criterion met: login flow runs on the VPS via pipeline
+[x] Release v0.1.0 tagged (after local-main squash-merge cleanup —
+    see the reset --hard rule in GIT WORKFLOW)
 
 UNIFIED REQUIRED CHECK — "build-and-test"
 Branch protection requires exactly ONE status check name:
@@ -93,8 +166,9 @@ The pull_request path lists are a PARTITION and are maintained as a set:
     backend-ci.yml     paths-ignore: frontend/**
                                      docs/**
                                      .github/workflows/docs.yml
-                       => catch-all: backend/**, docker/**, README.md,
-                          .gitignore, AI-USAGE.md, LICENSE, everything else
+                       => catch-all: backend/**, docker/**, spike/**,
+                          README.md, .gitignore, AI-USAGE.md, LICENSE,
+                          everything else
 
 INVARIANT — do not break this:
 - A path may be ignored by backend-ci.yml ONLY if another workflow gives
@@ -157,27 +231,39 @@ PIPELINE ARCHITECTURE (.github/workflows/)
 5. release.yml        tag v*: GitHub Release with generated notes
 
 =====================================================================
-PHASE 2 — DATA + INGESTION
+PHASE 2 — DATA + INGESTION   <-- NEXT (see CURRENT STATUS for the
+                                 suggested three-PR split)
 =====================================================================
-- Flyway migrations: machine, protocol, chunk (vector column)
+- Flyway migrations: machine, protocol, chunk (vector(1024) column)
 - Generate synthetic corpus (~150 protocols per DOMAIN-MODEL.md,
   incl. demo seeds: E-47 Presse 3 x3, Mode-B gap, DE->EN match)
 - Ingestion module: upload endpoint (schichtleiter role), file ->
-  volume, text extraction, chunking, embedding call, status
-  RECEIVED -> INDEXED/FAILED, async via Spring events
+  volume, text extraction, chunking, embedding call (bge-m3 @ IONOS),
+  status RECEIVED -> INDEXED/FAILED, async via Spring events
 - Seed loader for the corpus
-- PREREQUISITE: ADR-002 spike done and Accepted — MET (Accepted 2026-08-06)
-  Binds Phase 2: the chunk vector column is vector(1024) (BAAI/bge-m3 on
-  IONOS), and the similarity threshold is a config property (initial
-  0.583) to be revalidated against the real ~150-protocol corpus.
+- Early task: backups (nightly pg_dump + snapshot routine) before
+  real data exists (arc42 §7.6 known gap)
+- PREREQUISITE: ADR-002 Accepted — MET (2026-08-06). Binds Phase 2:
+  chunk vector column is vector(1024) (BAAI/bge-m3 on IONOS), and the
+  similarity threshold is a config property (initial 0.583) to be
+  revalidated against the real ~150-protocol corpus.
 
 =====================================================================
 PHASE 3 — RAG QUERY + MODES
 =====================================================================
 - Query module: embed question -> filtered pgvector top-5 ->
   threshold -> Mode A/B
-- Prompting: answer only from sources, cite each claim, answer in
-  user's language, role-based filtering (Operator = operator-safe only)
+- Prompting: answer only from sources, cite each claim (few-shot
+  format example; MUST NOT apply to the Mode-B/refusal path — spike
+  observed citation leakage into refusals), answer in user's language
+  (explicit language-pinning rule incl. refusals), role-based
+  filtering (Operator = operator-safe steps only)
+- Chat model choice per role finalized here (Llama-3.3-70B vs
+  Qwen3.5-9B, spike round-2 evidence); structured JSON output is the
+  app-side enforcement fallback
+- Spring AI vs plain RestClient decided here (fallback RestClient)
+- Fresh long-TTL IONOS token for the server .env.prod
+- Re-validate latency from the Hetzner host (ADR-002 residual risk)
 - NFR-7 guards: Bucket4j per-user rate limit, daily budget counter,
   max_tokens cap, query cache
 - Angular: search view with Mode A/B visual distinction + source
@@ -191,8 +277,9 @@ PHASE 4 — POLISH + SHIP
 - OpenAPI/Swagger reachable in the deployed demo (recruiter feedback!)
 - README: problem first, 90-second demo walkthrough, architecture
   diagram, links to ADRs and gh-pages docs site; AI-USAGE.md current
-- Deploy on Hetzner CAX (8GB, arm64), domain + TLS, demo credentials
-  in README
+- Production is already live on Hetzner CX33 since Phase 1 — Phase 4
+  deploy work is verification + hardening, not first deployment
+- "How to reproduce" section in spike/adr-002/RESULTS.md (provability)
 - Full recruiter walkthrough test on a phone and a fresh browser
 - Release v1.0.0
 
@@ -201,4 +288,5 @@ PHASE 5 — EVOLUTION (after applications are out, optional)
 =====================================================================
 - Extract ingestion service + Kafka (per ADR-001), document as ADR-005
 - Candidates: similar-machine search, OCR stretch goal, downtime
-  stats view, Spring Modulith boundary tests
+  stats view, Spring Modulith boundary tests, reranker as retrieval
+  quality lever (Qwen3-VL-Reranker-8B is already served on IONOS)

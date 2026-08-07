@@ -80,6 +80,50 @@ maintenance:
     # re-index of the corpus, and at bge-m3 pricing a day at the limit is cents.
     daily-call-budget: ${LLM_DAILY_CALL_BUDGET:500}
 
+  chat:
+    # Same provider and same gateway as the embedding block above, and deliberately
+    # its own configuration: the two calls have different timeouts, different failure
+    # costs and different ceilings, and a provider swap could move one without the
+    # other. base-url includes /v1 for the reason ADR-002 records.
+    base-url: ${LLM_BASE_URL:https://openai.inference.de-txl.ionos.com/v1}
+    api-key: ${LLM_API_KEY:}
+    # Llama-3.3-70B for every role — measured, see the ADR-002 note of 2026-08-07.
+    # Qwen/Qwen3.5-9B stays a config swap; the client then sends reasoning_effort
+    # "none" on its own, or the model spends its whole output budget thinking and
+    # returns empty content (ADR-002 caveat 3).
+    model: ${LLM_CHAT_MODEL:meta-llama/Llama-3.3-70B-Instruct}
+    # NFR-7, and cheap insurance rather than a constraint: the longest answer measured
+    # in the spike was 195 tokens and every call finished with finish_reason "stop".
+    max-tokens: ${LLM_CHAT_MAX_TOKENS:700}
+    # Grounded answering, not writing. 0 is not used because a few providers treat it
+    # as "unset"; 0.1 is deterministic enough and unambiguous.
+    temperature: 0.1
+    # Above NFR-4's 30 s ceiling on purpose: this is the point at which we give up on
+    # a request we have already paid for, not the point at which the user gives up.
+    timeout: 45s
+    max-retries: 1
+    retry-backoff: 1s
+    # NFR-7's ceiling for the query path, counted in provider calls and surviving a
+    # restart. 400 answers a day at Llama-3.3-70B pricing is under EUR 0.35.
+    daily-call-budget: ${LLM_CHAT_DAILY_CALL_BUDGET:400}
+
+  query:
+    # The Mode A / Mode B switch (NFR-2). MEASURED against the real corpus on
+    # 2026-08-07, not inherited from the 10-protocol spike: the E-47 demo scores
+    # 0.695 and the DE->EN demo 0.577, both of which must be Mode A, while the
+    # deliberate Mode-B gap scores 0.502. 0.55 sits in that gap with margin on
+    # both sides. ADR-002's 0.583 would have refused the cross-language demo.
+    # bge-m3-specific: any embedding-model change invalidates it.
+    similarity-threshold: ${QUERY_SIMILARITY_THRESHOLD:0.55}
+    top-k: ${QUERY_TOP_K:5}
+    # NFR-7. Per user per minute, keyed by the token subject. Generous for a person
+    # asking questions, useless for a script.
+    rate-limit-per-minute: ${QUERY_RATE_LIMIT_PER_MINUTE:10}
+    # Long enough that a shift handover asking the same thing twice costs one answer,
+    # short enough that a newly uploaded protocol shows up while the shift is running.
+    cache-ttl: ${QUERY_CACHE_TTL:10m}
+    cache-max-entries: ${QUERY_CACHE_MAX_ENTRIES:500}
+
 server:
   port: ${SERVER_PORT:8080}
 

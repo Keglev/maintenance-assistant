@@ -4,6 +4,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
@@ -20,6 +21,10 @@ import org.springframework.security.web.SecurityFilterChain;
  */
 @Configuration
 @EnableWebSecurity
+// Turns on @PreAuthorize. The filter chain below only separates "authenticated" from "public";
+// which role may upload a protocol or run a backlog is stated on the method that does it, next to
+// the code it guards, rather than as a path pattern that drifts away from the handler.
+@EnableMethodSecurity
 class SecurityConfig {
 
   /** Readable without a token: the liveness probe and the API documentation. */

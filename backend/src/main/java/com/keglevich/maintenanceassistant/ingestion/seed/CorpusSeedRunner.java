@@ -1,5 +1,6 @@
 package com.keglevich.maintenanceassistant.ingestion.seed;
 
+import com.keglevich.maintenanceassistant.ingestion.FileStorageProperties;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;

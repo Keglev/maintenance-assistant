@@ -1,0 +1,42 @@
+# Integration-test profile: unlike `test`, this one WANTS a database — Testcontainers
+# supplies it and @ServiceConnection wires the URL, so nothing is configured here.
+spring:
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    encoding: UTF-8
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          # Never contacted: these tests exercise the ingestion module, not the web layer.
+          issuer-uri: http://localhost:8081/realms/maintenance
+
+maintenance:
+  corpus-seed:
+    # The machines come from the repeatable Flyway migration; the 150 protocols do not
+    # belong in a test that asserts exact counts.
+    enabled: false
+  ingestion:
+    # Two workers is enough to prove the work happens off the calling thread without
+    # making the test's timing depend on a bigger pool.
+    workers: 2
+    queue-capacity: 50
+    backlog-on-startup: false
+    backlog-batch-size: 50
+  embedding:
+    # Unused: the client is replaced by a fake. Present so the properties bind and so a
+    # test can never accidentally reach a real provider — there is no key to reach it with.
+    base-url: http://localhost/unused
+    api-key: ""
+    model: fake
+    dimensions: 1024
+    batch-size: 32
+    max-retries: 0
+    retry-backoff: 1ms
+    timeout: 1s
+    daily-call-budget: 1000
+
+logging:
+  level:
+    "[com.keglevich.maintenanceassistant.ingestion]": INFO

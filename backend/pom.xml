@@ -22,12 +22,27 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <springdoc.version>3.1.0</springdoc.version>
     <jacoco.version>0.8.13</jacoco.version>
+    <testcontainers.version>2.0.5</testcontainers.version>
 
     <!-- Empty default for the property JaCoCo's prepare-agent fills in. The test
          plugins below extend it with @{argLine}, which fails to resolve if nothing
          ever set it - as happens with -Djacoco.skip=true. -->
     <argLine></argLine>
   </properties>
+
+  <dependencyManagement>
+    <dependencies>
+      <!-- Boot 4's dependency management no longer pins Testcontainers, so the BOM is
+           imported here rather than each artifact carrying its own version. -->
+      <dependency>
+        <groupId>org.testcontainers</groupId>
+        <artifactId>testcontainers-bom</artifactId>
+        <version>${testcontainers.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
 
   <dependencies>
     <!-- Web + operations -->
@@ -92,9 +107,35 @@
       <artifactId>spring-boot-starter-test</artifactId>
       <scope>test</scope>
     </dependency>
+    <!-- Testcontainers: the ingestion tests run Flyway against a real pgvector image.
+         An in-memory database cannot host a vector column or an HNSW index, so the
+         alternative is not a cheaper test but no test of the thing that matters. -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-testcontainers</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.testcontainers</groupId>
+      <artifactId>testcontainers-junit-jupiter</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.testcontainers</groupId>
+      <artifactId>testcontainers-postgresql</artifactId>
+      <scope>test</scope>
+    </dependency>
     <dependency>
       <groupId>org.springframework.security</groupId>
       <artifactId>spring-security-test</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <!-- The ingestion tests wait for work that finishes on another thread. Awaitility polls
+         with a deadline instead of sleeping for a guessed duration, which is the difference
+         between a test that is slow and one that is flaky. -->
+    <dependency>
+      <groupId>org.awaitility</groupId>
+      <artifactId>awaitility</artifactId>
       <scope>test</scope>
     </dependency>
     <!-- Already arrives transitively through starter-test. Declared explicitly so

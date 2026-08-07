@@ -146,6 +146,47 @@ One deviation is worth recording rather than hiding: the corpus is 72% German ag
 70%, and the per-machine counts are shaped by what each machine plausibly produces rather than by
 an even split. Both were judgement calls made while writing, and both are reported as they are.
 
+### Phase 2 — the ingestion pipeline
+
+Upload → volume → chunk → embed → `INDEXED`, the embedding client, the chunker, the budget counter
+and the Testcontainers suite were AI-generated. The decisions they implement are not: the module
+boundaries come from ADR-001, the provider and its caveats from ADR-002, the role model from
+DECISIONS.txt.
+
+One genuinely open decision was settled here, by measurement rather than preference: **Spring AI vs
+a plain `RestClient` on Boot 4.1**. It is worth being precise, because the convenient story would
+have been "Spring AI does not work on Boot 4". It does. Spring AI 2.0.0 auto-configured and
+returned correct vectors from IONOS. It was declined on proportion — a large transitive surface for
+one POST — and `spike/spring-ai-boot4/RESULTS.md` says so in those terms, including what would
+change the decision back.
+
+**Three defects were found only by running it against the live provider**, and all three are the
+kind that a green test suite would not have caught:
+
+1. **Boot 4.1 ships Jackson 3** as the message-converter default while Jackson 2 is still on the
+   classpath through other libraries. Asking a `RestClient` for a `com.fasterxml` `JsonNode` fails
+   at runtime with a type-definition error. The first live corpus run failed **all 150 protocols**
+   on it.
+2. **The budget counter never saw those 150 calls.** They were made, served and billed; usage was
+   recorded by the caller *after* a successful embed, and no embed succeeded. That is precisely the
+   case NFR-7's ceiling exists to catch, so the recording moved into the client, where it happens
+   as each request is answered. The fix is in the code and the reason is in the interface's
+   contract, because the next implementer needs to know it is not optional.
+3. **`@PreAuthorize("hasRole('admin')")` silently denied everyone.** The existing converter
+   uppercases realm roles into `ROLE_ADMIN`. Every request returned 403 — a failure that looks
+   exactly like correct security until someone checks that the *right* people are also refused.
+
+Verification was the full corpus against the real IONOS endpoint: 150 protocols → 167 chunks, all
+1024-dimensional, 150 provider calls, 27,713 tokens, **EUR 0.00055**. Then retrieval was checked
+with real query embeddings and SQL rather than asserted — the E-47 protocols rank top on Presse 3,
+and a German query returns the English mistracking protocol first, which is the multilingual claim
+in ADR-002 tested rather than repeated.
+
+That run also produced a result that **contradicts a documented number**: at ADR-002's 0.583
+threshold, the cross-language demo (0.577) would be refused as ungrounded. The threshold needs to
+be nearer 0.55. It is recorded in ADR-002 as measured evidence rather than quietly adjusted,
+because the threshold belongs to the query path and this work ships none.
+
 Two earlier defects were found the same way, which is the argument for doing it: the Keycloak demo users could not log in at all (missing email tripped
 user-profile validation and forced an update-profile screen), and the frontend container refused to
 start as a non-root user. Both were fixed before the respective PR was opened.

@@ -61,6 +61,14 @@
       <artifactId>postgresql</artifactId>
       <scope>runtime</scope>
     </dependency>
+    <!-- Boot 4 split auto-configuration into per-technology modules: flyway-core is only
+         the engine, and without this module there is no FlywayAutoConfiguration, no Flyway
+         bean, and `spring.flyway.*` is silently inert. Verified on the classpath, not
+         assumed - see FlywayAutoConfigurationIT. -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-flyway</artifactId>
+    </dependency>
     <dependency>
       <groupId>org.flywaydb</groupId>
       <artifactId>flyway-core</artifactId>

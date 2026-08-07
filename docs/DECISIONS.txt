@@ -54,10 +54,54 @@ Status: end of design phase, 2026-08-05
   in ONE query; one backup; no cross-store consistency problem. Scale ceiling documented.
 - Stack: Java 21, Spring Boot 4.1 (3.x is EOL since 2026-06-30), Angular + TypeScript (thin),
   PostgreSQL + pgvector, Keycloak, Docker Compose, GitHub Actions, Hetzner VPS
-- Spring AI: use IF compatible with Boot 4.1; fallback plain RestClient. STILL OPEN after the
-  ADR-002 spike - that spike was Python on purpose, so it measured the provider and not the Java
-  integration. Verify in Phase 3. Note the IONOS encoding_format caveat: a Spring AI client can
-  trip over it, a plain RestClient sending JSON floats will not.
+- Spring AI: CLOSED 2026-08-07 -> plain RestClient. Measured in spike/spring-ai-boot4/ (RESULTS.md).
+  Spring AI 2.0.0 (first generation on Spring Framework 7) IS compatible with Boot 4.1 - it
+  auto-configured and produced 1024-dim vectors from IONOS. It is declined on proportion, not on
+  compatibility, and the spike says so plainly rather than pretending it did not work:
+    * what we need is one POST /v1/embeddings; that is ~40 lines of RestClient
+    * the starter pulls the OpenAI Java SDK, OkHttp, Kotlin stdlib, azure-identity, a template
+      engine, chat-client/chat-memory/tool-calling autoconfig - none of it used here
+    * both failures hit in the spike happened BECAUSE the client assumes real OpenAI: base-url
+      needs /v1 (changed between Spring AI generations) and it defaults to base64, which is the
+      exact ADR-002 caveat. Our provider is OpenAI-COMPATIBLE, not OpenAI, permanently.
+    * dimension assert, batching, retry, budget counter and token logging sit outside the call
+      either way
+  ADR-002 predicted this ("a Spring AI client can trip over it, a plain RestClient sending JSON
+  floats will not") and the prediction was correct - measured, not guessed.
+  The embedding call sits behind a narrow EmbeddingClient interface, so adopting Spring AI for the
+  Phase 3 CHAT path (where advisors/tool-calling actually earn their weight) is a second
+  implementation, not a rewrite. Carry forward: base-url must include /v1, and
+  encoding-format: float must be set explicitly or IONOS returns 500.
+- Boot 4.1 ships JACKSON 3 (tools.jackson.databind) as the message-converter default while Jackson
+  2 is still on the classpath via other libraries. Asking a RestClient for a com.fasterxml
+  JsonNode therefore fails at runtime. Found by running it: the first live corpus run failed all
+  150 protocols on it. Use typed records for provider responses - they bind under either.
+
+== INGESTION (Phase 2, 2026-08-07) ==
+- Pipeline: upload -> file to volume -> RECEIVED row -> Spring event -> worker pool -> chunk ->
+  embed -> chunks written -> INDEXED. Any failure -> FAILED + stored reason, row AND file kept.
+  The event carries only a protocol id: that is the ADR-001 Kafka seam, and an id means one source
+  of truth either side of it.
+- Upload returns 202, not 201. The protocol exists but is not searchable yet (NFR-4).
+- The transaction deliberately does NOT span the embedding call - a slow provider would otherwise
+  hold a pooled connection the web layer needs.
+- Chunking: PARAGRAPH-based, not fixed-width windows. These documents are short (many are a few
+  sentences) and their paragraphs ARE the labelled sections (Symptom / Ursache / Massnahme); a
+  fixed window cuts across exactly the boundaries an answer needs whole. Small sections are merged
+  up to ~900 chars so a two-line protocol stays ONE chunk instead of four weak fragments; an
+  oversized section splits on sentence ends with 150 chars overlap. Every chunk is prefixed with
+  "<machine> - <error code> - <title>" so a retrieved chunk still says what it is about once it is
+  separated from its row. Measured result on the real corpus: 151 protocols -> 167 chunks
+  (134 protocols = 1 chunk, 16 = 2). That ratio is the point: these are short documents.
+- Re-indexing is delete-then-write per protocol, so the catch-up path and any retry are idempotent.
+- NFR-7 for ingestion = a GLOBAL daily embedding-call counter in Postgres (table embedding_budget),
+  not per-user limiting: ingestion is background load, so the shape of abuse is a re-index storm,
+  not one person clicking. Per-user rate limiting belongs to the query path in Phase 3.
+  The counter is incremented by the CLIENT as each request is served, not by the caller on success
+  - the first live run made 150 paid calls that a caller-side counter never saw because every one
+  of them failed while parsing the response.
+- Measured cost of embedding the whole corpus: 150 calls, 27713 input tokens, EUR 0.00055.
+  Cents was the estimate; hundredths of a cent is the measurement.
 - Spring Modulith: optional upgrade, enforces ADR-001 module boundaries with tests
 
 == DATA MODEL ==

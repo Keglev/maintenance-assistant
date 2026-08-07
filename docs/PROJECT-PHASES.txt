@@ -43,8 +43,10 @@ Config:     Flyway auto-config was DEAD on Boot 4.1 (missing
 OPEN ITEMS carried forward (not blockers, do not lose):
 - Re-validate chat latency from the Hetzner host during Phase 3
   (spike figures are from a residential connection; ADR-002 notes it).
-- Re-validate threshold 0.583 against the real ~150-protocol corpus
-  (Phase 2/3 boundary; ADR-002 notes it).
+- Threshold 0.583: MEASURED 2026-08-07 against the real corpus and it
+  is TOO HIGH. E-47 demo 0.695 (Mode A, ok), cross-language demo 0.577
+  (wants Mode A, would be refused), Mode-B gap 0.502 (correctly Mode B).
+  Set it near 0.54-0.55 in Phase 3. Evidence: ADR-002 dated note.
 - Backups: DONE 2026-08-07. Nightly systemd timer on the host at
   03:15 UTC: pg_dump (custom format) of the app DB + tar.gz of the
   protocol-files volume, both self-verified, keep 14, in
@@ -68,11 +70,16 @@ robot PRs, in order:
       one Mode-B gap, one DE-query->EN-protocol match; 70% DE/30% EN;
       quality mix incl. messy). Corpus is DATA (json/ndjson) + a
       seed loader, documented in AI-USAGE.md as Claude-generated.
-  (3) feat/ingestion-module — upload endpoint (schichtleiter only),
-      file -> volume, text extraction, chunking, bge-m3 embedding
-      call via IONOS, status RECEIVED -> INDEXED/FAILED, async via
-      Spring events. Spring AI vs plain RestClient is decided here
-      (open from ADR-002; fallback RestClient).
+  (3) feat/ingestion-pipeline — DONE 2026-08-07. Upload endpoint
+      (schichtleiter), file -> volume, chunking, bge-m3 via IONOS,
+      RECEIVED -> INDEXED/FAILED async on its own pool, admin catch-up
+      endpoint, daily embedding budget (NFR-7), Testcontainers suite.
+      Spring AI CLOSED -> plain RestClient (compatible but
+      disproportionate; spike/spring-ai-boot4/RESULTS.md).
+      Verified live: 150 protocols -> 167 chunks, EUR 0.00055.
+      NEW OPEN ITEM: ADR-002's threshold 0.583 is too high - the
+      cross-language demo measures 0.577 and would be refused. Tune to
+      ~0.54-0.55 in Phase 3 (evidence in the ADR-002 dated note).
 
 =====================================================================
 GIT WORKFLOW (MANDATORY FOR EVERY AI SESSION — no exceptions)

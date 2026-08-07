@@ -144,6 +144,48 @@ month at demo volume, against a VPS that costs an order of magnitude more.
    `encoding_format` deviation is exactly the kind of thing a Spring AI client can trip over and a
    `RestClient` will not. Resolve it in Phase 3 when the query module is built.
 
+### Note, 2026-08-07 — the Java integration, measured
+
+This ADR left two things open that only running the Java side could settle. Both are now measured;
+the evidence is in [`spike/spring-ai-boot4/RESULTS.md`](https://github.com/Keglev/maintenance-assistant/blob/main/spike/spring-ai-boot4/RESULTS.md).
+
+**Spring AI vs a plain `RestClient` → `RestClient`.** Not for incompatibility: Spring AI 2.0.0, the
+first generation on Spring Framework 7, auto-configures cleanly on Boot 4.1 and returned correct
+1024-dimension vectors from IONOS. It is declined on proportion — the starter brings the OpenAI
+Java SDK, OkHttp, the Kotlin stdlib, `azure-identity`, a template engine and three unused
+auto-configurations, for one `POST /v1/embeddings`. The embedding call sits behind a narrow
+interface so the Phase 3 chat path can revisit this without a rewrite.
+
+**The `encoding_format` caveat reproduced exactly, in Java.** This ADR wrote: *"a Spring AI client
+can trip over it, a plain RestClient sending JSON floats will not."* It does:
+
+```
+com.openai.errors.InternalServerException: 500: Network error: json: cannot unmarshal string
+into Go struct field Embedding.data.embedding of type []float32
+```
+
+— byte for byte the error a raw `curl` produces with `"encoding_format":"base64"`. One property
+(`spring.ai.openai.embedding.options.encoding-format: float`) fixes it, and the base URL must
+include `/v1`. Both are recorded for whoever revisits this.
+
+**The similarity threshold needs lowering.** This ADR set 0.583 from the Python spike and asked for
+re-validation against the real corpus. Measured against all 151 indexed protocols:
+
+| Demo scenario | Best similarity | Wanted |
+|---|---:|---|
+| E-47 on Presse 3 (German query, German protocols) | **0.695** | Mode A |
+| DE query → EN protocol, belt mistracking on FB-04 | **0.577** | Mode A |
+| Mode B gap: dosing on AB-02, no protocol covers it | **0.502** | Mode B |
+
+At 0.583 the cross-language case falls **below** the threshold and would be refused as ungrounded —
+the demo it exists for would break. The separation the corpus actually shows is between 0.577 and
+0.502, so the threshold belongs around **0.54–0.55**. Not changed here: the threshold is a query-path
+property and this PR ships no query path. Recorded so Phase 3 tunes it against numbers rather than
+against the Python figure.
+
+**Cost, measured rather than estimated.** Embedding all 150 corpus protocols: 150 provider calls,
+27,713 input tokens, **EUR 0.00055**. The estimate was "cents"; the measurement is hundredths of one.
+
 ## Alternatives considered
 
 - **Nebius Token Factory as primary** (the original proposal) — publicly visible per-token pricing,

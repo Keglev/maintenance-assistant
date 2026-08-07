@@ -1,0 +1,18 @@
+spring:
+  main:
+    web-application-type: none
+    banner-mode: off
+  ai:
+    openai:
+      base-url: https://openai.inference.de-txl.ionos.com/v1
+      api-key: ${IONOS_API_KEY}
+      embedding:
+        options:
+          model: BAAI/bge-m3
+          encoding-format: float
+
+logging:
+  level:
+    # So the actual request and any gateway error body are visible rather than
+    # summarised into a stack trace.
+    "[org.springframework.ai]": DEBUG

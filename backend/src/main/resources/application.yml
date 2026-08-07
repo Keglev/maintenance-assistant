@@ -45,6 +45,41 @@ maintenance:
     enabled: ${CORPUS_SEED_ENABLED:false}
     resource: classpath:corpus/protocols.ndjson
 
+  ingestion:
+    # 1 MiB. A shift protocol is a page of text; anything larger is a PDF someone
+    # renamed, and rejecting it before it reaches the volume is cheaper than after.
+    max-upload-bytes: ${INGESTION_MAX_UPLOAD_BYTES:1048576}
+    # Also the provider concurrency: one embedding call in flight per worker. Small
+    # deliberately — 150 documents is not a stream, and four parallel callers is
+    # politeness toward a shared gateway.
+    workers: ${INGESTION_WORKERS:4}
+    queue-capacity: ${INGESTION_QUEUE_CAPACITY:200}
+    # Off by default: indexing costs money, and a restart for an unrelated reason
+    # must not start spending. Protocols already INDEXED are never selected.
+    backlog-on-startup: ${INGESTION_BACKLOG_ON_STARTUP:false}
+    backlog-batch-size: ${INGESTION_BACKLOG_BATCH_SIZE:200}
+
+  embedding:
+    # IONOS AI Model Hub, primary provider per ADR-002. Nebius Token Factory is the
+    # documented fallback and is a base-url + model change, not a code change — both
+    # speak the same OpenAI-compatible API.
+    base-url: ${LLM_BASE_URL:https://openai.inference.de-txl.ionos.com/v1}
+    api-key: ${LLM_API_KEY:}
+    # Ignore the *-migration aliases in the IONOS catalogue (ADR-002).
+    model: ${LLM_EMBEDDING_MODEL:BAAI/bge-m3}
+    # NOT a free parameter: chunk.embedding is vector(1024) because bge-m3 is 1024.
+    # Asserted on every response so a model swap fails loudly instead of corrupting
+    # retrieval quietly.
+    dimensions: 1024
+    batch-size: ${LLM_EMBEDDING_BATCH_SIZE:32}
+    max-retries: 3
+    retry-backoff: 2s
+    timeout: 60s
+    # NFR-7. The provider offers no hard spending cap (ADR-002 residual risk), so this
+    # counter is the actual ceiling. 500 calls x 32 texts is far more than a full
+    # re-index of the corpus, and at bge-m3 pricing a day at the limit is cents.
+    daily-call-budget: ${LLM_DAILY_CALL_BUDGET:500}
+
 server:
   port: ${SERVER_PORT:8080}
 

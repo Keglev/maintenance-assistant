@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Throwaway spike: does Spring AI work on Boot 4.1 against the IONOS gateway?
+
+  Deliberately a separate project rather than a branch of backend/pom.xml, so the
+  answer can be "no" without leaving a half-removed dependency behind. Not built
+  by CI; kept in the repository as the evidence behind the DECISIONS.txt note.
+
+    cd spike/spring-ai-boot4
+    IONOS_API_KEY=... mvn -q spring-boot:run
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-parent</artifactId>
+    <!-- Exactly the version the backend runs. The whole question is this pairing. -->
+    <version>4.1.0</version>
+    <relativePath/>
+  </parent>
+
+  <groupId>com.keglevich.spike</groupId>
+  <artifactId>spring-ai-boot4</artifactId>
+  <version>0.0.1-SNAPSHOT</version>
+
+  <properties>
+    <java.version>21</java.version>
+    <!-- 2.0.0 is the first Spring AI generation built on Spring Framework 7,
+         which is what Boot 4.1 ships. 1.1.x is Framework 6 / Boot 3.5. -->
+    <spring-ai.version>2.0.0</spring-ai.version>
+  </properties>
+
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>org.springframework.ai</groupId>
+        <artifactId>spring-ai-bom</artifactId>
+        <version>${spring-ai.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.springframework.ai</groupId>
+      <artifactId>spring-ai-starter-model-openai</artifactId>
+    </dependency>
+  </dependencies>
+</project>

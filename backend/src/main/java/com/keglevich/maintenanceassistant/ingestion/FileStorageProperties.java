@@ -1,4 +1,4 @@
-package com.keglevich.maintenanceassistant.ingestion.seed;
+package com.keglevich.maintenanceassistant.ingestion;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 

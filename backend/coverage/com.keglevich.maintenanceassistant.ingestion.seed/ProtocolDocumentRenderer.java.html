@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ProtocolDocumentRenderer.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">maintenance-assistant</a> &gt; <a href="index.source.html" class="el_package">com.keglevich.maintenanceassistant.ingestion.seed</a> &gt; <span class="el_source">ProtocolDocumentRenderer.java</span></div><h1>ProtocolDocumentRenderer.java</h1><pre class="source lang-java linenums">package com.keglevich.maintenanceassistant.ingestion.seed;
+
+import java.time.format.DateTimeFormatter;
+
+/**
+ * Renders a protocol as the plain-text document that is written to the file volume.
+ *
+ * &lt;p&gt;This is what {@code protocol.source_file} points at. These protocols are the system's own
+ * structured records (a Schichtleiter fills the form), so the document is a rendering of those
+ * fields — there is no separate &quot;original scan&quot; to preserve. The other path, where an uploaded PDF
+ * is extracted into a protocol, belongs to the upload endpoint and is not exercised by the seed.
+ *
+ * &lt;p&gt;The layout matters beyond looking tidy: this text is what the ingestion module will chunk and
+ * embed. Labelled sections in the document's own language give the chunker natural boundaries and
+ * keep a chunk self-describing once it is separated from its row.
+ */
+final class ProtocolDocumentRenderer {
+
+<span class="fc" id="L19">    private static final DateTimeFormatter DATE = DateTimeFormatter.ofPattern(&quot;dd.MM.yyyy&quot;);</span>
+
+    private ProtocolDocumentRenderer() {
+    }
+
+    static String render(CorpusProtocol p) {
+<span class="fc" id="L25">        boolean de = &quot;de&quot;.equals(p.language());</span>
+<span class="fc" id="L26">        StringBuilder out = new StringBuilder();</span>
+
+<span class="pc bpc" id="L28" title="1 of 2 branches missed.">        out.append(de ? &quot;WARTUNGSPROTOKOLL&quot; : &quot;MAINTENANCE PROTOCOL&quot;).append('\n');</span>
+<span class="pc bpc" id="L29" title="1 of 2 branches missed.">        out.append(&quot;=&quot;.repeat(de ? 17 : 20)).append(&quot;\n\n&quot;);</span>
+
+<span class="pc bpc" id="L31" title="1 of 2 branches missed.">        line(out, de ? &quot;Maschine&quot; : &quot;Machine&quot;, p.machineNo());</span>
+<span class="pc bpc" id="L32" title="1 of 2 branches missed.">        line(out, de ? &quot;Datum&quot; : &quot;Date&quot;, p.incidentDate().format(DATE));</span>
+<span class="pc bpc" id="L33" title="1 of 2 branches missed.">        line(out, de ? &quot;Art&quot; : &quot;Type&quot;, p.protocolType());</span>
+<span class="pc bpc" id="L34" title="1 of 2 branches missed.">        line(out, de ? &quot;Fehlercode&quot; : &quot;Error code&quot;, p.errorCode());</span>
+<span class="pc bpc" id="L35" title="1 of 2 branches missed.">        line(out, de ? &quot;Techniker&quot; : &quot;Technician&quot;, p.technicianInitials());</span>
+<span class="pc bpc" id="L36" title="1 of 2 branches missed.">        line(out, de ? &quot;Stillstand&quot; : &quot;Downtime&quot;,</span>
+<span class="pc bpc" id="L37" title="2 of 4 branches missed.">                p.downtimeMinutes() == null ? null : p.downtimeMinutes() + (de ? &quot; Minuten&quot; : &quot; minutes&quot;));</span>
+
+<span class="fc" id="L39">        out.append('\n').append(p.title()).append(&quot;\n\n&quot;);</span>
+
+<span class="pc bpc" id="L41" title="1 of 2 branches missed.">        section(out, de ? &quot;Symptom&quot; : &quot;Symptom&quot;, p.symptom());</span>
+<span class="pc bpc" id="L42" title="1 of 2 branches missed.">        section(out, de ? &quot;Ursache&quot; : &quot;Cause&quot;, p.cause());</span>
+<span class="pc bpc" id="L43" title="1 of 2 branches missed.">        section(out, de ? &quot;Massnahme&quot; : &quot;Action&quot;, p.action());</span>
+<span class="pc bpc" id="L44" title="1 of 2 branches missed.">        section(out, de ? &quot;Ersatzteile&quot; : &quot;Parts used&quot;, p.partsUsed());</span>
+
+<span class="fc" id="L46">        return out.toString();</span>
+    }
+
+    /** Header line; skipped entirely when the value is absent rather than printed as empty. */
+    private static void line(StringBuilder out, String label, String value) {
+<span class="pc bpc" id="L51" title="2 of 4 branches missed.">        if (value != null &amp;&amp; !value.isBlank()) {</span>
+<span class="fc" id="L52">            out.append(label).append(&quot;: &quot;).append(value).append('\n');</span>
+        }
+<span class="fc" id="L54">    }</span>
+
+    private static void section(StringBuilder out, String heading, String body) {
+<span class="pc bpc" id="L57" title="2 of 4 branches missed.">        if (body != null &amp;&amp; !body.isBlank()) {</span>
+<span class="fc" id="L58">            out.append(heading).append(&quot;:\n&quot;).append(body).append(&quot;\n\n&quot;);</span>
+        }
+<span class="fc" id="L60">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

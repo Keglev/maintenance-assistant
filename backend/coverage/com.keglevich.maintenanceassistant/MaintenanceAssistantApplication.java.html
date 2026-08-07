@@ -2,6 +2,7 @@
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 
 /**
  * Entry point of the maintenance-assistant backend.
@@ -11,10 +12,13 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * is extracted into its own service in Phase 2.
  */
 @SpringBootApplication
-<span class="fc" id="L14">public class MaintenanceAssistantApplication {</span>
+// Picks up the @ConfigurationProperties records inside the modules, so each one declares its own
+// configuration next to the code that uses it rather than in a central config class.
+@ConfigurationPropertiesScan
+<span class="fc" id="L18">public class MaintenanceAssistantApplication {</span>
 
   public static void main(String[] args) {
-<span class="nc" id="L17">    SpringApplication.run(MaintenanceAssistantApplication.class, args);</span>
-<span class="nc" id="L18">  }</span>
+<span class="nc" id="L21">    SpringApplication.run(MaintenanceAssistantApplication.class, args);</span>
+<span class="nc" id="L22">  }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

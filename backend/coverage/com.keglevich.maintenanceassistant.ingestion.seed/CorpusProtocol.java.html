@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CorpusProtocol.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">maintenance-assistant</a> &gt; <a href="index.source.html" class="el_package">com.keglevich.maintenanceassistant.ingestion.seed</a> &gt; <span class="el_source">CorpusProtocol.java</span></div><h1>CorpusProtocol.java</h1><pre class="source lang-java linenums">package com.keglevich.maintenanceassistant.ingestion.seed;
+
+import com.fasterxml.jackson.databind.JsonNode;
+
+import java.time.LocalDate;
+import java.util.UUID;
+
+/**
+ * One record of the NDJSON corpus, reduced to what the {@code protocol} table stores.
+ *
+ * &lt;p&gt;The {@code meta} object of the corpus file is deliberately absent here. It carries the fault
+ * taxonomy, the quality marker and the demo tags, which exist to control and verify the corpus
+ * distribution — not to be persisted. The V1 schema has no column for any of them and does not get
+ * one.
+ *
+ * @param machineNo redundant with {@code machineId}; used for the file layout and for log messages
+ */
+<span class="fc" id="L18">record CorpusProtocol(</span>
+        UUID id,
+        UUID machineId,
+        String machineNo,
+        LocalDate incidentDate,
+        String protocolType,
+        String errorCode,
+        String title,
+        String symptom,
+        String cause,
+        String action,
+        String partsUsed,
+        Integer downtimeMinutes,
+        String technicianInitials,
+        String language,
+        String uploadedBy) {
+
+    static CorpusProtocol from(JsonNode node) {
+<span class="fc" id="L36">        return new CorpusProtocol(</span>
+<span class="fc" id="L37">                UUID.fromString(node.get(&quot;id&quot;).asText()),</span>
+<span class="fc" id="L38">                UUID.fromString(node.get(&quot;machine_id&quot;).asText()),</span>
+<span class="fc" id="L39">                node.get(&quot;machine_no&quot;).asText(),</span>
+<span class="fc" id="L40">                LocalDate.parse(node.get(&quot;incident_date&quot;).asText()),</span>
+<span class="fc" id="L41">                node.get(&quot;protocol_type&quot;).asText(),</span>
+<span class="fc" id="L42">                text(node, &quot;error_code&quot;),</span>
+<span class="fc" id="L43">                node.get(&quot;title&quot;).asText(),</span>
+<span class="fc" id="L44">                text(node, &quot;symptom&quot;),</span>
+<span class="fc" id="L45">                text(node, &quot;cause&quot;),</span>
+<span class="fc" id="L46">                text(node, &quot;action&quot;),</span>
+<span class="fc" id="L47">                text(node, &quot;parts_used&quot;),</span>
+<span class="fc" id="L48">                integer(node, &quot;downtime_minutes&quot;),</span>
+<span class="fc" id="L49">                text(node, &quot;technician_initials&quot;),</span>
+<span class="fc" id="L50">                node.get(&quot;language&quot;).asText(),</span>
+<span class="fc" id="L51">                node.get(&quot;uploaded_by&quot;).asText());</span>
+    }
+
+    /** Nullable string field: absent and JSON {@code null} both mean &quot;not recorded&quot;. */
+    private static String text(JsonNode node, String field) {
+<span class="fc" id="L56">        JsonNode value = node.get(field);</span>
+<span class="pc bpc" id="L57" title="1 of 4 branches missed.">        return value == null || value.isNull() ? null : value.asText();</span>
+    }
+
+    private static Integer integer(JsonNode node, String field) {
+<span class="fc" id="L61">        JsonNode value = node.get(field);</span>
+<span class="pc bpc" id="L62" title="2 of 4 branches missed.">        return value == null || value.isNull() ? null : value.asInt();</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

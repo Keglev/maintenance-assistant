@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CorpusSeedRunner.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">maintenance-assistant</a> &gt; <a href="index.source.html" class="el_package">com.keglevich.maintenanceassistant.ingestion.seed</a> &gt; <span class="el_source">CorpusSeedRunner.java</span></div><h1>CorpusSeedRunner.java</h1><pre class="source lang-java linenums">package com.keglevich.maintenanceassistant.ingestion.seed;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.boot.ApplicationArguments;
+import org.springframework.boot.ApplicationRunner;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.ResourceLoader;
+import org.springframework.jdbc.core.simple.JdbcClient;
+import org.springframework.stereotype.Component;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.UncheckedIOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.sql.Types;
+
+/**
+ * Loads the synthetic protocol corpus into the database and onto the file volume.
+ *
+ * &lt;h2&gt;Why an application runner rather than a migration or a script&lt;/h2&gt;
+ *
+ * &lt;p&gt;&lt;b&gt;Not a Flyway migration.&lt;/b&gt; The corpus is demo data, not schema. It also has to write ~150
+ * documents to a volume, which SQL cannot do — so a migration could only ever do half the job.
+ * Baking 150 records of German prose into the versioned schema history would also make that history
+ * unreadable and would tie a corpus revision to a schema version.
+ *
+ * &lt;p&gt;&lt;b&gt;Not a standalone script.&lt;/b&gt; A script needs its own copy of the database credentials and
+ * its own idea of where the volume is mounted. Running inside the application reuses the configured
+ * {@code DataSource} and the same properties the application itself uses, so seeding the deployed
+ * stack is one environment variable and a restart rather than a second configuration surface.
+ *
+ * &lt;p&gt;It is off by default ({@code maintenance.corpus-seed.enabled}) because seeding should be an
+ * explicit act, and it is idempotent: rows are inserted with fixed UUIDs and {@code ON CONFLICT DO
+ * NOTHING}, documents are written only when missing. Running it twice changes nothing.
+ *
+ * &lt;p&gt;Deliberately absent: chunking, embedding and any call to the LLM provider. Protocols land with
+ * status {@code RECEIVED}, which is exactly the state the ingestion module will pick them up from.
+ */
+@Component
+@ConditionalOnProperty(prefix = &quot;maintenance.corpus-seed&quot;, name = &quot;enabled&quot;, havingValue = &quot;true&quot;)
+class CorpusSeedRunner implements ApplicationRunner {
+
+<span class="nc" id="L50">    private static final Logger log = LoggerFactory.getLogger(CorpusSeedRunner.class);</span>
+
+    private static final String INSERT = &quot;&quot;&quot;
+            INSERT INTO protocol (
+                id, machine_id, incident_date, protocol_type, error_code, title,
+                symptom, cause, action, parts_used, downtime_minutes,
+                technician_initials, language, source_file, status, uploaded_by)
+            VALUES (
+                :id, :machineId, :incidentDate, :protocolType, :errorCode, :title,
+                :symptom, :cause, :action, :partsUsed, :downtimeMinutes,
+                :technicianInitials, :language, :sourceFile, 'RECEIVED', :uploadedBy)
+            ON CONFLICT (id) DO NOTHING
+            &quot;&quot;&quot;;
+
+    private final JdbcClient jdbc;
+    private final ResourceLoader resourceLoader;
+    private final CorpusSeedProperties seedProperties;
+    private final FileStorageProperties fileProperties;
+<span class="nc" id="L68">    private final ObjectMapper objectMapper = new ObjectMapper();</span>
+
+    CorpusSeedRunner(JdbcClient jdbc, ResourceLoader resourceLoader,
+<span class="nc" id="L71">                     CorpusSeedProperties seedProperties, FileStorageProperties fileProperties) {</span>
+<span class="nc" id="L72">        this.jdbc = jdbc;</span>
+<span class="nc" id="L73">        this.resourceLoader = resourceLoader;</span>
+<span class="nc" id="L74">        this.seedProperties = seedProperties;</span>
+<span class="nc" id="L75">        this.fileProperties = fileProperties;</span>
+<span class="nc" id="L76">    }</span>
+
+    @Override
+    public void run(ApplicationArguments args) throws IOException {
+<span class="nc" id="L80">        Resource resource = resourceLoader.getResource(seedProperties.resource());</span>
+<span class="nc bnc" id="L81" title="All 2 branches missed.">        if (!resource.exists()) {</span>
+<span class="nc" id="L82">            throw new IllegalStateException(&quot;Corpus not found: &quot; + seedProperties.resource());</span>
+        }
+<span class="nc" id="L84">        Path base = Path.of(fileProperties.basePath()).toAbsolutePath().normalize();</span>
+<span class="nc" id="L85">        Files.createDirectories(base);</span>
+
+<span class="nc" id="L87">        log.info(&quot;Seeding corpus from {} into {}&quot;, seedProperties.resource(), base);</span>
+
+<span class="nc" id="L89">        int read = 0;</span>
+<span class="nc" id="L90">        int inserted = 0;</span>
+<span class="nc" id="L91">        int filesWritten = 0;</span>
+
+<span class="nc" id="L93">        try (BufferedReader reader = new BufferedReader(</span>
+<span class="nc" id="L94">                new InputStreamReader(resource.getInputStream(), StandardCharsets.UTF_8))) {</span>
+            String line;
+<span class="nc" id="L96">            int lineNumber = 0;</span>
+<span class="nc bnc" id="L97" title="All 2 branches missed.">            while ((line = reader.readLine()) != null) {</span>
+<span class="nc" id="L98">                lineNumber++;</span>
+<span class="nc bnc" id="L99" title="All 2 branches missed.">                if (line.isBlank()) {</span>
+<span class="nc" id="L100">                    continue;</span>
+                }
+                CorpusProtocol protocol;
+                try {
+<span class="nc" id="L104">                    JsonNode node = objectMapper.readTree(line);</span>
+<span class="nc" id="L105">                    protocol = CorpusProtocol.from(node);</span>
+<span class="nc" id="L106">                } catch (RuntimeException | IOException e) {</span>
+                    // Line-oriented input earns a line-oriented error: the point of NDJSON here is
+                    // that a bad record can be named rather than just failing the whole file.
+<span class="nc" id="L109">                    throw new IllegalStateException(</span>
+<span class="nc" id="L110">                            &quot;Invalid corpus record at line &quot; + lineNumber + &quot;: &quot; + e.getMessage(), e);</span>
+<span class="nc" id="L111">                }</span>
+<span class="nc" id="L112">                read++;</span>
+
+<span class="nc" id="L114">                Path document = documentPath(base, protocol);</span>
+<span class="nc bnc" id="L115" title="All 2 branches missed.">                if (writeDocument(document, protocol)) {</span>
+<span class="nc" id="L116">                    filesWritten++;</span>
+                }
+<span class="nc" id="L118">                inserted += insert(protocol, base.relativize(document));</span>
+<span class="nc" id="L119">            }</span>
+        }
+
+<span class="nc" id="L122">        log.info(&quot;Corpus seed finished: {} records read, {} rows inserted, {} already present, &quot;</span>
+                        + &quot;{} documents written, {} already on disk&quot;,
+<span class="nc" id="L124">                read, inserted, read - inserted, filesWritten, read - filesWritten);</span>
+<span class="nc" id="L125">        logDistribution();</span>
+<span class="nc" id="L126">    }</span>
+
+    /**
+     * One directory per machine. Grouping by machine keeps the volume browsable during a demo, and
+     * the file name is the protocol UUID so the path is stable no matter how a title is later
+     * reworded.
+     */
+    private static Path documentPath(Path base, CorpusProtocol protocol) {
+<span class="nc" id="L134">        return base.resolve(protocol.machineNo()).resolve(protocol.id() + &quot;.txt&quot;);</span>
+    }
+
+    /** @return true if the document was written, false if it was already there */
+    private static boolean writeDocument(Path path, CorpusProtocol protocol) {
+<span class="nc bnc" id="L139" title="All 2 branches missed.">        if (Files.exists(path)) {</span>
+<span class="nc" id="L140">            return false;</span>
+        }
+        try {
+<span class="nc" id="L143">            Files.createDirectories(path.getParent());</span>
+<span class="nc" id="L144">            Files.writeString(path, ProtocolDocumentRenderer.render(protocol), StandardCharsets.UTF_8);</span>
+<span class="nc" id="L145">            return true;</span>
+<span class="nc" id="L146">        } catch (IOException e) {</span>
+<span class="nc" id="L147">            throw new UncheckedIOException(&quot;Cannot write protocol document &quot; + path, e);</span>
+        }
+    }
+
+    /** @return 1 if the row was inserted, 0 if it was already present */
+    private int insert(CorpusProtocol p, Path relativePath) {
+<span class="nc" id="L153">        return jdbc.sql(INSERT)</span>
+<span class="nc" id="L154">                .param(&quot;id&quot;, p.id())</span>
+<span class="nc" id="L155">                .param(&quot;machineId&quot;, p.machineId())</span>
+<span class="nc" id="L156">                .param(&quot;incidentDate&quot;, p.incidentDate())</span>
+<span class="nc" id="L157">                .param(&quot;protocolType&quot;, p.protocolType())</span>
+<span class="nc" id="L158">                .param(&quot;errorCode&quot;, p.errorCode(), Types.VARCHAR)</span>
+<span class="nc" id="L159">                .param(&quot;title&quot;, p.title())</span>
+<span class="nc" id="L160">                .param(&quot;symptom&quot;, p.symptom(), Types.VARCHAR)</span>
+<span class="nc" id="L161">                .param(&quot;cause&quot;, p.cause(), Types.VARCHAR)</span>
+<span class="nc" id="L162">                .param(&quot;action&quot;, p.action(), Types.VARCHAR)</span>
+<span class="nc" id="L163">                .param(&quot;partsUsed&quot;, p.partsUsed(), Types.VARCHAR)</span>
+<span class="nc" id="L164">                .param(&quot;downtimeMinutes&quot;, p.downtimeMinutes(), Types.INTEGER)</span>
+<span class="nc" id="L165">                .param(&quot;technicianInitials&quot;, p.technicianInitials(), Types.VARCHAR)</span>
+<span class="nc" id="L166">                .param(&quot;language&quot;, p.language())</span>
+                // Stored with forward slashes so the value does not depend on the OS that seeded it.
+<span class="nc" id="L168">                .param(&quot;sourceFile&quot;, relativePath.toString().replace('\\', '/'))</span>
+<span class="nc" id="L169">                .param(&quot;uploadedBy&quot;, p.uploadedBy())</span>
+<span class="nc" id="L170">                .update();</span>
+    }
+
+    /** Logged so a seeded environment can state its own distribution without a psql session. */
+    private void logDistribution() {
+<span class="nc" id="L175">        jdbc.sql(&quot;&quot;&quot;</span>
+                        SELECT language, protocol_type, count(*) AS n
+                        FROM protocol GROUP BY language, protocol_type ORDER BY 1, 2
+                        &quot;&quot;&quot;)
+<span class="nc" id="L179">                .query()</span>
+<span class="nc" id="L180">                .listOfRows()</span>
+<span class="nc" id="L181">                .forEach(row -&gt; log.info(&quot;  {} {}: {}&quot;,</span>
+<span class="nc" id="L182">                        row.get(&quot;language&quot;), row.get(&quot;protocol_type&quot;), row.get(&quot;n&quot;)));</span>
+<span class="nc" id="L183">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

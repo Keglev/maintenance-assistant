@@ -14,7 +14,9 @@ spring:
   flyway:
     enabled: true
     locations: classpath:db/migration
-    # No migrations yet — the schema (machine, protocol, chunk) arrives in Phase 2.
+    # Stated rather than left to the default: the seed migration contains German umlauts,
+    # and a JVM whose default charset is not UTF-8 would otherwise mangle them silently.
+    encoding: UTF-8
 
   security:
     oauth2:

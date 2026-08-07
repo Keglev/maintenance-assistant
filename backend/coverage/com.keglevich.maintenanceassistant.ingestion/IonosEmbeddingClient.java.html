@@ -1,0 +1,239 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>IonosEmbeddingClient.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">maintenance-assistant</a> &gt; <a href="index.source.html" class="el_package">com.keglevich.maintenanceassistant.ingestion</a> &gt; <span class="el_source">IonosEmbeddingClient.java</span></div><h1>IonosEmbeddingClient.java</h1><pre class="source lang-java linenums">package com.keglevich.maintenanceassistant.ingestion;
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
+import org.springframework.stereotype.Component;
+import org.springframework.web.client.RestClient;
+import org.springframework.web.client.RestClientException;
+
+import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * Embedding client for the IONOS AI Model Hub, spoken as plain OpenAI-compatible JSON.
+ *
+ * &lt;p&gt;A {@link RestClient} rather than Spring AI. The decision and its evidence are in
+ * {@code spike/spring-ai-boot4/RESULTS.md} and dated in DECISIONS.txt: Spring AI 2.0 does work on
+ * Boot 4.1, but it is a large dependency for one POST and it defaults to the exact encoding the
+ * IONOS gateway cannot parse.
+ *
+ * &lt;p&gt;Three provider quirks from ADR-002 are handled here and nowhere else:
+ * &lt;ul&gt;
+ *   &lt;li&gt;{@code encoding_format} is sent explicitly as {@code float}. The gateway returns HTTP 500
+ *       — {@code cannot unmarshal string into Go struct field …of type []float32} — for the base64
+ *       that OpenAI's own SDKs send by default.&lt;/li&gt;
+ *   &lt;li&gt;The model id is taken from configuration verbatim, so the {@code *-migration} aliases in
+ *       the IONOS catalogue are simply never named.&lt;/li&gt;
+ *   &lt;li&gt;The vector width is asserted against configuration on every response.&lt;/li&gt;
+ * &lt;/ul&gt;
+ */
+@Component
+class IonosEmbeddingClient implements EmbeddingClient {
+
+<span class="fc" id="L39">    private static final Logger log = LoggerFactory.getLogger(IonosEmbeddingClient.class);</span>
+
+    private final EmbeddingProperties properties;
+    private final EmbeddingBudget budget;
+    private final RestClient restClient;
+
+    // RestClient.builder() rather than the auto-configured builder bean: this client talks to one
+    // external provider with its own timeouts and its own auth header, and should not inherit
+    // interceptors or converters added for the application's own HTTP calls.
+<span class="fc" id="L48">    IonosEmbeddingClient(EmbeddingProperties properties, EmbeddingBudget budget) {</span>
+<span class="fc" id="L49">        this.properties = properties;</span>
+<span class="fc" id="L50">        this.budget = budget;</span>
+
+<span class="fc" id="L52">        SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();</span>
+<span class="fc" id="L53">        requestFactory.setConnectTimeout((int) Duration.ofSeconds(10).toMillis());</span>
+        // Generous: a batch of 32 texts through bge-m3 took ~4 s in the spike, and a slow
+        // response is worth waiting for rather than retrying into a second charge.
+<span class="fc" id="L56">        requestFactory.setReadTimeout((int) properties.timeout().toMillis());</span>
+
+<span class="fc" id="L58">        this.restClient = RestClient.builder()</span>
+<span class="fc" id="L59">                .baseUrl(properties.baseUrl())</span>
+<span class="fc" id="L60">                .defaultHeader(HttpHeaders.AUTHORIZATION, &quot;Bearer &quot; + properties.apiKey())</span>
+<span class="fc" id="L61">                .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)</span>
+<span class="fc" id="L62">                .requestFactory(requestFactory)</span>
+<span class="fc" id="L63">                .build();</span>
+<span class="fc" id="L64">        log.info(&quot;Embedding provider: {} model={} dims={} batch={} dailyCallBudget={}&quot;,</span>
+<span class="fc" id="L65">                properties.baseUrl(), properties.model(), properties.dimensions(),</span>
+<span class="fc" id="L66">                properties.batchSize(), properties.dailyCallBudget());</span>
+<span class="fc" id="L67">    }</span>
+
+    @Override
+    public int dimensions() {
+<span class="nc" id="L71">        return properties.dimensions();</span>
+    }
+
+    @Override
+    public EmbeddingBatch embed(List&lt;String&gt; texts) {
+<span class="nc bnc" id="L76" title="All 2 branches missed.">        if (texts.isEmpty()) {</span>
+<span class="nc" id="L77">            return new EmbeddingBatch(List.of(), 0, 0L);</span>
+        }
+<span class="nc" id="L79">        List&lt;float[]&gt; vectors = new ArrayList&lt;&gt;(texts.size());</span>
+<span class="nc" id="L80">        int calls = 0;</span>
+<span class="nc" id="L81">        long tokens = 0L;</span>
+
+        // Batched because the provider bills and rate-limits per request, and one request per
+        // chunk would turn a 150-protocol corpus into hundreds of round trips.
+<span class="nc bnc" id="L85" title="All 2 branches missed.">        for (int from = 0; from &lt; texts.size(); from += properties.batchSize()) {</span>
+<span class="nc" id="L86">            List&lt;String&gt; batch = texts.subList(from, Math.min(from + properties.batchSize(), texts.size()));</span>
+<span class="nc" id="L87">            EmbeddingResponse response = callWithRetry(batch);</span>
+<span class="nc" id="L88">            calls++;</span>
+<span class="nc" id="L89">            tokens += response.promptTokens();</span>
+<span class="nc" id="L90">            vectors.addAll(extractVectors(response, batch.size()));</span>
+        }
+<span class="nc" id="L92">        return new EmbeddingBatch(vectors, calls, tokens);</span>
+    }
+
+    /**
+     * Retries transient failures only, with doubling backoff. A 4xx other than 429 is the caller's
+     * fault — a bad model id, a revoked key — and retrying it just spends the same error again.
+     */
+    private EmbeddingResponse callWithRetry(List&lt;String&gt; batch) {
+<span class="nc" id="L100">        Duration backoff = properties.retryBackoff();</span>
+<span class="nc" id="L101">        RuntimeException last = null;</span>
+
+<span class="nc bnc" id="L103" title="All 2 branches missed.">        for (int attempt = 0; attempt &lt;= properties.maxRetries(); attempt++) {</span>
+<span class="nc bnc" id="L104" title="All 2 branches missed.">            if (last != null) {</span>
+<span class="nc" id="L105">                log.warn(&quot;Embedding call failed ({}), retry {} of {} in {}&quot;,</span>
+<span class="nc" id="L106">                        last.getMessage(), attempt, properties.maxRetries(), backoff);</span>
+<span class="nc" id="L107">                sleep(backoff);</span>
+<span class="nc" id="L108">                backoff = backoff.multipliedBy(2);</span>
+            }
+            try {
+<span class="nc" id="L111">                EmbeddingResponse body = restClient.post()</span>
+<span class="nc" id="L112">                        .uri(&quot;/embeddings&quot;)</span>
+<span class="nc" id="L113">                        .body(Map.of(</span>
+<span class="nc" id="L114">                                &quot;model&quot;, properties.model(),</span>
+                                &quot;input&quot;, batch,
+                                // Not a default anywhere: the gateway 500s on base64 (ADR-002).
+                                &quot;encoding_format&quot;, &quot;float&quot;))
+<span class="nc" id="L118">                        .retrieve()</span>
+<span class="nc" id="L119">                        .body(EmbeddingResponse.class);</span>
+                // Counted here, not by the caller. The money is spent when the provider serves the
+                // request, whatever happens to the response afterwards. Recording it upstream is
+                // how the first real run of this pipeline made 150 paid calls that the budget
+                // never saw: every one of them failed while converting the response, and the
+                // counter only ran on success.
+<span class="nc bnc" id="L125" title="All 2 branches missed.">                recordUsage(body == null ? 0L : body.promptTokens());</span>
+<span class="nc bnc" id="L126" title="All 2 branches missed.">                if (body == null) {</span>
+<span class="nc" id="L127">                    throw new EmbeddingException(&quot;provider returned an empty body&quot;);</span>
+                }
+<span class="nc" id="L129">                return body;</span>
+<span class="nc" id="L130">            } catch (org.springframework.http.converter.HttpMessageConversionException e) {</span>
+                // The provider answered and billed for it; we simply could not read the answer.
+                // Terminal, because retrying produces the same unreadable response.
+<span class="nc" id="L133">                recordUsage(0L);</span>
+<span class="nc" id="L134">                throw new EmbeddingException(&quot;cannot read the provider response: &quot; + e.getMessage(), e);</span>
+<span class="nc" id="L135">            } catch (org.springframework.web.client.HttpClientErrorException.TooManyRequests e) {</span>
+<span class="nc" id="L136">                last = e;</span>
+<span class="nc" id="L137">            } catch (org.springframework.web.client.HttpClientErrorException e) {</span>
+                // Terminal: retrying a 401 or a 404 model id only wastes time.
+<span class="nc" id="L139">                throw new EmbeddingException(</span>
+<span class="nc" id="L140">                        &quot;embedding request rejected: %s %s&quot;.formatted(e.getStatusCode(), firstLine(e.getResponseBodyAsString())), e);</span>
+<span class="nc" id="L141">            } catch (RestClientException e) {</span>
+                // 5xx, read timeout, connection reset — all worth another attempt.
+<span class="nc" id="L143">                last = e;</span>
+<span class="nc" id="L144">            }</span>
+        }
+<span class="nc" id="L146">        throw new EmbeddingException(</span>
+                &quot;embedding provider unavailable after %d attempts: %s&quot;
+<span class="nc bnc" id="L148" title="All 2 branches missed.">                        .formatted(properties.maxRetries() + 1, last == null ? &quot;unknown&quot; : last.getMessage()), last);</span>
+    }
+
+    /**
+     * Reads the vectors and checks their width. A model that quietly returns 768 dimensions would
+     * otherwise fail as a Postgres type error partway through writing chunks, leaving the protocol
+     * half-indexed; failing here keeps the failure atomic and names the actual cause.
+     */
+    private List&lt;float[]&gt; extractVectors(EmbeddingResponse response, int expectedCount) {
+<span class="nc" id="L157">        List&lt;EmbeddingResponse.Item&gt; data = response.data();</span>
+<span class="nc bnc" id="L158" title="All 4 branches missed.">        if (data == null || data.size() != expectedCount) {</span>
+<span class="nc" id="L159">            throw new EmbeddingException(&quot;expected %d embeddings, provider returned %d&quot;</span>
+<span class="nc bnc" id="L160" title="All 2 branches missed.">                    .formatted(expectedCount, data == null ? 0 : data.size()));</span>
+        }
+<span class="nc" id="L162">        List&lt;float[]&gt; vectors = new ArrayList&lt;&gt;(expectedCount);</span>
+<span class="nc bnc" id="L163" title="All 2 branches missed.">        for (EmbeddingResponse.Item item : data) {</span>
+<span class="nc" id="L164">            List&lt;Double&gt; values = item.embedding();</span>
+<span class="nc bnc" id="L165" title="All 4 branches missed.">            if (values == null || values.isEmpty()) {</span>
+<span class="nc" id="L166">                throw new EmbeddingException(&quot;embedding is not an array — is encoding_format still float?&quot;);</span>
+            }
+<span class="nc bnc" id="L168" title="All 2 branches missed.">            if (values.size() != properties.dimensions()) {</span>
+<span class="nc" id="L169">                throw new EmbeddingException(</span>
+                        &quot;model %s returned %d dimensions, the chunk.embedding column is vector(%d)&quot;
+<span class="nc" id="L171">                                .formatted(properties.model(), values.size(), properties.dimensions()));</span>
+            }
+<span class="nc" id="L173">            float[] vector = new float[values.size()];</span>
+<span class="nc bnc" id="L174" title="All 2 branches missed.">            for (int i = 0; i &lt; values.size(); i++) {</span>
+<span class="nc" id="L175">                vector[i] = values.get(i).floatValue();</span>
+            }
+<span class="nc" id="L177">            vectors.add(vector);</span>
+<span class="nc" id="L178">        }</span>
+<span class="nc" id="L179">        return vectors;</span>
+    }
+
+    /**
+     * The provider's response, typed rather than navigated as a tree.
+     *
+     * &lt;p&gt;Boot 4.1 ships &lt;b&gt;Jackson 3&lt;/b&gt; ({@code tools.jackson.databind}) as the message-converter
+     * default while Jackson 2 is still on the classpath through other libraries. Asking a converter
+     * for a {@code com.fasterxml.jackson.databind.JsonNode} therefore fails at runtime with a type
+     * definition error — found by running this against IONOS, where all 150 protocols failed on it.
+     * Records sidestep the question: they bind under either generation. The annotations package is
+     * shared by both, so {@code @JsonIgnoreProperties} is safe here.
+     */
+    @JsonIgnoreProperties(ignoreUnknown = true)
+<span class="nc" id="L193">    record EmbeddingResponse(List&lt;Item&gt; data, Usage usage) {</span>
+
+        @JsonIgnoreProperties(ignoreUnknown = true)
+<span class="nc" id="L196">        record Item(List&lt;Double&gt; embedding) {</span>
+        }
+
+        @JsonIgnoreProperties(ignoreUnknown = true)
+<span class="nc" id="L200">        record Usage(Long prompt_tokens, Long total_tokens) {</span>
+        }
+
+        /** Absent usage counts as zero: it costs a metric, not a protocol. */
+        long promptTokens() {
+<span class="nc bnc" id="L205" title="All 2 branches missed.">            if (usage == null) {</span>
+<span class="nc" id="L206">                return 0L;</span>
+            }
+<span class="nc bnc" id="L208" title="All 4 branches missed.">            if (usage.prompt_tokens() != null &amp;&amp; usage.prompt_tokens() &gt; 0) {</span>
+<span class="nc" id="L209">                return usage.prompt_tokens();</span>
+            }
+<span class="nc bnc" id="L211" title="All 2 branches missed.">            return usage.total_tokens() == null ? 0L : usage.total_tokens();</span>
+        }
+    }
+
+    /** One provider request, counted whether or not its response could be used. */
+    private void recordUsage(long promptTokens) {
+<span class="nc" id="L217">        budget.record(1, promptTokens);</span>
+<span class="nc" id="L218">    }</span>
+
+    private static String firstLine(String body) {
+<span class="nc bnc" id="L221" title="All 4 branches missed.">        if (body == null || body.isBlank()) {</span>
+<span class="nc" id="L222">            return &quot;(no body)&quot;;</span>
+        }
+<span class="nc" id="L224">        String trimmed = body.strip();</span>
+<span class="nc" id="L225">        int newline = trimmed.indexOf('\n');</span>
+<span class="nc bnc" id="L226" title="All 2 branches missed.">        String line = newline &lt; 0 ? trimmed : trimmed.substring(0, newline);</span>
+<span class="nc bnc" id="L227" title="All 2 branches missed.">        return line.length() &gt; 300 ? line.substring(0, 300) + &quot;…&quot; : line;</span>
+    }
+
+    private static void sleep(Duration duration) {
+        try {
+<span class="nc" id="L232">            Thread.sleep(duration.toMillis());</span>
+<span class="nc" id="L233">        } catch (InterruptedException e) {</span>
+<span class="nc" id="L234">            Thread.currentThread().interrupt();</span>
+<span class="nc" id="L235">            throw new EmbeddingException(&quot;interrupted while backing off&quot;, e);</span>
+<span class="nc" id="L236">        }</span>
+<span class="nc" id="L237">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

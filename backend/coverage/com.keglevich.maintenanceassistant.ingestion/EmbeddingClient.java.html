@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>EmbeddingClient.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">maintenance-assistant</a> &gt; <a href="index.source.html" class="el_package">com.keglevich.maintenanceassistant.ingestion</a> &gt; <span class="el_source">EmbeddingClient.java</span></div><h1>EmbeddingClient.java</h1><pre class="source lang-java linenums">package com.keglevich.maintenanceassistant.ingestion;
+
+import java.util.List;
+
+/**
+ * The one call this application makes to the LLM provider during ingestion.
+ *
+ * &lt;p&gt;Narrow on purpose. The spike in {@code spike/spring-ai-boot4/} established that Spring AI 2.0
+ * works on Boot 4.1 but is a large dependency for a single POST, and that its abstraction leaks
+ * precisely where the provider is OpenAI-&lt;em&gt;compatible&lt;/em&gt; rather than OpenAI. Keeping the
+ * contract this small means adopting it later — for the Phase 3 chat path, where it earns its
+ * weight — is a second implementation of this interface, not a rewrite. It is also what lets the
+ * integration tests run without a network.
+ */
+public interface EmbeddingClient {
+
+    /**
+     * Vector width this client produces. Checked against the database column rather than trusted,
+     * because a silent width change corrupts retrieval instead of breaking it.
+     */
+    int dimensions();
+
+    /**
+     * Embeds every text, batching internally as needed.
+     *
+     * &lt;p&gt;&lt;b&gt;Implementations record their own usage&lt;/b&gt; in {@code EmbeddingBudget}, per request, as
+     * the provider serves it — not the caller on success. The money is spent when the request is
+     * answered, whatever happens to the response afterwards. Recording it in the caller is how the
+     * first real run of this pipeline made 150 paid calls the counter never saw: every one of them
+     * failed while converting the response, so the success path that did the counting never ran.
+     *
+     * @param texts inputs, in order
+     * @return vectors in the same order as {@code texts}, plus what the run cost
+     * @throws EmbeddingException on a failure the caller cannot retry away
+     */
+    EmbeddingBatch embed(List&lt;String&gt; texts);
+
+    /**
+     * @param vectors      one vector per input, same order
+     * @param providerCalls HTTP requests actually made — what the provider bills and what the daily
+     *                      budget counts, which is not the number of texts
+     * @param promptTokens input tokens as reported by the provider; embeddings bill input only
+     */
+<span class="fc" id="L44">    record EmbeddingBatch(List&lt;float[]&gt; vectors, int providerCalls, long promptTokens) {</span>
+    }
+
+    /** Anything that stops a protocol being indexed. Carries the text stored in {@code failure_reason}. */
+    class EmbeddingException extends RuntimeException {
+        public EmbeddingException(String message) {
+<span class="fc" id="L50">            super(message);</span>
+<span class="fc" id="L51">        }</span>
+
+        public EmbeddingException(String message, Throwable cause) {
+<span class="nc" id="L54">            super(message, cause);</span>
+<span class="nc" id="L55">        }</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

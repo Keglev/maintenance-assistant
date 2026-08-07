@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>IngestionBacklogService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">maintenance-assistant</a> &gt; <a href="index.source.html" class="el_package">com.keglevich.maintenanceassistant.ingestion</a> &gt; <span class="el_source">IngestionBacklogService.java</span></div><h1>IngestionBacklogService.java</h1><pre class="source lang-java linenums">package com.keglevich.maintenanceassistant.ingestion;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.jdbc.core.simple.JdbcClient;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.UUID;
+
+/**
+ * The catch-up path.
+ *
+ * &lt;p&gt;The 150 seeded protocols were written straight into the database by the corpus seed, which
+ * predates this pipeline and publishes no event. They sit at {@code RECEIVED} with no worker
+ * coming. A protocol that failed on a provider outage is in the same position: the event that
+ * would have indexed it is long gone.
+ *
+ * &lt;p&gt;So this finds them by state rather than by event — the state &lt;em&gt;is&lt;/em&gt; the queue — and
+ * republishes the same {@link ProtocolReceivedEvent} the upload path uses, so there is one indexing
+ * path and not two.
+ *
+ * &lt;p&gt;Re-running is safe. Indexing replaces a protocol's chunks rather than adding to them
+ * ({@link ProtocolIndexWriter}), so a protocol picked up twice ends with the chunks the current
+ * code produces, once.
+ */
+@Service
+public class IngestionBacklogService {
+
+<span class="fc" id="L31">    private static final Logger log = LoggerFactory.getLogger(IngestionBacklogService.class);</span>
+
+    private final JdbcClient jdbc;
+    private final ApplicationEventPublisher events;
+    private final IngestionProperties properties;
+    private final EmbeddingProperties embeddingProperties;
+    private final EmbeddingBudget budget;
+
+    IngestionBacklogService(JdbcClient jdbc, ApplicationEventPublisher events,
+                            IngestionProperties properties, EmbeddingProperties embeddingProperties,
+<span class="fc" id="L41">                            EmbeddingBudget budget) {</span>
+<span class="fc" id="L42">        this.jdbc = jdbc;</span>
+<span class="fc" id="L43">        this.events = events;</span>
+<span class="fc" id="L44">        this.properties = properties;</span>
+<span class="fc" id="L45">        this.embeddingProperties = embeddingProperties;</span>
+<span class="fc" id="L46">        this.budget = budget;</span>
+<span class="fc" id="L47">    }</span>
+
+    /** @param statuses which states to pick up; {@code RECEIVED} for a first pass, {@code FAILED} for a retry */
+    public int enqueue(List&lt;String&gt; statuses, Integer limit) {
+<span class="pc bpc" id="L51" title="3 of 4 branches missed.">        int max = limit != null &amp;&amp; limit &gt; 0 ? limit : properties.backlogBatchSize();</span>
+<span class="fc" id="L52">        List&lt;UUID&gt; pending = jdbc.sql(&quot;&quot;&quot;</span>
+                        SELECT id FROM protocol
+                        WHERE status IN (:statuses)
+                        ORDER BY created_at
+                        LIMIT :max
+                        &quot;&quot;&quot;)
+<span class="fc" id="L58">                .param(&quot;statuses&quot;, statuses)</span>
+<span class="fc" id="L59">                .param(&quot;max&quot;, max)</span>
+<span class="fc" id="L60">                .query(UUID.class)</span>
+<span class="fc" id="L61">                .list();</span>
+
+<span class="fc bfc" id="L63" title="All 2 branches covered.">        if (pending.isEmpty()) {</span>
+<span class="fc" id="L64">            log.info(&quot;Backlog: nothing in {}&quot;, statuses);</span>
+<span class="fc" id="L65">            return 0;</span>
+        }
+
+<span class="fc" id="L68">        log.info(&quot;Backlog: enqueueing {} protocols in {} ({} embedding calls used today)&quot;,</span>
+<span class="fc" id="L69">                pending.size(), statuses, budget.usedToday());</span>
+        // Submission is bounded by the executor's queue; the overflow policy runs the excess on
+        // this thread, so a 150-protocol backlog throttles rather than being dropped.
+<span class="fc" id="L72">        pending.forEach(id -&gt; events.publishEvent(new ProtocolReceivedEvent(id)));</span>
+<span class="fc" id="L73">        return pending.size();</span>
+    }
+
+    /** Counts by status, for the operator answering &quot;is it done yet&quot;. */
+    public List&lt;StatusCount&gt; statusCounts() {
+<span class="nc" id="L78">        return jdbc.sql(&quot;SELECT status, count(*) AS n FROM protocol GROUP BY status ORDER BY status&quot;)</span>
+<span class="nc" id="L79">                .query((rs, rowNum) -&gt; new StatusCount(rs.getString(&quot;status&quot;), rs.getLong(&quot;n&quot;)))</span>
+<span class="nc" id="L80">                .list();</span>
+    }
+
+    /**
+     * Today's provider usage and what is left of the ceiling.
+     *
+     * &lt;p&gt;Reported alongside the status because the two questions are asked together: whether the
+     * corpus is indexed, and what it cost. NFR-7's third layer is visibility, and a number nobody
+     * can read without a database session is not visible.
+     */
+    public Usage usageToday() {
+<span class="nc" id="L91">        int used = budget.usedToday();</span>
+<span class="nc" id="L92">        long tokens = budget.tokensToday();</span>
+<span class="nc" id="L93">        return new Usage(used, Math.max(0, dailyBudget() - used), tokens,</span>
+                // ADR-002 prices bge-m3 at EUR 0.02 per million input tokens; embeddings bill input
+                // only. Reported in EUR so &quot;measured in cents&quot; stays a measurement.
+<span class="nc" id="L96">                Math.round(tokens / 1_000_000.0 * 0.02 * 100_000.0) / 100_000.0);</span>
+    }
+
+    private int dailyBudget() {
+<span class="nc" id="L100">        return embeddingProperties.dailyCallBudget();</span>
+    }
+
+<span class="nc" id="L103">    public record StatusCount(String status, long count) {</span>
+    }
+
+    /** @param estimatedEur input tokens priced at the ADR-002 rate, rounded to five decimals */
+<span class="nc" id="L107">    public record Usage(int callsToday, int callsRemaining, long promptTokensToday, double estimatedEur) {</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

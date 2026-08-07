@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ProtocolUploadController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">maintenance-assistant</a> &gt; <a href="index.source.html" class="el_package">com.keglevich.maintenanceassistant.web</a> &gt; <span class="el_source">ProtocolUploadController.java</span></div><h1>ProtocolUploadController.java</h1><pre class="source lang-java linenums">package com.keglevich.maintenanceassistant.web;
+
+import com.keglevich.maintenanceassistant.ingestion.ProtocolIntakeService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.nio.charset.CharacterCodingException;
+import java.util.Map;
+import java.util.UUID;
+
+/**
+ * Protocol upload. Schichtleiter only.
+ *
+ * &lt;p&gt;Write access is restricted to one role by decision, not by oversight: DECISIONS.txt makes the
+ * Schichtleiter the sole writer as a quality control — a corpus anyone can add to is a corpus
+ * nobody trusts. The check is server-side and role-based, so hiding the button in the UI is
+ * presentation and this is the actual rule.
+ *
+ * &lt;p&gt;Returns &lt;b&gt;202 Accepted&lt;/b&gt; rather than 201. The protocol exists when this returns, but it is
+ * not searchable yet — chunking and embedding happen on a worker (NFR-4: confirmation is
+ * immediate). 202 says exactly that, and the returned id is what a client polls with.
+ */
+@RestController
+@RequestMapping(&quot;/api/protocols&quot;)
+@Tag(name = &quot;Ingestion&quot;, description = &quot;Upload and indexing of maintenance protocols&quot;)
+class ProtocolUploadController {
+
+    private final ProtocolIntakeService intake;
+
+<span class="fc" id="L42">    ProtocolUploadController(ProtocolIntakeService intake) {</span>
+<span class="fc" id="L43">        this.intake = intake;</span>
+<span class="fc" id="L44">    }</span>
+
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize(&quot;hasRole('SCHICHTLEITER')&quot;)
+    @Operation(summary = &quot;Upload a protocol text file&quot;,
+            description = &quot;Stores the document on the volume, records it as RECEIVED and hands it &quot;
+                    + &quot;to the indexer. Text files only — PDF and scan extraction is a later phase.&quot;)
+    @ApiResponses({
+            @ApiResponse(responseCode = &quot;202&quot;, description = &quot;Accepted; indexing runs asynchronously&quot;),
+            @ApiResponse(responseCode = &quot;400&quot;, description = &quot;Unknown machine, bad field, or not UTF-8 text&quot;),
+            @ApiResponse(responseCode = &quot;403&quot;, description = &quot;Caller is not a Schichtleiter&quot;)
+    })
+    ResponseEntity&lt;Map&lt;String, String&gt;&gt; upload(
+            @RequestPart(&quot;file&quot;) MultipartFile file,
+            @RequestParam(&quot;machine&quot;) String machineNo,
+            @RequestParam(&quot;type&quot;) String protocolType,
+            @RequestParam(value = &quot;errorCode&quot;, required = false) String errorCode,
+            @RequestParam(value = &quot;title&quot;, required = false) String title,
+            @RequestParam(value = &quot;language&quot;, required = false) String language,
+            @AuthenticationPrincipal Jwt jwt) {
+
+<span class="nc bnc" id="L65" title="All 2 branches missed.">        if (file.isEmpty()) {</span>
+<span class="nc" id="L66">            throw new ProtocolIntakeService.InvalidProtocolException(&quot;file is empty&quot;);</span>
+        }
+<span class="nc" id="L68">        String content = readAsText(file);</span>
+
+<span class="nc" id="L70">        UUID id = intake.accept(new ProtocolIntakeService.NewProtocol(</span>
+                machineNo,
+                protocolType,
+                errorCode,
+                // A note typed on a tablet often has no title of its own; the file name is what the
+                // person actually called it, and is better than an empty column.
+<span class="nc bnc" id="L76" title="All 4 branches missed.">                title != null &amp;&amp; !title.isBlank() ? title : stripExtension(file.getOriginalFilename()),</span>
+                language,
+                content,
+                // The username claim, per ADR-003. There is no user row for this to reference.
+<span class="nc" id="L80">                jwt.getClaimAsString(&quot;preferred_username&quot;)));</span>
+
+<span class="nc" id="L82">        return ResponseEntity.accepted().body(Map.of(</span>
+<span class="nc" id="L83">                &quot;id&quot;, id.toString(),</span>
+                &quot;status&quot;, &quot;RECEIVED&quot;,
+                &quot;message&quot;, &quot;Protocol stored and queued for indexing&quot;));
+    }
+
+    /**
+     * Strict UTF-8. A PDF fails here rather than being stored as bytes that look like text —
+     * refusing an unsupported format is more honest than accepting it and indexing noise.
+     */
+    private static String readAsText(MultipartFile file) {
+        try {
+<span class="nc" id="L94">            return ProtocolIntakeService.decodeStrictUtf8(file.getBytes());</span>
+<span class="nc" id="L95">        } catch (CharacterCodingException e) {</span>
+<span class="nc" id="L96">            throw new ProtocolIntakeService.InvalidProtocolException(</span>
+                    &quot;only UTF-8 text files are accepted; PDF and scan extraction is not implemented yet&quot;);
+<span class="nc" id="L98">        } catch (IOException e) {</span>
+<span class="nc" id="L99">            throw new UncheckedIOException(e);</span>
+        }
+    }
+
+    private static String stripExtension(String filename) {
+<span class="nc bnc" id="L104" title="All 4 branches missed.">        if (filename == null || filename.isBlank()) {</span>
+<span class="nc" id="L105">            return &quot;Protokoll&quot;;</span>
+        }
+<span class="nc" id="L107">        int dot = filename.lastIndexOf('.');</span>
+<span class="nc bnc" id="L108" title="All 2 branches missed.">        return dot &gt; 0 ? filename.substring(0, dot) : filename;</span>
+    }
+
+    /** The caller's mistake, reported as one. */
+    @ExceptionHandler(ProtocolIntakeService.InvalidProtocolException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    Map&lt;String, String&gt; onInvalid(ProtocolIntakeService.InvalidProtocolException e) {
+<span class="nc" id="L115">        return Map.of(&quot;error&quot;, e.getMessage());</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

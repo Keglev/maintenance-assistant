@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ProtocolIndexer.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">maintenance-assistant</a> &gt; <a href="index.source.html" class="el_package">com.keglevich.maintenanceassistant.ingestion</a> &gt; <span class="el_source">ProtocolIndexer.java</span></div><h1>ProtocolIndexer.java</h1><pre class="source lang-java linenums">package com.keglevich.maintenanceassistant.ingestion;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.jdbc.core.simple.JdbcClient;
+import org.springframework.stereotype.Component;
+
+import java.io.IOException;
+import java.nio.charset.MalformedInputException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
+/**
+ * The ingestion pipeline for one protocol: read the document, chunk it, embed the chunks, write
+ * them, and move the status from {@code RECEIVED} to {@code INDEXED} — or to {@code FAILED} with a
+ * reason.
+ *
+ * &lt;p&gt;Nothing here is transactional across the embedding call: see {@link ProtocolIndexWriter}.
+ *
+ * &lt;p&gt;Failure keeps the row and the file. A FAILED protocol is a retry worklist entry, not a dead
+ * one, which is why the reason is stored rather than only logged — the next run should be able to
+ * tell a provider outage from a corrupt file without reproducing the failure and paying for it
+ * again.
+ */
+@Component
+class ProtocolIndexer {
+
+<span class="fc" id="L32">    private static final Logger log = LoggerFactory.getLogger(ProtocolIndexer.class);</span>
+
+    private final JdbcClient jdbc;
+    private final ProtocolChunker chunker;
+    private final EmbeddingClient embeddingClient;
+    private final EmbeddingBudget budget;
+    private final ProtocolIndexWriter writer;
+    private final FileStorageProperties fileProperties;
+    private final EmbeddingProperties embeddingProperties;
+
+    ProtocolIndexer(JdbcClient jdbc, ProtocolChunker chunker, EmbeddingClient embeddingClient,
+                    EmbeddingBudget budget, ProtocolIndexWriter writer,
+<span class="fc" id="L44">                    FileStorageProperties fileProperties, EmbeddingProperties embeddingProperties) {</span>
+<span class="fc" id="L45">        this.jdbc = jdbc;</span>
+<span class="fc" id="L46">        this.chunker = chunker;</span>
+<span class="fc" id="L47">        this.embeddingClient = embeddingClient;</span>
+<span class="fc" id="L48">        this.budget = budget;</span>
+<span class="fc" id="L49">        this.writer = writer;</span>
+<span class="fc" id="L50">        this.fileProperties = fileProperties;</span>
+<span class="fc" id="L51">        this.embeddingProperties = embeddingProperties;</span>
+<span class="fc" id="L52">    }</span>
+
+    /**
+     * Indexes one protocol. Never throws: a failure is a recorded state, not an exception the
+     * caller has to handle, because the callers are an async event listener and a bulk backlog run
+     * and neither can do anything useful with it.
+     *
+     * @return true if the protocol reached INDEXED
+     */
+    boolean index(UUID protocolId) {
+        ProtocolRow protocol;
+        try {
+<span class="fc" id="L64">            protocol = load(protocolId).orElse(null);</span>
+<span class="nc" id="L65">        } catch (RuntimeException e) {</span>
+<span class="nc" id="L66">            log.error(&quot;Cannot load protocol {}&quot;, protocolId, e);</span>
+<span class="nc" id="L67">            return false;</span>
+<span class="fc" id="L68">        }</span>
+<span class="pc bpc" id="L69" title="1 of 2 branches missed.">        if (protocol == null) {</span>
+<span class="nc" id="L70">            log.warn(&quot;Protocol {} disappeared before indexing&quot;, protocolId);</span>
+<span class="nc" id="L71">            return false;</span>
+        }
+
+        try {
+<span class="fc" id="L75">            String text = readDocument(protocol);</span>
+<span class="fc" id="L76">            List&lt;String&gt; chunks = chunker.chunk(text, contextLine(protocol));</span>
+<span class="pc bpc" id="L77" title="1 of 2 branches missed.">            if (chunks.isEmpty()) {</span>
+<span class="nc" id="L78">                throw new IllegalStateException(&quot;document produced no chunks — is the file empty?&quot;);</span>
+            }
+
+            // Reserved for the whole protocol before any of it is sent, so a protocol is never
+            // left half-embedded by the budget running out between batches.
+<span class="fc" id="L83">            int estimatedCalls = (chunks.size() + embeddingProperties.batchSize() - 1)</span>
+<span class="fc" id="L84">                    / embeddingProperties.batchSize();</span>
+<span class="fc" id="L85">            budget.checkHeadroom(estimatedCalls);</span>
+
+            // The client records its own usage as each request is served — see EmbeddingClient.
+<span class="fc" id="L88">            EmbeddingClient.EmbeddingBatch embedded = embeddingClient.embed(chunks);</span>
+
+<span class="pc bpc" id="L90" title="1 of 2 branches missed.">            if (embedded.vectors().size() != chunks.size()) {</span>
+<span class="nc" id="L91">                throw new IllegalStateException(&quot;provider returned %d vectors for %d chunks&quot;</span>
+<span class="nc" id="L92">                        .formatted(embedded.vectors().size(), chunks.size()));</span>
+            }
+
+<span class="fc" id="L95">            writer.writeChunks(protocol.id(), protocol.machineId(), protocol.errorCode(),</span>
+<span class="fc" id="L96">                    protocol.language(), chunks, embedded.vectors());</span>
+
+<span class="fc" id="L98">            log.info(&quot;Indexed {} ({}): {} chunks, {} provider calls, {} tokens&quot;,</span>
+<span class="fc" id="L99">                    protocol.machineNo(), protocolId, chunks.size(),</span>
+<span class="fc" id="L100">                    embedded.providerCalls(), embedded.promptTokens());</span>
+<span class="fc" id="L101">            return true;</span>
+
+<span class="fc" id="L103">        } catch (Exception e) {</span>
+<span class="fc" id="L104">            String reason = &quot;%s: %s&quot;.formatted(e.getClass().getSimpleName(), e.getMessage());</span>
+<span class="fc" id="L105">            log.warn(&quot;Indexing failed for {} ({}): {}&quot;, protocol.machineNo(), protocolId, reason);</span>
+<span class="fc" id="L106">            writer.markFailed(protocolId, reason);</span>
+<span class="fc" id="L107">            return false;</span>
+        }
+    }
+
+    /**
+     * The context prepended to every chunk. Machine, error code and title, so a retrieved chunk
+     * still says what it is about once it is separated from its row — see {@link ProtocolChunker}.
+     */
+    private static String contextLine(ProtocolRow p) {
+<span class="fc" id="L116">        StringBuilder out = new StringBuilder(p.machineNo());</span>
+<span class="pc bpc" id="L117" title="1 of 4 branches missed.">        if (p.errorCode() != null &amp;&amp; !p.errorCode().isBlank()) {</span>
+<span class="fc" id="L118">            out.append(&quot; · &quot;).append(p.errorCode().strip());</span>
+        }
+<span class="fc" id="L120">        return out.append(&quot; · &quot;).append(p.title()).toString();</span>
+    }
+
+    /**
+     * Reads the document from the volume as UTF-8.
+     *
+     * &lt;p&gt;Text only. A PDF or a scan reaches this point as a decoding error, which is a correct
+     * failure rather than a silent one: extraction from those formats is a documented later-phase
+     * item, and until it exists, accepting the upload and storing mojibake would be worse than
+     * refusing it.
+     */
+    private String readDocument(ProtocolRow protocol) throws IOException {
+<span class="pc bpc" id="L132" title="2 of 4 branches missed.">        if (protocol.sourceFile() == null || protocol.sourceFile().isBlank()) {</span>
+<span class="nc" id="L133">            throw new IllegalStateException(&quot;protocol has no source_file&quot;);</span>
+        }
+<span class="fc" id="L135">        Path path = Path.of(fileProperties.basePath()).resolve(protocol.sourceFile()).normalize();</span>
+<span class="fc bfc" id="L136" title="All 2 branches covered.">        if (!Files.isReadable(path)) {</span>
+<span class="fc" id="L137">            throw new IllegalStateException(&quot;source file missing or unreadable: &quot; + protocol.sourceFile());</span>
+        }
+        try {
+<span class="fc" id="L140">            String text = Files.readString(path, StandardCharsets.UTF_8);</span>
+<span class="pc bpc" id="L141" title="1 of 2 branches missed.">            if (text.isBlank()) {</span>
+<span class="nc" id="L142">                throw new IllegalStateException(&quot;source file is empty: &quot; + protocol.sourceFile());</span>
+            }
+<span class="fc" id="L144">            return text;</span>
+<span class="nc" id="L145">        } catch (MalformedInputException e) {</span>
+<span class="nc" id="L146">            throw new IllegalStateException(</span>
+                    &quot;source file is not UTF-8 text (PDF and scan extraction is not implemented): &quot;
+<span class="nc" id="L148">                            + protocol.sourceFile(), e);</span>
+        }
+    }
+
+    private Optional&lt;ProtocolRow&gt; load(UUID protocolId) {
+<span class="fc" id="L153">        return jdbc.sql(&quot;&quot;&quot;</span>
+                        SELECT p.id, p.machine_id, m.machine_no, p.error_code, p.title,
+                               p.language, p.source_file
+                        FROM protocol p JOIN machine m ON m.id = p.machine_id
+                        WHERE p.id = :id
+                        &quot;&quot;&quot;)
+<span class="fc" id="L159">                .param(&quot;id&quot;, protocolId)</span>
+<span class="fc" id="L160">                .query((rs, rowNum) -&gt; new ProtocolRow(</span>
+<span class="fc" id="L161">                        rs.getObject(&quot;id&quot;, UUID.class),</span>
+<span class="fc" id="L162">                        rs.getObject(&quot;machine_id&quot;, UUID.class),</span>
+<span class="fc" id="L163">                        rs.getString(&quot;machine_no&quot;),</span>
+<span class="fc" id="L164">                        rs.getString(&quot;error_code&quot;),</span>
+<span class="fc" id="L165">                        rs.getString(&quot;title&quot;),</span>
+<span class="fc" id="L166">                        rs.getString(&quot;language&quot;),</span>
+<span class="fc" id="L167">                        rs.getString(&quot;source_file&quot;)))</span>
+<span class="fc" id="L168">                .optional();</span>
+    }
+
+<span class="fc" id="L171">    private record ProtocolRow(UUID id, UUID machineId, String machineNo, String errorCode,</span>
+                               String title, String language, String sourceFile) {
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

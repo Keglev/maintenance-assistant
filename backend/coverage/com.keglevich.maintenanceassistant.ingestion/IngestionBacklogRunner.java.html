@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>IngestionBacklogRunner.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">maintenance-assistant</a> &gt; <a href="index.source.html" class="el_package">com.keglevich.maintenanceassistant.ingestion</a> &gt; <span class="el_source">IngestionBacklogRunner.java</span></div><h1>IngestionBacklogRunner.java</h1><pre class="source lang-java linenums">package com.keglevich.maintenanceassistant.ingestion;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.boot.ApplicationArguments;
+import org.springframework.boot.ApplicationRunner;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.stereotype.Component;
+
+import java.util.List;
+
+/**
+ * Runs the backlog once at startup, when asked to.
+ *
+ * &lt;p&gt;Off by default, and that is the point: indexing spends money. A deployment restarting for an
+ * unrelated reason must not re-embed anything, and it will not — protocols already at
+ * {@code INDEXED} are not selected. This exists so that seeding a fresh environment is two flags
+ * rather than a manual API call, and so the same operation is available as an admin endpoint for
+ * everything after the first time.
+ */
+@Component
+@ConditionalOnProperty(prefix = &quot;maintenance.ingestion&quot;, name = &quot;backlog-on-startup&quot;, havingValue = &quot;true&quot;)
+class IngestionBacklogRunner implements ApplicationRunner {
+
+<span class="nc" id="L25">    private static final Logger log = LoggerFactory.getLogger(IngestionBacklogRunner.class);</span>
+
+    private final IngestionBacklogService backlog;
+
+<span class="nc" id="L29">    IngestionBacklogRunner(IngestionBacklogService backlog) {</span>
+<span class="nc" id="L30">        this.backlog = backlog;</span>
+<span class="nc" id="L31">    }</span>
+
+    @Override
+    public void run(ApplicationArguments args) {
+<span class="nc" id="L35">        int enqueued = backlog.enqueue(List.of(&quot;RECEIVED&quot;), null);</span>
+<span class="nc" id="L36">        log.info(&quot;Startup backlog enqueued {} protocols; indexing continues in the background&quot;, enqueued);</span>
+<span class="nc" id="L37">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

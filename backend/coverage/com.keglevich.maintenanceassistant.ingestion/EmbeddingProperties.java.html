@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>EmbeddingProperties.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">maintenance-assistant</a> &gt; <a href="index.source.html" class="el_package">com.keglevich.maintenanceassistant.ingestion</a> &gt; <span class="el_source">EmbeddingProperties.java</span></div><h1>EmbeddingProperties.java</h1><pre class="source lang-java linenums">package com.keglevich.maintenanceassistant.ingestion;
+
+import org.springframework.boot.context.properties.ConfigurationProperties;
+
+import java.time.Duration;
+
+/**
+ * Embedding provider configuration (ADR-002).
+ *
+ * &lt;p&gt;Every value is a property so that swapping IONOS for the documented Nebius fallback is a
+ * configuration change and not a code change — the API is OpenAI-compatible on both sides. The one
+ * value that is &lt;em&gt;not&lt;/em&gt; free to change is {@link #dimensions}: pgvector encodes dimensionality
+ * in the column type, so a model with a different width needs a migration and a re-embedding of the
+ * whole corpus. It is a property here only so the mismatch can be detected and reported rather than
+ * discovered as a Postgres error halfway through a run.
+ *
+ * @param baseUrl         OpenAI-compatible endpoint root, including {@code /v1}
+ * @param apiKey          bearer token; empty disables ingestion rather than failing at call time
+ * @param model           model id, e.g. {@code BAAI/bge-m3}
+ * @param dimensions      expected vector width; must match the {@code chunk.embedding} column
+ * @param batchSize       texts per HTTP call
+ * @param maxRetries      retries after the first attempt, for transient failures only
+ * @param retryBackoff    initial backoff, doubled per attempt
+ * @param timeout         per-request read timeout
+ * @param dailyCallBudget maximum provider calls per day across the whole application (NFR-7)
+ */
+@ConfigurationProperties(prefix = &quot;maintenance.embedding&quot;)
+<span class="fc" id="L28">public record EmbeddingProperties(</span>
+        String baseUrl,
+        String apiKey,
+        String model,
+        int dimensions,
+        int batchSize,
+        int maxRetries,
+        Duration retryBackoff,
+        Duration timeout,
+        int dailyCallBudget) {
+
+    /** Ingestion is inert without a key rather than failing per protocol at call time. */
+    public boolean isConfigured() {
+<span class="nc bnc" id="L41" title="All 8 branches missed.">        return apiKey != null &amp;&amp; !apiKey.isBlank() &amp;&amp; baseUrl != null &amp;&amp; !baseUrl.isBlank();</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

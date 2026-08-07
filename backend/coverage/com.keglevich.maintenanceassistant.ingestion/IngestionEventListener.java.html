@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>IngestionEventListener.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">maintenance-assistant</a> &gt; <a href="index.source.html" class="el_package">com.keglevich.maintenanceassistant.ingestion</a> &gt; <span class="el_source">IngestionEventListener.java</span></div><h1>IngestionEventListener.java</h1><pre class="source lang-java linenums">package com.keglevich.maintenanceassistant.ingestion;
+
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.event.TransactionPhase;
+import org.springframework.transaction.event.TransactionalEventListener;
+
+/**
+ * Turns a {@link ProtocolReceivedEvent} into an indexing run on a worker thread.
+ *
+ * &lt;p&gt;&lt;b&gt;This listener is the seam ADR-001 names.&lt;/b&gt; Extracting the ingestion service in Phase 5
+ * replaces this class with a Kafka consumer in a separate deployable and changes nothing else: the
+ * publisher still publishes an id, the indexer still reads the row, and the status still moves
+ * {@code RECEIVED → INDEXED | FAILED}. Keeping the listener this thin — no logic, only dispatch —
+ * is what keeps that true.
+ *
+ * &lt;p&gt;{@code AFTER_COMMIT} matters. The upload writes the protocol row and publishes in one
+ * transaction; a worker that started before that commit would look for a row that is not visible
+ * yet and fail a protocol that is perfectly fine. {@code fallbackExecution} lets the backlog run,
+ * which publishes outside a transaction, use exactly the same path rather than a second one.
+ */
+@Component
+class IngestionEventListener {
+
+    private final ProtocolIndexer indexer;
+
+<span class="fc" id="L27">    IngestionEventListener(ProtocolIndexer indexer) {</span>
+<span class="fc" id="L28">        this.indexer = indexer;</span>
+<span class="fc" id="L29">    }</span>
+
+    @Async(IngestionAsyncConfig.EXECUTOR)
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT, fallbackExecution = true)
+    void onProtocolReceived(ProtocolReceivedEvent event) {
+        // index() records its own failures as protocol state; nothing is thrown back at a thread
+        // pool that has nowhere to report it.
+<span class="fc" id="L36">        indexer.index(event.protocolId());</span>
+<span class="fc" id="L37">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

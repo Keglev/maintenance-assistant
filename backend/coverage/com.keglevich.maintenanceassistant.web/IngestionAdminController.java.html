@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>IngestionAdminController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">maintenance-assistant</a> &gt; <a href="index.source.html" class="el_package">com.keglevich.maintenanceassistant.web</a> &gt; <span class="el_source">IngestionAdminController.java</span></div><h1>IngestionAdminController.java</h1><pre class="source lang-java linenums">package com.keglevich.maintenanceassistant.web;
+
+import com.keglevich.maintenanceassistant.ingestion.IngestionBacklogService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.Map;
+
+/**
+ * Operating the indexer: what state the corpus is in, and re-queueing what is not indexed.
+ *
+ * &lt;p&gt;Admin only. Enqueueing spends money at the provider, so it is the one operation in this
+ * application where the authorisation question is &quot;who pays&quot; rather than &quot;who may read&quot;.
+ *
+ * &lt;p&gt;This is also the catch-up path for the seeded corpus: those 150 protocols were written by the
+ * seed loader before this pipeline existed and never produced an event, so they sit at
+ * {@code RECEIVED} with nothing coming for them. Re-running is safe — indexing replaces a
+ * protocol's chunks rather than adding to them.
+ */
+@RestController
+@RequestMapping(&quot;/api/ingestion&quot;)
+@Tag(name = &quot;Ingestion&quot;, description = &quot;Upload and indexing of maintenance protocols&quot;)
+class IngestionAdminController {
+
+    private final IngestionBacklogService backlog;
+
+<span class="fc" id="L30">    IngestionAdminController(IngestionBacklogService backlog) {</span>
+<span class="fc" id="L31">        this.backlog = backlog;</span>
+<span class="fc" id="L32">    }</span>
+
+    @GetMapping(&quot;/status&quot;)
+    @PreAuthorize(&quot;hasAnyRole('ADMIN', 'SCHICHTLEITER')&quot;)
+    @Operation(summary = &quot;Protocol counts by indexing status, and today's embedding usage&quot;)
+    Map&lt;String, Object&gt; status() {
+<span class="nc" id="L38">        List&lt;IngestionBacklogService.StatusCount&gt; counts = backlog.statusCounts();</span>
+<span class="nc" id="L39">        return Map.of(</span>
+<span class="nc" id="L40">                &quot;counts&quot;, counts.stream().collect(</span>
+<span class="nc" id="L41">                        java.util.stream.Collectors.toMap(</span>
+                                IngestionBacklogService.StatusCount::status,
+                                IngestionBacklogService.StatusCount::count)),
+<span class="nc" id="L44">                &quot;total&quot;, counts.stream().mapToLong(IngestionBacklogService.StatusCount::count).sum(),</span>
+                // NFR-7's third layer is visibility. A spend figure that needs a database session
+                // to read is not visible to whoever is deciding whether to run a re-index.
+<span class="nc" id="L47">                &quot;usageToday&quot;, backlog.usageToday());</span>
+    }
+
+    @PostMapping(&quot;/backlog&quot;)
+    @PreAuthorize(&quot;hasRole('ADMIN')&quot;)
+    @Operation(summary = &quot;Queue unindexed protocols for indexing&quot;,
+            description = &quot;Finds protocols in the given statuses and hands them to the indexer. &quot;
+                    + &quot;Idempotent: re-indexing replaces a protocol's chunks rather than adding to them. &quot;
+                    + &quot;Defaults to RECEIVED; pass FAILED to retry failures.&quot;)
+    Map&lt;String, Object&gt; runBacklog(
+            @RequestParam(value = &quot;status&quot;, defaultValue = &quot;RECEIVED&quot;) List&lt;String&gt; statuses,
+            @RequestParam(value = &quot;limit&quot;, required = false) Integer limit) {
+
+<span class="nc" id="L60">        List&lt;String&gt; requested = statuses.stream().map(String::toUpperCase).toList();</span>
+<span class="nc bnc" id="L61" title="All 2 branches missed.">        for (String status : requested) {</span>
+<span class="nc bnc" id="L62" title="All 2 branches missed.">            if (!List.of(&quot;RECEIVED&quot;, &quot;FAILED&quot;).contains(status)) {</span>
+<span class="nc" id="L63">                throw new IllegalArgumentException(</span>
+                        &quot;status must be RECEIVED or FAILED; INDEXED protocols are re-queued by id, not in bulk&quot;);
+            }
+<span class="nc" id="L66">        }</span>
+<span class="nc" id="L67">        int enqueued = backlog.enqueue(requested, limit);</span>
+<span class="nc" id="L68">        return Map.of(&quot;enqueued&quot;, enqueued, &quot;statuses&quot;, requested);</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

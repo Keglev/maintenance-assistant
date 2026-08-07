@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ProtocolIndexWriter.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">maintenance-assistant</a> &gt; <a href="index.source.html" class="el_package">com.keglevich.maintenanceassistant.ingestion</a> &gt; <span class="el_source">ProtocolIndexWriter.java</span></div><h1>ProtocolIndexWriter.java</h1><pre class="source lang-java linenums">package com.keglevich.maintenanceassistant.ingestion;
+
+import org.springframework.jdbc.core.simple.JdbcClient;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.OffsetDateTime;
+import java.util.List;
+import java.util.UUID;
+
+/**
+ * The database side of indexing, kept apart from {@link ProtocolIndexer} for one reason: the
+ * transaction must not span the embedding call.
+ *
+ * &lt;p&gt;Embedding a protocol is an HTTP round trip measured in seconds. Holding a pooled connection
+ * open across it would let one slow provider response occupy a connection that the web layer needs,
+ * and a provider outage would hold the whole pool. So the indexer reads, embeds and only then calls
+ * in here, where the write is a short transaction that either completes or leaves nothing behind.
+ */
+@Component
+class ProtocolIndexWriter {
+
+    private final JdbcClient jdbc;
+
+<span class="fc" id="L25">    ProtocolIndexWriter(JdbcClient jdbc) {</span>
+<span class="fc" id="L26">        this.jdbc = jdbc;</span>
+<span class="fc" id="L27">    }</span>
+
+    /**
+     * Replaces a protocol's chunks and marks it indexed, atomically.
+     *
+     * &lt;p&gt;Delete-then-insert rather than upsert, which is what makes re-processing idempotent: a
+     * protocol re-indexed after its chunking or its embedding model changed must end up with
+     * exactly the chunks the current code produces, not those plus a previous generation's. Running
+     * it twice leaves the same rows; running it after a change leaves the new ones.
+     */
+    @Transactional
+    void writeChunks(UUID protocolId, UUID machineId, String errorCode, String language,
+                     List&lt;String&gt; chunkTexts, List&lt;float[]&gt; vectors) {
+
+<span class="fc" id="L41">        jdbc.sql(&quot;DELETE FROM chunk WHERE protocol_id = :protocolId&quot;)</span>
+<span class="fc" id="L42">                .param(&quot;protocolId&quot;, protocolId)</span>
+<span class="fc" id="L43">                .update();</span>
+
+<span class="fc bfc" id="L45" title="All 2 branches covered.">        for (int i = 0; i &lt; chunkTexts.size(); i++) {</span>
+<span class="fc" id="L46">            jdbc.sql(&quot;&quot;&quot;</span>
+                            INSERT INTO chunk (
+                                id, protocol_id, chunk_index, content, embedding,
+                                language, machine_id, error_code)
+                            VALUES (
+                                :id, :protocolId, :chunkIndex, :content, CAST(:embedding AS vector),
+                                :language, :machineId, :errorCode)
+                            &quot;&quot;&quot;)
+<span class="fc" id="L54">                    .param(&quot;id&quot;, UUID.randomUUID())</span>
+<span class="fc" id="L55">                    .param(&quot;protocolId&quot;, protocolId)</span>
+<span class="fc" id="L56">                    .param(&quot;chunkIndex&quot;, i)</span>
+<span class="fc" id="L57">                    .param(&quot;content&quot;, chunkTexts.get(i))</span>
+                    // pgvector's text input format. CAST(... AS vector) rather than the `::vector`
+                    // shorthand because the named-parameter parser reads `::` as a parameter marker.
+<span class="fc" id="L60">                    .param(&quot;embedding&quot;, toVectorLiteral(vectors.get(i)))</span>
+<span class="fc" id="L61">                    .param(&quot;language&quot;, language)</span>
+                    // Denormalized from the protocol so Phase 3 filters and ranks in one query
+                    // (ADR-004). Rewritten here on every re-index, which is the only place a
+                    // protocol's machine or error code could have moved.
+<span class="fc" id="L65">                    .param(&quot;machineId&quot;, machineId)</span>
+<span class="fc" id="L66">                    .param(&quot;errorCode&quot;, errorCode, java.sql.Types.VARCHAR)</span>
+<span class="fc" id="L67">                    .update();</span>
+        }
+
+<span class="fc" id="L70">        jdbc.sql(&quot;&quot;&quot;</span>
+                        UPDATE protocol
+                        SET status = 'INDEXED', indexed_at = :now, failure_reason = NULL, updated_at = :now
+                        WHERE id = :protocolId
+                        &quot;&quot;&quot;)
+<span class="fc" id="L75">                .param(&quot;protocolId&quot;, protocolId)</span>
+<span class="fc" id="L76">                .param(&quot;now&quot;, OffsetDateTime.now())</span>
+<span class="fc" id="L77">                .update();</span>
+<span class="fc" id="L78">    }</span>
+
+    /**
+     * Records a failure without touching the chunks or the file.
+     *
+     * &lt;p&gt;Its own transaction, because the failure has to be recorded even when the work that failed
+     * was rolled back — a FAILED protocol with no reason is the state this column exists to prevent.
+     */
+    @Transactional
+    void markFailed(UUID protocolId, String reason) {
+<span class="fc" id="L88">        jdbc.sql(&quot;&quot;&quot;</span>
+                        UPDATE protocol
+                        SET status = 'FAILED', failure_reason = :reason, indexed_at = NULL, updated_at = :now
+                        WHERE id = :protocolId
+                        &quot;&quot;&quot;)
+<span class="fc" id="L93">                .param(&quot;protocolId&quot;, protocolId)</span>
+<span class="fc" id="L94">                .param(&quot;reason&quot;, truncate(reason))</span>
+<span class="fc" id="L95">                .param(&quot;now&quot;, OffsetDateTime.now())</span>
+<span class="fc" id="L96">                .update();</span>
+<span class="fc" id="L97">    }</span>
+
+    /** {@code [0.1,-0.2,…]} — pgvector's own input syntax. */
+    private static String toVectorLiteral(float[] vector) {
+<span class="fc" id="L101">        StringBuilder out = new StringBuilder(vector.length * 12 + 2);</span>
+<span class="fc" id="L102">        out.append('[');</span>
+<span class="fc bfc" id="L103" title="All 2 branches covered.">        for (int i = 0; i &lt; vector.length; i++) {</span>
+<span class="fc bfc" id="L104" title="All 2 branches covered.">            if (i &gt; 0) {</span>
+<span class="fc" id="L105">                out.append(',');</span>
+            }
+<span class="fc" id="L107">            out.append(vector[i]);</span>
+        }
+<span class="fc" id="L109">        return out.append(']').toString();</span>
+    }
+
+    /** A provider can return a very long error body; the useful part is always at the front. */
+    private static String truncate(String reason) {
+<span class="pc bpc" id="L114" title="1 of 2 branches missed.">        if (reason == null) {</span>
+<span class="nc" id="L115">            return &quot;unknown&quot;;</span>
+        }
+<span class="pc bpc" id="L117" title="1 of 2 branches missed.">        return reason.length() &lt;= 1000 ? reason : reason.substring(0, 1000) + &quot;…&quot;;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

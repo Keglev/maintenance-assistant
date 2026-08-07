@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>EmbeddingBudget.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">maintenance-assistant</a> &gt; <a href="index.source.html" class="el_package">com.keglevich.maintenanceassistant.ingestion</a> &gt; <span class="el_source">EmbeddingBudget.java</span></div><h1>EmbeddingBudget.java</h1><pre class="source lang-java linenums">package com.keglevich.maintenanceassistant.ingestion;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.jdbc.core.simple.JdbcClient;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDate;
+
+/**
+ * The NFR-7 stop for ingestion: a global daily ceiling on provider calls.
+ *
+ * &lt;p&gt;Global rather than per user, because ingestion is background load. A Schichtleiter uploads a
+ * protocol and a worker embeds it later; the shape of abuse this guards against is a re-index storm
+ * or a retry loop, not one person clicking too often. Per-user rate limiting belongs to the query
+ * path in Phase 3, where a request maps to a person.
+ *
+ * &lt;p&gt;Counted in &lt;em&gt;provider calls&lt;/em&gt;, not chunks, because that is the unit the provider bills
+ * and rate-limits. The stop is graceful: {@link BudgetExhaustedException} fails the protocol being
+ * worked on with a readable reason, leaves its row and file in place, and the backlog run picks it
+ * up again the next day. Nothing is lost, and the spend stops.
+ *
+ * &lt;p&gt;ADR-002 records that no provider-side hard cap exists — IONOS offers cost alerts only — so
+ * this counter is the actual ceiling, which is why it lives in the database and survives a restart
+ * rather than being an in-memory counter.
+ */
+@Component
+class EmbeddingBudget {
+
+<span class="fc" id="L32">    private static final Logger log = LoggerFactory.getLogger(EmbeddingBudget.class);</span>
+
+    private final JdbcClient jdbc;
+    private final EmbeddingProperties properties;
+
+<span class="fc" id="L37">    EmbeddingBudget(JdbcClient jdbc, EmbeddingProperties properties) {</span>
+<span class="fc" id="L38">        this.jdbc = jdbc;</span>
+<span class="fc" id="L39">        this.properties = properties;</span>
+<span class="fc" id="L40">    }</span>
+
+    /**
+     * Reserves headroom before a protocol is embedded.
+     *
+     * &lt;p&gt;Checked per protocol rather than per batch: a protocol that runs out of budget halfway
+     * would be left with some of its chunks embedded and the rest not, which is worse than not
+     * starting it. {@code estimatedCalls} is what that protocol will need.
+     *
+     * @throws BudgetExhaustedException if today's ceiling would be exceeded
+     */
+    void checkHeadroom(int estimatedCalls) {
+<span class="fc" id="L52">        int used = usedToday();</span>
+<span class="fc bfc" id="L53" title="All 2 branches covered.">        if (used + estimatedCalls &gt; properties.dailyCallBudget()) {</span>
+<span class="fc" id="L54">            throw new BudgetExhaustedException(</span>
+                    &quot;daily embedding budget reached: %d of %d calls used today, %d more needed&quot;
+<span class="fc" id="L56">                            .formatted(used, properties.dailyCallBudget(), estimatedCalls));</span>
+        }
+<span class="fc" id="L58">    }</span>
+
+    /**
+     * Records what a run actually cost.
+     *
+     * &lt;p&gt;Its own transaction: the usage happened and the money is spent whether or not the
+     * surrounding protocol transaction goes on to succeed. Rolling the counter back with a failed
+     * protocol would make a retry loop invisible to the budget — exactly the case it exists for.
+     */
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    void record(int calls, long promptTokens) {
+<span class="pc bpc" id="L69" title="1 of 2 branches missed.">        if (calls &lt;= 0) {</span>
+<span class="nc" id="L70">            return;</span>
+        }
+<span class="fc" id="L72">        jdbc.sql(&quot;&quot;&quot;</span>
+                        INSERT INTO embedding_budget (usage_date, calls, prompt_tokens, updated_at)
+                        VALUES (:day, :calls, :tokens, now())
+                        ON CONFLICT (usage_date) DO UPDATE SET
+                            calls         = embedding_budget.calls + EXCLUDED.calls,
+                            prompt_tokens = embedding_budget.prompt_tokens + EXCLUDED.prompt_tokens,
+                            updated_at    = now()
+                        &quot;&quot;&quot;)
+<span class="fc" id="L80">                .param(&quot;day&quot;, LocalDate.now())</span>
+<span class="fc" id="L81">                .param(&quot;calls&quot;, calls)</span>
+<span class="fc" id="L82">                .param(&quot;tokens&quot;, promptTokens)</span>
+<span class="fc" id="L83">                .update();</span>
+<span class="fc" id="L84">    }</span>
+
+    int usedToday() {
+<span class="fc" id="L87">        return jdbc.sql(&quot;SELECT coalesce(max(calls), 0) FROM embedding_budget WHERE usage_date = :day&quot;)</span>
+<span class="fc" id="L88">                .param(&quot;day&quot;, LocalDate.now())</span>
+<span class="fc" id="L89">                .query(Integer.class)</span>
+<span class="fc" id="L90">                .single();</span>
+    }
+
+    long tokensToday() {
+<span class="nc" id="L94">        return jdbc.sql(&quot;SELECT coalesce(max(prompt_tokens), 0) FROM embedding_budget WHERE usage_date = :day&quot;)</span>
+<span class="nc" id="L95">                .param(&quot;day&quot;, LocalDate.now())</span>
+<span class="nc" id="L96">                .query(Long.class)</span>
+<span class="nc" id="L97">                .single();</span>
+    }
+
+    /**
+     * Written at the end of a run rather than per protocol. ADR-002 prices bge-m3 at EUR 0.02 per
+     * million input tokens, so this is a reading in cents by design — the point of logging it is
+     * that &quot;measured in cents&quot; stays a measurement and not an assumption.
+     */
+    void logUsage(String context) {
+<span class="nc" id="L106">        long tokens = tokensToday();</span>
+<span class="nc" id="L107">        double eur = tokens / 1_000_000.0 * 0.02;</span>
+<span class="nc" id="L108">        log.info(&quot;Embedding usage after {}: {} calls, {} input tokens today (~EUR {}), budget {}&quot;,</span>
+<span class="nc" id="L109">                context, usedToday(), tokens, String.format(java.util.Locale.ROOT, &quot;%.4f&quot;, eur),</span>
+<span class="nc" id="L110">                properties.dailyCallBudget());</span>
+<span class="nc" id="L111">    }</span>
+
+    /** Thrown when today's ceiling is reached. The message becomes {@code protocol.failure_reason}. */
+    static class BudgetExhaustedException extends RuntimeException {
+        BudgetExhaustedException(String message) {
+<span class="fc" id="L116">            super(message);</span>
+<span class="fc" id="L117">        }</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

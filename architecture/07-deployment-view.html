@@ -293,6 +293,30 @@
         <p>The same applies to <code>.env.prod</code>: an override you
         no longer want must be <strong>deleted</strong>, not
         blanked.</p>
+        <h3
+        id="an-.env.prod-edit-is-inert-until-the-container-is-recreated">An
+        <code>.env.prod</code> edit is inert until the container is
+        recreated</h3>
+        <p>A container’s environment is fixed <strong>when the container
+        is created</strong>. <code>docker compose up -d</code> on an
+        unchanged image and an unchanged service definition leaves the
+        existing container running, so a corrected value in
+        <code>.env.prod</code> is read by nothing. The only reliable way
+        to apply it is:</p>
+        <div class="sourceCode" id="cb1"><pre
+        class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">docker</span> compose <span class="at">-f</span> docker-compose.prod.yml up <span class="at">-d</span> <span class="at">--force-recreate</span> backend</span></code></pre></div>
+        <p>This is not a theoretical footnote. A backend container once
+        ran an entire indexing pass into HTTP 401s using a revoked API
+        token while the correct token was already sitting in
+        <code>.env.prod</code>, edited minutes earlier. Nothing in
+        <code>docker compose ps</code>, in the file, or in the logs said
+        the two disagreed — the logs said “unauthorised”, which reads as
+        a bad key rather than as a stale one. The check that settles it
+        in one line:</p>
+        <div class="sourceCode" id="cb2"><pre
+        class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">docker</span> compose exec backend printenv LLM_API_KEY <span class="kw">|</span> <span class="fu">head</span> <span class="at">-c</span> 12   <span class="co"># what the process actually has</span></span></code></pre></div>
+        <p>The same applies to a rotated token, a changed budget, and
+        every other value in that file.</p>
         <h3 id="protocol-documents-and-the-volume">Protocol documents
         and the volume</h3>
         <p><code>protocol.source_file</code> stores a path, never the
@@ -343,10 +367,10 @@ drwxr-xr-x 2 0 0 …            touch: Permission denied</code></pre>
         (Docker never chowns a host path), the container gets a
         root-owned directory and every upload fails. The check and the
         fix:</p>
-        <div class="sourceCode" id="cb2"><pre
-        class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">docker</span> compose exec backend ls <span class="at">-ldn</span> /var/lib/maintenance/files    <span class="co"># expect 1001 1001</span></span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="co"># only if it is not:</span></span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="ex">docker</span> run <span class="at">--rm</span> <span class="at">-v</span> maintenance-assistant_protocol-files:/d alpine chown <span class="at">-R</span> 1001:1001 /d</span></code></pre></div>
+        <div class="sourceCode" id="cb4"><pre
+        class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">docker</span> compose exec backend ls <span class="at">-ldn</span> /var/lib/maintenance/files    <span class="co"># expect 1001 1001</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="co"># only if it is not:</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="ex">docker</span> run <span class="at">--rm</span> <span class="at">-v</span> maintenance-assistant_protocol-files:/d alpine chown <span class="at">-R</span> 1001:1001 /d</span></code></pre></div>
         <h2 id="delivery">7.5 Delivery</h2>
         <p>CI owns the rollout. When <code>backend-ci</code> or
         <code>frontend-ci</code> succeeds on <code>main</code>, the
@@ -366,6 +390,62 @@ drwxr-xr-x 2 0 0 …            touch: Permission denied</code></pre>
         cancelling disabled, so two rollouts never race over the same
         containers and a superseded build never interrupts one in
         flight.</p>
+        <h3 id="ci-deploys-images-never-configuration">CI deploys
+        images, never configuration</h3>
+        <p>The pipeline runs
+        <code>docker compose pull &lt;service&gt; &amp;&amp; docker compose up -d &lt;service&gt;</code>
+        against the compose file <strong>that is already on the
+        host</strong>. It never copies one there. So
+        <code>docker-compose.prod.yml</code> and <code>.env.prod</code>
+        are the two files in this repository that merging does not
+        deploy:</p>
+        <table>
+        <colgroup>
+        <col style="width: 50%" />
+        <col style="width: 50%" />
+        </colgroup>
+        <thead>
+        <tr class="header">
+        <th>Changed in a merged PR</th>
+        <th>Reaches the host by</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr class="odd">
+        <td>Backend or frontend code</td>
+        <td>CI, automatically</td>
+        </tr>
+        <tr class="even">
+        <td><code>docker/docker-compose.prod.yml</code></td>
+        <td><strong>a person, by hand</strong></td>
+        </tr>
+        <tr class="odd">
+        <td><code>.env.prod</code> (documented by
+        <code>.env.prod.example</code>)</td>
+        <td><strong>a person, by hand</strong> — it is not in the repo
+        at all</td>
+        </tr>
+        </tbody>
+        </table>
+        <p>The failure mode is quiet and was met in practice: PR #22
+        fixed the file-volume wiring, merged, and deployed nothing,
+        because the host kept running the compose file it already had.
+        The stack looked healthy and was running the old definition.
+        Applying such a change:</p>
+        <div class="sourceCode" id="cb5"><pre
+        class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ssh</span> deploy@<span class="op">&lt;</span>host<span class="op">&gt;</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> /opt/maintenance-assistant</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="fu">cp</span> docker-compose.prod.yml docker-compose.prod.yml.bak-<span class="va">$(</span><span class="fu">date</span> +%Y%m%d-%H%M%S<span class="va">)</span>   <span class="co"># rollback copy first</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="co"># copy the new file over (scp from the workstation, or edit in place)</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="ex">docker</span> compose <span class="at">-f</span> docker-compose.prod.yml up <span class="at">-d</span> <span class="at">--force-recreate</span> backend</span></code></pre></div>
+        <p>The <code>.bak</code> copy is the rule rather than a
+        suggestion: this file is the only definition of the running
+        stack, there is no second host to compare against, and
+        <code>git</code> on the workstation cannot tell you what the
+        server had a minute ago. Combine this with the recreate rule in
+        §7.4 — a compose change that alters <code>environment:</code>
+        needs the recreate for the same reason an <code>.env.prod</code>
+        change does.</p>
         <p>CI authenticates with a dedicated ed25519 key that exists
         only for this purpose, held in the <code>DEPLOY_SSH_KEY</code>
         repository secret alongside <code>DEPLOY_HOST</code> and
@@ -472,11 +552,11 @@ drwxr-xr-x 2 0 0 …            touch: Permission denied</code></pre>
         it. Losing it costs a re-import, not data.</li>
         </ul>
         <p>Operating it:</p>
-        <div class="sourceCode" id="cb3"><pre
-        class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ssh</span> deploy@<span class="op">&lt;</span>host<span class="op">&gt;</span> maintenance-backup          <span class="co"># run one now</span></span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="ex">journalctl</span> <span class="at">-u</span> maintenance-backup <span class="at">-n</span> 50        <span class="co"># what happened</span></span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="ex">systemctl</span> list-timers maintenance-backup.timer</span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="fu">ls</span> <span class="at">-lh</span> /opt/maintenance-assistant/backups/</span></code></pre></div>
+        <div class="sourceCode" id="cb6"><pre
+        class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ssh</span> deploy@<span class="op">&lt;</span>host<span class="op">&gt;</span> maintenance-backup          <span class="co"># run one now</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="ex">journalctl</span> <span class="at">-u</span> maintenance-backup <span class="at">-n</span> 50        <span class="co"># what happened</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="ex">systemctl</span> list-timers maintenance-backup.timer</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="fu">ls</span> <span class="at">-lh</span> /opt/maintenance-assistant/backups/</span></code></pre></div>
         <h3 id="hetzner-snapshots">7.6.2 Hetzner snapshots</h3>
         <p>The nightly backup protects the <em>data</em>. A snapshot
         protects the <em>host</em> — the compose files,
@@ -572,11 +652,21 @@ drwxr-xr-x 2 0 0 …            touch: Permission denied</code></pre>
       <ul>
       <li><a href="#empty-is-not-unset"
       id="toc-empty-is-not-unset">Empty is not unset</a></li>
+      <li><a
+      href="#an-.env.prod-edit-is-inert-until-the-container-is-recreated"
+      id="toc-an-.env.prod-edit-is-inert-until-the-container-is-recreated">An
+      <code>.env.prod</code> edit is inert until the container is
+      recreated</a></li>
       <li><a href="#protocol-documents-and-the-volume"
       id="toc-protocol-documents-and-the-volume">Protocol documents and
       the volume</a></li>
       </ul></li>
-      <li><a href="#delivery" id="toc-delivery">7.5 Delivery</a></li>
+      <li><a href="#delivery" id="toc-delivery">7.5 Delivery</a>
+      <ul>
+      <li><a href="#ci-deploys-images-never-configuration"
+      id="toc-ci-deploys-images-never-configuration">CI deploys images,
+      never configuration</a></li>
+      </ul></li>
       <li><a href="#backup-and-recovery"
       id="toc-backup-and-recovery">7.6 Backup and recovery</a>
       <ul>

@@ -1,8 +1,10 @@
 package com.keglevich.maintenanceassistant.query;
 
+import java.time.LocalDate;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 /**
  * Mode A — the grounded answer. Every claim comes from a retrieved protocol and carries its label.
@@ -145,13 +147,15 @@ final class GroundedPrompt {
      * context line it prefixes every chunk with — which is why a retrieved chunk still says what it
      * is about after being separated from its row.
      */
-    static String user(String question, List<LabelledChunk> sources) {
+    static String user(String question, List<LabelledSource> sources) {
         StringBuilder out = new StringBuilder(512);
         out.append("Sources:\n\n");
-        for (LabelledChunk source : sources) {
-            out.append('[').append(source.label()).append("] ")
-                    .append(source.chunk().title()).append('\n')
-                    .append(source.chunk().content().strip()).append("\n\n");
+        for (LabelledSource source : sources) {
+            out.append('[').append(source.label()).append("] ").append(source.title()).append('\n');
+            for (String content : source.contents()) {
+                out.append(content.strip()).append('\n');
+            }
+            out.append('\n');
         }
         return out.append("Question: ").append(question.strip()).toString();
     }
@@ -181,7 +185,27 @@ final class GroundedPrompt {
         return schema;
     }
 
-    /** A retrieved chunk and the label the model is told to cite it by. */
-    record LabelledChunk(String label, RetrievedChunk chunk) {
+    /**
+     * One <b>protocol</b> and the label the model is told to cite it by.
+     *
+     * <p>Per protocol, not per chunk, and that is the data model's own distinction rather than a
+     * convenience: the chunk is the search unit and the protocol is the citation unit. Two chunks of
+     * the same protocol ranking in the same top-k would otherwise become two labels and two entries
+     * in the source list — the reader sees the same protocol cited twice as if it were two
+     * independent pieces of evidence, which is precisely the wrong impression for an application
+     * whose whole claim is that its answers are traceable. Measured on the E-47 demo, where the
+     * top 5 chunks come from 4 protocols.
+     *
+     * @param similarity the best of this protocol's chunks — what the threshold was compared against
+     * @param contents   its retrieved chunks, in rank order
+     */
+    record LabelledSource(
+            String label,
+            UUID protocolId,
+            String title,
+            String errorCode,
+            LocalDate incidentDate,
+            double similarity,
+            List<String> contents) {
     }
 }

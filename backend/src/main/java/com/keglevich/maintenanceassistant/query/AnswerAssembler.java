@@ -52,24 +52,24 @@ class AnswerAssembler {
      * @return the assembled answer, or empty if nothing the model said survived validation — which
      *         the caller treats as "not actually grounded" and answers as Mode B instead
      */
-    java.util.Optional<QueryAnswer> assembleGrounded(String content, List<GroundedPrompt.LabelledChunk> labelled) {
+    java.util.Optional<QueryAnswer> assembleGrounded(String content, List<GroundedPrompt.LabelledSource> labelled) {
         GroundedAnswer parsed = parse(content, GroundedAnswer.class);
 
-        Map<String, GroundedPrompt.LabelledChunk> byLabel = new LinkedHashMap<>();
-        for (GroundedPrompt.LabelledChunk chunk : labelled) {
-            byLabel.put(chunk.label().toUpperCase(Locale.ROOT), chunk);
+        Map<String, GroundedPrompt.LabelledSource> byLabel = new LinkedHashMap<>();
+        for (GroundedPrompt.LabelledSource source : labelled) {
+            byLabel.put(source.label().toUpperCase(Locale.ROOT), source);
         }
 
         List<QueryAnswer.Claim> claims = new ArrayList<>();
         // Insertion-ordered, so citations come out in the order the answer first refers to them and
         // the view can number them as it renders.
-        Map<String, GroundedPrompt.LabelledChunk> cited = new LinkedHashMap<>();
+        Map<String, GroundedPrompt.LabelledSource> cited = new LinkedHashMap<>();
         int dropped = 0;
 
         for (GroundedAnswer.Claim claim : parsed.safeClaims()) {
             String text = claim.text() == null ? "" : stripMarkers(claim.text());
             String label = normaliseLabel(claim.source());
-            GroundedPrompt.LabelledChunk source = label == null ? null : byLabel.get(label);
+            GroundedPrompt.LabelledSource source = label == null ? null : byLabel.get(label);
             if (text.isBlank() || source == null) {
                 dropped++;
                 continue;
@@ -89,11 +89,11 @@ class AnswerAssembler {
         }
 
         List<QueryAnswer.Citation> citations = new ArrayList<>();
-        for (Map.Entry<String, GroundedPrompt.LabelledChunk> entry : cited.entrySet()) {
-            RetrievedChunk chunk = entry.getValue().chunk();
+        for (Map.Entry<String, GroundedPrompt.LabelledSource> entry : cited.entrySet()) {
+            GroundedPrompt.LabelledSource source = entry.getValue();
             citations.add(new QueryAnswer.Citation(
-                    entry.getKey(), chunk.protocolId(), chunk.title(), chunk.errorCode(),
-                    chunk.incidentDate(), round(chunk.similarity())));
+                    entry.getKey(), source.protocolId(), source.title(), source.errorCode(),
+                    source.incidentDate(), round(source.similarity())));
         }
 
         String prose = claims.stream()

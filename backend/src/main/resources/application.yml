@@ -92,9 +92,13 @@ maintenance:
     # "none" on its own, or the model spends its whole output budget thinking and
     # returns empty content (ADR-002 caveat 3).
     model: ${LLM_CHAT_MODEL:meta-llama/Llama-3.3-70B-Instruct}
-    # NFR-7, and cheap insurance rather than a constraint: the longest answer measured
-    # in the spike was 195 tokens and every call finished with finish_reason "stop".
-    max-tokens: ${LLM_CHAT_MAX_TOKENS:700}
+    # NFR-7. MEASURED 2026-08-07 against the production prompts, not carried over from
+    # the spike: the spike's longest answer was 195 tokens, but it asked for a one-line
+    # refusal where Mode B asks for a troubleshooting list and Mode A for one claim per
+    # statement. At 700 the Mode-B demo case hit the cap and came back as truncated JSON.
+    # 1200 leaves headroom over the longest observed answer (481 tokens) and is still
+    # runaway protection rather than a constraint on answer quality.
+    max-tokens: ${LLM_CHAT_MAX_TOKENS:1200}
     # Grounded answering, not writing. 0 is not used because a few providers treat it
     # as "unset"; 0.1 is deterministic enough and unambiguous.
     temperature: 0.1

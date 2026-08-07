@@ -42,8 +42,10 @@ final class UngroundedPrompt {
                 3. Never refer to a protocol, a document, a record, a case, a source or an \
                 identifier of any kind. There are none. Do not invent one and do not write anything \
                 in square brackets.
-                4. Be concrete and short. One action per step. Do not pad the list; four good steps \
-                beat ten vague ones.
+                4. Be concrete and short. One action per step, one or two sentences each. Give \
+                FOUR TO SIX steps in total, including the statement in step 1 — so at least three \
+                actual troubleshooting steps after it. Do not pad the list; four good steps beat \
+                ten vague ones.
 
                 LANGUAGE RULE (overrides everything else): every word you output must be in the \
                 language of the QUESTION. This includes the statement in step 1 that nothing is \
@@ -51,7 +53,9 @@ final class UngroundedPrompt {
                 Decide the language of the question first, then write. Report it as "de" or "en" in \
                 answer_language.
 
-                %s""".formatted(roleBlock(role));
+                %s
+
+                %s""".formatted(roleBlock(role), FORMAT_EXAMPLE);
     }
 
     /**
@@ -86,6 +90,31 @@ final class UngroundedPrompt {
                 instruction, since nothing here is documented for this machine.""";
     }
 
+    /**
+     * A format example — and note what is <em>not</em> in it: no source, no label, no protocol, no
+     * square brackets. This is the shape rule only, and it exists because of a measured failure
+     * rather than by symmetry with {@link GroundedPrompt}.
+     *
+     * <p>MEASURED 2026-08-07 on the Mode B demo case. Llama-3.3-70B emitted
+     * {@code { "answer_language": "de",} and then spent its entire output budget on whitespace,
+     * twice, at two different caps — a schema-constrained decoder with nothing telling it what
+     * "finished" looks like. Mode A never did this, and the only structural difference between the
+     * two prompts was that Mode A carries a worked example of compact JSON. Adding one here fixed
+     * it. Raising the cap did not, and could not: the answer was never getting longer, only later.
+     */
+    private static final String FORMAT_EXAMPLE = """
+            FORMAT EXAMPLE, for shape only — the machine and the steps below are invented and have \
+            nothing to do with the question. Answer in ONE LINE of compact JSON, exactly like this:
+
+            {"answer_language":"de","steps":["Zu dieser Frage liegt kein Protokoll im Bestand vor; \
+            die folgenden Schritte sind ein allgemeiner Vorschlag.","Anlage im Stillstand auf \
+            sichtbare Leckagen und lose Verbindungen prüfen.","Betriebsdaten am Display mit den \
+            Sollwerten vergleichen.","Bei unverändertem Verhalten den Techniker mit den \
+            beobachteten Werten informieren."]}
+
+            Stop after the closing bracket. Do not indent, do not add blank lines, and do not \
+            write anything before or after the JSON.""";
+
     static String user(String question) {
         return "Question: " + question.strip();
     }
@@ -95,11 +124,27 @@ final class UngroundedPrompt {
      * one. Steps are plain strings; the object has no source field and forbids extra properties.
      */
     static Map<String, Object> schema() {
+        Map<String, Object> steps = new LinkedHashMap<>();
+        steps.put("type", "array");
+        steps.put("items", Map.of("type", "string"));
+        // The same rule as step 4 of the prompt, stated where it binds. MEASURED 2026-08-07:
+        // asked in prose for at most six steps, Llama-3.3-70B ran past a 1200-token cap on the
+        // Mode B demo case and came back as truncated JSON — twice. Mode A never did, and the
+        // difference is that Mode A's few-shot example shows the model what "done" looks like
+        // while an open-ended list of general advice has no natural end. Capping it in the schema
+        // makes the limit a shape rather than a request.
+        steps.put("maxItems", 6);
+        // A floor as well as a ceiling. Step 1 is the "nothing is documented" statement, so an
+        // answer of one or two steps is a refusal wearing a list's clothes — technically valid
+        // against the schema and useless to the night shift this mode exists for. Four is the
+        // disclaimer plus three real steps.
+        steps.put("minItems", 4);
+
         Map<String, Object> schema = new LinkedHashMap<>();
         schema.put("type", "object");
         schema.put("properties", Map.of(
                 "answer_language", Map.of("type", "string", "enum", List.of("de", "en")),
-                "steps", Map.of("type", "array", "items", Map.of("type", "string"))));
+                "steps", steps));
         schema.put("required", List.of("answer_language", "steps"));
         schema.put("additionalProperties", false);
         return schema;

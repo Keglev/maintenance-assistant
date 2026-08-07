@@ -1,0 +1,44 @@
+# Manual verification profile — NOT run by CI.
+#
+# Points the application at a LOCAL, already-indexed corpus and at the REAL provider, so
+# QueryDemoVerificationIT can measure the three demo cases the way ADR-002 quotes them.
+# It is skipped unless LLM_API_KEY is set, which is also the only way a key ever reaches
+# it: the key lives in spike/adr-002/.env (git-ignored) and in the password manager.
+#
+# Reproduce (PowerShell, from backend/):
+#   $env:LLM_API_KEY = (Select-String -Path ..\spike\adr-002\.env -Pattern '^IONOS_API_KEY=').Line.Split('=')[1]
+#   $env:LLM_CHAT_MODEL = 'meta-llama/Llama-3.3-70B-Instruct'
+#   mvn verify -Dit.test=QueryDemoVerificationIT
+spring:
+  datasource:
+    # The local development stack publishes Postgres on 5433 (docker/.env).
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5433/maintenance}
+    username: ${SPRING_DATASOURCE_USERNAME:maintenance}
+    password: ${SPRING_DATASOURCE_PASSWORD:change-me-locally}
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    encoding: UTF-8
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          # Never contacted: this exercises the query module, not the web layer.
+          issuer-uri: http://localhost:8081/realms/maintenance
+
+maintenance:
+  corpus-seed:
+    enabled: false
+  ingestion:
+    backlog-on-startup: false
+  query:
+    similarity-threshold: ${QUERY_SIMILARITY_THRESHOLD:0.55}
+    top-k: 5
+    # High enough that the run is never the thing under test.
+    rate-limit-per-minute: 100
+    cache-ttl: 1s
+    cache-max-entries: 10
+
+logging:
+  level:
+    "[com.keglevich.maintenanceassistant.query]": INFO

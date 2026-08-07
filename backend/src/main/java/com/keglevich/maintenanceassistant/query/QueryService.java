@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -143,13 +144,7 @@ public class QueryService {
      * support its claim is worse than a shorter answer.
      */
     private QueryAnswer answerGrounded(String question, QueryRole role, List<RetrievedChunk> hits) {
-        List<GroundedPrompt.LabelledChunk> sources = new ArrayList<>();
-        int label = 1;
-        for (RetrievedChunk hit : hits) {
-            if (hit.similarity() >= properties.similarityThreshold()) {
-                sources.add(new GroundedPrompt.LabelledChunk("P" + label++, hit));
-            }
-        }
+        List<GroundedPrompt.LabelledSource> sources = labelByProtocol(hits);
 
         ChatClient.Completion completion = chatClient.complete(new ChatClient.Prompt(
                 GroundedPrompt.system(role),
@@ -168,6 +163,35 @@ public class QueryService {
         // to be worth a warning, and cheap enough to be worth the second call.
         log.warn("Mode A produced no valid citations; falling through to Mode B");
         return answerUngrounded(question, role);
+    }
+
+    /**
+     * Groups the hits above the threshold into one labelled source per protocol, in rank order.
+     *
+     * <p>Chunk is the search unit, protocol is the citation unit — so two chunks of one protocol in
+     * the same top-k are one source with two passages, not two sources. Measured on the E-47 demo,
+     * where the top 5 chunks come from 4 protocols and the naive labelling cited one of them twice
+     * as though it were two independent pieces of evidence.
+     */
+    private List<GroundedPrompt.LabelledSource> labelByProtocol(List<RetrievedChunk> hits) {
+        LinkedHashMap<UUID, List<RetrievedChunk>> byProtocol = new LinkedHashMap<>();
+        for (RetrievedChunk hit : hits) {
+            if (hit.similarity() >= properties.similarityThreshold()) {
+                byProtocol.computeIfAbsent(hit.protocolId(), key -> new ArrayList<>()).add(hit);
+            }
+        }
+        List<GroundedPrompt.LabelledSource> sources = new ArrayList<>();
+        int label = 1;
+        for (List<RetrievedChunk> chunks : byProtocol.values()) {
+            // The first is the best: the retrieval query returns them in rank order and grouping
+            // preserves it, so this is the similarity the threshold was compared against.
+            RetrievedChunk best = chunks.get(0);
+            sources.add(new GroundedPrompt.LabelledSource(
+                    "P" + label++, best.protocolId(), best.title(), best.errorCode(),
+                    best.incidentDate(), best.similarity(),
+                    chunks.stream().map(RetrievedChunk::content).toList()));
+        }
+        return sources;
     }
 
     private QueryAnswer answerUngrounded(String question, QueryRole role) {

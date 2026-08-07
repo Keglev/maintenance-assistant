@@ -95,8 +95,9 @@ class IonosChatClient implements ChatClient {
             // The answer is JSON, so a truncated one is not a shorter answer, it is an unparseable
             // one. Failing here names the cap instead of letting a parse error blame the model.
             throw new ChatException(
-                    "answer truncated at the max-tokens cap of %d; raise maintenance.chat.max-tokens"
-                            .formatted(properties.maxTokens()));
+                    "answer truncated at the max-tokens cap of %d after %d completion tokens: %s"
+                            .formatted(properties.maxTokens(), response.completionTokens(),
+                                    preview(content)));
         }
 
         log.info("Chat answer: model={} promptTokens={} completionTokens={} in {} ms",
@@ -231,6 +232,20 @@ class IonosChatClient implements ChatClient {
         long completionTokens() {
             return usage == null || usage.completion_tokens() == null ? 0L : usage.completion_tokens();
         }
+    }
+
+    /**
+     * A truncated answer on one line. Whitespace is collapsed rather than trimmed, because the
+     * shape of the whitespace is itself the diagnosis: a schema-constrained model that runs away
+     * on indentation looks completely different in this message from one that genuinely had more
+     * to say, and the two need opposite fixes.
+     */
+    private static String preview(String content) {
+        if (content == null || content.isBlank()) {
+            return "(empty)";
+        }
+        String collapsed = content.replaceAll("\\s+", " ").strip();
+        return collapsed.length() <= 200 ? collapsed : collapsed.substring(0, 200) + "…";
     }
 
     private static String firstLine(String body) {

@@ -171,7 +171,9 @@ class QueryServiceTest {
         @DisplayName("the citation few-shot never reaches the Mode B prompt")
         void theFewShotDoesNotLeakIntoModeB() {
             // The spike observed a model appending a citation to a refusal. The fix is structural:
-            // the example cannot leak into a prompt it is not part of.
+            // the citation example cannot leak into a prompt it is not part of. Mode B does carry
+            // a shape example of its own — measured necessary, see UngroundedPrompt — so what is
+            // asserted here is the absence of citation vocabulary, not the absence of an example.
             retriever.returning(hit(0.40));
             chat.replyingUngrounded("Nicht dokumentiert.", "Sichtpruefung.");
 
@@ -179,7 +181,8 @@ class QueryServiceTest {
 
             assertThat(chat.lastSystemPrompt())
                     .doesNotContain("P-99")
-                    .doesNotContain("FORMAT EXAMPLE")
+                    .doesNotContain("[P")
+                    .doesNotContain("\"source\"")
                     .doesNotContainIgnoringCase("cite");
         }
     }
@@ -212,7 +215,7 @@ class QueryServiceTest {
         @Test
         @DisplayName("citations name only the protocols the answer actually used")
         void citationsCoverOnlyWhatWasCited() {
-            retriever.returning(hit(0.71), hit(0.66));
+            retriever.returning(hit(0.71), hit(UUID.randomUUID(), 0.66));
             chat.replyingGrounded("Nur die erste Quelle.", "P1");
 
             QueryAnswer answer = ask(QueryRole.TECHNIKER);
@@ -221,6 +224,23 @@ class QueryServiceTest {
                     .as("a source list longer than the answer's sources invites the reader to "
                             + "believe a claim is backed by a protocol nobody quoted")
                     .hasSize(1);
+        }
+
+        @Test
+        @DisplayName("two chunks of one protocol are one source, not two")
+        void chunksOfTheSameProtocolShareOneLabel() {
+            // Measured on the E-47 demo: the top 5 chunks come from 4 protocols. Labelling per
+            // chunk cited one protocol twice, which reads as two independent pieces of evidence
+            // for a claim that has one.
+            retriever.returning(hit(0.71), hit(0.66));
+            chat.replyingGrounded("Belegt.", "P1");
+
+            ask(QueryRole.TECHNIKER);
+
+            assertThat(chat.lastUserPrompt())
+                    .contains("[P1]")
+                    .as("the chunk is the search unit; the protocol is the citation unit")
+                    .doesNotContain("[P2]");
         }
 
         @Test
@@ -363,7 +383,11 @@ class QueryServiceTest {
     }
 
     private static RetrievedChunk hit(double similarity) {
-        return new RetrievedChunk(UUID.randomUUID(), OTHER_PROTOCOL,
+        return hit(OTHER_PROTOCOL, similarity);
+    }
+
+    private static RetrievedChunk hit(UUID protocolId, double similarity) {
+        return new RetrievedChunk(UUID.randomUUID(), protocolId,
                 "PR-03 · E-47 · Druckabfall\nSymptom: Presse kommt nicht auf Druck.",
                 "E-47 Druckabfall im Presshub", "E-47", "de", LocalDate.of(2024, 10, 8), similarity);
     }

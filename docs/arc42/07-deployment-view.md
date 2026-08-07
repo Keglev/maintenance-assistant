@@ -78,6 +78,28 @@ apply:
 
 The same applies to `.env.prod`: an override you no longer want must be **deleted**, not blanked.
 
+### An `.env.prod` edit is inert until the container is recreated
+
+A container's environment is fixed **when the container is created**. `docker compose up -d` on an
+unchanged image and an unchanged service definition leaves the existing container running, so a
+corrected value in `.env.prod` is read by nothing. The only reliable way to apply it is:
+
+```bash
+docker compose -f docker-compose.prod.yml up -d --force-recreate backend
+```
+
+This is not a theoretical footnote. A backend container once ran an entire indexing pass into HTTP
+401s using a revoked API token while the correct token was already sitting in `.env.prod`, edited
+minutes earlier. Nothing in `docker compose ps`, in the file, or in the logs said the two disagreed
+— the logs said "unauthorised", which reads as a bad key rather than as a stale one. The check that
+settles it in one line:
+
+```bash
+docker compose exec backend printenv LLM_API_KEY | head -c 12   # what the process actually has
+```
+
+The same applies to a rotated token, a changed budget, and every other value in that file.
+
 ### Protocol documents and the volume
 
 `protocol.source_file` stores a path, never the document (DOMAIN-MODEL.md keeps BLOBs out of
@@ -133,6 +155,36 @@ a container can be up while DNS, TLS or the proxy in front of it is broken; the 
 endpoint does not come back healthy. Both deploy jobs share one concurrency group with cancelling
 disabled, so two rollouts never race over the same containers and a superseded build never
 interrupts one in flight.
+
+### CI deploys images, never configuration
+
+The pipeline runs `docker compose pull <service> && docker compose up -d <service>` against the
+compose file **that is already on the host**. It never copies one there. So
+`docker-compose.prod.yml` and `.env.prod` are the two files in this repository that merging does not
+deploy:
+
+| Changed in a merged PR | Reaches the host by |
+|---|---|
+| Backend or frontend code | CI, automatically |
+| `docker/docker-compose.prod.yml` | **a person, by hand** |
+| `.env.prod` (documented by `.env.prod.example`) | **a person, by hand** — it is not in the repo at all |
+
+The failure mode is quiet and was met in practice: PR #22 fixed the file-volume wiring, merged, and
+deployed nothing, because the host kept running the compose file it already had. The stack looked
+healthy and was running the old definition. Applying such a change:
+
+```bash
+ssh deploy@<host>
+cd /opt/maintenance-assistant
+cp docker-compose.prod.yml docker-compose.prod.yml.bak-$(date +%Y%m%d-%H%M%S)   # rollback copy first
+# copy the new file over (scp from the workstation, or edit in place)
+docker compose -f docker-compose.prod.yml up -d --force-recreate backend
+```
+
+The `.bak` copy is the rule rather than a suggestion: this file is the only definition of the
+running stack, there is no second host to compare against, and `git` on the workstation cannot tell
+you what the server had a minute ago. Combine this with the recreate rule in §7.4 — a compose change
+that alters `environment:` needs the recreate for the same reason an `.env.prod` change does.
 
 CI authenticates with a dedicated ed25519 key that exists only for this purpose, held in the
 `DEPLOY_SSH_KEY` repository secret alongside `DEPLOY_HOST` and `DEPLOY_USER`. It is written from the

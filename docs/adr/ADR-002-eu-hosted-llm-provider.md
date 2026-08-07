@@ -186,6 +186,83 @@ against the Python figure.
 **Cost, measured rather than estimated.** Embedding all 150 corpus protocols: 150 provider calls,
 27,713 input tokens, **EUR 0.00055**. The estimate was "cents"; the measurement is hundredths of one.
 
+### Note, 2026-08-07 — the query path, measured against the production prompt
+
+This ADR deferred three things to Phase 3: the per-role chat model, the threshold value, and the
+Java chat integration. All three are now measured, against the real 150-protocol corpus and the
+prompts the application actually ships, through the query path itself rather than a script that
+approximates it. It is reproducible: `QueryDemoVerificationIT`, skipped unless `LLM_API_KEY` is set.
+
+**Threshold: 0.55, and the three demo cases clear it.**
+
+| Demo scenario | Best similarity | Wanted | Result |
+|---|---:|---|---|
+| E-47 on Presse 3 (German question, German protocols) | **0.6896** | Mode A | Mode A ✅ |
+| DE query → EN protocol, belt mistracking on FB-04 | **0.5566** | Mode A | Mode A ✅ |
+| Mode B gap: dosing on AB-02, no protocol covers it | **0.4563** | Mode B | Mode B ✅ |
+
+The figures differ slightly from the note above because the questions are the demo's own wording
+rather than the tuning script's, which is the more honest test — 0.583 would still have refused the
+cross-language case. **The margin on that case is thin: 0.0066.** It is the number to re-measure
+first after any change to chunking, to the corpus, or to the embedding model, and it is the reason
+the threshold stays a property.
+
+**Chat model: `meta-llama/Llama-3.3-70B-Instruct` for every role.** No per-role split, because the
+evidence does not ask for one and inventing one would be complexity with nothing behind it.
+
+| | Llama-3.3-70B | Qwen3.5-9B |
+|---|---|---|
+| E-47, Mode A | 11 claims / 3 sources, 12.9–24.5 s | **48 claims** / 3 sources, 23.3 s |
+| DE→EN, Mode A | 3 claims / 1 source, 4.9 s | **failed to ground → fell through to Mode B**, 9.0 s |
+| Mode B gap | 5 steps, correct, 9.7 s | 4 steps, correct, 4.5 s |
+| Operator, Mode A | 4 claims, repair withheld, escalation given, 18.4 s | 20 claims, 19.9 s |
+| Citation validity | every cited label was retrieved | every cited label was retrieved |
+| Answer language | German throughout, incl. Mode B | German throughout, incl. Mode B |
+
+Two findings decide it, and the first one is disqualifying: **Qwen3.5-9B did not produce a groundable
+answer for the cross-language case.** It retrieved correctly — retrieval is the embedding model's
+job and identical for both — then returned 14 completion tokens with no usable claim, and the
+application's citation validation did what it is there for and fell through to Mode B. The demo that
+exists to show a German question reaching an English protocol would have displayed "no source in the
+corpus". Second, Qwen fragments: 48 claims for an answer Llama expresses in 11, which is worse to
+read and, at these sizes, **not even faster** — the spike's ~3 s figure was measured on a one-line
+refusal, and under the production prompt Qwen's verbosity cancels its speed advantage entirely.
+
+Qwen3.5-9B remains a supported configuration swap (`LLM_CHAT_MODEL`), with the
+`reasoning_effort="none"` caveat handled by the client from the model id rather than by a flag.
+
+**Latency, from a residential connection: median ~13 s end to end (13 measured queries, 4.9 s to
+38.9 s).** Inside NFR-4's 30 s ceiling at the median, above the 10 s target, and **one of the 13
+breached the ceiling** at 38.9 s. The variance is queue time, exactly as this ADR predicted — the
+identical question returned in 12.9 s and in 24.5 s minutes apart, with the same token counts.
+Re-measuring from the Hetzner host remains open and is now the more urgent half of that residual
+risk, because the answer is no longer comfortably inside the ceiling.
+
+**Two integration traps, neither of which any fake could have surfaced.**
+
+1. **Constrained decoding runs away without a worked example.** On the Mode B path Llama-3.3-70B
+   emitted `{ "answer_language": "de",` and then spent its *entire* output budget on whitespace —
+   twice, at two different caps. Raising the cap could not help; the answer was never getting
+   longer, only later. Mode A never did it, and the only structural difference was that Mode A
+   carries a worked example of compact JSON. Adding one to Mode B — with no source, label or
+   protocol in it, so the separation this ADR requires is untouched — fixed it, and `minItems` /
+   `maxItems` bound the list.
+2. **The spike's `max_tokens=400` does not transfer.** It was measured on a one-line refusal. A
+   claim-per-statement answer over four protocols is 481 tokens, so the cap is 1200. The cap is
+   still runaway protection rather than a quality constraint, but the number was carried over
+   unexamined and would have failed the E-47 demo.
+
+**Spring AI, revisited as promised and declined again.** The note above said the chat path was where
+advisors, chat memory and tool calling might earn their weight. Built, they do not: there is no
+conversation to remember, no tool to call, and the one advisor-shaped concern — citation enforcement
+— must be checked against *this query's* retrieved chunks, which no framework can know. The chat
+call is one POST behind a narrow interface, as the embedding call is.
+
+**Cost, measured:** the day's counter after the Llama verification stood at **20 calls, 24,321 input
+and 8,774 output tokens, ~EUR 0.0215** at Llama list price — about EUR 0.001 per answer. Extrapolated
+to the 6000 queries/month the ADR assumes, ~EUR 6.50/month, the same order as §5's EUR 4.94 estimate
+and still a rounding error against the VPS.
+
 ## Alternatives considered
 
 - **Nebius Token Factory as primary** (the original proposal) — publicly visible per-token pricing,

@@ -1,0 +1,61 @@
+package com.keglevich.maintenanceassistant.query;
+
+import java.time.LocalDate;
+import java.util.List;
+import java.util.UUID;
+
+/**
+ * The answer, shaped for the search view that renders it.
+ *
+ * <p>NFR-2 asks for two <em>visually distinct</em> answer modes, and that requirement is met by what
+ * this record hands over, not by prose the client has to interpret. {@link #mode()} is the switch,
+ * {@link #claims()} carries the per-claim citation labels so the view can render a source link
+ * inline rather than a footnote, and {@link #citations()} is the deduplicated source list behind
+ * those labels. A Mode B answer has an empty citation list and empty claims — structurally, because
+ * a Mode B answer is produced by a prompt and a schema that have no source field at all.
+ *
+ * @param mode      A = grounded ("Belegte Antwort"), B = labelled ungrounded suggestion
+ * @param answer    the rendered prose, ready to display. Mode A carries its {@code [P1]} markers
+ *                  inline so a client that does nothing clever still shows a cited answer
+ * @param language  the language the answer was pinned to, as the model reports having written it.
+ *                  The view needs this to set {@code lang} on the element for screen readers and
+ *                  hyphenation, and it is the observable half of the language rule ADR-002 records
+ * @param claims    Mode A only: one statement, one source label. Empty in Mode B
+ * @param citations the sources actually cited, in label order. Empty in Mode B
+ */
+public record QueryAnswer(
+        AnswerMode mode,
+        String answer,
+        String language,
+        List<Claim> claims,
+        List<Citation> citations) {
+
+    /** NFR-2's two modes. Serialised as "A" and "B". */
+    public enum AnswerMode {
+        A, B
+    }
+
+    /**
+     * One statement and the source it came from.
+     *
+     * @param source the {@code [P1]}-style label, matching a {@link Citation#label()}
+     */
+    public record Claim(String text, String source) {
+    }
+
+    /**
+     * A cited protocol.
+     *
+     * @param label      the {@code P1}..{@code P5} label used in the answer text and in claims
+     * @param similarity what the retrieval scored it, kept so the demo can show why a case is
+     *                   Mode A and the next one is Mode B rather than asserting it
+     */
+    public record Citation(
+            String label,
+            UUID protocolId,
+            String title,
+            String errorCode,
+            LocalDate incidentDate,
+            double similarity) {
+    }
+}

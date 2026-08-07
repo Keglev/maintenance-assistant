@@ -15,6 +15,13 @@
  * <p>The NFR-7 cost guards (per-user rate limit, daily budget counter, capped answer length, query
  * cache) also belong to this module.
  *
- * <p>Empty in Phase 1 — implemented in Phase 3.
+ * <p>Reading order, if you are here for the first place a decision was made:
+ * {@link com.keglevich.maintenanceassistant.query.QueryService} is the whole path in one method;
+ * {@link com.keglevich.maintenanceassistant.query.ChunkRetriever} is the ADR-004 single-statement
+ * search; {@link com.keglevich.maintenanceassistant.query.GroundedPrompt} and
+ * {@link com.keglevich.maintenanceassistant.query.UngroundedPrompt} are the two modes, separate by
+ * design rather than by accident; and
+ * {@link com.keglevich.maintenanceassistant.query.AnswerAssembler} is where a citation the model
+ * invented stops being part of the answer.
  */
 package com.keglevich.maintenanceassistant.query;

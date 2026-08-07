@@ -292,7 +292,150 @@
         <code>DEPLOY_USER</code>. It is written from the step
         environment rather than interpolated into a command line, and
         deleted in a step that runs even when the deploy fails.</p>
-        <h2 id="host-hardening">7.6 Host hardening</h2>
+        <h2 id="backup-and-recovery">7.6 Backup and recovery</h2>
+        <p>Two mechanisms, covering different failures: a
+        <strong>nightly backup</strong> on the host for data loss, and a
+        <strong>Hetzner snapshot</strong> for the host itself.</p>
+        <h3 id="nightly-backup">7.6.1 Nightly backup</h3>
+        <p><a
+        href="https://github.com/Keglev/maintenance-assistant/blob/main/infra/backup.sh"><code>infra/backup.sh</code></a>,
+        installed as <code>/usr/local/bin/maintenance-backup</code> by
+        <a
+        href="https://github.com/Keglev/maintenance-assistant/blob/main/infra/install-backup.sh"><code>infra/install-backup.sh</code></a>
+        and driven by a systemd timer at <strong>03:15 UTC</strong>. It
+        writes two artefacts to
+        <code>/opt/maintenance-assistant/backups/</code>, mode 0700:</p>
+        <table>
+        <colgroup>
+        <col style="width: 33%" />
+        <col style="width: 33%" />
+        <col style="width: 33%" />
+        </colgroup>
+        <thead>
+        <tr class="header">
+        <th>Artefact</th>
+        <th>What it is</th>
+        <th>Retention</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr class="odd">
+        <td><code>maintenance-db-YYYY-MM-DD.dump</code></td>
+        <td><code>pg_dump --format=custom --compress=9</code> of the
+        application database</td>
+        <td>last 14</td>
+        </tr>
+        <tr class="even">
+        <td><code>protocol-files-YYYY-MM-DD.tar.gz</code></td>
+        <td><code>tar czf</code> of the <code>protocol-files</code>
+        volume</td>
+        <td>last 14</td>
+        </tr>
+        </tbody>
+        </table>
+        <p><strong>Both are needed, and neither is sufficient.</strong>
+        The database stores only the <em>path</em> of an uploaded
+        protocol document (<code>protocol.source_file</code>); the
+        document itself lives on the volume, because DOMAIN-MODEL.md
+        keeps BLOBs out of Postgres. A database dump restored on its own
+        gives you rows whose <code>source_file</code> points at
+        nothing.</p>
+        <p>For the <strong>synthetic corpus the volume archive is
+        redundant</strong> — those documents are regenerated from
+        <code>backend/src/main/resources/corpus/protocols.ndjson</code>
+        by re-running the seed, so the repository is already their
+        backup. It stops being redundant the moment the upload endpoint
+        ships (PR 3): a file a Schichtleiter uploads exists nowhere
+        else, and from that point the volume archive is its only copy.
+        The archive is in place now rather than later precisely so that
+        switch-over needs no action.</p>
+        <p><strong>Design decisions worth stating:</strong></p>
+        <ul>
+        <li><strong>A systemd timer, not cron.</strong>
+        <code>Persistent=true</code> reruns a night missed to a reboot
+        or a snapshot restore; cron silently skips it. Output goes to
+        the journal under the unit name
+        (<code>journalctl -u maintenance-backup</code>) rather than to a
+        local mailbox nobody reads. <code>systemctl list-timers</code>
+        states when the next run is due and
+        <code>systemctl status</code> says whether the last one failed —
+        cron offers no equivalent of either.</li>
+        <li><strong>Runs as <code>deploy</code>, not root.</strong> The
+        job needs the Docker socket and read access to
+        <code>.env.prod</code>, and that user has both already; root is
+        required to <em>install</em> the units and for nothing else. To
+        be honest about what this buys: membership of the
+        <code>docker</code> group is effectively root on this host, so
+        this is least-privilege as a habit and correct file ownership in
+        practice, not a security boundary.</li>
+        <li><strong>Custom format rather than plain SQL through
+        gzip.</strong> It is already compressed, and it is the only
+        format <code>pg_restore</code> can list, verify and restore
+        selectively. A gzipped <code>.sql</code> can be checked only by
+        restoring it somewhere.</li>
+        <li><strong>Every artefact is verified before it is
+        named.</strong> The dump is written as <code>.part</code>,
+        checked with <code>pg_restore --list</code> in a throwaway
+        container, and only then renamed; the archive likewise with
+        <code>tar -tzf</code>. A file that fails its check is deleted
+        and the run exits non-zero. So a file in the backup directory is
+        one that was <em>checked</em>, not merely one that was written —
+        and a broken backup shows up as a failed systemd unit that night
+        instead of on the night it is needed.</li>
+        <li><strong>Retention is “keep the newest 14”, not “delete
+        anything older than 14 days.”</strong> If the timer stops
+        running, the second rule quietly expires the last good copies;
+        the first holds them.</li>
+        <li><strong>Keycloak’s database is deliberately not
+        dumped.</strong> The realm is reproducible from the versioned
+        <code>realm-export.json</code>, and the four demo users are in
+        it. Losing it costs a re-import, not data.</li>
+        </ul>
+        <p>Operating it:</p>
+        <div class="sourceCode" id="cb1"><pre
+        class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ssh</span> deploy@<span class="op">&lt;</span>host<span class="op">&gt;</span> maintenance-backup          <span class="co"># run one now</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="ex">journalctl</span> <span class="at">-u</span> maintenance-backup <span class="at">-n</span> 50        <span class="co"># what happened</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="ex">systemctl</span> list-timers maintenance-backup.timer</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">ls</span> <span class="at">-lh</span> /opt/maintenance-assistant/backups/</span></code></pre></div>
+        <h3 id="hetzner-snapshots">7.6.2 Hetzner snapshots</h3>
+        <p>The nightly backup protects the <em>data</em>. A snapshot
+        protects the <em>host</em> — the compose files,
+        <code>.env.prod</code>, Caddy’s certificate store, the Keycloak
+        database and the state of the OS itself. It is the difference
+        between “restore the protocols” and “have the demo working
+        again”.</p>
+        <p><strong>When to snapshot:</strong></p>
+        <ul>
+        <li><strong>Before any risky change</strong> — an OS upgrade, a
+        Docker major version, a Postgres image bump, an edit to sshd or
+        the firewall, or anything touching Caddy’s TLS configuration.
+        Rule of thumb: if getting it wrong could stop you logging in or
+        stop the certificate renewing, snapshot first. It takes a minute
+        and costs cents.</li>
+        <li><strong>Before a pause</strong> (see below).</li>
+        <li><strong>After a milestone</strong> that would be tedious to
+        rebuild — a release tag, a realm change made in the admin
+        console rather than in <code>realm-export.json</code>.</li>
+        </ul>
+        <p><strong>Cost model, which is the part that catches people
+        out:</strong> a <em>stopped</em> Hetzner server still bills in
+        full — stopping it saves nothing. The only way to stop paying
+        for a server is to snapshot it and <strong>delete</strong> the
+        server; the snapshot itself costs cents per month. Recreating
+        from a snapshot gives a new IP, so the DNS records for both
+        hostnames must be repointed before Caddy can renew a
+        certificate. Per DECISIONS.txt the standing decision is to
+        <strong>pay during application phases and snapshot only in a
+        real pause</strong> — and never to delete the server while
+        applications are out, because the demo link in them has to keep
+        working.</p>
+        <p><strong>Restoring</strong> is a Hetzner console action:
+        create a server from the snapshot, repoint DNS, and let Caddy
+        re-issue. The application data is then whatever the snapshot
+        contained, which is why the nightly dump exists alongside it — a
+        snapshot from Sunday plus Wednesday’s dump beats either
+        alone.</p>
+        <h2 id="host-hardening">7.7 Host hardening</h2>
         <p><code>infra/provision.sh</code> is the record of what the
         host is, and is safe to re-run: unattended security upgrades;
         Docker from the official repository; an unprivileged
@@ -300,11 +443,24 @@
         <code>PasswordAuthentication no</code> and
         <code>PermitRootLogin prohibit-password</code> via a drop-in
         that survives package upgrades; fail2ban on the sshd jail.</p>
-        <h2 id="known-gaps">7.7 Known gaps</h2>
+        <h2 id="known-gaps">7.8 Known gaps</h2>
         <ul>
-        <li><strong>No backups yet.</strong> The Postgres volume is the
-        only copy of the data. Acceptable while the corpus is synthetic
-        and reproducible; it stops being acceptable in Phase 2.</li>
+        <li><strong>Backups are on the same disk as the data.</strong>
+        The nightly dump and archive sit on the host they back up, so
+        they survive a bad migration, a dropped table or a corrupted
+        volume — and not a lost server. A Hetzner snapshot is the only
+        off-host copy, and it is manual. <strong>No offsite copy is
+        automated</strong>, deliberately: the corpus is synthetic and
+        regenerable, and an offsite target means another credential on
+        the host. It becomes a real gap once uploaded documents
+        exist.</li>
+        <li><strong>Restore is manual and unrehearsed as a
+        whole.</strong> Each artefact is verified nightly and the dump
+        has been restored into a scratch database to prove it works, but
+        there is <strong>no automated restore</strong> and no drill of
+        the full path — new server, snapshot, DNS, then dump plus
+        archive. Recovery time is therefore unmeasured rather than
+        merely long.</li>
         <li><strong>No staging environment.</strong> A deploy goes
         straight to the only host there is, so CI on <code>main</code>
         is the last gate before the demo changes under a visitor.</li>
@@ -334,9 +490,17 @@
       id="toc-configuration-and-secrets">7.4 Configuration and
       secrets</a></li>
       <li><a href="#delivery" id="toc-delivery">7.5 Delivery</a></li>
-      <li><a href="#host-hardening" id="toc-host-hardening">7.6 Host
+      <li><a href="#backup-and-recovery"
+      id="toc-backup-and-recovery">7.6 Backup and recovery</a>
+      <ul>
+      <li><a href="#nightly-backup" id="toc-nightly-backup">7.6.1
+      Nightly backup</a></li>
+      <li><a href="#hetzner-snapshots" id="toc-hetzner-snapshots">7.6.2
+      Hetzner snapshots</a></li>
+      </ul></li>
+      <li><a href="#host-hardening" id="toc-host-hardening">7.7 Host
       hardening</a></li>
-      <li><a href="#known-gaps" id="toc-known-gaps">7.7 Known
+      <li><a href="#known-gaps" id="toc-known-gaps">7.8 Known
       gaps</a></li>
       </ul></li>
       </ul>

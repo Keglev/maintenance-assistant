@@ -34,15 +34,20 @@ RULES CARRIED ACROSS SESSIONS
   Release. Robots never create tags.
 
 =====================================================================
-PHASE 0 — PREP  [DONE except ADR-002 spike]
+PHASE 0 — PREP  [DONE]
 =====================================================================
 [x] Fix stockease: demo login + reachable API docs (recruiter feedback)
 [x] AI-USAGE.md added
-[ ] ADR-002 spike (1 day): Nebius vs IONOS — multilingual embedding
+[x] ADR-002 spike (1 day): Nebius vs IONOS — multilingual embedding
     DE<->EN retrieval test, citation prompt test, cost per query,
-    billing limits/prepaid. Verify Spring AI compatibility with
-    Spring Boot 4.1 (fallback: plain RestClient).
-    Deadline: before Phase 2 starts. Result: ADR-002 Proposed -> Accepted.
+    billing limits/prepaid. Done in spike/adr-002/ (two rounds, both
+    providers live); ADR-002 is Accepted (2026-08-06) and the spike
+    REVERSED the proposal: IONOS primary, Nebius documented fallback.
+    Billing checked manually: no hard spending cap anywhere, only cost
+    alerts (EUR 7 alert configured) -> NFR-7 rests on the app layer.
+    Spring AI vs Boot 4.1 is NOT closed by this spike (Python on
+    purpose, so it measured the provider not the Java integration);
+    it moves to Phase 3, fallback stays a plain RestClient.
 
 =====================================================================
 PHASE 1 — WALKING SKELETON  [IN PROGRESS]
@@ -161,7 +166,10 @@ PHASE 2 — DATA + INGESTION
   volume, text extraction, chunking, embedding call, status
   RECEIVED -> INDEXED/FAILED, async via Spring events
 - Seed loader for the corpus
-- PREREQUISITE: ADR-002 spike done and Accepted
+- PREREQUISITE: ADR-002 spike done and Accepted — MET (Accepted 2026-08-06)
+  Binds Phase 2: the chunk vector column is vector(1024) (BAAI/bge-m3 on
+  IONOS), and the similarity threshold is a config property (initial
+  0.583) to be revalidated against the real ~150-protocol corpus.
 
 =====================================================================
 PHASE 3 — RAG QUERY + MODES

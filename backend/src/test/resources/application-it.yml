@@ -37,6 +37,29 @@ maintenance:
     timeout: 1s
     daily-call-budget: 1000
 
+  chat:
+    # As above: the client is replaced by a fake, and there is deliberately no key here for
+    # a test to reach a real provider with.
+    base-url: http://localhost/unused
+    api-key: ""
+    model: fake-chat
+    max-tokens: 400
+    temperature: 0.1
+    timeout: 1s
+    max-retries: 0
+    retry-backoff: 1ms
+    daily-call-budget: 1000
+
+  query:
+    # The production threshold, not a convenient one: the integration test should route the
+    # way production routes.
+    similarity-threshold: 0.55
+    top-k: 5
+    rate-limit-per-minute: 10
+    cache-ttl: 10m
+    cache-max-entries: 100
+
 logging:
   level:
     "[com.keglevich.maintenanceassistant.ingestion]": INFO
+    "[com.keglevich.maintenanceassistant.query]": INFO

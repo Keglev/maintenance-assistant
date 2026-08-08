@@ -1,0 +1,167 @@
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--s-4);
+  background: rgb(27 36 48 / 55%);
+}
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  width: min(42rem, 100%);
+  max-height: 90vh;
+  background: var(--c-surface);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-md);
+  overflow: hidden;
+}
+
+.panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-4);
+  padding: var(--s-4) var(--s-5);
+  border-bottom: 1px solid var(--c-line);
+}
+
+.panel-title {
+  margin: 0;
+  font-size: var(--t-xl);
+}
+
+.panel-body {
+  padding: var(--s-5);
+  overflow-y: auto;
+}
+
+.icon {
+  width: 14px;
+  height: 14px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+.help-section + .help-section {
+  margin-top: var(--s-5);
+}
+
+.help-heading {
+  margin: 0 0 var(--s-3);
+  font-size: var(--t-base);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--c-ink-muted);
+}
+
+/* Explained in the colours the answers actually arrive in, so the dialog teaches the same signal
+   the search view uses (NFR-2) rather than a second vocabulary for it. */
+.mode-card {
+  padding: var(--s-3) var(--s-4);
+  border: 1px solid transparent;
+  border-left-width: 5px;
+  border-radius: var(--r-sm);
+}
+
+.mode-card + .mode-card {
+  margin-top: var(--s-3);
+}
+
+.mode-card-title {
+  margin: 0 0 var(--s-1);
+  font-weight: 700;
+}
+
+.mode-card-body {
+  margin: 0;
+  font-size: var(--t-sm);
+}
+
+.mode-card-a {
+  background: var(--c-mode-a-soft);
+  border-color: var(--c-mode-a-line);
+  border-left-color: var(--c-mode-a);
+}
+
+.mode-card-a .mode-card-title {
+  color: var(--c-mode-a-ink);
+}
+
+.mode-card-b {
+  background: var(--c-mode-b-soft);
+  border-color: var(--c-mode-b-line);
+  border-left-color: var(--c-mode-b);
+}
+
+.mode-card-b .mode-card-title {
+  color: var(--c-mode-b-ink);
+}
+
+.help-list {
+  margin: 0;
+  padding-left: var(--s-5);
+  font-size: var(--t-sm);
+}
+
+.help-list li + li {
+  margin-top: var(--s-2);
+}
+
+.examples {
+  list-style: none;
+  margin: var(--s-3) 0 0;
+  padding: 0;
+}
+
+.example {
+  padding: var(--s-3) var(--s-4);
+  border: 1px solid var(--c-line);
+  border-radius: var(--r-sm);
+  background: var(--c-sunken);
+}
+
+.example + .example {
+  margin-top: var(--s-3);
+}
+
+.example-machine {
+  margin: 0;
+  font-size: var(--t-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--c-ink-muted);
+}
+
+.example-question {
+  margin: var(--s-1) 0;
+  font-family: var(--font-mono);
+  font-size: var(--t-sm);
+  color: var(--c-ink);
+}
+
+.example-shows {
+  margin: 0;
+  font-size: var(--t-sm);
+  color: var(--c-ink-muted);
+}
+
+/* On a phone a centred card wastes the edges and puts the close button somewhere the thumb is not.
+   Full screen, head pinned at the top. */
+@media (max-width: 40rem) {
+  .backdrop {
+    padding: 0;
+  }
+
+  .panel {
+    width: 100%;
+    max-height: 100vh;
+    height: 100%;
+    border-radius: 0;
+  }
+}

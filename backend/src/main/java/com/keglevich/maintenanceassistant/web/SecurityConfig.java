@@ -27,10 +27,16 @@ import org.springframework.security.web.SecurityFilterChain;
 @EnableMethodSecurity
 class SecurityConfig {
 
-  /** Readable without a token: the liveness probe and the API documentation. */
+  /**
+   * Readable without a token: the liveness probe and the API documentation.
+   *
+   * <p>The documentation is public by decision. A reviewer must be able to read what this API
+   * offers without first obtaining a demo login, the endpoints are read-only, and the specification
+   * describes shapes rather than data — the corpus behind it is synthetic in any case.
+   */
   private static final String[] PUBLIC_PATHS = {
     "/api/health", "/actuator/health", "/actuator/health/**",
-    "/v3/api-docs", "/v3/api-docs/**", "/swagger-ui.html", "/swagger-ui/**"
+    "/v3/api-docs", "/v3/api-docs/**", "/swagger-ui", "/swagger-ui.html", "/swagger-ui/**"
   };
 
   @Bean
@@ -43,6 +49,10 @@ class SecurityConfig {
         .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
         .authorizeHttpRequests(auth -> auth
             .requestMatchers(HttpMethod.GET, PUBLIC_PATHS).permitAll()
+            // Everything else, including a path no handler serves, answers 401 rather than 404.
+            // That is authorization running before dispatch, and it is the behaviour to keep: an
+            // anonymous caller learns nothing about which paths exist. It is also what made the
+            // missing /swagger-ui mapping look like a permission problem.
             .anyRequest().authenticated())
         // Wired explicitly: a custom SecurityFilterChain opts out of Boot's auto-configuration,
         // so the converter bean would otherwise be ignored and roles would never arrive.

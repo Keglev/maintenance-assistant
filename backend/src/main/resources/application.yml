@@ -146,10 +146,10 @@ springdoc:
   api-docs:
     path: /v3/api-docs
   swagger-ui:
-    # /swagger-ui rather than springdoc's /swagger-ui.html default. The webjar's own resources
-    # live under /swagger-ui/**, so the bare path had no mapping at all and answered 404 -- which
-    # the error dispatch then reported as 401 (see SecurityConfig). It is the path a reader types
-    # and the path the README publishes, so it is the one that has to resolve.
+    # /swagger-ui rather than springdoc's /swagger-ui.html default: it is the path a reader types
+    # and the path the README publishes, so it is the one that has to resolve. The webjar's own
+    # resources live under /swagger-ui/**, which does not cover the bare path; the other spellings
+    # (/swagger-ui/ and the former default) are redirected by ApiDocsRoutingConfig.
     path: /swagger-ui
     operations-sorter: alpha
     tags-sorter: alpha

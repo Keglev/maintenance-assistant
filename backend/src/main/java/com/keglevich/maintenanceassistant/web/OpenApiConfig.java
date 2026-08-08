@@ -10,7 +10,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 /**
- * OpenAPI description: spec at {@code /v3/api-docs}, Swagger UI at {@code /swagger-ui.html}.
+ * OpenAPI description: spec at {@code /v3/api-docs}, Swagger UI at {@code /swagger-ui}.
  *
  * <p>Both are readable without a token, because an API documentation nobody can reach documents
  * nothing — reachable API docs were explicit recruiter feedback. The described endpoints stay
@@ -33,10 +33,16 @@ class OpenApiConfig {
         .info(new Info()
             .title("maintenance-assistant API")
             .version("v1")
+            // Markdown, which Swagger UI renders in place. The back-link is the only navigation
+            // out of the documentation: the UI is a page of its own with no header of ours, so a
+            // reader who arrives here from the README would otherwise have to reach for the
+            // browser's back button to find the application it describes.
             .description("""
                 Search industrial maintenance protocols in natural language (DE/EN) and get \
                 answers with citations. Roles come from Keycloak; answers are filtered by role \
-                server-side.""")
+                server-side.
+
+                [← Back to the application](https://maintenance.smartsupply.com.de/)""")
             .license(new License().name("MIT").url("https://opensource.org/licenses/MIT")))
         .components(new Components().addSecuritySchemes("keycloak", keycloak));
   }

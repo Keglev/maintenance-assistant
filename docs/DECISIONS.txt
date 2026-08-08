@@ -50,6 +50,19 @@ Status: end of Phase 2 (data + ingestion live in production), 2026-08-07
 - ADR-003: Keycloak as IdP. Angular: Auth Code Flow + PKCE; backend: OAuth2 Resource Server.
   "Keycloak vs OAuth2" is a category error: OAuth2/OIDC = protocols, Keycloak = implementation.
   Realm config exported + versioned (realm-export.json)
+- DEMO LOGIN (2026-08-08, feat/shopfloor-ux, under ADR-003): the landing page offers one button per
+  demo user that starts the NORMAL Auth Code + PKCE redirect with login_hint=<username>, so Keycloak
+  prefills the field and the visitor types only the shared password. FULL ONE-CLICK LOGIN WAS
+  CONSIDERED AND REJECTED, both ways of doing it. (a) The password grant (ROPC / Direct Access
+  Grants) would have to be enabled on the demo client, which exposes the realm's token endpoint to
+  password spraying against EVERY user in it — a public demo password turns that from a theoretical
+  weakness into an invitation, and the blast radius is the whole realm rather than the one account
+  the visitor was offered. (b) A Keycloak login theme that autofills the credentials is a
+  hand-deployed artifact on a host where CI deploys images only (== PRODUCTION OPERATIONS ==),
+  bought for a purely cosmetic gain. login_hint keeps the standard flow completely intact, costs one
+  query parameter, and the password never passes through the application. The demo box also states
+  the boundary out loud — isolated realm, synthetic data only, rate-limited, 15-minute sessions — so
+  the public password reads as a designed demo boundary rather than a leftover credential.
 - ADR-004: pgvector inside Postgres, no dedicated vector DB. Relational filter + vector ranking
   in ONE query; one backup; no cross-store consistency problem. Scale ceiling documented.
 - Stack: Java 21, Spring Boot 4.1 (3.x is EOL since 2026-06-30), Angular + TypeScript (thin),
@@ -206,6 +219,16 @@ Status: end of Phase 2 (data + ingestion live in production), 2026-08-07
 - Upload view is honest about the 202: status list with the FAILURE REASON, refreshed by a button.
   No polling loop — indexing takes seconds and a poll would run for as long as the tab is open to
   answer "still the same".
+- PROTOCOLS OPEN IN AN IN-APP VIEWER (2026-08-08), superseding #26's blob: tab. The document is
+  still fetched through HttpClient — a browser-followed navigation carries no Bearer token — but it
+  is now RENDERED HERE instead of handed to the browser as an object URL in a new tab. The token
+  problem only existed because the document left the application; keeping it here removes the
+  category rather than working around it. It also fixes the experience the #26 fix created: the raw
+  text viewer, outside the app, on a shop-floor tablet where tab switching is impractical. Parsing
+  is defensive and produces TYPED SEGMENTS, never innerHTML — same rule as the answer renderer, and
+  it matters more here because a Schichtleiter can upload arbitrary text. Anything unrecognisable
+  falls back to the raw file preformatted; the dialog is never blank. Download is the only object
+  URL left in the application.
 - Role gating in the UI is presentation, never protection (NFR-3): the upload link and route are
   hidden from non-Schichtleiter so nobody is shown a door that opens onto a 403, and the backend
   refuses it regardless.

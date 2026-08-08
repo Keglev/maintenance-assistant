@@ -7,7 +7,11 @@
 #
 # Hostnames come from the environment so the same file serves any domain — see
 # APP_DOMAIN / AUTH_DOMAIN in .env.prod.
-
+#
+# DEPLOYMENT: this file is NOT synced by the pipeline. CI pulls images and
+# nothing else, so a change here has to be copied to the host by hand (with a
+# .bak of the previous version) and Caddy reloaded — the same rule that already
+# applies to docker-compose.prod.yml. See arc42 §7.4.
 {
 	# A contact address turns expiry warnings into email rather than silence.
 	email {$ACME_EMAIL}
@@ -18,6 +22,68 @@
 # ---------------------------------------------------------------------------
 {$APP_DOMAIN} {
 	encode zstd gzip
+
+	# -------------------------------------------------------------------------
+	# Security headers (ADR-005).
+	#
+	# The threat these address is a cross-site scripting bug in the SPA reading
+	# the access token out of sessionStorage. They cannot address malware on the
+	# user's own machine — nothing a web application ships can — and ADR-005 says
+	# so rather than pretending otherwise.
+	#
+	# `defer` matters: the header ops run after the handler below has produced
+	# its response, so these values win over anything nginx or the backend set
+	# instead of being overwritten by the proxied response.
+	# -------------------------------------------------------------------------
+	header {
+		defer
+
+		# script-src 'self' is the load-bearing line: an injected inline script
+		# is refused even if something manages to write one into the DOM.
+		#
+		# style-src needs 'unsafe-inline' and that is not laziness — Angular
+		# injects component styles as <style> elements at runtime, and the only
+		# way around it is a per-request nonce, which a statically served bundle
+		# behind a reverse proxy has no way to produce. The residual risk is CSS
+		# injection, not script execution. ADR-005 records it.
+		#
+		# connect-src has to include the Keycloak host: the discovery document
+		# and the token endpoint are fetched from there by XHR.
+		#
+		# No blob: source is listed, and that is deliberate. Citations open the
+		# protocol by pointing a new tab at an object URL (#26), and a top-level
+		# navigation is governed by no CSP directive — frame-src and child-src
+		# cover nested contexts, form-action covers form submissions, neither
+		# covers window.open. The blob document then inherits this policy, which
+		# costs it nothing because it is text/plain. If a click on a source ever
+		# does raise a CSP violation in the console, add `blob:` to child-src —
+		# never weaken script-src to fix it.
+		Content-Security-Policy `default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self' https://{$AUTH_DOMAIN}; img-src 'self' data:; font-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'self' https://{$AUTH_DOMAIN}`
+
+		# frame-ancestors already forbids framing; this is the same statement for
+		# browsers that predate it, and what a scanner looks for.
+		X-Frame-Options DENY
+
+		# The backend already sends this; the SPA did not. Aligned here so both
+		# halves of the origin answer the same way.
+		X-Content-Type-Options nosniff
+
+		# A protocol id in a URL path must not leak to another site.
+		Referrer-Policy strict-origin-when-cross-origin
+
+		# This application asks for none of these, so the browser may refuse them
+		# outright — including for anything it ever loads.
+		Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=(), usb=()"
+
+		# Both hostnames are HTTPS-only already. No includeSubDomains and no
+		# preload on purpose: other subdomains of this domain belong to other
+		# projects and are not this deployment's to speak for.
+		Strict-Transport-Security "max-age=31536000"
+
+		# Caddy's own advertisement is of no use to a visitor and of some use to
+		# someone matching versions against exploits.
+		-Server
+	}
 
 	# Matched first, so /api/* never reaches the SPA. The backend maps its own
 	# routes under /api, so the prefix is passed through rather than stripped.
@@ -51,6 +117,17 @@
 # ---------------------------------------------------------------------------
 {$AUTH_DOMAIN} {
 	encode zstd gzip
+
+	# Deliberately NO Content-Security-Policy here. Keycloak ships its own for
+	# the login pages and the admin console, and replacing a policy written for
+	# an application this deployment does not maintain is how a login page stops
+	# rendering. Only the headers Keycloak does not already set are added.
+	header {
+		defer
+		Strict-Transport-Security "max-age=31536000"
+		Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=(), usb=()"
+		-Server
+	}
 
 	# Keycloak reads X-Forwarded-* (KC_PROXY_HEADERS=xforwarded) to build issuer
 	# and redirect URLs; Caddy sets them by default on reverse_proxy.

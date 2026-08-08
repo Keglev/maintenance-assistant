@@ -106,7 +106,37 @@ The vector index is **HNSW rather than IVFFlat**, and at this corpus size it is 
 than a present-day speed-up — the reasoning and the caveats are in
 [ADR-004](../adr/ADR-004-pgvector-for-vector-search.md), *Consequences*, note of 2026-08-07.
 
-## 8.2 Remaining concepts
+## 8.2 Browser-side security and token handling
+
+The Angular client is a Keycloak **public client** (Authorization Code + PKCE), so the access token
+lives in the browser — in `sessionStorage`, tab-scoped, for the 15 minutes the realm grants it. The
+full reasoning, including why a backend-for-frontend was rejected for this project and named as the
+enterprise-grade evolution, is [ADR-005](../adr/ADR-005-spa-token-handling.md). Two things belong
+here because they cut across the whole deployment:
+
+**The threat split.** Malware on the user's own machine is out of scope — it can read `HttpOnly`
+cookies from the browser's store, log the password and read the screen, and no web-application
+architecture defends against a compromised endpoint. Cross-site scripting reading the token out of
+the SPA **is** in scope, and is what the controls below address.
+
+**Where the controls live.** At the edge, in
+[`docker/caddy/Caddyfile`](https://github.com/Keglev/maintenance-assistant/blob/main/docker/caddy/Caddyfile),
+not in the frontend image: one place states the policy for every response on the application
+hostname, including the API and the OpenAPI UI, and the frontend image stays environment-agnostic.
+`Content-Security-Policy` (`script-src 'self'`, `connect-src` limited to the origin and the Keycloak
+host, `frame-ancestors 'none'`), `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy`
+and HSTS. Two consequences a reader should carry away:
+
+- `style-src` keeps `'unsafe-inline'` because Angular injects component styles at runtime and the
+  alternative is a per-request nonce this static deployment cannot produce. It is a decision, and
+  ADR-005 argues it.
+- The Caddyfile is **not** deployed by CI (§7.5). This hardening is inert until a person copies the
+  file to the host and reloads Caddy.
+
+Application-level authorization is unaffected by any of it: roles are enforced by the backend
+resource server, and the UI hiding a button has never been the control (NFR-3).
+
+## 8.3 Remaining concepts
 
 > **Stub — to be filled in Phases 2–3**, as each concept is implemented.
 

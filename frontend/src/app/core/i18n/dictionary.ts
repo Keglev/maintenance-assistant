@@ -115,10 +115,15 @@ export interface Dictionary {
     readonly explanation: string;
     readonly sources: string;
     readonly openSource: string;
-    readonly opening: string;
     readonly similarity: string;
     readonly errorCode: string;
     readonly incidentDate: string;
+  };
+  readonly viewer: {
+    readonly title: string;
+    readonly loading: string;
+    readonly download: string;
+    readonly fallbackNote: string;
   };
   readonly modeB: {
     readonly badge: string;
@@ -283,10 +288,16 @@ export const DE: Dictionary = {
     explanation: 'Jede Aussage stammt aus einem Protokoll aus dem Bestand und ist belegt.',
     sources: 'Quellen',
     openSource: 'Originalprotokoll öffnen',
-    opening: 'Wird geöffnet …',
     similarity: 'Übereinstimmung',
     errorCode: 'Fehlercode',
     incidentDate: 'Datum',
+  },
+  viewer: {
+    title: 'Originalprotokoll',
+    loading: 'Protokoll wird geladen …',
+    download: 'Herunterladen',
+    fallbackNote:
+      'Dieses Protokoll folgt nicht der üblichen Gliederung. Es wird unverändert angezeigt.',
   },
   modeB: {
     badge: 'Allgemeiner Vorschlag — keine Quelle im Bestand',
@@ -453,10 +464,16 @@ export const EN: Dictionary = {
     explanation: 'Every statement comes from a protocol in the records and is cited.',
     sources: 'Sources',
     openSource: 'Open the original protocol',
-    opening: 'Opening …',
     similarity: 'Match',
     errorCode: 'Fault code',
     incidentDate: 'Date',
+  },
+  viewer: {
+    title: 'Original protocol',
+    loading: 'Loading the protocol …',
+    download: 'Download',
+    fallbackNote:
+      'This protocol does not follow the usual structure. It is shown exactly as it is filed.',
   },
   modeB: {
     badge: 'General suggestion — no source in the records',

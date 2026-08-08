@@ -420,6 +420,11 @@ drwxr-xr-x 2 0 0 …            touch: Permission denied</code></pre>
         <td><strong>a person, by hand</strong></td>
         </tr>
         <tr class="odd">
+        <td><code>docker/caddy/Caddyfile</code></td>
+        <td><strong>a person, by hand</strong> — bind-mounted from the
+        host, same as the compose file</td>
+        </tr>
+        <tr class="even">
         <td><code>.env.prod</code> (documented by
         <code>.env.prod.example</code>)</td>
         <td><strong>a person, by hand</strong> — it is not in the repo
@@ -438,6 +443,15 @@ drwxr-xr-x 2 0 0 …            touch: Permission denied</code></pre>
 <span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="fu">cp</span> docker-compose.prod.yml docker-compose.prod.yml.bak-<span class="va">$(</span><span class="fu">date</span> +%Y%m%d-%H%M%S<span class="va">)</span>   <span class="co"># rollback copy first</span></span>
 <span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="co"># copy the new file over (scp from the workstation, or edit in place)</span></span>
 <span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="ex">docker</span> compose <span class="at">-f</span> docker-compose.prod.yml up <span class="at">-d</span> <span class="at">--force-recreate</span> backend</span></code></pre></div>
+        <p>The Caddyfile is applied the same way, and reloaded rather
+        than recreated — Caddy re-reads its configuration without
+        dropping connections or re-issuing certificates:</p>
+        <div class="sourceCode" id="cb6"><pre
+        class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cp</span> caddy/Caddyfile caddy/Caddyfile.bak-<span class="va">$(</span><span class="fu">date</span> +%Y%m%d-%H%M%S<span class="va">)</span>   <span class="co"># rollback copy first</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="co"># copy the new file over</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="ex">docker</span> compose <span class="at">-f</span> docker-compose.prod.yml <span class="at">--env-file</span> .env.prod exec caddy <span class="dt">\</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>  caddy reload <span class="at">--config</span> /etc/caddy/Caddyfile</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-sSI</span> https://<span class="op">&lt;</span>app host<span class="op">&gt;</span>/ <span class="kw">|</span> <span class="fu">grep</span> <span class="at">-i</span> content-security-policy   <span class="co"># it either arrived or it did not</span></span></code></pre></div>
         <p>The <code>.bak</code> copy is the rule rather than a
         suggestion: this file is the only definition of the running
         stack, there is no second host to compare against, and
@@ -552,11 +566,11 @@ drwxr-xr-x 2 0 0 …            touch: Permission denied</code></pre>
         it. Losing it costs a re-import, not data.</li>
         </ul>
         <p>Operating it:</p>
-        <div class="sourceCode" id="cb6"><pre
-        class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ssh</span> deploy@<span class="op">&lt;</span>host<span class="op">&gt;</span> maintenance-backup          <span class="co"># run one now</span></span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="ex">journalctl</span> <span class="at">-u</span> maintenance-backup <span class="at">-n</span> 50        <span class="co"># what happened</span></span>
-<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="ex">systemctl</span> list-timers maintenance-backup.timer</span>
-<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="fu">ls</span> <span class="at">-lh</span> /opt/maintenance-assistant/backups/</span></code></pre></div>
+        <div class="sourceCode" id="cb7"><pre
+        class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ssh</span> deploy@<span class="op">&lt;</span>host<span class="op">&gt;</span> maintenance-backup          <span class="co"># run one now</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="ex">journalctl</span> <span class="at">-u</span> maintenance-backup <span class="at">-n</span> 50        <span class="co"># what happened</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="ex">systemctl</span> list-timers maintenance-backup.timer</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a><span class="fu">ls</span> <span class="at">-lh</span> /opt/maintenance-assistant/backups/</span></code></pre></div>
         <h3 id="hetzner-snapshots">7.6.2 Hetzner snapshots</h3>
         <p>The nightly backup protects the <em>data</em>. A snapshot
         protects the <em>host</em> — the compose files,

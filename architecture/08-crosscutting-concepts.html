@@ -487,7 +487,49 @@
         in <a
         href="../adr/ADR-004-pgvector-for-vector-search.html">ADR-004</a>,
         <em>Consequences</em>, note of 2026-08-07.</p>
-        <h2 id="remaining-concepts">8.2 Remaining concepts</h2>
+        <h2 id="browser-side-security-and-token-handling">8.2
+        Browser-side security and token handling</h2>
+        <p>The Angular client is a Keycloak <strong>public
+        client</strong> (Authorization Code + PKCE), so the access token
+        lives in the browser — in <code>sessionStorage</code>,
+        tab-scoped, for the 15 minutes the realm grants it. The full
+        reasoning, including why a backend-for-frontend was rejected for
+        this project and named as the enterprise-grade evolution, is <a
+        href="../adr/ADR-005-spa-token-handling.html">ADR-005</a>. Two
+        things belong here because they cut across the whole
+        deployment:</p>
+        <p><strong>The threat split.</strong> Malware on the user’s own
+        machine is out of scope — it can read <code>HttpOnly</code>
+        cookies from the browser’s store, log the password and read the
+        screen, and no web-application architecture defends against a
+        compromised endpoint. Cross-site scripting reading the token out
+        of the SPA <strong>is</strong> in scope, and is what the
+        controls below address.</p>
+        <p><strong>Where the controls live.</strong> At the edge, in <a
+        href="https://github.com/Keglev/maintenance-assistant/blob/main/docker/caddy/Caddyfile"><code>docker/caddy/Caddyfile</code></a>,
+        not in the frontend image: one place states the policy for every
+        response on the application hostname, including the API and the
+        OpenAPI UI, and the frontend image stays environment-agnostic.
+        <code>Content-Security-Policy</code>
+        (<code>script-src 'self'</code>, <code>connect-src</code>
+        limited to the origin and the Keycloak host,
+        <code>frame-ancestors 'none'</code>),
+        <code>X-Content-Type-Options</code>,
+        <code>Referrer-Policy</code>, <code>Permissions-Policy</code>
+        and HSTS. Two consequences a reader should carry away:</p>
+        <ul>
+        <li><code>style-src</code> keeps <code>'unsafe-inline'</code>
+        because Angular injects component styles at runtime and the
+        alternative is a per-request nonce this static deployment cannot
+        produce. It is a decision, and ADR-005 argues it.</li>
+        <li>The Caddyfile is <strong>not</strong> deployed by CI (§7.5).
+        This hardening is inert until a person copies the file to the
+        host and reloads Caddy.</li>
+        </ul>
+        <p>Application-level authorization is unaffected by any of it:
+        roles are enforced by the backend resource server, and the UI
+        hiding a button has never been the control (NFR-3).</p>
+        <h2 id="remaining-concepts">8.3 Remaining concepts</h2>
         <blockquote>
         <p><strong>Stub — to be filled in Phases 2–3</strong>, as each
         concept is implemented.</p>
@@ -541,7 +583,10 @@
       decisions</a></li>
       <li><a href="#indexes" id="toc-indexes">Indexes</a></li>
       </ul></li>
-      <li><a href="#remaining-concepts" id="toc-remaining-concepts">8.2
+      <li><a href="#browser-side-security-and-token-handling"
+      id="toc-browser-side-security-and-token-handling">8.2 Browser-side
+      security and token handling</a></li>
+      <li><a href="#remaining-concepts" id="toc-remaining-concepts">8.3
       Remaining concepts</a></li>
       </ul></li>
       </ul>

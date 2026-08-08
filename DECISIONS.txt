@@ -210,6 +210,42 @@ Status: end of Phase 2 (data + ingestion live in production), 2026-08-07
   hidden from non-Schichtleiter so nobody is shown a door that opens onto a 403, and the backend
   refuses it regardless.
 
+== BROWSER SECURITY / TOKEN HANDLING (Phase 4, 2026-08-08, ADR-005) ==
+- THE THREAT SPLIT IS THE DECISION. (a) Malware on the user's machine is OUT OF SCOPE for this and
+  for every web application: it reads HttpOnly cookies from the browser's own store, logs the
+  password and reads the screen. Say so plainly instead of implying a defence. (b) XSS reading the
+  token out of the SPA IS in scope and is what everything below addresses.
+- PUBLIC CLIENT STAYS. Access token in sessionStorage (tab-scoped, the angular-oauth2-oidc default
+  — NOT localStorage; the only localStorage key in the app is the DE/EN preference), lifetime 15
+  min (realm accessTokenLifespan 900), Code Flow + PKCE S256, no implicit, no direct grants. The
+  15-minute lifetime is the ceiling on what a stolen token is worth, and it is doing more work than
+  any header.
+- BFF (backend-for-frontend, tokens server-side, HttpOnly session cookie) is the RIGHT answer in an
+  enterprise and is REJECTED HERE: it adds a stateful session store, CSRF handling on every mutating
+  request, a second auth-code path and one more service on a two-vCPU host — to protect a token that
+  expires in 15 minutes and reads a synthetic corpus. Documented as the production-grade evolution.
+  This is interview material; the ADR is the long answer.
+- SECURITY HEADERS LIVE AT CADDY, not in the frontend image: one place covers the SPA, the API and
+  the OpenAPI UI, and the image stays environment-agnostic. CSP (script-src 'self'; connect-src self
+  + the Keycloak host, which the discovery document and token endpoint need; frame-ancestors 'none'),
+  X-Frame-Options, nosniff, Referrer-Policy, Permissions-Policy, HSTS without includeSubDomains and
+  without preload (other subdomains of the domain belong to other projects).
+- KEYCLOAK'S HOSTNAME KEEPS ITS OWN CSP. Overriding a policy written for an application we do not
+  maintain is how a login page stops rendering.
+- style-src KEEPS 'unsafe-inline' BY DECISION: Angular injects component styles as <style> elements
+  at runtime and the only alternative is a per-request nonce (ngCspNonce), which a statically served
+  bundle behind a reverse proxy cannot produce. Residual risk is CSS injection, not script execution.
+- ANGULAR'S CRITICAL-CSS INLINING BREAKS A STRICT CSP: it emits <link ... onload="this.media='all'">,
+  an inline event handler, and the page renders UNSTYLED when script-src refuses it. Production
+  builds set optimization.styles.inlineCritical=false. Cost: one small render-blocking stylesheet.
+- RECORDED, NOT FIXED: refresh-token rotation is off in the realm (revokeRefreshToken default), and
+  the SPA neither uses silent refresh nor calls refreshToken(), so the session simply ends. No token
+  binding / DPoP.
+- THE CADDYFILE DEPLOYS BY HAND like docker-compose.prod.yml (== PRODUCTION OPERATIONS ==). CI pulls
+  images only, so this hardening is INERT until someone copies the file and runs `caddy reload`.
+  Verify with `curl -sSI https://<host>/ | grep -i content-security-policy`, then click through in a
+  browser: a CSP breaks things the browser does itself, which curl never sees (the #26 lesson).
+
 == DATA MODEL ==
 - 3 entities: MACHINE -> PROTOCOL -> CHUNK (chunk = search unit, protocol = citation unit,
   machine = filter unit)

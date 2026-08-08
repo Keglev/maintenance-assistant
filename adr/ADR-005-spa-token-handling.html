@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Decisions ·
+ADR-005-spa-token-handling · maintenance-assistant Docs</title>
+
+  <!-- Set the theme before the stylesheet paints, otherwise the page flashes
+       the default theme for one frame before the saved choice applies. -->
+  <script>
+    (function () {
+      try {
+        var t = localStorage.getItem("maintenance-assistant-theme") ||
+          (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+        document.documentElement.setAttribute("data-theme", t);
+      } catch (e) {
+        document.documentElement.setAttribute("data-theme", "light");
+      }
+    })();
+  </script>
+
+  <link rel="stylesheet" href="/maintenance-assistant/assets/docs.css" />
+</head>
+
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <header class="topbar">
+    <div class="topbar-inner">
+      <button class="menu-btn" aria-label="Toggle navigation">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="18" x2="21" y2="18" />
+        </svg>
+      </button>
+
+      <a href="/maintenance-assistant/" class="brand">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <path d="M14.7 6.3a5 5 0 0 0-6.6 6.6l-5 5a2 2 0 1 0 2.8 2.8l5-5a5 5 0 0 0 6.6-6.6l-2.9 2.9-2.1-2.1 2.2-3.6z" />
+        </svg>
+        maintenance-assistant Docs
+      </a>
+
+      <div class="topbar-tools">
+        <span class="lang-switch">
+          <a href="/maintenance-assistant/" aria-current="true">EN</a>
+          <a href="/maintenance-assistant/index-de.html">DE</a>
+        </span>
+        <button class="theme-toggle" aria-label="Toggle light or dark theme">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <circle cx="12" cy="12" r="9" /><path d="M12 3a9 9 0 0 0 0 18z" fill="currentColor" stroke="none" />
+          </svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <div class="layout">
+    <!-- Sidebar navigation, included by app-docs.html as a Pandoc partial. One
+         sidebar serves the whole site: this repository has a single arc42 tree and a
+         single decision log, so the per-tier sidebars the sibling repositories need
+         would be three copies of the same list here. The active link is marked at
+         runtime by docs.js. Do not put template syntax in this comment - a partial
+         is itself a template. -->
+    <aside class="sidebar">
+      <p class="nav-title">Docs</p>
+      <ul>
+        <li><a href="/maintenance-assistant/">Docs home</a></li>
+        <li><a href="/maintenance-assistant/overview.html">Overview</a></li>
+        <li><a href="/maintenance-assistant/overview-de.html">&Uuml;berblick (DE)</a></li>
+        <li><a href="/maintenance-assistant/llm-approach.html">AI &amp; LLM approach</a></li>
+      </ul>
+
+      <p class="nav-title">Requirements</p>
+      <ul>
+        <li><a href="/maintenance-assistant/REQUIREMENTS.html">Requirements &amp; NFRs</a></li>
+        <li><a href="/maintenance-assistant/DOMAIN-MODEL.html">Domain model</a></li>
+      </ul>
+
+      <details class="nav-group">
+        <summary>Architecture (arc42)</summary>
+        <ul>
+          <li><a href="/maintenance-assistant/architecture/index.html">Architecture index</a></li>
+          <li><a href="/maintenance-assistant/architecture/01-introduction-and-goals.html">1 &middot; Introduction &amp; Goals</a></li>
+          <li><a href="/maintenance-assistant/architecture/02-architecture-constraints.html">2 &middot; Constraints</a></li>
+          <li><a href="/maintenance-assistant/architecture/03-context-and-scope.html">3 &middot; Context &amp; Scope</a></li>
+          <li><a href="/maintenance-assistant/architecture/04-solution-strategy.html">4 &middot; Solution Strategy</a></li>
+          <li><a href="/maintenance-assistant/architecture/05-building-block-view.html">5 &middot; Building Blocks</a></li>
+          <li><a href="/maintenance-assistant/architecture/06-runtime-view.html">6 &middot; Runtime View</a></li>
+          <li><a href="/maintenance-assistant/architecture/07-deployment-view.html">7 &middot; Deployment</a></li>
+          <li><a href="/maintenance-assistant/architecture/08-crosscutting-concepts.html">8 &middot; Concepts</a></li>
+          <li><a href="/maintenance-assistant/architecture/09-architecture-decisions.html">9 &middot; Decisions</a></li>
+          <li><a href="/maintenance-assistant/architecture/10-quality-requirements.html">10 &middot; Quality Requirements</a></li>
+          <li><a href="/maintenance-assistant/architecture/11-risks-and-technical-debt.html">11 &middot; Risks &amp; Debt</a></li>
+          <li><a href="/maintenance-assistant/architecture/12-glossary.html">12 &middot; Glossary</a></li>
+        </ul>
+      </details>
+
+      <details class="nav-group">
+        <summary>Decisions (ADRs)</summary>
+        <ul>
+          <li><a href="/maintenance-assistant/adr/index.html">Decision index</a></li>
+          <li><a href="/maintenance-assistant/adr/ADR-001-modular-monolith-first.html">ADR-001 Modular monolith</a></li>
+          <li><a href="/maintenance-assistant/adr/ADR-002-eu-hosted-llm-provider.html">ADR-002 EU LLM provider</a></li>
+          <li><a href="/maintenance-assistant/adr/ADR-003-keycloak-for-iam.html">ADR-003 Keycloak as IdP</a></li>
+          <li><a href="/maintenance-assistant/adr/ADR-004-pgvector-for-vector-search.html">ADR-004 pgvector</a></li>
+        </ul>
+      </details>
+
+      <p class="nav-title">Frontend</p>
+      <ul>
+        <li><a href="/maintenance-assistant/frontend-architecture.html">Frontend architecture</a></li>
+      </ul>
+
+      <p class="nav-title">Quality</p>
+      <ul>
+        <li><a href="/maintenance-assistant/backend/api-docs/index.html">Backend API</a></li>
+        <li><a href="/maintenance-assistant/frontend/api-docs/index.html">Frontend API</a></li>
+        <li><a href="/maintenance-assistant/backend/coverage/index.html">Backend coverage</a></li>
+        <li><a href="/maintenance-assistant/frontend/coverage/index.html">Frontend coverage</a></li>
+      </ul>
+    </aside>
+    <main class="content" id="main">
+      <article class="doc-body">
+        <h1
+        id="adr-005-keep-the-public-client-spa-harden-it-and-document-the-bff">ADR-005:
+        Keep the Public-Client SPA, Harden It, and Document the BFF</h1>
+        <table>
+        <colgroup>
+        <col style="width: 50%" />
+        <col style="width: 50%" />
+        </colgroup>
+        <tbody>
+        <tr class="odd">
+        <td><strong>Status</strong></td>
+        <td>Accepted</td>
+        </tr>
+        <tr class="even">
+        <td><strong>Date</strong></td>
+        <td>2026-08-08</td>
+        </tr>
+        <tr class="odd">
+        <td><strong>Deciders</strong></td>
+        <td>Project owner (solo)</td>
+        </tr>
+        <tr class="even">
+        <td><strong>Related</strong></td>
+        <td>Follows <a href="ADR-003-keycloak-for-iam.html">ADR-003</a>
+        (Keycloak, public client + PKCE); implements NFR-3; headers in
+        <a
+        href="https://github.com/Keglev/maintenance-assistant/blob/main/docker/caddy/Caddyfile"><code>docker/caddy/Caddyfile</code></a>;
+        realm in <a
+        href="https://github.com/Keglev/maintenance-assistant/blob/main/docker/keycloak/realm-export.json"><code>docker/keycloak/realm-export.json</code></a></td>
+        </tr>
+        </tbody>
+        </table>
+        <h2 id="context">Context</h2>
+        <p>While measuring chat latency from the production host, the
+        project owner copied his own access token out of the browser and
+        replayed it from <code>curl</code>. It worked, and it is
+        supposed to work — that is what a bearer token is. But it makes
+        the question concrete: <strong>anything that can read the tab’s
+        storage can act as that user until the token
+        expires.</strong></p>
+        <p>The application is an Angular single-page application
+        configured as a Keycloak <em>public client</em> (Authorization
+        Code Flow + PKCE, no client secret, because a browser cannot
+        keep one). The access token therefore lives in the browser, and
+        a decision is owed about how much that is worth defending in a
+        portfolio demo whose corpus is synthetic.</p>
+        <h3
+        id="the-threat-split-which-is-the-whole-of-this-decision">The
+        threat split, which is the whole of this decision</h3>
+        <p><strong>(a) A compromised endpoint is out of scope — for this
+        and for every web application.</strong> If malware runs on the
+        user’s machine, it can read cookies including
+        <code>HttpOnly</code> ones from the browser’s own store, log the
+        password as it is typed, screenshot the session, or drive the
+        browser through its debugging port. No web-application
+        architecture defends against a compromised endpoint; a design
+        that claims to is mis-selling. Saying this plainly is more
+        honest, and more useful in a review, than adding a layer that
+        does not address it.</p>
+        <p><strong>(b) Cross-site scripting reading the token from the
+        SPA is in scope.</strong> This is the realistic path by which a
+        <em>remote</em> attacker reaches the token, it has proportionate
+        mitigations, and those mitigations are cheap.</p>
+        <h3
+        id="what-is-already-in-place-and-was-verified-rather-than-assumed">What
+        is already in place, and was verified rather than assumed</h3>
+        <table>
+        <colgroup>
+        <col style="width: 33%" />
+        <col style="width: 33%" />
+        <col style="width: 33%" />
+        </colgroup>
+        <thead>
+        <tr class="header">
+        <th>Property</th>
+        <th>Value</th>
+        <th>How it was checked</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr class="odd">
+        <td>Token storage</td>
+        <td><code>sessionStorage</code> — tab-scoped, gone when the tab
+        closes; <strong>not</strong> <code>localStorage</code></td>
+        <td><code>angular-oauth2-oidc</code> falls back to
+        <code>sessionStorage</code> when no <code>OAuthStorage</code> is
+        provided, and <a
+        href="https://github.com/Keglev/maintenance-assistant/blob/main/frontend/src/app/app.config.ts"><code>app.config.ts</code></a>
+        provides none. The only <code>localStorage</code> key in the
+        application is the DE/EN language preference.</td>
+        </tr>
+        <tr class="even">
+        <td>Access-token lifetime</td>
+        <td>15 minutes</td>
+        <td><code>"accessTokenLifespan": 900</code> in the realm export;
+        matches the <code>expires_in</code> observed at login</td>
+        </tr>
+        <tr class="odd">
+        <td>Session lifetime</td>
+        <td>30 min idle / 10 h maximum</td>
+        <td><code>ssoSessionIdleTimeout</code> 1800,
+        <code>ssoSessionMaxLifespan</code> 36000</td>
+        </tr>
+        <tr class="even">
+        <td>Flow</td>
+        <td>Authorization Code + PKCE (S256), no implicit flow, no
+        direct access grants</td>
+        <td><code>frontend</code> client in the realm export</td>
+        </tr>
+        <tr class="odd">
+        <td>Brute-force protection</td>
+        <td>on</td>
+        <td><code>"bruteForceProtected": true</code></td>
+        </tr>
+        <tr class="even">
+        <td>DOM injection surface</td>
+        <td>none — no <code>innerHTML</code>, no
+        <code>bypassSecurityTrust*</code> anywhere in
+        <code>frontend/src</code>; the answer renderer splits the model
+        into typed segments and Angular escapes every interpolation</td>
+        <td>grep, and the review of PR #25</td>
+        </tr>
+        </tbody>
+        </table>
+        <p>The 15-minute lifetime is the quiet load-bearing control
+        here: it is the ceiling on what a stolen token is worth.</p>
+        <h2 id="decision">Decision</h2>
+        <p><strong>Keep the public-client SPA. Harden it at the edge.
+        Document the BFF as the production-grade evolution rather than
+        building it.</strong></p>
+        <h3 id="security-headers-at-the-caddy-layer">1. Security headers
+        at the Caddy layer</h3>
+        <p>Set on the application hostname, verified as landing on a
+        real response (see <em>Consequences</em>):</p>
+        <table>
+        <colgroup>
+        <col style="width: 33%" />
+        <col style="width: 33%" />
+        <col style="width: 33%" />
+        </colgroup>
+        <thead>
+        <tr class="header">
+        <th>Header</th>
+        <th>Value</th>
+        <th>Why</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr class="odd">
+        <td><code>Content-Security-Policy</code></td>
+        <td><code>default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self' https://&lt;auth host&gt;; img-src 'self' data:; font-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'self' https://&lt;auth host&gt;</code></td>
+        <td><code>script-src 'self'</code> is the line that matters: an
+        injected inline script does not execute even if something
+        manages to write one into the DOM. <code>connect-src</code> must
+        name the Keycloak host — the discovery document and the token
+        endpoint are fetched from there.</td>
+        </tr>
+        <tr class="even">
+        <td><code>X-Frame-Options</code></td>
+        <td><code>DENY</code></td>
+        <td>The same statement as <code>frame-ancestors</code> for
+        browsers that predate it</td>
+        </tr>
+        <tr class="odd">
+        <td><code>X-Content-Type-Options</code></td>
+        <td><code>nosniff</code></td>
+        <td>The backend already sent it; the SPA did not. Both halves of
+        the origin now answer the same way.</td>
+        </tr>
+        <tr class="even">
+        <td><code>Referrer-Policy</code></td>
+        <td><code>strict-origin-when-cross-origin</code></td>
+        <td>A protocol id in a path must not leak to another site</td>
+        </tr>
+        <tr class="odd">
+        <td><code>Permissions-Policy</code></td>
+        <td><code>camera=(), microphone=(), geolocation=(), payment=(), usb=()</code></td>
+        <td>The application asks for none of them</td>
+        </tr>
+        <tr class="even">
+        <td><code>Strict-Transport-Security</code></td>
+        <td><code>max-age=31536000</code></td>
+        <td>Both hostnames are HTTPS-only already. Deliberately
+        <strong>without</strong> <code>includeSubDomains</code> and
+        <strong>without</strong> <code>preload</code>: other subdomains
+        of this domain belong to other projects and are not this
+        deployment’s to speak for.</td>
+        </tr>
+        <tr class="odd">
+        <td><code>Server</code></td>
+        <td>removed</td>
+        <td>Caddy’s version is of no use to a visitor and of some use to
+        someone matching exploits</td>
+        </tr>
+        </tbody>
+        </table>
+        <p>Keycloak’s hostname keeps <strong>its own</strong> CSP.
+        Replacing a policy written for an application this deployment
+        does not maintain is how a login page stops rendering; only
+        headers Keycloak does not already set are added there.</p>
+        <h3
+        id="style-src-keeps-unsafe-inline-and-that-is-a-decision-not-an-oversight">2.
+        <code>style-src</code> keeps <code>'unsafe-inline'</code>, and
+        that is a decision, not an oversight</h3>
+        <p>Angular injects component styles as
+        <code>&lt;style&gt;</code> elements at runtime — visible in the
+        built bundle as
+        <code>createElement('style'); e.textContent = …</code>. The
+        framework’s only alternative is a per-request nonce via
+        <code>ngCspNonce</code>, and a statically served bundle behind a
+        reverse proxy has no per-request step in which to generate one.
+        The residual risk is CSS injection (defacement, and in exotic
+        setups exfiltration of attribute values through selectors), not
+        script execution. Buying <code>style-src 'self'</code> would
+        cost server-side rendering or a templating layer in front of
+        <code>index.html</code>; that is a large change to close a small
+        gap.</p>
+        <p>The same build change that made
+        <code>script-src 'self'</code> possible is worth recording:
+        Angular’s critical CSS inlining emits
+        <code>&lt;link … onload="this.media='all'"&gt;</code>, an inline
+        event handler, which the policy refuses — leaving the stylesheet
+        at <code>media="print"</code> and the application unstyled.
+        Production builds now set
+        <code>optimization.styles.inlineCritical: false</code>, which
+        emits a plain same-origin stylesheet link and costs one small
+        render-blocking request.</p>
+        <h3
+        id="the-bff-pattern-is-rejected-for-this-project-and-named-as-the-enterprise-answer">3.
+        The BFF pattern is rejected for this project, and named as the
+        enterprise answer</h3>
+        <p>A backend-for-frontend holds the tokens server-side and gives
+        the browser only an <code>HttpOnly</code>, <code>Secure</code>,
+        <code>SameSite</code> session cookie. It is the textbook answer
+        to SPA token theft and the right answer in an enterprise
+        setting, where sessions are long, data is real and an XSS bug is
+        a breach rather than an incident.</p>
+        <p>It is rejected <strong>here</strong> because of what it costs
+        relative to what it buys in this system: a stateful session
+        store, CSRF protection on every mutating request (the cookie is
+        sent automatically, which is exactly the property that makes
+        CSRF possible again), a second authorization-code exchange path,
+        and one more service on a two-vCPU host — to protect a token
+        that expires in fifteen minutes and grants read access to a
+        synthetic corpus of invented machine faults. The demo users hold
+        nothing worth stealing, by construction.</p>
+        <h3 id="recorded-not-fixed">4. Recorded, not fixed</h3>
+        <ul>
+        <li><strong>Refresh-token rotation is not configured.</strong>
+        The realm leaves <code>revokeRefreshToken</code> at its default
+        (off), so a refresh token can be reused within the session
+        lifetime. The SPA does not use silent refresh
+        (<code>useSilentRefresh: false</code>) and never calls
+        <code>refreshToken()</code>, so in practice the session ends
+        when the access token expires and the user signs in again.
+        Turning rotation on would be a realm change with no code change;
+        it is listed here so the next reader knows it is a choice and
+        not an oversight.</li>
+        <li><strong>No token binding, no DPoP.</strong>
+        Sender-constrained tokens would defeat the replay demonstrated
+        at the top of this record. They are not supported end-to-end by
+        this stack without work that would dwarf the demo.</li>
+        </ul>
+        <h2 id="consequences">Consequences</h2>
+        <p><strong>Positive</strong></p>
+        <ul>
+        <li>The realistic remote path to the token — XSS — is closed at
+        the browser rather than argued about: no inline script executes,
+        no third-party origin can be contacted, and nothing may frame
+        the app.</li>
+        <li>The headers cost nothing at runtime and nothing in the
+        build, and they are the first thing a security-minded reviewer
+        checks with <code>curl -I</code>.</li>
+        <li>The honest threat split is defensible in a conversation. “We
+        do not defend against a compromised endpoint, and here is why no
+        web app can” is a stronger answer than a layer that implies
+        otherwise.</li>
+        <li>The CSP was verified to land on a real 200 response, and to
+        <strong>override</strong> an upstream value: with a stub
+        upstream sending
+        <code>X-Content-Type-Options: sniff-me-please</code>, the
+        proxied response still carried <code>nosniff</code>. Caddy’s
+        <code>defer</code> is what makes that true, and it was measured
+        rather than trusted.</li>
+        </ul>
+        <p><strong>Negative</strong></p>
+        <ul>
+        <li><code>style-src 'unsafe-inline'</code> remains. The policy
+        is therefore not the strictest one a scanner will ask for, and
+        the reason has to be explained every time it is asked.</li>
+        <li>The Caddyfile is not deployed by CI. Like
+        <code>docker-compose.prod.yml</code>, it reaches the host only
+        when a person copies it there — so this hardening is inert until
+        someone does (arc42 §7.4, §7.5).</li>
+        <li>A CSP is a live risk to a working demo. Any future addition
+        of a third-party origin, an inline script or an iframe fails
+        closed, in the browser, and possibly silently in a way
+        <code>curl</code> never sees.</li>
+        <li>Rejecting the BFF means the token remains readable by any
+        script that runs in the page. The mitigation is that none should
+        be able to run; the residual risk is that an Angular escaping
+        bug or a careless future <code>innerHTML</code> would change
+        that in one commit.</li>
+        </ul>
+        <h2 id="alternatives-considered">Alternatives considered</h2>
+        <ul>
+        <li><strong>Backend-for-frontend with an <code>HttpOnly</code>
+        session cookie</strong> — the correct enterprise answer; costs a
+        stateful session layer, CSRF handling and a second auth path to
+        protect a 15-minute token over a synthetic corpus. <em>Rejected
+        for this project, documented as the production-grade
+        evolution.</em></li>
+        <li><strong>Move the token to an in-memory variable only (no
+        <code>sessionStorage</code>)</strong> — genuinely narrows the
+        window, since XSS must then run while the tab is open rather
+        than read storage at leisure. But it loses the session across a
+        page reload, which for an OIDC redirect flow means a round trip
+        to Keycloak on every refresh; and the same injected script that
+        could read storage can also read the variable it replaces.
+        <em>Rejected: real cost, small gain.</em></li>
+        <li><strong>Shorten the access token below 15 minutes</strong> —
+        cheap, and it does reduce the value of a stolen token. At five
+        minutes a technician mid-question would be interrupted three
+        times an hour without silent refresh, and adding silent refresh
+        means a hidden iframe against Keycloak — more surface, not less.
+        <em>Rejected; 15 minutes is the balance point for this
+        demo.</em></li>
+        <li><strong><code>style-src 'self'</code> with
+        <code>ngCspNonce</code></strong> — the strictest policy Angular
+        supports. Requires a per-request nonce injected into
+        <code>index.html</code>, which means server-side rendering or
+        templating in front of a currently static bundle. <em>Rejected:
+        closes CSS injection at the price of the deployment
+        model.</em></li>
+        <li><strong>Ship the policy as
+        <code>Content-Security-Policy-Report-Only</code> first</strong>
+        — the textbook safe rollout. Without a report collector it
+        produces console violations only, which is exactly what the
+        manual browser walkthrough already surfaces. <em>Rejected as
+        ceremony for a one-host demo; the walkthrough is the
+        report.</em></li>
+        </ul>
+      </article>
+    </main>
+
+        <nav class="toc" aria-label="On this page">
+      <p class="toc-title">On this page</p>
+      <ul>
+      <li><a
+      href="#adr-005-keep-the-public-client-spa-harden-it-and-document-the-bff"
+      id="toc-adr-005-keep-the-public-client-spa-harden-it-and-document-the-bff">ADR-005:
+      Keep the Public-Client SPA, Harden It, and Document the BFF</a>
+      <ul>
+      <li><a href="#context" id="toc-context">Context</a>
+      <ul>
+      <li><a
+      href="#the-threat-split-which-is-the-whole-of-this-decision"
+      id="toc-the-threat-split-which-is-the-whole-of-this-decision">The
+      threat split, which is the whole of this decision</a></li>
+      <li><a
+      href="#what-is-already-in-place-and-was-verified-rather-than-assumed"
+      id="toc-what-is-already-in-place-and-was-verified-rather-than-assumed">What
+      is already in place, and was verified rather than assumed</a></li>
+      </ul></li>
+      <li><a href="#decision" id="toc-decision">Decision</a>
+      <ul>
+      <li><a href="#security-headers-at-the-caddy-layer"
+      id="toc-security-headers-at-the-caddy-layer">1. Security headers
+      at the Caddy layer</a></li>
+      <li><a
+      href="#style-src-keeps-unsafe-inline-and-that-is-a-decision-not-an-oversight"
+      id="toc-style-src-keeps-unsafe-inline-and-that-is-a-decision-not-an-oversight">2.
+      <code>style-src</code> keeps <code>'unsafe-inline'</code>, and
+      that is a decision, not an oversight</a></li>
+      <li><a
+      href="#the-bff-pattern-is-rejected-for-this-project-and-named-as-the-enterprise-answer"
+      id="toc-the-bff-pattern-is-rejected-for-this-project-and-named-as-the-enterprise-answer">3.
+      The BFF pattern is rejected for this project, and named as the
+      enterprise answer</a></li>
+      <li><a href="#recorded-not-fixed" id="toc-recorded-not-fixed">4.
+      Recorded, not fixed</a></li>
+      </ul></li>
+      <li><a href="#consequences"
+      id="toc-consequences">Consequences</a></li>
+      <li><a href="#alternatives-considered"
+      id="toc-alternatives-considered">Alternatives considered</a></li>
+      </ul></li>
+      </ul>
+    </nav>
+      </div>
+
+  <footer class="footer">
+    maintenance-assistant · Generated by the docs pipeline
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <script src="/maintenance-assistant/assets/docs.js"></script>
+</body>
+</html>

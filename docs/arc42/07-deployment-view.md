@@ -167,6 +167,7 @@ deploy:
 |---|---|
 | Backend or frontend code | CI, automatically |
 | `docker/docker-compose.prod.yml` | **a person, by hand** |
+| `docker/caddy/Caddyfile` | **a person, by hand** — bind-mounted from the host, same as the compose file |
 | `.env.prod` (documented by `.env.prod.example`) | **a person, by hand** — it is not in the repo at all |
 
 The failure mode is quiet and was met in practice: PR #22 fixed the file-volume wiring, merged, and
@@ -179,6 +180,17 @@ cd /opt/maintenance-assistant
 cp docker-compose.prod.yml docker-compose.prod.yml.bak-$(date +%Y%m%d-%H%M%S)   # rollback copy first
 # copy the new file over (scp from the workstation, or edit in place)
 docker compose -f docker-compose.prod.yml up -d --force-recreate backend
+```
+
+The Caddyfile is applied the same way, and reloaded rather than recreated — Caddy re-reads its
+configuration without dropping connections or re-issuing certificates:
+
+```bash
+cp caddy/Caddyfile caddy/Caddyfile.bak-$(date +%Y%m%d-%H%M%S)   # rollback copy first
+# copy the new file over
+docker compose -f docker-compose.prod.yml --env-file .env.prod exec caddy \
+  caddy reload --config /etc/caddy/Caddyfile
+curl -sSI https://<app host>/ | grep -i content-security-policy   # it either arrived or it did not
 ```
 
 The `.bak` copy is the rule rather than a suggestion: this file is the only definition of the

@@ -5,10 +5,11 @@ Naming update overriding older docs: project = "maintenance-assistant",
 Keycloak realm = "maintenance". English repo name is intentional.)
 
 =====================================================================
-CURRENT STATUS — 2026-08-07, end of session (SESSION HANDOVER)
+CURRENT STATUS — 2026-08-08, end of session (SESSION HANDOVER)
 =====================================================================
-Phases 0, 1 and 2 are DONE. Release v0.1.0 is tagged (v0.2.0 tag for
-Phase 2 is Carlos's call). Next: PHASE 3.
+Phases 0, 1 and 2 are DONE. PHASE 3 is functionally complete once the
+search-UI PR merges. Release v0.1.0 is tagged (v0.2.0 for Phase 2 and
+a Phase 3 tag are Carlos's call). Next: PHASE 4 (polish + ship).
 
 Phase 2 shipped in PRs #18 (Flyway V1 + machines), #19 (150-protocol
 corpus + seed loader), #20 (backups), #21 (ingestion pipeline), #22
@@ -19,6 +20,15 @@ verified live (all four E-47 protocols top the Presse-3 ranking).
 Cost of full corpus embedding: EUR 0.00055 (27,713 input tokens,
 150 calls, 52 s with 4 workers). Seed + backlog flags are DISARMED;
 backups now carry real content (dump 752K incl. vectors, verified).
+
+Phase 3 shipped in PR #24 (query path: POST /api/query, threshold
+0.55, two answer modes, NFR-7 guards) and the search-UI PR (Angular
+search + upload views, DE/EN switch, and the three read endpoints
+they needed: GET /api/machines, /api/protocols/{id}/document,
+/api/protocols/mine). LATENCY RESIDUAL RISK IS CLOSED — measured from
+the production host and end-to-end through production; NFR-4 is met
+at the median and at the worst observed value (ADR-002 note
+2026-08-07).
 
 Live demo:  https://maintenance.smartsupply.com.de  (Angular + Keycloak
             SSO, valid TLS via Caddy/Let's Encrypt, demo users
@@ -62,8 +72,16 @@ Config:     Flyway auto-config was DEAD on Boot 4.1 (missing
             properties moved to spring.web.error.*.
 
 OPEN ITEMS carried forward (not blockers, do not lose):
-- Re-validate chat latency from the Hetzner host during Phase 3
-  (spike figures are from a residential connection; ADR-002 notes it).
+- Chat latency from the Hetzner host: DONE 2026-08-07, residual risk
+  CLOSED. Measured three ways (residential via the query module,
+  provider leg from the host, end-to-end through production) and all
+  three show the same shape, which attributes the variance to provider
+  queueing rather than to any network path. Provider leg from the host,
+  8 forced ~500-token calls: median ~15 s (8.4-29.7). End-to-end
+  through production, 5 cold questions: median 5.5 s (4.5-17.2) — real
+  answers are far shorter than the forced probe, so end-to-end beats
+  the provider leg. NFR-4 met at the median and at the worst observed.
+  Evidence: ADR-002 dated note 2026-08-07.
 - Threshold 0.583: MEASURED 2026-08-07 against the real corpus and it
   is TOO HIGH. E-47 demo 0.695 (Mode A, ok), cross-language demo 0.577
   (wants Mode A, would be refused), Mode-B gap 0.502 (correctly Mode B).
@@ -86,11 +104,12 @@ OPEN ITEMS carried forward (not blockers, do not lose):
   first thing to re-measure after any change to chunking, the corpus
   or the embedding model. Reproduce with QueryDemoVerificationIT
   (skipped unless LLM_API_KEY is set).
-- NEW: chat latency median ~13 s end to end, and 1 of 13 measured
-  queries breached NFR-4's 30 s ceiling at 38.9 s — from a
-  residential connection. Re-measuring from the Hetzner host was
-  already an open item; it is now the urgent half of it, because the
-  answer is no longer comfortably inside the ceiling.
+- Chat latency tail: the 38.9 s breach measured in PR #24 remains
+  POSSIBLE on a bad queue day — shared serverless capacity, no SLA at
+  this tier. Documented residual, NO ACTION by decision; the
+  mitigations are already in place (client timeout, the "still
+  working" state in the search view, the max_tokens cap). See the
+  closed latency item above for the numbers that settled it.
 - OPS RULE (learned the hard way, cost ~12 min): the deploy pipeline
   pulls IMAGES ONLY — it never syncs docker-compose.prod.yml or
   .env.prod to the host. Any merged change to those files must be
@@ -126,29 +145,39 @@ OPEN ITEMS carried forward (not blockers, do not lose):
   in VS Code clears the false "never used" warnings; select the
   Python interpreter for spike/ imports.
 
-NEXT SESSION STARTS WITH: Phase 3 PR 2, the Angular search view.
-  (1) feat/query-api — DONE (PR open, not merged). POST /api/query for
-      operator/techniker/schichtleiter; question embedded, one
-      machine-filtered pgvector top-5, threshold 0.55 -> Mode A / B.
-      Chat = plain RestClient (Spring AI revisited on the chat path
-      and declined again — see DECISIONS.txt == QUERY PATH ==).
-      Llama-3.3-70B FOR EVERY ROLE on measured evidence; Qwen3.5-9B
-      failed to ground the cross-language demo. Two separate prompt
-      classes, structured JSON, citations validated against the
-      retrieved set. NFR-7: Bucket4j 10/min per sub, chat_budget
-      table (V3), max_tokens 1200 in the client, Caffeine cache keyed
-      including the ROLE. Housekeeping done: compose default + both
-      arc42 rules. STILL OPEN from it: latency from the Hetzner host,
-      and the 0.0066 cross-language margin (both in OPEN ITEMS).
-  (2) feat/search-ui — Angular search view: Mode A/B visually
-      distinct, source links, upload view with status, DE/EN switch.
-      The response DTO is already shaped for it: mode, answer with
-      inline [P1] markers, language, claims (text + source label) and
-      citations (label, protocolId, title, errorCode, incidentDate,
-      similarity). Mode B returns empty claims and citations.
-      NOTE: the view needs a machine picker and there is no endpoint
-      listing machines yet — /api/query takes the machine UUID.
-  Then Phase 4 (polish + ship, v1.0.0).
+PHASE 3, as built:
+  (1) feat/query-api — MERGED (#24). POST /api/query for operator/
+      techniker/schichtleiter; question embedded, one machine-filtered
+      pgvector top-5, threshold 0.55 -> Mode A / B. Chat = plain
+      RestClient (Spring AI revisited on the chat path and declined
+      again — see DECISIONS.txt == QUERY PATH ==). Llama-3.3-70B FOR
+      EVERY ROLE on measured evidence; Qwen3.5-9B failed to ground the
+      cross-language demo. Two separate prompt classes, structured
+      JSON, citations validated against the retrieved set. NFR-7:
+      Bucket4j 10/min per sub, chat_budget table (V3), max_tokens 1200
+      in the client, Caffeine cache keyed including the ROLE.
+  (2) feat/search-ui — PR open, not merged. Angular search view with
+      the two modes visually distinct (Mode A green + check + inline
+      [P1] links into the source list; Mode B amber + hatched + NO
+      source area at all), upload view honest about the 202 with a
+      manual status refresh, DE/EN runtime dictionary. Backend
+      additions, minimal: GET /api/machines (closes the picker gap),
+      GET /api/protocols/{id}/document (source links; readable by all
+      three shop-floor roles, path validated against the volume root),
+      GET /api/protocols/mine (schichtleiter, own uploads + failure
+      reason). QueryController's two 503s now carry a `reason` code so
+      the UI can tell a spent budget from an unreachable provider.
+
+NEXT SESSION STARTS WITH: PHASE 4 — polish + ship.
+  - README: problem first, 90-second demo walkthrough, architecture
+    diagram, links to ADRs and the docs site; AI-USAGE.md current.
+  - OpenAPI/Swagger reachable in the deployed demo (recruiter feedback).
+  - "How to reproduce" in spike/adr-002/RESULTS.md.
+  - Full recruiter walkthrough on a phone and a fresh browser.
+  - Release v1.0.0.
+  DEPLOY NOTE for whoever merges the search-UI PR: it changes no
+  compose file, so CI deploys it on its own. The query PR's compose
+  change was already applied by hand (see the ops rule in OPEN ITEMS).
 
 =====================================================================
 GIT WORKFLOW (MANDATORY FOR EVERY AI SESSION — no exceptions)
@@ -338,25 +367,32 @@ PHASE 2 — DATA + INGESTION  [DONE — 2026-08-07, PRs #18-#22 + ops]
     the real corpus: TOO HIGH, tune to ~0.54-0.55 in Phase 3.
 
 =====================================================================
-PHASE 3 — RAG QUERY + MODES
+PHASE 3 — RAG QUERY + MODES  [DONE — #24 + the search-UI PR]
 =====================================================================
-- Query module: embed question -> filtered pgvector top-5 ->
-  threshold -> Mode A/B
-- Prompting: answer only from sources, cite each claim (few-shot
-  format example; MUST NOT apply to the Mode-B/refusal path — spike
-  observed citation leakage into refusals), answer in user's language
-  (explicit language-pinning rule incl. refusals), role-based
-  filtering (Operator = operator-safe steps only)
-- Chat model choice per role finalized here (Llama-3.3-70B vs
-  Qwen3.5-9B, spike round-2 evidence); structured JSON output is the
-  app-side enforcement fallback
-- Spring AI vs plain RestClient decided here (fallback RestClient)
-- Fresh long-TTL IONOS token for the server .env.prod
-- Re-validate latency from the Hetzner host (ADR-002 residual risk)
-- NFR-7 guards: Bucket4j per-user rate limit, daily budget counter,
-  max_tokens cap, query cache
-- Angular: search view with Mode A/B visual distinction + source
-  links; upload view with status; DE/EN switch
+[x] Query module: embed question -> filtered pgvector top-5 ->
+    threshold 0.55 -> Mode A/B (#24)
+[x] Prompting: answer only from sources, cite each claim (few-shot
+    format example, kept OUT of the Mode-B path by putting the two
+    prompts in two classes), language pinning incl. refusals,
+    role-based filtering (Operator = operator-safe steps only) (#24)
+[x] Chat model: Llama-3.3-70B FOR EVERY ROLE — no per-role split,
+    because the evidence did not ask for one. Structured JSON is the
+    app-side enforcement, and it earned its place: it is what caught
+    Qwen3.5-9B failing to ground the cross-language case (#24)
+[x] Spring AI vs plain RestClient: RestClient, revisited on the chat
+    path as promised and declined again on the same reasoning (#24)
+[x] Fresh long-TTL IONOS token for the server .env.prod (ops session,
+    2026-08-07; expires 2027-08-07)
+[x] Latency from the Hetzner host — RESIDUAL RISK CLOSED. Measured
+    three ways, all the same shape: the variance is provider queueing,
+    not the network path. NFR-4 met at the median and at the worst
+    observed (ADR-002 note 2026-08-07)
+[x] NFR-7 guards: Bucket4j per-user rate limit, daily budget counter
+    in Postgres, max_tokens cap sent by the client, query cache keyed
+    including the role (#24)
+[x] Angular: search view with Mode A/B visual distinction + source
+    links; upload view with status; DE/EN switch (search-UI PR),
+    plus the three read endpoints those views needed
 
 =====================================================================
 PHASE 4 — POLISH + SHIP

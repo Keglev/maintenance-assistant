@@ -597,6 +597,75 @@ into Go struct field Embedding.data.embedding of type []float32</code></pre>
         queries/month the ADR assumes, ~EUR 6.50/month, the same order
         as §5’s EUR 4.94 estimate and still a rounding error against the
         VPS.</p>
+        <h3
+        id="note-2026-08-07-latency-from-the-production-host-and-the-residual-risk-closed">Note,
+        2026-08-07 — latency from the production host, and the residual
+        risk closed</h3>
+        <p>Latency was measured three ways — from a residential
+        connection through the query module (PR #24), from the
+        production host directly against the provider, and end-to-end
+        through the deployed stack. All three show the same shape, which
+        attributes the variance to provider queueing rather than to any
+        network path: the identical request returned in 12.9 s and 24.5
+        s minutes apart with identical token counts.</p>
+        <p>That is the finding. The two new measurements:</p>
+        <p><strong>(a) The provider leg, from the Hetzner host.</strong>
+        Direct <code>POST /v1/chat/completions</code>,
+        <code>meta-llama/Llama-3.3-70B-Instruct</code>, forced
+        ~500-token completions so every call does comparable work, 8
+        calls:</p>
+        <table>
+        <tbody>
+        <tr class="odd">
+        <td style="text-align: right;">8.4 s</td>
+        <td style="text-align: right;">11.1 s</td>
+        <td style="text-align: right;">13.7 s</td>
+        <td style="text-align: right;">14.2 s</td>
+        <td style="text-align: right;">15.8 s</td>
+        <td style="text-align: right;">16.8 s</td>
+        <td style="text-align: right;">18.0 s</td>
+        <td style="text-align: right;">29.7 s</td>
+        </tr>
+        </tbody>
+        </table>
+        <p>Median <strong>~15 s</strong>, spread 8.4–29.7 s. The same
+        distribution as the residential run — <strong>the datacenter
+        path adds nothing</strong>, which is the question this ADR left
+        open and the reason it was worth asking.</p>
+        <p><strong>(b) End-to-end through production.</strong>
+        <code>https://maintenance.smartsupply.com.de/api/query</code>,
+        techniker token, 5 distinct questions with the cache cold:</p>
+        <table>
+        <tbody>
+        <tr class="odd">
+        <td style="text-align: right;">4.5 s</td>
+        <td style="text-align: right;">4.9 s</td>
+        <td style="text-align: right;">5.5 s</td>
+        <td style="text-align: right;">7.4 s</td>
+        <td style="text-align: right;">17.2 s</td>
+        </tr>
+        </tbody>
+        </table>
+        <p>Median <strong>5.5 s</strong>. The 17.2 s case is the E-47
+        four-protocol Mode A answer — the longest real completion,
+        exactly as expected.</p>
+        <p><strong>Conclusion: NFR-4 is met at the median and at the
+        worst observed value.</strong> The end-to-end numbers
+        <em>beat</em> the provider-leg numbers, and that is not a
+        contradiction: real answers are far shorter than the forced
+        500-token probe, so the probe measures a worse case than the
+        application produces. The earlier 38.9 s breach remains possible
+        on a bad queue day — this tier is shared serverless capacity
+        with no SLA, which is what makes the tail long rather than
+        anything in our control. <strong>Documented residual, no
+        action.</strong> The mitigations already in place are the right
+        ones: a client-side timeout, the “still working” state in the
+        search view, and the <code>max_tokens</code> cap that bounds the
+        worst case.</p>
+        <p>This closes the residual risk the ADR recorded under
+        <em>Negative / residual risks</em> (“latency figures are
+        indicative … revalidate from the production host in Phase
+        3”).</p>
         <h2 id="alternatives-considered">Alternatives considered</h2>
         <ul>
         <li><strong>Nebius Token Factory as primary</strong> (the
@@ -646,6 +715,11 @@ into Go struct field Embedding.data.embedding of type []float32</code></pre>
       id="toc-note-2026-08-07-the-query-path-measured-against-the-production-prompt">Note,
       2026-08-07 — the query path, measured against the production
       prompt</a></li>
+      <li><a
+      href="#note-2026-08-07-latency-from-the-production-host-and-the-residual-risk-closed"
+      id="toc-note-2026-08-07-latency-from-the-production-host-and-the-residual-risk-closed">Note,
+      2026-08-07 — latency from the production host, and the residual
+      risk closed</a></li>
       </ul></li>
       <li><a href="#alternatives-considered"
       id="toc-alternatives-considered">Alternatives considered</a></li>

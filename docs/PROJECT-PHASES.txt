@@ -7,9 +7,16 @@ Keycloak realm = "maintenance". English repo name is intentional.)
 =====================================================================
 CURRENT STATUS — 2026-08-08, end of session (SESSION HANDOVER)
 =====================================================================
-Phases 0, 1 and 2 are DONE. PHASE 3 is functionally complete once the
-search-UI PR merges. Release v0.1.0 is tagged (v0.2.0 for Phase 2 and
-a Phase 3 tag are Carlos's call). Next: PHASE 4 (polish + ship).
+Phases 0, 1, 2 and 3 are DONE. Phase 3 shipped in PRs #24 (query
+path), #25 (search UI) and #26 (source-link fix), all merged and
+deployed. VERIFIED IN A REAL BROWSER 2026-08-08: the E-47 demo on
+Presse 3 answered Mode A citing ALL FOUR root-cause protocols
+(63/60/59/58 % similarity), inline [P1]..[P4] markers resolve to the
+source list, and a clicked source opened the full protocol in a new
+tab as a blob: URL — the #26 fix visible on screen. Release v0.1.0 is
+tagged (Phase 2/3 tags are Carlos's call). Next: PHASE 4 (polish +
+ship), with a REVISED SCOPE — see NEXT SESSION below: professional UI
+redesign and a token-security hardening decision joined the plan.
 
 Phase 2 shipped in PRs #18 (Flyway V1 + machines), #19 (150-protocol
 corpus + seed loader), #20 (backups), #21 (ingestion pipeline), #22
@@ -72,8 +79,9 @@ Config:     Flyway auto-config was DEAD on Boot 4.1 (missing
             properties moved to spring.web.error.*.
 
 OPEN ITEMS carried forward (not blockers, do not lose):
-- SOURCE LINKS 401'd IN THE BROWSER — found and FIXED in fix/source-
-  links, after PR #25 shipped them. A browser-followed <a href> is a
+- SOURCE LINKS 401'd IN THE BROWSER — found and FIXED in #26 (merged,
+  deployed, and verified by a real click on 2026-08-08: the source
+  opened in a new tab as a blob: URL), after PR #25 shipped them. A browser-followed <a href> is a
   fresh navigation that never reaches Angular's interceptor, so it
   carries no Bearer token, and the backend is a stateless JWT resource
   server with no cookie fallback: every click on a citation answered
@@ -141,11 +149,15 @@ OPEN ITEMS carried forward (not blockers, do not lose):
   the query PR — it now repeats application.yml's real default
   (meta-llama/Llama-3.3-70B-Instruct), and LLM_CHAT_DAILY_CALL_BUDGET
   joins it. It stopped being harmless the moment the chat path read it.
-- ACTION FOR THE NEXT DEPLOY, and it is the ops rule above in
-  practice: the query PR changes docker-compose.prod.yml, so merging
-  it deploys the new image with the OLD compose file. Copy the file to
-  the host (with a .bak) and `up -d --force-recreate backend`, or the
-  chat model stays empty and every answer fails.
+- The #24 compose change WAS applied on the host by hand (bak copy
+  taken, container recreated, printenv verified LLM_CHAT_MODEL +
+  LLM_CHAT_DAILY_CALL_BUDGET) before the deploy — the ops rule worked
+  as written. #25 and #26 changed no compose file; CI deployed them
+  alone. WARNING kept from that session: running `docker compose` on
+  the host WITHOUT `--env-file .env.prod` prints a wall of "variable
+  is not set" WARNs — harmless for exec/ps, but an `up -d` in that
+  form would recreate containers with blank secrets. Any `up` on the
+  host must name both the file and the env-file.
 - CHUNK COUNT, canonical: 150 protocols -> 166 chunks (134x1 + 16x2;
   the arithmetic only works for 166). PR #21's summary and an older
   DECISIONS.txt line said 151/167 — off by one, likely a leftover
@@ -169,7 +181,7 @@ PHASE 3, as built:
       JSON, citations validated against the retrieved set. NFR-7:
       Bucket4j 10/min per sub, chat_budget table (V3), max_tokens 1200
       in the client, Caffeine cache keyed including the ROLE.
-  (2) feat/search-ui — PR open, not merged. Angular search view with
+  (2) feat/search-ui — MERGED (#25). Angular search view with
       the two modes visually distinct (Mode A green + check + inline
       [P1] links into the source list; Mode B amber + hatched + NO
       source area at all), upload view honest about the 202 with a
@@ -180,17 +192,89 @@ PHASE 3, as built:
       GET /api/protocols/mine (schichtleiter, own uploads + failure
       reason). QueryController's two 503s now carry a `reason` code so
       the UI can tell a spent budget from an unreachable provider.
+  (3) fix/source-links — MERGED (#26). Citation sources are fetched as
+      blobs through HttpClient (the interceptor attaches the token)
+      and opened as object URLs; the new tab is opened SYNCHRONOUSLY
+      in the click handler and navigated after the blob arrives (the
+      popup-blocker-safe order), with a download fallback carrying the
+      Content-Disposition filename when the popup is blocked anyway.
+      The <a> kept its keyboard semantics but has NO href — a raw href
+      is the bug, and the regression guard in search.spec.ts forbids
+      it. The pre-fix suite ASSERTED the bug (checked href === the API
+      URL); it was replaced by its opposite.
 
-NEXT SESSION STARTS WITH: PHASE 4 — polish + ship.
-  - README: problem first, 90-second demo walkthrough, architecture
-    diagram, links to ADRs and the docs site; AI-USAGE.md current.
-  - OpenAPI/Swagger reachable in the deployed demo (recruiter feedback).
-  - "How to reproduce" in spike/adr-002/RESULTS.md.
-  - Full recruiter walkthrough on a phone and a fresh browser.
-  - Release v1.0.0.
-  DEPLOY NOTE for whoever merges the search-UI PR: it changes no
-  compose file, so CI deploys it on its own. The query PR's compose
-  change was already applied by hand (see the ops rule in OPEN ITEMS).
+NEXT SESSION STARTS WITH: PHASE 4 — polish + ship, REVISED SCOPE.
+Carlos added two work packages on 2026-08-08; suggested robot PRs, in
+order:
+
+  (1) feat/ui-redesign — the frontend works but looks like a skeleton,
+      not like a product a recruiter would screenshot. Scope:
+      - A real visual design: consistent spacing/typography/color
+        system (keep the Mode A green / Mode B amber distinction — it
+        is NFR-2's anti-hallucination mechanism, not a theme choice),
+        proper header (app name, language switch, user + role, logout)
+        and footer (imprint-style links: docs site, GitHub repo,
+        AI-USAGE).
+      - A LANDING PAGE for the logged-out state: what the app is, who
+        the demo users are (the recruiter arrives here first — this
+        page is the 90-second pitch), login button.
+      - A HELP affordance (button/dialog): what the two answer modes
+        mean, what each role may do, example questions per demo seed.
+        Content from DECISIONS.txt, DE/EN via the existing dictionary.
+      - Responsive check: the Phase 4 walkthrough is ON A PHONE.
+      - No functional changes to search/upload logic; vitest suite
+        stays green and the no-raw-/api-href regression guard stays.
+
+  (2) sec/token-hardening — Carlos's mock-interview question, and he
+      DEMONSTRATED the threat himself: while measuring latency he
+      lifted his own access token out of the browser and used it from
+      curl. Anything that can read the tab's storage (XSS, or malware
+      on the machine) can do the same. Honest scope for this project:
+      - THREAT SPLIT (this is the ADR's spine): (a) malware on the
+        user's machine can also steal cookies, keylog the password and
+        read the screen — NO web-app architecture defends against a
+        compromised endpoint; state this plainly rather than pretend.
+        (b) XSS stealing the token from the SPA IS in scope and has
+        real, proportionate mitigations.
+      - What is ALREADY in place (record, don't rebuild): access token
+        lives in sessionStorage (tab-scoped, gone on close — the
+        angular-oauth2-oidc default; NOT localStorage), lifetime is
+        15 min (measured: expires_in 900), Angular templates escape by
+        default and the answer renderer uses typed segments with no
+        innerHTML anywhere (verified in review of #25).
+      - CHEAP AND REAL, do it: security headers at the Caddy layer —
+        Content-Security-Policy (script-src 'self'; connect-src self +
+        auth host; frame-ancestors 'none'), X-Content-Type-Options
+        (backend already sends nosniff — align the frontend),
+        Referrer-Policy, Permissions-Policy. NOTE: Caddyfile changes
+        deploy like compose changes — BY HAND on the host (ops rule).
+        Verify the CSP does not break the OIDC redirect or the blob:
+        tabs (blob: needs allowing where used) BEFORE merging.
+      - DISPROPORTIONATE FOR A PORTFOLIO DEMO, decide + document in
+        ADR-005 (token handling) instead of building: the BFF pattern
+        (backend-for-frontend holding tokens server-side, HttpOnly
+        session cookie to the browser) is the textbook answer to
+        SPA token theft and the RIGHT answer in an enterprise setting
+        — and it adds a stateful session layer, CSRF handling and a
+        second auth code path to a demo whose token already dies in
+        15 minutes. Decide: keep the public-client SPA + short TTL +
+        CSP, document BFF as the production-grade evolution. Also
+        record: refresh-token rotation status in the realm, and that
+        the demo users hold no data worth stealing (synthetic corpus).
+        THIS ADR IS INTERVIEW MATERIAL — Carlos asked the exact
+        question a mock interviewer asked him; the ADR is the answer
+        he will give.
+
+  (3) docs/ship-readiness — README (problem first, 90-second demo
+      walkthrough, architecture diagram, links to ADRs + docs site),
+      AI-USAGE.md current, OpenAPI/Swagger reachable in the deployed
+      demo (recruiter feedback!), "How to reproduce" in
+      spike/adr-002/RESULTS.md.
+
+  Then, by hand (Carlos, no robot): full recruiter walkthrough on a
+  phone and a fresh browser — REMEMBER THE #26 LESSON: anything the
+  browser performs itself must be verified by clicking, not with curl
+  — then tag v1.0.0.
 
 =====================================================================
 GIT WORKFLOW (MANDATORY FOR EVERY AI SESSION — no exceptions)
@@ -408,10 +492,20 @@ PHASE 3 — RAG QUERY + MODES  [DONE — #24 + the search-UI PR]
     plus the three read endpoints those views needed
 
 =====================================================================
-PHASE 4 — POLISH + SHIP
+PHASE 4 — POLISH + SHIP  (REVISED 2026-08-08 — see NEXT SESSION above
+for the full three-PR plan; this list is the summary)
 =====================================================================
-- Tests (JUnit/Mockito; at least: mode routing, role filtering,
-  budget guard)
+- UI redesign: professional look, header + footer, landing page for
+  the logged-out state, help dialog, responsive (walkthrough is on a
+  phone). Mode A/B visual distinction stays — it is NFR-2, not theme.
+- Token-security hardening + ADR-005: threat split (compromised
+  endpoint = out of scope for ANY web app, stated plainly; XSS = in
+  scope), security headers at Caddy (CSP etc. — Caddyfile deploys BY
+  HAND like compose), sessionStorage + 15-min TTL recorded as the
+  existing posture, BFF pattern decided against for the demo and
+  documented as the enterprise-grade evolution. Interview material.
+- Tests kept green throughout (mode routing, role filtering, budget
+  guard already covered since #24/#25)
 - OpenAPI/Swagger reachable in the deployed demo (recruiter feedback!)
 - README: problem first, 90-second demo walkthrough, architecture
   diagram, links to ADRs and gh-pages docs site; AI-USAGE.md current
@@ -419,6 +513,7 @@ PHASE 4 — POLISH + SHIP
   deploy work is verification + hardening, not first deployment
 - "How to reproduce" section in spike/adr-002/RESULTS.md (provability)
 - Full recruiter walkthrough test on a phone and a fresh browser
+  (click everything — an API call is not a click, see #26)
 - Release v1.0.0
 
 =====================================================================

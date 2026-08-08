@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ProtocolReadController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">maintenance-assistant</a> &gt; <a href="index.source.html" class="el_package">com.keglevich.maintenanceassistant.web</a> &gt; <span class="el_source">ProtocolReadController.java</span></div><h1>ProtocolReadController.java</h1><pre class="source lang-java linenums">package com.keglevich.maintenanceassistant.web;
+
+import com.keglevich.maintenanceassistant.ingestion.ProtocolDocumentService;
+import com.keglevich.maintenanceassistant.ingestion.ProtocolStatusService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.core.io.Resource;
+import org.springframework.http.ContentDisposition;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.nio.charset.StandardCharsets;
+import java.util.List;
+import java.util.UUID;
+
+/**
+ * Reading protocols back: the source document behind a citation, and the fate of one's own uploads.
+ *
+ * &lt;p&gt;Separate from {@link ProtocolUploadController} because the authorisation rules are genuinely
+ * different, not because the paths are. Writing is Schichtleiter-only by decision (DECISIONS.txt:
+ * quality, consistency, anti-garbage). Reading a source is open to every shop-floor role, and has to
+ * be: Mode A's promise is that each claim names a protocol the reader can open and check, and a
+ * citation nobody may follow is a citation they have to take on trust — which is the state this
+ * whole application exists to end.
+ */
+@RestController
+@RequestMapping(&quot;/api/protocols&quot;)
+@Tag(name = &quot;Ingestion&quot;, description = &quot;Upload and indexing of maintenance protocols&quot;)
+class ProtocolReadController {
+
+    private final ProtocolDocumentService documents;
+    private final ProtocolStatusService statuses;
+
+<span class="fc" id="L44">    ProtocolReadController(ProtocolDocumentService documents, ProtocolStatusService statuses) {</span>
+<span class="fc" id="L45">        this.documents = documents;</span>
+<span class="fc" id="L46">        this.statuses = statuses;</span>
+<span class="fc" id="L47">    }</span>
+
+    @GetMapping(&quot;/{id}/document&quot;)
+    @PreAuthorize(&quot;hasAnyRole('OPERATOR', 'TECHNIKER', 'SCHICHTLEITER')&quot;)
+    @Operation(summary = &quot;Download the original document a citation points at&quot;,
+            description = &quot;Streams the stored file from the volume. This is what makes a Mode A &quot;
+                    + &quot;citation checkable rather than decorative.&quot;)
+    @ApiResponses({
+            @ApiResponse(responseCode = &quot;200&quot;, description = &quot;The document&quot;),
+            @ApiResponse(responseCode = &quot;403&quot;, description = &quot;Caller holds no shop-floor role&quot;),
+            @ApiResponse(responseCode = &quot;404&quot;, description = &quot;No such protocol, or its file is gone&quot;)
+    })
+    ResponseEntity&lt;Resource&gt; document(@PathVariable UUID id) {
+<span class="fc" id="L60">        return documents.find(id)</span>
+<span class="fc" id="L61">                .map(document -&gt; ResponseEntity.ok()</span>
+<span class="fc" id="L62">                        .contentType(MediaType.parseMediaType(document.contentType()))</span>
+                        // Inline: following a citation should open the source, not start a download.
+                        // The filename still travels, so saving it produces something readable.
+<span class="fc" id="L65">                        .header(HttpHeaders.CONTENT_DISPOSITION, ContentDisposition.inline()</span>
+<span class="fc" id="L66">                                .filename(document.downloadName(), StandardCharsets.UTF_8)</span>
+<span class="fc" id="L67">                                .build()</span>
+<span class="fc" id="L68">                                .toString())</span>
+<span class="fc" id="L69">                        .body(document.resource()))</span>
+                // A protocol whose row exists but whose file does not is the same 404 as an unknown
+                // id. Distinguishing them in the response would describe the database to whoever
+                // asked, and there is nothing the caller could do differently either way.
+<span class="fc" id="L73">                .orElseGet(() -&gt; ResponseEntity.notFound().build());</span>
+    }
+
+    @GetMapping(&quot;/mine&quot;)
+    @PreAuthorize(&quot;hasRole('SCHICHTLEITER')&quot;)
+    @Operation(summary = &quot;What happened to the protocols you uploaded&quot;,
+            description = &quot;The 50 most recent uploads of the calling user, newest first, with &quot;
+                    + &quot;status RECEIVED / INDEXED / FAILED and the failure reason. Upload answers &quot;
+                    + &quot;202, so this is where a document becoming searchable is actually visible.&quot;)
+    List&lt;ProtocolStatusService.UploadStatus&gt; myUploads(@AuthenticationPrincipal Jwt jwt) {
+        // The username claim, matching what the upload path writes into uploaded_by (ADR-003).
+        // Taken from the token and never from a parameter: &quot;show me someone else's uploads&quot; is not
+        // a request this endpoint should be able to express.
+<span class="fc" id="L86">        return statuses.findRecentUploadsOf(jwt.getClaimAsString(&quot;preferred_username&quot;));</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

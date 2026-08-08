@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ProtocolStatusService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">maintenance-assistant</a> &gt; <a href="index.source.html" class="el_package">com.keglevich.maintenanceassistant.ingestion</a> &gt; <span class="el_source">ProtocolStatusService.java</span></div><h1>ProtocolStatusService.java</h1><pre class="source lang-java linenums">package com.keglevich.maintenanceassistant.ingestion;
+
+import org.springframework.jdbc.core.simple.JdbcClient;
+import org.springframework.stereotype.Service;
+
+import java.time.OffsetDateTime;
+import java.util.List;
+import java.util.UUID;
+
+/**
+ * What happened to the protocols one person uploaded.
+ *
+ * &lt;p&gt;{@code IngestionAdminController} already answers &quot;is the corpus indexed&quot; as counts by status,
+ * and that is the operator's question, not the uploader's. A Schichtleiter who has just uploaded
+ * three documents wants to know about &lt;em&gt;those three&lt;/em&gt;: which are searchable, which failed, and
+ * why. A total of 150 INDEXED and 2 FAILED does not answer it, and neither does a spinner.
+ *
+ * &lt;p&gt;Scoped to the caller's own uploads rather than to everything, because the upload endpoint
+ * returns 202 and this is the other half of that honesty — it exists so a person can see the
+ * consequence of what they did. Seeing the whole plant's ingestion history is an admin concern with
+ * an admin endpoint.
+ */
+@Service
+public class ProtocolStatusService {
+
+    /**
+     * A shift's worth of uploads, generously. Bounded because this is a list rendered without
+     * paging: an unbounded query behind a fixed-size view is a page that gets slower every month
+     * and a query nobody notices growing.
+     */
+    private static final int MAX_ROWS = 50;
+
+    private final JdbcClient jdbc;
+
+<span class="fc" id="L35">    ProtocolStatusService(JdbcClient jdbc) {</span>
+<span class="fc" id="L36">        this.jdbc = jdbc;</span>
+<span class="fc" id="L37">    }</span>
+
+    /**
+     * The caller's most recent uploads, newest first.
+     *
+     * @param uploadedBy the Keycloak username claim, which is what {@code protocol.uploaded_by}
+     *                   stores — there is no user table to join against (ADR-003)
+     */
+    public List&lt;UploadStatus&gt; findRecentUploadsOf(String uploadedBy) {
+<span class="fc" id="L46">        return jdbc.sql(&quot;&quot;&quot;</span>
+                        SELECT p.id, p.title, p.status, p.failure_reason, p.created_at, p.indexed_at,
+                               m.machine_no
+                        FROM protocol p JOIN machine m ON m.id = p.machine_id
+                        WHERE p.uploaded_by = :uploadedBy
+                        ORDER BY p.created_at DESC
+                        LIMIT :max
+                        &quot;&quot;&quot;)
+<span class="fc" id="L54">                .param(&quot;uploadedBy&quot;, uploadedBy)</span>
+<span class="fc" id="L55">                .param(&quot;max&quot;, MAX_ROWS)</span>
+<span class="fc" id="L56">                .query((rs, rowNum) -&gt; new UploadStatus(</span>
+<span class="fc" id="L57">                        rs.getObject(&quot;id&quot;, UUID.class),</span>
+<span class="fc" id="L58">                        rs.getString(&quot;machine_no&quot;),</span>
+<span class="fc" id="L59">                        rs.getString(&quot;title&quot;),</span>
+<span class="fc" id="L60">                        rs.getString(&quot;status&quot;),</span>
+<span class="fc" id="L61">                        rs.getString(&quot;failure_reason&quot;),</span>
+<span class="fc" id="L62">                        rs.getObject(&quot;created_at&quot;, OffsetDateTime.class),</span>
+<span class="fc" id="L63">                        rs.getObject(&quot;indexed_at&quot;, OffsetDateTime.class)))</span>
+<span class="fc" id="L64">                .list();</span>
+    }
+
+    /**
+     * @param status        RECEIVED, INDEXED or FAILED
+     * @param failureReason why it failed; null unless FAILED. Shown to the uploader rather than
+     *                      logged only, because &quot;it failed&quot; without a reason makes re-uploading the
+     *                      same broken file the obvious next move
+     */
+<span class="fc" id="L73">    public record UploadStatus(</span>
+            UUID id,
+            String machineNo,
+            String title,
+            String status,
+            String failureReason,
+            OffsetDateTime createdAt,
+            OffsetDateTime indexedAt) {
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

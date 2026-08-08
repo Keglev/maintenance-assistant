@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>MachineCatalog.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">maintenance-assistant</a> &gt; <a href="index.source.html" class="el_package">com.keglevich.maintenanceassistant.query</a> &gt; <span class="el_source">MachineCatalog.java</span></div><h1>MachineCatalog.java</h1><pre class="source lang-java linenums">package com.keglevich.maintenanceassistant.query;
+
+import org.springframework.jdbc.core.simple.JdbcClient;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.UUID;
+
+/**
+ * The machines a question can be asked about.
+ *
+ * &lt;p&gt;In the query module rather than in ingestion, because that is what it is &lt;em&gt;for&lt;/em&gt;: search
+ * is scoped to exactly one machine (DECISIONS.txt), {@link QueryService} takes a machine id, and
+ * without a way to list them a client would have to know UUIDs it has no way to learn. Machine
+ * master data is written by a Flyway seed and by nothing at runtime, so there is no writing side to
+ * put this next to.
+ *
+ * &lt;p&gt;Read-only and deliberately thin: enough to fill a picker and label a result, not a master-data
+ * API. Manufacturer, year and control type exist on the row and are not returned — nothing in the
+ * UI asks for them, and an endpoint that returns everything is one that has to keep returning it.
+ */
+@Service
+public class MachineCatalog {
+
+    private final JdbcClient jdbc;
+
+<span class="fc" id="L27">    MachineCatalog(JdbcClient jdbc) {</span>
+<span class="fc" id="L28">        this.jdbc = jdbc;</span>
+<span class="fc" id="L29">    }</span>
+
+    /**
+     * Every machine, ordered by the plant identifier.
+     *
+     * &lt;p&gt;Unpaged on purpose: this is a fixed-size plant, ten rows in the demo and tens in the
+     * setting it models. Paging a picker that fits on one screen would be ceremony.
+     */
+    public List&lt;Machine&gt; findAll() {
+<span class="fc" id="L38">        return jdbc.sql(&quot;&quot;&quot;</span>
+                        SELECT id, machine_no, name, type, location
+                        FROM machine
+                        ORDER BY machine_no
+                        &quot;&quot;&quot;)
+<span class="fc" id="L43">                .query((rs, rowNum) -&gt; new Machine(</span>
+<span class="fc" id="L44">                        rs.getObject(&quot;id&quot;, UUID.class),</span>
+<span class="fc" id="L45">                        rs.getString(&quot;machine_no&quot;),</span>
+<span class="fc" id="L46">                        rs.getString(&quot;name&quot;),</span>
+<span class="fc" id="L47">                        rs.getString(&quot;type&quot;),</span>
+<span class="fc" id="L48">                        rs.getString(&quot;location&quot;)))</span>
+<span class="fc" id="L49">                .list();</span>
+    }
+
+    /**
+     * @param machineNo the plant-facing identifier (PR-03) — what people say out loud, and what a
+     *                  picker must show, because nobody on a shop floor knows a UUID
+     * @param name      the human name (Presse 3)
+     */
+<span class="fc" id="L57">    public record Machine(UUID id, String machineNo, String name, String type, String location) {</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

@@ -131,22 +131,29 @@ class QueryController {
 
     /**
      * 503 for both &quot;no budget left today&quot; and &quot;the provider is not answering&quot;. Different causes,
-     * the same thing for the caller: correct answers are temporarily unavailable, and the honest
+     * the same status: correct answers are temporarily unavailable either way, and the honest
      * response is to say so rather than to serve an ungrounded one.
+     *
+     * &lt;p&gt;They differ in the one field a client can act on. {@code reason} is a stable code, not
+     * prose: to a person, &quot;today's limit&quot; means come back tomorrow and &quot;provider unreachable&quot; means
+     * try again in a minute, and a UI that showed one sentence for both would make a spent budget
+     * look like an outage. A code rather than a message match, because matching on English prose
+     * from another layer breaks the first time someone rewords it.
      */
     @ExceptionHandler(QueryService.BudgetExhaustedException.class)
     @ResponseStatus(HttpStatus.SERVICE_UNAVAILABLE)
     Map&lt;String, String&gt; onBudgetExhausted(QueryService.BudgetExhaustedException e) {
-<span class="fc" id="L140">        return Map.of(&quot;error&quot;,</span>
-                &quot;The assistant has reached today's answer limit. Retrieval and upload still work; &quot;
-                        + &quot;answering resumes tomorrow.&quot;,
-<span class="fc" id="L143">                &quot;detail&quot;, e.getMessage());</span>
+<span class="fc" id="L146">        return Map.of(</span>
+                &quot;reason&quot;, &quot;BUDGET_EXHAUSTED&quot;,
+                &quot;error&quot;, &quot;The assistant has reached today's answer limit. Retrieval and upload still &quot;
+                        + &quot;work; answering resumes tomorrow.&quot;,
+<span class="fc" id="L150">                &quot;detail&quot;, e.getMessage());</span>
     }
 
     @ExceptionHandler(QueryService.ProviderUnavailableException.class)
     @ResponseStatus(HttpStatus.SERVICE_UNAVAILABLE)
     Map&lt;String, String&gt; onProviderUnavailable(QueryService.ProviderUnavailableException e) {
-<span class="nc" id="L149">        return Map.of(&quot;error&quot;, e.getMessage());</span>
+<span class="nc" id="L156">        return Map.of(&quot;reason&quot;, &quot;PROVIDER_UNAVAILABLE&quot;, &quot;error&quot;, e.getMessage());</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

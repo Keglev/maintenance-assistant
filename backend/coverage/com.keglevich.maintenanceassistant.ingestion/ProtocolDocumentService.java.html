@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ProtocolDocumentService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">maintenance-assistant</a> &gt; <a href="index.source.html" class="el_package">com.keglevich.maintenanceassistant.ingestion</a> &gt; <span class="el_source">ProtocolDocumentService.java</span></div><h1>ProtocolDocumentService.java</h1><pre class="source lang-java linenums">package com.keglevich.maintenanceassistant.ingestion;
+
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.Resource;
+import org.springframework.jdbc.core.simple.JdbcClient;
+import org.springframework.stereotype.Service;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Locale;
+import java.util.Optional;
+import java.util.UUID;
+
+/**
+ * Reading a protocol's original document back off the volume.
+ *
+ * &lt;p&gt;In the ingestion module because that module owns the volume: it decides the path layout, it
+ * wrote the file, and {@link FileStorageProperties} is its property. The query module cites a
+ * protocol; this is what turns that citation into something a person can open and check, which is
+ * the point of citing at all.
+ *
+ * &lt;p&gt;Read access is not write access. Upload stays Schichtleiter-only for the quality reasons in
+ * DECISIONS.txt, and every role that may ask a question may read the sources behind the answer —
+ * an answer whose evidence its reader cannot open is an answer they have to take on trust, which is
+ * exactly what Mode A exists to avoid.
+ */
+@Service
+public class ProtocolDocumentService {
+
+    private final JdbcClient jdbc;
+    private final FileStorageProperties properties;
+
+<span class="fc" id="L34">    ProtocolDocumentService(JdbcClient jdbc, FileStorageProperties properties) {</span>
+<span class="fc" id="L35">        this.jdbc = jdbc;</span>
+<span class="fc" id="L36">        this.properties = properties;</span>
+<span class="fc" id="L37">    }</span>
+
+    /**
+     * The stored document for a protocol.
+     *
+     * &lt;p&gt;Empty rather than an exception for every &quot;not there&quot; case — unknown id, a row whose
+     * {@code source_file} is null, a path that no longer resolves to a readable file. They are one
+     * outcome for the caller (404) and telling them apart in the response would describe the
+     * database to whoever asked.
+     */
+    public Optional&lt;ProtocolDocument&gt; find(UUID protocolId) {
+<span class="fc" id="L48">        return jdbc.sql(&quot;&quot;&quot;</span>
+                        SELECT p.title, p.source_file, p.language, m.machine_no
+                        FROM protocol p JOIN machine m ON m.id = p.machine_id
+                        WHERE p.id = :id
+                        &quot;&quot;&quot;)
+<span class="fc" id="L53">                .param(&quot;id&quot;, protocolId)</span>
+<span class="fc" id="L54">                .query((rs, rowNum) -&gt; new StoredProtocol(</span>
+<span class="fc" id="L55">                        rs.getString(&quot;title&quot;), rs.getString(&quot;source_file&quot;),</span>
+<span class="fc" id="L56">                        rs.getString(&quot;language&quot;), rs.getString(&quot;machine_no&quot;)))</span>
+<span class="fc" id="L57">                .optional()</span>
+<span class="fc" id="L58">                .flatMap(stored -&gt; resolve(protocolId, stored));</span>
+    }
+
+    private Optional&lt;ProtocolDocument&gt; resolve(UUID protocolId, StoredProtocol stored) {
+<span class="pc bpc" id="L62" title="1 of 4 branches missed.">        if (stored.sourceFile() == null || stored.sourceFile().isBlank()) {</span>
+<span class="fc" id="L63">            return Optional.empty();</span>
+        }
+<span class="fc" id="L65">        Path base = Path.of(properties.basePath()).toAbsolutePath().normalize();</span>
+<span class="fc" id="L66">        Path path = base.resolve(stored.sourceFile()).normalize();</span>
+
+        // The path comes from our own database and is still checked. `source_file` is a column, and
+        // a column is only ever as trustworthy as everything that has written to it since the
+        // schema was created — including a future import, a manual fix, or a restored dump. The
+        // check costs one comparison and removes the whole class of question.
+<span class="pc bpc" id="L72" title="1 of 6 branches missed.">        if (!path.startsWith(base) || !Files.isReadable(path) || Files.isDirectory(path)) {</span>
+<span class="fc" id="L73">            return Optional.empty();</span>
+        }
+
+<span class="fc" id="L76">        return Optional.of(new ProtocolDocument(</span>
+                new FileSystemResource(path),
+<span class="fc" id="L78">                downloadName(protocolId, stored),</span>
+<span class="fc" id="L79">                contentType(path),</span>
+<span class="fc" id="L80">                sizeOf(path)));</span>
+    }
+
+    /**
+     * What the file is called when it is saved rather than viewed.
+     *
+     * &lt;p&gt;Built from the machine and the title instead of the stored name, which is a UUID: a
+     * technician who saves three sources ends up with three files they can tell apart. Reduced to
+     * ASCII and to characters every filesystem accepts, because the corpus is German and a
+     * {@code Content-Disposition} filename crossing an umlaut is a well-known source of mojibake.
+     */
+    private static String downloadName(UUID protocolId, StoredProtocol stored) {
+<span class="fc" id="L92">        String base = &quot;%s-%s&quot;.formatted(</span>
+<span class="pc bpc" id="L93" title="1 of 2 branches missed.">                stored.machineNo() == null ? &quot;protokoll&quot; : stored.machineNo(),</span>
+<span class="pc bpc" id="L94" title="1 of 2 branches missed.">                stored.title() == null ? protocolId.toString() : stored.title());</span>
+<span class="fc" id="L95">        String ascii = java.text.Normalizer.normalize(base, java.text.Normalizer.Form.NFD)</span>
+<span class="fc" id="L96">                .replace(&quot;ß&quot;, &quot;ss&quot;)</span>
+<span class="fc" id="L97">                .replaceAll(&quot;\\p{M}+&quot;, &quot;&quot;)</span>
+<span class="fc" id="L98">                .replaceAll(&quot;[^A-Za-z0-9._-]+&quot;, &quot;-&quot;)</span>
+<span class="fc" id="L99">                .replaceAll(&quot;-{2,}&quot;, &quot;-&quot;)</span>
+<span class="fc" id="L100">                .replaceAll(&quot;^-|-$&quot;, &quot;&quot;);</span>
+<span class="pc bpc" id="L101" title="1 of 2 branches missed.">        String safe = ascii.isBlank() ? protocolId.toString() : ascii;</span>
+<span class="pc bpc" id="L102" title="1 of 2 branches missed.">        return (safe.length() &gt; 80 ? safe.substring(0, 80) : safe) + extensionOf(stored.sourceFile());</span>
+    }
+
+    private static String extensionOf(String sourceFile) {
+<span class="fc" id="L106">        int dot = sourceFile.lastIndexOf('.');</span>
+<span class="fc" id="L107">        int slash = Math.max(sourceFile.lastIndexOf('/'), sourceFile.lastIndexOf('\\'));</span>
+<span class="pc bpc" id="L108" title="2 of 4 branches missed.">        return dot &gt; slash &amp;&amp; dot &gt;= 0 ? sourceFile.substring(dot).toLowerCase(Locale.ROOT) : &quot;&quot;;</span>
+    }
+
+    /**
+     * Probed from the filesystem first, then decided by extension.
+     *
+     * &lt;p&gt;{@code probeContentType} is platform-dependent and answers null often enough that relying
+     * on it alone would serve text as a download on one host and inline on another. Everything the
+     * ingestion pipeline accepts today is UTF-8 text — a PDF fails the strict decode on upload — so
+     * the fallback is the truth rather than a guess, and the charset is stated so a browser does not
+     * have to sniff German umlauts.
+     */
+    private static String contentType(Path path) {
+<span class="fc" id="L121">        String probed = probe(path);</span>
+<span class="pc bpc" id="L122" title="2 of 4 branches missed.">        if (probed != null &amp;&amp; !probed.equals(&quot;application/octet-stream&quot;)) {</span>
+<span class="pc bpc" id="L123" title="2 of 4 branches missed.">            return probed.startsWith(&quot;text/&quot;) &amp;&amp; !probed.contains(&quot;charset&quot;)</span>
+<span class="fc" id="L124">                    ? probed + &quot;;charset=UTF-8&quot;</span>
+<span class="nc" id="L125">                    : probed;</span>
+        }
+<span class="nc" id="L127">        String name = path.getFileName().toString().toLowerCase(Locale.ROOT);</span>
+<span class="nc bnc" id="L128" title="All 2 branches missed.">        if (name.endsWith(&quot;.pdf&quot;)) {</span>
+<span class="nc" id="L129">            return &quot;application/pdf&quot;;</span>
+        }
+<span class="nc bnc" id="L131" title="All 2 branches missed.">        if (name.endsWith(&quot;.md&quot;)) {</span>
+<span class="nc" id="L132">            return &quot;text/markdown;charset=UTF-8&quot;;</span>
+        }
+<span class="nc" id="L134">        return &quot;text/plain;charset=UTF-8&quot;;</span>
+    }
+
+    private static String probe(Path path) {
+        try {
+<span class="fc" id="L139">            return Files.probeContentType(path);</span>
+<span class="nc" id="L140">        } catch (IOException e) {</span>
+<span class="nc" id="L141">            return null;</span>
+        }
+    }
+
+    private static long sizeOf(Path path) {
+        try {
+<span class="fc" id="L147">            return Files.size(path);</span>
+<span class="nc" id="L148">        } catch (IOException e) {</span>
+            // A length header is a courtesy; the stream is the answer.
+<span class="nc" id="L150">            return -1L;</span>
+        }
+    }
+
+    /**
+     * @param resource     the file on the volume, streamed rather than read into memory
+     * @param downloadName suggested filename, ASCII-safe
+     * @param contentType  what it is, including the charset for text
+     * @param sizeBytes    file size, or -1 when it could not be read
+     */
+<span class="fc" id="L160">    public record ProtocolDocument(Resource resource, String downloadName, String contentType, long sizeBytes) {</span>
+    }
+
+<span class="fc" id="L163">    private record StoredProtocol(String title, String sourceFile, String language, String machineNo) {</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

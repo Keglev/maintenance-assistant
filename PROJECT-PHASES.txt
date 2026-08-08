@@ -11,15 +11,16 @@ Phases 0, 1, 2 and 3 are DONE. Phase 3 shipped in PRs #24 (query
 path), #25 (search UI) and #26 (source-link fix), all merged and
 deployed. Release v0.1.0 is tagged (Phase 2/3 tags are Carlos's call).
 
-PHASE 4 IS TWO THIRDS SHIPPED. #28 (UI redesign: design tokens, header
-+ footer, logged-out landing page, help dialog, responsive) and #29
-(security headers at Caddy + ADR-005 on token handling) are MERGED AND
-DEPLOYED. The Caddyfile was applied BY HAND on 2026-08-08 with a .bak
-and a force-recreate (see OPS RULE 3 — the first attempt used mv and
-silently changed nothing), and the header set is live and verified by
-curl: CSP, HSTS, nosniff, Referrer-Policy, Permissions-Policy,
-X-Frame-Options DENY. Keycloak's auth vhost keeps its own CSP; the
-per-vhost scoping was confirmed on the live host.
+PHASE 4 IS SHIPPED. #28 (UI redesign: design tokens, header + footer,
+logged-out landing page, help dialog, responsive), #29 (security
+headers at Caddy + ADR-005 on token handling) and #30 (README,
+AI-USAGE, spike reproduction, and the first half of the Swagger fix)
+are ALL MERGED AND DEPLOYED. The Caddyfile was applied BY HAND on
+2026-08-08 with a .bak and a force-recreate (see OPS RULE 3 — the first
+attempt used mv and silently changed nothing), and the header set is
+live and verified by curl: CSP, HSTS, nosniff, Referrer-Policy,
+Permissions-Policy, X-Frame-Options DENY. Keycloak's auth vhost keeps
+its own CSP; the per-vhost scoping was confirmed on the live host.
 
 FULL BROWSER WALKTHROUGH PASSED 2026-08-08 at a 390 px mobile viewport
 with the console open and ZERO CSP violations: Keycloak login round
@@ -27,16 +28,29 @@ trip, the E-47 demo on Presse 3 answering Mode A with [P1]..[P4]
 resolving to the source list, a clicked source opening the protocol in
 a blob: tab (the #26 path survives the CSP — the thing curl could never
 have told us), the help dialog, the DE/EN switch and sign-out.
+/swagger-ui was verified in the browser the same day, after #30
+deployed.
 
-Remaining for PHASE 4: docs/ship-readiness (README, AI-USAGE, the
-spike's reproduction section) and ONE DEFECT FOUND BY THE WALKTHROUGH —
-https://maintenance.smartsupply.com.de/swagger-ui answered 401 while
-/swagger-ui/index.html served fine. Root cause: springdoc's UI path was
-left at its /swagger-ui.html default, so the bare path had no mapping
-and was not in the security permit list either; authorization runs
-before dispatch, so it answered 401 rather than 404 and read like a
-permission problem. Fixed in the ship-readiness PR. Then Carlos's phone
-walkthrough and v1.0.0.
+THE SWAGGER ENTRY POINT TOOK THREE ROUNDS, and the reason is worth
+carrying forward. #30 fixed GET /swagger-ui (302 -> the UI, confirmed
+live). A `curl -sI` afterwards still answered 401, which looked like
+the same bug and was not: -I sends HEAD, the permit list matched
+HttpMethod.GET only, and HEAD is a method of its own to the matcher —
+so EVERY public path, /api/health included, refused HEAD while serving
+a browser perfectly. Any uptime probe using HEAD would have seen a
+permanently unauthorised health check. Closed in fix/swagger-entrypoint
+together with two neighbours of the same defect: /swagger-ui/ and the
+old /swagger-ui.html now redirect into the UI, and the ERROR dispatch
+is permitted so that a permitted-but-unmapped path answers 404 instead
+of a misleading 401 (measured both ways in a real container).
+THE LESSON, next to the #26 one: MockMvc could not see any of this. It
+does not distinguish HEAD the way the matcher does and performs no
+error dispatch, so the guard tests passed twice while production
+refused. The replacement runs on RANDOM_PORT against a real Tomcat with
+the JDK HTTP client, following no redirects.
+
+Remaining before v1.0.0: Carlos's phone walkthrough on a fresh browser,
+then the tag. Robots never tag.
 
 Phase 2 shipped in PRs #18 (Flyway V1 + machines), #19 (150-protocol
 corpus + seed loader), #20 (backups), #21 (ingestion pipeline), #22
@@ -525,8 +539,9 @@ PHASE 3 — RAG QUERY + MODES  [DONE — #24 + the search-UI PR]
     plus the three read endpoints those views needed
 
 =====================================================================
-PHASE 4 — POLISH + SHIP  (REVISED 2026-08-08 — see NEXT SESSION above
-for the full three-PR plan; this list is the summary)
+PHASE 4 — POLISH + SHIP  [DONE — 2026-08-08, PRs #28, #29, #30 and
+the swagger-entrypoint fix; only Carlos's phone walkthrough and the
+v1.0.0 tag remain]
 =====================================================================
 - UI redesign: professional look, header + footer, landing page for
   the logged-out state, help dialog, responsive (walkthrough is on a

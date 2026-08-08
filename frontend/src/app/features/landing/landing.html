@@ -1,0 +1,105 @@
+<div class="page landing">
+  <section class="hero">
+    <div class="hero-copy">
+      <p class="eyebrow">{{ t().appTagline }}</p>
+      <h1 class="hero-headline">{{ t().landing.headline }}</h1>
+      <p class="hero-problem">{{ t().landing.problem }}</p>
+      <p class="hero-solution">{{ t().landing.solution }}</p>
+
+      <button
+        type="button"
+        class="btn btn-primary hero-cta"
+        data-testid="sign-in"
+        (click)="signIn()"
+      >
+        {{ t().landing.signIn }}
+      </button>
+      <p class="caption hero-hint">{{ t().landing.signInHint }}</p>
+    </div>
+
+    <!-- The one decorative element in the application: a Typenschild, the riveted rating plate
+         bolted to every machine on a German shop floor. It carries real facts rather than a
+         picture, which is the only kind of ornament this project has room for. -->
+    <aside class="plate" aria-hidden="true">
+      <span class="plate-rivet plate-rivet-tl"></span>
+      <span class="plate-rivet plate-rivet-tr"></span>
+      <span class="plate-rivet plate-rivet-bl"></span>
+      <span class="plate-rivet plate-rivet-br"></span>
+      <p class="plate-name">{{ t().appTitle }}</p>
+      <dl class="plate-rows">
+        <dt>{{ t().landing.plateModel }}</dt>
+        <dd>RAG · Retrieval Augmented Generation</dd>
+        <dt>{{ t().landing.plateStack }}</dt>
+        <dd>Angular 22 · Spring Boot 4.1 · pgvector</dd>
+        <dt>{{ t().landing.plateHosting }}</dt>
+        <dd>Hetzner Nürnberg · IONOS AI Berlin</dd>
+      </dl>
+    </aside>
+  </section>
+
+  <section class="trust" aria-labelledby="trust-heading">
+    <h2 class="section-title" id="trust-heading">{{ t().landing.trustHeading }}</h2>
+    <ul class="trust-grid">
+      <li class="card trust-item trust-item-a">
+        <h3 class="trust-title">{{ t().landing.trustSourced }}</h3>
+        <p class="trust-body">{{ t().landing.trustSourcedBody }}</p>
+      </li>
+      <li class="card trust-item">
+        <h3 class="trust-title">{{ t().landing.trustEu }}</h3>
+        <p class="trust-body">{{ t().landing.trustEuBody }}</p>
+      </li>
+      <li class="card trust-item">
+        <h3 class="trust-title">{{ t().landing.trustRoles }}</h3>
+        <p class="trust-body">{{ t().landing.trustRolesBody }}</p>
+      </li>
+    </ul>
+  </section>
+
+  <section class="demo card" aria-labelledby="demo-heading" data-testid="demo-users">
+    <h2 class="section-title" id="demo-heading">{{ t().landing.demoHeading }}</h2>
+    <p class="caption">{{ t().landing.demoIntro }}</p>
+
+    <ul class="users">
+      <!-- The usernames are the realm's and are not translated: they are what gets typed in. -->
+      <li>
+        <code class="user">operator</code><span>{{ t().demo.operator }}</span>
+      </li>
+      <li>
+        <code class="user">techniker</code><span>{{ t().demo.techniker }}</span>
+      </li>
+      <li>
+        <code class="user">schichtleiter</code><span>{{ t().demo.schichtleiter }}</span>
+      </li>
+      <li>
+        <code class="user">admin</code><span>{{ t().demo.admin }}</span>
+      </li>
+    </ul>
+
+    <p class="password">
+      {{ t().landing.demoPassword }}:
+      <code class="user" data-testid="demo-password">{{ demoPassword }}</code>
+    </p>
+
+    <button type="button" class="btn btn-primary" data-testid="sign-in-demo" (click)="signIn()">
+      {{ t().landing.signIn }}
+    </button>
+  </section>
+
+  <section class="examples-section" aria-labelledby="examples-heading">
+    <h2 class="section-title" id="examples-heading">{{ t().demo.examplesHeading }}</h2>
+    <p class="caption">{{ t().demo.examplesIntro }}</p>
+    <ul class="examples">
+      @for (example of t().demo.examples; track example.question) {
+        <li class="card example" data-testid="landing-example">
+          <p class="example-machine">
+            {{ t().demo.exampleMachine }}: <strong>{{ example.machine }}</strong>
+          </p>
+          <!-- lang="de": the questions stay German so they actually retrieve something, and the
+               attribute keeps a screen reader from pronouncing them as English. -->
+          <p class="example-question" lang="de">{{ example.question }}</p>
+          <p class="example-shows">{{ example.shows }}</p>
+        </li>
+      }
+    </ul>
+  </section>
+</div>

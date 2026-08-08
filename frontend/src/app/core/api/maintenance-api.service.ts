@@ -1,4 +1,4 @@
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse, HttpResponse } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 
@@ -34,9 +34,25 @@ export class MaintenanceApiService {
     return this.http.post<QueryAnswer>(`${this.apiBaseUrl}/query`, { question, machineId });
   }
 
-  /** The absolute URL of a protocol's original document, for a link the browser follows itself. */
-  documentUrl(protocolId: string): string {
-    return `${this.apiBaseUrl}/protocols/${protocolId}/document`;
+  /**
+   * Fetches a protocol's original document.
+   *
+   * **Through HttpClient, and that is the whole point.** This used to be a method returning the
+   * URL for an `<a href>`, and it did not work: a browser-followed anchor is a fresh navigation
+   * that never passes through Angular's interceptor chain, so it carries no `Authorization`
+   * header. The backend is a stateless JWT resource server with no session and no cookie fallback
+   * (`SecurityConfig`), so every such click answered 401. Returning a URL at all is what invited
+   * the mistake, so no method here returns one.
+   *
+   * `observe: 'response'` rather than the body alone because the response headers are the useful
+   * half: `Content-Type` decides whether the browser renders the document or downloads it, and
+   * `Content-Disposition` carries the readable filename the backend built.
+   */
+  getDocument(protocolId: string): Observable<HttpResponse<Blob>> {
+    return this.http.get(`${this.apiBaseUrl}/protocols/${protocolId}/document`, {
+      observe: 'response',
+      responseType: 'blob',
+    });
   }
 
   /** The caller's own uploads and what became of them. Schichtleiter only, server-side. */
@@ -57,7 +73,13 @@ export class MaintenanceApiService {
  * status code produces a wall of text nobody maintains, and the three below are the ones a user
  * can actually act on — wait a moment, come back tomorrow, or ask someone for a role.
  */
-export type ApiFailure = 'rateLimited' | 'budgetExhausted' | 'unavailable' | 'forbidden' | 'generic';
+export type ApiFailure =
+  | 'rateLimited'
+  | 'budgetExhausted'
+  | 'unavailable'
+  | 'forbidden'
+  | 'notFound'
+  | 'generic';
 
 /**
  * Maps a failed request to the message the user should read.
@@ -81,6 +103,11 @@ export function classify(error: unknown): ApiFailure {
       return reasonOf(error) === 'BUDGET_EXHAUSTED' ? 'budgetExhausted' : 'unavailable';
     case 403:
       return 'forbidden';
+    // The protocol row exists and its file does not, or the id is unknown — the backend answers
+    // the same 404 for both on purpose. For a source link it means one specific thing worth
+    // saying: the evidence behind this claim can no longer be opened.
+    case 404:
+      return 'notFound';
     case 0:
     case 502:
     case 504:

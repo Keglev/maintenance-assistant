@@ -1,0 +1,1363 @@
+<!doctype html>
+<html class="no-js" lang="">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="x-ua-compatible" content="ie=edge">
+        <title>maintenance-assistant-frontend documentation</title>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <link rel="icon" type="image/x-icon" href="../images/favicon.ico">
+	   <link rel="stylesheet" href="../styles/style.css">
+        <link rel="stylesheet" href="../styles/dark.css">
+    </head>
+    <body>
+          <script>
+               // Blocking script to avoid flickering dark mode
+               // Dark mode toggle button
+               var useDark = window.matchMedia('(prefers-color-scheme: dark)');
+               var darkModeState = useDark.matches;
+               var $darkModeToggleSwitchers = document.querySelectorAll('.dark-mode-switch input');
+               var $darkModeToggles = document.querySelectorAll('.dark-mode-switch');
+               var darkModeStateLocal = localStorage.getItem('compodoc_darkmode-state');
+
+               function checkToggle(check) {
+                    for (var i = 0; i < $darkModeToggleSwitchers.length; i++) {
+                         $darkModeToggleSwitchers[i].checked = check;
+                    }
+               }
+
+               function toggleDarkMode(state) {
+                    if (window.localStorage) {
+                         localStorage.setItem('compodoc_darkmode-state', state);
+                    }
+
+                    checkToggle(state);
+
+                    const hasClass = document.body.classList.contains('dark');
+
+                    if (state) {
+                         for (var i = 0; i < $darkModeToggles.length; i++) {
+                              $darkModeToggles[i].classList.add('dark');
+                         }
+                         if (!hasClass) {
+                              document.body.classList.add('dark');
+                         }
+                    } else {
+                         for (var i = 0; i < $darkModeToggles.length; i++) {
+                              $darkModeToggles[i].classList.remove('dark');
+                         }
+                         if (hasClass) {
+                              document.body.classList.remove('dark');
+                         }
+                    }
+               }
+
+               useDark.addEventListener('change', function (evt) {
+                    toggleDarkMode(evt.matches);
+               });
+               if (darkModeStateLocal) {
+                    darkModeState = darkModeStateLocal === 'true';
+               }
+               toggleDarkMode(darkModeState);
+          </script>
+          <script>
+              // --- Iframe navigation tracking for Template Playground ---
+              function sendCurrentUrlToParent() {
+                  if (window.parent && window.parent !== window) {
+                      window.parent.postMessage({
+                          type: 'compodoc-iframe-navigate',
+                          url: window.location.pathname + window.location.hash
+                      }, '*');
+                  }
+              }
+              window.addEventListener('hashchange', sendCurrentUrlToParent, false);
+              window.addEventListener('popstate', sendCurrentUrlToParent, false);
+              window.addEventListener('DOMContentLoaded', sendCurrentUrlToParent, false);
+          </script>
+
+        <div class="navbar navbar-default navbar-fixed-top d-md-none p-0">
+               <div class="d-flex">
+                    <a href="../" class="navbar-brand">maintenance-assistant-frontend documentation</a>
+                    <button type="button" class="btn btn-default btn-menu ion-ios-menu" id="btn-menu"></button>
+               </div>
+        </div>
+
+        <div class="xs-menu menu" id="mobile-menu">
+                <div id="book-search-input" role="search">
+    <input type="text" placeholder="Type to search">
+    <button type="button"
+        class="search-input-clear"
+        aria-label="Clear search"
+        data-search-input-clear>&times;</button>
+</div>
+            <compodoc-menu></compodoc-menu>
+        </div>
+
+        <div class="container-fluid main">
+           <div class="row main">
+               <div class="d-none d-md-block menu">
+                   <compodoc-menu mode="normal"></compodoc-menu>
+               </div>
+               <!-- START CONTENT -->
+               <div class="content component">
+                   <div class="content-data">
+
+
+
+
+
+
+
+
+<ol class="breadcrumb">
+  <li class="breadcrumb-item">Components</li>
+  <li class="breadcrumb-item"
+  >
+  Dialog</li>
+</ol>
+
+<div class="io-file io-file-path" data-compodoc="entity-file-path">
+    <span class="icon ion-ios-document" aria-hidden="true"></span>
+    <code>src/app/shared/dialog/dialog.ts</code>
+</div>
+
+<ul class="nav nav-tabs" role="tablist">
+        <li class="nav-item">
+            <a href="#info" class="nav-link active"
+                role="tab" id="info-tab" data-bs-toggle="tab" data-link="info">Info</a>
+        </li>
+        <li class="nav-item">
+            <a href="#api" class="nav-link"
+                role="tab" id="api-tab" data-bs-toggle="tab" data-link="api">API</a>
+        </li>
+        <li class="nav-item">
+            <a href="#source" class="nav-link"
+                role="tab" id="source-tab" data-bs-toggle="tab" data-link="source">Source</a>
+        </li>
+        <li class="nav-item">
+            <a href="#templateData" class="nav-link"
+                role="tab" id="templateData-tab" data-bs-toggle="tab" data-link="template">Template</a>
+        </li>
+        <li class="nav-item">
+            <a href="#styleData" class="nav-link"
+                role="tab" id="styleData-tab" data-bs-toggle="tab" data-link="style">Styles</a>
+        </li>
+        <li class="nav-item">
+            <a href="#tree" class="nav-link"
+                role="tab" id="tree-tab" data-bs-toggle="tab" data-link="dom-tree">DOM Tree</a>
+        </li>
+</ul>
+
+<div class="tab-content">
+    <div class="tab-pane fade active in" id="info">
+    <p class="comment">
+        <h3>Description</h3>
+    </p>
+    <p class="comment">
+        <p>The modal shell every dialog in this application is built from: backdrop, head with a title and a
+close button, scrolling body, focus trap, Esc.</p>
+<p><strong>Why not <code>&lt;dialog&gt;</code>.</strong> The native element gives focus trapping and Esc for free, and it is the
+right choice in a browser — but the test runner is vitest in jsdom, which does not implement
+<code>showModal()</code>, so a native dialog would be untestable in the only place this project runs tests.
+The behaviour is therefore implemented here: Esc closes, Tab cycles inside, the first control takes
+focus on open and the opener gets it back on close. That is the part users notice; the element is
+an implementation detail.</p>
+<p>It was the help dialog&#39;s own code until the shop floor needed two more dialogs. Extracting it is
+what keeps &quot;focus returns to the trigger&quot; a property of <em>every</em> dialog rather than of the one that
+happened to be written first.</p>
+
+    </p>
+
+
+
+    <p class="comment">
+        <h3>Example</h3>
+    </p>
+    <div class="io-description">
+    </div>
+
+<section data-compodoc="block-metadata">
+    <h3>Metadata</h3>
+    <table class="table table-sm table-hover metadata">
+        <tbody>
+
+            <tr>
+                <td class="col-md-3">changeDetection</td>
+                <td class="col-md-9"><code>ChangeDetectionStrategy.OnPush</code></td>
+            </tr>
+
+
+
+
+
+
+
+
+
+
+
+            <tr>
+                <td class="col-md-3">selector</td>
+                <td class="col-md-9"><code>app-dialog</code></td>
+            </tr>
+
+            <tr>
+                <td class="col-md-3">standalone</td>
+                <td class="col-md-9"><code>true</code></td>
+            </tr>
+
+
+            <tr>
+                <td class="col-md-3">styleUrls</td>
+                <td class="col-md-9"><code>./dialog.css</code></td>
+            </tr>
+
+
+
+
+            <tr>
+                <td class="col-md-3">templateUrl</td>
+                <td class="col-md-9"><code>./dialog.html</code></td>
+            </tr>
+
+
+
+            <tr>
+                <td class="col-md-3">styleUrl</td>
+                <td class="col-md-9"><code>./dialog.css</code></td>
+            </tr>
+
+
+
+
+
+        </tbody>
+    </table>
+</section>
+
+        <section data-compodoc="block-relationships">
+            <h3>Relationships</h3>
+
+            <div class="row pt-3">
+                <div class="col-sm-6">
+                    <h4>Used by</h4>
+                        <ul class="list-unstyled relationships-list">
+                                <li>
+                                            <code><a href="../components/App.html" target="_self" >App</a></code>
+                                </li>
+                                <li>
+                                            <code><a href="../components/HelpDialog.html" target="_self" >HelpDialog</a></code>
+                                </li>
+                                <li>
+                                            <code><a href="../components/ProtocolDialog.html" target="_self" >ProtocolDialog</a></code>
+                                </li>
+                        </ul>
+                </div>
+
+                <div class="col-sm-6">
+                    <h4>Depends on</h4>
+                        <p class="comment"><i>No results matching.</i></p>
+                </div>
+            </div>
+        </section>
+</div>
+
+    <div class="tab-pane fade " id="api">    <section data-compodoc="block-index">
+    <h3 id="index">Index</h3>
+        <table class="table table-sm table-bordered index-table">
+            <tbody>
+                <tr>
+                    <td class="col-md-3">
+                        <h6><b>Properties</b></h6>
+                    </td>
+                    <td class="col-md-9">
+                        <ul class="index-list">
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
+                                    <span class="modifier">Private</span>
+                                    <span class="modifier">Readonly</span>
+                                <a href="#document" >document</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
+                                    <span class="modifier">Private</span>
+                                    <span class="modifier">Readonly</span>
+                                <a href="#i18n" >i18n</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
+                                    <span class="modifier">Private</span>
+                                <a href="#opener" >opener</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
+                                    <span class="modifier">Private</span>
+                                    <span class="modifier">Readonly</span>
+                                <a href="#panel" >panel</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
+                                    <span class="modifier">Protected</span>
+                                    <span class="modifier">Readonly</span>
+                                <a href="#t" >t</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
+                                    <span class="modifier">Protected</span>
+                                    <span class="modifier">Readonly</span>
+                                <a href="#titleId" >titleId</a>
+                            </li>
+                        </ul>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <table class="table table-sm table-bordered index-table">
+            <tbody>
+                <tr>
+                    <td class="col-md-3">
+                        <h6><b>Methods</b></h6>
+                    </td>
+                    <td class="col-md-9">
+                        <ul class="index-list">
+                            <li>
+                                <span class="reference-badge reference-badge--method" aria-hidden="true">M</span>
+                                    <span class="modifier">Protected</span>
+                                <a href="#close" >close</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--method" aria-hidden="true">M</span>
+                                    <span class="modifier">Private</span>
+                                <a href="#focusables" >focusables</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--method" aria-hidden="true">M</span>
+                                    <span class="modifier">Protected</span>
+                                <a href="#onKeydown" >onKeydown</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--method" aria-hidden="true">M</span>
+                                    <span class="modifier">Private</span>
+                                <a href="#trapTab" >trapTab</a>
+                            </li>
+                        </ul>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <table class="table table-sm table-bordered index-table">
+            <tbody>
+                <tr>
+                    <td class="col-md-3">
+                        <h6><b>Inputs</b></h6>
+                    </td>
+                    <td class="col-md-9">
+                        <ul class="index-list">
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">I</span><a href="#open" >open</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">I</span><a href="#testId" >testId</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">I</span><a href="#title" >title</a>
+                            </li>
+                        </ul>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <table class="table table-sm table-bordered index-table">
+            <tbody>
+                <tr>
+                    <td class="col-md-3">
+                        <h6><b>Outputs</b></h6>
+                    </td>
+                    <td class="col-md-9">
+                        <ul class="index-list">
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">O</span><a href="#closed" >closed</a>
+                            </li>
+                        </ul>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+
+
+</section>
+
+    <section data-compodoc="block-constructor">
+    <h3 id="constructor">Constructor</h3>
+        <table class="table table-sm table-bordered">
+            <tbody>
+                <tr>
+                    <td class="col-md-4">
+<code>constructor()</code>
+                    </td>
+                </tr>
+                        <tr>
+                            <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="49" class="link-to-prism">src/app/shared/dialog/dialog.ts:49</a></div>
+                            </td>
+                        </tr>
+
+            </tbody>
+        </table>
+</section>
+
+    <section data-compodoc="block-inputs">
+    <h3 id="inputs">Inputs</h3>
+        <table class="table table-sm table-bordered">
+            <tbody>
+                <tr>
+                    <td class="col-md-4">
+                        <a name="open"></a>
+                        <b>open</b>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/boolean" target="_blank" >boolean</a></code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>false</code>
+                    </td>
+                </tr>
+                        <tr>
+                            <td class="col-md-2" colspan="2">
+                                    <div class="io-line">Defined in <a href="" data-line="35" class="link-to-prism">src/app/shared/dialog/dialog.ts:35</a></div>
+                            </td>
+                        </tr>
+            </tbody>
+        </table>
+        <table class="table table-sm table-bordered">
+            <tbody>
+                <tr>
+                    <td class="col-md-4">
+                        <a name="testId"></a>
+                        <b>testId</b>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>&#x27;dialog&#x27;</code>
+                    </td>
+                </tr>
+                        <tr>
+                            <td class="col-md-2" colspan="2">
+                                    <div class="io-line">Defined in <a href="" data-line="41" class="link-to-prism">src/app/shared/dialog/dialog.ts:41</a></div>
+                            </td>
+                        </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <div class="io-description"><p>What the dialog is called in the DOM, so a test can address one dialog rather than &quot;the dialog&quot;.
+The three parts get <code>&lt;testId&gt;-backdrop</code>, <code>&lt;testId&gt;-dialog</code> and <code>&lt;testId&gt;-close</code>.</p>
+</div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        <table class="table table-sm table-bordered">
+            <tbody>
+                <tr>
+                    <td class="col-md-4">
+                        <a name="title"></a>
+                        <b>title</b>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>&#x27;&#x27;</code>
+                    </td>
+                </tr>
+                        <tr>
+                            <td class="col-md-2" colspan="2">
+                                    <div class="io-line">Defined in <a href="" data-line="36" class="link-to-prism">src/app/shared/dialog/dialog.ts:36</a></div>
+                            </td>
+                        </tr>
+            </tbody>
+        </table>
+</section>
+
+    <section data-compodoc="block-outputs">
+    <h3 id="outputs">Outputs</h3>
+        <table class="table table-sm table-bordered">
+            <tbody>
+                <tr>
+                    <td class="col-md-4">
+                        <a name="closed"></a>
+                        <b>closed</b>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>        <code><a href="https://www.typescriptlang.org/docs/handbook/basic-types.html" target="_blank" >void</a></code>
+
+                    </td>
+                </tr>
+                        <tr>
+                            <td class="col-md-2" colspan="2">
+                                    <div class="io-line">Defined in <a href="" data-line="42" class="link-to-prism">src/app/shared/dialog/dialog.ts:42</a></div>
+                            </td>
+                        </tr>
+            </tbody>
+        </table>
+</section>
+
+
+
+    <section data-compodoc="block-methods">
+    
+    <h3 id="methods">
+        Methods
+    </h3>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="close"></a>
+                    <span class="name">
+                            <span class="modifier">Protected</span>
+                        <span ><b>close</b></span>
+                        <a href="#close"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                        <span class="modifier-icon icon ion-ios-reset"></span>
+                    <code>close()</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="64"
+                                    class="link-to-prism">src/app/shared/dialog/dialog.ts:64</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+
+                        <div class="io-description">
+                            <b>Returns : </b>        <code><a href="https://www.typescriptlang.org/docs/handbook/basic-types.html" target="_blank" >void</a></code>
+
+                        </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="focusables"></a>
+                    <span class="name">
+                            <span class="modifier">Private</span>
+                        <span ><b>focusables</b></span>
+                        <a href="#focusables"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                        <span class="modifier-icon icon ion-ios-reset"></span>
+                    <code>focusables()</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="104"
+                                    class="link-to-prism">src/app/shared/dialog/dialog.ts:104</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+
+                        <div class="io-description">
+                            <b>Returns : </b>    <code>HTMLElement[]</code>
+
+                        </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="onKeydown"></a>
+                    <span class="name">
+                            <span class="modifier">Protected</span>
+                        <span ><b>onKeydown</b></span>
+                        <a href="#onKeydown"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                        <span class="modifier-icon icon ion-ios-reset"></span>
+                    <code>onKeydown(event: KeyboardEvent)</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="69"
+                                    class="link-to-prism">src/app/shared/dialog/dialog.ts:69</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                        <div class="io-description"><p>Esc closes from anywhere inside the dialog — the shortcut every modal is expected to have.</p>
+</div>
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                                <td>Type</td>
+                                            <td>Optional</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>event</td>
+                                            <td>
+                                                        <code>KeyboardEvent</code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>        <code><a href="https://www.typescriptlang.org/docs/handbook/basic-types.html" target="_blank" >void</a></code>
+
+                        </div>
+                            <div class="io-description">
+                                
+                            </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="trapTab"></a>
+                    <span class="name">
+                            <span class="modifier">Private</span>
+                        <span ><b>trapTab</b></span>
+                        <a href="#trapTab"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                        <span class="modifier-icon icon ion-ios-reset"></span>
+                    <code>trapTab(event: KeyboardEvent)</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="86"
+                                    class="link-to-prism">src/app/shared/dialog/dialog.ts:86</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                        <div class="io-description"><p>Keeps Tab inside the dialog.</p>
+<p>Without this, tabbing walks out of a modal and onto the page behind it, which for a screen
+reader user means the dialog silently stops being where they are.</p>
+</div>
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                                <td>Type</td>
+                                            <td>Optional</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>event</td>
+                                            <td>
+                                                        <code>KeyboardEvent</code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>        <code><a href="https://www.typescriptlang.org/docs/handbook/basic-types.html" target="_blank" >void</a></code>
+
+                        </div>
+                            <div class="io-description">
+                                
+                            </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</section>
+
+    <section data-compodoc="block-properties">
+    
+    <h3 id="inputs">
+        Properties
+    </h3>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="document"></a>
+                    <span class="name">
+                            <span class="modifier">Private</span>
+                            <span class="modifier">Readonly</span>
+                        <span ><b>document</b></span>
+                        <a href="#document"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>unknown</code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>inject(DOCUMENT)</code>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="31" class="link-to-prism">src/app/shared/dialog/dialog.ts:31</a></div>
+                        </td>
+                    </tr>
+
+
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="i18n"></a>
+                    <span class="name">
+                            <span class="modifier">Private</span>
+                            <span class="modifier">Readonly</span>
+                        <span ><b>i18n</b></span>
+                        <a href="#i18n"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>unknown</code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>inject(I18nService)</code>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="30" class="link-to-prism">src/app/shared/dialog/dialog.ts:30</a></div>
+                        </td>
+                    </tr>
+
+
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="opener"></a>
+                    <span class="name">
+                            <span class="modifier">Private</span>
+                        <span ><b>opener</b></span>
+                        <a href="#opener"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>HTMLElement | null</code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>null</code>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="49" class="link-to-prism">src/app/shared/dialog/dialog.ts:49</a></div>
+                        </td>
+                    </tr>
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-description"><p>Whoever opened the dialog, so focus can be handed back where it came from.</p>
+</div>
+                </td>
+            </tr>
+
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="panel"></a>
+                    <span class="name">
+                            <span class="modifier">Private</span>
+                            <span class="modifier">Readonly</span>
+                        <span ><b>panel</b></span>
+                        <a href="#panel"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>unknown</code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>viewChild&lt;ElementRef&lt;HTMLElement&gt;&gt;(&#x27;panel&#x27;)</code>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="46" class="link-to-prism">src/app/shared/dialog/dialog.ts:46</a></div>
+                        </td>
+                    </tr>
+
+
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="t"></a>
+                    <span class="name">
+                            <span class="modifier">Protected</span>
+                            <span class="modifier">Readonly</span>
+                        <span ><b>t</b></span>
+                        <a href="#t"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>unknown</code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>this.i18n.t</code>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="33" class="link-to-prism">src/app/shared/dialog/dialog.ts:33</a></div>
+                        </td>
+                    </tr>
+
+
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="titleId"></a>
+                    <span class="name">
+                            <span class="modifier">Protected</span>
+                            <span class="modifier">Readonly</span>
+                        <span ><b>titleId</b></span>
+                        <a href="#titleId"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>unknown</code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>&#x60;dialog-title-${++sequence}&#x60;</code>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="44" class="link-to-prism">src/app/shared/dialog/dialog.ts:44</a></div>
+                        </td>
+                    </tr>
+
+
+        </tbody>
+    </table>
+</section>
+
+</div>
+
+
+    <div class="tab-pane fade  tab-source-code" id="source">
+        <pre class="line-numbers compodoc-sourcecode"><code class="language-typescript">import { DOCUMENT } from &#x27;@angular/common&#x27;;
+import { Component, ElementRef, effect, inject, input, output, viewChild } from &#x27;@angular/core&#x27;;
+
+import { I18nService } from &#x27;../../core/i18n/i18n.service&#x27;;
+
+/** Makes each instance&#x27;s title element addressable by &#x60;aria-labelledby&#x60; without a collision. */
+let sequence &#x3D; 0;
+
+/**
+ * The modal shell every dialog in this application is built from: backdrop, head with a title and a
+ * close button, scrolling body, focus trap, Esc.
+ *
+ * **Why not &#x60;&lt;dialog&gt;&#x60;.** The native element gives focus trapping and Esc for free, and it is the
+ * right choice in a browser — but the test runner is vitest in jsdom, which does not implement
+ * &#x60;showModal()&#x60;, so a native dialog would be untestable in the only place this project runs tests.
+ * The behaviour is therefore implemented here: Esc closes, Tab cycles inside, the first control takes
+ * focus on open and the opener gets it back on close. That is the part users notice; the element is
+ * an implementation detail.
+ *
+ * It was the help dialog&#x27;s own code until the shop floor needed two more dialogs. Extracting it is
+ * what keeps &quot;focus returns to the trigger&quot; a property of *every* dialog rather than of the one that
+ * happened to be written first.
+ */
+@Component({
+  selector: &#x27;app-dialog&#x27;,
+  templateUrl: &#x27;./dialog.html&#x27;,
+  styleUrl: &#x27;./dialog.css&#x27;,
+})
+export class Dialog {
+  private readonly i18n &#x3D; inject(I18nService);
+  private readonly document &#x3D; inject(DOCUMENT);
+
+  protected readonly t &#x3D; this.i18n.t;
+
+  readonly open &#x3D; input(false);
+  readonly title &#x3D; input(&#x27;&#x27;);
+  /**
+   * What the dialog is called in the DOM, so a test can address one dialog rather than &quot;the dialog&quot;.
+   * The three parts get &#x60;&lt;testId&gt;-backdrop&#x60;, &#x60;&lt;testId&gt;-dialog&#x60; and &#x60;&lt;testId&gt;-close&#x60;.
+   */
+  readonly testId &#x3D; input(&#x27;dialog&#x27;);
+  readonly closed &#x3D; output&lt;void&gt;();
+
+  protected readonly titleId &#x3D; &#x60;dialog-title-${++sequence}&#x60;;
+
+  private readonly panel &#x3D; viewChild&lt;ElementRef&lt;HTMLElement&gt;&gt;(&#x27;panel&#x27;);
+
+  /** Whoever opened the dialog, so focus can be handed back where it came from. */
+  private opener: HTMLElement | null &#x3D; null;
+
+  constructor() {
+    effect(() &#x3D;&gt; {
+      if (this.open()) {
+        this.opener &#x3D; this.document.activeElement as HTMLElement | null;
+        // The panel is rendered in the same change-detection pass, so the focus move waits a tick.
+        setTimeout(() &#x3D;&gt; this.focusables()[0]?.focus());
+      } else {
+        this.opener?.focus();
+        this.opener &#x3D; null;
+      }
+    });
+  }
+
+  protected close(): void {
+    this.closed.emit();
+  }
+
+  /** Esc closes from anywhere inside the dialog — the shortcut every modal is expected to have. */
+  protected onKeydown(event: KeyboardEvent): void {
+    if (event.key &#x3D;&#x3D;&#x3D; &#x27;Escape&#x27;) {
+      event.preventDefault();
+      this.close();
+      return;
+    }
+    if (event.key &#x3D;&#x3D;&#x3D; &#x27;Tab&#x27;) {
+      this.trapTab(event);
+    }
+  }
+
+  /**
+   * Keeps Tab inside the dialog.
+   *
+   * Without this, tabbing walks out of a modal and onto the page behind it, which for a screen
+   * reader user means the dialog silently stops being where they are.
+   */
+  private trapTab(event: KeyboardEvent): void {
+    const focusable &#x3D; this.focusables();
+    if (focusable.length &#x3D;&#x3D;&#x3D; 0) {
+      return;
+    }
+    const first &#x3D; focusable[0];
+    const last &#x3D; focusable[focusable.length - 1];
+    const active &#x3D; this.document.activeElement;
+
+    if (event.shiftKey &amp;&amp; (active &#x3D;&#x3D;&#x3D; first || !focusable.includes(active as HTMLElement))) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey &amp;&amp; active &#x3D;&#x3D;&#x3D; last) {
+      event.preventDefault();
+      first.focus();
+    }
+  }
+
+  private focusables(): HTMLElement[] {
+    const host &#x3D; this.panel()?.nativeElement;
+    return host
+      ? [
+          ...host.querySelectorAll&lt;HTMLElement&gt;(
+            &#x27;button, [href], input, select, textarea, [tabindex]&#x27;,
+          ),
+        ]
+      : [];
+  }
+}
+</code></pre>
+    </div>
+
+    <div class="tab-pane fade " id="templateData">
+        <pre class="line-numbers"><code class="language-html">@if (open()) {
+  &lt;!-- The backdrop closes on click, like every modal a user has met before. The panel stops the
+       click from reaching it, so a click inside does not dismiss what it lands on. --&gt;
+  &lt;div
+    class&#x3D;&quot;backdrop&quot;
+    [attr.data-testid]&#x3D;&quot;testId() + &#x27;-backdrop&#x27;&quot;
+    (click)&#x3D;&quot;close()&quot;
+    (keydown)&#x3D;&quot;onKeydown($event)&quot;
+  &gt;
+    &lt;div
+      class&#x3D;&quot;panel&quot;
+      #panel
+      role&#x3D;&quot;dialog&quot;
+      aria-modal&#x3D;&quot;true&quot;
+      [attr.aria-labelledby]&#x3D;&quot;titleId&quot;
+      [attr.data-testid]&#x3D;&quot;testId() + &#x27;-dialog&#x27;&quot;
+      (click)&#x3D;&quot;$event.stopPropagation()&quot;
+    &gt;
+      &lt;div class&#x3D;&quot;panel-head&quot;&gt;
+        &lt;div class&#x3D;&quot;panel-heading&quot;&gt;
+          &lt;h2 class&#x3D;&quot;panel-title&quot; [id]&#x3D;&quot;titleId&quot;&gt;{{ title() }}&lt;/h2&gt;
+          &lt;!-- A second line for whatever identifies this particular dialog — the protocol viewer
+               names the machine here, so the reader knows which document they opened. --&gt;
+          &lt;ng-content select&#x3D;&quot;[dialogSubtitle]&quot; /&gt;
+        &lt;/div&gt;
+        &lt;div class&#x3D;&quot;panel-actions&quot;&gt;
+          &lt;ng-content select&#x3D;&quot;[dialogActions]&quot; /&gt;
+          &lt;button
+            type&#x3D;&quot;button&quot;
+            class&#x3D;&quot;btn btn-secondary btn-sm&quot;
+            [attr.data-testid]&#x3D;&quot;testId() + &#x27;-close&#x27;&quot;
+            [attr.aria-label]&#x3D;&quot;t().common.close&quot;
+            (click)&#x3D;&quot;close()&quot;
+          &gt;
+            &lt;svg class&#x3D;&quot;icon&quot; viewBox&#x3D;&quot;0 0 24 24&quot; aria-hidden&#x3D;&quot;true&quot; focusable&#x3D;&quot;false&quot;&gt;
+              &lt;path d&#x3D;&quot;M6 6l12 12M18 6L6 18&quot; /&gt;
+            &lt;/svg&gt;
+            {{ t().common.close }}
+          &lt;/button&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+
+      &lt;div class&#x3D;&quot;panel-body&quot;&gt;
+        &lt;ng-content /&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+}
+</code></pre>
+    </div>
+
+    <div class="tab-pane fade " id="styleData">
+                <p class="comment">
+                    <code>./dialog.css</code>
+                </p>
+                <pre class="line-numbers"><code class="language-scss">.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--s-4);
+  background: var(--c-scrim);
+}
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  width: min(46rem, 100%);
+  max-height: 90vh;
+  background: var(--c-surface);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-md);
+  overflow: hidden;
+}
+
+.panel-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--s-4);
+  padding: var(--s-4) var(--s-5);
+  border-bottom: 1px solid var(--c-line);
+}
+
+.panel-heading {
+  min-width: 0;
+}
+
+.panel-title {
+  margin: 0;
+  font-size: var(--t-xl);
+  overflow-wrap: anywhere;
+}
+
+/* The actions never wrap under the title: on a tablet the close button has to stay where the thumb
+   expects it, at the top right, however long the title is. */
+.panel-actions {
+  display: flex;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--s-2);
+}
+
+.panel-body {
+  padding: var(--s-5);
+  overflow-y: auto;
+}
+
+.icon {
+  width: 14px;
+  height: 14px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+/* On a phone or a shop-floor tablet held upright, a centred card wastes the edges and puts the close
+   button somewhere the thumb is not. Full screen, head pinned at the top. */
+@media (max-width: 48rem) {
+  .backdrop {
+    padding: 0;
+  }
+
+  .panel {
+    width: 100%;
+    max-height: 100vh;
+    height: 100%;
+    border-radius: 0;
+  }
+}
+</code></pre>
+    </div>
+
+    <div class="tab-pane fade " id="tree">
+        <div id="tree-container"></div>
+        <div class="tree-legend">
+            <div class="title">
+                <b>Legend</b>
+            </div>
+            <div>
+                <div class="color htmlelement"></div><span>Html element</span>
+            </div>
+            <div>
+                <div class="color component"></div><span>Component</span>
+            </div>
+            <div>
+                <div class="color directive"></div><span>Html element with directive</span>
+            </div>
+        </div>
+    </div>
+
+    
+</div>
+
+<script src="../js/libs/vis-network.min.js"></script>
+<script src="../js/libs/htmlparser.js"></script>
+<script src="../js/libs/deep-iterator.js"></script>
+<script>
+        var COMPONENT_TEMPLATE = '<div>@if (open()) {  <!-- The backdrop closes on click, like every modal a user has met before. The panel stops the       click from reaching it, so a click inside does not dismiss what it lands on. -->  <div    class="backdrop"    [attr.data-testid]="testId() + \'-backdrop\'"    (click)="close()"    (keydown)="onKeydown($event)"  >    <div      class="panel"      #panel      role="dialog"      aria-modal="true"      [attr.aria-labelledby]="titleId"      [attr.data-testid]="testId() + \'-dialog\'"      (click)="$event.stopPropagation()"    >      <div class="panel-head">        <div class="panel-heading">          <h2 class="panel-title" [id]="titleId">{{ title() }}</h2>          <!-- A second line for whatever identifies this particular dialog — the protocol viewer               names the machine here, so the reader knows which document they opened. -->          <ng-content select="[dialogSubtitle]" />        </div>        <div class="panel-actions">          <ng-content select="[dialogActions]" />          <button            type="button"            class="btn btn-secondary btn-sm"            [attr.data-testid]="testId() + \'-close\'"            [attr.aria-label]="t().common.close"            (click)="close()"          >            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">              <path d="M6 6l12 12M18 6L6 18" />            </svg>            {{ t().common.close }}          </button>        </div>      </div>      <div class="panel-body">        <ng-content />      </div>    </div>  </div>}</div>'
+    var COMPONENTS = [{'name': 'App', 'selector': 'app-root'},{'name': 'Dialog', 'selector': 'app-dialog'},{'name': 'HelpDialog', 'selector': 'app-help-dialog'},{'name': 'Landing', 'selector': 'app-landing'},{'name': 'ProtocolDialog', 'selector': 'app-protocol-dialog'},{'name': 'Search', 'selector': 'app-search'},{'name': 'Upload', 'selector': 'app-upload'}];
+    var DIRECTIVES = [];
+    var ACTUAL_COMPONENT = {'name': 'Dialog'};
+</script>
+<script src="../js/tree.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                   </div><div class="search-results">
+    <div class="has-results">
+        <h1 class="search-results-title"><span class='search-results-count'></span> results matching "<span class='search-query'></span>"</h1>
+        <ul class="search-results-list"></ul>
+    </div>
+    <div class="no-results">
+        <h1 class="search-results-title">No results matching "<span class='search-query'></span>"</h1>
+    </div>
+</div>
+</div>
+               <!-- END CONTENT -->
+           </div>
+       </div>
+
+          <label class="dark-mode-switch">
+               <input type="checkbox">
+               <span class="slider">
+                    <svg class="slider-icon" viewBox="0 0 24 24" fill="none" height="20" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" width="20" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"></path>
+                    </svg>
+               </span>
+          </label>
+
+       <script>
+            var COMPODOC_CURRENT_PAGE_DEPTH = 1;
+            var COMPODOC_CURRENT_PAGE_CONTEXT = 'component';
+            var COMPODOC_CURRENT_PAGE_URL = 'Dialog.html';
+            var MAX_SEARCH_RESULTS = 15;
+       </script>
+
+       <script>
+               $darkModeToggleSwitchers = document.querySelectorAll('.dark-mode-switch input');
+               var updateDarkModeSwitchOffset = function () {
+                    var content = document.querySelector('.content');
+                    var scrollbarWidth = 0;
+
+                    if (content) {
+                         scrollbarWidth = Math.max(0, content.offsetWidth - content.clientWidth);
+                    }
+
+                    document.documentElement.style.setProperty(
+                         '--content-scrollbar-width',
+                         scrollbarWidth + 'px'
+                    );
+               };
+
+               updateDarkModeSwitchOffset();
+               requestAnimationFrame(updateDarkModeSwitchOffset);
+               window.addEventListener('resize', updateDarkModeSwitchOffset);
+
+               checkToggle(darkModeState);
+               if ($darkModeToggleSwitchers.length > 0) {
+                    for (var i = 0; i < $darkModeToggleSwitchers.length; i++) {
+                         $darkModeToggleSwitchers[i].addEventListener('change', function (event) {
+                              darkModeState = !darkModeState;
+                              toggleDarkMode(darkModeState);
+                         });
+                    }
+               }
+          </script>
+
+       <script src="../js/libs/custom-elements.min.js"></script>
+       <script src="../js/libs/lit-html.js"></script>
+
+       <script src="../js/menu-wc.js" defer></script>
+
+       <script src="../js/libs/bootstrap-native.js"></script>
+
+       <script src="../js/libs/es6-shim.min.js"></script>
+       <script src="../js/libs/EventDispatcher.js"></script>
+       <script src="../js/libs/promise.min.js"></script>
+
+       <script src="../js/compodoc.js"></script>
+
+       <script src="../js/tabs.js"></script>
+       <script src="../js/menu.js"></script>
+       <script src="../js/libs/clipboard.min.js"></script>
+       <script src="../js/libs/prism.js"></script>
+       <script src="../js/sourceCode.js"></script>
+          <script src="../js/search/search.js"></script>
+          <script src="../js/search/lunr.min.js"></script>
+          <script src="../js/search/search-lunr.js"></script>
+          <script src="../js/search/search_index.js"></script>
+       <script src="../js/lazy-load-graphs.js"></script>
+
+
+    </body>
+</html>

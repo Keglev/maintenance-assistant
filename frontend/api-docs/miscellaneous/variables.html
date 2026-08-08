@@ -149,6 +149,9 @@
                             <a href="#DEMO_PASSWORD" title="src/app/features/landing/landing.ts" class="reference-link "><span class="reference-badge reference-badge--variable" aria-hidden="true">V</span><span class="reference-link-label"><b>DEMO_PASSWORD</b>&nbsp;&nbsp;&nbsp;(src/.../landing.ts)</span></a>
                         </li>
                         <li>
+                            <a href="#DEMO_USERS" title="src/app/features/landing/landing.ts" class="reference-link "><span class="reference-badge reference-badge--variable" aria-hidden="true">V</span><span class="reference-link-label"><b>DEMO_USERS</b>&nbsp;&nbsp;&nbsp;(src/.../landing.ts)</span></a>
+                        </li>
+                        <li>
                             <a href="#DICTIONARIES" title="src/app/core/i18n/dictionary.ts" class="reference-link "><span class="reference-badge reference-badge--variable" aria-hidden="true">V</span><span class="reference-link-label"><b>DICTIONARIES</b>&nbsp;&nbsp;&nbsp;(src/.../dictionary.ts)</span></a>
                         </li>
                         <li>
@@ -167,13 +170,25 @@
                             <a href="#KNOWN_ROLES" title="src/app/app.ts" class="reference-link "><span class="reference-badge reference-badge--variable" aria-hidden="true">V</span><span class="reference-link-label"><b>KNOWN_ROLES</b>&nbsp;&nbsp;&nbsp;(src/.../app.ts)</span></a>
                         </li>
                         <li>
-                            <a href="#OBJECT_URL_TTL_MS" title="src/app/features/search/search.ts" class="reference-link "><span class="reference-badge reference-badge--variable" aria-hidden="true">V</span><span class="reference-link-label"><b>OBJECT_URL_TTL_MS</b>&nbsp;&nbsp;&nbsp;(src/.../search.ts)</span></a>
+                            <a href="#META_LINE" title="src/app/shared/protocol/protocol-document.ts" class="reference-link "><span class="reference-badge reference-badge--variable" aria-hidden="true">V</span><span class="reference-link-label"><b>META_LINE</b>&nbsp;&nbsp;&nbsp;(src/.../protocol-document.ts)</span></a>
                         </li>
                         <li>
                             <a href="#REPO_URL" title="src/app/app.ts" class="reference-link "><span class="reference-badge reference-badge--variable" aria-hidden="true">V</span><span class="reference-link-label"><b>REPO_URL</b>&nbsp;&nbsp;&nbsp;(src/.../app.ts)</span></a>
                         </li>
                         <li>
                             <a href="#routes" title="src/app/app.routes.ts" class="reference-link "><span class="reference-badge reference-badge--variable" aria-hidden="true">V</span><span class="reference-link-label"><b>routes</b>&nbsp;&nbsp;&nbsp;(src/.../app.routes.ts)</span></a>
+                        </li>
+                        <li>
+                            <a href="#RULE_LINE" title="src/app/shared/protocol/protocol-document.ts" class="reference-link "><span class="reference-badge reference-badge--variable" aria-hidden="true">V</span><span class="reference-link-label"><b>RULE_LINE</b>&nbsp;&nbsp;&nbsp;(src/.../protocol-document.ts)</span></a>
+                        </li>
+                        <li>
+                            <a href="#SECTION_LINE" title="src/app/shared/protocol/protocol-document.ts" class="reference-link "><span class="reference-badge reference-badge--variable" aria-hidden="true">V</span><span class="reference-link-label"><b>SECTION_LINE</b>&nbsp;&nbsp;&nbsp;(src/.../protocol-document.ts)</span></a>
+                        </li>
+                        <li>
+                            <a href="#sequence" title="src/app/shared/dialog/dialog.ts" class="reference-link "><span class="reference-badge reference-badge--variable" aria-hidden="true">V</span><span class="reference-link-label"><b>sequence</b>&nbsp;&nbsp;&nbsp;(src/.../dialog.ts)</span></a>
+                        </li>
+                        <li>
+                            <a href="#SIGNED_OUT_KEY" title="src/app/core/auth/auth.service.ts" class="reference-link "><span class="reference-badge reference-badge--variable" aria-hidden="true">V</span><span class="reference-link-label"><b>SIGNED_OUT_KEY</b>&nbsp;&nbsp;&nbsp;(src/.../auth.service.ts)</span></a>
                         </li>
                         <li>
                             <a href="#STORAGE_KEY" title="src/app/core/i18n/i18n.service.ts" class="reference-link "><span class="reference-badge reference-badge--variable" aria-hidden="true">V</span><span class="reference-link-label"><b>STORAGE_KEY</b>&nbsp;&nbsp;&nbsp;(src/.../i18n.service.ts)</span></a>
@@ -373,6 +388,10 @@
                         <i>Default value : </i><code>{
   appTitle: &#x27;Wartungsassistent&#x27;,
   appTagline: &#x27;Antworten aus den Protokollen Ihrer Anlage — mit Quelle.&#x27;,
+  common: {
+    close: &#x27;Schließen&#x27;,
+    cancel: &#x27;Abbrechen&#x27;,
+  },
   nav: {
     search: &#x27;Suche&#x27;,
     upload: &#x27;Protokoll hochladen&#x27;,
@@ -393,6 +412,12 @@
     aiUsage: &#x27;KI-Einsatz im Projekt&#x27;,
     note: &#x27;Demo-System mit synthetischen Protokollen. Keine echten Anlagendaten.&#x27;,
   },
+  signOut: {
+    title: &#x27;Wirklich abmelden?&#x27;,
+    body: &#x27;Sie werden abgemeldet und müssen sich für die nächste Frage neu anmelden.&#x27;,
+    notice: &#x27;Sie wurden abgemeldet.&#x27;,
+    dismiss: &#x27;Hinweis ausblenden&#x27;,
+  },
   landing: {
     headline: &#x27;Wartungswissen, das nicht mit der Schicht nach Hause geht&#x27;,
     problem:
@@ -411,7 +436,10 @@
       &#x27;Bediener erhalten nur Schritte, die eine unterwiesene Person ausführen darf, samt Hinweis, wann eine Fachkraft zu holen ist.&#x27;,
     demoHeading: &#x27;Demo-Zugänge&#x27;,
     demoIntro: &#x27;Vier Benutzer, ein Passwort. Jede Rolle zeigt eine andere Sicht auf dieselben Daten.&#x27;,
+    demoBoundary:
+      &#x27;Bewusst öffentliche Demo-Umgebung: eigener, isolierter Realm, ausschließlich synthetische Daten, Anfragen begrenzt, Sitzung nach 15 Minuten beendet.&#x27;,
     demoPassword: &#x27;Passwort für alle&#x27;,
+    signInAs: (username) &#x3D;&gt; &#x60;Als ${username} anmelden&#x60;,
     signIn: &#x27;Anmelden&#x27;,
     signInHint:
       &#x27;Die Anmeldung läuft über Keycloak. Sie werden dorthin weitergeleitet und kommen anschließend hierher zurück.&#x27;,
@@ -450,7 +478,6 @@
   },
   help: {
     title: &#x27;Hilfe&#x27;,
-    close: &#x27;Schließen&#x27;,
     modesHeading: &#x27;Die zwei Antwortarten&#x27;,
     modeAHeading: &#x27;Modus A — Belegte Antwort (grün)&#x27;,
     modeABody:
@@ -482,10 +509,16 @@
     explanation: &#x27;Jede Aussage stammt aus einem Protokoll aus dem Bestand und ist belegt.&#x27;,
     sources: &#x27;Quellen&#x27;,
     openSource: &#x27;Originalprotokoll öffnen&#x27;,
-    opening: &#x27;Wird geöffnet …&#x27;,
     similarity: &#x27;Übereinstimmung&#x27;,
     errorCode: &#x27;Fehlercode&#x27;,
     incidentDate: &#x27;Datum&#x27;,
+  },
+  viewer: {
+    title: &#x27;Originalprotokoll&#x27;,
+    loading: &#x27;Protokoll wird geladen …&#x27;,
+    download: &#x27;Herunterladen&#x27;,
+    fallbackNote:
+      &#x27;Dieses Protokoll folgt nicht der üblichen Gliederung. Es wird unverändert angezeigt.&#x27;,
   },
   modeB: {
     badge: &#x27;Allgemeiner Vorschlag — keine Quelle im Bestand&#x27;,
@@ -595,6 +628,10 @@ DECISIONS.txt, which is what the two modes are called throughout the project&#39
                         <i>Default value : </i><code>{
   appTitle: &#x27;Maintenance Assistant&#x27;,
   appTagline: &quot;Answers from your plant&#x27;s own protocols — with the source.&quot;,
+  common: {
+    close: &#x27;Close&#x27;,
+    cancel: &#x27;Cancel&#x27;,
+  },
   nav: {
     search: &#x27;Search&#x27;,
     upload: &#x27;Upload protocol&#x27;,
@@ -615,6 +652,12 @@ DECISIONS.txt, which is what the two modes are called throughout the project&#39
     aiUsage: &#x27;AI use in this project&#x27;,
     note: &#x27;Demo system with synthetic protocols. No real plant data.&#x27;,
   },
+  signOut: {
+    title: &#x27;Sign out?&#x27;,
+    body: &#x27;You will be signed out and will have to sign in again for your next question.&#x27;,
+    notice: &#x27;You have been signed out.&#x27;,
+    dismiss: &#x27;Dismiss this notice&#x27;,
+  },
   landing: {
     headline: &#x27;Maintenance knowledge that does not go home with the shift&#x27;,
     problem:
@@ -633,7 +676,10 @@ DECISIONS.txt, which is what the two modes are called throughout the project&#39
       &#x27;Operators only get steps an instructed person may carry out, together with a note on when to call a qualified technician.&#x27;,
     demoHeading: &#x27;Demo accounts&#x27;,
     demoIntro: &#x27;Four users, one password. Each role shows a different view of the same data.&#x27;,
+    demoBoundary:
+      &#x27;A deliberately public demo environment: its own isolated realm, synthetic data only, rate-limited requests, sessions ending after 15 minutes.&#x27;,
     demoPassword: &#x27;Password for all&#x27;,
+    signInAs: (username) &#x3D;&gt; &#x60;Sign in as ${username}&#x60;,
     signIn: &#x27;Sign in&#x27;,
     signInHint:
       &#x27;Sign-in is handled by Keycloak. You will be redirected there and returned here afterwards.&#x27;,
@@ -675,7 +721,6 @@ DECISIONS.txt, which is what the two modes are called throughout the project&#39
   },
   help: {
     title: &#x27;Help&#x27;,
-    close: &#x27;Close&#x27;,
     modesHeading: &#x27;The two kinds of answer&#x27;,
     modeAHeading: &#x27;Mode A — sourced answer (green)&#x27;,
     modeABody:
@@ -707,10 +752,16 @@ DECISIONS.txt, which is what the two modes are called throughout the project&#39
     explanation: &#x27;Every statement comes from a protocol in the records and is cited.&#x27;,
     sources: &#x27;Sources&#x27;,
     openSource: &#x27;Open the original protocol&#x27;,
-    opening: &#x27;Opening …&#x27;,
     similarity: &#x27;Match&#x27;,
     errorCode: &#x27;Fault code&#x27;,
     incidentDate: &#x27;Date&#x27;,
+  },
+  viewer: {
+    title: &#x27;Original protocol&#x27;,
+    loading: &#x27;Loading the protocol …&#x27;,
+    download: &#x27;Download&#x27;,
+    fallbackNote:
+      &#x27;This protocol does not follow the usual structure. It is shown exactly as it is filed.&#x27;,
   },
   modeB: {
     badge: &#x27;General suggestion — no source in the records&#x27;,
@@ -795,6 +846,37 @@ DECISIONS.txt, which is what the two modes are called throughout the project&#39
 </div>
                 </td>
             </tr>
+
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="DEMO_USERS"></a>
+                    <span class="name">
+                        <span ><b>DEMO_USERS</b></span>
+                        <a href="#DEMO_USERS"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>        <code><a href="../interfaces/DemoUser.html" target="_self" >readonly DemoUser[]</a></code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>[
+  { username: &#x27;operator&#x27;, describe: (t) &#x3D;&gt; t.demo.operator },
+  { username: &#x27;techniker&#x27;, describe: (t) &#x3D;&gt; t.demo.techniker },
+  { username: &#x27;schichtleiter&#x27;, describe: (t) &#x3D;&gt; t.demo.schichtleiter },
+  { username: &#x27;admin&#x27;, describe: (t) &#x3D;&gt; t.demo.admin },
+]</code>
+                    </td>
+                </tr>
+
 
         </tbody>
     </table>
@@ -892,37 +974,98 @@ than a placeholder host.</p>
         </tbody>
     </table>
 </section>
-    <h3>src/app/features/search/search.ts</h3>
+    <h3>src/app/shared/protocol/protocol-document.ts</h3>
     <section data-compodoc="block-properties">
     <h3></h3>    <table class="table table-sm table-bordered">
         <tbody>
             <tr>
                 <td class="col-md-4">
-                    <a name="OBJECT_URL_TTL_MS"></a>
+                    <a name="META_LINE"></a>
                     <span class="name">
-                        <span ><b>OBJECT_URL_TTL_MS</b></span>
-                        <a href="#OBJECT_URL_TTL_MS"><span class="icon ion-ios-link"></span></a>
+                        <span ><b>META_LINE</b></span>
+                        <a href="#META_LINE"><span class="icon ion-ios-link"></span></a>
                     </span>
                 </td>
             </tr>
                 <tr>
                     <td class="col-md-4">
-                        <i>Type : </i>        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/number" target="_blank" >number</a></code>
+                        <i>Type : </i>    <code>unknown</code>
 
                     </td>
                 </tr>
                 <tr>
                     <td class="col-md-4">
-                        <i>Default value : </i><code>60_000</code>
+                        <i>Default value : </i><code>/^([^:]{1,40}):[ \t]+(\S.*)$/</code>
                     </td>
                 </tr>
 
             <tr>
                 <td class="col-md-4">
-                    <div class="io-description"><p>How long an object URL is kept alive after the tab has been pointed at it.</p>
-<p>Long enough for a slow tab to load it, short enough that clicking through a source list does not
-accumulate blobs. Revoking on the new tab&#39;s load event would be tighter, but a cross-document
-object URL gives no reliable load signal to the opener.</p>
+                    <div class="io-description"><p>A <code>Key: Value</code> header line. The key is short and colon-free; the value is whatever follows.</p>
+</div>
+                </td>
+            </tr>
+
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="RULE_LINE"></a>
+                    <span class="name">
+                        <span ><b>RULE_LINE</b></span>
+                        <a href="#RULE_LINE"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>unknown</code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>/^[&#x3D;-]{3,}$/</code>
+                    </td>
+                </tr>
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-description"><p>The <code>=====</code> rule under the <code>WARTUNGSPROTOKOLL</code> / <code>MAINTENANCE PROTOCOL</code> banner.</p>
+</div>
+                </td>
+            </tr>
+
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="SECTION_LINE"></a>
+                    <span class="name">
+                        <span ><b>SECTION_LINE</b></span>
+                        <a href="#SECTION_LINE"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>unknown</code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>/^(.{1,40}):[ \t]*$/</code>
+                    </td>
+                </tr>
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-description"><p>A section label alone on its line — the value-less form is what separates it from a meta row.</p>
 </div>
                 </td>
             </tr>
@@ -989,6 +1132,81 @@ object URL gives no reliable load signal to the opener.</p>
                     </td>
                 </tr>
 
+
+        </tbody>
+    </table>
+</section>
+    <h3>src/app/shared/dialog/dialog.ts</h3>
+    <section data-compodoc="block-properties">
+    <h3></h3>    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="sequence"></a>
+                    <span class="name">
+                        <span ><b>sequence</b></span>
+                        <a href="#sequence"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/number" target="_blank" >number</a></code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>0</code>
+                    </td>
+                </tr>
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-description"><p>Makes each instance&#39;s title element addressable by <code>aria-labelledby</code> without a collision.</p>
+</div>
+                </td>
+            </tr>
+
+        </tbody>
+    </table>
+</section>
+    <h3>src/app/core/auth/auth.service.ts</h3>
+    <section data-compodoc="block-properties">
+    <h3></h3>    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="SIGNED_OUT_KEY"></a>
+                    <span class="name">
+                        <span ><b>SIGNED_OUT_KEY</b></span>
+                        <a href="#SIGNED_OUT_KEY"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>&#x27;maintenance-assistant.signed-out&#x27;</code>
+                    </td>
+                </tr>
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-description"><p>Marks that this tab signed out deliberately, so the landing page can say so.</p>
+<p>sessionStorage rather than a query parameter on the redirect: <code>postLogoutRedirectUri</code> is matched
+against the URIs registered in the realm, and decorating it would risk a Keycloak change this
+project has decided not to need. It is also the right lifetime — the notice belongs to the tab
+that signed out, not to every tab on the machine. <code>logOut()</code> clears only its own keys, so this
+one survives the round trip through Keycloak.</p>
+</div>
+                </td>
+            </tr>
 
         </tbody>
     </table>

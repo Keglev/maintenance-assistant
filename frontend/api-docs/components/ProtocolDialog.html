@@ -1,0 +1,1717 @@
+<!doctype html>
+<html class="no-js" lang="">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="x-ua-compatible" content="ie=edge">
+        <title>maintenance-assistant-frontend documentation</title>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <link rel="icon" type="image/x-icon" href="../images/favicon.ico">
+	   <link rel="stylesheet" href="../styles/style.css">
+        <link rel="stylesheet" href="../styles/dark.css">
+    </head>
+    <body>
+          <script>
+               // Blocking script to avoid flickering dark mode
+               // Dark mode toggle button
+               var useDark = window.matchMedia('(prefers-color-scheme: dark)');
+               var darkModeState = useDark.matches;
+               var $darkModeToggleSwitchers = document.querySelectorAll('.dark-mode-switch input');
+               var $darkModeToggles = document.querySelectorAll('.dark-mode-switch');
+               var darkModeStateLocal = localStorage.getItem('compodoc_darkmode-state');
+
+               function checkToggle(check) {
+                    for (var i = 0; i < $darkModeToggleSwitchers.length; i++) {
+                         $darkModeToggleSwitchers[i].checked = check;
+                    }
+               }
+
+               function toggleDarkMode(state) {
+                    if (window.localStorage) {
+                         localStorage.setItem('compodoc_darkmode-state', state);
+                    }
+
+                    checkToggle(state);
+
+                    const hasClass = document.body.classList.contains('dark');
+
+                    if (state) {
+                         for (var i = 0; i < $darkModeToggles.length; i++) {
+                              $darkModeToggles[i].classList.add('dark');
+                         }
+                         if (!hasClass) {
+                              document.body.classList.add('dark');
+                         }
+                    } else {
+                         for (var i = 0; i < $darkModeToggles.length; i++) {
+                              $darkModeToggles[i].classList.remove('dark');
+                         }
+                         if (hasClass) {
+                              document.body.classList.remove('dark');
+                         }
+                    }
+               }
+
+               useDark.addEventListener('change', function (evt) {
+                    toggleDarkMode(evt.matches);
+               });
+               if (darkModeStateLocal) {
+                    darkModeState = darkModeStateLocal === 'true';
+               }
+               toggleDarkMode(darkModeState);
+          </script>
+          <script>
+              // --- Iframe navigation tracking for Template Playground ---
+              function sendCurrentUrlToParent() {
+                  if (window.parent && window.parent !== window) {
+                      window.parent.postMessage({
+                          type: 'compodoc-iframe-navigate',
+                          url: window.location.pathname + window.location.hash
+                      }, '*');
+                  }
+              }
+              window.addEventListener('hashchange', sendCurrentUrlToParent, false);
+              window.addEventListener('popstate', sendCurrentUrlToParent, false);
+              window.addEventListener('DOMContentLoaded', sendCurrentUrlToParent, false);
+          </script>
+
+        <div class="navbar navbar-default navbar-fixed-top d-md-none p-0">
+               <div class="d-flex">
+                    <a href="../" class="navbar-brand">maintenance-assistant-frontend documentation</a>
+                    <button type="button" class="btn btn-default btn-menu ion-ios-menu" id="btn-menu"></button>
+               </div>
+        </div>
+
+        <div class="xs-menu menu" id="mobile-menu">
+                <div id="book-search-input" role="search">
+    <input type="text" placeholder="Type to search">
+    <button type="button"
+        class="search-input-clear"
+        aria-label="Clear search"
+        data-search-input-clear>&times;</button>
+</div>
+            <compodoc-menu></compodoc-menu>
+        </div>
+
+        <div class="container-fluid main">
+           <div class="row main">
+               <div class="d-none d-md-block menu">
+                   <compodoc-menu mode="normal"></compodoc-menu>
+               </div>
+               <!-- START CONTENT -->
+               <div class="content component">
+                   <div class="content-data">
+
+
+
+
+
+
+
+
+<ol class="breadcrumb">
+  <li class="breadcrumb-item">Components</li>
+  <li class="breadcrumb-item"
+  >
+  ProtocolDialog</li>
+</ol>
+
+<div class="io-file io-file-path" data-compodoc="entity-file-path">
+    <span class="icon ion-ios-document" aria-hidden="true"></span>
+    <code>src/app/shared/protocol/protocol-dialog.ts</code>
+</div>
+
+<ul class="nav nav-tabs" role="tablist">
+        <li class="nav-item">
+            <a href="#info" class="nav-link active"
+                role="tab" id="info-tab" data-bs-toggle="tab" data-link="info">Info</a>
+        </li>
+        <li class="nav-item">
+            <a href="#api" class="nav-link"
+                role="tab" id="api-tab" data-bs-toggle="tab" data-link="api">API</a>
+        </li>
+        <li class="nav-item">
+            <a href="#source" class="nav-link"
+                role="tab" id="source-tab" data-bs-toggle="tab" data-link="source">Source</a>
+        </li>
+        <li class="nav-item">
+            <a href="#templateData" class="nav-link"
+                role="tab" id="templateData-tab" data-bs-toggle="tab" data-link="template">Template</a>
+        </li>
+        <li class="nav-item">
+            <a href="#styleData" class="nav-link"
+                role="tab" id="styleData-tab" data-bs-toggle="tab" data-link="style">Styles</a>
+        </li>
+        <li class="nav-item">
+            <a href="#tree" class="nav-link"
+                role="tab" id="tree-tab" data-bs-toggle="tab" data-link="dom-tree">DOM Tree</a>
+        </li>
+</ul>
+
+<div class="tab-content">
+    <div class="tab-pane fade active in" id="info">
+    <p class="comment">
+        <h3>Description</h3>
+    </p>
+    <p class="comment">
+        <p>The in-app protocol viewer.</p>
+<p><strong>Why the document no longer leaves the application.</strong> #26 fetched the protocol as a blob through
+HttpClient — necessary, because a browser-followed anchor carries no Bearer token — and then opened
+it in a new tab as an object URL. That solved the 401 and left the reader in the browser&#39;s raw text
+viewer: unstyled, outside the application, and on a shop-floor tablet or a kiosk terminal a place
+that is genuinely hard to get back from. Rendering it here removes the category of problem instead
+of working around it: nothing navigates, so nothing can navigate without a token, and the
+synchronous <code>window.open</code> dance with its popup-blocker fallback is simply gone.</p>
+<p>The request itself is unchanged — the same <code>GET /api/protocols/{id}/document</code> through the same
+interceptor. The backend was not touched.</p>
+<p>The download action is the one remaining use of a blob URL in the application, and it is the right
+one: saving a file is exactly what an object URL is for.</p>
+
+    </p>
+
+
+    <p class="comment">
+        <h3>Implements</h3>
+    </p>
+    <p class="comment">
+                    <code><a href="https://angular.dev/api/core/OnDestroy" target="_blank" >OnDestroy</a></code>
+    </p>
+
+    <p class="comment">
+        <h3>Example</h3>
+    </p>
+    <div class="io-description">
+    </div>
+
+<section data-compodoc="block-metadata">
+    <h3>Metadata</h3>
+    <table class="table table-sm table-hover metadata">
+        <tbody>
+
+            <tr>
+                <td class="col-md-3">changeDetection</td>
+                <td class="col-md-9"><code>ChangeDetectionStrategy.OnPush</code></td>
+            </tr>
+
+
+
+
+
+
+
+
+
+
+
+            <tr>
+                <td class="col-md-3">selector</td>
+                <td class="col-md-9"><code>app-protocol-dialog</code></td>
+            </tr>
+
+            <tr>
+                <td class="col-md-3">standalone</td>
+                <td class="col-md-9"><code>true</code></td>
+            </tr>
+
+            <tr>
+                <td class="col-md-3">imports</td>
+                <td class="col-md-9">
+                        <div>        <code><a href="../components/Dialog.html" target="_self" >Dialog</a></code>
+</div>
+                </td>
+            </tr>
+
+            <tr>
+                <td class="col-md-3">styleUrls</td>
+                <td class="col-md-9"><code>./protocol-dialog.css</code></td>
+            </tr>
+
+
+
+
+            <tr>
+                <td class="col-md-3">templateUrl</td>
+                <td class="col-md-9"><code>./protocol-dialog.html</code></td>
+            </tr>
+
+
+
+            <tr>
+                <td class="col-md-3">styleUrl</td>
+                <td class="col-md-9"><code>./protocol-dialog.css</code></td>
+            </tr>
+
+
+
+
+
+        </tbody>
+    </table>
+</section>
+
+        <section data-compodoc="block-relationships">
+            <h3>Relationships</h3>
+
+            <div class="row pt-3">
+                <div class="col-sm-6">
+                    <h4>Used by</h4>
+                        <ul class="list-unstyled relationships-list">
+                                <li>
+                                            <code><a href="../components/Search.html" target="_self" >Search</a></code>
+                                </li>
+                        </ul>
+                </div>
+
+                <div class="col-sm-6">
+                    <h4>Depends on</h4>
+                        <ul class="list-unstyled relationships-list">
+                                <li>
+                                            <code><a href="../components/Dialog.html" target="_self" >Dialog</a></code>
+                                </li>
+                                <li>
+                                            <code><a href="https://angular.dev/api/core/OnDestroy" target="_blank" >OnDestroy</a></code>
+                                </li>
+                        </ul>
+                </div>
+            </div>
+        </section>
+</div>
+
+    <div class="tab-pane fade " id="api">    <section data-compodoc="block-index">
+    <h3 id="index">Index</h3>
+        <table class="table table-sm table-bordered index-table">
+            <tbody>
+                <tr>
+                    <td class="col-md-3">
+                        <h6><b>Properties</b></h6>
+                    </td>
+                    <td class="col-md-9">
+                        <ul class="index-list">
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
+                                    <span class="modifier">Private</span>
+                                    <span class="modifier">Readonly</span>
+                                <a href="#api" >api</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
+                                    <span class="modifier">Protected</span>
+                                    <span class="modifier">Readonly</span>
+                                <a href="#canDownload" >canDownload</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
+                                    <span class="modifier">Private</span>
+                                    <span class="modifier">Readonly</span>
+                                <a href="#document" >document</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
+                                    <span class="modifier">Protected</span>
+                                    <span class="modifier">Readonly</span>
+                                <a href="#failure" >failure</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
+                                    <span class="modifier">Private</span>
+                                    <span class="modifier">Readonly</span>
+                                <a href="#file" >file</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
+                                    <span class="modifier">Private</span>
+                                    <span class="modifier">Readonly</span>
+                                <a href="#i18n" >i18n</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
+                                    <span class="modifier">Protected</span>
+                                    <span class="modifier">Readonly</span>
+                                <a href="#loading" >loading</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
+                                    <span class="modifier">Private</span>
+                                <a href="#objectUrl" >objectUrl</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
+                                    <span class="modifier">Protected</span>
+                                    <span class="modifier">Readonly</span>
+                                <a href="#parsed" >parsed</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
+                                    <span class="modifier">Protected</span>
+                                    <span class="modifier">Readonly</span>
+                                <a href="#t" >t</a>
+                            </li>
+                        </ul>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <table class="table table-sm table-bordered index-table">
+            <tbody>
+                <tr>
+                    <td class="col-md-3">
+                        <h6><b>Methods</b></h6>
+                    </td>
+                    <td class="col-md-9">
+                        <ul class="index-list">
+                            <li>
+                                <span class="reference-badge reference-badge--method" aria-hidden="true">M</span>
+                                    <span class="modifier">Protected</span>
+                                <a href="#close" >close</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--method" aria-hidden="true">M</span>
+                                    <span class="modifier">Protected</span>
+                                <a href="#download" >download</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--method" aria-hidden="true">M</span>
+                                    <span class="modifier">Private</span>
+                                <a href="#load" >load</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--method" aria-hidden="true">M</span>
+                                <a href="#ngOnDestroy" >ngOnDestroy</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--method" aria-hidden="true">M</span>
+                                    <span class="modifier">Private</span>
+                                <a href="#releaseObjectUrl" >releaseObjectUrl</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--method" aria-hidden="true">M</span>
+                                    <span class="modifier">Private</span>
+                                <a href="#reset" >reset</a>
+                            </li>
+                        </ul>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <table class="table table-sm table-bordered index-table">
+            <tbody>
+                <tr>
+                    <td class="col-md-3">
+                        <h6><b>Inputs</b></h6>
+                    </td>
+                    <td class="col-md-9">
+                        <ul class="index-list">
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">I</span><a href="#machine" >machine</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">I</span><a href="#protocolId" >protocolId</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">I</span><a href="#protocolTitle" >protocolTitle</a>
+                            </li>
+                        </ul>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <table class="table table-sm table-bordered index-table">
+            <tbody>
+                <tr>
+                    <td class="col-md-3">
+                        <h6><b>Outputs</b></h6>
+                    </td>
+                    <td class="col-md-9">
+                        <ul class="index-list">
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">O</span><a href="#closed" >closed</a>
+                            </li>
+                        </ul>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+
+
+</section>
+
+    <section data-compodoc="block-constructor">
+    <h3 id="constructor">Constructor</h3>
+        <table class="table table-sm table-bordered">
+            <tbody>
+                <tr>
+                    <td class="col-md-4">
+<code>constructor()</code>
+                    </td>
+                </tr>
+                        <tr>
+                            <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="68" class="link-to-prism">src/app/shared/protocol/protocol-dialog.ts:68</a></div>
+                            </td>
+                        </tr>
+
+            </tbody>
+        </table>
+</section>
+
+    <section data-compodoc="block-inputs">
+    <h3 id="inputs">Inputs</h3>
+        <table class="table table-sm table-bordered">
+            <tbody>
+                <tr>
+                    <td class="col-md-4">
+                        <a name="machine"></a>
+                        <b>machine</b>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>&#x27;&#x27;</code>
+                    </td>
+                </tr>
+                        <tr>
+                            <td class="col-md-2" colspan="2">
+                                    <div class="io-line">Defined in <a href="" data-line="55" class="link-to-prism">src/app/shared/protocol/protocol-dialog.ts:55</a></div>
+                            </td>
+                        </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <div class="io-description"><p>The machine the question was asked about — the second half of &quot;which document is this&quot;.</p>
+</div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        <table class="table table-sm table-bordered">
+            <tbody>
+                <tr>
+                    <td class="col-md-4">
+                        <a name="protocolId"></a>
+                        <b>protocolId</b>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>string | null</code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>null</code>
+                    </td>
+                </tr>
+                        <tr>
+                            <td class="col-md-2" colspan="2">
+                                    <div class="io-line">Defined in <a href="" data-line="51" class="link-to-prism">src/app/shared/protocol/protocol-dialog.ts:51</a></div>
+                            </td>
+                        </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <div class="io-description"><p>The protocol to show, or <code>null</code> when the viewer is closed. Setting it starts the fetch.</p>
+</div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        <table class="table table-sm table-bordered">
+            <tbody>
+                <tr>
+                    <td class="col-md-4">
+                        <a name="protocolTitle"></a>
+                        <b>protocolTitle</b>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>&#x27;&#x27;</code>
+                    </td>
+                </tr>
+                        <tr>
+                            <td class="col-md-2" colspan="2">
+                                    <div class="io-line">Defined in <a href="" data-line="53" class="link-to-prism">src/app/shared/protocol/protocol-dialog.ts:53</a></div>
+                            </td>
+                        </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <div class="io-description"><p>What the answer called this protocol, so the dialog names what the reader clicked.</p>
+</div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+</section>
+
+    <section data-compodoc="block-outputs">
+    <h3 id="outputs">Outputs</h3>
+        <table class="table table-sm table-bordered">
+            <tbody>
+                <tr>
+                    <td class="col-md-4">
+                        <a name="closed"></a>
+                        <b>closed</b>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>        <code><a href="https://www.typescriptlang.org/docs/handbook/basic-types.html" target="_blank" >void</a></code>
+
+                    </td>
+                </tr>
+                        <tr>
+                            <td class="col-md-2" colspan="2">
+                                    <div class="io-line">Defined in <a href="" data-line="56" class="link-to-prism">src/app/shared/protocol/protocol-dialog.ts:56</a></div>
+                            </td>
+                        </tr>
+            </tbody>
+        </table>
+</section>
+
+
+
+    <section data-compodoc="block-methods">
+    
+    <h3 id="methods">
+        Methods
+    </h3>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="close"></a>
+                    <span class="name">
+                            <span class="modifier">Protected</span>
+                        <span ><b>close</b></span>
+                        <a href="#close"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                        <span class="modifier-icon icon ion-ios-reset"></span>
+                    <code>close()</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="131"
+                                    class="link-to-prism">src/app/shared/protocol/protocol-dialog.ts:131</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+
+                        <div class="io-description">
+                            <b>Returns : </b>        <code><a href="https://www.typescriptlang.org/docs/handbook/basic-types.html" target="_blank" >void</a></code>
+
+                        </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="download"></a>
+                    <span class="name">
+                            <span class="modifier">Protected</span>
+                        <span ><b>download</b></span>
+                        <a href="#download"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                        <span class="modifier-icon icon ion-ios-reset"></span>
+                    <code>download()</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="115"
+                                    class="link-to-prism">src/app/shared/protocol/protocol-dialog.ts:115</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                        <div class="io-description"><p>Saves the original file.</p>
+<p>An object URL rather than a link to the API for the same reason the viewer exists: a download
+the browser performs from an <code>/api/</code> href is a fresh navigation with no token on it.</p>
+</div>
+
+                        <div class="io-description">
+                            <b>Returns : </b>        <code><a href="https://www.typescriptlang.org/docs/handbook/basic-types.html" target="_blank" >void</a></code>
+
+                        </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="load"></a>
+                    <span class="name">
+                            <span class="modifier">Private</span>
+                        <span ><b>load</b></span>
+                        <a href="#load"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                        <span class="modifier-icon icon ion-ios-reset"></span>
+                    <code>load(protocolId: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank">string</a>)</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="85"
+                                    class="link-to-prism">src/app/shared/protocol/protocol-dialog.ts:85</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                                <td>Type</td>
+                                            <td>Optional</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>protocolId</td>
+                                            <td>
+                                                            <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>        <code><a href="https://www.typescriptlang.org/docs/handbook/basic-types.html" target="_blank" >void</a></code>
+
+                        </div>
+                            <div class="io-description">
+                                
+                            </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="ngOnDestroy"></a>
+                    <span class="name">
+                        <span ><b>ngOnDestroy</b></span>
+                        <a href="#ngOnDestroy"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+<code>ngOnDestroy()</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="81"
+                                    class="link-to-prism">src/app/shared/protocol/protocol-dialog.ts:81</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+
+                        <div class="io-description">
+                            <b>Returns : </b>        <code><a href="https://www.typescriptlang.org/docs/handbook/basic-types.html" target="_blank" >void</a></code>
+
+                        </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="releaseObjectUrl"></a>
+                    <span class="name">
+                            <span class="modifier">Private</span>
+                        <span ><b>releaseObjectUrl</b></span>
+                        <a href="#releaseObjectUrl"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                        <span class="modifier-icon icon ion-ios-reset"></span>
+                    <code>releaseObjectUrl()</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="149"
+                                    class="link-to-prism">src/app/shared/protocol/protocol-dialog.ts:149</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                        <div class="io-description"><p>An object URL pins its blob in memory until it is revoked, so a technician clicking through six
+sources would otherwise leave six documents allocated for the life of the tab. At most one
+download is live at a time, so holding exactly one and releasing it on the next is enough — and
+it is not released on close, because a download the user started a moment ago may still be
+reading it.</p>
+</div>
+
+                        <div class="io-description">
+                            <b>Returns : </b>        <code><a href="https://www.typescriptlang.org/docs/handbook/basic-types.html" target="_blank" >void</a></code>
+
+                        </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="reset"></a>
+                    <span class="name">
+                            <span class="modifier">Private</span>
+                        <span ><b>reset</b></span>
+                        <a href="#reset"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                        <span class="modifier-icon icon ion-ios-reset"></span>
+                    <code>reset()</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="135"
+                                    class="link-to-prism">src/app/shared/protocol/protocol-dialog.ts:135</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+
+                        <div class="io-description">
+                            <b>Returns : </b>        <code><a href="https://www.typescriptlang.org/docs/handbook/basic-types.html" target="_blank" >void</a></code>
+
+                        </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</section>
+
+    <section data-compodoc="block-properties">
+    
+    <h3 id="inputs">
+        Properties
+    </h3>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="api"></a>
+                    <span class="name">
+                            <span class="modifier">Private</span>
+                            <span class="modifier">Readonly</span>
+                        <span ><b>api</b></span>
+                        <a href="#api"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>unknown</code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>inject(MaintenanceApiService)</code>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="42" class="link-to-prism">src/app/shared/protocol/protocol-dialog.ts:42</a></div>
+                        </td>
+                    </tr>
+
+
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="canDownload"></a>
+                    <span class="name">
+                            <span class="modifier">Protected</span>
+                            <span class="modifier">Readonly</span>
+                        <span ><b>canDownload</b></span>
+                        <a href="#canDownload"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>unknown</code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>computed(() &#x3D;&gt; this.file() !&#x3D;&#x3D; null)</code>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="66" class="link-to-prism">src/app/shared/protocol/protocol-dialog.ts:66</a></div>
+                        </td>
+                    </tr>
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-description"><p>Whether a download is possible — the bytes are here even when parsing gave up on them.</p>
+</div>
+                </td>
+            </tr>
+
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="document"></a>
+                    <span class="name">
+                            <span class="modifier">Private</span>
+                            <span class="modifier">Readonly</span>
+                        <span ><b>document</b></span>
+                        <a href="#document"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>unknown</code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>inject(DOCUMENT)</code>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="46" class="link-to-prism">src/app/shared/protocol/protocol-dialog.ts:46</a></div>
+                        </td>
+                    </tr>
+
+
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="failure"></a>
+                    <span class="name">
+                            <span class="modifier">Protected</span>
+                            <span class="modifier">Readonly</span>
+                        <span ><b>failure</b></span>
+                        <a href="#failure"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>unknown</code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>signal&lt;ApiFailure | null&gt;(null)</code>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="59" class="link-to-prism">src/app/shared/protocol/protocol-dialog.ts:59</a></div>
+                        </td>
+                    </tr>
+
+
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="file"></a>
+                    <span class="name">
+                            <span class="modifier">Private</span>
+                            <span class="modifier">Readonly</span>
+                        <span ><b>file</b></span>
+                        <a href="#file"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>unknown</code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>signal&lt;{ blob: Blob; filename: string } | null&gt;(null)</code>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="63" class="link-to-prism">src/app/shared/protocol/protocol-dialog.ts:63</a></div>
+                        </td>
+                    </tr>
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-description"><p>Held so the download saves the ORIGINAL bytes, not a re-encoding of the parsed text.</p>
+</div>
+                </td>
+            </tr>
+
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="i18n"></a>
+                    <span class="name">
+                            <span class="modifier">Private</span>
+                            <span class="modifier">Readonly</span>
+                        <span ><b>i18n</b></span>
+                        <a href="#i18n"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>unknown</code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>inject(I18nService)</code>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="43" class="link-to-prism">src/app/shared/protocol/protocol-dialog.ts:43</a></div>
+                        </td>
+                    </tr>
+
+
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="loading"></a>
+                    <span class="name">
+                            <span class="modifier">Protected</span>
+                            <span class="modifier">Readonly</span>
+                        <span ><b>loading</b></span>
+                        <a href="#loading"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>unknown</code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>signal(false)</code>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="58" class="link-to-prism">src/app/shared/protocol/protocol-dialog.ts:58</a></div>
+                        </td>
+                    </tr>
+
+
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="objectUrl"></a>
+                    <span class="name">
+                            <span class="modifier">Private</span>
+                        <span ><b>objectUrl</b></span>
+                        <a href="#objectUrl"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>string | null</code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>null</code>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="68" class="link-to-prism">src/app/shared/protocol/protocol-dialog.ts:68</a></div>
+                        </td>
+                    </tr>
+
+
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="parsed"></a>
+                    <span class="name">
+                            <span class="modifier">Protected</span>
+                            <span class="modifier">Readonly</span>
+                        <span ><b>parsed</b></span>
+                        <a href="#parsed"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>unknown</code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>signal&lt;ProtocolDocument | null&gt;(null)</code>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="60" class="link-to-prism">src/app/shared/protocol/protocol-dialog.ts:60</a></div>
+                        </td>
+                    </tr>
+
+
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="t"></a>
+                    <span class="name">
+                            <span class="modifier">Protected</span>
+                            <span class="modifier">Readonly</span>
+                        <span ><b>t</b></span>
+                        <a href="#t"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>unknown</code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>this.i18n.t</code>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="48" class="link-to-prism">src/app/shared/protocol/protocol-dialog.ts:48</a></div>
+                        </td>
+                    </tr>
+
+
+        </tbody>
+    </table>
+</section>
+
+</div>
+
+
+    <div class="tab-pane fade  tab-source-code" id="source">
+        <pre class="line-numbers compodoc-sourcecode"><code class="language-typescript">import { DOCUMENT } from &#x27;@angular/common&#x27;;
+import {
+  Component,
+  OnDestroy,
+  computed,
+  effect,
+  inject,
+  input,
+  output,
+  signal,
+} from &#x27;@angular/core&#x27;;
+
+import { ApiFailure, MaintenanceApiService, classify } from &#x27;../../core/api/maintenance-api.service&#x27;;
+import { I18nService } from &#x27;../../core/i18n/i18n.service&#x27;;
+import { Dialog } from &#x27;../dialog/dialog&#x27;;
+import { ProtocolDocument, filenameOf, parseProtocol } from &#x27;./protocol-document&#x27;;
+
+/**
+ * The in-app protocol viewer.
+ *
+ * **Why the document no longer leaves the application.** #26 fetched the protocol as a blob through
+ * HttpClient — necessary, because a browser-followed anchor carries no Bearer token — and then opened
+ * it in a new tab as an object URL. That solved the 401 and left the reader in the browser&#x27;s raw text
+ * viewer: unstyled, outside the application, and on a shop-floor tablet or a kiosk terminal a place
+ * that is genuinely hard to get back from. Rendering it here removes the category of problem instead
+ * of working around it: nothing navigates, so nothing can navigate without a token, and the
+ * synchronous &#x60;window.open&#x60; dance with its popup-blocker fallback is simply gone.
+ *
+ * The request itself is unchanged — the same &#x60;GET /api/protocols/{id}/document&#x60; through the same
+ * interceptor. The backend was not touched.
+ *
+ * The download action is the one remaining use of a blob URL in the application, and it is the right
+ * one: saving a file is exactly what an object URL is for.
+ */
+@Component({
+  selector: &#x27;app-protocol-dialog&#x27;,
+  imports: [Dialog],
+  templateUrl: &#x27;./protocol-dialog.html&#x27;,
+  styleUrl: &#x27;./protocol-dialog.css&#x27;,
+})
+export class ProtocolDialog implements OnDestroy {
+  private readonly api &#x3D; inject(MaintenanceApiService);
+  private readonly i18n &#x3D; inject(I18nService);
+  // Injected rather than reached for as a global: it is the seam the download uses, and a test can
+  // see what it did without writing a file.
+  private readonly document &#x3D; inject(DOCUMENT);
+
+  protected readonly t &#x3D; this.i18n.t;
+
+  /** The protocol to show, or &#x60;null&#x60; when the viewer is closed. Setting it starts the fetch. */
+  readonly protocolId &#x3D; input&lt;string | null&gt;(null);
+  /** What the answer called this protocol, so the dialog names what the reader clicked. */
+  readonly protocolTitle &#x3D; input(&#x27;&#x27;);
+  /** The machine the question was asked about — the second half of &quot;which document is this&quot;. */
+  readonly machine &#x3D; input(&#x27;&#x27;);
+  readonly closed &#x3D; output&lt;void&gt;();
+
+  protected readonly loading &#x3D; signal(false);
+  protected readonly failure &#x3D; signal&lt;ApiFailure | null&gt;(null);
+  protected readonly parsed &#x3D; signal&lt;ProtocolDocument | null&gt;(null);
+
+  /** Held so the download saves the ORIGINAL bytes, not a re-encoding of the parsed text. */
+  private readonly file &#x3D; signal&lt;{ blob: Blob; filename: string } | null&gt;(null);
+
+  /** Whether a download is possible — the bytes are here even when parsing gave up on them. */
+  protected readonly canDownload &#x3D; computed(() &#x3D;&gt; this.file() !&#x3D;&#x3D; null);
+
+  private objectUrl: string | null &#x3D; null;
+
+  constructor() {
+    effect(() &#x3D;&gt; {
+      const id &#x3D; this.protocolId();
+      if (id) {
+        this.load(id);
+      } else {
+        this.reset();
+      }
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.releaseObjectUrl();
+  }
+
+  private load(protocolId: string): void {
+    this.reset();
+    this.loading.set(true);
+
+    this.api.getDocument(protocolId).subscribe({
+      next: (response) &#x3D;&gt; {
+        this.loading.set(false);
+        const blob &#x3D; response.body;
+        if (!blob) {
+          this.failure.set(&#x27;generic&#x27;);
+          return;
+        }
+        this.file.set({ blob, filename: filenameOf(response.headers.get(&#x27;Content-Disposition&#x27;)) });
+        // &#x60;Blob.text()&#x60; decodes as UTF-8, which is what the backend sends and what the umlauts in
+        // this corpus need.
+        void blob.text().then((text) &#x3D;&gt; this.parsed.set(parseProtocol(text)));
+      },
+      error: (error: unknown) &#x3D;&gt; {
+        this.loading.set(false);
+        this.failure.set(classify(error));
+      },
+    });
+  }
+
+  /**
+   * Saves the original file.
+   *
+   * An object URL rather than a link to the API for the same reason the viewer exists: a download
+   * the browser performs from an &#x60;/api/&#x60; href is a fresh navigation with no token on it.
+   */
+  protected download(): void {
+    const file &#x3D; this.file();
+    if (!file) {
+      return;
+    }
+    // The previous one is released here rather than after the click: revoking a URL the browser has
+    // only just been pointed at is how a download silently produces an empty file.
+    this.releaseObjectUrl();
+    this.objectUrl &#x3D; URL.createObjectURL(file.blob);
+
+    const anchor &#x3D; this.document.createElement(&#x27;a&#x27;);
+    anchor.href &#x3D; this.objectUrl;
+    anchor.download &#x3D; file.filename;
+    anchor.click();
+  }
+
+  protected close(): void {
+    this.closed.emit();
+  }
+
+  private reset(): void {
+    this.loading.set(false);
+    this.failure.set(null);
+    this.parsed.set(null);
+    this.file.set(null);
+  }
+
+  /**
+   * An object URL pins its blob in memory until it is revoked, so a technician clicking through six
+   * sources would otherwise leave six documents allocated for the life of the tab. At most one
+   * download is live at a time, so holding exactly one and releasing it on the next is enough — and
+   * it is not released on close, because a download the user started a moment ago may still be
+   * reading it.
+   */
+  private releaseObjectUrl(): void {
+    if (this.objectUrl) {
+      URL.revokeObjectURL(this.objectUrl);
+      this.objectUrl &#x3D; null;
+    }
+  }
+}
+</code></pre>
+    </div>
+
+    <div class="tab-pane fade " id="templateData">
+        <pre class="line-numbers"><code class="language-html">&lt;app-dialog
+  [open]&#x3D;&quot;protocolId() !&#x3D;&#x3D; null&quot;
+  [title]&#x3D;&quot;protocolTitle() || t().viewer.title&quot;
+  testId&#x3D;&quot;protocol&quot;
+  (closed)&#x3D;&quot;close()&quot;
+&gt;
+  &lt;!-- The machine belongs in the head next to the title: on a shop floor &quot;which machine is this
+       about&quot; is the first question asked of any document. --&gt;
+  @if (machine()) {
+    &lt;p class&#x3D;&quot;viewer-machine&quot; dialogSubtitle data-testid&#x3D;&quot;protocol-machine&quot;&gt;{{ machine() }}&lt;/p&gt;
+  }
+
+  &lt;button
+    type&#x3D;&quot;button&quot;
+    class&#x3D;&quot;btn btn-secondary btn-sm&quot;
+    dialogActions
+    data-testid&#x3D;&quot;protocol-download&quot;
+    [disabled]&#x3D;&quot;!canDownload()&quot;
+    (click)&#x3D;&quot;download()&quot;
+  &gt;
+    &lt;svg class&#x3D;&quot;icon&quot; viewBox&#x3D;&quot;0 0 24 24&quot; aria-hidden&#x3D;&quot;true&quot; focusable&#x3D;&quot;false&quot;&gt;
+      &lt;path d&#x3D;&quot;M12 4v11&quot; /&gt;
+      &lt;path d&#x3D;&quot;M7.5 10.5L12 15l4.5-4.5&quot; /&gt;
+      &lt;path d&#x3D;&quot;M5 19h14&quot; /&gt;
+    &lt;/svg&gt;
+    {{ t().viewer.download }}
+  &lt;/button&gt;
+
+  @if (loading()) {
+    &lt;p class&#x3D;&quot;viewer-loading&quot; role&#x3D;&quot;status&quot; aria-live&#x3D;&quot;polite&quot; data-testid&#x3D;&quot;protocol-loading&quot;&gt;
+      {{ t().viewer.loading }}
+    &lt;/p&gt;
+  }
+
+  @if (failure(); as reason) {
+    &lt;!-- A source that will not open is worth saying out loud: the claim in the answer still rests
+         on this protocol, and the reader is entitled to know the evidence is unreachable rather
+         than to stare at an empty dialog. --&gt;
+    &lt;p class&#x3D;&quot;notice notice-error&quot; role&#x3D;&quot;alert&quot; data-testid&#x3D;&quot;protocol-failure&quot;&gt;
+      @switch (reason) {
+        @case (&#x27;notFound&#x27;) {
+          {{ t().errors.documentMissing }}
+        }
+        @case (&#x27;forbidden&#x27;) {
+          {{ t().errors.forbidden }}
+        }
+        @case (&#x27;unavailable&#x27;) {
+          {{ t().errors.unavailable }}
+        }
+        @default {
+          {{ t().errors.generic }}
+        }
+      }
+    &lt;/p&gt;
+  }
+
+  @if (parsed(); as document) {
+    &lt;!-- lang&#x3D;&quot;de&quot; is wrong for the English protocols in the corpus and right for the 108 German
+         ones, so neither is asserted here: the document carries no lang and inherits the
+         interface&#x27;s, which is what the shell already set. --&gt;
+    &lt;article class&#x3D;&quot;protocol&quot; data-testid&#x3D;&quot;protocol-body&quot;&gt;
+      @if (document.kind &#x3D;&#x3D;&#x3D; &#x27;raw&#x27;) {
+        &lt;!-- The parser did not recognise the structure. The file itself is still the evidence, so
+             it is shown as it stands rather than replaced by an apology. Preformatted, because the
+             line breaks are the only structure left. --&gt;
+        &lt;p class&#x3D;&quot;caption viewer-fallback-note&quot; data-testid&#x3D;&quot;protocol-fallback-note&quot;&gt;
+          {{ t().viewer.fallbackNote }}
+        &lt;/p&gt;
+        &lt;pre class&#x3D;&quot;protocol-raw&quot; data-testid&#x3D;&quot;protocol-raw&quot;&gt;{{ document.raw }}&lt;/pre&gt;
+      } @else {
+        @for (segment of document.segments; track $index) {
+          @switch (segment.kind) {
+            @case (&#x27;meta&#x27;) {
+              &lt;dl class&#x3D;&quot;protocol-meta&quot; data-testid&#x3D;&quot;protocol-meta&quot;&gt;
+                @for (row of segment.rows; track row.label) {
+                  &lt;dt&gt;{{ row.label }}&lt;/dt&gt;
+                  &lt;dd&gt;{{ row.value }}&lt;/dd&gt;
+                }
+              &lt;/dl&gt;
+            }
+            @case (&#x27;title&#x27;) {
+              &lt;h3 class&#x3D;&quot;protocol-title&quot; data-testid&#x3D;&quot;protocol-doc-title&quot;&gt;{{ segment.text }}&lt;/h3&gt;
+            }
+            @case (&#x27;section&#x27;) {
+              &lt;section class&#x3D;&quot;protocol-section&quot; data-testid&#x3D;&quot;protocol-section&quot;&gt;
+                @if (segment.heading) {
+                  &lt;h4 class&#x3D;&quot;protocol-heading&quot;&gt;{{ segment.heading }}&lt;/h4&gt;
+                }
+                @for (paragraph of segment.paragraphs; track $index) {
+                  &lt;p class&#x3D;&quot;protocol-paragraph&quot;&gt;{{ paragraph }}&lt;/p&gt;
+                }
+              &lt;/section&gt;
+            }
+          }
+        }
+      }
+    &lt;/article&gt;
+  }
+&lt;/app-dialog&gt;
+</code></pre>
+    </div>
+
+    <div class="tab-pane fade " id="styleData">
+                <p class="comment">
+                    <code>./protocol-dialog.css</code>
+                </p>
+                <pre class="line-numbers"><code class="language-scss">.viewer-machine {
+  margin: var(--s-1) 0 0;
+  font-size: var(--t-sm);
+  font-family: var(--font-mono);
+  color: var(--c-ink-muted);
+}
+
+.viewer-loading {
+  margin: 0;
+  color: var(--c-ink-muted);
+}
+
+.viewer-fallback-note {
+  margin: 0 0 var(--s-3);
+}
+
+.icon {
+  width: 14px;
+  height: 14px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* --- The parsed protocol -------------------------------------------------- */
+
+/* The header block as a metadata grid: label left, value right, so machine, date and fault code are
+   scannable rather than read. Two columns on a tablet, one on a phone. */
+.protocol-meta {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: var(--s-2) var(--s-4);
+  margin: 0 0 var(--s-5);
+  padding: var(--s-4);
+  border: 1px solid var(--c-line);
+  border-radius: var(--r-sm);
+  background: var(--c-sunken);
+  font-size: var(--t-sm);
+}
+
+.protocol-meta dt {
+  font-weight: 600;
+  color: var(--c-ink-muted);
+}
+
+.protocol-meta dd {
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
+.protocol-title {
+  margin: 0 0 var(--s-5);
+  font-size: var(--t-lg);
+}
+
+.protocol-section + .protocol-section {
+  margin-top: var(--s-5);
+}
+
+.protocol-heading {
+  margin: 0 0 var(--s-2);
+  font-size: var(--t-sm);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--c-ink-muted);
+}
+
+.protocol-paragraph {
+  margin: 0;
+  max-width: var(--read-max);
+  line-height: var(--lh-relaxed);
+}
+
+.protocol-paragraph + .protocol-paragraph {
+  margin-top: var(--s-3);
+}
+
+/* The fallback. Monospace and wrapped rather than scrolling sideways: a protocol nobody could parse
+   is still meant to be read on a tablet, not dragged left and right. */
+.protocol-raw {
+  margin: 0;
+  padding: var(--s-4);
+  border: 1px solid var(--c-line);
+  border-radius: var(--r-sm);
+  background: var(--c-sunken);
+  font-family: var(--font-mono);
+  font-size: var(--t-sm);
+  line-height: var(--lh-normal);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+</code></pre>
+    </div>
+
+    <div class="tab-pane fade " id="tree">
+        <div id="tree-container"></div>
+        <div class="tree-legend">
+            <div class="title">
+                <b>Legend</b>
+            </div>
+            <div>
+                <div class="color htmlelement"></div><span>Html element</span>
+            </div>
+            <div>
+                <div class="color component"></div><span>Component</span>
+            </div>
+            <div>
+                <div class="color directive"></div><span>Html element with directive</span>
+            </div>
+        </div>
+    </div>
+
+    
+</div>
+
+<script src="../js/libs/vis-network.min.js"></script>
+<script src="../js/libs/htmlparser.js"></script>
+<script src="../js/libs/deep-iterator.js"></script>
+<script>
+        var COMPONENT_TEMPLATE = '<div><app-dialog  [open]="protocolId() !== null"  [title]="protocolTitle() || t().viewer.title"  testId="protocol"  (closed)="close()">  <!-- The machine belongs in the head next to the title: on a shop floor "which machine is this       about" is the first question asked of any document. -->  @if (machine()) {    <p class="viewer-machine" dialogSubtitle data-testid="protocol-machine">{{ machine() }}</p>  }  <button    type="button"    class="btn btn-secondary btn-sm"    dialogActions    data-testid="protocol-download"    [disabled]="!canDownload()"    (click)="download()"  >    <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">      <path d="M12 4v11" />      <path d="M7.5 10.5L12 15l4.5-4.5" />      <path d="M5 19h14" />    </svg>    {{ t().viewer.download }}  </button>  @if (loading()) {    <p class="viewer-loading" role="status" aria-live="polite" data-testid="protocol-loading">      {{ t().viewer.loading }}    </p>  }  @if (failure(); as reason) {    <!-- A source that will not open is worth saying out loud: the claim in the answer still rests         on this protocol, and the reader is entitled to know the evidence is unreachable rather         than to stare at an empty dialog. -->    <p class="notice notice-error" role="alert" data-testid="protocol-failure">      @switch (reason) {        @case (\'notFound\') {          {{ t().errors.documentMissing }}        }        @case (\'forbidden\') {          {{ t().errors.forbidden }}        }        @case (\'unavailable\') {          {{ t().errors.unavailable }}        }        @default {          {{ t().errors.generic }}        }      }    </p>  }  @if (parsed(); as document) {    <!-- lang="de" is wrong for the English protocols in the corpus and right for the 108 German         ones, so neither is asserted here: the document carries no lang and inherits the         interface\'s, which is what the shell already set. -->    <article class="protocol" data-testid="protocol-body">      @if (document.kind === \'raw\') {        <!-- The parser did not recognise the structure. The file itself is still the evidence, so             it is shown as it stands rather than replaced by an apology. Preformatted, because the             line breaks are the only structure left. -->        <p class="caption viewer-fallback-note" data-testid="protocol-fallback-note">          {{ t().viewer.fallbackNote }}        </p>        <pre class="protocol-raw" data-testid="protocol-raw">{{ document.raw }}</pre>      } @else {        @for (segment of document.segments; track $index) {          @switch (segment.kind) {            @case (\'meta\') {              <dl class="protocol-meta" data-testid="protocol-meta">                @for (row of segment.rows; track row.label) {                  <dt>{{ row.label }}</dt>                  <dd>{{ row.value }}</dd>                }              </dl>            }            @case (\'title\') {              <h3 class="protocol-title" data-testid="protocol-doc-title">{{ segment.text }}</h3>            }            @case (\'section\') {              <section class="protocol-section" data-testid="protocol-section">                @if (segment.heading) {                  <h4 class="protocol-heading">{{ segment.heading }}</h4>                }                @for (paragraph of segment.paragraphs; track $index) {                  <p class="protocol-paragraph">{{ paragraph }}</p>                }              </section>            }          }        }      }    </article>  }</app-dialog></div>'
+    var COMPONENTS = [{'name': 'App', 'selector': 'app-root'},{'name': 'Dialog', 'selector': 'app-dialog'},{'name': 'HelpDialog', 'selector': 'app-help-dialog'},{'name': 'Landing', 'selector': 'app-landing'},{'name': 'ProtocolDialog', 'selector': 'app-protocol-dialog'},{'name': 'Search', 'selector': 'app-search'},{'name': 'Upload', 'selector': 'app-upload'}];
+    var DIRECTIVES = [];
+    var ACTUAL_COMPONENT = {'name': 'ProtocolDialog'};
+</script>
+<script src="../js/tree.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                   </div><div class="search-results">
+    <div class="has-results">
+        <h1 class="search-results-title"><span class='search-results-count'></span> results matching "<span class='search-query'></span>"</h1>
+        <ul class="search-results-list"></ul>
+    </div>
+    <div class="no-results">
+        <h1 class="search-results-title">No results matching "<span class='search-query'></span>"</h1>
+    </div>
+</div>
+</div>
+               <!-- END CONTENT -->
+           </div>
+       </div>
+
+          <label class="dark-mode-switch">
+               <input type="checkbox">
+               <span class="slider">
+                    <svg class="slider-icon" viewBox="0 0 24 24" fill="none" height="20" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" width="20" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"></path>
+                    </svg>
+               </span>
+          </label>
+
+       <script>
+            var COMPODOC_CURRENT_PAGE_DEPTH = 1;
+            var COMPODOC_CURRENT_PAGE_CONTEXT = 'component';
+            var COMPODOC_CURRENT_PAGE_URL = 'ProtocolDialog.html';
+            var MAX_SEARCH_RESULTS = 15;
+       </script>
+
+       <script>
+               $darkModeToggleSwitchers = document.querySelectorAll('.dark-mode-switch input');
+               var updateDarkModeSwitchOffset = function () {
+                    var content = document.querySelector('.content');
+                    var scrollbarWidth = 0;
+
+                    if (content) {
+                         scrollbarWidth = Math.max(0, content.offsetWidth - content.clientWidth);
+                    }
+
+                    document.documentElement.style.setProperty(
+                         '--content-scrollbar-width',
+                         scrollbarWidth + 'px'
+                    );
+               };
+
+               updateDarkModeSwitchOffset();
+               requestAnimationFrame(updateDarkModeSwitchOffset);
+               window.addEventListener('resize', updateDarkModeSwitchOffset);
+
+               checkToggle(darkModeState);
+               if ($darkModeToggleSwitchers.length > 0) {
+                    for (var i = 0; i < $darkModeToggleSwitchers.length; i++) {
+                         $darkModeToggleSwitchers[i].addEventListener('change', function (event) {
+                              darkModeState = !darkModeState;
+                              toggleDarkMode(darkModeState);
+                         });
+                    }
+               }
+          </script>
+
+       <script src="../js/libs/custom-elements.min.js"></script>
+       <script src="../js/libs/lit-html.js"></script>
+
+       <script src="../js/menu-wc.js" defer></script>
+
+       <script src="../js/libs/bootstrap-native.js"></script>
+
+       <script src="../js/libs/es6-shim.min.js"></script>
+       <script src="../js/libs/EventDispatcher.js"></script>
+       <script src="../js/libs/promise.min.js"></script>
+
+       <script src="../js/compodoc.js"></script>
+
+       <script src="../js/tabs.js"></script>
+       <script src="../js/menu.js"></script>
+       <script src="../js/libs/clipboard.min.js"></script>
+       <script src="../js/libs/prism.js"></script>
+       <script src="../js/sourceCode.js"></script>
+          <script src="../js/search/search.js"></script>
+          <script src="../js/search/lunr.min.js"></script>
+          <script src="../js/search/search-lunr.js"></script>
+          <script src="../js/search/search_index.js"></script>
+       <script src="../js/lazy-load-graphs.js"></script>
+
+
+    </body>
+</html>

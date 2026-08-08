@@ -157,12 +157,9 @@
     <p class="comment">
         <p>The help dialog: what the two answer modes mean, what each role may do, and three questions that
 actually retrieve something.</p>
-<p><strong>Why not <code>&lt;dialog&gt;</code>.</strong> The native element gives focus trapping and Esc for free, and it is the
-right choice in a browser — but the test runner is vitest in jsdom, which does not implement
-<code>showModal()</code>, so a native dialog would be untestable in the only place this project runs tests.
-The behaviour is therefore implemented here: Esc closes, Tab cycles inside, the close button takes
-focus on open and the opener gets it back on close. That is the part users notice; the element is
-an implementation detail.</p>
+<p>All the modal behaviour — focus trap, Esc, backdrop, the close button, full screen on a small
+viewport — belongs to <a href="../components/Dialog.html">Dialog</a> and is shared with the protocol viewer and the sign-out
+confirmation. What is left here is the content, which is the only part specific to help.</p>
 
     </p>
 
@@ -204,6 +201,13 @@ an implementation detail.</p>
                 <td class="col-md-9"><code>true</code></td>
             </tr>
 
+            <tr>
+                <td class="col-md-3">imports</td>
+                <td class="col-md-9">
+                        <div>        <code><a href="../components/Dialog.html" target="_self" >Dialog</a></code>
+</div>
+                </td>
+            </tr>
 
             <tr>
                 <td class="col-md-3">styleUrls</td>
@@ -248,7 +252,11 @@ an implementation detail.</p>
 
                 <div class="col-sm-6">
                     <h4>Depends on</h4>
-                        <p class="comment"><i>No results matching.</i></p>
+                        <ul class="list-unstyled relationships-list">
+                                <li>
+                                            <code><a href="../components/Dialog.html" target="_self" >Dialog</a></code>
+                                </li>
+                        </ul>
                 </div>
             </div>
         </section>
@@ -268,24 +276,7 @@ an implementation detail.</p>
                                 <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
                                     <span class="modifier">Private</span>
                                     <span class="modifier">Readonly</span>
-                                <a href="#document" >document</a>
-                            </li>
-                            <li>
-                                <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
-                                    <span class="modifier">Private</span>
-                                    <span class="modifier">Readonly</span>
                                 <a href="#i18n" >i18n</a>
-                            </li>
-                            <li>
-                                <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
-                                    <span class="modifier">Private</span>
-                                <a href="#opener" >opener</a>
-                            </li>
-                            <li>
-                                <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
-                                    <span class="modifier">Private</span>
-                                    <span class="modifier">Readonly</span>
-                                <a href="#panel" >panel</a>
                             </li>
                             <li>
                                 <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
@@ -299,39 +290,6 @@ an implementation detail.</p>
             </tbody>
         </table>
 
-        <table class="table table-sm table-bordered index-table">
-            <tbody>
-                <tr>
-                    <td class="col-md-3">
-                        <h6><b>Methods</b></h6>
-                    </td>
-                    <td class="col-md-9">
-                        <ul class="index-list">
-                            <li>
-                                <span class="reference-badge reference-badge--method" aria-hidden="true">M</span>
-                                    <span class="modifier">Protected</span>
-                                <a href="#close" >close</a>
-                            </li>
-                            <li>
-                                <span class="reference-badge reference-badge--method" aria-hidden="true">M</span>
-                                    <span class="modifier">Private</span>
-                                <a href="#focusables" >focusables</a>
-                            </li>
-                            <li>
-                                <span class="reference-badge reference-badge--method" aria-hidden="true">M</span>
-                                    <span class="modifier">Protected</span>
-                                <a href="#onKeydown" >onKeydown</a>
-                            </li>
-                            <li>
-                                <span class="reference-badge reference-badge--method" aria-hidden="true">M</span>
-                                    <span class="modifier">Private</span>
-                                <a href="#trapTab" >trapTab</a>
-                            </li>
-                        </ul>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
 
         <table class="table table-sm table-bordered index-table">
             <tbody>
@@ -371,24 +329,6 @@ an implementation detail.</p>
 
 </section>
 
-    <section data-compodoc="block-constructor">
-    <h3 id="constructor">Constructor</h3>
-        <table class="table table-sm table-bordered">
-            <tbody>
-                <tr>
-                    <td class="col-md-4">
-<code>constructor()</code>
-                    </td>
-                </tr>
-                        <tr>
-                            <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="34" class="link-to-prism">src/app/shared/help/help-dialog.ts:34</a></div>
-                            </td>
-                        </tr>
-
-            </tbody>
-        </table>
-</section>
 
     <section data-compodoc="block-inputs">
     <h3 id="inputs">Inputs</h3>
@@ -413,7 +353,7 @@ an implementation detail.</p>
                 </tr>
                         <tr>
                             <td class="col-md-2" colspan="2">
-                                    <div class="io-line">Defined in <a href="" data-line="28" class="link-to-prism">src/app/shared/help/help-dialog.ts:28</a></div>
+                                    <div class="io-line">Defined in <a href="" data-line="25" class="link-to-prism">src/app/shared/help/help-dialog.ts:25</a></div>
                             </td>
                         </tr>
             </tbody>
@@ -438,7 +378,7 @@ an implementation detail.</p>
                 </tr>
                         <tr>
                             <td class="col-md-2" colspan="2">
-                                    <div class="io-line">Defined in <a href="" data-line="29" class="link-to-prism">src/app/shared/help/help-dialog.ts:29</a></div>
+                                    <div class="io-line">Defined in <a href="" data-line="26" class="link-to-prism">src/app/shared/help/help-dialog.ts:26</a></div>
                             </td>
                         </tr>
             </tbody>
@@ -447,273 +387,12 @@ an implementation detail.</p>
 
 
 
-    <section data-compodoc="block-methods">
-    
-    <h3 id="methods">
-        Methods
-    </h3>
-    <table class="table table-sm table-bordered">
-        <tbody>
-            <tr>
-                <td class="col-md-4">
-                    <a name="close"></a>
-                    <span class="name">
-                            <span class="modifier">Protected</span>
-                        <span ><b>close</b></span>
-                        <a href="#close"><span class="icon ion-ios-link"></span></a>
-                    </span>
-                </td>
-            </tr>
-            <tr>
-                <td class="col-md-4">
-                        <span class="modifier-icon icon ion-ios-reset"></span>
-                    <code>close()</code>
-                </td>
-            </tr>
-
-
-                    <tr>
-                        <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="49"
-                                    class="link-to-prism">src/app/shared/help/help-dialog.ts:49</a></div>
-                        </td>
-                    </tr>
-
-
-            <tr>
-                <td class="col-md-4">
-
-                        <div class="io-description">
-                            <b>Returns : </b>        <code><a href="https://www.typescriptlang.org/docs/handbook/basic-types.html" target="_blank" >void</a></code>
-
-                        </div>
-                </td>
-            </tr>
-        </tbody>
-    </table>
-    <table class="table table-sm table-bordered">
-        <tbody>
-            <tr>
-                <td class="col-md-4">
-                    <a name="focusables"></a>
-                    <span class="name">
-                            <span class="modifier">Private</span>
-                        <span ><b>focusables</b></span>
-                        <a href="#focusables"><span class="icon ion-ios-link"></span></a>
-                    </span>
-                </td>
-            </tr>
-            <tr>
-                <td class="col-md-4">
-                        <span class="modifier-icon icon ion-ios-reset"></span>
-                    <code>focusables()</code>
-                </td>
-            </tr>
-
-
-                    <tr>
-                        <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="89"
-                                    class="link-to-prism">src/app/shared/help/help-dialog.ts:89</a></div>
-                        </td>
-                    </tr>
-
-
-            <tr>
-                <td class="col-md-4">
-
-                        <div class="io-description">
-                            <b>Returns : </b>    <code>HTMLElement[]</code>
-
-                        </div>
-                </td>
-            </tr>
-        </tbody>
-    </table>
-    <table class="table table-sm table-bordered">
-        <tbody>
-            <tr>
-                <td class="col-md-4">
-                    <a name="onKeydown"></a>
-                    <span class="name">
-                            <span class="modifier">Protected</span>
-                        <span ><b>onKeydown</b></span>
-                        <a href="#onKeydown"><span class="icon ion-ios-link"></span></a>
-                    </span>
-                </td>
-            </tr>
-            <tr>
-                <td class="col-md-4">
-                        <span class="modifier-icon icon ion-ios-reset"></span>
-                    <code>onKeydown(event: KeyboardEvent)</code>
-                </td>
-            </tr>
-
-
-                    <tr>
-                        <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="54"
-                                    class="link-to-prism">src/app/shared/help/help-dialog.ts:54</a></div>
-                        </td>
-                    </tr>
-
-
-            <tr>
-                <td class="col-md-4">
-                        <div class="io-description"><p>Esc closes from anywhere inside the dialog — the shortcut every modal is expected to have.</p>
-</div>
-
-                            <div class="io-description">
-                                <b>Parameters :</b>
-                                
-                                <table class="params">
-                                    <thead>
-                                        <tr>
-                                            <td>Name</td>
-                                                <td>Type</td>
-                                            <td>Optional</td>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr>
-                                                <td>event</td>
-                                            <td>
-                                                        <code>KeyboardEvent</code>
-                                            </td>
-
-                                            <td>
-                                                    No
-                                            </td>
-
-
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        <div class="io-description">
-                            <b>Returns : </b>        <code><a href="https://www.typescriptlang.org/docs/handbook/basic-types.html" target="_blank" >void</a></code>
-
-                        </div>
-                            <div class="io-description">
-                                
-                            </div>
-                </td>
-            </tr>
-        </tbody>
-    </table>
-    <table class="table table-sm table-bordered">
-        <tbody>
-            <tr>
-                <td class="col-md-4">
-                    <a name="trapTab"></a>
-                    <span class="name">
-                            <span class="modifier">Private</span>
-                        <span ><b>trapTab</b></span>
-                        <a href="#trapTab"><span class="icon ion-ios-link"></span></a>
-                    </span>
-                </td>
-            </tr>
-            <tr>
-                <td class="col-md-4">
-                        <span class="modifier-icon icon ion-ios-reset"></span>
-                    <code>trapTab(event: KeyboardEvent)</code>
-                </td>
-            </tr>
-
-
-                    <tr>
-                        <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="71"
-                                    class="link-to-prism">src/app/shared/help/help-dialog.ts:71</a></div>
-                        </td>
-                    </tr>
-
-
-            <tr>
-                <td class="col-md-4">
-                        <div class="io-description"><p>Keeps Tab inside the dialog.</p>
-<p>Without this, tabbing walks out of a modal and onto the page behind it, which for a screen
-reader user means the dialog silently stops being where they are.</p>
-</div>
-
-                            <div class="io-description">
-                                <b>Parameters :</b>
-                                
-                                <table class="params">
-                                    <thead>
-                                        <tr>
-                                            <td>Name</td>
-                                                <td>Type</td>
-                                            <td>Optional</td>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr>
-                                                <td>event</td>
-                                            <td>
-                                                        <code>KeyboardEvent</code>
-                                            </td>
-
-                                            <td>
-                                                    No
-                                            </td>
-
-
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        <div class="io-description">
-                            <b>Returns : </b>        <code><a href="https://www.typescriptlang.org/docs/handbook/basic-types.html" target="_blank" >void</a></code>
-
-                        </div>
-                            <div class="io-description">
-                                
-                            </div>
-                </td>
-            </tr>
-        </tbody>
-    </table>
-</section>
 
     <section data-compodoc="block-properties">
     
     <h3 id="inputs">
         Properties
     </h3>
-    <table class="table table-sm table-bordered">
-        <tbody>
-            <tr>
-                <td class="col-md-4">
-                    <a name="document"></a>
-                    <span class="name">
-                            <span class="modifier">Private</span>
-                            <span class="modifier">Readonly</span>
-                        <span ><b>document</b></span>
-                        <a href="#document"><span class="icon ion-ios-link"></span></a>
-                    </span>
-                </td>
-            </tr>
-                <tr>
-                    <td class="col-md-4">
-                        <i>Type : </i>    <code>unknown</code>
-
-                    </td>
-                </tr>
-                <tr>
-                    <td class="col-md-4">
-                        <i>Default value : </i><code>inject(DOCUMENT)</code>
-                    </td>
-                </tr>
-                    <tr>
-                        <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="24" class="link-to-prism">src/app/shared/help/help-dialog.ts:24</a></div>
-                        </td>
-                    </tr>
-
-
-        </tbody>
-    </table>
     <table class="table table-sm table-bordered">
         <tbody>
             <tr>
@@ -740,78 +419,7 @@ reader user means the dialog silently stops being where they are.</p>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="23" class="link-to-prism">src/app/shared/help/help-dialog.ts:23</a></div>
-                        </td>
-                    </tr>
-
-
-        </tbody>
-    </table>
-    <table class="table table-sm table-bordered">
-        <tbody>
-            <tr>
-                <td class="col-md-4">
-                    <a name="opener"></a>
-                    <span class="name">
-                            <span class="modifier">Private</span>
-                        <span ><b>opener</b></span>
-                        <a href="#opener"><span class="icon ion-ios-link"></span></a>
-                    </span>
-                </td>
-            </tr>
-                <tr>
-                    <td class="col-md-4">
-                        <i>Type : </i>    <code>HTMLElement | null</code>
-
-                    </td>
-                </tr>
-                <tr>
-                    <td class="col-md-4">
-                        <i>Default value : </i><code>null</code>
-                    </td>
-                </tr>
-                    <tr>
-                        <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="34" class="link-to-prism">src/app/shared/help/help-dialog.ts:34</a></div>
-                        </td>
-                    </tr>
-
-            <tr>
-                <td class="col-md-4">
-                    <div class="io-description"><p>Whoever opened the dialog, so focus can be handed back where it came from.</p>
-</div>
-                </td>
-            </tr>
-
-        </tbody>
-    </table>
-    <table class="table table-sm table-bordered">
-        <tbody>
-            <tr>
-                <td class="col-md-4">
-                    <a name="panel"></a>
-                    <span class="name">
-                            <span class="modifier">Private</span>
-                            <span class="modifier">Readonly</span>
-                        <span ><b>panel</b></span>
-                        <a href="#panel"><span class="icon ion-ios-link"></span></a>
-                    </span>
-                </td>
-            </tr>
-                <tr>
-                    <td class="col-md-4">
-                        <i>Type : </i>    <code>unknown</code>
-
-                    </td>
-                </tr>
-                <tr>
-                    <td class="col-md-4">
-                        <i>Default value : </i><code>viewChild&lt;ElementRef&lt;HTMLElement&gt;&gt;(&#x27;panel&#x27;)</code>
-                    </td>
-                </tr>
-                    <tr>
-                        <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="31" class="link-to-prism">src/app/shared/help/help-dialog.ts:31</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="21" class="link-to-prism">src/app/shared/help/help-dialog.ts:21</a></div>
                         </td>
                     </tr>
 
@@ -844,7 +452,7 @@ reader user means the dialog silently stops being where they are.</p>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="26" class="link-to-prism">src/app/shared/help/help-dialog.ts:26</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="23" class="link-to-prism">src/app/shared/help/help-dialog.ts:23</a></div>
                         </td>
                     </tr>
 
@@ -857,181 +465,82 @@ reader user means the dialog silently stops being where they are.</p>
 
 
     <div class="tab-pane fade  tab-source-code" id="source">
-        <pre class="line-numbers compodoc-sourcecode"><code class="language-typescript">import { DOCUMENT } from &#x27;@angular/common&#x27;;
-import { Component, ElementRef, effect, inject, input, output, viewChild } from &#x27;@angular/core&#x27;;
+        <pre class="line-numbers compodoc-sourcecode"><code class="language-typescript">import { Component, inject, input, output } from &#x27;@angular/core&#x27;;
 
 import { I18nService } from &#x27;../../core/i18n/i18n.service&#x27;;
+import { Dialog } from &#x27;../dialog/dialog&#x27;;
 
 /**
  * The help dialog: what the two answer modes mean, what each role may do, and three questions that
  * actually retrieve something.
  *
- * **Why not &#x60;&lt;dialog&gt;&#x60;.** The native element gives focus trapping and Esc for free, and it is the
- * right choice in a browser — but the test runner is vitest in jsdom, which does not implement
- * &#x60;showModal()&#x60;, so a native dialog would be untestable in the only place this project runs tests.
- * The behaviour is therefore implemented here: Esc closes, Tab cycles inside, the close button takes
- * focus on open and the opener gets it back on close. That is the part users notice; the element is
- * an implementation detail.
+ * All the modal behaviour — focus trap, Esc, backdrop, the close button, full screen on a small
+ * viewport — belongs to {@link Dialog} and is shared with the protocol viewer and the sign-out
+ * confirmation. What is left here is the content, which is the only part specific to help.
  */
 @Component({
   selector: &#x27;app-help-dialog&#x27;,
+  imports: [Dialog],
   templateUrl: &#x27;./help-dialog.html&#x27;,
   styleUrl: &#x27;./help-dialog.css&#x27;,
 })
 export class HelpDialog {
   private readonly i18n &#x3D; inject(I18nService);
-  private readonly document &#x3D; inject(DOCUMENT);
 
   protected readonly t &#x3D; this.i18n.t;
 
   readonly open &#x3D; input(false);
   readonly closed &#x3D; output&lt;void&gt;();
-
-  private readonly panel &#x3D; viewChild&lt;ElementRef&lt;HTMLElement&gt;&gt;(&#x27;panel&#x27;);
-
-  /** Whoever opened the dialog, so focus can be handed back where it came from. */
-  private opener: HTMLElement | null &#x3D; null;
-
-  constructor() {
-    effect(() &#x3D;&gt; {
-      if (this.open()) {
-        this.opener &#x3D; this.document.activeElement as HTMLElement | null;
-        // The panel is rendered in the same change-detection pass, so the focus move waits a tick.
-        setTimeout(() &#x3D;&gt; this.focusables()[0]?.focus());
-      } else {
-        this.opener?.focus();
-        this.opener &#x3D; null;
-      }
-    });
-  }
-
-  protected close(): void {
-    this.closed.emit();
-  }
-
-  /** Esc closes from anywhere inside the dialog — the shortcut every modal is expected to have. */
-  protected onKeydown(event: KeyboardEvent): void {
-    if (event.key &#x3D;&#x3D;&#x3D; &#x27;Escape&#x27;) {
-      event.preventDefault();
-      this.close();
-      return;
-    }
-    if (event.key &#x3D;&#x3D;&#x3D; &#x27;Tab&#x27;) {
-      this.trapTab(event);
-    }
-  }
-
-  /**
-   * Keeps Tab inside the dialog.
-   *
-   * Without this, tabbing walks out of a modal and onto the page behind it, which for a screen
-   * reader user means the dialog silently stops being where they are.
-   */
-  private trapTab(event: KeyboardEvent): void {
-    const focusable &#x3D; this.focusables();
-    if (focusable.length &#x3D;&#x3D;&#x3D; 0) {
-      return;
-    }
-    const first &#x3D; focusable[0];
-    const last &#x3D; focusable[focusable.length - 1];
-    const active &#x3D; this.document.activeElement;
-
-    if (event.shiftKey &amp;&amp; (active &#x3D;&#x3D;&#x3D; first || !focusable.includes(active as HTMLElement))) {
-      event.preventDefault();
-      last.focus();
-    } else if (!event.shiftKey &amp;&amp; active &#x3D;&#x3D;&#x3D; last) {
-      event.preventDefault();
-      first.focus();
-    }
-  }
-
-  private focusables(): HTMLElement[] {
-    const host &#x3D; this.panel()?.nativeElement;
-    return host
-      ? [
-          ...host.querySelectorAll&lt;HTMLElement&gt;(
-            &#x27;button, [href], input, select, textarea, [tabindex]&#x27;,
-          ),
-        ]
-      : [];
-  }
 }
 </code></pre>
     </div>
 
     <div class="tab-pane fade " id="templateData">
-        <pre class="line-numbers"><code class="language-html">@if (open()) {
-  &lt;!-- The backdrop closes on click, like every modal a user has met before. The panel stops the
-       click from reaching it, so a click inside does not dismiss what it lands on. --&gt;
-  &lt;div class&#x3D;&quot;backdrop&quot; data-testid&#x3D;&quot;help-backdrop&quot; (click)&#x3D;&quot;close()&quot; (keydown)&#x3D;&quot;onKeydown($event)&quot;&gt;
-    &lt;div
-      class&#x3D;&quot;panel&quot;
-      #panel
-      role&#x3D;&quot;dialog&quot;
-      aria-modal&#x3D;&quot;true&quot;
-      aria-labelledby&#x3D;&quot;help-title&quot;
-      data-testid&#x3D;&quot;help-dialog&quot;
-      (click)&#x3D;&quot;$event.stopPropagation()&quot;
-    &gt;
-      &lt;div class&#x3D;&quot;panel-head&quot;&gt;
-        &lt;h2 class&#x3D;&quot;panel-title&quot; id&#x3D;&quot;help-title&quot;&gt;{{ t().help.title }}&lt;/h2&gt;
-        &lt;button
-          type&#x3D;&quot;button&quot;
-          class&#x3D;&quot;btn btn-secondary btn-sm&quot;
-          data-testid&#x3D;&quot;help-close&quot;
-          [attr.aria-label]&#x3D;&quot;t().help.close&quot;
-          (click)&#x3D;&quot;close()&quot;
-        &gt;
-          &lt;svg class&#x3D;&quot;icon&quot; viewBox&#x3D;&quot;0 0 24 24&quot; aria-hidden&#x3D;&quot;true&quot; focusable&#x3D;&quot;false&quot;&gt;
-            &lt;path d&#x3D;&quot;M6 6l12 12M18 6L6 18&quot; /&gt;
-          &lt;/svg&gt;
-          {{ t().help.close }}
-        &lt;/button&gt;
-      &lt;/div&gt;
-
-      &lt;div class&#x3D;&quot;panel-body&quot;&gt;
-        &lt;section class&#x3D;&quot;help-section&quot;&gt;
-          &lt;h3 class&#x3D;&quot;help-heading&quot;&gt;{{ t().help.modesHeading }}&lt;/h3&gt;
-          &lt;!-- The two modes are explained in their own colours: the reader meets the same green and
-               the same amber here that the answer will arrive in. --&gt;
-          &lt;div class&#x3D;&quot;mode-card mode-card-a&quot; data-testid&#x3D;&quot;help-mode-a&quot;&gt;
-            &lt;p class&#x3D;&quot;mode-card-title&quot;&gt;{{ t().help.modeAHeading }}&lt;/p&gt;
-            &lt;p class&#x3D;&quot;mode-card-body&quot;&gt;{{ t().help.modeABody }}&lt;/p&gt;
-          &lt;/div&gt;
-          &lt;div class&#x3D;&quot;mode-card mode-card-b&quot; data-testid&#x3D;&quot;help-mode-b&quot;&gt;
-            &lt;p class&#x3D;&quot;mode-card-title&quot;&gt;{{ t().help.modeBHeading }}&lt;/p&gt;
-            &lt;p class&#x3D;&quot;mode-card-body&quot;&gt;{{ t().help.modeBBody }}&lt;/p&gt;
-          &lt;/div&gt;
-        &lt;/section&gt;
-
-        &lt;section class&#x3D;&quot;help-section&quot;&gt;
-          &lt;h3 class&#x3D;&quot;help-heading&quot;&gt;{{ t().help.rolesHeading }}&lt;/h3&gt;
-          &lt;ul class&#x3D;&quot;help-list&quot;&gt;
-            &lt;li&gt;{{ t().help.roleOperator }}&lt;/li&gt;
-            &lt;li&gt;{{ t().help.roleTechniker }}&lt;/li&gt;
-            &lt;li&gt;{{ t().help.roleSchichtleiter }}&lt;/li&gt;
-          &lt;/ul&gt;
-        &lt;/section&gt;
-
-        &lt;section class&#x3D;&quot;help-section&quot;&gt;
-          &lt;h3 class&#x3D;&quot;help-heading&quot;&gt;{{ t().demo.examplesHeading }}&lt;/h3&gt;
-          &lt;p class&#x3D;&quot;caption&quot;&gt;{{ t().demo.examplesIntro }}&lt;/p&gt;
-          &lt;ul class&#x3D;&quot;examples&quot;&gt;
-            @for (example of t().demo.examples; track example.question) {
-              &lt;li class&#x3D;&quot;example&quot; data-testid&#x3D;&quot;help-example&quot;&gt;
-                &lt;p class&#x3D;&quot;example-machine&quot;&gt;
-                  {{ t().demo.exampleMachine }}: &lt;strong&gt;{{ example.machine }}&lt;/strong&gt;
-                &lt;/p&gt;
-                &lt;p class&#x3D;&quot;example-question&quot; lang&#x3D;&quot;de&quot;&gt;{{ example.question }}&lt;/p&gt;
-                &lt;p class&#x3D;&quot;example-shows&quot;&gt;{{ example.shows }}&lt;/p&gt;
-              &lt;/li&gt;
-            }
-          &lt;/ul&gt;
-        &lt;/section&gt;
-      &lt;/div&gt;
+        <pre class="line-numbers"><code class="language-html">&lt;app-dialog
+  [open]&#x3D;&quot;open()&quot;
+  [title]&#x3D;&quot;t().help.title&quot;
+  testId&#x3D;&quot;help&quot;
+  (closed)&#x3D;&quot;closed.emit()&quot;
+&gt;
+  &lt;section class&#x3D;&quot;help-section&quot;&gt;
+    &lt;h3 class&#x3D;&quot;help-heading&quot;&gt;{{ t().help.modesHeading }}&lt;/h3&gt;
+    &lt;!-- The two modes are explained in their own colours: the reader meets the same green and
+         the same amber here that the answer will arrive in. --&gt;
+    &lt;div class&#x3D;&quot;mode-card mode-card-a&quot; data-testid&#x3D;&quot;help-mode-a&quot;&gt;
+      &lt;p class&#x3D;&quot;mode-card-title&quot;&gt;{{ t().help.modeAHeading }}&lt;/p&gt;
+      &lt;p class&#x3D;&quot;mode-card-body&quot;&gt;{{ t().help.modeABody }}&lt;/p&gt;
     &lt;/div&gt;
-  &lt;/div&gt;
-}
+    &lt;div class&#x3D;&quot;mode-card mode-card-b&quot; data-testid&#x3D;&quot;help-mode-b&quot;&gt;
+      &lt;p class&#x3D;&quot;mode-card-title&quot;&gt;{{ t().help.modeBHeading }}&lt;/p&gt;
+      &lt;p class&#x3D;&quot;mode-card-body&quot;&gt;{{ t().help.modeBBody }}&lt;/p&gt;
+    &lt;/div&gt;
+  &lt;/section&gt;
+
+  &lt;section class&#x3D;&quot;help-section&quot;&gt;
+    &lt;h3 class&#x3D;&quot;help-heading&quot;&gt;{{ t().help.rolesHeading }}&lt;/h3&gt;
+    &lt;ul class&#x3D;&quot;help-list&quot;&gt;
+      &lt;li&gt;{{ t().help.roleOperator }}&lt;/li&gt;
+      &lt;li&gt;{{ t().help.roleTechniker }}&lt;/li&gt;
+      &lt;li&gt;{{ t().help.roleSchichtleiter }}&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/section&gt;
+
+  &lt;section class&#x3D;&quot;help-section&quot;&gt;
+    &lt;h3 class&#x3D;&quot;help-heading&quot;&gt;{{ t().demo.examplesHeading }}&lt;/h3&gt;
+    &lt;p class&#x3D;&quot;caption&quot;&gt;{{ t().demo.examplesIntro }}&lt;/p&gt;
+    &lt;ul class&#x3D;&quot;examples&quot;&gt;
+      @for (example of t().demo.examples; track example.question) {
+        &lt;li class&#x3D;&quot;example&quot; data-testid&#x3D;&quot;help-example&quot;&gt;
+          &lt;p class&#x3D;&quot;example-machine&quot;&gt;
+            {{ t().demo.exampleMachine }}: &lt;strong&gt;{{ example.machine }}&lt;/strong&gt;
+          &lt;/p&gt;
+          &lt;p class&#x3D;&quot;example-question&quot; lang&#x3D;&quot;de&quot;&gt;{{ example.question }}&lt;/p&gt;
+          &lt;p class&#x3D;&quot;example-shows&quot;&gt;{{ example.shows }}&lt;/p&gt;
+        &lt;/li&gt;
+      }
+    &lt;/ul&gt;
+  &lt;/section&gt;
+&lt;/app-dialog&gt;
 </code></pre>
     </div>
 
@@ -1039,55 +548,7 @@ export class HelpDialog {
                 <p class="comment">
                     <code>./help-dialog.css</code>
                 </p>
-                <pre class="line-numbers"><code class="language-scss">.backdrop {
-  position: fixed;
-  inset: 0;
-  z-index: 50;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: var(--s-4);
-  background: rgb(27 36 48 / 55%);
-}
-
-.panel {
-  display: flex;
-  flex-direction: column;
-  width: min(42rem, 100%);
-  max-height: 90vh;
-  background: var(--c-surface);
-  border-radius: var(--r-lg);
-  box-shadow: var(--shadow-md);
-  overflow: hidden;
-}
-
-.panel-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--s-4);
-  padding: var(--s-4) var(--s-5);
-  border-bottom: 1px solid var(--c-line);
-}
-
-.panel-title {
-  margin: 0;
-  font-size: var(--t-xl);
-}
-
-.panel-body {
-  padding: var(--s-5);
-  overflow-y: auto;
-}
-
-.icon {
-  width: 14px;
-  height: 14px;
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 2;
-  stroke-linecap: round;
-}
+                <pre class="line-numbers"><code class="language-scss">/* The modal chrome lives in the shared dialog shell; what is left here is help&#x27;s own content. */
 
 .help-section + .help-section {
   margin-top: var(--s-5);
@@ -1191,21 +652,6 @@ export class HelpDialog {
   font-size: var(--t-sm);
   color: var(--c-ink-muted);
 }
-
-/* On a phone a centred card wastes the edges and puts the close button somewhere the thumb is not.
-   Full screen, head pinned at the top. */
-@media (max-width: 40rem) {
-  .backdrop {
-    padding: 0;
-  }
-
-  .panel {
-    width: 100%;
-    max-height: 100vh;
-    height: 100%;
-    border-radius: 0;
-  }
-}
 </code></pre>
     </div>
 
@@ -1234,8 +680,8 @@ export class HelpDialog {
 <script src="../js/libs/htmlparser.js"></script>
 <script src="../js/libs/deep-iterator.js"></script>
 <script>
-        var COMPONENT_TEMPLATE = '<div>@if (open()) {  <!-- The backdrop closes on click, like every modal a user has met before. The panel stops the       click from reaching it, so a click inside does not dismiss what it lands on. -->  <div class="backdrop" data-testid="help-backdrop" (click)="close()" (keydown)="onKeydown($event)">    <div      class="panel"      #panel      role="dialog"      aria-modal="true"      aria-labelledby="help-title"      data-testid="help-dialog"      (click)="$event.stopPropagation()"    >      <div class="panel-head">        <h2 class="panel-title" id="help-title">{{ t().help.title }}</h2>        <button          type="button"          class="btn btn-secondary btn-sm"          data-testid="help-close"          [attr.aria-label]="t().help.close"          (click)="close()"        >          <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">            <path d="M6 6l12 12M18 6L6 18" />          </svg>          {{ t().help.close }}        </button>      </div>      <div class="panel-body">        <section class="help-section">          <h3 class="help-heading">{{ t().help.modesHeading }}</h3>          <!-- The two modes are explained in their own colours: the reader meets the same green and               the same amber here that the answer will arrive in. -->          <div class="mode-card mode-card-a" data-testid="help-mode-a">            <p class="mode-card-title">{{ t().help.modeAHeading }}</p>            <p class="mode-card-body">{{ t().help.modeABody }}</p>          </div>          <div class="mode-card mode-card-b" data-testid="help-mode-b">            <p class="mode-card-title">{{ t().help.modeBHeading }}</p>            <p class="mode-card-body">{{ t().help.modeBBody }}</p>          </div>        </section>        <section class="help-section">          <h3 class="help-heading">{{ t().help.rolesHeading }}</h3>          <ul class="help-list">            <li>{{ t().help.roleOperator }}</li>            <li>{{ t().help.roleTechniker }}</li>            <li>{{ t().help.roleSchichtleiter }}</li>          </ul>        </section>        <section class="help-section">          <h3 class="help-heading">{{ t().demo.examplesHeading }}</h3>          <p class="caption">{{ t().demo.examplesIntro }}</p>          <ul class="examples">            @for (example of t().demo.examples; track example.question) {              <li class="example" data-testid="help-example">                <p class="example-machine">                  {{ t().demo.exampleMachine }}: <strong>{{ example.machine }}</strong>                </p>                <p class="example-question" lang="de">{{ example.question }}</p>                <p class="example-shows">{{ example.shows }}</p>              </li>            }          </ul>        </section>      </div>    </div>  </div>}</div>'
-    var COMPONENTS = [{'name': 'App', 'selector': 'app-root'},{'name': 'HelpDialog', 'selector': 'app-help-dialog'},{'name': 'Landing', 'selector': 'app-landing'},{'name': 'Search', 'selector': 'app-search'},{'name': 'Upload', 'selector': 'app-upload'}];
+        var COMPONENT_TEMPLATE = '<div><app-dialog  [open]="open()"  [title]="t().help.title"  testId="help"  (closed)="closed.emit()">  <section class="help-section">    <h3 class="help-heading">{{ t().help.modesHeading }}</h3>    <!-- The two modes are explained in their own colours: the reader meets the same green and         the same amber here that the answer will arrive in. -->    <div class="mode-card mode-card-a" data-testid="help-mode-a">      <p class="mode-card-title">{{ t().help.modeAHeading }}</p>      <p class="mode-card-body">{{ t().help.modeABody }}</p>    </div>    <div class="mode-card mode-card-b" data-testid="help-mode-b">      <p class="mode-card-title">{{ t().help.modeBHeading }}</p>      <p class="mode-card-body">{{ t().help.modeBBody }}</p>    </div>  </section>  <section class="help-section">    <h3 class="help-heading">{{ t().help.rolesHeading }}</h3>    <ul class="help-list">      <li>{{ t().help.roleOperator }}</li>      <li>{{ t().help.roleTechniker }}</li>      <li>{{ t().help.roleSchichtleiter }}</li>    </ul>  </section>  <section class="help-section">    <h3 class="help-heading">{{ t().demo.examplesHeading }}</h3>    <p class="caption">{{ t().demo.examplesIntro }}</p>    <ul class="examples">      @for (example of t().demo.examples; track example.question) {        <li class="example" data-testid="help-example">          <p class="example-machine">            {{ t().demo.exampleMachine }}: <strong>{{ example.machine }}</strong>          </p>          <p class="example-question" lang="de">{{ example.question }}</p>          <p class="example-shows">{{ example.shows }}</p>        </li>      }    </ul>  </section></app-dialog></div>'
+    var COMPONENTS = [{'name': 'App', 'selector': 'app-root'},{'name': 'Dialog', 'selector': 'app-dialog'},{'name': 'HelpDialog', 'selector': 'app-help-dialog'},{'name': 'Landing', 'selector': 'app-landing'},{'name': 'ProtocolDialog', 'selector': 'app-protocol-dialog'},{'name': 'Search', 'selector': 'app-search'},{'name': 'Upload', 'selector': 'app-upload'}];
     var DIRECTIVES = [];
     var ACTUAL_COMPONENT = {'name': 'HelpDialog'};
 </script>

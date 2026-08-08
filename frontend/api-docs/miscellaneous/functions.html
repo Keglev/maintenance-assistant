@@ -143,16 +143,31 @@
                             <a href="#classify" title="src/app/core/api/maintenance-api.service.ts" class="reference-link "><span class="reference-badge reference-badge--function" aria-hidden="true">F</span><span class="reference-link-label"><b>classify</b>&nbsp;&nbsp;&nbsp;(src/.../maintenance-api.service.ts)</span></a>
                         </li>
                         <li>
-                            <a href="#filenameOf" title="src/app/features/search/search.ts" class="reference-link "><span class="reference-badge reference-badge--function" aria-hidden="true">F</span><span class="reference-link-label"><b>filenameOf</b>&nbsp;&nbsp;&nbsp;(src/.../search.ts)</span></a>
+                            <a href="#filenameOf" title="src/app/shared/protocol/protocol-document.ts" class="reference-link "><span class="reference-badge reference-badge--function" aria-hidden="true">F</span><span class="reference-link-label"><b>filenameOf</b>&nbsp;&nbsp;&nbsp;(src/.../protocol-document.ts)</span></a>
                         </li>
                         <li>
                             <a href="#initialLanguage" title="src/app/core/i18n/i18n.service.ts" class="reference-link "><span class="reference-badge reference-badge--function" aria-hidden="true">F</span><span class="reference-link-label"><b>initialLanguage</b>&nbsp;&nbsp;&nbsp;(src/.../i18n.service.ts)</span></a>
+                        </li>
+                        <li>
+                            <a href="#parseProtocol" title="src/app/shared/protocol/protocol-document.ts" class="reference-link "><span class="reference-badge reference-badge--function" aria-hidden="true">F</span><span class="reference-link-label"><b>parseProtocol</b>&nbsp;&nbsp;&nbsp;(src/.../protocol-document.ts)</span></a>
+                        </li>
+                        <li>
+                            <a href="#readMeta" title="src/app/shared/protocol/protocol-document.ts" class="reference-link "><span class="reference-badge reference-badge--function" aria-hidden="true">F</span><span class="reference-link-label"><b>readMeta</b>&nbsp;&nbsp;&nbsp;(src/.../protocol-document.ts)</span></a>
+                        </li>
+                        <li>
+                            <a href="#readSections" title="src/app/shared/protocol/protocol-document.ts" class="reference-link "><span class="reference-badge reference-badge--function" aria-hidden="true">F</span><span class="reference-link-label"><b>readSections</b>&nbsp;&nbsp;&nbsp;(src/.../protocol-document.ts)</span></a>
                         </li>
                         <li>
                             <a href="#reasonOf" title="src/app/core/api/maintenance-api.service.ts" class="reference-link "><span class="reference-badge reference-badge--function" aria-hidden="true">F</span><span class="reference-link-label"><b>reasonOf</b>&nbsp;&nbsp;&nbsp;(src/.../maintenance-api.service.ts)</span></a>
                         </li>
                         <li>
                             <a href="#roleGuard" title="src/app/core/auth/role.guard.ts" class="reference-link "><span class="reference-badge reference-badge--function" aria-hidden="true">F</span><span class="reference-link-label"><b>roleGuard</b>&nbsp;&nbsp;&nbsp;(src/.../role.guard.ts)</span></a>
+                        </li>
+                        <li>
+                            <a href="#skipBanner" title="src/app/shared/protocol/protocol-document.ts" class="reference-link "><span class="reference-badge reference-badge--function" aria-hidden="true">F</span><span class="reference-link-label"><b>skipBanner</b>&nbsp;&nbsp;&nbsp;(src/.../protocol-document.ts)</span></a>
+                        </li>
+                        <li>
+                            <a href="#skipBlank" title="src/app/shared/protocol/protocol-document.ts" class="reference-link "><span class="reference-badge reference-badge--function" aria-hidden="true">F</span><span class="reference-link-label"><b>skipBlank</b>&nbsp;&nbsp;&nbsp;(src/.../protocol-document.ts)</span></a>
                         </li>
                         <li>
                             <a href="#toSegments" title="src/app/features/search/search.ts" class="reference-link "><span class="reference-badge reference-badge--function" aria-hidden="true">F</span><span class="reference-link-label"><b>toSegments</b>&nbsp;&nbsp;&nbsp;(src/.../search.ts)</span></a>
@@ -367,7 +382,7 @@ sentence on the server does not silently change what the German UI says.</p>
         </tbody>
     </table>
 </section>
-    <h3>src/app/features/search/search.ts</h3>
+    <h3>src/app/shared/protocol/protocol-document.ts</h3>
     <section data-compodoc="block-methods">
     <h3></h3>    <table class="table table-sm table-bordered">
         <tbody>
@@ -391,7 +406,7 @@ sentence on the server does not silently change what the German UI says.</p>
 
             <tr>
                 <td class="col-md-4">
-                        <div class="io-description"><p>The readable filename the backend put in <code>Content-Disposition</code>, for the download fallback.</p>
+                        <div class="io-description"><p>The readable filename the backend put in <code>Content-Disposition</code>, for the download action.</p>
 </div>
 
                             <div class="io-description">
@@ -432,16 +447,16 @@ sentence on the server does not silently change what the German UI says.</p>
         <tbody>
             <tr>
                 <td class="col-md-4">
-                    <a name="toSegments"></a>
+                    <a name="parseProtocol"></a>
                     <span class="name">
-                        <span ><b>toSegments</b></span>
-                        <a href="#toSegments"><span class="icon ion-ios-link"></span></a>
+                        <span ><b>parseProtocol</b></span>
+                        <a href="#parseProtocol"><span class="icon ion-ios-link"></span></a>
                     </span>
                 </td>
             </tr>
             <tr>
                 <td class="col-md-4">
-<code>toSegments(answer: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank">string</a>, citations)</code>
+<code>parseProtocol(text: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank">string</a>)</code>
                 </td>
             </tr>
 
@@ -450,11 +465,13 @@ sentence on the server does not silently change what the German UI says.</p>
 
             <tr>
                 <td class="col-md-4">
-                        <div class="io-description"><p>Splits an answer into prose and <code>[Pn]</code> markers.</p>
-<p>A marker whose label is not among the citations is left as plain text rather than dropped or
-linked: the backend already removed every claim citing a source it did not retrieve, so if one
-still appears here it belongs to prose and inventing a link for it would be the client asserting
-something the server did not.</p>
+                        <div class="io-description"><p>Parses a protocol file into typed segments, and never throws.</p>
+<p>The structure is stable across the corpus but not guaranteed: it is plain text written by people,
+and the messy end of the quality mix omits whichever part it feels like. So every step is
+optional. A file with only sections parses; a file with only a header block parses; a file that
+matches nothing at all comes back as <code>&#39;raw&#39;</code> and the viewer shows it preformatted. What must never
+happen is a blank dialog — the reader clicked a citation and is entitled to the evidence behind
+it, in whatever shape it exists.</p>
 </div>
 
                             <div class="io-description">
@@ -470,20 +487,9 @@ something the server did not.</p>
                                     </thead>
                                     <tbody>
                                         <tr>
-                                                <td>answer</td>
+                                                <td>text</td>
                                             <td>
                                                             <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
-                                            </td>
-
-                                            <td>
-                                                    No
-                                            </td>
-
-
-                                        </tr>
-                                        <tr>
-                                                <td>citations</td>
-                                            <td>
                                             </td>
 
                                             <td>
@@ -496,7 +502,289 @@ something the server did not.</p>
                                 </table>
                             </div>
                         <div class="io-description">
-                            <b>Returns : </b>        <code><a href="../interfaces/AnswerSegment.html" target="_self" >AnswerSegment[]</a></code>
+                            <b>Returns : </b>        <code><a href="../interfaces/ProtocolDocument.html" target="_self" >ProtocolDocument</a></code>
+
+                        </div>
+                            <div class="io-description">
+                                
+                            </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="readMeta"></a>
+                    <span class="name">
+                        <span ><b>readMeta</b></span>
+                        <a href="#readMeta"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+<code>readMeta(lines, from: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/number" target="_blank">number</a>)</code>
+                </td>
+            </tr>
+
+
+
+
+            <tr>
+                <td class="col-md-4">
+                        <div class="io-description"><p>The run of <code>Key: Value</code> lines starting at <code>from</code>, which ends at the first line that is not one.</p>
+</div>
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                                <td>Type</td>
+                                            <td>Optional</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>lines</td>
+                                            <td>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                        <tr>
+                                                <td>from</td>
+                                            <td>
+                                                            <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/number" target="_blank" >number</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>        <code><a href="../interfaces/MetaRow.html" target="_self" >MetaRow[]</a></code>
+
+                        </div>
+                            <div class="io-description">
+                                
+                            </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="readSections"></a>
+                    <span class="name">
+                        <span ><b>readSections</b></span>
+                        <a href="#readSections"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+<code>readSections(lines, from: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/number" target="_blank">number</a>)</code>
+                </td>
+            </tr>
+
+
+
+
+            <tr>
+                <td class="col-md-4">
+                        <div class="io-description"><p>Everything from <code>from</code> on, grouped under the section labels it contains.</p>
+<p>Text appearing before the first label is kept under an empty heading rather than dropped: an
+unlabelled paragraph is still what the technician wrote, and losing it would make the viewer a
+less complete record than the file.</p>
+</div>
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                                <td>Type</td>
+                                            <td>Optional</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>lines</td>
+                                            <td>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                        <tr>
+                                                <td>from</td>
+                                            <td>
+                                                            <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/number" target="_blank" >number</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>        <code><a href="../miscellaneous/typealiases.html#ProtocolSegment" target="_self" >ProtocolSegment[]</a></code>
+
+                        </div>
+                            <div class="io-description">
+                                
+                            </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="skipBanner"></a>
+                    <span class="name">
+                        <span ><b>skipBanner</b></span>
+                        <a href="#skipBanner"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+<code>skipBanner(lines)</code>
+                </td>
+            </tr>
+
+
+
+
+            <tr>
+                <td class="col-md-4">
+                        <div class="io-description"><p>Steps over the banner line and its <code>=====</code> rule, if the file has them.</p>
+</div>
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                            <td>Optional</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>lines</td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/number" target="_blank" >number</a></code>
+
+                        </div>
+                            <div class="io-description">
+                                
+                            </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="skipBlank"></a>
+                    <span class="name">
+                        <span ><b>skipBlank</b></span>
+                        <a href="#skipBlank"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+<code>skipBlank(lines, from: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/number" target="_blank">number</a>)</code>
+                </td>
+            </tr>
+
+
+
+
+            <tr>
+                <td class="col-md-4">
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                                <td>Type</td>
+                                            <td>Optional</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>lines</td>
+                                            <td>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                        <tr>
+                                                <td>from</td>
+                                            <td>
+                                                            <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/number" target="_blank" >number</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/number" target="_blank" >number</a></code>
 
                         </div>
                             <div class="io-description">
@@ -602,6 +890,87 @@ form that produces a 403 after they have chosen a file.</p>
                             </div>
                         <div class="io-description">
                             <b>Returns : </b>        <code><a href="https://angular.dev/api/router/CanActivateFn" target="_blank" >CanActivateFn</a></code>
+
+                        </div>
+                            <div class="io-description">
+                                
+                            </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</section>
+    <h3>src/app/features/search/search.ts</h3>
+    <section data-compodoc="block-methods">
+    <h3></h3>    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="toSegments"></a>
+                    <span class="name">
+                        <span ><b>toSegments</b></span>
+                        <a href="#toSegments"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+<code>toSegments(answer: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank">string</a>, citations)</code>
+                </td>
+            </tr>
+
+
+
+
+            <tr>
+                <td class="col-md-4">
+                        <div class="io-description"><p>Splits an answer into prose and <code>[Pn]</code> markers.</p>
+<p>A marker whose label is not among the citations is left as plain text rather than dropped or
+linked: the backend already removed every claim citing a source it did not retrieve, so if one
+still appears here it belongs to prose and inventing a link for it would be the client asserting
+something the server did not.</p>
+</div>
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                                <td>Type</td>
+                                            <td>Optional</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>answer</td>
+                                            <td>
+                                                            <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                        <tr>
+                                                <td>citations</td>
+                                            <td>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>        <code><a href="../interfaces/AnswerSegment.html" target="_self" >AnswerSegment[]</a></code>
 
                         </div>
                             <div class="io-description">

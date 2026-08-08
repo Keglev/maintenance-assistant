@@ -240,6 +240,10 @@ server-side, because hiding a button is not a security control (NFR-3).</p>
                             </li>
                             <li>
                                 <span class="reference-badge reference-badge--method" aria-hidden="true">M</span>
+                                <a href="#consumeSignedOutNotice" >consumeSignedOutNotice</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--method" aria-hidden="true">M</span>
                                     <span class="modifier">Async</span>
                                 <a href="#init" >init</a>
                             </li>
@@ -250,6 +254,11 @@ server-side, because hiding a button is not a security control (NFR-3).</p>
                             <li>
                                 <span class="reference-badge reference-badge--method" aria-hidden="true">M</span>
                                 <a href="#logout" >logout</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--method" aria-hidden="true">M</span>
+                                    <span class="modifier">Private</span>
+                                <a href="#rememberSignOut" >rememberSignOut</a>
                             </li>
                         </ul>
                     </td>
@@ -291,8 +300,8 @@ server-side, because hiding a button is not a security control (NFR-3).</p>
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="72"
-                                    class="link-to-prism">src/app/core/auth/auth.service.ts:72</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="116"
+                                    class="link-to-prism">src/app/core/auth/auth.service.ts:116</a></div>
                         </td>
                     </tr>
 
@@ -304,6 +313,47 @@ server-side, because hiding a button is not a security control (NFR-3).</p>
 
                         <div class="io-description">
                             <b>Returns : </b>    <code>AccessTokenClaims | null</code>
+
+                        </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="consumeSignedOutNotice"></a>
+                    <span class="name">
+                        <span ><b>consumeSignedOutNotice</b></span>
+                        <a href="#consumeSignedOutNotice"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+<code>consumeSignedOutNotice()</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="96"
+                                    class="link-to-prism">src/app/core/auth/auth.service.ts:96</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                        <div class="io-description"><p>Whether this tab has just signed out, clearing the flag as it reports it.</p>
+<p>Read-and-clear rather than read: the notice is about the sign-out that just happened, and one
+that reappeared on every later visit to the landing page would stop meaning anything.</p>
+</div>
+
+                        <div class="io-description">
+                            <b>Returns : </b>        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/boolean" target="_blank" >boolean</a></code>
 
                         </div>
                 </td>
@@ -332,8 +382,8 @@ server-side, because hiding a button is not a security control (NFR-3).</p>
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="47"
-                                    class="link-to-prism">src/app/core/auth/auth.service.ts:47</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="58"
+                                    class="link-to-prism">src/app/core/auth/auth.service.ts:58</a></div>
                         </td>
                     </tr>
 
@@ -365,15 +415,15 @@ coming back from Keycloak. Runs once during application startup.</p>
             </tr>
             <tr>
                 <td class="col-md-4">
-<code>login()</code>
+<code>login(loginHint?: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank">string</a>)</code>
                 </td>
             </tr>
 
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="62"
-                                    class="link-to-prism">src/app/core/auth/auth.service.ts:62</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="80"
+                                    class="link-to-prism">src/app/core/auth/auth.service.ts:80</a></div>
                         </td>
                     </tr>
 
@@ -381,12 +431,46 @@ coming back from Keycloak. Runs once during application startup.</p>
             <tr>
                 <td class="col-md-4">
                         <div class="io-description"><p>Sends the browser to Keycloak&#39;s login page.</p>
+<p><code>loginHint</code> is passed as the standard <code>login_hint</code> authorization request parameter, which
+Keycloak uses to prefill the username field. It is a hint on the normal Auth Code + PKCE
+request and nothing more: the visitor still authenticates at Keycloak, and the password never
+passes through this application. The demo buttons on the landing page are its only caller.</p>
 </div>
 
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                                <td>Type</td>
+                                            <td>Optional</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>loginHint</td>
+                                            <td>
+                                                            <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+                                            </td>
+
+                                            <td>
+                                                    Yes
+                                            </td>
+
+
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
                         <div class="io-description">
                             <b>Returns : </b>        <code><a href="https://www.typescriptlang.org/docs/handbook/basic-types.html" target="_blank" >void</a></code>
 
                         </div>
+                            <div class="io-description">
+                                
+                            </div>
                 </td>
             </tr>
         </tbody>
@@ -411,8 +495,47 @@ coming back from Keycloak. Runs once during application startup.</p>
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="66"
-                                    class="link-to-prism">src/app/core/auth/auth.service.ts:66</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="84"
+                                    class="link-to-prism">src/app/core/auth/auth.service.ts:84</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+
+                        <div class="io-description">
+                            <b>Returns : </b>        <code><a href="https://www.typescriptlang.org/docs/handbook/basic-types.html" target="_blank" >void</a></code>
+
+                        </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="rememberSignOut"></a>
+                    <span class="name">
+                            <span class="modifier">Private</span>
+                        <span ><b>rememberSignOut</b></span>
+                        <a href="#rememberSignOut"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                        <span class="modifier-icon icon ion-ios-reset"></span>
+                    <code>rememberSignOut()</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="107"
+                                    class="link-to-prism">src/app/core/auth/auth.service.ts:107</a></div>
                         </td>
                     </tr>
 
@@ -461,7 +584,7 @@ coming back from Keycloak. Runs once during application startup.</p>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="26" class="link-to-prism">src/app/core/auth/auth.service.ts:26</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="37" class="link-to-prism">src/app/core/auth/auth.service.ts:37</a></div>
                         </td>
                     </tr>
 
@@ -500,7 +623,7 @@ coming back from Keycloak. Runs once during application startup.</p>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="23" class="link-to-prism">src/app/core/auth/auth.service.ts:23</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="34" class="link-to-prism">src/app/core/auth/auth.service.ts:34</a></div>
                         </td>
                     </tr>
 
@@ -535,7 +658,7 @@ coming back from Keycloak. Runs once during application startup.</p>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="28" class="link-to-prism">src/app/core/auth/auth.service.ts:28</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="39" class="link-to-prism">src/app/core/auth/auth.service.ts:39</a></div>
                         </td>
                     </tr>
 
@@ -568,7 +691,7 @@ coming back from Keycloak. Runs once during application startup.</p>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="22" class="link-to-prism">src/app/core/auth/auth.service.ts:22</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="33" class="link-to-prism">src/app/core/auth/auth.service.ts:33</a></div>
                         </td>
                     </tr>
 
@@ -603,7 +726,7 @@ coming back from Keycloak. Runs once during application startup.</p>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="38" class="link-to-prism">src/app/core/auth/auth.service.ts:38</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="49" class="link-to-prism">src/app/core/auth/auth.service.ts:49</a></div>
                         </td>
                     </tr>
 
@@ -638,7 +761,7 @@ coming back from Keycloak. Runs once during application startup.</p>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="33" class="link-to-prism">src/app/core/auth/auth.service.ts:33</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="44" class="link-to-prism">src/app/core/auth/auth.service.ts:44</a></div>
                         </td>
                     </tr>
 
@@ -656,6 +779,17 @@ import { OAuthService } from &#x27;angular-oauth2-oidc&#x27;;
 
 import { ConfigService } from &#x27;../config/config.service&#x27;;
 import { buildAuthConfig } from &#x27;./auth.config&#x27;;
+
+/**
+ * Marks that this tab signed out deliberately, so the landing page can say so.
+ *
+ * sessionStorage rather than a query parameter on the redirect: &#x60;postLogoutRedirectUri&#x60; is matched
+ * against the URIs registered in the realm, and decorating it would risk a Keycloak change this
+ * project has decided not to need. It is also the right lifetime — the notice belongs to the tab
+ * that signed out, not to every tab on the machine. &#x60;logOut()&#x60; clears only its own keys, so this
+ * one survives the round trip through Keycloak.
+ */
+const SIGNED_OUT_KEY &#x3D; &#x27;maintenance-assistant.signed-out&#x27;;
 
 /** Shape of the Keycloak access token claims this application reads. */
 interface AccessTokenClaims {
@@ -711,14 +845,47 @@ export class AuthService {
     this.authState.update((value) &#x3D;&gt; value + 1);
   }
 
-  /** Sends the browser to Keycloak&#x27;s login page. */
-  login(): void {
-    this.oauth.initCodeFlow();
+  /**
+   * Sends the browser to Keycloak&#x27;s login page.
+   *
+   * &#x60;loginHint&#x60; is passed as the standard &#x60;login_hint&#x60; authorization request parameter, which
+   * Keycloak uses to prefill the username field. It is a hint on the normal Auth Code + PKCE
+   * request and nothing more: the visitor still authenticates at Keycloak, and the password never
+   * passes through this application. The demo buttons on the landing page are its only caller.
+   */
+  login(loginHint?: string): void {
+    this.oauth.initCodeFlow(&#x27;&#x27;, loginHint ? { login_hint: loginHint } : {});
   }
 
   logout(): void {
+    this.rememberSignOut();
     this.oauth.logOut();
     this.authState.update((value) &#x3D;&gt; value + 1);
+  }
+
+  /**
+   * Whether this tab has just signed out, clearing the flag as it reports it.
+   *
+   * Read-and-clear rather than read: the notice is about the sign-out that just happened, and one
+   * that reappeared on every later visit to the landing page would stop meaning anything.
+   */
+  consumeSignedOutNotice(): boolean {
+    try {
+      const signedOut &#x3D; sessionStorage.getItem(SIGNED_OUT_KEY) !&#x3D;&#x3D; null;
+      sessionStorage.removeItem(SIGNED_OUT_KEY);
+      return signedOut;
+    } catch {
+      // Storage the browser refuses to hand over costs a confirmation message, nothing more.
+      return false;
+    }
+  }
+
+  private rememberSignOut(): void {
+    try {
+      sessionStorage.setItem(SIGNED_OUT_KEY, &#x27;1&#x27;);
+    } catch {
+      // See above: the sign-out itself must not depend on storage being writable.
+    }
   }
 
   /** Decodes the access token payload; returns null when there is no valid token. */

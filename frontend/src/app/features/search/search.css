@@ -1,0 +1,258 @@
+/*
+ * The two answer modes are the anti-hallucination mechanism (NFR-2), so their difference is not a
+ * theme choice: green with a check for a sourced answer, amber with a warning and a hatched edge
+ * for a general suggestion. The distinction is carried by the badge text, the border weight and the
+ * icon as well as by hue, so it survives a monochrome screen and the common forms of colour
+ * blindness — a difference that exists only in colour is a difference some readers do not get.
+ */
+
+.ask {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  max-width: 44rem;
+  margin-bottom: 1.5rem;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.field-label {
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.ask select,
+.ask textarea {
+  padding: 0.5rem;
+  border: 1px solid #b9b9b9;
+  border-radius: 4px;
+  font: inherit;
+  background: #fff;
+}
+
+.ask textarea {
+  resize: vertical;
+}
+
+.ask button {
+  align-self: flex-start;
+  padding: 0.6rem 1.2rem;
+  border: 0;
+  border-radius: 4px;
+  background: #1f4b8f;
+  color: #fff;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.ask button[disabled] {
+  background: #8a9bb5;
+  cursor: progress;
+}
+
+.notice {
+  margin: 0;
+  padding: 0.5rem 0.75rem;
+  border-radius: 4px;
+  font-size: 0.9rem;
+}
+
+.notice-error {
+  background: #fdecec;
+  border: 1px solid #e0b4b4;
+  color: #7a1f1f;
+}
+
+/* Waiting. An indeterminate bar, because the backend cannot estimate its own queue time. */
+.working {
+  max-width: 44rem;
+  margin-bottom: 1.5rem;
+}
+
+.working-bar {
+  height: 4px;
+  border-radius: 2px;
+  background: #e2e6ec;
+  overflow: hidden;
+}
+
+.working-bar span {
+  display: block;
+  width: 35%;
+  height: 100%;
+  border-radius: 2px;
+  background: #1f4b8f;
+  animation: working-slide 1.4s ease-in-out infinite;
+}
+
+@keyframes working-slide {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(320%);
+  }
+}
+
+/* Respects a reader who asked the operating system for less motion. */
+@media (prefers-reduced-motion: reduce) {
+  .working-bar span {
+    width: 100%;
+    animation: none;
+  }
+}
+
+.working-text {
+  margin: 0.5rem 0 0;
+  font-weight: 600;
+}
+
+.working-hint {
+  margin: 0.15rem 0 0;
+  font-size: 0.85rem;
+  color: #5c6672;
+}
+
+/* --- The answer ---------------------------------------------------------- */
+
+.answer {
+  max-width: 52rem;
+  padding: 1rem 1.25rem;
+  border-radius: 6px;
+  margin-bottom: 1.5rem;
+}
+
+.answer-badge {
+  margin: 0;
+  font-weight: 700;
+  font-size: 1rem;
+  letter-spacing: 0.01em;
+}
+
+.answer-explanation {
+  margin: 0.35rem 0 1rem;
+  font-size: 0.9rem;
+}
+
+.answer-text {
+  margin: 0 0 1.25rem;
+  line-height: 1.65;
+}
+
+/* Mode A — sourced. */
+.answer-a {
+  background: #f1f8f3;
+  border: 1px solid #bcdcc6;
+  border-left: 6px solid #2f7d44;
+}
+
+.answer-a .answer-badge {
+  color: #1d5c31;
+}
+
+.citation-marker {
+  display: inline-block;
+  padding: 0 0.25rem;
+  border-radius: 3px;
+  background: #d8ecdd;
+  color: #14532b;
+  font-size: 0.8em;
+  font-weight: 700;
+  text-decoration: none;
+  vertical-align: 0.1em;
+}
+
+.citation-marker:hover,
+.citation-marker:focus-visible {
+  background: #2f7d44;
+  color: #fff;
+}
+
+.sources-heading,
+.steps-heading {
+  margin: 0 0 0.5rem;
+  font-size: 0.95rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #3c4a3f;
+}
+
+.sources {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.source {
+  display: flex;
+  gap: 0.6rem;
+  align-items: baseline;
+}
+
+.source-label {
+  flex: 0 0 auto;
+  padding: 0.1rem 0.35rem;
+  border-radius: 3px;
+  background: #2f7d44;
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.source-title {
+  color: #14532b;
+  font-weight: 600;
+}
+
+.source-meta {
+  margin: 0.1rem 0 0;
+  font-size: 0.8rem;
+  color: #4a5a4e;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+/* Mode B — a general suggestion, and it must never be mistaken for the block above. */
+.answer-b {
+  background: #fff8ec;
+  border: 1px solid #e8cf9c;
+  border-left: 6px solid #b26a00;
+  /* A hatched top edge: a second, non-colour signal that this block is different in kind. */
+  background-image: repeating-linear-gradient(
+    135deg,
+    #f0dcb4 0 8px,
+    transparent 8px 16px
+  );
+  background-size: 100% 6px;
+  background-repeat: no-repeat;
+  background-position: top left;
+  padding-top: 1.4rem;
+}
+
+.answer-b .answer-badge {
+  color: #8a4b00;
+}
+
+.answer-b .answer-explanation {
+  font-weight: 600;
+  color: #6f3d00;
+}
+
+.steps {
+  margin: 0;
+  padding-left: 1.4rem;
+  line-height: 1.6;
+}
+
+.steps li {
+  margin-bottom: 0.4rem;
+}

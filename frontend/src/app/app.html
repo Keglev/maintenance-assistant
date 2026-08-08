@@ -1,5 +1,52 @@
-<header class="app-header">
-  <span class="app-title">{{ title }}</span>
+<!-- The document language follows the interface, so screen readers and hyphenation get the labels
+     right. An individual answer overrides it with the language the backend pinned it to. -->
+<header class="app-header" [attr.lang]="language()">
+  <span class="app-title">{{ t().appTitle }}</span>
+
+  @if (isAuthenticated()) {
+    <nav class="app-nav">
+      <a routerLink="/search" routerLinkActive="active" data-testid="nav-search">{{
+        t().nav.search
+      }}</a>
+      @if (canUpload()) {
+        <a routerLink="/upload" routerLinkActive="active" data-testid="nav-upload">{{
+          t().nav.upload
+        }}</a>
+      }
+    </nav>
+  }
+
+  <div class="app-actions">
+    <!-- Two buttons rather than a dropdown: with exactly two languages, a dropdown costs a click
+         to discover what a pair of labels already shows. -->
+    <div class="lang-switch" role="group" [attr.aria-label]="t().nav.language">
+      <button
+        type="button"
+        data-testid="lang-de"
+        [class.active]="language() === 'de'"
+        [attr.aria-pressed]="language() === 'de'"
+        (click)="use('de')"
+      >
+        DE
+      </button>
+      <button
+        type="button"
+        data-testid="lang-en"
+        [class.active]="language() === 'en'"
+        [attr.aria-pressed]="language() === 'en'"
+        (click)="use('en')"
+      >
+        EN
+      </button>
+    </div>
+
+    @if (isAuthenticated()) {
+      <span class="app-user" data-testid="header-username">{{ username() }}</span>
+      <button type="button" class="link-button" data-testid="sign-out" (click)="signOut()">
+        {{ t().nav.signOut }}
+      </button>
+    }
+  </div>
 </header>
 
 <main class="app-main">

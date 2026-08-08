@@ -1,10 +1,78 @@
 .app-header {
-  padding: 1rem 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 0.75rem 1.5rem;
   border-bottom: 1px solid #d8d8d8;
 }
 
 .app-title {
   font-weight: 600;
+}
+
+.app-nav {
+  display: flex;
+  gap: 1rem;
+}
+
+.app-nav a {
+  color: #33404f;
+  text-decoration: none;
+  padding: 0.2rem 0;
+  border-bottom: 2px solid transparent;
+}
+
+.app-nav a.active {
+  color: #1f4b8f;
+  font-weight: 600;
+  border-bottom-color: #1f4b8f;
+}
+
+/* Pushed to the far end, so the switch and the identity sit together away from navigation. */
+.app-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-left: auto;
+}
+
+.lang-switch {
+  display: inline-flex;
+  border: 1px solid #c3c9d1;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.lang-switch button {
+  padding: 0.2rem 0.55rem;
+  border: 0;
+  background: #fff;
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #55606d;
+  cursor: pointer;
+}
+
+.lang-switch button.active {
+  background: #1f4b8f;
+  color: #fff;
+}
+
+.app-user {
+  font-size: 0.85rem;
+  color: #55606d;
+}
+
+.link-button {
+  border: 0;
+  background: none;
+  padding: 0;
+  font: inherit;
+  font-size: 0.85rem;
+  color: #1f4b8f;
+  text-decoration: underline;
+  cursor: pointer;
 }
 
 .app-main {

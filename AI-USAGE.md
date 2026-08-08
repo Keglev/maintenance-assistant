@@ -191,6 +191,72 @@ Two earlier defects were found the same way, which is the argument for doing it:
 user-profile validation and forced an update-profile screen), and the frontend container refused to
 start as a non-root user. Both were fixed before the respective PR was opened.
 
+### Phase 3 — the query path and the search interface
+
+The query module (embed → machine-filtered pgvector top-5 → threshold → Mode A or Mode B), the two
+prompt classes, the NFR-7 guards and the Angular search and upload views were AI-generated. The
+decisions they implement are older than the sessions that wrote them: the two answer modes and the
+rule that Mode B shows *no* source area come from DECISIONS.txt, the provider and the language
+pinning from ADR-002, the role model from ADR-003.
+
+Three results came out of running it rather than reasoning about it, and all three changed the code
+or the configuration:
+
+1. **The 0.583 threshold from the spike was too high against the real corpus.** The cross-language
+   demo scored 0.577 and would have been refused as ungrounded. Threshold 0.55 ships instead, and
+   the margin is now the sharpest number in the project: the demo clears it by 0.0066.
+2. **The smaller chat model was rejected on evidence, not on taste.** `Qwen3.5-9B` failed to ground
+   the cross-language case; the structured-JSON contract is what caught it, because an ungrounded
+   answer failed citation validation instead of reading plausibly. `Llama-3.3-70B` serves every
+   role.
+3. **Mode B needed a shape example of its own.** Without one, constrained decoding ran away on
+   whitespace — measured twice, at two different token caps. The two prompts live in two classes so
+   the citation few-shot cannot leak into the refusal path.
+
+### Phase 4 — redesign, hardening, and the two defects a browser found
+
+The design token system, the landing page, the help dialog, the security headers and ADR-005 were
+AI-assisted. Two defects in this phase are worth recording because of *how* they were found, which
+is the point of this file.
+
+**A source link that answered 401 for every click (#26).** The citation links shipped in #25 with a
+live verification that passed — the documents were fetched from the deployed API with `curl` and a
+real token. In a browser every click returned 401, because a browser-followed `<a href>` is a fresh
+navigation that never reaches Angular's interceptor and therefore carries no bearer token, and the
+API is a stateless resource server with no cookie fallback. **An API call is not a click.** Anything
+the browser performs itself — anchor navigation, form action, `img/src`, `window.open` of an API URL
+— has to be verified in a browser. The regression guard asserts on the rendered DOM, not on the
+request, because a test that opened the document through `HttpClient` is exactly what let the defect
+ship.
+
+**A Content-Security-Policy that would have shipped an unstyled application.** Angular's
+critical-CSS inlining emits `<link … onload="this.media='all'">`, an inline event handler that
+`script-src 'self'` refuses, leaving the stylesheet at `media="print"`. No `curl` against the
+deployment would have shown it. It was caught by reading the built `index.html` before deploying the
+header, and the production build now emits a plain stylesheet link instead. In the same session the
+header configuration was tested by running the real Caddyfile against a stub upstream that sent a
+*wrong* `X-Content-Type-Options`; the proxied response still carried `nosniff`, which proved the
+`defer` behaviour rather than assuming it.
+
+Two smaller ones from the same phase, both reported rather than smoothed over:
+
+- **A wrong diagnosis, corrected by the test that was written to prove it.** The deployed
+  `/swagger-ui` answered 401, and the first explanation was that a 404 was being masked by a guarded
+  error dispatch. A test asserting 404 failed: authorization runs *before* dispatch, so any
+  unpermitted path answers 401 whether or not a handler exists. The real cause was a missing
+  mapping. The unnecessary security change was reverted and the test now pins the behaviour that is
+  actually there.
+- **The Caddyfile deployed successfully and changed nothing.** A single-file bind mount follows the
+  file's inode, so replacing the host file with `mv` left the container reading the old one — while
+  `caddy validate` and `caddy reload`, both executed inside that container, read the stale file and
+  reported success. It is written down as an operations rule because no command in that sequence
+  hints at it.
+
+Verification for the phase was a full browser walkthrough on 2026-08-08 at a 390 px mobile viewport
+with the console open: login round trip, the E-47 answer with its four citations resolving, a
+clicked source opening the protocol in a `blob:` tab, the help dialog, the language switch and
+sign-out — zero CSP violations. That walkthrough is what found the Swagger defect.
+
 **Correction to an earlier claim:** the first version of this file said the scaffold was verified by
 "human diff review on every PR before merge + CI tests". At that point CI did not exist yet — it was
 built in the third session above. Diff review was real; the CI half only became true afterwards.
@@ -209,3 +275,17 @@ Where a model proposed a decision, it is recorded as an ADR and I own it.
   a defect, not a detail.
 - **Generated documentation is checked against the design documents.** They are the source of truth;
   where generated text contradicted them, the generated text was wrong and got fixed.
+- **Anything the browser does itself is verified in a browser.** Added after #26 shipped a citation
+  link that passed a `curl` verification and answered 401 on every real click. An API call is not a
+  click, and the walkthrough is run at a phone viewport with the console open.
+
+## Standing statement on the data
+
+**No real customer or plant document is used anywhere in this repository.** The 150 protocols behind
+every demo, screenshot and measurement in this project are synthetic, generated for it from a fault
+taxonomy and a set of demo scenarios that are mine. The four demo accounts are public and hold
+nothing worth stealing. Two honest consequences: retrieval quality measured against a generated
+corpus is an optimistic figure, because such a corpus is internally consistent in a way a real one
+is not — and the security posture recorded in
+[ADR-005](docs/adr/ADR-005-spa-token-handling.md) is proportionate to a demo, which it says in as
+many words.

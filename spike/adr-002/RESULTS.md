@@ -732,7 +732,33 @@ IONOS lists Llama-3.3-70B at €0.65/€0.65 against Nebius' $0.13/$0.40 — rou
 €4/month (§5), so price does not decide ADR-002 either way. The cheapest
 working configuration measured is IONOS `Qwen3.5-9B` at **€0.82/month**.
 
-## Appendix E — reproducing this run
+## Appendix E — how to reproduce this run
+
+Everything below can be re-run from a clean checkout. That is the point of committing this
+directory: a measurement nobody else can repeat is an assertion.
+
+### Prerequisites
+
+- **Docker**, and nothing else — the commands below run the spike inside `python:3.12-slim`, so no
+  local Python installation is involved and no virtual environment has to be managed. Python **3.12**
+  is what the recorded runs used. Running it with a locally installed Python works too
+  (`pip install -r requirements.txt`, then `python spike.py`); 3.11 or newer is sufficient for the
+  two dependencies, which are pinned in `requirements.txt` (`openai==2.9.0`, `numpy==2.3.4`).
+- **Two provider API keys**, in a `.env` file created from `.env.example`:
+  - `NEBIUS_API_KEY` — Nebius Token Factory, <https://tokenfactory.nebius.com/>. The recorded runs
+    used a trial key.
+  - `IONOS_API_KEY` — IONOS AI Model Hub, created as a token in the IONOS Cloud console (DCD).
+  Both are **gitignored and appear nowhere in this repository, in the committed JSON, or in this
+  document** — the run output stores model ids, scores, token counts and latencies, never
+  credentials. Use your own keys; the ones behind the recorded numbers are not shared and the
+  production token is a different one again, held only on the server and in a password manager.
+  A provider whose key is missing is skipped with a message and the other one is still evaluated,
+  so a single-provider reproduction is possible.
+- **Budget.** A full re-run of both rounds costs a few cents at the prices in Appendix D. There is
+  no hard spending cap at either provider — only cost alerts — so set one before running anything
+  in a loop.
+
+### The commands
 
 ```powershell
 cd spike/adr-002
@@ -755,3 +781,37 @@ Retrieval scores are deterministic and reproduced exactly across three round-1
 runs on Nebius. Chat answers and latency vary — `results.json` holds the third
 Nebius round-1 run and the first IONOS one; `round2.json` holds every round-2
 call including all three latency repeats.
+
+### What will differ from the numbers above, and what should not
+
+Reproducing a measurement is only useful if you know in advance which parts are allowed to move.
+
+**Expect these to differ:**
+
+- **Latency, by a lot.** Both providers serve this tier from shared serverless capacity with no SLA,
+  so the spread is queueing rather than compute. Section 6's figures come from three repeats and are
+  still only a sample; production measurement later found a median around 15 s from the host with
+  single calls ranging 8.4–29.7 s. A single slow run proves nothing, and a single fast one proves
+  less.
+- **Cost per query,** if list prices have moved. Appendix D records the prices used and the date they
+  were read, so a difference is checkable rather than mysterious.
+- **The exact wording of every generated answer.** Nothing here pins a decoding seed; the answers in
+  Appendix A are one sample each.
+- **Model availability.** Both catalogues in Appendix C are dated. Models are added, renamed and
+  retired — the `*-migration` aliases at IONOS were already a trap at the time of writing.
+
+**Expect these to hold, and treat a difference as a finding worth chasing:**
+
+- **The retrieval scores**, to the digit. Embeddings are deterministic for a fixed model and input;
+  the DE→EN case reproduced exactly across three runs. A changed score means a changed model behind
+  the same name.
+- **The DE→EN result itself** — a German query retrieving the English E-47 protocol. This is the
+  reason the spike reversed its own proposal, and it rests on the multilingual embedding model being
+  available at the provider, not on any prompt.
+- **The reversal rationale.** The recommendation flipped to IONOS on multilingual model availability
+  and data residency, and those are structural facts about the two catalogues rather than
+  measurements of a given day. If IONOS ever drops `bge-m3`, that is not noise — it invalidates the
+  decision, and ADR-002 is where the consequence gets written down.
+- **The citation and refusal behaviour** under the round-2 prompts: few-shot citations comply,
+  language pinning holds, and structured JSON is what catches an ungrounded answer. These were
+  stable across models and are the reason the query path enforces them app-side.

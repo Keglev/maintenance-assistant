@@ -9,14 +9,34 @@ CURRENT STATUS — 2026-08-08, end of session (SESSION HANDOVER)
 =====================================================================
 Phases 0, 1, 2 and 3 are DONE. Phase 3 shipped in PRs #24 (query
 path), #25 (search UI) and #26 (source-link fix), all merged and
-deployed. VERIFIED IN A REAL BROWSER 2026-08-08: the E-47 demo on
-Presse 3 answered Mode A citing ALL FOUR root-cause protocols
-(63/60/59/58 % similarity), inline [P1]..[P4] markers resolve to the
-source list, and a clicked source opened the full protocol in a new
-tab as a blob: URL — the #26 fix visible on screen. Release v0.1.0 is
-tagged (Phase 2/3 tags are Carlos's call). Next: PHASE 4 (polish +
-ship), with a REVISED SCOPE — see NEXT SESSION below: professional UI
-redesign and a token-security hardening decision joined the plan.
+deployed. Release v0.1.0 is tagged (Phase 2/3 tags are Carlos's call).
+
+PHASE 4 IS TWO THIRDS SHIPPED. #28 (UI redesign: design tokens, header
++ footer, logged-out landing page, help dialog, responsive) and #29
+(security headers at Caddy + ADR-005 on token handling) are MERGED AND
+DEPLOYED. The Caddyfile was applied BY HAND on 2026-08-08 with a .bak
+and a force-recreate (see OPS RULE 3 — the first attempt used mv and
+silently changed nothing), and the header set is live and verified by
+curl: CSP, HSTS, nosniff, Referrer-Policy, Permissions-Policy,
+X-Frame-Options DENY. Keycloak's auth vhost keeps its own CSP; the
+per-vhost scoping was confirmed on the live host.
+
+FULL BROWSER WALKTHROUGH PASSED 2026-08-08 at a 390 px mobile viewport
+with the console open and ZERO CSP violations: Keycloak login round
+trip, the E-47 demo on Presse 3 answering Mode A with [P1]..[P4]
+resolving to the source list, a clicked source opening the protocol in
+a blob: tab (the #26 path survives the CSP — the thing curl could never
+have told us), the help dialog, the DE/EN switch and sign-out.
+
+Remaining for PHASE 4: docs/ship-readiness (README, AI-USAGE, the
+spike's reproduction section) and ONE DEFECT FOUND BY THE WALKTHROUGH —
+https://maintenance.smartsupply.com.de/swagger-ui answered 401 while
+/swagger-ui/index.html served fine. Root cause: springdoc's UI path was
+left at its /swagger-ui.html default, so the bare path had no mapping
+and was not in the security permit list either; authorization runs
+before dispatch, so it answered 401 rather than 404 and read like a
+permission problem. Fixed in the ship-readiness PR. Then Carlos's phone
+walkthrough and v1.0.0.
 
 Phase 2 shipped in PRs #18 (Flyway V1 + machines), #19 (150-protocol
 corpus + seed loader), #20 (backups), #21 (ingestion pipeline), #22
@@ -145,6 +165,19 @@ OPEN ITEMS carried forward (not blockers, do not lose):
   a stale key while the file was already correct. DOCS DEBT: DONE —
   arc42 §7.4, "An .env.prod edit is inert until the container is
   recreated", with the printenv check.
+- OPS RULE 3 (learned 2026-08-08, cost one failed deploy round): the
+  prod compose bind-mounts the Caddyfile as a SINGLE FILE
+  (./caddy/Caddyfile:/etc/caddy/Caddyfile:ro), and a single-file bind
+  mount tracks the file's INODE, not its path. Replacing the host file
+  with `mv` gives it a NEW inode, and the container keeps reading the
+  OLD one. Nothing reports this: `caddy validate` and `caddy reload`
+  run INSIDE the container and both happily operate on the stale
+  content, and the reload reports success. Measured: a grep inside the
+  container found 0 CSP lines while the host file had 2. REMEDY: `cp`
+  OVER the existing file (same inode), or
+  `up -d --force-recreate caddy`. Never `mv`. The same trap applies to
+  any single-file bind mount — frontend-config.json is the other one
+  in this stack. DOCS DEBT: DONE — arc42 §7.4, next to the .env rule.
 - LLM_CHAT_MODEL empty default in docker-compose.prod.yml: FIXED in
   the query PR — it now repeats application.yml's real default
   (meta-llama/Llama-3.3-70B-Instruct), and LLM_CHAT_DAILY_CALL_BUDGET

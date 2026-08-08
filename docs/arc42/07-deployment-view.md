@@ -100,6 +100,41 @@ docker compose exec backend printenv LLM_API_KEY | head -c 12   # what the proce
 
 The same applies to a rotated token, a changed budget, and every other value in that file.
 
+### A single-file bind mount follows the inode, so never replace it with `mv`
+
+Two files reach their container as a **single-file** bind mount rather than as a directory:
+
+```yaml
+- ./caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+- ./frontend-config.json:/usr/share/nginx/html/config.json:ro
+```
+
+The kernel binds the *inode* it found at that path when the container started, not the path. `mv
+new.Caddyfile caddy/Caddyfile` puts a **different inode** at the same path, and the container keeps
+reading the old one — for as long as it lives.
+
+Nothing anywhere reports this. `caddy validate` and `caddy reload` execute *inside* the container,
+so both read the stale file, both succeed, and the reload logs a successful configuration change
+that changed nothing. It cost a deploy round on 2026-08-08: the host file carried two
+`Content-Security-Policy` lines while a `grep` inside the container found none.
+
+```bash
+cp caddy/Caddyfile caddy/Caddyfile.bak-$(date +%Y%m%d-%H%M%S)   # rollback copy
+cp new-Caddyfile caddy/Caddyfile                                 # cp, NOT mv — same inode
+docker compose -f docker-compose.prod.yml --env-file .env.prod exec caddy \
+  caddy reload --config /etc/caddy/Caddyfile
+
+# ...or sidestep the question entirely by giving the container a fresh view of the path:
+docker compose -f docker-compose.prod.yml --env-file .env.prod up -d --force-recreate caddy
+
+# and confirm from OUTSIDE, where the answer cannot be stale:
+curl -sSI https://<app host>/ | grep -i content-security-policy
+```
+
+The rule generalises: **edit in place or `cp` over it; never `mv`, and never `rm` + recreate.** An
+editor that writes atomically — which most do, by writing a temporary file and renaming it over the
+target — has exactly the same effect as `mv`.
+
 ### Protocol documents and the volume
 
 `protocol.source_file` stores a path, never the document (DOMAIN-MODEL.md keeps BLOBs out of

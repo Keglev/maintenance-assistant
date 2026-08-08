@@ -155,19 +155,6 @@
 <div class="tab-content">
     <div class="tab-pane fade active in" id="info">
 
-            <p class="comment">
-                <h3>Description</h3>
-            </p>
-            <p class="comment">
-                <p>Every string the interface can show, as one type.</p>
-<p>Declaring the German dictionary first and typing the English one as <code>Dictionary</code> means a key
-added to one and forgotten in the other is a compile error rather than a blank label discovered
-by a reader who cannot read the other language. That is the whole reason this is a typed object
-and not a <code>Record&lt;string, string&gt;</code>.</p>
-<p>Functions rather than placeholder strings where a value is interpolated: the two languages put
-the value in different places, and a <code>{0}</code> convention would push that difference into a template.</p>
-
-            </p>
 
 
             </div>
@@ -183,13 +170,38 @@ the value in different places, and a <code>{0}</code> convention would push that
                 <td class="col-md-9">
                     <ul class="index-list">
                         <li>
+                                <a href="#appTagline" class="reference-link ">
+                                    <span class="reference-badge reference-badge--property" aria-hidden="true">P</span><span class="reference-link-label">appTagline</span>
+                                </a>
+                        </li>
+                        <li>
                                 <a href="#appTitle" class="reference-link ">
                                     <span class="reference-badge reference-badge--property" aria-hidden="true">P</span><span class="reference-link-label">appTitle</span>
                                 </a>
                         </li>
                         <li>
+                                <a href="#demo" class="reference-link ">
+                                    <span class="reference-badge reference-badge--property" aria-hidden="true">P</span><span class="reference-link-label">demo</span>
+                                </a>
+                        </li>
+                        <li>
                                 <a href="#errors" class="reference-link ">
                                     <span class="reference-badge reference-badge--property" aria-hidden="true">P</span><span class="reference-link-label">errors</span>
+                                </a>
+                        </li>
+                        <li>
+                                <a href="#footer" class="reference-link ">
+                                    <span class="reference-badge reference-badge--property" aria-hidden="true">P</span><span class="reference-link-label">footer</span>
+                                </a>
+                        </li>
+                        <li>
+                                <a href="#help" class="reference-link ">
+                                    <span class="reference-badge reference-badge--property" aria-hidden="true">P</span><span class="reference-link-label">help</span>
+                                </a>
+                        </li>
+                        <li>
+                                <a href="#landing" class="reference-link ">
+                                    <span class="reference-badge reference-badge--property" aria-hidden="true">P</span><span class="reference-link-label">landing</span>
                                 </a>
                         </li>
                         <li>
@@ -205,6 +217,11 @@ the value in different places, and a <code>{0}</code> convention would push that
                         <li>
                                 <a href="#nav" class="reference-link ">
                                     <span class="reference-badge reference-badge--property" aria-hidden="true">P</span><span class="reference-link-label">nav</span>
+                                </a>
+                        </li>
+                        <li>
+                                <a href="#roles" class="reference-link ">
+                                    <span class="reference-badge reference-badge--property" aria-hidden="true">P</span><span class="reference-link-label">roles</span>
                                 </a>
                         </li>
                         <li>
@@ -228,6 +245,45 @@ the value in different places, and a <code>{0}</code> convention would push that
 
     <section data-compodoc="block-properties">
         <h3 id="inputs">Properties</h3>
+            <table class="table table-sm table-bordered">
+                <tbody>
+                        <tr>
+                            <td class="col-md-4">
+                                <a name="appTagline"></a>
+                                <span class="name "><b>appTagline</b>
+                                    <a href="#appTagline">
+                                        <span class="icon ion-ios-link"></span>
+                                    </a>
+                                </span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="col-md-4">
+                                <code>appTagline:         <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+</code>
+                            </td>
+                        </tr>
+
+
+                            <tr>
+                                <td class="col-md-4">
+                                    <i>Type : </i>        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+
+                                </td>
+                            </tr>
+
+
+
+
+
+                            <tr>
+                                <td class="col-md-4">
+                                    <div class="io-line">Defined in <a href="" data-line="32" class="link-to-prism">src/app/core/i18n/dictionary.ts:32</a></div>
+                                </td>
+                            </tr>
+
+                </tbody>
+            </table>
             <table class="table table-sm table-bordered">
                 <tbody>
                         <tr>
@@ -261,7 +317,87 @@ the value in different places, and a <code>{0}</code> convention would push that
 
                             <tr>
                                 <td class="col-md-4">
-                                    <div class="io-line">Defined in <a href="" data-line="16" class="link-to-prism">src/app/core/i18n/dictionary.ts:16</a></div>
+                                    <div class="io-line">Defined in <a href="" data-line="31" class="link-to-prism">src/app/core/i18n/dictionary.ts:31</a></div>
+                                </td>
+                            </tr>
+
+                </tbody>
+            </table>
+            <table class="table table-sm table-bordered">
+                <tbody>
+                        <tr>
+                            <td class="col-md-4">
+                                <a name="demo"></a>
+                                <span class="name "><b>demo</b>
+                                    <a href="#demo">
+                                        <span class="icon ion-ios-link"></span>
+                                    </a>
+                                </span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="col-md-4">
+                                <code>demo:     <code>{ operator: string; techniker: string; schichtleiter: string; admin: string; examplesHeading: string; examplesIntro: string; exampleMachine: string; examples: readonly DemoExample[] }</code>
+</code>
+                            </td>
+                        </tr>
+
+
+                            <tr>
+                                <td class="col-md-4">
+                                    <i>Type : </i>    <code>{ operator: string; techniker: string; schichtleiter: string; admin: string; examplesHeading: string; examplesIntro: string; exampleMachine: string; examples: readonly DemoExample[] }</code>
+
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td class="col-md-4">
+                                    <div class="io-nested-properties">
+                                        <i>Properties :</i>
+                                        <ul class="index-list">
+                                                <li>
+                                                    <span class="io-nested-property-name"><code>operator:         <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+</code></span>
+                                                </li>
+                                                <li>
+                                                    <span class="io-nested-property-name"><code>techniker:         <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+</code></span>
+                                                </li>
+                                                <li>
+                                                    <span class="io-nested-property-name"><code>schichtleiter:         <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+</code></span>
+                                                </li>
+                                                <li>
+                                                    <span class="io-nested-property-name"><code>admin:         <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+</code></span>
+                                                </li>
+                                                <li>
+                                                    <span class="io-nested-property-name"><code>examplesHeading:         <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+</code></span>
+                                                </li>
+                                                <li>
+                                                    <span class="io-nested-property-name"><code>examplesIntro:         <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+</code></span>
+                                                </li>
+                                                <li>
+                                                    <span class="io-nested-property-name"><code>exampleMachine:         <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+</code></span>
+                                                </li>
+                                                <li>
+                                                    <span class="io-nested-property-name"><code>examples:         <code><a href="../interfaces/DemoExample.html" target="_self" >readonly DemoExample[]</a></code>
+</code></span>
+                                                </li>
+                                        </ul>
+                                    </div>
+                                </td>
+                            </tr>
+
+
+
+
+                            <tr>
+                                <td class="col-md-4">
+                                    <div class="io-line">Defined in <a href="" data-line="73" class="link-to-prism">src/app/core/i18n/dictionary.ts:73</a></div>
                                 </td>
                             </tr>
 
@@ -333,7 +469,283 @@ the value in different places, and a <code>{0}</code> convention would push that
 
                             <tr>
                                 <td class="col-md-4">
-                                    <div class="io-line">Defined in <a href="" data-line="51" class="link-to-prism">src/app/core/i18n/dictionary.ts:51</a></div>
+                                    <div class="io-line">Defined in <a href="" data-line="124" class="link-to-prism">src/app/core/i18n/dictionary.ts:124</a></div>
+                                </td>
+                            </tr>
+
+                </tbody>
+            </table>
+            <table class="table table-sm table-bordered">
+                <tbody>
+                        <tr>
+                            <td class="col-md-4">
+                                <a name="footer"></a>
+                                <span class="name "><b>footer</b>
+                                    <a href="#footer">
+                                        <span class="icon ion-ios-link"></span>
+                                    </a>
+                                </span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="col-md-4">
+                                <code>footer:     <code>{ docs: string; repo: string; aiUsage: string; note: string }</code>
+</code>
+                            </td>
+                        </tr>
+
+
+                            <tr>
+                                <td class="col-md-4">
+                                    <i>Type : </i>    <code>{ docs: string; repo: string; aiUsage: string; note: string }</code>
+
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td class="col-md-4">
+                                    <div class="io-nested-properties">
+                                        <i>Properties :</i>
+                                        <ul class="index-list">
+                                                <li>
+                                                    <span class="io-nested-property-name"><code>docs:         <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+</code></span>
+                                                </li>
+                                                <li>
+                                                    <span class="io-nested-property-name"><code>repo:         <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+</code></span>
+                                                </li>
+                                                <li>
+                                                    <span class="io-nested-property-name"><code>aiUsage:         <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+</code></span>
+                                                </li>
+                                                <li>
+                                                    <span class="io-nested-property-name"><code>note:         <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+</code></span>
+                                                </li>
+                                        </ul>
+                                    </div>
+                                </td>
+                            </tr>
+
+
+
+
+                            <tr>
+                                <td class="col-md-4">
+                                    <div class="io-line">Defined in <a href="" data-line="47" class="link-to-prism">src/app/core/i18n/dictionary.ts:47</a></div>
+                                </td>
+                            </tr>
+
+                </tbody>
+            </table>
+            <table class="table table-sm table-bordered">
+                <tbody>
+                        <tr>
+                            <td class="col-md-4">
+                                <a name="help"></a>
+                                <span class="name "><b>help</b>
+                                    <a href="#help">
+                                        <span class="icon ion-ios-link"></span>
+                                    </a>
+                                </span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="col-md-4">
+                                <code>help:     <code>{ title: string; close: string; modesHeading: string; modeAHeading: string; modeABody: string; modeBHeading: string; modeBBody: string; rolesHeading: string; roleOperator: string; roleTechniker: string; roleSchichtleiter: string }</code>
+</code>
+                            </td>
+                        </tr>
+
+
+                            <tr>
+                                <td class="col-md-4">
+                                    <i>Type : </i>    <code>{ title: string; close: string; modesHeading: string; modeAHeading: string; modeABody: string; modeBHeading: string; modeBBody: string; rolesHeading: string; roleOperator: string; roleTechniker: string; roleSchichtleiter: string }</code>
+
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td class="col-md-4">
+                                    <div class="io-nested-properties">
+                                        <i>Properties :</i>
+                                        <ul class="index-list">
+                                                <li>
+                                                    <span class="io-nested-property-name"><code>title:         <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+</code></span>
+                                                </li>
+                                                <li>
+                                                    <span class="io-nested-property-name"><code>close:         <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+</code></span>
+                                                </li>
+                                                <li>
+                                                    <span class="io-nested-property-name"><code>modesHeading:         <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+</code></span>
+                                                </li>
+                                                <li>
+                                                    <span class="io-nested-property-name"><code>modeAHeading:         <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+</code></span>
+                                                </li>
+                                                <li>
+                                                    <span class="io-nested-property-name"><code>modeABody:         <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+</code></span>
+                                                </li>
+                                                <li>
+                                                    <span class="io-nested-property-name"><code>modeBHeading:         <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+</code></span>
+                                                </li>
+                                                <li>
+                                                    <span class="io-nested-property-name"><code>modeBBody:         <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+</code></span>
+                                                </li>
+                                                <li>
+                                                    <span class="io-nested-property-name"><code>rolesHeading:         <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+</code></span>
+                                                </li>
+                                                <li>
+                                                    <span class="io-nested-property-name"><code>roleOperator:         <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+</code></span>
+                                                </li>
+                                                <li>
+                                                    <span class="io-nested-property-name"><code>roleTechniker:         <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+</code></span>
+                                                </li>
+                                                <li>
+                                                    <span class="io-nested-property-name"><code>roleSchichtleiter:         <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+</code></span>
+                                                </li>
+                                        </ul>
+                                    </div>
+                                </td>
+                            </tr>
+
+
+
+
+                            <tr>
+                                <td class="col-md-4">
+                                    <div class="io-line">Defined in <a href="" data-line="83" class="link-to-prism">src/app/core/i18n/dictionary.ts:83</a></div>
+                                </td>
+                            </tr>
+
+                </tbody>
+            </table>
+            <table class="table table-sm table-bordered">
+                <tbody>
+                        <tr>
+                            <td class="col-md-4">
+                                <a name="landing"></a>
+                                <span class="name "><b>landing</b>
+                                    <a href="#landing">
+                                        <span class="icon ion-ios-link"></span>
+                                    </a>
+                                </span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="col-md-4">
+                                <code>landing:     <code>{ headline: string; problem: string; solution: string; trustHeading: string; trustSourced: string; trustSourcedBody: string; trustEu: string; trustEuBody: string; trustRoles: string; trustRolesBody: string; demoHeading: string; demoIntro: string; demoPassword: string; signIn: string; signInHint: string; plateModel: string; plateStack: string; plateHosting: string }</code>
+</code>
+                            </td>
+                        </tr>
+
+
+                            <tr>
+                                <td class="col-md-4">
+                                    <i>Type : </i>    <code>{ headline: string; problem: string; solution: string; trustHeading: string; trustSourced: string; trustSourcedBody: string; trustEu: string; trustEuBody: string; trustRoles: string; trustRolesBody: string; demoHeading: string; demoIntro: string; demoPassword: string; signIn: string; signInHint: string; plateModel: string; plateStack: string; plateHosting: string }</code>
+
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td class="col-md-4">
+                                    <div class="io-nested-properties">
+                                        <i>Properties :</i>
+                                        <ul class="index-list">
+                                                <li>
+                                                    <span class="io-nested-property-name"><code>headline:         <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+</code></span>
+                                                </li>
+                                                <li>
+                                                    <span class="io-nested-property-name"><code>problem:         <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+</code></span>
+                                                </li>
+                                                <li>
+                                                    <span class="io-nested-property-name"><code>solution:         <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+</code></span>
+                                                </li>
+                                                <li>
+                                                    <span class="io-nested-property-name"><code>trustHeading:         <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+</code></span>
+                                                </li>
+                                                <li>
+                                                    <span class="io-nested-property-name"><code>trustSourced:         <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+</code></span>
+                                                </li>
+                                                <li>
+                                                    <span class="io-nested-property-name"><code>trustSourcedBody:         <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+</code></span>
+                                                </li>
+                                                <li>
+                                                    <span class="io-nested-property-name"><code>trustEu:         <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+</code></span>
+                                                </li>
+                                                <li>
+                                                    <span class="io-nested-property-name"><code>trustEuBody:         <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+</code></span>
+                                                </li>
+                                                <li>
+                                                    <span class="io-nested-property-name"><code>trustRoles:         <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+</code></span>
+                                                </li>
+                                                <li>
+                                                    <span class="io-nested-property-name"><code>trustRolesBody:         <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+</code></span>
+                                                </li>
+                                                <li>
+                                                    <span class="io-nested-property-name"><code>demoHeading:         <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+</code></span>
+                                                </li>
+                                                <li>
+                                                    <span class="io-nested-property-name"><code>demoIntro:         <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+</code></span>
+                                                </li>
+                                                <li>
+                                                    <span class="io-nested-property-name"><code>demoPassword:         <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+</code></span>
+                                                </li>
+                                                <li>
+                                                    <span class="io-nested-property-name"><code>signIn:         <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+</code></span>
+                                                </li>
+                                                <li>
+                                                    <span class="io-nested-property-name"><code>signInHint:         <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+</code></span>
+                                                </li>
+                                                <li>
+                                                    <span class="io-nested-property-name"><code>plateModel:         <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+</code></span>
+                                                </li>
+                                                <li>
+                                                    <span class="io-nested-property-name"><code>plateStack:         <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+</code></span>
+                                                </li>
+                                                <li>
+                                                    <span class="io-nested-property-name"><code>plateHosting:         <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+</code></span>
+                                                </li>
+                                        </ul>
+                                    </div>
+                                </td>
+                            </tr>
+
+
+
+
+                            <tr>
+                                <td class="col-md-4">
+                                    <div class="io-line">Defined in <a href="" data-line="53" class="link-to-prism">src/app/core/i18n/dictionary.ts:53</a></div>
                                 </td>
                             </tr>
 
@@ -413,7 +825,7 @@ the value in different places, and a <code>{0}</code> convention would push that
 
                             <tr>
                                 <td class="col-md-4">
-                                    <div class="io-line">Defined in <a href="" data-line="36" class="link-to-prism">src/app/core/i18n/dictionary.ts:36</a></div>
+                                    <div class="io-line">Defined in <a href="" data-line="109" class="link-to-prism">src/app/core/i18n/dictionary.ts:109</a></div>
                                 </td>
                             </tr>
 
@@ -473,7 +885,7 @@ the value in different places, and a <code>{0}</code> convention would push that
 
                             <tr>
                                 <td class="col-md-4">
-                                    <div class="io-line">Defined in <a href="" data-line="46" class="link-to-prism">src/app/core/i18n/dictionary.ts:46</a></div>
+                                    <div class="io-line">Defined in <a href="" data-line="119" class="link-to-prism">src/app/core/i18n/dictionary.ts:119</a></div>
                                 </td>
                             </tr>
 
@@ -493,7 +905,7 @@ the value in different places, and a <code>{0}</code> convention would push that
                         </tr>
                         <tr>
                             <td class="col-md-4">
-                                <code>nav:     <code>{ search: string; upload: string; signOut: string; language: string }</code>
+                                <code>nav:     <code>{ search: string; upload: string; signOut: string; language: string; help: string; menu: string }</code>
 </code>
                             </td>
                         </tr>
@@ -501,7 +913,7 @@ the value in different places, and a <code>{0}</code> convention would push that
 
                             <tr>
                                 <td class="col-md-4">
-                                    <i>Type : </i>    <code>{ search: string; upload: string; signOut: string; language: string }</code>
+                                    <i>Type : </i>    <code>{ search: string; upload: string; signOut: string; language: string; help: string; menu: string }</code>
 
                                 </td>
                             </tr>
@@ -527,6 +939,14 @@ the value in different places, and a <code>{0}</code> convention would push that
                                                     <span class="io-nested-property-name"><code>language:         <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
 </code></span>
                                                 </li>
+                                                <li>
+                                                    <span class="io-nested-property-name"><code>help:         <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+</code></span>
+                                                </li>
+                                                <li>
+                                                    <span class="io-nested-property-name"><code>menu:         <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+</code></span>
+                                                </li>
                                         </ul>
                                     </div>
                                 </td>
@@ -537,7 +957,71 @@ the value in different places, and a <code>{0}</code> convention would push that
 
                             <tr>
                                 <td class="col-md-4">
-                                    <div class="io-line">Defined in <a href="" data-line="17" class="link-to-prism">src/app/core/i18n/dictionary.ts:17</a></div>
+                                    <div class="io-line">Defined in <a href="" data-line="33" class="link-to-prism">src/app/core/i18n/dictionary.ts:33</a></div>
+                                </td>
+                            </tr>
+
+                </tbody>
+            </table>
+            <table class="table table-sm table-bordered">
+                <tbody>
+                        <tr>
+                            <td class="col-md-4">
+                                <a name="roles"></a>
+                                <span class="name "><b>roles</b>
+                                    <a href="#roles">
+                                        <span class="icon ion-ios-link"></span>
+                                    </a>
+                                </span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="col-md-4">
+                                <code>roles:     <code>{ operator: string; techniker: string; schichtleiter: string; admin: string }</code>
+</code>
+                            </td>
+                        </tr>
+
+
+                            <tr>
+                                <td class="col-md-4">
+                                    <i>Type : </i>    <code>{ operator: string; techniker: string; schichtleiter: string; admin: string }</code>
+
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td class="col-md-4">
+                                    <div class="io-nested-properties">
+                                        <i>Properties :</i>
+                                        <ul class="index-list">
+                                                <li>
+                                                    <span class="io-nested-property-name"><code>operator:         <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+</code></span>
+                                                </li>
+                                                <li>
+                                                    <span class="io-nested-property-name"><code>techniker:         <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+</code></span>
+                                                </li>
+                                                <li>
+                                                    <span class="io-nested-property-name"><code>schichtleiter:         <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+</code></span>
+                                                </li>
+                                                <li>
+                                                    <span class="io-nested-property-name"><code>admin:         <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+</code></span>
+                                                </li>
+                                        </ul>
+                                    </div>
+                                </td>
+                            </tr>
+
+
+
+
+                            <tr>
+                                <td class="col-md-4">
+                                    <div class="io-line">Defined in <a href="" data-line="41" class="link-to-prism">src/app/core/i18n/dictionary.ts:41</a></div>
                                 </td>
                             </tr>
 
@@ -629,7 +1113,7 @@ the value in different places, and a <code>{0}</code> convention would push that
 
                             <tr>
                                 <td class="col-md-4">
-                                    <div class="io-line">Defined in <a href="" data-line="23" class="link-to-prism">src/app/core/i18n/dictionary.ts:23</a></div>
+                                    <div class="io-line">Defined in <a href="" data-line="96" class="link-to-prism">src/app/core/i18n/dictionary.ts:96</a></div>
                                 </td>
                             </tr>
 
@@ -777,7 +1261,7 @@ the value in different places, and a <code>{0}</code> convention would push that
 
                             <tr>
                                 <td class="col-md-4">
-                                    <div class="io-line">Defined in <a href="" data-line="59" class="link-to-prism">src/app/core/i18n/dictionary.ts:59</a></div>
+                                    <div class="io-line">Defined in <a href="" data-line="132" class="link-to-prism">src/app/core/i18n/dictionary.ts:132</a></div>
                                 </td>
                             </tr>
 
@@ -801,13 +1285,86 @@ the value in different places, and a <code>{0}</code> convention would push that
  * Functions rather than placeholder strings where a value is interpolated: the two languages put
  * the value in different places, and a &#x60;{0}&#x60; convention would push that difference into a template.
  */
+/**
+ * One of the demo questions offered on the landing page and in the help dialog.
+ *
+ * Each is tied to a seeded demo case, so the three of them together show the three behaviours worth
+ * showing: several sources for one fault, a German question answered from an English protocol, and
+ * the deliberate gap that produces a Mode B answer.
+ */
+export interface DemoExample {
+  /** The machine to pick before asking — the query is filtered by machine, so this is not decoration. */
+  readonly machine: string;
+  readonly question: string;
+  /** What the reader should watch for in the answer. */
+  readonly shows: string;
+}
+
 export interface Dictionary {
   readonly appTitle: string;
+  readonly appTagline: string;
   readonly nav: {
     readonly search: string;
     readonly upload: string;
     readonly signOut: string;
     readonly language: string;
+    readonly help: string;
+    readonly menu: string;
+  };
+  readonly roles: {
+    readonly operator: string;
+    readonly techniker: string;
+    readonly schichtleiter: string;
+    readonly admin: string;
+  };
+  readonly footer: {
+    readonly docs: string;
+    readonly repo: string;
+    readonly aiUsage: string;
+    readonly note: string;
+  };
+  readonly landing: {
+    readonly headline: string;
+    readonly problem: string;
+    readonly solution: string;
+    readonly trustHeading: string;
+    readonly trustSourced: string;
+    readonly trustSourcedBody: string;
+    readonly trustEu: string;
+    readonly trustEuBody: string;
+    readonly trustRoles: string;
+    readonly trustRolesBody: string;
+    readonly demoHeading: string;
+    readonly demoIntro: string;
+    readonly demoPassword: string;
+    readonly signIn: string;
+    readonly signInHint: string;
+    readonly plateModel: string;
+    readonly plateStack: string;
+    readonly plateHosting: string;
+  };
+  readonly demo: {
+    readonly operator: string;
+    readonly techniker: string;
+    readonly schichtleiter: string;
+    readonly admin: string;
+    readonly examplesHeading: string;
+    readonly examplesIntro: string;
+    readonly exampleMachine: string;
+    readonly examples: readonly DemoExample[];
+  };
+  readonly help: {
+    readonly title: string;
+    readonly close: string;
+    readonly modesHeading: string;
+    readonly modeAHeading: string;
+    readonly modeABody: string;
+    readonly modeBHeading: string;
+    readonly modeBBody: string;
+    readonly rolesHeading: string;
+    readonly roleOperator: string;
+    readonly roleTechniker: string;
+    readonly roleSchichtleiter: string;
   };
   readonly search: {
     readonly heading: string;
@@ -882,11 +1439,97 @@ export interface Dictionary {
  */
 export const DE: Dictionary &#x3D; {
   appTitle: &#x27;Wartungsassistent&#x27;,
+  appTagline: &#x27;Antworten aus den Protokollen Ihrer Anlage — mit Quelle.&#x27;,
   nav: {
     search: &#x27;Suche&#x27;,
     upload: &#x27;Protokoll hochladen&#x27;,
     signOut: &#x27;Abmelden&#x27;,
     language: &#x27;Sprache&#x27;,
+    help: &#x27;Hilfe&#x27;,
+    menu: &#x27;Menü&#x27;,
+  },
+  roles: {
+    operator: &#x27;Bediener&#x27;,
+    techniker: &#x27;Techniker&#x27;,
+    schichtleiter: &#x27;Schichtleiter&#x27;,
+    admin: &#x27;Administrator&#x27;,
+  },
+  footer: {
+    docs: &#x27;Dokumentation&#x27;,
+    repo: &#x27;Quellcode auf GitHub&#x27;,
+    aiUsage: &#x27;KI-Einsatz im Projekt&#x27;,
+    note: &#x27;Demo-System mit synthetischen Protokollen. Keine echten Anlagendaten.&#x27;,
+  },
+  landing: {
+    headline: &#x27;Wartungswissen, das nicht mit der Schicht nach Hause geht&#x27;,
+    problem:
+      &#x27;Das Wissen einer Instandhaltung steckt in PDFs, in Ordnern und in den Köpfen erfahrener Kollegen. Nachts ist keine Fachkraft im Haus, und eine Störung wird neu diagnostiziert, obwohl sie vor vier Wochen schon einmal gelöst wurde.&#x27;,
+    solution:
+      &#x27;Der Wartungsassistent beantwortet Fragen in normaler Sprache — aus den Wartungsprotokollen der eigenen Anlage, mit Angabe des Protokolls, aus dem die Antwort stammt.&#x27;,
+    trustHeading: &#x27;Worauf Sie sich verlassen können&#x27;,
+    trustSourced: &#x27;Belegt oder ausdrücklich gekennzeichnet&#x27;,
+    trustSourcedBody:
+      &#x27;Eine Antwort ist entweder durch Protokolle belegt (Modus A, grün) oder sie ist als allgemeiner Vorschlag ohne Quelle gekennzeichnet (Modus B, gelb). Etwas dazwischen gibt es nicht.&#x27;,
+    trustEu: &#x27;Verarbeitung in der EU&#x27;,
+    trustEuBody:
+      &#x27;Einbettung und Antwort laufen über den IONOS AI Model Hub in Berlin. Keine Übermittlung in Drittländer, keine externen Schriftarten, keine Tracker.&#x27;,
+    trustRoles: &#x27;Antworten nach Rolle&#x27;,
+    trustRolesBody:
+      &#x27;Bediener erhalten nur Schritte, die eine unterwiesene Person ausführen darf, samt Hinweis, wann eine Fachkraft zu holen ist.&#x27;,
+    demoHeading: &#x27;Demo-Zugänge&#x27;,
+    demoIntro: &#x27;Vier Benutzer, ein Passwort. Jede Rolle zeigt eine andere Sicht auf dieselben Daten.&#x27;,
+    demoPassword: &#x27;Passwort für alle&#x27;,
+    signIn: &#x27;Anmelden&#x27;,
+    signInHint:
+      &#x27;Die Anmeldung läuft über Keycloak. Sie werden dorthin weitergeleitet und kommen anschließend hierher zurück.&#x27;,
+    plateModel: &#x27;Typ&#x27;,
+    plateStack: &#x27;Technik&#x27;,
+    plateHosting: &#x27;Betrieb&#x27;,
+  },
+  demo: {
+    operator: &#x27;Fragen stellen, bedienerseitige Antworten.&#x27;,
+    techniker: &#x27;Fragen stellen, vollständige technische Antworten.&#x27;,
+    schichtleiter: &#x27;Wie Techniker, zusätzlich Protokolle hochladen.&#x27;,
+    admin: &#x27;Verwaltung in Keycloak, keine Fachfunktion in der Anwendung.&#x27;,
+    examplesHeading: &#x27;Zum Ausprobieren&#x27;,
+    examplesIntro: &#x27;Erst die Maschine wählen, dann die Frage stellen — gesucht wird je Maschine.&#x27;,
+    exampleMachine: &#x27;Maschine&#x27;,
+    examples: [
+      {
+        machine: &#x27;Presse 3&#x27;,
+        question: &#x27;Presse 3 zeigt Störung E-47, was kann die Ursache sein?&#x27;,
+        shows:
+          &#x27;Vier Protokolle mit vier verschiedenen Ursachen zur selben Störung — eine belegte Antwort mit mehreren Quellen.&#x27;,
+      },
+      {
+        machine: &#x27;Förderband FB-04&#x27;,
+        question: &#x27;Förderband FB-04 läuft schief, was tun?&#x27;,
+        shows:
+          &#x27;Deutsche Frage, englisches Protokoll: die Antwort kommt trotzdem belegt zurück und bleibt deutsch.&#x27;,
+      },
+      {
+        machine: &#x27;Abfüllanlage AB-02&#x27;,
+        question: &#x27;Die Dosierung an AB-02 ist ungenau, woran liegt das?&#x27;,
+        shows:
+          &#x27;Zu dieser Frage gibt es kein Protokoll im Bestand — die Antwort erscheint gelb und ausdrücklich unbelegt.&#x27;,
+      },
+    ],
+  },
+  help: {
+    title: &#x27;Hilfe&#x27;,
+    close: &#x27;Schließen&#x27;,
+    modesHeading: &#x27;Die zwei Antwortarten&#x27;,
+    modeAHeading: &#x27;Modus A — Belegte Antwort (grün)&#x27;,
+    modeABody:
+      &#x27;Zur Frage gibt es Protokolle im Bestand. Jede Aussage nennt in eckigen Klammern das Protokoll, aus dem sie stammt; ein Klick darauf öffnet das Originalprotokoll.&#x27;,
+    modeBHeading: &#x27;Modus B — Allgemeiner Vorschlag (gelb)&#x27;,
+    modeBBody:
+      &#x27;Zur Frage gibt es kein passendes Protokoll. Die Schritte sind allgemeines Erfahrungswissen und werden ohne Quellenbereich gezeigt — es gibt hier nichts zu belegen.&#x27;,
+    rolesHeading: &#x27;Wer darf was&#x27;,
+    roleOperator:
+      &#x27;Bediener: Fragen stellen. Antworten enthalten nur Schritte für unterwiesene Personen, keine Elektro- oder Mechanikarbeiten.&#x27;,
+    roleTechniker: &#x27;Techniker: Fragen stellen, vollständige technische Antworten ohne Einschränkung.&#x27;,
+    roleSchichtleiter: &#x27;Schichtleiter: wie Techniker, zusätzlich neue Protokolle hochladen.&#x27;,
   },
   search: {
     heading: &#x27;Frage zu einer Maschine&#x27;,
@@ -960,11 +1603,100 @@ export const DE: Dictionary &#x3D; {
 
 export const EN: Dictionary &#x3D; {
   appTitle: &#x27;Maintenance Assistant&#x27;,
+  appTagline: &quot;Answers from your plant&#x27;s own protocols — with the source.&quot;,
   nav: {
     search: &#x27;Search&#x27;,
     upload: &#x27;Upload protocol&#x27;,
     signOut: &#x27;Sign out&#x27;,
     language: &#x27;Language&#x27;,
+    help: &#x27;Help&#x27;,
+    menu: &#x27;Menu&#x27;,
+  },
+  roles: {
+    operator: &#x27;Operator&#x27;,
+    techniker: &#x27;Technician&#x27;,
+    schichtleiter: &#x27;Shift lead&#x27;,
+    admin: &#x27;Administrator&#x27;,
+  },
+  footer: {
+    docs: &#x27;Documentation&#x27;,
+    repo: &#x27;Source code on GitHub&#x27;,
+    aiUsage: &#x27;AI use in this project&#x27;,
+    note: &#x27;Demo system with synthetic protocols. No real plant data.&#x27;,
+  },
+  landing: {
+    headline: &#x27;Maintenance knowledge that does not go home with the shift&#x27;,
+    problem:
+      &quot;A plant&#x27;s maintenance knowledge sits in PDFs, in folders and in the heads of experienced colleagues. At night no technician is on site, and a fault gets diagnosed from scratch although it was solved four weeks ago.&quot;,
+    solution:
+      &quot;The Maintenance Assistant answers questions in plain language — from the plant&#x27;s own maintenance protocols, naming the protocol each answer came from.&quot;,
+    trustHeading: &#x27;What you can rely on&#x27;,
+    trustSourced: &#x27;Sourced, or explicitly labelled&#x27;,
+    trustSourcedBody:
+      &#x27;An answer is either backed by protocols (Mode A, green) or labelled as a general suggestion with no source (Mode B, amber). There is nothing in between.&#x27;,
+    trustEu: &#x27;Processing stays in the EU&#x27;,
+    trustEuBody:
+      &#x27;Embedding and answering run on the IONOS AI Model Hub in Berlin. No transfer to third countries, no external fonts, no trackers.&#x27;,
+    trustRoles: &#x27;Answers by role&#x27;,
+    trustRolesBody:
+      &#x27;Operators only get steps an instructed person may carry out, together with a note on when to call a qualified technician.&#x27;,
+    demoHeading: &#x27;Demo accounts&#x27;,
+    demoIntro: &#x27;Four users, one password. Each role shows a different view of the same data.&#x27;,
+    demoPassword: &#x27;Password for all&#x27;,
+    signIn: &#x27;Sign in&#x27;,
+    signInHint:
+      &#x27;Sign-in is handled by Keycloak. You will be redirected there and returned here afterwards.&#x27;,
+    plateModel: &#x27;Type&#x27;,
+    plateStack: &#x27;Stack&#x27;,
+    plateHosting: &#x27;Hosting&#x27;,
+  },
+  demo: {
+    operator: &#x27;Ask questions, operator-safe answers.&#x27;,
+    techniker: &#x27;Ask questions, full technical answers.&#x27;,
+    schichtleiter: &#x27;Like the technician, and may upload protocols.&#x27;,
+    admin: &#x27;Administration in Keycloak, no shop-floor function in the app.&#x27;,
+    examplesHeading: &#x27;Try these&#x27;,
+    examplesIntro: &#x27;Choose the machine first, then ask — retrieval is filtered per machine.&#x27;,
+    exampleMachine: &#x27;Machine&#x27;,
+    // The questions stay German even in the English interface: they are meant to be pasted and to
+    // actually retrieve something, and the corpus and the machine names are German. Translating
+    // them would hand an English reader three questions that return nothing.
+    examples: [
+      {
+        machine: &#x27;Presse 3&#x27;,
+        question: &#x27;Presse 3 zeigt Störung E-47, was kann die Ursache sein?&#x27;,
+        shows:
+          &#x27;Four protocols with four different root causes for the same fault — one sourced answer citing several of them.&#x27;,
+      },
+      {
+        machine: &#x27;Förderband FB-04&#x27;,
+        question: &#x27;Förderband FB-04 läuft schief, was tun?&#x27;,
+        shows:
+          &#x27;A German question answered from an English protocol — still cited, and still German.&#x27;,
+      },
+      {
+        machine: &#x27;Abfüllanlage AB-02&#x27;,
+        question: &#x27;Die Dosierung an AB-02 ist ungenau, woran liegt das?&#x27;,
+        shows:
+          &#x27;No protocol in the records covers this — the answer comes back amber and explicitly unsourced.&#x27;,
+      },
+    ],
+  },
+  help: {
+    title: &#x27;Help&#x27;,
+    close: &#x27;Close&#x27;,
+    modesHeading: &#x27;The two kinds of answer&#x27;,
+    modeAHeading: &#x27;Mode A — sourced answer (green)&#x27;,
+    modeABody:
+      &#x27;Protocols in the records cover the question. Every statement names the protocol it came from in square brackets; clicking it opens the original protocol.&#x27;,
+    modeBHeading: &#x27;Mode B — general suggestion (amber)&#x27;,
+    modeBBody:
+      &#x27;No protocol matches the question. The steps are general engineering knowledge and are shown without a source area — there is nothing here to cite.&#x27;,
+    rolesHeading: &#x27;Who may do what&#x27;,
+    roleOperator:
+      &#x27;Operator: ask questions. Answers contain only steps for instructed persons, no electrical or mechanical repair work.&#x27;,
+    roleTechniker: &#x27;Technician: ask questions, full technical answers with no restriction.&#x27;,
+    roleSchichtleiter: &#x27;Shift lead: like the technician, and may upload new protocols.&#x27;,
   },
   search: {
     heading: &#x27;Ask about a machine&#x27;,

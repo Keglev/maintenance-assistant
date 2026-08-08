@@ -112,7 +112,38 @@
     <li class="breadcrumb-item">Architecture</li>
 </ol>
 
-    <p class="alert alert-warning">No Angular dependency graph data available for this project.</p>
+    <div class="architecture-legend">
+        <button type="button" class="architecture-legend-item" data-architecture-filter="component" aria-pressed="true">
+            <span class="architecture-legend-color architecture-component"></span>Component
+        </button>
+        <button type="button" class="architecture-legend-item" data-architecture-filter="directive" aria-pressed="true">
+            <span class="architecture-legend-color architecture-directive"></span>Directive
+        </button>
+        <button type="button" class="architecture-legend-item" data-architecture-filter="pipe" aria-pressed="true">
+            <span class="architecture-legend-color architecture-pipe"></span>Pipe
+        </button>
+        <button type="button" class="architecture-legend-item" data-architecture-filter="module" aria-pressed="true">
+            <span class="architecture-legend-color architecture-module"></span>Module
+        </button>
+        <button type="button" class="architecture-legend-item" data-architecture-filter="injectable" aria-pressed="true">
+            <span class="architecture-legend-color architecture-injectable"></span>Injectable
+        </button>
+    </div>
+
+    <div class="text-center module-graph-container architecture-graph-wrapper">
+        <div id="architecture-graph"></div>
+        <div class="btn-group size-buttons">
+            <button id="architecture-zoom-in" class="btn btn-default btn-sm">Zoom in</button>
+            <button id="architecture-reset" class="btn btn-default btn-sm">Reset</button>
+            <button id="architecture-zoom-out" class="btn btn-default btn-sm">Zoom out</button>
+        </div>
+    </div>
+
+    <script>
+        var ARCHITECTURE_DEP_GRAPH = {"nodes":[{"id":"component:App","name":"App","type":"component","url":"./components/App.html"},{"id":"component:HelpDialog","name":"HelpDialog","type":"component","url":"./components/HelpDialog.html"}],"edges":[{"source":"component:App","target":"component:HelpDialog"}]};
+    </script>
+    <script src="./js/libs/vis-network.min.js"></script>
+    <script src="./js/architecture-graph.js"></script>
 
 
 

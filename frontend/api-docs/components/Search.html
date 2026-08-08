@@ -1840,7 +1840,8 @@ export function toSegments(answer: string, citations: readonly Citation[]): Answ
     </div>
 
     <div class="tab-pane fade " id="templateData">
-        <pre class="line-numbers"><code class="language-html">&lt;h1&gt;{{ t().search.heading }}&lt;/h1&gt;
+        <pre class="line-numbers"><code class="language-html">&lt;div class&#x3D;&quot;page&quot;&gt;
+&lt;h1 class&#x3D;&quot;page-title&quot;&gt;{{ t().search.heading }}&lt;/h1&gt;
 
 &lt;form class&#x3D;&quot;ask&quot; (ngSubmit)&#x3D;&quot;ask()&quot;&gt;
   &lt;label class&#x3D;&quot;field&quot;&gt;
@@ -1878,11 +1879,19 @@ export function toSegments(answer: string, citations: readonly Citation[]): Answ
     &gt;&lt;/textarea&gt;
   &lt;/label&gt;
 
-  &lt;!-- Disabled while a request is in flight: the answer costs a provider call and counts against
-       a per-user rate limit, so a second click is money and a 429 rather than a faster answer. --&gt;
-  &lt;button type&#x3D;&quot;submit&quot; data-testid&#x3D;&quot;ask-button&quot; [disabled]&#x3D;&quot;asking()&quot;&gt;
-    {{ asking() ? t().search.working : t().search.submit }}
-  &lt;/button&gt;
+  &lt;div class&#x3D;&quot;ask-actions&quot;&gt;
+    &lt;!-- Disabled while a request is in flight: the answer costs a provider call and counts against
+         a per-user rate limit, so a second click is money and a 429 rather than a faster answer. --&gt;
+    &lt;button
+      type&#x3D;&quot;submit&quot;
+      class&#x3D;&quot;btn btn-primary&quot;
+      data-testid&#x3D;&quot;ask-button&quot;
+      [disabled]&#x3D;&quot;asking()&quot;
+      [attr.aria-busy]&#x3D;&quot;asking()&quot;
+    &gt;
+      {{ asking() ? t().search.working : t().search.submit }}
+    &lt;/button&gt;
+  &lt;/div&gt;
 
   @if (validation() &#x3D;&#x3D;&#x3D; &#x27;machine&#x27;) {
     &lt;p class&#x3D;&quot;notice notice-error&quot; data-testid&#x3D;&quot;validation&quot;&gt;{{ t().search.machineRequired }}&lt;/p&gt;
@@ -1928,7 +1937,13 @@ export function toSegments(answer: string, citations: readonly Citation[]): Answ
     &lt;!-- Mode A: grounded. Every claim carries the source it came from, and the markers in the text
          are links into the source list below. --&gt;
     &lt;section class&#x3D;&quot;answer answer-a&quot; data-testid&#x3D;&quot;answer-mode-a&quot;&gt;
-      &lt;p class&#x3D;&quot;answer-badge&quot; data-testid&#x3D;&quot;mode-badge&quot;&gt;✓ {{ t().modeA.badge }}&lt;/p&gt;
+      &lt;p class&#x3D;&quot;answer-badge&quot; data-testid&#x3D;&quot;mode-badge&quot;&gt;
+        &lt;svg class&#x3D;&quot;mode-icon&quot; viewBox&#x3D;&quot;0 0 24 24&quot; aria-hidden&#x3D;&quot;true&quot; focusable&#x3D;&quot;false&quot;&gt;
+          &lt;circle cx&#x3D;&quot;12&quot; cy&#x3D;&quot;12&quot; r&#x3D;&quot;9&quot; /&gt;
+          &lt;path d&#x3D;&quot;M8 12.4l2.6 2.6L16 9.6&quot; /&gt;
+        &lt;/svg&gt;
+        {{ t().modeA.badge }}
+      &lt;/p&gt;
       &lt;p class&#x3D;&quot;answer-explanation&quot;&gt;{{ t().modeA.explanation }}&lt;/p&gt;
 
       &lt;!-- lang is the language the BACKEND pinned the answer to, which is the question&#x27;s language
@@ -2011,7 +2026,9 @@ export function toSegments(answer: string, citations: readonly Citation[]): Answ
                 @if (citation.incidentDate) {
                   &lt;span&gt;{{ t().modeA.incidentDate }}: {{ citation.incidentDate }}&lt;/span&gt;
                 }
-                &lt;span&gt;{{ t().modeA.similarity }}: {{ similarityPercent(citation) }} %&lt;/span&gt;
+                &lt;span class&#x3D;&quot;num&quot;
+                  &gt;{{ t().modeA.similarity }}: {{ similarityPercent(citation) }} %&lt;/span
+                &gt;
               &lt;/p&gt;
             &lt;/div&gt;
           &lt;/li&gt;
@@ -2022,7 +2039,14 @@ export function toSegments(answer: string, citations: readonly Citation[]): Answ
     &lt;!-- Mode B: ungrounded, and unmistakably so. No source area exists here, not even an empty one:
          an empty &quot;Sources&quot; heading invites the reader to assume the sources are merely missing. --&gt;
     &lt;section class&#x3D;&quot;answer answer-b&quot; data-testid&#x3D;&quot;answer-mode-b&quot;&gt;
-      &lt;p class&#x3D;&quot;answer-badge&quot; data-testid&#x3D;&quot;mode-badge&quot;&gt;⚠ {{ t().modeB.badge }}&lt;/p&gt;
+      &lt;p class&#x3D;&quot;answer-badge&quot; data-testid&#x3D;&quot;mode-badge&quot;&gt;
+        &lt;svg class&#x3D;&quot;mode-icon&quot; viewBox&#x3D;&quot;0 0 24 24&quot; aria-hidden&#x3D;&quot;true&quot; focusable&#x3D;&quot;false&quot;&gt;
+          &lt;path d&#x3D;&quot;M12 3.6L1.8 20.4h20.4z&quot; /&gt;
+          &lt;path d&#x3D;&quot;M12 9.6v4.6&quot; /&gt;
+          &lt;circle class&#x3D;&quot;dot&quot; cx&#x3D;&quot;12&quot; cy&#x3D;&quot;17.4&quot; r&#x3D;&quot;1&quot; /&gt;
+        &lt;/svg&gt;
+        {{ t().modeB.badge }}
+      &lt;/p&gt;
       &lt;p class&#x3D;&quot;answer-explanation&quot;&gt;{{ t().modeB.explanation }}&lt;/p&gt;
 
       &lt;h2 class&#x3D;&quot;steps-heading&quot;&gt;{{ t().modeB.steps }}&lt;/h2&gt;
@@ -2034,6 +2058,7 @@ export function toSegments(answer: string, citations: readonly Citation[]): Answ
     &lt;/section&gt;
   }
 }
+&lt;/div&gt;
 </code></pre>
     </div>
 
@@ -2047,80 +2072,39 @@ export function toSegments(answer: string, citations: readonly Citation[]): Answ
  * for a general suggestion. The distinction is carried by the badge text, the border weight and the
  * icon as well as by hue, so it survives a monochrome screen and the common forms of colour
  * blindness — a difference that exists only in colour is a difference some readers do not get.
+ *
+ * Everything else here consumes the tokens in styles.css; the two mode palettes are the only place
+ * this view is allowed an opinion about colour.
  */
 
 .ask {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
-  max-width: 44rem;
-  margin-bottom: 1.5rem;
+  gap: var(--s-4);
+  max-width: var(--read-max);
+  margin-bottom: var(--s-5);
 }
 
-.field {
+.ask-actions {
   display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-}
-
-.field-label {
-  font-weight: 600;
-  font-size: 0.9rem;
-}
-
-.ask select,
-.ask textarea {
-  padding: 0.5rem;
-  border: 1px solid #b9b9b9;
-  border-radius: 4px;
-  font: inherit;
-  background: #fff;
-}
-
-.ask textarea {
-  resize: vertical;
-}
-
-.ask button {
-  align-self: flex-start;
-  padding: 0.6rem 1.2rem;
-  border: 0;
-  border-radius: 4px;
-  background: #1f4b8f;
-  color: #fff;
-  font: inherit;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.ask button[disabled] {
-  background: #8a9bb5;
-  cursor: progress;
-}
-
-.notice {
-  margin: 0;
-  padding: 0.5rem 0.75rem;
-  border-radius: 4px;
-  font-size: 0.9rem;
-}
-
-.notice-error {
-  background: #fdecec;
-  border: 1px solid #e0b4b4;
-  color: #7a1f1f;
+  align-items: center;
+  gap: var(--s-4);
 }
 
 /* Waiting. An indeterminate bar, because the backend cannot estimate its own queue time. */
 .working {
-  max-width: 44rem;
-  margin-bottom: 1.5rem;
+  max-width: var(--read-max);
+  margin-bottom: var(--s-5);
+  padding: var(--s-4);
+  border: 1px solid var(--c-line);
+  border-radius: var(--r-md);
+  background: var(--c-surface);
 }
 
 .working-bar {
   height: 4px;
   border-radius: 2px;
-  background: #e2e6ec;
+  background: var(--c-sunken);
   overflow: hidden;
 }
 
@@ -2129,7 +2113,7 @@ export function toSegments(answer: string, citations: readonly Citation[]): Answ
   width: 35%;
   height: 100%;
   border-radius: 2px;
-  background: #1f4b8f;
+  background: var(--c-brand);
   animation: working-slide 1.4s ease-in-out infinite;
 }
 
@@ -2151,68 +2135,73 @@ export function toSegments(answer: string, citations: readonly Citation[]): Answ
 }
 
 .working-text {
-  margin: 0.5rem 0 0;
+  margin: var(--s-3) 0 0;
   font-weight: 600;
 }
 
 .working-hint {
-  margin: 0.15rem 0 0;
-  font-size: 0.85rem;
-  color: #5c6672;
+  margin: var(--s-1) 0 0;
+  font-size: var(--t-sm);
+  color: var(--c-ink-muted);
 }
 
 /* --- The answer ---------------------------------------------------------- */
 
 .answer {
   max-width: 52rem;
-  padding: 1rem 1.25rem;
-  border-radius: 6px;
-  margin-bottom: 1.5rem;
+  padding: var(--s-5);
+  border-radius: var(--r-md);
+  box-shadow: var(--shadow-sm);
+  margin-bottom: var(--s-5);
 }
 
 .answer-badge {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
   margin: 0;
   font-weight: 700;
-  font-size: 1rem;
-  letter-spacing: 0.01em;
+  font-size: var(--t-lg);
+  letter-spacing: -0.005em;
 }
 
 .answer-explanation {
-  margin: 0.35rem 0 1rem;
-  font-size: 0.9rem;
+  margin: var(--s-2) 0 var(--s-4);
+  font-size: var(--t-sm);
 }
 
 .answer-text {
-  margin: 0 0 1.25rem;
-  line-height: 1.65;
+  margin: 0 0 var(--s-5);
+  line-height: var(--lh-relaxed);
 }
 
 /* Mode A — sourced. */
 .answer-a {
-  background: #f1f8f3;
-  border: 1px solid #bcdcc6;
-  border-left: 6px solid #2f7d44;
+  background: var(--c-mode-a-soft);
+  border: 1px solid var(--c-mode-a-line);
+  border-left: 6px solid var(--c-mode-a);
 }
 
 .answer-a .answer-badge {
-  color: #1d5c31;
+  color: var(--c-mode-a-ink);
 }
 
 .citation-marker {
   display: inline-block;
-  padding: 0 0.25rem;
+  padding: 0 var(--s-1);
   border-radius: 3px;
   background: #d8ecdd;
-  color: #14532b;
+  color: var(--c-mode-a-ink);
   font-size: 0.8em;
   font-weight: 700;
+  font-variant-numeric: tabular-nums;
   text-decoration: none;
   vertical-align: 0.1em;
 }
 
 .citation-marker:hover,
 .citation-marker:focus-visible {
-  background: #2f7d44;
+  background: var(--c-mode-a);
   color: #fff;
 }
 
@@ -2225,6 +2214,7 @@ export function toSegments(answer: string, citations: readonly Citation[]): Answ
 
 .source-title {
   text-decoration: underline;
+  text-underline-offset: 2px;
 }
 
 .citation-marker[aria-busy&#x3D;&#x27;true&#x27;],
@@ -2234,18 +2224,18 @@ export function toSegments(answer: string, citations: readonly Citation[]): Answ
 }
 
 .source-opening {
-  margin-left: 0.5rem;
-  font-size: 0.8rem;
-  color: #4a5a4e;
+  margin-left: var(--s-2);
+  font-size: var(--t-xs);
+  color: var(--c-ink-muted);
 }
 
 .sources-heading,
 .steps-heading {
-  margin: 0 0 0.5rem;
-  font-size: 0.95rem;
+  margin: 0 0 var(--s-3);
+  font-size: var(--t-sm);
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: #3c4a3f;
+  letter-spacing: 0.06em;
+  color: var(--c-ink-muted);
 }
 
 .sources {
@@ -2254,54 +2244,62 @@ export function toSegments(answer: string, citations: readonly Citation[]): Answ
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 0.6rem;
+  gap: var(--s-2);
 }
 
+/* Each source is a card of its own: a technician scans this list to decide which protocol to open,
+   and rows that touch are read as one paragraph. */
 .source {
   display: flex;
-  gap: 0.6rem;
+  gap: var(--s-3);
   align-items: baseline;
+  padding: var(--s-3);
+  border: 1px solid var(--c-mode-a-line);
+  border-radius: var(--r-sm);
+  background: var(--c-surface);
 }
 
 .source-label {
   flex: 0 0 auto;
-  padding: 0.1rem 0.35rem;
-  border-radius: 3px;
-  background: #2f7d44;
+  padding: 0.1rem var(--s-2);
+  border-radius: var(--r-sm);
+  background: var(--c-mode-a);
   color: #fff;
-  font-size: 0.75rem;
+  font-size: var(--t-xs);
   font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.source-body {
+  min-width: 0;
 }
 
 .source-title {
-  color: #14532b;
+  color: var(--c-mode-a-ink);
   font-weight: 600;
 }
 
 .source-meta {
-  margin: 0.1rem 0 0;
-  font-size: 0.8rem;
-  color: #4a5a4e;
+  margin: var(--s-1) 0 0;
+  font-size: var(--t-xs);
+  font-variant-numeric: tabular-nums;
+  color: var(--c-ink-muted);
   display: flex;
   flex-wrap: wrap;
-  gap: 0.75rem;
+  gap: var(--s-1) var(--s-3);
 }
 
 /* Mode B — a general suggestion, and it must never be mistaken for the block above. */
 .answer-b {
-  background: #fff8ec;
-  border: 1px solid #e8cf9c;
-  border-left: 6px solid #b26a00;
+  background: var(--c-mode-b-soft);
+  border: 1px solid var(--c-mode-b-line);
+  border-left: 6px solid var(--c-mode-b);
   /* A hatched top edge: a second, non-colour signal that this block is different in kind. */
-  background-image: repeating-linear-gradient(
-    135deg,
-    #f0dcb4 0 8px,
-    transparent 8px 16px
-  );
+  background-image: repeating-linear-gradient(135deg, #f0dcb4 0 8px, transparent 8px 16px);
   background-size: 100% 6px;
   background-repeat: no-repeat;
   background-position: top left;
-  padding-top: 1.4rem;
+  padding-top: var(--s-6);
 }
 
 .answer-b .answer-badge {
@@ -2310,17 +2308,48 @@ export function toSegments(answer: string, citations: readonly Citation[]): Answ
 
 .answer-b .answer-explanation {
   font-weight: 600;
-  color: #6f3d00;
+  color: var(--c-mode-b-ink);
 }
 
 .steps {
   margin: 0;
-  padding-left: 1.4rem;
-  line-height: 1.6;
+  padding-left: var(--s-5);
+  line-height: var(--lh-normal);
 }
 
 .steps li {
-  margin-bottom: 0.4rem;
+  margin-bottom: var(--s-2);
+}
+
+.mode-icon {
+  flex: 0 0 auto;
+  width: 22px;
+  height: 22px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.mode-icon .dot {
+  fill: currentColor;
+  stroke: none;
+}
+
+@media (max-width: 40rem) {
+  .answer {
+    padding: var(--s-4);
+  }
+
+  .ask-actions .btn {
+    width: 100%;
+  }
+
+  .ask-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
 }
 </code></pre>
     </div>
@@ -2350,8 +2379,8 @@ export function toSegments(answer: string, citations: readonly Citation[]): Answ
 <script src="../js/libs/htmlparser.js"></script>
 <script src="../js/libs/deep-iterator.js"></script>
 <script>
-        var COMPONENT_TEMPLATE = '<div><h1>{{ t().search.heading }}</h1><form class="ask" (ngSubmit)="ask()">  <label class="field">    <span class="field-label">{{ t().search.machine }}</span>    <select      name="machine"      data-testid="machine-picker"      [ngModel]="machineId()"      (ngModelChange)="machineId.set($event)"      [disabled]="asking()"    >      <option value="">{{ t().search.machinePlaceholder }}</option>      @for (machine of machines(); track machine.id) {        <option [value]="machine.id">{{ machine.machineNo }} · {{ machine.name }}</option>      }    </select>  </label>  @if (machinesFailed()) {    <p class="notice notice-error" data-testid="machines-error">      {{ t().search.machinesUnavailable }}    </p>  }  <label class="field">    <span class="field-label">{{ t().search.question }}</span>    <textarea      name="question"      rows="3"      data-testid="question-input"      [placeholder]="t().search.questionPlaceholder"      [ngModel]="question()"      (ngModelChange)="question.set($event)"      [disabled]="asking()"    ></textarea>  </label>  <!-- Disabled while a request is in flight: the answer costs a provider call and counts against       a per-user rate limit, so a second click is money and a 429 rather than a faster answer. -->  <button type="submit" data-testid="ask-button" [disabled]="asking()">    {{ asking() ? t().search.working : t().search.submit }}  </button>  @if (validation() === \'machine\') {    <p class="notice notice-error" data-testid="validation">{{ t().search.machineRequired }}</p>  } @else if (validation() === \'question\') {    <p class="notice notice-error" data-testid="validation">{{ t().search.questionRequired }}</p>  }</form>@if (asking()) {  <!-- Answers take 5-20 s. An indeterminate bar with an honest estimate beats a spinner that says       nothing about whether waiting is normal. -->  <div class="working" role="status" aria-live="polite" data-testid="working">    <div class="working-bar"><span></span></div>    <p class="working-text">{{ t().search.working }}</p>    <p class="working-hint">{{ t().search.workingHint }}</p>  </div>}@if (failure(); as reason) {  <p class="notice notice-error" role="alert" data-testid="failure">    @switch (reason) {      @case (\'rateLimited\') {        {{ t().errors.rateLimited }}      }      @case (\'budgetExhausted\') {        {{ t().errors.budgetExhausted }}      }      @case (\'unavailable\') {        {{ t().errors.unavailable }}      }      @case (\'forbidden\') {        {{ t().errors.forbidden }}      }      @default {        {{ t().errors.generic }}      }    }  </p>}@if (answer(); as result) {  @if (result.mode === \'A\') {    <!-- Mode A: grounded. Every claim carries the source it came from, and the markers in the text         are links into the source list below. -->    <section class="answer answer-a" data-testid="answer-mode-a">      <p class="answer-badge" data-testid="mode-badge">✓ {{ t().modeA.badge }}</p>      <p class="answer-explanation">{{ t().modeA.explanation }}</p>      <!-- lang is the language the BACKEND pinned the answer to, which is the question\'s language           and not the interface\'s. It drives hyphenation and screen-reader pronunciation. -->      <p class="answer-text" [attr.lang]="result.language" data-testid="answer-text">        @for (segment of segments(); track $index) {          @if (segment.kind === \'marker\' && segment.citation) {            <!-- No href: a browser-followed anchor carries no Bearer token and the API answers 401.                 The document is fetched through HttpClient by the handler instead. Kept an <a> for                 its link semantics, with role/tabindex/keydown so it is reachable and operable from                 the keyboard exactly as a link would be. -->            <a              class="citation-marker"              role="button"              tabindex="0"              [attr.aria-busy]="isOpening(segment.citation.protocolId)"              [title]="segment.citation.title"              data-testid="citation-marker"              (click)="openSource(segment.citation.protocolId, $event)"              (keydown.enter)="openSource(segment.citation.protocolId, $event)"              (keydown.space)="openSource(segment.citation.protocolId, $event)"              >[{{ segment.value }}]</a            >          } @else {            <span>{{ segment.value }}</span>          }        }      </p>      @if (documentFailure(); as reason) {        <!-- A source that will not open is worth saying out loud: the claim above still stands on             that protocol, and the reader is entitled to know the evidence is unreachable rather             than to click into silence. -->        <p class="notice notice-error" role="alert" data-testid="document-failure">          @switch (reason) {            @case (\'notFound\') {              {{ t().errors.documentMissing }}            }            @case (\'forbidden\') {              {{ t().errors.forbidden }}            }            @case (\'unavailable\') {              {{ t().errors.unavailable }}            }            @default {              {{ t().errors.generic }}            }          }        </p>      }      <h2 class="sources-heading">{{ t().modeA.sources }}</h2>      <ul class="sources" data-testid="sources">        @for (citation of result.citations; track citation.protocolId) {          <li class="source">            <span class="source-label">{{ citation.label }}</span>            <div class="source-body">              <!-- Same as the inline marker above, and for the same reason. -->              <a                class="source-title"                role="button"                tabindex="0"                [attr.aria-label]="t().modeA.openSource + \': \' + citation.title"                [attr.aria-busy]="isOpening(citation.protocolId)"                data-testid="source-link"                (click)="openSource(citation.protocolId, $event)"                (keydown.enter)="openSource(citation.protocolId, $event)"                (keydown.space)="openSource(citation.protocolId, $event)"                >{{ citation.title }}</a              >              @if (isOpening(citation.protocolId)) {                <span class="source-opening" data-testid="source-opening">{{                  t().modeA.opening                }}</span>              }              <p class="source-meta">                @if (citation.errorCode) {                  <span>{{ t().modeA.errorCode }}: {{ citation.errorCode }}</span>                }                @if (citation.incidentDate) {                  <span>{{ t().modeA.incidentDate }}: {{ citation.incidentDate }}</span>                }                <span>{{ t().modeA.similarity }}: {{ similarityPercent(citation) }} %</span>              </p>            </div>          </li>        }      </ul>    </section>  } @else {    <!-- Mode B: ungrounded, and unmistakably so. No source area exists here, not even an empty one:         an empty "Sources" heading invites the reader to assume the sources are merely missing. -->    <section class="answer answer-b" data-testid="answer-mode-b">      <p class="answer-badge" data-testid="mode-badge">⚠ {{ t().modeB.badge }}</p>      <p class="answer-explanation">{{ t().modeB.explanation }}</p>      <h2 class="steps-heading">{{ t().modeB.steps }}</h2>      <ol class="steps" [attr.lang]="result.language" data-testid="answer-text">        @for (step of steps(); track $index) {          <li>{{ step }}</li>        }      </ol>    </section>  }}</div>'
-    var COMPONENTS = [{'name': 'App', 'selector': 'app-root'},{'name': 'Home', 'selector': 'app-home'},{'name': 'Login', 'selector': 'app-login'},{'name': 'Search', 'selector': 'app-search'},{'name': 'Upload', 'selector': 'app-upload'}];
+        var COMPONENT_TEMPLATE = '<div><div class="page"><h1 class="page-title">{{ t().search.heading }}</h1><form class="ask" (ngSubmit)="ask()">  <label class="field">    <span class="field-label">{{ t().search.machine }}</span>    <select      name="machine"      data-testid="machine-picker"      [ngModel]="machineId()"      (ngModelChange)="machineId.set($event)"      [disabled]="asking()"    >      <option value="">{{ t().search.machinePlaceholder }}</option>      @for (machine of machines(); track machine.id) {        <option [value]="machine.id">{{ machine.machineNo }} · {{ machine.name }}</option>      }    </select>  </label>  @if (machinesFailed()) {    <p class="notice notice-error" data-testid="machines-error">      {{ t().search.machinesUnavailable }}    </p>  }  <label class="field">    <span class="field-label">{{ t().search.question }}</span>    <textarea      name="question"      rows="3"      data-testid="question-input"      [placeholder]="t().search.questionPlaceholder"      [ngModel]="question()"      (ngModelChange)="question.set($event)"      [disabled]="asking()"    ></textarea>  </label>  <div class="ask-actions">    <!-- Disabled while a request is in flight: the answer costs a provider call and counts against         a per-user rate limit, so a second click is money and a 429 rather than a faster answer. -->    <button      type="submit"      class="btn btn-primary"      data-testid="ask-button"      [disabled]="asking()"      [attr.aria-busy]="asking()"    >      {{ asking() ? t().search.working : t().search.submit }}    </button>  </div>  @if (validation() === \'machine\') {    <p class="notice notice-error" data-testid="validation">{{ t().search.machineRequired }}</p>  } @else if (validation() === \'question\') {    <p class="notice notice-error" data-testid="validation">{{ t().search.questionRequired }}</p>  }</form>@if (asking()) {  <!-- Answers take 5-20 s. An indeterminate bar with an honest estimate beats a spinner that says       nothing about whether waiting is normal. -->  <div class="working" role="status" aria-live="polite" data-testid="working">    <div class="working-bar"><span></span></div>    <p class="working-text">{{ t().search.working }}</p>    <p class="working-hint">{{ t().search.workingHint }}</p>  </div>}@if (failure(); as reason) {  <p class="notice notice-error" role="alert" data-testid="failure">    @switch (reason) {      @case (\'rateLimited\') {        {{ t().errors.rateLimited }}      }      @case (\'budgetExhausted\') {        {{ t().errors.budgetExhausted }}      }      @case (\'unavailable\') {        {{ t().errors.unavailable }}      }      @case (\'forbidden\') {        {{ t().errors.forbidden }}      }      @default {        {{ t().errors.generic }}      }    }  </p>}@if (answer(); as result) {  @if (result.mode === \'A\') {    <!-- Mode A: grounded. Every claim carries the source it came from, and the markers in the text         are links into the source list below. -->    <section class="answer answer-a" data-testid="answer-mode-a">      <p class="answer-badge" data-testid="mode-badge">        <svg class="mode-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">          <circle cx="12" cy="12" r="9" />          <path d="M8 12.4l2.6 2.6L16 9.6" />        </svg>        {{ t().modeA.badge }}      </p>      <p class="answer-explanation">{{ t().modeA.explanation }}</p>      <!-- lang is the language the BACKEND pinned the answer to, which is the question\'s language           and not the interface\'s. It drives hyphenation and screen-reader pronunciation. -->      <p class="answer-text" [attr.lang]="result.language" data-testid="answer-text">        @for (segment of segments(); track $index) {          @if (segment.kind === \'marker\' && segment.citation) {            <!-- No href: a browser-followed anchor carries no Bearer token and the API answers 401.                 The document is fetched through HttpClient by the handler instead. Kept an <a> for                 its link semantics, with role/tabindex/keydown so it is reachable and operable from                 the keyboard exactly as a link would be. -->            <a              class="citation-marker"              role="button"              tabindex="0"              [attr.aria-busy]="isOpening(segment.citation.protocolId)"              [title]="segment.citation.title"              data-testid="citation-marker"              (click)="openSource(segment.citation.protocolId, $event)"              (keydown.enter)="openSource(segment.citation.protocolId, $event)"              (keydown.space)="openSource(segment.citation.protocolId, $event)"              >[{{ segment.value }}]</a            >          } @else {            <span>{{ segment.value }}</span>          }        }      </p>      @if (documentFailure(); as reason) {        <!-- A source that will not open is worth saying out loud: the claim above still stands on             that protocol, and the reader is entitled to know the evidence is unreachable rather             than to click into silence. -->        <p class="notice notice-error" role="alert" data-testid="document-failure">          @switch (reason) {            @case (\'notFound\') {              {{ t().errors.documentMissing }}            }            @case (\'forbidden\') {              {{ t().errors.forbidden }}            }            @case (\'unavailable\') {              {{ t().errors.unavailable }}            }            @default {              {{ t().errors.generic }}            }          }        </p>      }      <h2 class="sources-heading">{{ t().modeA.sources }}</h2>      <ul class="sources" data-testid="sources">        @for (citation of result.citations; track citation.protocolId) {          <li class="source">            <span class="source-label">{{ citation.label }}</span>            <div class="source-body">              <!-- Same as the inline marker above, and for the same reason. -->              <a                class="source-title"                role="button"                tabindex="0"                [attr.aria-label]="t().modeA.openSource + \': \' + citation.title"                [attr.aria-busy]="isOpening(citation.protocolId)"                data-testid="source-link"                (click)="openSource(citation.protocolId, $event)"                (keydown.enter)="openSource(citation.protocolId, $event)"                (keydown.space)="openSource(citation.protocolId, $event)"                >{{ citation.title }}</a              >              @if (isOpening(citation.protocolId)) {                <span class="source-opening" data-testid="source-opening">{{                  t().modeA.opening                }}</span>              }              <p class="source-meta">                @if (citation.errorCode) {                  <span>{{ t().modeA.errorCode }}: {{ citation.errorCode }}</span>                }                @if (citation.incidentDate) {                  <span>{{ t().modeA.incidentDate }}: {{ citation.incidentDate }}</span>                }                <span class="num"                  >{{ t().modeA.similarity }}: {{ similarityPercent(citation) }} %</span                >              </p>            </div>          </li>        }      </ul>    </section>  } @else {    <!-- Mode B: ungrounded, and unmistakably so. No source area exists here, not even an empty one:         an empty "Sources" heading invites the reader to assume the sources are merely missing. -->    <section class="answer answer-b" data-testid="answer-mode-b">      <p class="answer-badge" data-testid="mode-badge">        <svg class="mode-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">          <path d="M12 3.6L1.8 20.4h20.4z" />          <path d="M12 9.6v4.6" />          <circle class="dot" cx="12" cy="17.4" r="1" />        </svg>        {{ t().modeB.badge }}      </p>      <p class="answer-explanation">{{ t().modeB.explanation }}</p>      <h2 class="steps-heading">{{ t().modeB.steps }}</h2>      <ol class="steps" [attr.lang]="result.language" data-testid="answer-text">        @for (step of steps(); track $index) {          <li>{{ step }}</li>        }      </ol>    </section>  }}</div></div>'
+    var COMPONENTS = [{'name': 'App', 'selector': 'app-root'},{'name': 'HelpDialog', 'selector': 'app-help-dialog'},{'name': 'Landing', 'selector': 'app-landing'},{'name': 'Search', 'selector': 'app-search'},{'name': 'Upload', 'selector': 'app-upload'}];
     var DIRECTIVES = [];
     var ACTUAL_COMPONENT = {'name': 'Search'};
 </script>

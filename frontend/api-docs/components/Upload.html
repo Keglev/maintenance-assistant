@@ -1390,8 +1390,9 @@ export class Upload {
     </div>
 
     <div class="tab-pane fade " id="templateData">
-        <pre class="line-numbers"><code class="language-html">&lt;h1&gt;{{ t().upload.heading }}&lt;/h1&gt;
-&lt;p class&#x3D;&quot;intro&quot;&gt;{{ t().upload.intro }}&lt;/p&gt;
+        <pre class="line-numbers"><code class="language-html">&lt;div class&#x3D;&quot;page&quot;&gt;
+&lt;h1 class&#x3D;&quot;page-title&quot;&gt;{{ t().upload.heading }}&lt;/h1&gt;
+&lt;p class&#x3D;&quot;page-lead&quot;&gt;{{ t().upload.intro }}&lt;/p&gt;
 
 &lt;form class&#x3D;&quot;upload-form&quot; (ngSubmit)&#x3D;&quot;submit()&quot;&gt;
   &lt;label class&#x3D;&quot;field&quot;&gt;
@@ -1449,14 +1450,20 @@ export class Upload {
     &lt;/select&gt;
   &lt;/label&gt;
 
-  &lt;button type&#x3D;&quot;submit&quot; data-testid&#x3D;&quot;upload-button&quot; [disabled]&#x3D;&quot;submitting() || !file() || !machineNo()&quot;&gt;
+  &lt;button
+    type&#x3D;&quot;submit&quot;
+    class&#x3D;&quot;btn btn-primary&quot;
+    data-testid&#x3D;&quot;upload-button&quot;
+    [disabled]&#x3D;&quot;submitting() || !file() || !machineNo()&quot;
+    [attr.aria-busy]&#x3D;&quot;submitting()&quot;
+  &gt;
     {{ submitting() ? t().upload.submitting : t().upload.submit }}
   &lt;/button&gt;
 &lt;/form&gt;
 
 @if (accepted()) {
   &lt;!-- 202, said out loud. The protocol exists; it is not searchable yet. --&gt;
-  &lt;p class&#x3D;&quot;notice notice-accepted&quot; role&#x3D;&quot;status&quot; data-testid&#x3D;&quot;accepted&quot;&gt;
+  &lt;p class&#x3D;&quot;notice notice-info&quot; role&#x3D;&quot;status&quot; data-testid&#x3D;&quot;accepted&quot;&gt;
     &lt;strong&gt;{{ t().upload.accepted }}&lt;/strong&gt; {{ t().upload.acceptedHint }}
   &lt;/p&gt;
 }
@@ -1477,10 +1484,16 @@ export class Upload {
   &lt;/p&gt;
 }
 
-&lt;section class&#x3D;&quot;uploads&quot;&gt;
+&lt;section class&#x3D;&quot;uploads card&quot;&gt;
   &lt;div class&#x3D;&quot;uploads-header&quot;&gt;
-    &lt;h2&gt;{{ t().upload.myUploads }}&lt;/h2&gt;
-    &lt;button type&#x3D;&quot;button&quot; data-testid&#x3D;&quot;refresh-button&quot; [disabled]&#x3D;&quot;refreshing()&quot; (click)&#x3D;&quot;refresh()&quot;&gt;
+    &lt;h2 class&#x3D;&quot;section-title&quot;&gt;{{ t().upload.myUploads }}&lt;/h2&gt;
+    &lt;button
+      type&#x3D;&quot;button&quot;
+      class&#x3D;&quot;btn btn-secondary btn-sm&quot;
+      data-testid&#x3D;&quot;refresh-button&quot;
+      [disabled]&#x3D;&quot;refreshing()&quot;
+      (click)&#x3D;&quot;refresh()&quot;
+    &gt;
       {{ t().upload.refresh }}
     &lt;/button&gt;
   &lt;/div&gt;
@@ -1512,7 +1525,7 @@ export class Upload {
                 &lt;p class&#x3D;&quot;failure-reason&quot; data-testid&#x3D;&quot;failure-reason&quot;&gt;{{ upload.failureReason }}&lt;/p&gt;
               }
             &lt;/td&gt;
-            &lt;td&gt;{{ shortDate(upload.createdAt) }}&lt;/td&gt;
+            &lt;td class&#x3D;&quot;num&quot;&gt;{{ shortDate(upload.createdAt) }}&lt;/td&gt;
           &lt;/tr&gt;
         }
       &lt;/tbody&gt;
@@ -1521,6 +1534,7 @@ export class Upload {
     &lt;p class&#x3D;&quot;hint&quot; data-testid&#x3D;&quot;no-uploads&quot;&gt;{{ t().upload.none }}&lt;/p&gt;
   }
 &lt;/section&gt;
+&lt;/div&gt;
 </code></pre>
     </div>
 
@@ -1528,163 +1542,119 @@ export class Upload {
                 <p class="comment">
                     <code>./upload.css</code>
                 </p>
-                <pre class="line-numbers"><code class="language-scss">.intro {
-  margin-top: 0;
-  color: #5c6672;
-}
-
-.upload-form {
+                <pre class="line-numbers"><code class="language-scss">.upload-form {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: var(--s-4);
   max-width: 34rem;
-  margin-bottom: 1.5rem;
-}
-
-.field {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-}
-
-.field-label {
-  font-weight: 600;
-  font-size: 0.9rem;
-}
-
-.optional {
-  font-weight: 400;
-  color: #6b747f;
-}
-
-.upload-form input[type&#x3D;&#x27;text&#x27;],
-.upload-form select {
-  padding: 0.5rem;
-  border: 1px solid #b9b9b9;
-  border-radius: 4px;
-  font: inherit;
-  background: #fff;
-}
-
-.upload-form button {
-  align-self: flex-start;
-  padding: 0.6rem 1.2rem;
-  border: 0;
-  border-radius: 4px;
-  background: #1f4b8f;
-  color: #fff;
-  font: inherit;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.upload-form button[disabled] {
-  background: #8a9bb5;
-  cursor: not-allowed;
+  margin-bottom: var(--s-6);
+  padding: var(--s-5);
+  background: var(--c-surface);
+  border: 1px solid var(--c-line);
+  border-radius: var(--r-md);
+  box-shadow: var(--shadow-sm);
 }
 
 .notice {
-  max-width: 44rem;
-  margin: 0 0 1.5rem;
-  padding: 0.6rem 0.85rem;
-  border-radius: 4px;
-  font-size: 0.9rem;
-}
-
-/* Accepted, not finished. Blue rather than green: green would read as &quot;done and searchable&quot;. */
-.notice-accepted {
-  background: #eef4fc;
-  border: 1px solid #b7cceb;
-  color: #1f4b8f;
-}
-
-.notice-error {
-  background: #fdecec;
-  border: 1px solid #e0b4b4;
-  color: #7a1f1f;
+  max-width: var(--read-max);
+  margin: 0 0 var(--s-5);
 }
 
 .uploads-header {
   display: flex;
-  align-items: baseline;
-  gap: 1rem;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--s-3);
 }
 
-.uploads-header h2 {
+.uploads-header .section-title {
   margin: 0;
-  font-size: 1.1rem;
-}
-
-.uploads-header button {
-  padding: 0.3rem 0.75rem;
-  border: 1px solid #b9b9b9;
-  border-radius: 4px;
-  background: #fff;
-  font: inherit;
-  font-size: 0.85rem;
-  cursor: pointer;
 }
 
 .hint {
-  margin: 0.25rem 0 0.75rem;
-  font-size: 0.85rem;
-  color: #5c6672;
+  margin: var(--s-1) 0 var(--s-4);
+  font-size: var(--t-sm);
+  color: var(--c-ink-muted);
 }
 
 .uploads-table {
   border-collapse: collapse;
   width: 100%;
-  max-width: 52rem;
-  font-size: 0.9rem;
+  font-size: var(--t-sm);
 }
 
 .uploads-table th,
 .uploads-table td {
   text-align: left;
-  padding: 0.5rem 0.6rem;
-  border-bottom: 1px solid #e4e6e9;
+  padding: var(--s-2) var(--s-3);
+  border-bottom: 1px solid var(--c-line);
   vertical-align: top;
+}
+
+.uploads-table th {
+  font-size: var(--t-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--c-ink-muted);
 }
 
 .upload-machine {
   display: inline-block;
-  margin-right: 0.4rem;
-  padding: 0.05rem 0.3rem;
-  border-radius: 3px;
-  background: #eef1f5;
-  font-size: 0.8rem;
-  font-weight: 600;
+  margin-right: var(--s-1);
+  padding: 0.05rem var(--s-2);
+  border-radius: var(--r-sm);
+  background: var(--c-sunken);
+  font-size: var(--t-xs);
+  font-weight: 700;
 }
 
 .status {
   display: inline-block;
-  padding: 0.1rem 0.45rem;
-  border-radius: 999px;
-  font-size: 0.8rem;
-  font-weight: 600;
+  padding: 0.1rem var(--s-2);
+  border-radius: var(--r-pill);
+  font-size: var(--t-xs);
+  font-weight: 700;
 }
 
-/* The three states of the lifecycle, told apart by wording as well as by colour. */
+/* The three states of the lifecycle, told apart by wording as well as by colour. RECEIVED is blue
+   rather than green on purpose: green would read as &quot;done and searchable&quot;, which it is not yet. */
 .status-received {
-  background: #eef4fc;
-  color: #1f4b8f;
+  background: var(--c-brand-soft);
+  color: var(--c-brand);
 }
 
 .status-indexed {
   background: #e9f5ec;
-  color: #1d5c31;
+  color: var(--c-mode-a-ink);
 }
 
 .status-failed {
-  background: #fdecec;
-  color: #7a1f1f;
+  background: var(--c-danger-soft);
+  color: var(--c-danger);
 }
 
 .failure-reason {
-  margin: 0.3rem 0 0;
-  font-size: 0.8rem;
-  color: #7a1f1f;
-  word-break: break-word;
+  margin: var(--s-1) 0 0;
+  font-size: var(--t-xs);
+  color: var(--c-danger);
+  overflow-wrap: anywhere;
+}
+
+/* A three-column table at 360 px needs to scroll rather than to squeeze the status into one letter
+   per line. The wrapper scrolls; the page does not. */
+@media (max-width: 40rem) {
+  .uploads {
+    overflow-x: auto;
+  }
+
+  .uploads-table {
+    min-width: 30rem;
+  }
+
+  .upload-form button {
+    width: 100%;
+  }
 }
 </code></pre>
     </div>
@@ -1714,8 +1684,8 @@ export class Upload {
 <script src="../js/libs/htmlparser.js"></script>
 <script src="../js/libs/deep-iterator.js"></script>
 <script>
-        var COMPONENT_TEMPLATE = '<div><h1>{{ t().upload.heading }}</h1><p class="intro">{{ t().upload.intro }}</p><form class="upload-form" (ngSubmit)="submit()">  <label class="field">    <span class="field-label">{{ t().upload.file }}</span>    <input type="file" accept=".txt,.md,text/plain" data-testid="file-input" (change)="pickFile($event)" />  </label>  <label class="field">    <span class="field-label">{{ t().upload.machine }}</span>    <select      name="machine"      data-testid="upload-machine"      [ngModel]="machineNo()"      (ngModelChange)="machineNo.set($event)"    >      <option value="">{{ t().search.machinePlaceholder }}</option>      @for (machine of machines(); track machine.id) {        <option [value]="machine.machineNo">{{ machine.machineNo }} · {{ machine.name }}</option>      }    </select>  </label>  <label class="field">    <span class="field-label">{{ t().upload.type }}</span>    <select name="type" [ngModel]="type()" (ngModelChange)="type.set($event)">      <option value="STOERUNG">{{ t().upload.typeFault }}</option>      <option value="WARTUNG">{{ t().upload.typeMaintenance }}</option>    </select>  </label>  <label class="field">    <span class="field-label"      >{{ t().upload.title }} <em class="optional">({{ t().upload.optional }})</em></span    >    <input name="title" type="text" [ngModel]="title()" (ngModelChange)="title.set($event)" />  </label>  <label class="field">    <span class="field-label"      >{{ t().upload.errorCode }} <em class="optional">({{ t().upload.optional }})</em></span    >    <input      name="errorCode"      type="text"      [ngModel]="errorCode()"      (ngModelChange)="errorCode.set($event)"    />  </label>  <label class="field">    <span class="field-label">{{ t().upload.language }}</span>    <select name="language" [ngModel]="language()" (ngModelChange)="language.set($event)">      <option value="de">Deutsch</option>      <option value="en">English</option>    </select>  </label>  <button type="submit" data-testid="upload-button" [disabled]="submitting() || !file() || !machineNo()">    {{ submitting() ? t().upload.submitting : t().upload.submit }}  </button></form>@if (accepted()) {  <!-- 202, said out loud. The protocol exists; it is not searchable yet. -->  <p class="notice notice-accepted" role="status" data-testid="accepted">    <strong>{{ t().upload.accepted }}</strong> {{ t().upload.acceptedHint }}  </p>}@if (failure(); as reason) {  <p class="notice notice-error" role="alert" data-testid="upload-failure">    @switch (reason) {      @case (\'forbidden\') {        {{ t().errors.forbidden }}      }      @case (\'unavailable\') {        {{ t().errors.unavailable }}      }      @default {        {{ t().errors.generic }}      }    }  </p>}<section class="uploads">  <div class="uploads-header">    <h2>{{ t().upload.myUploads }}</h2>    <button type="button" data-testid="refresh-button" [disabled]="refreshing()" (click)="refresh()">      {{ t().upload.refresh }}    </button>  </div>  <p class="hint">{{ t().upload.refreshHint }}</p>  @if (uploads().length) {    <table class="uploads-table" data-testid="uploads-table">      <thead>        <tr>          <th>{{ t().upload.columnProtocol }}</th>          <th>{{ t().upload.columnStatus }}</th>          <th>{{ t().upload.columnUploaded }}</th>        </tr>      </thead>      <tbody>        @for (upload of uploads(); track upload.id) {          <tr>            <td>              <span class="upload-machine">{{ upload.machineNo }}</span>              {{ upload.title }}            </td>            <td>              <span class="status status-{{ upload.status.toLowerCase() }}">{{                statusLabel(upload.status)              }}</span>              @if (upload.failureReason) {                <!-- The reason, not only the fact. "It failed" makes re-uploading the same broken                     file the obvious next move. -->                <p class="failure-reason" data-testid="failure-reason">{{ upload.failureReason }}</p>              }            </td>            <td>{{ shortDate(upload.createdAt) }}</td>          </tr>        }      </tbody>    </table>  } @else {    <p class="hint" data-testid="no-uploads">{{ t().upload.none }}</p>  }</section></div>'
-    var COMPONENTS = [{'name': 'App', 'selector': 'app-root'},{'name': 'Home', 'selector': 'app-home'},{'name': 'Login', 'selector': 'app-login'},{'name': 'Search', 'selector': 'app-search'},{'name': 'Upload', 'selector': 'app-upload'}];
+        var COMPONENT_TEMPLATE = '<div><div class="page"><h1 class="page-title">{{ t().upload.heading }}</h1><p class="page-lead">{{ t().upload.intro }}</p><form class="upload-form" (ngSubmit)="submit()">  <label class="field">    <span class="field-label">{{ t().upload.file }}</span>    <input type="file" accept=".txt,.md,text/plain" data-testid="file-input" (change)="pickFile($event)" />  </label>  <label class="field">    <span class="field-label">{{ t().upload.machine }}</span>    <select      name="machine"      data-testid="upload-machine"      [ngModel]="machineNo()"      (ngModelChange)="machineNo.set($event)"    >      <option value="">{{ t().search.machinePlaceholder }}</option>      @for (machine of machines(); track machine.id) {        <option [value]="machine.machineNo">{{ machine.machineNo }} · {{ machine.name }}</option>      }    </select>  </label>  <label class="field">    <span class="field-label">{{ t().upload.type }}</span>    <select name="type" [ngModel]="type()" (ngModelChange)="type.set($event)">      <option value="STOERUNG">{{ t().upload.typeFault }}</option>      <option value="WARTUNG">{{ t().upload.typeMaintenance }}</option>    </select>  </label>  <label class="field">    <span class="field-label"      >{{ t().upload.title }} <em class="optional">({{ t().upload.optional }})</em></span    >    <input name="title" type="text" [ngModel]="title()" (ngModelChange)="title.set($event)" />  </label>  <label class="field">    <span class="field-label"      >{{ t().upload.errorCode }} <em class="optional">({{ t().upload.optional }})</em></span    >    <input      name="errorCode"      type="text"      [ngModel]="errorCode()"      (ngModelChange)="errorCode.set($event)"    />  </label>  <label class="field">    <span class="field-label">{{ t().upload.language }}</span>    <select name="language" [ngModel]="language()" (ngModelChange)="language.set($event)">      <option value="de">Deutsch</option>      <option value="en">English</option>    </select>  </label>  <button    type="submit"    class="btn btn-primary"    data-testid="upload-button"    [disabled]="submitting() || !file() || !machineNo()"    [attr.aria-busy]="submitting()"  >    {{ submitting() ? t().upload.submitting : t().upload.submit }}  </button></form>@if (accepted()) {  <!-- 202, said out loud. The protocol exists; it is not searchable yet. -->  <p class="notice notice-info" role="status" data-testid="accepted">    <strong>{{ t().upload.accepted }}</strong> {{ t().upload.acceptedHint }}  </p>}@if (failure(); as reason) {  <p class="notice notice-error" role="alert" data-testid="upload-failure">    @switch (reason) {      @case (\'forbidden\') {        {{ t().errors.forbidden }}      }      @case (\'unavailable\') {        {{ t().errors.unavailable }}      }      @default {        {{ t().errors.generic }}      }    }  </p>}<section class="uploads card">  <div class="uploads-header">    <h2 class="section-title">{{ t().upload.myUploads }}</h2>    <button      type="button"      class="btn btn-secondary btn-sm"      data-testid="refresh-button"      [disabled]="refreshing()"      (click)="refresh()"    >      {{ t().upload.refresh }}    </button>  </div>  <p class="hint">{{ t().upload.refreshHint }}</p>  @if (uploads().length) {    <table class="uploads-table" data-testid="uploads-table">      <thead>        <tr>          <th>{{ t().upload.columnProtocol }}</th>          <th>{{ t().upload.columnStatus }}</th>          <th>{{ t().upload.columnUploaded }}</th>        </tr>      </thead>      <tbody>        @for (upload of uploads(); track upload.id) {          <tr>            <td>              <span class="upload-machine">{{ upload.machineNo }}</span>              {{ upload.title }}            </td>            <td>              <span class="status status-{{ upload.status.toLowerCase() }}">{{                statusLabel(upload.status)              }}</span>              @if (upload.failureReason) {                <!-- The reason, not only the fact. "It failed" makes re-uploading the same broken                     file the obvious next move. -->                <p class="failure-reason" data-testid="failure-reason">{{ upload.failureReason }}</p>              }            </td>            <td class="num">{{ shortDate(upload.createdAt) }}</td>          </tr>        }      </tbody>    </table>  } @else {    <p class="hint" data-testid="no-uploads">{{ t().upload.none }}</p>  }</section></div></div>'
+    var COMPONENTS = [{'name': 'App', 'selector': 'app-root'},{'name': 'HelpDialog', 'selector': 'app-help-dialog'},{'name': 'Landing', 'selector': 'app-landing'},{'name': 'Search', 'selector': 'app-search'},{'name': 'Upload', 'selector': 'app-upload'}];
     var DIRECTIVES = [];
     var ACTUAL_COMPONENT = {'name': 'Upload'};
 </script>

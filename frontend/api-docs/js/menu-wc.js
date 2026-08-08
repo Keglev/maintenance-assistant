@@ -43,6 +43,11 @@ customElements.define('compodoc-menu', class extends HTMLElement {
                                 </a>
                             </li>
                                 <li class="link">
+                                    <a href="architecture.html" data-type="chapter-link">
+                                        <span class="icon ion-ios-git-branch"></span>Architecture
+                                    </a>
+                                </li>
+                                <li class="link">
                                     <a href="dependencies.html" data-type="chapter-link">
                                         <span class="icon ion-ios-list"></span>Dependencies
                                     </a>
@@ -67,10 +72,10 @@ customElements.define('compodoc-menu', class extends HTMLElement {
                                 <a href="components/App.html" data-type="entity-link" >App</a>
                             </li>
                             <li class="link">
-                                <a href="components/Home.html" data-type="entity-link" >Home</a>
+                                <a href="components/HelpDialog.html" data-type="entity-link" >HelpDialog</a>
                             </li>
                             <li class="link">
-                                <a href="components/Login.html" data-type="entity-link" >Login</a>
+                                <a href="components/Landing.html" data-type="entity-link" >Landing</a>
                             </li>
                             <li class="link">
                                 <a href="components/Search.html" data-type="entity-link" >Search</a>
@@ -136,10 +141,10 @@ customElements.define('compodoc-menu', class extends HTMLElement {
                                 <a href="interfaces/Claim.html" data-type="entity-link" >Claim</a>
                             </li>
                             <li class="link">
-                                <a href="interfaces/Dictionary.html" data-type="entity-link" >Dictionary</a>
+                                <a href="interfaces/DemoExample.html" data-type="entity-link" >DemoExample</a>
                             </li>
                             <li class="link">
-                                <a href="interfaces/HelloResponse.html" data-type="entity-link" >HelloResponse</a>
+                                <a href="interfaces/Dictionary.html" data-type="entity-link" >Dictionary</a>
                             </li>
                             <li class="link">
                                 <a href="interfaces/Machine.html" data-type="entity-link" >Machine</a>

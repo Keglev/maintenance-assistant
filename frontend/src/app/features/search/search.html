@@ -1,4 +1,5 @@
-<h1>{{ t().search.heading }}</h1>
+<div class="page">
+<h1 class="page-title">{{ t().search.heading }}</h1>
 
 <form class="ask" (ngSubmit)="ask()">
   <label class="field">
@@ -36,11 +37,19 @@
     ></textarea>
   </label>
 
-  <!-- Disabled while a request is in flight: the answer costs a provider call and counts against
-       a per-user rate limit, so a second click is money and a 429 rather than a faster answer. -->
-  <button type="submit" data-testid="ask-button" [disabled]="asking()">
-    {{ asking() ? t().search.working : t().search.submit }}
-  </button>
+  <div class="ask-actions">
+    <!-- Disabled while a request is in flight: the answer costs a provider call and counts against
+         a per-user rate limit, so a second click is money and a 429 rather than a faster answer. -->
+    <button
+      type="submit"
+      class="btn btn-primary"
+      data-testid="ask-button"
+      [disabled]="asking()"
+      [attr.aria-busy]="asking()"
+    >
+      {{ asking() ? t().search.working : t().search.submit }}
+    </button>
+  </div>
 
   @if (validation() === 'machine') {
     <p class="notice notice-error" data-testid="validation">{{ t().search.machineRequired }}</p>
@@ -86,7 +95,13 @@
     <!-- Mode A: grounded. Every claim carries the source it came from, and the markers in the text
          are links into the source list below. -->
     <section class="answer answer-a" data-testid="answer-mode-a">
-      <p class="answer-badge" data-testid="mode-badge">✓ {{ t().modeA.badge }}</p>
+      <p class="answer-badge" data-testid="mode-badge">
+        <svg class="mode-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <circle cx="12" cy="12" r="9" />
+          <path d="M8 12.4l2.6 2.6L16 9.6" />
+        </svg>
+        {{ t().modeA.badge }}
+      </p>
       <p class="answer-explanation">{{ t().modeA.explanation }}</p>
 
       <!-- lang is the language the BACKEND pinned the answer to, which is the question's language
@@ -169,7 +184,9 @@
                 @if (citation.incidentDate) {
                   <span>{{ t().modeA.incidentDate }}: {{ citation.incidentDate }}</span>
                 }
-                <span>{{ t().modeA.similarity }}: {{ similarityPercent(citation) }} %</span>
+                <span class="num"
+                  >{{ t().modeA.similarity }}: {{ similarityPercent(citation) }} %</span
+                >
               </p>
             </div>
           </li>
@@ -180,7 +197,14 @@
     <!-- Mode B: ungrounded, and unmistakably so. No source area exists here, not even an empty one:
          an empty "Sources" heading invites the reader to assume the sources are merely missing. -->
     <section class="answer answer-b" data-testid="answer-mode-b">
-      <p class="answer-badge" data-testid="mode-badge">⚠ {{ t().modeB.badge }}</p>
+      <p class="answer-badge" data-testid="mode-badge">
+        <svg class="mode-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path d="M12 3.6L1.8 20.4h20.4z" />
+          <path d="M12 9.6v4.6" />
+          <circle class="dot" cx="12" cy="17.4" r="1" />
+        </svg>
+        {{ t().modeB.badge }}
+      </p>
       <p class="answer-explanation">{{ t().modeB.explanation }}</p>
 
       <h2 class="steps-heading">{{ t().modeB.steps }}</h2>
@@ -192,3 +216,4 @@
     </section>
   }
 }
+</div>

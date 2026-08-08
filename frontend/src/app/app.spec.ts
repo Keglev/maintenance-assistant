@@ -90,5 +90,53 @@ describe('App', () => {
 
     expect(element.querySelector('[data-testid="nav-search"]')?.textContent).toContain('Search');
     expect(element.querySelector('.app-title')?.textContent).toContain('Maintenance Assistant');
+    expect(element.querySelector('[data-testid="footer-docs"]')?.textContent).toContain(
+      'Documentation',
+    );
+  });
+
+  it('names the role next to the user, so two demo logins are told apart', async () => {
+    const fixture = await render(['techniker']);
+
+    expect(
+      (fixture.nativeElement as HTMLElement).querySelector('[data-testid="header-role"]')
+        ?.textContent,
+    ).toContain('Techniker');
+  });
+
+  it('shows the most privileged role a user holds, not the first one', async () => {
+    // Keycloak hands out `default-roles-maintenance` and friends alongside the real one, and a
+    // Schichtleiter labelled "Bediener" would make the upload link look like a bug.
+    const fixture = await render(['offline_access', 'operator', 'schichtleiter']);
+
+    expect(
+      (fixture.nativeElement as HTMLElement).querySelector('[data-testid="header-role"]')
+        ?.textContent,
+    ).toContain('Schichtleiter');
+  });
+
+  it('links out to the docs, the repository and the AI-usage statement', async () => {
+    const fixture = await render(['operator']);
+    const element = fixture.nativeElement as HTMLElement;
+
+    for (const id of ['footer-docs', 'footer-repo', 'footer-ai-usage']) {
+      const link = element.querySelector(`[data-testid="${id}"]`) as HTMLAnchorElement;
+      expect(link.getAttribute('href')).toMatch(/^https:\/\//);
+      // A new tab must not get a handle on the tab holding the session.
+      expect(link.getAttribute('rel')).toContain('noopener');
+    }
+  });
+
+  it('offers help before sign-in, because the colours need explaining first', async () => {
+    const fixture = await render([], false);
+    const element = fixture.nativeElement as HTMLElement;
+
+    const help = element.querySelector('[data-testid="help-button"]') as HTMLButtonElement;
+    expect(help).not.toBeNull();
+
+    help.click();
+    await fixture.whenStable();
+
+    expect(element.querySelector('[data-testid="help-dialog"]')).not.toBeNull();
   });
 });

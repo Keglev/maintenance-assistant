@@ -12,13 +12,86 @@ export type UiLanguage = 'de' | 'en';
  * Functions rather than placeholder strings where a value is interpolated: the two languages put
  * the value in different places, and a `{0}` convention would push that difference into a template.
  */
+/**
+ * One of the demo questions offered on the landing page and in the help dialog.
+ *
+ * Each is tied to a seeded demo case, so the three of them together show the three behaviours worth
+ * showing: several sources for one fault, a German question answered from an English protocol, and
+ * the deliberate gap that produces a Mode B answer.
+ */
+export interface DemoExample {
+  /** The machine to pick before asking — the query is filtered by machine, so this is not decoration. */
+  readonly machine: string;
+  readonly question: string;
+  /** What the reader should watch for in the answer. */
+  readonly shows: string;
+}
+
 export interface Dictionary {
   readonly appTitle: string;
+  readonly appTagline: string;
   readonly nav: {
     readonly search: string;
     readonly upload: string;
     readonly signOut: string;
     readonly language: string;
+    readonly help: string;
+    readonly menu: string;
+  };
+  readonly roles: {
+    readonly operator: string;
+    readonly techniker: string;
+    readonly schichtleiter: string;
+    readonly admin: string;
+  };
+  readonly footer: {
+    readonly docs: string;
+    readonly repo: string;
+    readonly aiUsage: string;
+    readonly note: string;
+  };
+  readonly landing: {
+    readonly headline: string;
+    readonly problem: string;
+    readonly solution: string;
+    readonly trustHeading: string;
+    readonly trustSourced: string;
+    readonly trustSourcedBody: string;
+    readonly trustEu: string;
+    readonly trustEuBody: string;
+    readonly trustRoles: string;
+    readonly trustRolesBody: string;
+    readonly demoHeading: string;
+    readonly demoIntro: string;
+    readonly demoPassword: string;
+    readonly signIn: string;
+    readonly signInHint: string;
+    readonly plateModel: string;
+    readonly plateStack: string;
+    readonly plateHosting: string;
+  };
+  readonly demo: {
+    readonly operator: string;
+    readonly techniker: string;
+    readonly schichtleiter: string;
+    readonly admin: string;
+    readonly examplesHeading: string;
+    readonly examplesIntro: string;
+    readonly exampleMachine: string;
+    readonly examples: readonly DemoExample[];
+  };
+  readonly help: {
+    readonly title: string;
+    readonly close: string;
+    readonly modesHeading: string;
+    readonly modeAHeading: string;
+    readonly modeABody: string;
+    readonly modeBHeading: string;
+    readonly modeBBody: string;
+    readonly rolesHeading: string;
+    readonly roleOperator: string;
+    readonly roleTechniker: string;
+    readonly roleSchichtleiter: string;
   };
   readonly search: {
     readonly heading: string;
@@ -93,11 +166,97 @@ export interface Dictionary {
  */
 export const DE: Dictionary = {
   appTitle: 'Wartungsassistent',
+  appTagline: 'Antworten aus den Protokollen Ihrer Anlage — mit Quelle.',
   nav: {
     search: 'Suche',
     upload: 'Protokoll hochladen',
     signOut: 'Abmelden',
     language: 'Sprache',
+    help: 'Hilfe',
+    menu: 'Menü',
+  },
+  roles: {
+    operator: 'Bediener',
+    techniker: 'Techniker',
+    schichtleiter: 'Schichtleiter',
+    admin: 'Administrator',
+  },
+  footer: {
+    docs: 'Dokumentation',
+    repo: 'Quellcode auf GitHub',
+    aiUsage: 'KI-Einsatz im Projekt',
+    note: 'Demo-System mit synthetischen Protokollen. Keine echten Anlagendaten.',
+  },
+  landing: {
+    headline: 'Wartungswissen, das nicht mit der Schicht nach Hause geht',
+    problem:
+      'Das Wissen einer Instandhaltung steckt in PDFs, in Ordnern und in den Köpfen erfahrener Kollegen. Nachts ist keine Fachkraft im Haus, und eine Störung wird neu diagnostiziert, obwohl sie vor vier Wochen schon einmal gelöst wurde.',
+    solution:
+      'Der Wartungsassistent beantwortet Fragen in normaler Sprache — aus den Wartungsprotokollen der eigenen Anlage, mit Angabe des Protokolls, aus dem die Antwort stammt.',
+    trustHeading: 'Worauf Sie sich verlassen können',
+    trustSourced: 'Belegt oder ausdrücklich gekennzeichnet',
+    trustSourcedBody:
+      'Eine Antwort ist entweder durch Protokolle belegt (Modus A, grün) oder sie ist als allgemeiner Vorschlag ohne Quelle gekennzeichnet (Modus B, gelb). Etwas dazwischen gibt es nicht.',
+    trustEu: 'Verarbeitung in der EU',
+    trustEuBody:
+      'Einbettung und Antwort laufen über den IONOS AI Model Hub in Berlin. Keine Übermittlung in Drittländer, keine externen Schriftarten, keine Tracker.',
+    trustRoles: 'Antworten nach Rolle',
+    trustRolesBody:
+      'Bediener erhalten nur Schritte, die eine unterwiesene Person ausführen darf, samt Hinweis, wann eine Fachkraft zu holen ist.',
+    demoHeading: 'Demo-Zugänge',
+    demoIntro: 'Vier Benutzer, ein Passwort. Jede Rolle zeigt eine andere Sicht auf dieselben Daten.',
+    demoPassword: 'Passwort für alle',
+    signIn: 'Anmelden',
+    signInHint:
+      'Die Anmeldung läuft über Keycloak. Sie werden dorthin weitergeleitet und kommen anschließend hierher zurück.',
+    plateModel: 'Typ',
+    plateStack: 'Technik',
+    plateHosting: 'Betrieb',
+  },
+  demo: {
+    operator: 'Fragen stellen, bedienerseitige Antworten.',
+    techniker: 'Fragen stellen, vollständige technische Antworten.',
+    schichtleiter: 'Wie Techniker, zusätzlich Protokolle hochladen.',
+    admin: 'Verwaltung in Keycloak, keine Fachfunktion in der Anwendung.',
+    examplesHeading: 'Zum Ausprobieren',
+    examplesIntro: 'Erst die Maschine wählen, dann die Frage stellen — gesucht wird je Maschine.',
+    exampleMachine: 'Maschine',
+    examples: [
+      {
+        machine: 'Presse 3',
+        question: 'Presse 3 zeigt Störung E-47, was kann die Ursache sein?',
+        shows:
+          'Vier Protokolle mit vier verschiedenen Ursachen zur selben Störung — eine belegte Antwort mit mehreren Quellen.',
+      },
+      {
+        machine: 'Förderband FB-04',
+        question: 'Förderband FB-04 läuft schief, was tun?',
+        shows:
+          'Deutsche Frage, englisches Protokoll: die Antwort kommt trotzdem belegt zurück und bleibt deutsch.',
+      },
+      {
+        machine: 'Abfüllanlage AB-02',
+        question: 'Die Dosierung an AB-02 ist ungenau, woran liegt das?',
+        shows:
+          'Zu dieser Frage gibt es kein Protokoll im Bestand — die Antwort erscheint gelb und ausdrücklich unbelegt.',
+      },
+    ],
+  },
+  help: {
+    title: 'Hilfe',
+    close: 'Schließen',
+    modesHeading: 'Die zwei Antwortarten',
+    modeAHeading: 'Modus A — Belegte Antwort (grün)',
+    modeABody:
+      'Zur Frage gibt es Protokolle im Bestand. Jede Aussage nennt in eckigen Klammern das Protokoll, aus dem sie stammt; ein Klick darauf öffnet das Originalprotokoll.',
+    modeBHeading: 'Modus B — Allgemeiner Vorschlag (gelb)',
+    modeBBody:
+      'Zur Frage gibt es kein passendes Protokoll. Die Schritte sind allgemeines Erfahrungswissen und werden ohne Quellenbereich gezeigt — es gibt hier nichts zu belegen.',
+    rolesHeading: 'Wer darf was',
+    roleOperator:
+      'Bediener: Fragen stellen. Antworten enthalten nur Schritte für unterwiesene Personen, keine Elektro- oder Mechanikarbeiten.',
+    roleTechniker: 'Techniker: Fragen stellen, vollständige technische Antworten ohne Einschränkung.',
+    roleSchichtleiter: 'Schichtleiter: wie Techniker, zusätzlich neue Protokolle hochladen.',
   },
   search: {
     heading: 'Frage zu einer Maschine',
@@ -171,11 +330,100 @@ export const DE: Dictionary = {
 
 export const EN: Dictionary = {
   appTitle: 'Maintenance Assistant',
+  appTagline: "Answers from your plant's own protocols — with the source.",
   nav: {
     search: 'Search',
     upload: 'Upload protocol',
     signOut: 'Sign out',
     language: 'Language',
+    help: 'Help',
+    menu: 'Menu',
+  },
+  roles: {
+    operator: 'Operator',
+    techniker: 'Technician',
+    schichtleiter: 'Shift lead',
+    admin: 'Administrator',
+  },
+  footer: {
+    docs: 'Documentation',
+    repo: 'Source code on GitHub',
+    aiUsage: 'AI use in this project',
+    note: 'Demo system with synthetic protocols. No real plant data.',
+  },
+  landing: {
+    headline: 'Maintenance knowledge that does not go home with the shift',
+    problem:
+      "A plant's maintenance knowledge sits in PDFs, in folders and in the heads of experienced colleagues. At night no technician is on site, and a fault gets diagnosed from scratch although it was solved four weeks ago.",
+    solution:
+      "The Maintenance Assistant answers questions in plain language — from the plant's own maintenance protocols, naming the protocol each answer came from.",
+    trustHeading: 'What you can rely on',
+    trustSourced: 'Sourced, or explicitly labelled',
+    trustSourcedBody:
+      'An answer is either backed by protocols (Mode A, green) or labelled as a general suggestion with no source (Mode B, amber). There is nothing in between.',
+    trustEu: 'Processing stays in the EU',
+    trustEuBody:
+      'Embedding and answering run on the IONOS AI Model Hub in Berlin. No transfer to third countries, no external fonts, no trackers.',
+    trustRoles: 'Answers by role',
+    trustRolesBody:
+      'Operators only get steps an instructed person may carry out, together with a note on when to call a qualified technician.',
+    demoHeading: 'Demo accounts',
+    demoIntro: 'Four users, one password. Each role shows a different view of the same data.',
+    demoPassword: 'Password for all',
+    signIn: 'Sign in',
+    signInHint:
+      'Sign-in is handled by Keycloak. You will be redirected there and returned here afterwards.',
+    plateModel: 'Type',
+    plateStack: 'Stack',
+    plateHosting: 'Hosting',
+  },
+  demo: {
+    operator: 'Ask questions, operator-safe answers.',
+    techniker: 'Ask questions, full technical answers.',
+    schichtleiter: 'Like the technician, and may upload protocols.',
+    admin: 'Administration in Keycloak, no shop-floor function in the app.',
+    examplesHeading: 'Try these',
+    examplesIntro: 'Choose the machine first, then ask — retrieval is filtered per machine.',
+    exampleMachine: 'Machine',
+    // The questions stay German even in the English interface: they are meant to be pasted and to
+    // actually retrieve something, and the corpus and the machine names are German. Translating
+    // them would hand an English reader three questions that return nothing.
+    examples: [
+      {
+        machine: 'Presse 3',
+        question: 'Presse 3 zeigt Störung E-47, was kann die Ursache sein?',
+        shows:
+          'Four protocols with four different root causes for the same fault — one sourced answer citing several of them.',
+      },
+      {
+        machine: 'Förderband FB-04',
+        question: 'Förderband FB-04 läuft schief, was tun?',
+        shows:
+          'A German question answered from an English protocol — still cited, and still German.',
+      },
+      {
+        machine: 'Abfüllanlage AB-02',
+        question: 'Die Dosierung an AB-02 ist ungenau, woran liegt das?',
+        shows:
+          'No protocol in the records covers this — the answer comes back amber and explicitly unsourced.',
+      },
+    ],
+  },
+  help: {
+    title: 'Help',
+    close: 'Close',
+    modesHeading: 'The two kinds of answer',
+    modeAHeading: 'Mode A — sourced answer (green)',
+    modeABody:
+      'Protocols in the records cover the question. Every statement names the protocol it came from in square brackets; clicking it opens the original protocol.',
+    modeBHeading: 'Mode B — general suggestion (amber)',
+    modeBBody:
+      'No protocol matches the question. The steps are general engineering knowledge and are shown without a source area — there is nothing here to cite.',
+    rolesHeading: 'Who may do what',
+    roleOperator:
+      'Operator: ask questions. Answers contain only steps for instructed persons, no electrical or mechanical repair work.',
+    roleTechniker: 'Technician: ask questions, full technical answers with no restriction.',
+    roleSchichtleiter: 'Shift lead: like the technician, and may upload new protocols.',
   },
   search: {
     heading: 'Ask about a machine',

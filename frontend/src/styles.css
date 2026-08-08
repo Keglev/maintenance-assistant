@@ -1,1 +1,329 @@
-/* You can add global styles to this file, and also import other style files */
+/*
+ * The design system, in one file.
+ *
+ * Everything visual is expressed as a token here and consumed by name everywhere else, so a colour
+ * or a spacing step is changed in one place rather than hunted through nine components. The
+ * primitives below (.btn, .field, .notice, .card, .page) live globally rather than per component for
+ * the same reason, and for one more: Angular's per-component style budget is 4 kB, and a design
+ * system copied into every component would spend it on duplication.
+ *
+ * No web fonts, by decision. A CDN font would be a third-party request from a German portfolio
+ * project (Google Fonts embedding was found to violate the DSGVO, LG München I, 3 O 17493/20) and
+ * would be blocked by the strict CSP that is coming at the Caddy layer. The system stack costs
+ * nothing to load and looks native on the phone the walkthrough happens on.
+ */
+
+:root {
+  /* --- Colour ------------------------------------------------------------ */
+  /* Industrial neutrals: near-white surfaces, steel text. Nothing saturated. */
+  --c-canvas: #f3f5f7;
+  --c-surface: #ffffff;
+  --c-sunken: #eceff3;
+  --c-ink: #1b2430;
+  --c-ink-muted: #55616f;
+  --c-ink-faint: #7c8794;
+  --c-line: #d6dbe1;
+  --c-line-strong: #b6bfc9;
+
+  /* The one accent. Deliberately neither green nor amber: those two are reserved below as the
+     answer-mode semantics (NFR-2), and an accent sharing their hue would blunt the distinction the
+     whole application rests on. */
+  --c-brand: #1f4b8f;
+  --c-brand-strong: #163a70;
+  --c-brand-soft: #e9eff8;
+
+  /* Mode A — a sourced answer. */
+  --c-mode-a: #2f7d44;
+  --c-mode-a-ink: #14532b;
+  --c-mode-a-soft: #f1f8f3;
+  --c-mode-a-line: #bcdcc6;
+
+  /* Mode B — a general suggestion, and never to be mistaken for the above. */
+  --c-mode-b: #b26a00;
+  --c-mode-b-ink: #6f3d00;
+  --c-mode-b-soft: #fff8ec;
+  --c-mode-b-line: #e8cf9c;
+
+  --c-danger: #7a1f1f;
+  --c-danger-soft: #fdecec;
+  --c-danger-line: #e0b4b4;
+
+  /* --- Type -------------------------------------------------------------- */
+  --font-sans:
+    system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif;
+  --font-mono: ui-monospace, 'Cascadia Mono', Consolas, 'Liberation Mono', monospace;
+
+  --t-xs: 0.75rem;
+  --t-sm: 0.875rem;
+  --t-base: 1rem;
+  --t-lg: 1.125rem;
+  --t-xl: 1.375rem;
+  --t-2xl: 1.75rem;
+  --t-3xl: 2.25rem;
+
+  --lh-tight: 1.25;
+  --lh-normal: 1.55;
+  --lh-relaxed: 1.7;
+
+  /* --- Space, shape, depth ----------------------------------------------- */
+  --s-1: 0.25rem;
+  --s-2: 0.5rem;
+  --s-3: 0.75rem;
+  --s-4: 1rem;
+  --s-5: 1.5rem;
+  --s-6: 2rem;
+  --s-7: 3rem;
+  --s-8: 4rem;
+
+  --r-sm: 4px;
+  --r-md: 8px;
+  --r-lg: 14px;
+  --r-pill: 999px;
+
+  --shadow-sm: 0 1px 2px rgb(27 36 48 / 8%);
+  --shadow-md: 0 6px 20px rgb(27 36 48 / 12%);
+
+  /* A touch target on a phone. The walkthrough is on a phone, so this is a floor, not an ideal. */
+  --tap: 44px;
+
+  --page-max: 68rem;
+  --read-max: 44rem;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--c-canvas);
+  color: var(--c-ink);
+  font-family: var(--font-sans);
+  font-size: var(--t-base);
+  line-height: var(--lh-normal);
+}
+
+h1,
+h2,
+h3 {
+  line-height: var(--lh-tight);
+  color: var(--c-ink);
+}
+
+/* One visible focus ring for everything. Keyboard operation is a requirement here: the citation
+   markers are anchors without an href and would be unreachable without it. */
+:focus-visible {
+  outline: 3px solid var(--c-brand);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* --- Layout ------------------------------------------------------------- */
+
+.page {
+  width: 100%;
+  max-width: var(--page-max);
+  margin: 0 auto;
+  padding: var(--s-5) var(--s-4) var(--s-7);
+}
+
+.page-title {
+  margin: 0 0 var(--s-2);
+  font-size: var(--t-2xl);
+  letter-spacing: -0.01em;
+}
+
+.page-lead {
+  margin: 0 0 var(--s-5);
+  max-width: var(--read-max);
+  color: var(--c-ink-muted);
+}
+
+.section-title {
+  margin: 0 0 var(--s-3);
+  font-size: var(--t-lg);
+}
+
+.eyebrow {
+  margin: 0 0 var(--s-2);
+  font-size: var(--t-xs);
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--c-ink-faint);
+}
+
+.card {
+  background: var(--c-surface);
+  border: 1px solid var(--c-line);
+  border-radius: var(--r-md);
+  box-shadow: var(--shadow-sm);
+  padding: var(--s-5);
+}
+
+/* Similarity percentages, counts and dates line up in a column when the figures are tabular. */
+.num {
+  font-variant-numeric: tabular-nums;
+}
+
+.muted {
+  color: var(--c-ink-muted);
+}
+
+.caption {
+  font-size: var(--t-sm);
+  color: var(--c-ink-muted);
+}
+
+/* --- Buttons ------------------------------------------------------------ */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s-2);
+  min-height: var(--tap);
+  padding: var(--s-2) var(--s-5);
+  border: 1px solid transparent;
+  border-radius: var(--r-sm);
+  font: inherit;
+  font-weight: 600;
+  line-height: 1.2;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color 120ms ease-out;
+}
+
+.btn-primary {
+  background: var(--c-brand);
+  color: #fff;
+}
+
+.btn-primary:hover:not([disabled]) {
+  background: var(--c-brand-strong);
+}
+
+.btn-secondary {
+  background: var(--c-surface);
+  border-color: var(--c-line-strong);
+  color: var(--c-ink);
+}
+
+.btn-secondary:hover:not([disabled]) {
+  background: var(--c-sunken);
+}
+
+/* Toolbar-sized: still tappable, but not shouting next to the primary action. */
+.btn-sm {
+  min-height: 36px;
+  padding: var(--s-1) var(--s-3);
+  font-size: var(--t-sm);
+}
+
+.btn[disabled] {
+  background: var(--c-sunken);
+  border-color: var(--c-line);
+  color: var(--c-ink-faint);
+  cursor: not-allowed;
+}
+
+.btn-primary[aria-busy='true'],
+.btn-primary[disabled][aria-busy='true'] {
+  cursor: progress;
+}
+
+.link-button {
+  border: 0;
+  background: none;
+  padding: 0;
+  font: inherit;
+  color: var(--c-brand);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+/* --- Forms -------------------------------------------------------------- */
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-1);
+}
+
+.field-label {
+  font-weight: 600;
+  font-size: var(--t-sm);
+  color: var(--c-ink);
+}
+
+.optional {
+  font-weight: 400;
+  font-style: normal;
+  color: var(--c-ink-faint);
+}
+
+input[type='text'],
+input[type='file'],
+select,
+textarea {
+  width: 100%;
+  min-height: var(--tap);
+  padding: var(--s-2) var(--s-3);
+  border: 1px solid var(--c-line-strong);
+  border-radius: var(--r-sm);
+  background: var(--c-surface);
+  color: var(--c-ink);
+  font: inherit;
+}
+
+textarea {
+  min-height: 5.5rem;
+  resize: vertical;
+  line-height: var(--lh-normal);
+}
+
+input:disabled,
+select:disabled,
+textarea:disabled {
+  background: var(--c-sunken);
+  color: var(--c-ink-faint);
+}
+
+/* --- Notices ------------------------------------------------------------ */
+
+.notice {
+  margin: 0;
+  padding: var(--s-3) var(--s-4);
+  border: 1px solid transparent;
+  border-radius: var(--r-sm);
+  font-size: var(--t-sm);
+}
+
+.notice-error {
+  background: var(--c-danger-soft);
+  border-color: var(--c-danger-line);
+  color: var(--c-danger);
+}
+
+.notice-info {
+  background: var(--c-brand-soft);
+  border-color: #b7cceb;
+  color: var(--c-brand-strong);
+}
+
+/* A reader who asked the operating system for less motion gets none of it. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

@@ -1,54 +1,124 @@
 <!-- The document language follows the interface, so screen readers and hyphenation get the labels
      right. An individual answer overrides it with the language the backend pinned it to. -->
 <header class="app-header" [attr.lang]="language()">
-  <span class="app-title">{{ t().appTitle }}</span>
-
-  @if (isAuthenticated()) {
-    <nav class="app-nav">
-      <a routerLink="/search" routerLinkActive="active" data-testid="nav-search">{{
-        t().nav.search
-      }}</a>
-      @if (canUpload()) {
-        <a routerLink="/upload" routerLinkActive="active" data-testid="nav-upload">{{
-          t().nav.upload
-        }}</a>
-      }
-    </nav>
-  }
-
-  <div class="app-actions">
-    <!-- Two buttons rather than a dropdown: with exactly two languages, a dropdown costs a click
-         to discover what a pair of labels already shows. -->
-    <div class="lang-switch" role="group" [attr.aria-label]="t().nav.language">
-      <button
-        type="button"
-        data-testid="lang-de"
-        [class.active]="language() === 'de'"
-        [attr.aria-pressed]="language() === 'de'"
-        (click)="use('de')"
-      >
-        DE
-      </button>
-      <button
-        type="button"
-        data-testid="lang-en"
-        [class.active]="language() === 'en'"
-        [attr.aria-pressed]="language() === 'en'"
-        (click)="use('en')"
-      >
-        EN
-      </button>
+  <div class="app-header-inner">
+    <div class="brand">
+      <!-- The mark is inline SVG, like every icon here: no icon CDN, because a third-party origin
+           would be a DSGVO question and would be refused by the CSP that is coming at Caddy. -->
+      <svg class="brand-mark" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <rect x="1.5" y="4" width="21" height="16" rx="2" />
+        <circle class="rivet" cx="5" cy="7.5" r="1" />
+        <circle class="rivet" cx="19" cy="7.5" r="1" />
+        <circle class="rivet" cx="5" cy="16.5" r="1" />
+        <circle class="rivet" cx="19" cy="16.5" r="1" />
+        <path class="stroke" d="M8 12h8" />
+        <path class="stroke" d="M8 15h5" />
+      </svg>
+      <span class="brand-text">
+        <span class="app-title">{{ t().appTitle }}</span>
+        <span class="app-tagline">{{ t().appTagline }}</span>
+      </span>
     </div>
 
     @if (isAuthenticated()) {
-      <span class="app-user" data-testid="header-username">{{ username() }}</span>
-      <button type="button" class="link-button" data-testid="sign-out" (click)="signOut()">
-        {{ t().nav.signOut }}
-      </button>
+      <nav class="app-nav" [attr.aria-label]="t().nav.menu">
+        <a routerLink="/search" routerLinkActive="active" data-testid="nav-search">{{
+          t().nav.search
+        }}</a>
+        @if (canUpload()) {
+          <a routerLink="/upload" routerLinkActive="active" data-testid="nav-upload">{{
+            t().nav.upload
+          }}</a>
+        }
+      </nav>
     }
+
+    <div class="app-actions">
+      <!-- Help sits in the shell rather than in the search view because it is also the first thing
+           a visitor on the landing page needs: what the two answer colours mean. -->
+      <button
+        type="button"
+        class="btn btn-secondary btn-sm"
+        data-testid="help-button"
+        [attr.aria-haspopup]="'dialog'"
+        [attr.aria-expanded]="helpOpen()"
+        (click)="helpOpen.set(true)"
+      >
+        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <circle cx="12" cy="12" r="9" />
+          <path d="M9.5 9.2a2.6 2.6 0 1 1 3.2 2.5c-.5.2-.7.6-.7 1.1v.7" />
+          <circle class="dot" cx="12" cy="16.6" r="0.9" />
+        </svg>
+        {{ t().nav.help }}
+      </button>
+
+      <!-- Two buttons rather than a dropdown: with exactly two languages, a dropdown costs a click
+           to discover what a pair of labels already shows. -->
+      <div class="lang-switch" role="group" [attr.aria-label]="t().nav.language">
+        <button
+          type="button"
+          data-testid="lang-de"
+          [class.active]="language() === 'de'"
+          [attr.aria-pressed]="language() === 'de'"
+          (click)="use('de')"
+        >
+          DE
+        </button>
+        <button
+          type="button"
+          data-testid="lang-en"
+          [class.active]="language() === 'en'"
+          [attr.aria-pressed]="language() === 'en'"
+          (click)="use('en')"
+        >
+          EN
+        </button>
+      </div>
+
+      @if (isAuthenticated()) {
+        <span class="app-user" data-testid="header-username">
+          <span class="app-username">{{ username() }}</span>
+          @if (roleLabel(); as role) {
+            <span class="role-badge" data-testid="header-role">{{ role }}</span>
+          }
+        </span>
+        <button
+          type="button"
+          class="btn btn-secondary btn-sm"
+          data-testid="sign-out"
+          (click)="signOut()"
+        >
+          {{ t().nav.signOut }}
+        </button>
+      }
+    </div>
   </div>
 </header>
 
-<main class="app-main">
+<main class="app-main" [attr.lang]="language()">
   <router-outlet />
 </main>
+
+<footer class="app-footer" [attr.lang]="language()">
+  <div class="app-footer-inner">
+    <!-- rel="noopener" on every outward link: a new tab must not get a handle on this one. -->
+    <nav class="footer-links" [attr.aria-label]="t().footer.docs">
+      <a [href]="docsUrl" target="_blank" rel="noopener noreferrer" data-testid="footer-docs">{{
+        t().footer.docs
+      }}</a>
+      <a [href]="repoUrl" target="_blank" rel="noopener noreferrer" data-testid="footer-repo">{{
+        t().footer.repo
+      }}</a>
+      <a
+        [href]="aiUsageUrl"
+        target="_blank"
+        rel="noopener noreferrer"
+        data-testid="footer-ai-usage"
+        >{{ t().footer.aiUsage }}</a
+      >
+    </nav>
+    <p class="footer-note">{{ t().footer.note }}</p>
+  </div>
+</footer>
+
+<app-help-dialog [open]="helpOpen()" (closed)="helpOpen.set(false)" />

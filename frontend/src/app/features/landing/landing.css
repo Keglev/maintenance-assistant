@@ -1,0 +1,231 @@
+.landing > section + section {
+  margin-top: var(--s-7);
+}
+
+/* --- Hero ---------------------------------------------------------------- */
+
+.hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+  gap: var(--s-6);
+  align-items: start;
+  padding-top: var(--s-4);
+}
+
+.hero-headline {
+  margin: 0 0 var(--s-4);
+  font-size: var(--t-3xl);
+  letter-spacing: -0.02em;
+  max-width: 20ch;
+}
+
+.hero-problem,
+.hero-solution {
+  margin: 0 0 var(--s-4);
+  max-width: var(--read-max);
+  line-height: var(--lh-relaxed);
+}
+
+.hero-problem {
+  color: var(--c-ink-muted);
+}
+
+.hero-solution {
+  font-size: var(--t-lg);
+}
+
+.hero-cta {
+  margin-top: var(--s-2);
+  padding-inline: var(--s-6);
+}
+
+.hero-hint {
+  margin: var(--s-2) 0 0;
+  max-width: 34rem;
+}
+
+/* --- The Typenschild ----------------------------------------------------- */
+
+.plate {
+  position: relative;
+  padding: var(--s-5) var(--s-5) var(--s-4);
+  border: 1px solid var(--c-line-strong);
+  border-radius: var(--r-sm);
+  background: linear-gradient(160deg, #f7f9fb 0%, #e7ebf0 100%);
+  box-shadow: var(--shadow-sm);
+}
+
+.plate-rivet {
+  position: absolute;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--c-line-strong);
+  box-shadow: inset 0 1px 1px rgb(255 255 255 / 70%);
+}
+
+.plate-rivet-tl {
+  top: 8px;
+  left: 8px;
+}
+.plate-rivet-tr {
+  top: 8px;
+  right: 8px;
+}
+.plate-rivet-bl {
+  bottom: 8px;
+  left: 8px;
+}
+.plate-rivet-br {
+  bottom: 8px;
+  right: 8px;
+}
+
+.plate-name {
+  margin: 0 0 var(--s-3);
+  padding-bottom: var(--s-2);
+  border-bottom: 1px solid var(--c-line-strong);
+  font-size: var(--t-sm);
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--c-ink);
+}
+
+.plate-rows {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--s-2) var(--s-4);
+  margin: 0;
+  font-size: var(--t-xs);
+}
+
+.plate-rows dt {
+  color: var(--c-ink-faint);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.plate-rows dd {
+  margin: 0;
+  font-family: var(--font-mono);
+  color: var(--c-ink-muted);
+  overflow-wrap: anywhere;
+}
+
+/* --- Trust markers ------------------------------------------------------- */
+
+.trust-grid,
+.users,
+.examples {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.trust-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+  gap: var(--s-4);
+}
+
+.trust-title {
+  margin: 0 0 var(--s-2);
+  font-size: var(--t-base);
+}
+
+.trust-body {
+  margin: 0;
+  font-size: var(--t-sm);
+  color: var(--c-ink-muted);
+}
+
+/* The first marker is the sourced/labelled promise, and it wears the Mode A green so the claim and
+   the colour it refers to are introduced together. */
+.trust-item-a {
+  border-left: 5px solid var(--c-mode-a);
+}
+
+/* --- Demo accounts ------------------------------------------------------- */
+
+.users {
+  display: grid;
+  gap: var(--s-2);
+  margin: var(--s-4) 0;
+}
+
+.users li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--s-2) var(--s-3);
+  font-size: var(--t-sm);
+  color: var(--c-ink-muted);
+}
+
+.user {
+  display: inline-block;
+  min-width: 7.5rem;
+  padding: 0.1rem var(--s-2);
+  border: 1px solid var(--c-line);
+  border-radius: var(--r-sm);
+  background: var(--c-sunken);
+  font-family: var(--font-mono);
+  font-size: var(--t-sm);
+  color: var(--c-ink);
+}
+
+.password {
+  margin: 0 0 var(--s-4);
+  font-size: var(--t-sm);
+  color: var(--c-ink-muted);
+}
+
+/* --- Example questions --------------------------------------------------- */
+
+.examples {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr));
+  gap: var(--s-4);
+  margin-top: var(--s-4);
+}
+
+.example-machine {
+  margin: 0 0 var(--s-2);
+  font-size: var(--t-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--c-ink-faint);
+}
+
+.example-question {
+  margin: 0 0 var(--s-3);
+  font-family: var(--font-mono);
+  font-size: var(--t-sm);
+  line-height: var(--lh-normal);
+  overflow-wrap: anywhere;
+}
+
+.example-shows {
+  margin: 0;
+  font-size: var(--t-sm);
+  color: var(--c-ink-muted);
+}
+
+/* On a phone the pitch has to be readable without zooming and the plate belongs below it, not
+   beside it — the walkthrough starts here at 360 px. */
+@media (max-width: 52rem) {
+  .hero {
+    grid-template-columns: 1fr;
+    gap: var(--s-5);
+  }
+
+  .hero-headline {
+    font-size: var(--t-2xl);
+    max-width: none;
+  }
+
+  .hero-cta {
+    width: 100%;
+  }
+}

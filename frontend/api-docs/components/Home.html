@@ -769,7 +769,7 @@ button {
 <script src="../js/libs/deep-iterator.js"></script>
 <script>
         var COMPONENT_TEMPLATE = '<div><h1>Signed in</h1><dl>  <dt>Username</dt>  <dd data-testid="username">{{ username() }}</dd>  <dt>Realm roles</dt>  <dd data-testid="roles">    @if (realmRoles().length) {      <ul>        @for (role of realmRoles(); track role) {          <li>{{ role }}</li>        }      </ul>    } @else {      <em>none</em>    }  </dd></dl><section class="backend">  <h2>Backend check</h2>  @if (backendIdentity(); as identity) {    <p data-testid="backend-ok">      <code>/api/hello</code> answered: {{ identity.username }} — {{ identity.roles.join(\', \') }}    </p>  } @else if (backendError(); as error) {    <p data-testid="backend-error">{{ error }}</p>  } @else {    <p>Checking…</p>  }</section><button type="button" (click)="signOut()">Sign out</button></div>'
-    var COMPONENTS = [{'name': 'App', 'selector': 'app-root'},{'name': 'Home', 'selector': 'app-home'},{'name': 'Login', 'selector': 'app-login'}];
+    var COMPONENTS = [{'name': 'App', 'selector': 'app-root'},{'name': 'Home', 'selector': 'app-home'},{'name': 'Login', 'selector': 'app-login'},{'name': 'Search', 'selector': 'app-search'},{'name': 'Upload', 'selector': 'app-upload'}];
     var DIRECTIVES = [];
     var ACTUAL_COMPONENT = {'name': 'Home'};
 </script>

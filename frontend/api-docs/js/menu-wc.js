@@ -72,6 +72,12 @@ customElements.define('compodoc-menu', class extends HTMLElement {
                             <li class="link">
                                 <a href="components/Login.html" data-type="entity-link" >Login</a>
                             </li>
+                            <li class="link">
+                                <a href="components/Search.html" data-type="entity-link" >Search</a>
+                            </li>
+                            <li class="link">
+                                <a href="components/Upload.html" data-type="entity-link" >Upload</a>
+                            </li>
                         </ul>
                     </li>
                         <li class="chapter">
@@ -87,6 +93,12 @@ customElements.define('compodoc-menu', class extends HTMLElement {
                                 </li>
                                 <li class="link">
                                     <a href="injectables/ConfigService.html" data-type="entity-link" >ConfigService</a>
+                                </li>
+                                <li class="link">
+                                    <a href="injectables/I18nService.html" data-type="entity-link" >I18nService</a>
+                                </li>
+                                <li class="link">
+                                    <a href="injectables/MaintenanceApiService.html" data-type="entity-link" >MaintenanceApiService</a>
                                 </li>
                             </ul>
                         </li>
@@ -115,10 +127,34 @@ customElements.define('compodoc-menu', class extends HTMLElement {
                                 <a href="interfaces/AccessTokenClaims.html" data-type="entity-link" >AccessTokenClaims</a>
                             </li>
                             <li class="link">
+                                <a href="interfaces/AnswerSegment.html" data-type="entity-link" >AnswerSegment</a>
+                            </li>
+                            <li class="link">
+                                <a href="interfaces/Citation.html" data-type="entity-link" >Citation</a>
+                            </li>
+                            <li class="link">
+                                <a href="interfaces/Claim.html" data-type="entity-link" >Claim</a>
+                            </li>
+                            <li class="link">
+                                <a href="interfaces/Dictionary.html" data-type="entity-link" >Dictionary</a>
+                            </li>
+                            <li class="link">
                                 <a href="interfaces/HelloResponse.html" data-type="entity-link" >HelloResponse</a>
                             </li>
                             <li class="link">
+                                <a href="interfaces/Machine.html" data-type="entity-link" >Machine</a>
+                            </li>
+                            <li class="link">
+                                <a href="interfaces/QueryAnswer.html" data-type="entity-link" >QueryAnswer</a>
+                            </li>
+                            <li class="link">
                                 <a href="interfaces/RuntimeConfig.html" data-type="entity-link" >RuntimeConfig</a>
+                            </li>
+                            <li class="link">
+                                <a href="interfaces/UploadAccepted.html" data-type="entity-link" >UploadAccepted</a>
+                            </li>
+                            <li class="link">
+                                <a href="interfaces/UploadStatus.html" data-type="entity-link" >UploadStatus</a>
                             </li>
                         </ul>
                     </li>
@@ -132,6 +168,9 @@ customElements.define('compodoc-menu', class extends HTMLElement {
                         <ul class="links collapse " ${ isNormalMode ? 'id="miscellaneous-links"' : 'id="xs-miscellaneous-links"' }>
                             <li class="link">
                                 <a href="miscellaneous/functions.html" data-type="entity-link">Functions</a>
+                            </li>
+                            <li class="link">
+                                <a href="miscellaneous/typealiases.html" data-type="entity-link">Type aliases</a>
                             </li>
                             <li class="link">
                                 <a href="miscellaneous/variables.html" data-type="entity-link">Variables</a>

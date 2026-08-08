@@ -116,12 +116,12 @@
 
 <ol class="breadcrumb">
   <li class="breadcrumb-item">Injectables</li>
-  <li class="breadcrumb-item" >AuthService</li>
+  <li class="breadcrumb-item" >I18nService</li>
 </ol>
 
 <div class="io-file io-file-path" data-compodoc="entity-file-path">
     <span class="icon ion-ios-document" aria-hidden="true"></span>
-    <code>src/app/core/auth/auth.service.ts</code>
+    <code>src/app/core/i18n/i18n.service.ts</code>
 </div>
 
 <ul class="nav nav-tabs" role="tablist">
@@ -152,10 +152,18 @@
                 <h3>Description</h3>
             </p>
             <p class="comment">
-                <p>Wraps <code>angular-oauth2-oidc</code> so components never touch the OIDC library directly.</p>
-<p>Roles are read from the <strong>access token</strong>, not the ID token: Keycloak puts realm roles in
-<code>realm_access.roles</code> there. They drive what the UI shows — the backend enforces the same roles
-server-side, because hiding a button is not a security control (NFR-3).</p>
+                <p>The DE/EN switch, as a runtime dictionary rather than Angular&#39;s build-time i18n.</p>
+<p>Angular&#39;s <code>$localize</code> produces one bundle per locale, which means two builds, two images and a
+routing or host decision to pick between them. For two languages and one small application that
+is a deployment problem bought to solve a string problem — and it would make the language a
+property of the URL rather than of the person, so switching would reload the page and lose the
+answer on screen. A signal holding one of two typed objects switches instantly and ships one
+bundle.</p>
+<p><strong>The UI language is not the answer language.</strong> The backend pins every answer to the language of
+the <em>question</em> (ADR-002&#39;s language rule), and nothing is translated anywhere in this system by
+decision. So a German answer stays German with the interface in English: this service changes
+labels, never content. The rendered answer carries its own <code>lang</code> attribute for exactly that
+reason.</p>
 
             </p>
 
@@ -190,34 +198,17 @@ server-side, because hiding a button is not a security control (NFR-3).</p>
                                 <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
                                     <span class="modifier">Private</span>
                                     <span class="modifier">Readonly</span>
-                                <a href="#authState" >authState</a>
-                            </li>
-                            <li>
-                                <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
-                                    <span class="modifier">Private</span>
-                                    <span class="modifier">Readonly</span>
-                                <a href="#configService" >configService</a>
+                                <a href="#current" >current</a>
                             </li>
                             <li>
                                 <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
                                     <span class="modifier">Readonly</span>
-                                <a href="#isAuthenticated" >isAuthenticated</a>
-                            </li>
-                            <li>
-                                <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
-                                    <span class="modifier">Private</span>
-                                    <span class="modifier">Readonly</span>
-                                <a href="#oauth" >oauth</a>
+                                <a href="#language" >language</a>
                             </li>
                             <li>
                                 <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
                                     <span class="modifier">Readonly</span>
-                                <a href="#realmRoles" >realmRoles</a>
-                            </li>
-                            <li>
-                                <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
-                                    <span class="modifier">Readonly</span>
-                                <a href="#username" >username</a>
+                                <a href="#t" >t</a>
                             </li>
                         </ul>
                     </td>
@@ -235,21 +226,11 @@ server-side, because hiding a button is not a security control (NFR-3).</p>
                         <ul class="index-list">
                             <li>
                                 <span class="reference-badge reference-badge--method" aria-hidden="true">M</span>
-                                    <span class="modifier">Private</span>
-                                <a href="#claims" >claims</a>
+                                <a href="#toggle" >toggle</a>
                             </li>
                             <li>
                                 <span class="reference-badge reference-badge--method" aria-hidden="true">M</span>
-                                    <span class="modifier">Async</span>
-                                <a href="#init" >init</a>
-                            </li>
-                            <li>
-                                <span class="reference-badge reference-badge--method" aria-hidden="true">M</span>
-                                <a href="#login" >login</a>
-                            </li>
-                            <li>
-                                <span class="reference-badge reference-badge--method" aria-hidden="true">M</span>
-                                <a href="#logout" >logout</a>
+                                <a href="#use" >use</a>
                             </li>
                         </ul>
                     </td>
@@ -273,146 +254,24 @@ server-side, because hiding a button is not a security control (NFR-3).</p>
         <tbody>
             <tr>
                 <td class="col-md-4">
-                    <a name="claims"></a>
+                    <a name="toggle"></a>
                     <span class="name">
-                            <span class="modifier">Private</span>
-                        <span ><b>claims</b></span>
-                        <a href="#claims"><span class="icon ion-ios-link"></span></a>
+                        <span ><b>toggle</b></span>
+                        <a href="#toggle"><span class="icon ion-ios-link"></span></a>
                     </span>
                 </td>
             </tr>
             <tr>
                 <td class="col-md-4">
-                        <span class="modifier-icon icon ion-ios-reset"></span>
-                    <code>claims()</code>
+<code>toggle()</code>
                 </td>
             </tr>
 
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="72"
-                                    class="link-to-prism">src/app/core/auth/auth.service.ts:72</a></div>
-                        </td>
-                    </tr>
-
-
-            <tr>
-                <td class="col-md-4">
-                        <div class="io-description"><p>Decodes the access token payload; returns null when there is no valid token.</p>
-</div>
-
-                        <div class="io-description">
-                            <b>Returns : </b>    <code>AccessTokenClaims | null</code>
-
-                        </div>
-                </td>
-            </tr>
-        </tbody>
-    </table>
-    <table class="table table-sm table-bordered">
-        <tbody>
-            <tr>
-                <td class="col-md-4">
-                    <a name="init"></a>
-                    <span class="name">
-                            <span class="modifier">Async</span>
-                        <span ><b>init</b></span>
-                        <a href="#init"><span class="icon ion-ios-link"></span></a>
-                    </span>
-                </td>
-            </tr>
-            <tr>
-                <td class="col-md-4">
-                        <span class="modifier-icon icon ion-ios-reset"></span>
-                    <code>init()</code>
-                </td>
-            </tr>
-
-
-                    <tr>
-                        <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="47"
-                                    class="link-to-prism">src/app/core/auth/auth.service.ts:47</a></div>
-                        </td>
-                    </tr>
-
-
-            <tr>
-                <td class="col-md-4">
-                        <div class="io-description"><p>Configures the client, fetches the discovery document and completes a redirect that is
-coming back from Keycloak. Runs once during application startup.</p>
-</div>
-
-                        <div class="io-description">
-                            <b>Returns : </b>    <code>Promise&lt;void&gt;</code>
-
-                        </div>
-                </td>
-            </tr>
-        </tbody>
-    </table>
-    <table class="table table-sm table-bordered">
-        <tbody>
-            <tr>
-                <td class="col-md-4">
-                    <a name="login"></a>
-                    <span class="name">
-                        <span ><b>login</b></span>
-                        <a href="#login"><span class="icon ion-ios-link"></span></a>
-                    </span>
-                </td>
-            </tr>
-            <tr>
-                <td class="col-md-4">
-<code>login()</code>
-                </td>
-            </tr>
-
-
-                    <tr>
-                        <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="62"
-                                    class="link-to-prism">src/app/core/auth/auth.service.ts:62</a></div>
-                        </td>
-                    </tr>
-
-
-            <tr>
-                <td class="col-md-4">
-                        <div class="io-description"><p>Sends the browser to Keycloak&#39;s login page.</p>
-</div>
-
-                        <div class="io-description">
-                            <b>Returns : </b>        <code><a href="https://www.typescriptlang.org/docs/handbook/basic-types.html" target="_blank" >void</a></code>
-
-                        </div>
-                </td>
-            </tr>
-        </tbody>
-    </table>
-    <table class="table table-sm table-bordered">
-        <tbody>
-            <tr>
-                <td class="col-md-4">
-                    <a name="logout"></a>
-                    <span class="name">
-                        <span ><b>logout</b></span>
-                        <a href="#logout"><span class="icon ion-ios-link"></span></a>
-                    </span>
-                </td>
-            </tr>
-            <tr>
-                <td class="col-md-4">
-<code>logout()</code>
-                </td>
-            </tr>
-
-
-                    <tr>
-                        <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="66"
-                                    class="link-to-prism">src/app/core/auth/auth.service.ts:66</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="44"
+                                    class="link-to-prism">src/app/core/i18n/i18n.service.ts:44</a></div>
                         </td>
                     </tr>
 
@@ -424,6 +283,73 @@ coming back from Keycloak. Runs once during application startup.</p>
                             <b>Returns : </b>        <code><a href="https://www.typescriptlang.org/docs/handbook/basic-types.html" target="_blank" >void</a></code>
 
                         </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="use"></a>
+                    <span class="name">
+                        <span ><b>use</b></span>
+                        <a href="#use"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+<code>use(language: <a href="../miscellaneous/typealiases.html#UiLanguage" target="_self">UiLanguage</a>)</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="34"
+                                    class="link-to-prism">src/app/core/i18n/i18n.service.ts:34</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                                <td>Type</td>
+                                            <td>Optional</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>language</td>
+                                            <td>
+                                                            <code><a href="../miscellaneous/typealiases.html#UiLanguage" target="_self" >UiLanguage</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>        <code><a href="https://www.typescriptlang.org/docs/handbook/basic-types.html" target="_blank" >void</a></code>
+
+                        </div>
+                            <div class="io-description">
+                                
+                            </div>
                 </td>
             </tr>
         </tbody>
@@ -439,12 +365,12 @@ coming back from Keycloak. Runs once during application startup.</p>
         <tbody>
             <tr>
                 <td class="col-md-4">
-                    <a name="authState"></a>
+                    <a name="current"></a>
                     <span class="name">
                             <span class="modifier">Private</span>
                             <span class="modifier">Readonly</span>
-                        <span ><b>authState</b></span>
-                        <a href="#authState"><span class="icon ion-ios-link"></span></a>
+                        <span ><b>current</b></span>
+                        <a href="#current"><span class="icon ion-ios-link"></span></a>
                     </span>
                 </td>
             </tr>
@@ -456,18 +382,50 @@ coming back from Keycloak. Runs once during application startup.</p>
                 </tr>
                 <tr>
                     <td class="col-md-4">
-                        <i>Default value : </i><code>signal(0)</code>
+                        <i>Default value : </i><code>signal&lt;UiLanguage&gt;(initialLanguage())</code>
                     </td>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="26" class="link-to-prism">src/app/core/auth/auth.service.ts:26</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="26" class="link-to-prism">src/app/core/i18n/i18n.service.ts:26</a></div>
+                        </td>
+                    </tr>
+
+
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="language"></a>
+                    <span class="name">
+                            <span class="modifier">Readonly</span>
+                        <span ><b>language</b></span>
+                        <a href="#language"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>unknown</code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>this.current.asReadonly()</code>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="29" class="link-to-prism">src/app/core/i18n/i18n.service.ts:29</a></div>
                         </td>
                     </tr>
 
             <tr>
                 <td class="col-md-4">
-                    <div class="io-description"><p>Bumped after every login/logout so the derived signals recompute.</p>
+                    <div class="io-description"><p>The active language, for <code>lang</code> attributes and for the switch&#39;s own state.</p>
 </div>
                 </td>
             </tr>
@@ -478,12 +436,11 @@ coming back from Keycloak. Runs once during application startup.</p>
         <tbody>
             <tr>
                 <td class="col-md-4">
-                    <a name="configService"></a>
+                    <a name="t"></a>
                     <span class="name">
-                            <span class="modifier">Private</span>
                             <span class="modifier">Readonly</span>
-                        <span ><b>configService</b></span>
-                        <a href="#configService"><span class="icon ion-ios-link"></span></a>
+                        <span ><b>t</b></span>
+                        <a href="#t"><span class="icon ion-ios-link"></span></a>
                     </span>
                 </td>
             </tr>
@@ -495,153 +452,21 @@ coming back from Keycloak. Runs once during application startup.</p>
                 </tr>
                 <tr>
                     <td class="col-md-4">
-                        <i>Default value : </i><code>inject(ConfigService)</code>
+                        <i>Default value : </i><code>computed&lt;Dictionary&gt;(() &#x3D;&gt; DICTIONARIES[this.current()])</code>
                     </td>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="23" class="link-to-prism">src/app/core/auth/auth.service.ts:23</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="32" class="link-to-prism">src/app/core/i18n/i18n.service.ts:32</a></div>
                         </td>
                     </tr>
 
-
-        </tbody>
-    </table>
-    <table class="table table-sm table-bordered">
-        <tbody>
             <tr>
                 <td class="col-md-4">
-                    <a name="isAuthenticated"></a>
-                    <span class="name">
-                            <span class="modifier">Readonly</span>
-                        <span ><b>isAuthenticated</b></span>
-                        <a href="#isAuthenticated"><span class="icon ion-ios-link"></span></a>
-                    </span>
+                    <div class="io-description"><p>The active dictionary. Components read <code>t().search.submit</code> and re-render on a switch.</p>
+</div>
                 </td>
             </tr>
-                <tr>
-                    <td class="col-md-4">
-                        <i>Type : </i>    <code>unknown</code>
-
-                    </td>
-                </tr>
-                <tr>
-                    <td class="col-md-4">
-                        <i>Default value : </i><code>computed(() &#x3D;&gt; {
-    this.authState();
-    return this.oauth.hasValidAccessToken();
-  })</code>
-                    </td>
-                </tr>
-                    <tr>
-                        <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="28" class="link-to-prism">src/app/core/auth/auth.service.ts:28</a></div>
-                        </td>
-                    </tr>
-
-
-        </tbody>
-    </table>
-    <table class="table table-sm table-bordered">
-        <tbody>
-            <tr>
-                <td class="col-md-4">
-                    <a name="oauth"></a>
-                    <span class="name">
-                            <span class="modifier">Private</span>
-                            <span class="modifier">Readonly</span>
-                        <span ><b>oauth</b></span>
-                        <a href="#oauth"><span class="icon ion-ios-link"></span></a>
-                    </span>
-                </td>
-            </tr>
-                <tr>
-                    <td class="col-md-4">
-                        <i>Type : </i>    <code>unknown</code>
-
-                    </td>
-                </tr>
-                <tr>
-                    <td class="col-md-4">
-                        <i>Default value : </i><code>inject(OAuthService)</code>
-                    </td>
-                </tr>
-                    <tr>
-                        <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="22" class="link-to-prism">src/app/core/auth/auth.service.ts:22</a></div>
-                        </td>
-                    </tr>
-
-
-        </tbody>
-    </table>
-    <table class="table table-sm table-bordered">
-        <tbody>
-            <tr>
-                <td class="col-md-4">
-                    <a name="realmRoles"></a>
-                    <span class="name">
-                            <span class="modifier">Readonly</span>
-                        <span ><b>realmRoles</b></span>
-                        <a href="#realmRoles"><span class="icon ion-ios-link"></span></a>
-                    </span>
-                </td>
-            </tr>
-                <tr>
-                    <td class="col-md-4">
-                        <i>Type : </i>    <code>unknown</code>
-
-                    </td>
-                </tr>
-                <tr>
-                    <td class="col-md-4">
-                        <i>Default value : </i><code>computed(() &#x3D;&gt; {
-    this.authState();
-    return this.claims()?.realm_access?.roles ?? [];
-  })</code>
-                    </td>
-                </tr>
-                    <tr>
-                        <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="38" class="link-to-prism">src/app/core/auth/auth.service.ts:38</a></div>
-                        </td>
-                    </tr>
-
-
-        </tbody>
-    </table>
-    <table class="table table-sm table-bordered">
-        <tbody>
-            <tr>
-                <td class="col-md-4">
-                    <a name="username"></a>
-                    <span class="name">
-                            <span class="modifier">Readonly</span>
-                        <span ><b>username</b></span>
-                        <a href="#username"><span class="icon ion-ios-link"></span></a>
-                    </span>
-                </td>
-            </tr>
-                <tr>
-                    <td class="col-md-4">
-                        <i>Type : </i>    <code>unknown</code>
-
-                    </td>
-                </tr>
-                <tr>
-                    <td class="col-md-4">
-                        <i>Default value : </i><code>computed(() &#x3D;&gt; {
-    this.authState();
-    return this.claims()?.preferred_username ?? &#x27;&#x27;;
-  })</code>
-                    </td>
-                </tr>
-                    <tr>
-                        <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="33" class="link-to-prism">src/app/core/auth/auth.service.ts:33</a></div>
-                        </td>
-                    </tr>
-
 
         </tbody>
     </table>
@@ -651,96 +476,72 @@ coming back from Keycloak. Runs once during application startup.</p>
 
 
     <div class="tab-pane fade  tab-source-code" id="source">
-        <pre class="line-numbers compodoc-sourcecode"><code class="language-typescript">import { Injectable, computed, inject, signal } from &#x27;@angular/core&#x27;;
-import { OAuthService } from &#x27;angular-oauth2-oidc&#x27;;
+        <pre class="line-numbers compodoc-sourcecode"><code class="language-typescript">import { Injectable, computed, signal } from &#x27;@angular/core&#x27;;
 
-import { ConfigService } from &#x27;../config/config.service&#x27;;
-import { buildAuthConfig } from &#x27;./auth.config&#x27;;
+import { DICTIONARIES, Dictionary, UiLanguage } from &#x27;./dictionary&#x27;;
 
-/** Shape of the Keycloak access token claims this application reads. */
-interface AccessTokenClaims {
-  preferred_username?: string;
-  realm_access?: { roles?: string[] };
+/** Where the choice is remembered between visits. */
+const STORAGE_KEY &#x3D; &#x27;maintenance-assistant.language&#x27;;
+
+/**
+ * The DE/EN switch, as a runtime dictionary rather than Angular&#x27;s build-time i18n.
+ *
+ * Angular&#x27;s &#x60;$localize&#x60; produces one bundle per locale, which means two builds, two images and a
+ * routing or host decision to pick between them. For two languages and one small application that
+ * is a deployment problem bought to solve a string problem — and it would make the language a
+ * property of the URL rather than of the person, so switching would reload the page and lose the
+ * answer on screen. A signal holding one of two typed objects switches instantly and ships one
+ * bundle.
+ *
+ * **The UI language is not the answer language.** The backend pins every answer to the language of
+ * the *question* (ADR-002&#x27;s language rule), and nothing is translated anywhere in this system by
+ * decision. So a German answer stays German with the interface in English: this service changes
+ * labels, never content. The rendered answer carries its own &#x60;lang&#x60; attribute for exactly that
+ * reason.
+ */
+@Injectable({ providedIn: &#x27;root&#x27; })
+export class I18nService {
+  private readonly current &#x3D; signal&lt;UiLanguage&gt;(initialLanguage());
+
+  /** The active language, for &#x60;lang&#x60; attributes and for the switch&#x27;s own state. */
+  readonly language &#x3D; this.current.asReadonly();
+
+  /** The active dictionary. Components read &#x60;t().search.submit&#x60; and re-render on a switch. */
+  readonly t &#x3D; computed&lt;Dictionary&gt;(() &#x3D;&gt; DICTIONARIES[this.current()]);
+
+  use(language: UiLanguage): void {
+    this.current.set(language);
+    try {
+      localStorage.setItem(STORAGE_KEY, language);
+    } catch {
+      // Private browsing or a storage quota: the choice simply does not survive a reload,
+      // which is a far better outcome than a view that fails to render.
+    }
+  }
+
+  toggle(): void {
+    this.use(this.current() &#x3D;&#x3D;&#x3D; &#x27;de&#x27; ? &#x27;en&#x27; : &#x27;de&#x27;);
+  }
 }
 
 /**
- * Wraps &#x60;angular-oauth2-oidc&#x60; so components never touch the OIDC library directly.
+ * A remembered choice wins; otherwise the browser decides.
  *
- * Roles are read from the **access token**, not the ID token: Keycloak puts realm roles in
- * &#x60;realm_access.roles&#x60; there. They drive what the UI shows — the backend enforces the same roles
- * server-side, because hiding a button is not a security control (NFR-3).
+ * German is the fallback rather than English because the plant, the corpus and the demo users are
+ * German — the setting this models is a German shop floor, and a visitor whose browser says nothing
+ * useful is better served by the language the protocols are written in.
  */
-@Injectable({ providedIn: &#x27;root&#x27; })
-export class AuthService {
-  private readonly oauth &#x3D; inject(OAuthService);
-  private readonly configService &#x3D; inject(ConfigService);
-
-  /** Bumped after every login/logout so the derived signals recompute. */
-  private readonly authState &#x3D; signal(0);
-
-  readonly isAuthenticated &#x3D; computed(() &#x3D;&gt; {
-    this.authState();
-    return this.oauth.hasValidAccessToken();
-  });
-
-  readonly username &#x3D; computed(() &#x3D;&gt; {
-    this.authState();
-    return this.claims()?.preferred_username ?? &#x27;&#x27;;
-  });
-
-  readonly realmRoles &#x3D; computed(() &#x3D;&gt; {
-    this.authState();
-    return this.claims()?.realm_access?.roles ?? [];
-  });
-
-  /**
-   * Configures the client, fetches the discovery document and completes a redirect that is
-   * coming back from Keycloak. Runs once during application startup.
-   */
-  async init(): Promise&lt;void&gt; {
-    // The deployment&#x27;s config.json decides which Keycloak this talks to, so it
-    // has to be read before the client is configured.
-    await this.configService.load();
-    this.oauth.configure(buildAuthConfig(this.configService.config));
-    try {
-      await this.oauth.loadDiscoveryDocumentAndTryLogin();
-    } catch {
-      // Keycloak being unreachable must not block the application from rendering; the user
-      // simply stays unauthenticated and /login reports it.
+function initialLanguage(): UiLanguage {
+  try {
+    const stored &#x3D; localStorage.getItem(STORAGE_KEY);
+    if (stored &#x3D;&#x3D;&#x3D; &#x27;de&#x27; || stored &#x3D;&#x3D;&#x3D; &#x27;en&#x27;) {
+      return stored;
     }
-    this.authState.update((value) &#x3D;&gt; value + 1);
+  } catch {
+    // Unreadable storage is not an error worth surfacing; fall through to the browser.
   }
-
-  /** Sends the browser to Keycloak&#x27;s login page. */
-  login(): void {
-    this.oauth.initCodeFlow();
-  }
-
-  logout(): void {
-    this.oauth.logOut();
-    this.authState.update((value) &#x3D;&gt; value + 1);
-  }
-
-  /** Decodes the access token payload; returns null when there is no valid token. */
-  private claims(): AccessTokenClaims | null {
-    const token &#x3D; this.oauth.getAccessToken();
-    if (!token) {
-      return null;
-    }
-
-    const payload &#x3D; token.split(&#x27;.&#x27;)[1];
-    if (!payload) {
-      return null;
-    }
-
-    try {
-      const json &#x3D; atob(payload.replace(/-/g, &#x27;+&#x27;).replace(/_/g, &#x27;/&#x27;));
-      return JSON.parse(json) as AccessTokenClaims;
-    } catch {
-      // A malformed token is treated as no token rather than crashing the view.
-      return null;
-    }
-  }
+  const preferred &#x3D; typeof navigator &#x3D;&#x3D;&#x3D; &#x27;undefined&#x27; ? &#x27;&#x27; : (navigator.language ?? &#x27;&#x27;);
+  return preferred.toLowerCase().startsWith(&#x27;en&#x27;) ? &#x27;en&#x27; : &#x27;de&#x27;;
 }
 </code></pre>
     </div>
@@ -785,7 +586,7 @@ export class AuthService {
        <script>
             var COMPODOC_CURRENT_PAGE_DEPTH = 1;
             var COMPODOC_CURRENT_PAGE_CONTEXT = 'injectable';
-            var COMPODOC_CURRENT_PAGE_URL = 'AuthService.html';
+            var COMPODOC_CURRENT_PAGE_URL = 'I18nService.html';
             var MAX_SEARCH_RESULTS = 15;
        </script>
 

@@ -10,6 +10,8 @@ than an edit to history.
 | [ADR-002](ADR-002-eu-hosted-llm-provider.md) | EU-hosted LLM & embedding provider | **Proposed** (spike pending) |
 | [ADR-003](ADR-003-keycloak-for-iam.md) | Keycloak as identity provider | Accepted |
 | [ADR-004](ADR-004-pgvector-for-vector-search.md) | PostgreSQL + pgvector instead of a dedicated vector DB | Accepted |
+| [ADR-005](ADR-005-spa-token-handling.md) | Keep the public-client SPA, harden it, and document the BFF | Accepted |
 
 New records start from [ADR-TEMPLATE.md](ADR-TEMPLATE.md). Numbering is sequential and never
-reused. Planned: ADR-005 will document the Phase 5 extraction of the ingestion service and Kafka.
+reused. Planned: ADR-006 will document the Phase 5 extraction of the ingestion service and Kafka —
+that work was pencilled in as ADR-005 before token handling took the number.

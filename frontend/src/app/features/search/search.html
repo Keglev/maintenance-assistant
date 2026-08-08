@@ -94,13 +94,20 @@
       <p class="answer-text" [attr.lang]="result.language" data-testid="answer-text">
         @for (segment of segments(); track $index) {
           @if (segment.kind === 'marker' && segment.citation) {
+            <!-- No href: a browser-followed anchor carries no Bearer token and the API answers 401.
+                 The document is fetched through HttpClient by the handler instead. Kept an <a> for
+                 its link semantics, with role/tabindex/keydown so it is reachable and operable from
+                 the keyboard exactly as a link would be. -->
             <a
               class="citation-marker"
-              [href]="documentUrl(segment.citation.protocolId)"
-              target="_blank"
-              rel="noopener"
+              role="button"
+              tabindex="0"
+              [attr.aria-busy]="isOpening(segment.citation.protocolId)"
               [title]="segment.citation.title"
               data-testid="citation-marker"
+              (click)="openSource(segment.citation.protocolId, $event)"
+              (keydown.enter)="openSource(segment.citation.protocolId, $event)"
+              (keydown.space)="openSource(segment.citation.protocolId, $event)"
               >[{{ segment.value }}]</a
             >
           } @else {
@@ -109,21 +116,52 @@
         }
       </p>
 
+      @if (documentFailure(); as reason) {
+        <!-- A source that will not open is worth saying out loud: the claim above still stands on
+             that protocol, and the reader is entitled to know the evidence is unreachable rather
+             than to click into silence. -->
+        <p class="notice notice-error" role="alert" data-testid="document-failure">
+          @switch (reason) {
+            @case ('notFound') {
+              {{ t().errors.documentMissing }}
+            }
+            @case ('forbidden') {
+              {{ t().errors.forbidden }}
+            }
+            @case ('unavailable') {
+              {{ t().errors.unavailable }}
+            }
+            @default {
+              {{ t().errors.generic }}
+            }
+          }
+        </p>
+      }
+
       <h2 class="sources-heading">{{ t().modeA.sources }}</h2>
       <ul class="sources" data-testid="sources">
         @for (citation of result.citations; track citation.protocolId) {
           <li class="source">
             <span class="source-label">{{ citation.label }}</span>
             <div class="source-body">
+              <!-- Same as the inline marker above, and for the same reason. -->
               <a
                 class="source-title"
-                [href]="documentUrl(citation.protocolId)"
-                target="_blank"
-                rel="noopener"
+                role="button"
+                tabindex="0"
                 [attr.aria-label]="t().modeA.openSource + ': ' + citation.title"
+                [attr.aria-busy]="isOpening(citation.protocolId)"
                 data-testid="source-link"
+                (click)="openSource(citation.protocolId, $event)"
+                (keydown.enter)="openSource(citation.protocolId, $event)"
+                (keydown.space)="openSource(citation.protocolId, $event)"
                 >{{ citation.title }}</a
               >
+              @if (isOpening(citation.protocolId)) {
+                <span class="source-opening" data-testid="source-opening">{{
+                  t().modeA.opening
+                }}</span>
+              }
               <p class="source-meta">
                 @if (citation.errorCode) {
                   <span>{{ t().modeA.errorCode }}: {{ citation.errorCode }}</span>

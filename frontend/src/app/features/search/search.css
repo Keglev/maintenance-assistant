@@ -173,6 +173,29 @@
   color: #fff;
 }
 
+/* These carry no href, so the pointer and the underline have to be stated: without them an
+   element that behaves like a link stops looking like one. */
+.citation-marker,
+.source-title {
+  cursor: pointer;
+}
+
+.source-title {
+  text-decoration: underline;
+}
+
+.citation-marker[aria-busy='true'],
+.source-title[aria-busy='true'] {
+  opacity: 0.6;
+  cursor: progress;
+}
+
+.source-opening {
+  margin-left: 0.5rem;
+  font-size: 0.8rem;
+  color: #4a5a4e;
+}
+
 .sources-heading,
 .steps-heading {
   margin: 0 0 0.5rem;

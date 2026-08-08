@@ -38,6 +38,7 @@ export interface Dictionary {
     readonly explanation: string;
     readonly sources: string;
     readonly openSource: string;
+    readonly opening: string;
     readonly similarity: string;
     readonly errorCode: string;
     readonly incidentDate: string;
@@ -52,6 +53,7 @@ export interface Dictionary {
     readonly budgetExhausted: string;
     readonly unavailable: string;
     readonly forbidden: string;
+    readonly documentMissing: string;
     readonly generic: string;
   };
   readonly upload: {
@@ -115,6 +117,7 @@ export const DE: Dictionary = {
     explanation: 'Jede Aussage stammt aus einem Protokoll aus dem Bestand und ist belegt.',
     sources: 'Quellen',
     openSource: 'Originalprotokoll öffnen',
+    opening: 'Wird geöffnet …',
     similarity: 'Übereinstimmung',
     errorCode: 'Fehlercode',
     incidentDate: 'Datum',
@@ -131,6 +134,8 @@ export const DE: Dictionary = {
       'Das Tageslimit für Antworten ist erreicht. Suche und Upload funktionieren weiter, Antworten wieder ab morgen.',
     unavailable: 'Der Antwortdienst ist gerade nicht erreichbar. Bitte später erneut versuchen.',
     forbidden: 'Für diese Aktion fehlt Ihnen die Berechtigung.',
+    documentMissing:
+      'Das Originalprotokoll lässt sich nicht mehr öffnen. Die Angaben in der Antwort stammen aus diesem Protokoll, die Datei ist aber nicht mehr im Bestand.',
     generic: 'Die Anfrage ist fehlgeschlagen.',
   },
   upload: {
@@ -190,6 +195,7 @@ export const EN: Dictionary = {
     explanation: 'Every statement comes from a protocol in the records and is cited.',
     sources: 'Sources',
     openSource: 'Open the original protocol',
+    opening: 'Opening …',
     similarity: 'Match',
     errorCode: 'Fault code',
     incidentDate: 'Date',
@@ -206,6 +212,8 @@ export const EN: Dictionary = {
       "Today's answer limit has been reached. Search and upload still work; answering resumes tomorrow.",
     unavailable: 'The answer service is temporarily unavailable. Please try again later.',
     forbidden: 'You do not have permission for this action.',
+    documentMissing:
+      'The original protocol can no longer be opened. The answer above was taken from it, but the file is no longer in the records.',
     generic: 'The request failed.',
   },
   upload: {

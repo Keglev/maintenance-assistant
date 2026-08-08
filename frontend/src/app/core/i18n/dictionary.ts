@@ -55,6 +55,12 @@ export interface Dictionary {
     readonly aiUsage: string;
     readonly note: string;
   };
+  readonly signOut: {
+    readonly title: string;
+    readonly body: string;
+    readonly notice: string;
+    readonly dismiss: string;
+  };
   readonly landing: {
     readonly headline: string;
     readonly problem: string;
@@ -68,7 +74,11 @@ export interface Dictionary {
     readonly trustRolesBody: string;
     readonly demoHeading: string;
     readonly demoIntro: string;
+    /** What kind of environment this is, so a public password reads as a boundary and not a leak. */
+    readonly demoBoundary: string;
     readonly demoPassword: string;
+    /** "Sign in as operator" — the username is the argument, and it is never translated. */
+    readonly signInAs: (username: string) => string;
     readonly signIn: string;
     readonly signInHint: string;
     readonly plateModel: string;
@@ -200,6 +210,12 @@ export const DE: Dictionary = {
     aiUsage: 'KI-Einsatz im Projekt',
     note: 'Demo-System mit synthetischen Protokollen. Keine echten Anlagendaten.',
   },
+  signOut: {
+    title: 'Wirklich abmelden?',
+    body: 'Sie werden abgemeldet und müssen sich für die nächste Frage neu anmelden.',
+    notice: 'Sie wurden abgemeldet.',
+    dismiss: 'Hinweis ausblenden',
+  },
   landing: {
     headline: 'Wartungswissen, das nicht mit der Schicht nach Hause geht',
     problem:
@@ -218,7 +234,10 @@ export const DE: Dictionary = {
       'Bediener erhalten nur Schritte, die eine unterwiesene Person ausführen darf, samt Hinweis, wann eine Fachkraft zu holen ist.',
     demoHeading: 'Demo-Zugänge',
     demoIntro: 'Vier Benutzer, ein Passwort. Jede Rolle zeigt eine andere Sicht auf dieselben Daten.',
+    demoBoundary:
+      'Bewusst öffentliche Demo-Umgebung: eigener, isolierter Realm, ausschließlich synthetische Daten, Anfragen begrenzt, Sitzung nach 15 Minuten beendet.',
     demoPassword: 'Passwort für alle',
+    signInAs: (username) => `Als ${username} anmelden`,
     signIn: 'Anmelden',
     signInHint:
       'Die Anmeldung läuft über Keycloak. Sie werden dorthin weitergeleitet und kommen anschließend hierher zurück.',
@@ -373,6 +392,12 @@ export const EN: Dictionary = {
     aiUsage: 'AI use in this project',
     note: 'Demo system with synthetic protocols. No real plant data.',
   },
+  signOut: {
+    title: 'Sign out?',
+    body: 'You will be signed out and will have to sign in again for your next question.',
+    notice: 'You have been signed out.',
+    dismiss: 'Dismiss this notice',
+  },
   landing: {
     headline: 'Maintenance knowledge that does not go home with the shift',
     problem:
@@ -391,7 +416,10 @@ export const EN: Dictionary = {
       'Operators only get steps an instructed person may carry out, together with a note on when to call a qualified technician.',
     demoHeading: 'Demo accounts',
     demoIntro: 'Four users, one password. Each role shows a different view of the same data.',
+    demoBoundary:
+      'A deliberately public demo environment: its own isolated realm, synthetic data only, rate-limited requests, sessions ending after 15 minutes.',
     demoPassword: 'Password for all',
+    signInAs: (username) => `Sign in as ${username}`,
     signIn: 'Sign in',
     signInHint:
       'Sign-in is handled by Keycloak. You will be redirected there and returned here afterwards.',

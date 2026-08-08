@@ -72,6 +72,19 @@ Config:     Flyway auto-config was DEAD on Boot 4.1 (missing
             properties moved to spring.web.error.*.
 
 OPEN ITEMS carried forward (not blockers, do not lose):
+- SOURCE LINKS 401'd IN THE BROWSER — found and FIXED in fix/source-
+  links, after PR #25 shipped them. A browser-followed <a href> is a
+  fresh navigation that never reaches Angular's interceptor, so it
+  carries no Bearer token, and the backend is a stateless JWT resource
+  server with no cookie fallback: every click on a citation answered
+  401. Documents are now fetched as blobs through HttpClient and opened
+  as object URLs. LESSON FOR PHASE 4's WALKTHROUGH: #25's live
+  verification opened the documents with curl and a token, which is why
+  it passed — an API call is not a click. Anything the BROWSER performs
+  itself (anchor navigation, form action, img/src, window.open of an
+  API URL) carries no token and must be verified in a browser, not with
+  curl. Regression guard in search.spec.ts asserts no rendered source
+  link carries a raw /api href.
 - Chat latency from the Hetzner host: DONE 2026-08-07, residual risk
   CLOSED. Measured three ways (residential via the query module,
   provider leg from the host, end-to-end through production) and all

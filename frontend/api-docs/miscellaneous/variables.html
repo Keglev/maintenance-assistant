@@ -155,6 +155,9 @@
                             <a href="#environment" title="src/environments/environment.ts" class="reference-link "><span class="reference-badge reference-badge--variable" aria-hidden="true">V</span><span class="reference-link-label"><b>environment</b>&nbsp;&nbsp;&nbsp;(src/.../environment.ts)</span></a>
                         </li>
                         <li>
+                            <a href="#OBJECT_URL_TTL_MS" title="src/app/features/search/search.ts" class="reference-link "><span class="reference-badge reference-badge--variable" aria-hidden="true">V</span><span class="reference-link-label"><b>OBJECT_URL_TTL_MS</b>&nbsp;&nbsp;&nbsp;(src/.../search.ts)</span></a>
+                        </li>
+                        <li>
                             <a href="#routes" title="src/app/app.routes.ts" class="reference-link "><span class="reference-badge reference-badge--variable" aria-hidden="true">V</span><span class="reference-link-label"><b>routes</b>&nbsp;&nbsp;&nbsp;(src/.../app.routes.ts)</span></a>
                         </li>
                         <li>
@@ -259,6 +262,7 @@
     explanation: &#x27;Jede Aussage stammt aus einem Protokoll aus dem Bestand und ist belegt.&#x27;,
     sources: &#x27;Quellen&#x27;,
     openSource: &#x27;Originalprotokoll öffnen&#x27;,
+    opening: &#x27;Wird geöffnet …&#x27;,
     similarity: &#x27;Übereinstimmung&#x27;,
     errorCode: &#x27;Fehlercode&#x27;,
     incidentDate: &#x27;Datum&#x27;,
@@ -275,6 +279,8 @@
       &#x27;Das Tageslimit für Antworten ist erreicht. Suche und Upload funktionieren weiter, Antworten wieder ab morgen.&#x27;,
     unavailable: &#x27;Der Antwortdienst ist gerade nicht erreichbar. Bitte später erneut versuchen.&#x27;,
     forbidden: &#x27;Für diese Aktion fehlt Ihnen die Berechtigung.&#x27;,
+    documentMissing:
+      &#x27;Das Originalprotokoll lässt sich nicht mehr öffnen. Die Angaben in der Antwort stammen aus diesem Protokoll, die Datei ist aber nicht mehr im Bestand.&#x27;,
     generic: &#x27;Die Anfrage ist fehlgeschlagen.&#x27;,
   },
   upload: {
@@ -392,6 +398,7 @@ DECISIONS.txt, which is what the two modes are called throughout the project&#39
     explanation: &#x27;Every statement comes from a protocol in the records and is cited.&#x27;,
     sources: &#x27;Sources&#x27;,
     openSource: &#x27;Open the original protocol&#x27;,
+    opening: &#x27;Opening …&#x27;,
     similarity: &#x27;Match&#x27;,
     errorCode: &#x27;Fault code&#x27;,
     incidentDate: &#x27;Date&#x27;,
@@ -408,6 +415,8 @@ DECISIONS.txt, which is what the two modes are called throughout the project&#39
       &quot;Today&#x27;s answer limit has been reached. Search and upload still work; answering resumes tomorrow.&quot;,
     unavailable: &#x27;The answer service is temporarily unavailable. Please try again later.&#x27;,
     forbidden: &#x27;You do not have permission for this action.&#x27;,
+    documentMissing:
+      &#x27;The original protocol can no longer be opened. The answer above was taken from it, but the file is no longer in the records.&#x27;,
     generic: &#x27;The request failed.&#x27;,
   },
   upload: {
@@ -532,6 +541,44 @@ ConfigService merges over them at startup, so the same image can be pointed at
 a different Keycloak without a rebuild. They are kept accurate anyway: an
 image that loses its bind mount should still reach the real deployment rather
 than a placeholder host.</p>
+</div>
+                </td>
+            </tr>
+
+        </tbody>
+    </table>
+</section>
+    <h3>src/app/features/search/search.ts</h3>
+    <section data-compodoc="block-properties">
+    <h3></h3>    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="OBJECT_URL_TTL_MS"></a>
+                    <span class="name">
+                        <span ><b>OBJECT_URL_TTL_MS</b></span>
+                        <a href="#OBJECT_URL_TTL_MS"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/number" target="_blank" >number</a></code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>60_000</code>
+                    </td>
+                </tr>
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-description"><p>How long an object URL is kept alive after the tab has been pointed at it.</p>
+<p>Long enough for a slow tab to load it, short enough that clicking through a source list does not
+accumulate blobs. Revoking on the new tab&#39;s load event would be tighter, but a cross-document
+object URL gives no reliable load signal to the opener.</p>
 </div>
                 </td>
             </tr>

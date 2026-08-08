@@ -246,7 +246,7 @@ make one.</p>
 
                             <tr>
                                 <td class="col-md-4">
-                                    <div class="io-line">Defined in <a href="" data-line="21" class="link-to-prism">src/app/features/search/search.ts:21</a></div>
+                                    <div class="io-line">Defined in <a href="" data-line="22" class="link-to-prism">src/app/features/search/search.ts:22</a></div>
                                 </td>
                             </tr>
 
@@ -291,7 +291,7 @@ make one.</p>
 
                             <tr>
                                 <td class="col-md-4">
-                                    <div class="io-line">Defined in <a href="" data-line="18" class="link-to-prism">src/app/features/search/search.ts:18</a></div>
+                                    <div class="io-line">Defined in <a href="" data-line="19" class="link-to-prism">src/app/features/search/search.ts:19</a></div>
                                 </td>
                             </tr>
 
@@ -330,7 +330,7 @@ make one.</p>
 
                             <tr>
                                 <td class="col-md-4">
-                                    <div class="io-line">Defined in <a href="" data-line="19" class="link-to-prism">src/app/features/search/search.ts:19</a></div>
+                                    <div class="io-line">Defined in <a href="" data-line="20" class="link-to-prism">src/app/features/search/search.ts:20</a></div>
                                 </td>
                             </tr>
 
@@ -341,7 +341,8 @@ make one.</p>
 
 
     <div class="tab-pane fade  tab-source-code" id="source">
-        <pre class="line-numbers compodoc-sourcecode"><code class="language-typescript">import { Component, computed, inject, signal } from &#x27;@angular/core&#x27;;
+        <pre class="line-numbers compodoc-sourcecode"><code class="language-typescript">import { DOCUMENT } from &#x27;@angular/common&#x27;;
+import { Component, OnDestroy, computed, inject, signal } from &#x27;@angular/core&#x27;;
 import { FormsModule } from &#x27;@angular/forms&#x27;;
 
 import { Citation, Machine, QueryAnswer } from &#x27;../../core/api/api.types&#x27;;
@@ -379,9 +380,12 @@ export interface AnswerSegment {
   templateUrl: &#x27;./search.html&#x27;,
   styleUrl: &#x27;./search.css&#x27;,
 })
-export class Search {
+export class Search implements OnDestroy {
   private readonly api &#x3D; inject(MaintenanceApiService);
   private readonly i18n &#x3D; inject(I18nService);
+  // Injected rather than reached for as a global: it is the seam a test uses to drive the
+  // popup-blocked path without opening real windows.
+  private readonly document &#x3D; inject(DOCUMENT);
 
   protected readonly t &#x3D; this.i18n.t;
 
@@ -394,6 +398,14 @@ export class Search {
   protected readonly asking &#x3D; signal(false);
   protected readonly failure &#x3D; signal&lt;ApiFailure | null&gt;(null);
   protected readonly validation &#x3D; signal&lt;&#x27;question&#x27; | &#x27;machine&#x27; | null&gt;(null);
+
+  /** The protocol whose document is being fetched, so that one link can show it is working. */
+  protected readonly openingId &#x3D; signal&lt;string | null&gt;(null);
+  /** Why opening a source failed — reported separately from a failed question. */
+  protected readonly documentFailure &#x3D; signal&lt;ApiFailure | null&gt;(null);
+
+  /** Object URLs still alive, so none is leaked when the component goes away. */
+  private readonly objectUrls &#x3D; new Set&lt;string&gt;();
 
   /**
    * The answer text split into prose and citation markers.
@@ -425,6 +437,12 @@ export class Search {
       // that looks like a plant with no machines in it.
       error: () &#x3D;&gt; this.machinesFailed.set(true),
     });
+  }
+
+  /** Anything still held when the view goes away is released now rather than at page unload. */
+  ngOnDestroy(): void {
+    this.objectUrls.forEach((objectUrl) &#x3D;&gt; URL.revokeObjectURL(objectUrl));
+    this.objectUrls.clear();
   }
 
   protected ask(): void {
@@ -460,14 +478,119 @@ export class Search {
     });
   }
 
-  protected documentUrl(protocolId: string): string {
-    return this.api.documentUrl(protocolId);
+  /**
+   * Opens the protocol behind a citation.
+   *
+   * **Why this is a handler and not an &#x60;href&#x60;.** It was an &#x60;href&#x60;, and it did not work: a
+   * browser-followed anchor is a fresh navigation that never passes through Angular&#x27;s interceptor
+   * chain, so it carries no &#x60;Authorization&#x60; header, and the backend is a stateless JWT resource
+   * server with no cookie fallback — every click answered 401. So the document is fetched by
+   * HttpClient, which the interceptor does reach, and handed to the browser as an object URL.
+   *
+   * The tab is opened **synchronously**, before the request starts, and pointed at the blob when it
+   * arrives. Opening it in the response callback instead would be an asynchronous &#x60;window.open&#x60;,
+   * which popup blockers exist to stop; this way the window is a direct consequence of the click.
+   */
+  protected openSource(protocolId: string, event?: Event): void {
+    event?.preventDefault();
+    if (this.openingId()) {
+      return;
+    }
+    this.documentFailure.set(null);
+    this.openingId.set(protocolId);
+
+    const tab &#x3D; this.document.defaultView?.open(&#x27;&#x27;, &#x27;_blank&#x27;) ?? null;
+
+    this.api.getDocument(protocolId).subscribe({
+      next: (response) &#x3D;&gt; {
+        this.openingId.set(null);
+        const blob &#x3D; response.body;
+        if (!blob) {
+          this.documentFailure.set(&#x27;generic&#x27;);
+          tab?.close();
+          return;
+        }
+        // The backend states the type and the charset; honouring it is what makes a German
+        // protocol render as text rather than download as bytes.
+        const typed &#x3D; new Blob([blob], {
+          type: response.headers.get(&#x27;Content-Type&#x27;) ?? &#x27;text/plain;charset&#x3D;UTF-8&#x27;,
+        });
+        const objectUrl &#x3D; URL.createObjectURL(typed);
+        this.trackObjectUrl(objectUrl);
+
+        if (tab) {
+          tab.location.href &#x3D; objectUrl;
+        } else {
+          // The popup was blocked anyway. A download is a worse experience than a tab and a far
+          // better one than nothing, and it needs no permission.
+          this.downloadFallback(objectUrl, filenameOf(response.headers.get(&#x27;Content-Disposition&#x27;)));
+        }
+      },
+      error: (error: unknown) &#x3D;&gt; {
+        this.openingId.set(null);
+        tab?.close();
+        this.documentFailure.set(classify(error));
+      },
+    });
+  }
+
+  /** Whether this particular source is the one currently being fetched. */
+  protected isOpening(protocolId: string): boolean {
+    return this.openingId() &#x3D;&#x3D;&#x3D; protocolId;
+  }
+
+  /**
+   * Object URLs pin their blob in memory until revoked, so a technician clicking through six
+   * sources would otherwise leave six documents allocated for the life of the tab. Revoking
+   * immediately is not an option — the new tab has not finished reading it yet — so each is held
+   * briefly and then released.
+   */
+  private trackObjectUrl(objectUrl: string): void {
+    this.objectUrls.add(objectUrl);
+    setTimeout(() &#x3D;&gt; {
+      URL.revokeObjectURL(objectUrl);
+      this.objectUrls.delete(objectUrl);
+    }, OBJECT_URL_TTL_MS);
+  }
+
+  private downloadFallback(objectUrl: string, filename: string): void {
+    const anchor &#x3D; this.document.createElement(&#x27;a&#x27;);
+    anchor.href &#x3D; objectUrl;
+    anchor.download &#x3D; filename;
+    anchor.click();
   }
 
   /** Percent, rounded — a reader compares 69 % with 56 %, not 0.6896 with 0.5566. */
   protected similarityPercent(citation: Citation): number {
     return Math.round(citation.similarity * 100);
   }
+}
+
+/**
+ * How long an object URL is kept alive after the tab has been pointed at it.
+ *
+ * Long enough for a slow tab to load it, short enough that clicking through a source list does not
+ * accumulate blobs. Revoking on the new tab&#x27;s load event would be tighter, but a cross-document
+ * object URL gives no reliable load signal to the opener.
+ */
+const OBJECT_URL_TTL_MS &#x3D; 60_000;
+
+/** The readable filename the backend put in &#x60;Content-Disposition&#x60;, for the download fallback. */
+export function filenameOf(contentDisposition: string | null): string {
+  if (!contentDisposition) {
+    return &#x27;protokoll.txt&#x27;;
+  }
+  // The UTF-8 form first: the backend sends both, and it is the one that survives umlauts.
+  const encoded &#x3D; /filename\*&#x3D;UTF-8&#x27;&#x27;([^;]+)/i.exec(contentDisposition);
+  if (encoded) {
+    try {
+      return decodeURIComponent(encoded[1]);
+    } catch {
+      // A malformed header is not worth failing a download over.
+    }
+  }
+  const plain &#x3D; /filename&#x3D;&quot;?([^&quot;;]+)&quot;?/i.exec(contentDisposition);
+  return plain ? plain[1] : &#x27;protokoll.txt&#x27;;
 }
 
 /**

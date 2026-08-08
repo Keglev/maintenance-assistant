@@ -1,11 +1,30 @@
-import { Component, effect, inject } from '@angular/core';
+import { Component, effect, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 
 import { AuthService } from '../../core/auth/auth.service';
+import { Dictionary } from '../../core/i18n/dictionary';
 import { I18nService } from '../../core/i18n/i18n.service';
 
 /** The demo accounts, exactly as the realm ships them (DECISIONS.txt). */
 export const DEMO_PASSWORD = 'demo1234';
+
+/**
+ * One demo account, as the landing page offers it.
+ *
+ * The username is the realm's and is never translated — it is what Keycloak matches and what the
+ * visitor would otherwise type. Only the description comes from the dictionary.
+ */
+export interface DemoUser {
+  readonly username: string;
+  readonly describe: (t: Dictionary) => string;
+}
+
+export const DEMO_USERS: readonly DemoUser[] = [
+  { username: 'operator', describe: (t) => t.demo.operator },
+  { username: 'techniker', describe: (t) => t.demo.techniker },
+  { username: 'schichtleiter', describe: (t) => t.demo.schichtleiter },
+  { username: 'admin', describe: (t) => t.demo.admin },
+];
 
 /**
  * The logged-out landing page: what this is, why it exists, and how to try it.
@@ -30,8 +49,16 @@ export class Landing {
 
   protected readonly t = this.i18n.t;
   protected readonly demoPassword = DEMO_PASSWORD;
+  protected readonly demoUsers = DEMO_USERS;
+
+  /** Set when this tab arrived here from a sign-out, so the landing page can confirm it happened. */
+  protected readonly signedOut = signal(false);
 
   constructor() {
+    // Read once, on arrival, and cleared as it is read: a "you have been signed out" that reappeared
+    // on every later visit would stop meaning anything.
+    this.signedOut.set(this.auth.consumeSignedOutNotice());
+
     // Someone who is already signed in has no business on the pitch; they came to ask a question.
     effect(() => {
       if (this.auth.isAuthenticated()) {
@@ -43,8 +70,12 @@ export class Landing {
   /**
    * Starts the redirect to Keycloak on an explicit click rather than on load: an automatic redirect
    * turns any transient Keycloak error into a loop the visitor cannot escape.
+   *
+   * With a username it is the same redirect carrying `login_hint`, so Keycloak prefills the field
+   * and the visitor only types the password. It is emphatically not a one-click login: see
+   * DECISIONS.txt on why the password grant and a credential-filling login theme were both rejected.
    */
-  protected signIn(): void {
-    this.auth.login();
+  protected signIn(username?: string): void {
+    this.auth.login(username);
   }
 }

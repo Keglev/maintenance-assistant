@@ -13,6 +13,7 @@ import { Landing } from './landing';
  */
 describe('Landing', () => {
   let login: ReturnType<typeof vi.fn>;
+  let consumeSignedOutNotice: ReturnType<typeof vi.fn>;
   let authenticated: boolean;
 
   /** Configures the module with a stubbed identity, without creating the component yet. */
@@ -24,7 +25,7 @@ describe('Landing', () => {
         provideRouter([]),
         {
           provide: AuthService,
-          useValue: { isAuthenticated: () => authenticated, login },
+          useValue: { isAuthenticated: () => authenticated, login, consumeSignedOutNotice },
         },
       ],
     }).compileComponents();
@@ -40,6 +41,7 @@ describe('Landing', () => {
 
   beforeEach(() => {
     login = vi.fn();
+    consumeSignedOutNotice = vi.fn().mockReturnValue(false);
     authenticated = false;
     localStorage.clear();
   });
@@ -95,6 +97,68 @@ describe('Landing', () => {
     expect(element.textContent).toContain('E-47');
     expect(element.textContent).toContain('FB-04');
     expect(element.textContent).toContain('AB-02');
+  });
+
+  it('starts the normal redirect with a login_hint for a demo user', async () => {
+    const fixture = await render();
+    const element = fixture.nativeElement as HTMLElement;
+
+    const button = element.querySelector(
+      '[data-testid="sign-in-as"][data-user="techniker"]',
+    ) as HTMLButtonElement;
+    button.click();
+
+    // A hint on the standard Auth Code + PKCE request, nothing else: Keycloak prefills the username
+    // and the visitor types the password there. The password grant and a credential-filling login
+    // theme were both considered and rejected (DECISIONS.txt).
+    expect(login).toHaveBeenCalledWith('techniker');
+  });
+
+  it('keeps a generic sign-in for anyone with their own account', async () => {
+    const fixture = await render();
+
+    (
+      (fixture.nativeElement as HTMLElement).querySelector(
+        '[data-testid="sign-in-demo"]',
+      ) as HTMLButtonElement
+    ).click();
+
+    expect(login).toHaveBeenCalledWith(undefined);
+  });
+
+  it('frames the public password as a designed demo boundary', async () => {
+    const fixture = await render();
+    const element = fixture.nativeElement as HTMLElement;
+
+    // A password printed on a public page has to read as a boundary rather than as a credential
+    // somebody forgot to remove.
+    const boundary = element.querySelector('[data-testid="demo-boundary"]')?.textContent ?? '';
+    expect(boundary).toContain('isolierter Realm');
+    expect(boundary).toContain('synthetische Daten');
+    expect(boundary).toContain('15 Minuten');
+  });
+
+  it('confirms a sign-out that just happened, and lets it be dismissed', async () => {
+    consumeSignedOutNotice.mockReturnValue(true);
+    const fixture = await render();
+    const element = fixture.nativeElement as HTMLElement;
+
+    expect(element.querySelector('[data-testid="signed-out-notice"]')?.textContent).toContain(
+      'Sie wurden abgemeldet.',
+    );
+
+    (element.querySelector('[data-testid="signed-out-dismiss"]') as HTMLButtonElement).click();
+    await fixture.whenStable();
+
+    expect(element.querySelector('[data-testid="signed-out-notice"]')).toBeNull();
+  });
+
+  it('shows no sign-out notice to a visitor who simply arrived', async () => {
+    const fixture = await render();
+
+    expect(
+      (fixture.nativeElement as HTMLElement).querySelector('[data-testid="signed-out-notice"]'),
+    ).toBeNull();
   });
 
   it('states the problem before the technology', async () => {

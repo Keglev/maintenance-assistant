@@ -1,4 +1,21 @@
 <div class="page landing">
+  @if (signedOut()) {
+    <!-- Dismissible and not an error: signing out is something the user asked for, and the page
+         behind it already offers the way back in. -->
+    <div class="notice notice-info signed-out" role="status" data-testid="signed-out-notice">
+      <span>{{ t().signOut.notice }}</span>
+      <button
+        type="button"
+        class="link-button"
+        data-testid="signed-out-dismiss"
+        [attr.aria-label]="t().signOut.dismiss"
+        (click)="signedOut.set(false)"
+      >
+        {{ t().common.close }}
+      </button>
+    </div>
+  }
+
   <section class="hero">
     <div class="hero-copy">
       <p class="eyebrow">{{ t().appTagline }}</p>
@@ -59,20 +76,30 @@
     <h2 class="section-title" id="demo-heading">{{ t().landing.demoHeading }}</h2>
     <p class="caption">{{ t().landing.demoIntro }}</p>
 
+    <!-- Says what kind of environment this is. A password printed on a public page has to read as a
+         designed boundary — isolated realm, synthetic data, rate limits, short sessions — rather
+         than as a credential somebody forgot to remove. -->
+    <p class="caption demo-boundary" data-testid="demo-boundary">{{ t().landing.demoBoundary }}</p>
+
     <ul class="users">
-      <!-- The usernames are the realm's and are not translated: they are what gets typed in. -->
-      <li>
-        <code class="user">operator</code><span>{{ t().demo.operator }}</span>
-      </li>
-      <li>
-        <code class="user">techniker</code><span>{{ t().demo.techniker }}</span>
-      </li>
-      <li>
-        <code class="user">schichtleiter</code><span>{{ t().demo.schichtleiter }}</span>
-      </li>
-      <li>
-        <code class="user">admin</code><span>{{ t().demo.admin }}</span>
-      </li>
+      <!-- The usernames are the realm's and are not translated: they are what Keycloak matches. -->
+      @for (user of demoUsers; track user.username) {
+        <li>
+          <!-- login_hint on the normal Auth Code + PKCE redirect: Keycloak prefills the username and
+               the visitor types only the password. The password never passes through this
+               application, which is exactly what the rejected alternatives would have changed. -->
+          <button
+            type="button"
+            class="btn btn-secondary btn-demo"
+            data-testid="sign-in-as"
+            [attr.data-user]="user.username"
+            (click)="signIn(user.username)"
+          >
+            {{ t().landing.signInAs(user.username) }}
+          </button>
+          <span>{{ user.describe(t()) }}</span>
+        </li>
+      }
     </ul>
 
     <p class="password">
@@ -80,6 +107,7 @@
       <code class="user" data-testid="demo-password">{{ demoPassword }}</code>
     </p>
 
+    <!-- The generic button stays for anyone bringing their own account. -->
     <button type="button" class="btn btn-primary" data-testid="sign-in-demo" (click)="signIn()">
       {{ t().landing.signIn }}
     </button>

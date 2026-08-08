@@ -157,10 +157,36 @@
 .users li {
   display: flex;
   flex-wrap: wrap;
-  align-items: baseline;
+  align-items: center;
   gap: var(--s-2) var(--s-3);
   font-size: var(--t-sm);
   color: var(--c-ink-muted);
+}
+
+.demo-boundary {
+  margin: 0 0 var(--s-4);
+  max-width: var(--read-max);
+}
+
+/* One width for all four, so the buttons form a column and the descriptions line up beside them —
+   on a tablet these are the four largest tap targets on the page. */
+.btn-demo {
+  flex-shrink: 0;
+  min-width: 15rem;
+  justify-content: flex-start;
+  font-family: var(--font-mono);
+  font-size: var(--t-sm);
+}
+
+/* --- The signed-out notice ----------------------------------------------- */
+
+.signed-out {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-3);
+  margin-bottom: var(--s-5);
 }
 
 .user {
@@ -226,6 +252,12 @@
   }
 
   .hero-cta {
+    width: 100%;
+  }
+
+  /* Full width so the four demo logins stack as four unmistakable targets rather than four buttons
+     with a description wrapped awkwardly beside each. */
+  .btn-demo {
     width: 100%;
   }
 }

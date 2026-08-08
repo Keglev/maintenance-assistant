@@ -30,6 +30,11 @@ export interface DemoExample {
 export interface Dictionary {
   readonly appTitle: string;
   readonly appTagline: string;
+  /** Labels that belong to no one view — the shared dialog shell reads them. */
+  readonly common: {
+    readonly close: string;
+    readonly cancel: string;
+  };
   readonly nav: {
     readonly search: string;
     readonly upload: string;
@@ -82,7 +87,6 @@ export interface Dictionary {
   };
   readonly help: {
     readonly title: string;
-    readonly close: string;
     readonly modesHeading: string;
     readonly modeAHeading: string;
     readonly modeABody: string;
@@ -167,6 +171,10 @@ export interface Dictionary {
 export const DE: Dictionary = {
   appTitle: 'Wartungsassistent',
   appTagline: 'Antworten aus den Protokollen Ihrer Anlage — mit Quelle.',
+  common: {
+    close: 'Schließen',
+    cancel: 'Abbrechen',
+  },
   nav: {
     search: 'Suche',
     upload: 'Protokoll hochladen',
@@ -244,7 +252,6 @@ export const DE: Dictionary = {
   },
   help: {
     title: 'Hilfe',
-    close: 'Schließen',
     modesHeading: 'Die zwei Antwortarten',
     modeAHeading: 'Modus A — Belegte Antwort (grün)',
     modeABody:
@@ -331,6 +338,10 @@ export const DE: Dictionary = {
 export const EN: Dictionary = {
   appTitle: 'Maintenance Assistant',
   appTagline: "Answers from your plant's own protocols — with the source.",
+  common: {
+    close: 'Close',
+    cancel: 'Cancel',
+  },
   nav: {
     search: 'Search',
     upload: 'Upload protocol',
@@ -411,7 +422,6 @@ export const EN: Dictionary = {
   },
   help: {
     title: 'Help',
-    close: 'Close',
     modesHeading: 'The two kinds of answer',
     modeAHeading: 'Mode A — sourced answer (green)',
     modeABody:

@@ -1,5 +1,6 @@
-<h1>{{ t().upload.heading }}</h1>
-<p class="intro">{{ t().upload.intro }}</p>
+<div class="page">
+<h1 class="page-title">{{ t().upload.heading }}</h1>
+<p class="page-lead">{{ t().upload.intro }}</p>
 
 <form class="upload-form" (ngSubmit)="submit()">
   <label class="field">
@@ -57,14 +58,20 @@
     </select>
   </label>
 
-  <button type="submit" data-testid="upload-button" [disabled]="submitting() || !file() || !machineNo()">
+  <button
+    type="submit"
+    class="btn btn-primary"
+    data-testid="upload-button"
+    [disabled]="submitting() || !file() || !machineNo()"
+    [attr.aria-busy]="submitting()"
+  >
     {{ submitting() ? t().upload.submitting : t().upload.submit }}
   </button>
 </form>
 
 @if (accepted()) {
   <!-- 202, said out loud. The protocol exists; it is not searchable yet. -->
-  <p class="notice notice-accepted" role="status" data-testid="accepted">
+  <p class="notice notice-info" role="status" data-testid="accepted">
     <strong>{{ t().upload.accepted }}</strong> {{ t().upload.acceptedHint }}
   </p>
 }
@@ -85,10 +92,16 @@
   </p>
 }
 
-<section class="uploads">
+<section class="uploads card">
   <div class="uploads-header">
-    <h2>{{ t().upload.myUploads }}</h2>
-    <button type="button" data-testid="refresh-button" [disabled]="refreshing()" (click)="refresh()">
+    <h2 class="section-title">{{ t().upload.myUploads }}</h2>
+    <button
+      type="button"
+      class="btn btn-secondary btn-sm"
+      data-testid="refresh-button"
+      [disabled]="refreshing()"
+      (click)="refresh()"
+    >
       {{ t().upload.refresh }}
     </button>
   </div>
@@ -120,7 +133,7 @@
                 <p class="failure-reason" data-testid="failure-reason">{{ upload.failureReason }}</p>
               }
             </td>
-            <td>{{ shortDate(upload.createdAt) }}</td>
+            <td class="num">{{ shortDate(upload.createdAt) }}</td>
           </tr>
         }
       </tbody>
@@ -129,3 +142,4 @@
     <p class="hint" data-testid="no-uploads">{{ t().upload.none }}</p>
   }
 </section>
+</div>

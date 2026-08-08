@@ -27,27 +27,37 @@ import org.springframework.security.web.SecurityFilterChain;
 @EnableMethodSecurity
 <span class="fc" id="L28">class SecurityConfig {</span>
 
-  /** Readable without a token: the liveness probe and the API documentation. */
-<span class="fc" id="L31">  private static final String[] PUBLIC_PATHS = {</span>
+  /**
+   * Readable without a token: the liveness probe and the API documentation.
+   *
+   * &lt;p&gt;The documentation is public by decision. A reviewer must be able to read what this API
+   * offers without first obtaining a demo login, the endpoints are read-only, and the specification
+   * describes shapes rather than data — the corpus behind it is synthetic in any case.
+   */
+<span class="fc" id="L37">  private static final String[] PUBLIC_PATHS = {</span>
     &quot;/api/health&quot;, &quot;/actuator/health&quot;, &quot;/actuator/health/**&quot;,
-    &quot;/v3/api-docs&quot;, &quot;/v3/api-docs/**&quot;, &quot;/swagger-ui.html&quot;, &quot;/swagger-ui/**&quot;
+    &quot;/v3/api-docs&quot;, &quot;/v3/api-docs/**&quot;, &quot;/swagger-ui&quot;, &quot;/swagger-ui.html&quot;, &quot;/swagger-ui/**&quot;
   };
 
   @Bean
   SecurityFilterChain securityFilterChain(HttpSecurity http, JwtAuthenticationConverter converter)
       throws Exception {
-<span class="fc" id="L39">    return http</span>
+<span class="fc" id="L45">    return http</span>
         // No cookies, no sessions: every request carries its own bearer token, so there is no
         // session for a cross-site request to ride on and CSRF protection buys nothing.
-<span class="fc" id="L42">        .csrf(csrf -&gt; csrf.disable())</span>
-<span class="fc" id="L43">        .sessionManagement(session -&gt; session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))</span>
-<span class="fc" id="L44">        .authorizeHttpRequests(auth -&gt; auth</span>
-<span class="fc" id="L45">            .requestMatchers(HttpMethod.GET, PUBLIC_PATHS).permitAll()</span>
-<span class="fc" id="L46">            .anyRequest().authenticated())</span>
+<span class="fc" id="L48">        .csrf(csrf -&gt; csrf.disable())</span>
+<span class="fc" id="L49">        .sessionManagement(session -&gt; session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))</span>
+<span class="fc" id="L50">        .authorizeHttpRequests(auth -&gt; auth</span>
+<span class="fc" id="L51">            .requestMatchers(HttpMethod.GET, PUBLIC_PATHS).permitAll()</span>
+            // Everything else, including a path no handler serves, answers 401 rather than 404.
+            // That is authorization running before dispatch, and it is the behaviour to keep: an
+            // anonymous caller learns nothing about which paths exist. It is also what made the
+            // missing /swagger-ui mapping look like a permission problem.
+<span class="fc" id="L56">            .anyRequest().authenticated())</span>
         // Wired explicitly: a custom SecurityFilterChain opts out of Boot's auto-configuration,
         // so the converter bean would otherwise be ignored and roles would never arrive.
-<span class="fc" id="L49">        .oauth2ResourceServer(oauth2 -&gt; oauth2.jwt(jwt -&gt; jwt.jwtAuthenticationConverter(converter)))</span>
-<span class="fc" id="L50">        .build();</span>
+<span class="fc" id="L59">        .oauth2ResourceServer(oauth2 -&gt; oauth2.jwt(jwt -&gt; jwt.jwtAuthenticationConverter(converter)))</span>
+<span class="fc" id="L60">        .build();</span>
   }
 
   /**
@@ -57,10 +67,10 @@ import org.springframework.security.web.SecurityFilterChain;
    */
   @Bean
   JwtAuthenticationConverter jwtAuthenticationConverter() {
-<span class="fc" id="L60">    JwtAuthenticationConverter converter = new JwtAuthenticationConverter();</span>
-<span class="fc" id="L61">    converter.setJwtGrantedAuthoritiesConverter(new KeycloakRealmRoleConverter());</span>
-<span class="fc" id="L62">    converter.setPrincipalClaimName(&quot;preferred_username&quot;);</span>
-<span class="fc" id="L63">    return converter;</span>
+<span class="fc" id="L70">    JwtAuthenticationConverter converter = new JwtAuthenticationConverter();</span>
+<span class="fc" id="L71">    converter.setJwtGrantedAuthoritiesConverter(new KeycloakRealmRoleConverter());</span>
+<span class="fc" id="L72">    converter.setPrincipalClaimName(&quot;preferred_username&quot;);</span>
+<span class="fc" id="L73">    return converter;</span>
   }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

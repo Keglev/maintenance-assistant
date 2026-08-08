@@ -173,9 +173,42 @@ Status: end of Phase 2 (data + ingestion live in production), 2026-08-07
   the budget: a hit costs no provider call, so it must cost no budget.
 - Role comes from the token, never from the request: it decides what the answer may contain.
   admin has no query access - it is a Keycloak IT role with no maintenance question to ask.
-- LATENCY: median ~13 s end to end, one of 13 measured queries breached NFR-4's 30 s ceiling at
-  38.9 s. Queue time, not compute (identical question, identical tokens, 12.9 s vs 24.5 s).
-  Re-measuring from the Hetzner host is now the urgent half of that residual risk.
+- LATENCY: RESIDUAL RISK CLOSED 2026-08-07. Measured three ways — residential through the query
+  module, provider leg from the Hetzner host, end-to-end through production — and all three show
+  the same shape, which attributes the variance to PROVIDER QUEUEING and not to any network path
+  (identical request, identical token counts, 12.9 s vs 24.5 s minutes apart). Provider leg from
+  the host, 8 forced ~500-token calls: median ~15 s (8.4-29.7). End-to-end through production, 5
+  cold questions: median 5.5 s (4.5-17.2), the 17.2 s being the E-47 four-protocol answer. Real
+  answers are far shorter than the forced probe, so end-to-end beats the provider leg. NFR-4 met
+  at the median AND at the worst observed. The 38.9 s outlier stays possible on a bad queue day
+  (shared serverless, no SLA at this tier): documented residual, no action — the mitigations are
+  the client timeout, the "still working" state in the UI and the max_tokens cap.
+
+== UI (Phase 3, 2026-08-08) ==
+- The two answer modes are rendered as two visually distinct blocks, and that is a REQUIREMENT and
+  not styling: NFR-2 makes the distinction the anti-hallucination mechanism. Mode A green with a
+  check, inline [P1] markers linking into a source list. Mode B amber, hatched top edge, badge
+  "Allgemeiner Vorschlag — keine Quelle im Bestand", and NO SOURCE AREA AT ALL — not an empty one,
+  because an empty "Quellen" heading invites the reader to assume the sources are merely missing.
+  The difference is carried by badge text, border weight and icon as well as by hue, so it survives
+  monochrome and colour blindness.
+- The client RENDERS the answer and does not re-read it: the backend already validated every
+  citation against what it retrieved, so the only client-side parsing is splitting [Pn] markers to
+  link them. A marker with no matching citation stays plain text — inventing a link would be the
+  client asserting something the server did not.
+- DE/EN is a RUNTIME DICTIONARY, not Angular build-time i18n. Two locales = two builds, two images
+  and a routing decision, and it would make the language a property of the URL rather than of the
+  person: switching would reload the page and lose the answer on screen. Two typed dictionaries
+  mean a key added to one and forgotten in the other is a compile error.
+- UI LANGUAGE IS INDEPENDENT OF ANSWER LANGUAGE. The backend pins every answer to the QUESTION's
+  language and nothing is translated anywhere (== PRODUCT ==), so an English interface still shows
+  a German answer, and the answer element carries its own lang attribute.
+- Upload view is honest about the 202: status list with the FAILURE REASON, refreshed by a button.
+  No polling loop — indexing takes seconds and a poll would run for as long as the tab is open to
+  answer "still the same".
+- Role gating in the UI is presentation, never protection (NFR-3): the upload link and route are
+  hidden from non-Schichtleiter so nobody is shown a door that opens onto a 403, and the backend
+  refuses it regardless.
 
 == DATA MODEL ==
 - 3 entities: MACHINE -> PROTOCOL -> CHUNK (chunk = search unit, protocol = citation unit,

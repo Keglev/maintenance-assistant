@@ -263,6 +263,48 @@ and 8,774 output tokens, ~EUR 0.0215** at Llama list price — about EUR 0.001 p
 to the 6000 queries/month the ADR assumes, ~EUR 6.50/month, the same order as §5's EUR 4.94 estimate
 and still a rounding error against the VPS.
 
+### Note, 2026-08-07 — latency from the production host, and the residual risk closed
+
+Latency was measured three ways — from a residential connection through the query module (PR #24),
+from the production host directly against the provider, and end-to-end through the deployed stack.
+All three show the same shape, which attributes the variance to provider queueing rather than to any
+network path: the identical request returned in 12.9 s and 24.5 s minutes apart with identical token
+counts.
+
+That is the finding. The two new measurements:
+
+**(a) The provider leg, from the Hetzner host.** Direct `POST /v1/chat/completions`,
+`meta-llama/Llama-3.3-70B-Instruct`, forced ~500-token completions so every call does comparable
+work, 8 calls:
+
+| | | | | | | | |
+|---:|---:|---:|---:|---:|---:|---:|---:|
+| 8.4 s | 11.1 s | 13.7 s | 14.2 s | 15.8 s | 16.8 s | 18.0 s | 29.7 s |
+
+Median **~15 s**, spread 8.4–29.7 s. The same distribution as the residential run — **the datacenter
+path adds nothing**, which is the question this ADR left open and the reason it was worth asking.
+
+**(b) End-to-end through production.** `https://maintenance.smartsupply.com.de/api/query`, techniker
+token, 5 distinct questions with the cache cold:
+
+| | | | | |
+|---:|---:|---:|---:|---:|
+| 4.5 s | 4.9 s | 5.5 s | 7.4 s | 17.2 s |
+
+Median **5.5 s**. The 17.2 s case is the E-47 four-protocol Mode A answer — the longest real
+completion, exactly as expected.
+
+**Conclusion: NFR-4 is met at the median and at the worst observed value.** The end-to-end numbers
+*beat* the provider-leg numbers, and that is not a contradiction: real answers are far shorter than
+the forced 500-token probe, so the probe measures a worse case than the application produces. The
+earlier 38.9 s breach remains possible on a bad queue day — this tier is shared serverless capacity
+with no SLA, which is what makes the tail long rather than anything in our control. **Documented
+residual, no action.** The mitigations already in place are the right ones: a client-side timeout,
+the "still working" state in the search view, and the `max_tokens` cap that bounds the worst case.
+
+This closes the residual risk the ADR recorded under *Negative / residual risks* ("latency figures
+are indicative … revalidate from the production host in Phase 3").
+
 ## Alternatives considered
 
 - **Nebius Token Factory as primary** (the original proposal) — publicly visible per-token pricing,

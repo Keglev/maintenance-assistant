@@ -1,0 +1,158 @@
+.intro {
+  margin-top: 0;
+  color: #5c6672;
+}
+
+.upload-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  max-width: 34rem;
+  margin-bottom: 1.5rem;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.field-label {
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.optional {
+  font-weight: 400;
+  color: #6b747f;
+}
+
+.upload-form input[type='text'],
+.upload-form select {
+  padding: 0.5rem;
+  border: 1px solid #b9b9b9;
+  border-radius: 4px;
+  font: inherit;
+  background: #fff;
+}
+
+.upload-form button {
+  align-self: flex-start;
+  padding: 0.6rem 1.2rem;
+  border: 0;
+  border-radius: 4px;
+  background: #1f4b8f;
+  color: #fff;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.upload-form button[disabled] {
+  background: #8a9bb5;
+  cursor: not-allowed;
+}
+
+.notice {
+  max-width: 44rem;
+  margin: 0 0 1.5rem;
+  padding: 0.6rem 0.85rem;
+  border-radius: 4px;
+  font-size: 0.9rem;
+}
+
+/* Accepted, not finished. Blue rather than green: green would read as "done and searchable". */
+.notice-accepted {
+  background: #eef4fc;
+  border: 1px solid #b7cceb;
+  color: #1f4b8f;
+}
+
+.notice-error {
+  background: #fdecec;
+  border: 1px solid #e0b4b4;
+  color: #7a1f1f;
+}
+
+.uploads-header {
+  display: flex;
+  align-items: baseline;
+  gap: 1rem;
+}
+
+.uploads-header h2 {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.uploads-header button {
+  padding: 0.3rem 0.75rem;
+  border: 1px solid #b9b9b9;
+  border-radius: 4px;
+  background: #fff;
+  font: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.hint {
+  margin: 0.25rem 0 0.75rem;
+  font-size: 0.85rem;
+  color: #5c6672;
+}
+
+.uploads-table {
+  border-collapse: collapse;
+  width: 100%;
+  max-width: 52rem;
+  font-size: 0.9rem;
+}
+
+.uploads-table th,
+.uploads-table td {
+  text-align: left;
+  padding: 0.5rem 0.6rem;
+  border-bottom: 1px solid #e4e6e9;
+  vertical-align: top;
+}
+
+.upload-machine {
+  display: inline-block;
+  margin-right: 0.4rem;
+  padding: 0.05rem 0.3rem;
+  border-radius: 3px;
+  background: #eef1f5;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.status {
+  display: inline-block;
+  padding: 0.1rem 0.45rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+/* The three states of the lifecycle, told apart by wording as well as by colour. */
+.status-received {
+  background: #eef4fc;
+  color: #1f4b8f;
+}
+
+.status-indexed {
+  background: #e9f5ec;
+  color: #1d5c31;
+}
+
+.status-failed {
+  background: #fdecec;
+  color: #7a1f1f;
+}
+
+.failure-reason {
+  margin: 0.3rem 0 0;
+  font-size: 0.8rem;
+  color: #7a1f1f;
+  word-break: break-word;
+}

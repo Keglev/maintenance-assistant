@@ -131,21 +131,28 @@ class QueryController {
 
     /**
      * 503 for both "no budget left today" and "the provider is not answering". Different causes,
-     * the same thing for the caller: correct answers are temporarily unavailable, and the honest
+     * the same status: correct answers are temporarily unavailable either way, and the honest
      * response is to say so rather than to serve an ungrounded one.
+     *
+     * <p>They differ in the one field a client can act on. {@code reason} is a stable code, not
+     * prose: to a person, "today's limit" means come back tomorrow and "provider unreachable" means
+     * try again in a minute, and a UI that showed one sentence for both would make a spent budget
+     * look like an outage. A code rather than a message match, because matching on English prose
+     * from another layer breaks the first time someone rewords it.
      */
     @ExceptionHandler(QueryService.BudgetExhaustedException.class)
     @ResponseStatus(HttpStatus.SERVICE_UNAVAILABLE)
     Map<String, String> onBudgetExhausted(QueryService.BudgetExhaustedException e) {
-        return Map.of("error",
-                "The assistant has reached today's answer limit. Retrieval and upload still work; "
-                        + "answering resumes tomorrow.",
+        return Map.of(
+                "reason", "BUDGET_EXHAUSTED",
+                "error", "The assistant has reached today's answer limit. Retrieval and upload still "
+                        + "work; answering resumes tomorrow.",
                 "detail", e.getMessage());
     }
 
     @ExceptionHandler(QueryService.ProviderUnavailableException.class)
     @ResponseStatus(HttpStatus.SERVICE_UNAVAILABLE)
     Map<String, String> onProviderUnavailable(QueryService.ProviderUnavailableException e) {
-        return Map.of("error", e.getMessage());
+        return Map.of("reason", "PROVIDER_UNAVAILABLE", "error", e.getMessage());
     }
 }

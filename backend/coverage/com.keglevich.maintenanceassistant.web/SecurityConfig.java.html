@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SecurityConfig.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">maintenance-assistant</a> &gt; <a href="index.source.html" class="el_package">com.keglevich.maintenanceassistant.web</a> &gt; <span class="el_source">SecurityConfig.java</span></div><h1>SecurityConfig.java</h1><pre class="source lang-java linenums">package com.keglevich.maintenanceassistant.web;
 
+import jakarta.servlet.DispatcherType;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -25,7 +26,7 @@ import org.springframework.security.web.SecurityFilterChain;
 // which role may upload a protocol or run a backlog is stated on the method that does it, next to
 // the code it guards, rather than as a path pattern that drifts away from the handler.
 @EnableMethodSecurity
-<span class="fc" id="L28">class SecurityConfig {</span>
+<span class="fc" id="L29">class SecurityConfig {</span>
 
   /**
    * Readable without a token: the liveness probe and the API documentation.
@@ -34,30 +35,56 @@ import org.springframework.security.web.SecurityFilterChain;
    * offers without first obtaining a demo login, the endpoints are read-only, and the specification
    * describes shapes rather than data — the corpus behind it is synthetic in any case.
    */
-<span class="fc" id="L37">  private static final String[] PUBLIC_PATHS = {</span>
+<span class="fc" id="L38">  private static final String[] PUBLIC_PATHS = {</span>
     &quot;/api/health&quot;, &quot;/actuator/health&quot;, &quot;/actuator/health/**&quot;,
-    &quot;/v3/api-docs&quot;, &quot;/v3/api-docs/**&quot;, &quot;/swagger-ui&quot;, &quot;/swagger-ui.html&quot;, &quot;/swagger-ui/**&quot;
+    &quot;/v3/api-docs&quot;, &quot;/v3/api-docs/**&quot;,
+    // All three spellings of the entry point. `/swagger-ui/**` does not cover the bare path, and
+    // a trailing slash is a fourth string as far as the matcher is concerned — a reader who types
+    // any of them should not be told they lack permission.
+    &quot;/swagger-ui&quot;, &quot;/swagger-ui/&quot;, &quot;/swagger-ui.html&quot;, &quot;/swagger-ui/**&quot;
   };
+
+  /**
+   * The methods that make a path &quot;readable&quot;.
+   *
+   * &lt;p&gt;GET alone was not enough, and the gap was invisible from a browser: {@code curl -I} sends
+   * HEAD, HEAD is a separate method to the matcher, and every public path — the API documentation
+   * and {@code /api/health} with it — answered 401 to it while answering a browser perfectly. Any
+   * uptime probe using HEAD would have seen a permanently unauthorised health endpoint. Both
+   * methods are safe and read-only, which is the property that makes these paths public at all.
+   */
+<span class="fc" id="L56">  private static final HttpMethod[] READ_METHODS = {HttpMethod.GET, HttpMethod.HEAD};</span>
 
   @Bean
   SecurityFilterChain securityFilterChain(HttpSecurity http, JwtAuthenticationConverter converter)
       throws Exception {
-<span class="fc" id="L45">    return http</span>
+<span class="fc" id="L61">    return http</span>
         // No cookies, no sessions: every request carries its own bearer token, so there is no
         // session for a cross-site request to ride on and CSRF protection buys nothing.
-<span class="fc" id="L48">        .csrf(csrf -&gt; csrf.disable())</span>
-<span class="fc" id="L49">        .sessionManagement(session -&gt; session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))</span>
-<span class="fc" id="L50">        .authorizeHttpRequests(auth -&gt; auth</span>
-<span class="fc" id="L51">            .requestMatchers(HttpMethod.GET, PUBLIC_PATHS).permitAll()</span>
-            // Everything else, including a path no handler serves, answers 401 rather than 404.
-            // That is authorization running before dispatch, and it is the behaviour to keep: an
-            // anonymous caller learns nothing about which paths exist. It is also what made the
-            // missing /swagger-ui mapping look like a permission problem.
-<span class="fc" id="L56">            .anyRequest().authenticated())</span>
+<span class="fc" id="L64">        .csrf(csrf -&gt; csrf.disable())</span>
+<span class="fc" id="L65">        .sessionManagement(session -&gt; session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))</span>
+<span class="fc" id="L66">        .authorizeHttpRequests(auth -&gt; {</span>
+          // An error dispatch is not a request a caller made; it is the container reporting what
+          // became of one. Guarding it rewrote every 404 on a PERMITTED path into a 401, which is
+          // how a missing mapping kept reading as a permission problem. Measured, in a real
+          // container: /swagger-ui/ answered 401 with this line absent and 404 with it present.
+          // Nothing is exposed — the error body carries neither message nor stack trace
+          // (spring.web.error.*) — and a path that is not permitted is still refused before
+          // dispatch, so this widens nothing. MockMvc cannot see any of it: it performs no error
+          // dispatch, which is why the suite missed this twice.
+<span class="fc" id="L75">          auth.dispatcherTypeMatchers(DispatcherType.ERROR).permitAll();</span>
+<span class="fc bfc" id="L76" title="All 2 branches covered.">          for (HttpMethod method : READ_METHODS) {</span>
+<span class="fc" id="L77">            auth.requestMatchers(method, PUBLIC_PATHS).permitAll();</span>
+          }
+          // Everything else, including a path no handler serves, answers 401 rather than 404.
+          // That is authorization running before dispatch, and it is the behaviour to keep: an
+          // anonymous caller learns nothing about which paths exist.
+<span class="fc" id="L82">          auth.anyRequest().authenticated();</span>
+<span class="fc" id="L83">        })</span>
         // Wired explicitly: a custom SecurityFilterChain opts out of Boot's auto-configuration,
         // so the converter bean would otherwise be ignored and roles would never arrive.
-<span class="fc" id="L59">        .oauth2ResourceServer(oauth2 -&gt; oauth2.jwt(jwt -&gt; jwt.jwtAuthenticationConverter(converter)))</span>
-<span class="fc" id="L60">        .build();</span>
+<span class="fc" id="L86">        .oauth2ResourceServer(oauth2 -&gt; oauth2.jwt(jwt -&gt; jwt.jwtAuthenticationConverter(converter)))</span>
+<span class="fc" id="L87">        .build();</span>
   }
 
   /**
@@ -67,10 +94,10 @@ import org.springframework.security.web.SecurityFilterChain;
    */
   @Bean
   JwtAuthenticationConverter jwtAuthenticationConverter() {
-<span class="fc" id="L70">    JwtAuthenticationConverter converter = new JwtAuthenticationConverter();</span>
-<span class="fc" id="L71">    converter.setJwtGrantedAuthoritiesConverter(new KeycloakRealmRoleConverter());</span>
-<span class="fc" id="L72">    converter.setPrincipalClaimName(&quot;preferred_username&quot;);</span>
-<span class="fc" id="L73">    return converter;</span>
+<span class="fc" id="L97">    JwtAuthenticationConverter converter = new JwtAuthenticationConverter();</span>
+<span class="fc" id="L98">    converter.setJwtGrantedAuthoritiesConverter(new KeycloakRealmRoleConverter());</span>
+<span class="fc" id="L99">    converter.setPrincipalClaimName(&quot;preferred_username&quot;);</span>
+<span class="fc" id="L100">    return converter;</span>
   }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

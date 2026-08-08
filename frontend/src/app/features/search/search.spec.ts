@@ -5,7 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { Citation, QueryAnswer } from '../../core/api/api.types';
 import { I18nService } from '../../core/i18n/i18n.service';
-import { Search, filenameOf, toSegments } from './search';
+import { Search, toSegments } from './search';
 
 /**
  * The search view's job is to make the two answer modes impossible to confuse (NFR-2) and to say
@@ -36,6 +36,20 @@ describe('Search', () => {
     ],
     citations: [CITATION],
   };
+
+  /** A protocol shaped like the corpus, so the viewer has something real to parse. */
+  const PROTOCOL = [
+    'WARTUNGSPROTOKOLL',
+    '=================',
+    '',
+    'Maschine: PR-03',
+    'Datum: 08.10.2024',
+    '',
+    'E-47 Druckabfall im Presshub',
+    '',
+    'Symptom:',
+    'Presse kommt nicht auf Druck.',
+  ].join('\n');
 
   const MODE_B: QueryAnswer = {
     mode: 'B',
@@ -162,106 +176,70 @@ describe('Search', () => {
       expect(navigable, 'these hrefs would navigate without a token and answer 401').toEqual([]);
     });
 
-    it('fetches the document through the API service and opens the blob', async () => {
-      const opened = { location: { href: '' }, close: vi.fn() };
-      const open = vi.spyOn(window, 'open').mockReturnValue(opened as unknown as Window);
-      const createObjectURL = vi
-        .spyOn(URL, 'createObjectURL')
-        .mockReturnValue('blob:fake-object-url');
+    /**
+     * Nothing opens a tab any more, and that is the point of this suite's rework.
+     *
+     * #26 fetched the blob through HttpClient and opened it as an object URL in a new tab. The
+     * token problem it solved only existed because the document LEFT the application; the viewer
+     * dialog keeps it here, so the tab, the synchronous `window.open` ordering and the
+     * popup-blocker fallback are all gone rather than merely untested.
+     */
+    it('opens the protocol in a dialog inside the application, not in a new tab', async () => {
+      const open = vi.spyOn(window, 'open');
 
       const fixture = await render();
       const element = await ask(fixture, MODE_A);
 
       (element.querySelector('[data-testid="source-link"]') as HTMLElement).click();
-      // The request goes through HttpClient, which is the whole point: that is the path the
-      // OAuth interceptor is on.
+      await fixture.whenStable();
+
+      // The request still goes through HttpClient, which is the half of #26 that was right: that
+      // is the path the OAuth interceptor is on.
       const request = httpMock.expectOne(
         '/api/protocols/0f9c5b02-0000-4000-8000-000000000001/document',
       );
       expect(request.request.responseType).toBe('blob');
-      request.flush(new Blob(['Symptom: kein Druck'], { type: 'text/plain' }), {
+      request.flush(new Blob([PROTOCOL], { type: 'text/plain' }), {
         headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
       });
       await fixture.whenStable();
 
-      expect(createObjectURL).toHaveBeenCalled();
-      // Opened synchronously on the click, then pointed at the blob — an async window.open is
-      // what popup blockers stop.
-      expect(open).toHaveBeenCalledWith('', '_blank');
-      expect(opened.location.href).toBe('blob:fake-object-url');
-
+      expect(element.querySelector('[data-testid="protocol-dialog"]')).not.toBeNull();
+      expect(open).not.toHaveBeenCalled();
       open.mockRestore();
-      createObjectURL.mockRestore();
     });
 
-    it('opens the source from an inline citation marker too', async () => {
-      const opened = { location: { href: '' }, close: vi.fn() };
-      const open = vi.spyOn(window, 'open').mockReturnValue(opened as unknown as Window);
-      vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:fake-object-url');
-
+    it('opens the viewer from an inline citation marker too', async () => {
       const fixture = await render();
       const element = await ask(fixture, MODE_A);
 
-      // Both places link a source, so both had the defect and both are covered.
+      // Both places link a source, so both had the 401 defect and both are covered.
       (element.querySelector('[data-testid="citation-marker"]') as HTMLElement).click();
+      await fixture.whenStable();
       httpMock
         .expectOne('/api/protocols/0f9c5b02-0000-4000-8000-000000000001/document')
-        .flush(new Blob(['x'], { type: 'text/plain' }));
+        .flush(new Blob([PROTOCOL], { type: 'text/plain' }));
       await fixture.whenStable();
 
-      expect(opened.location.href).toBe('blob:fake-object-url');
-      open.mockRestore();
-      vi.restoreAllMocks();
+      expect(element.querySelector('[data-testid="protocol-dialog"]')).not.toBeNull();
     });
 
-    it('says so when the original protocol can no longer be opened', async () => {
-      const opened = { location: { href: '' }, close: vi.fn() };
-      const open = vi.spyOn(window, 'open').mockReturnValue(opened as unknown as Window);
-
-      const fixture = await render();
-      const element = await ask(fixture, MODE_A);
-
-      (element.querySelector('[data-testid="source-link"]') as HTMLElement).click();
-      httpMock
-        .expectOne('/api/protocols/0f9c5b02-0000-4000-8000-000000000001/document')
-        .flush(new Blob(), { status: 404, statusText: 'Not Found' });
-      await fixture.whenStable();
-
-      // Clicking into silence is the worst outcome: the claim above still rests on this protocol,
-      // and the reader is entitled to know the evidence is unreachable.
-      expect(element.querySelector('[data-testid="document-failure"]')?.textContent).toContain(
-        'lässt sich nicht mehr öffnen',
-      );
-      // The blank tab opened on the click is closed rather than left staring at about:blank.
-      expect(opened.close).toHaveBeenCalled();
-      open.mockRestore();
-    });
-
-    it('shows the link as busy while the document is being fetched', async () => {
-      const open = vi
-        .spyOn(window, 'open')
-        .mockReturnValue({ location: { href: '' }, close: vi.fn() } as unknown as Window);
-
+    it('names the protocol and the machine in the viewer head', async () => {
       const fixture = await render();
       const element = await ask(fixture, MODE_A);
 
       (element.querySelector('[data-testid="source-link"]') as HTMLElement).click();
       await fixture.whenStable();
-
-      // The fetch is a round trip, and on a phone it is a visible one.
-      expect(element.querySelector('[data-testid="source-opening"]')).not.toBeNull();
-      expect(element.querySelector('[data-testid="source-link"]')?.getAttribute('aria-busy')).toBe(
-        'true',
-      );
-
       httpMock
         .expectOne('/api/protocols/0f9c5b02-0000-4000-8000-000000000001/document')
-        .flush(new Blob(['x'], { type: 'text/plain' }));
+        .flush(new Blob([PROTOCOL], { type: 'text/plain' }));
       await fixture.whenStable();
 
-      expect(element.querySelector('[data-testid="source-opening"]')).toBeNull();
-      open.mockRestore();
-      vi.restoreAllMocks();
+      const dialog = element.querySelector('[data-testid="protocol-dialog"]') as HTMLElement;
+      expect(dialog.textContent).toContain('E-47 Druckabfall im Presshub');
+      expect(element.querySelector('[data-testid="protocol-machine"]')?.textContent).toContain(
+        'Presse 3',
+      );
     });
   });
 
@@ -407,19 +385,5 @@ describe('toSegments', () => {
 
   it('handles an answer with no markers at all', () => {
     expect(toSegments('Nur Text.', [citation])).toEqual([{ kind: 'text', value: 'Nur Text.' }]);
-  });
-});
-
-describe('filenameOf', () => {
-  it('prefers the UTF-8 form the backend sends alongside the plain one', () => {
-    const header =
-      'inline; filename="PR-03-Olleckage.txt"; filename*=UTF-8\'\'PR-03-%C3%96lleckage.txt';
-
-    expect(filenameOf(header)).toBe('PR-03-Ölleckage.txt');
-  });
-
-  it('falls back to the plain filename, then to a default', () => {
-    expect(filenameOf('inline; filename="PR-03-E-47.txt"')).toBe('PR-03-E-47.txt');
-    expect(filenameOf(null)).toBe('protokoll.txt');
   });
 });

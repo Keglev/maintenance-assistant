@@ -30,6 +30,11 @@ export interface DemoExample {
 export interface Dictionary {
   readonly appTitle: string;
   readonly appTagline: string;
+  /** Labels that belong to no one view — the shared dialog shell reads them. */
+  readonly common: {
+    readonly close: string;
+    readonly cancel: string;
+  };
   readonly nav: {
     readonly search: string;
     readonly upload: string;
@@ -50,6 +55,12 @@ export interface Dictionary {
     readonly aiUsage: string;
     readonly note: string;
   };
+  readonly signOut: {
+    readonly title: string;
+    readonly body: string;
+    readonly notice: string;
+    readonly dismiss: string;
+  };
   readonly landing: {
     readonly headline: string;
     readonly problem: string;
@@ -63,7 +74,11 @@ export interface Dictionary {
     readonly trustRolesBody: string;
     readonly demoHeading: string;
     readonly demoIntro: string;
+    /** What kind of environment this is, so a public password reads as a boundary and not a leak. */
+    readonly demoBoundary: string;
     readonly demoPassword: string;
+    /** "Sign in as operator" — the username is the argument, and it is never translated. */
+    readonly signInAs: (username: string) => string;
     readonly signIn: string;
     readonly signInHint: string;
     readonly plateModel: string;
@@ -82,7 +97,6 @@ export interface Dictionary {
   };
   readonly help: {
     readonly title: string;
-    readonly close: string;
     readonly modesHeading: string;
     readonly modeAHeading: string;
     readonly modeABody: string;
@@ -111,10 +125,15 @@ export interface Dictionary {
     readonly explanation: string;
     readonly sources: string;
     readonly openSource: string;
-    readonly opening: string;
     readonly similarity: string;
     readonly errorCode: string;
     readonly incidentDate: string;
+  };
+  readonly viewer: {
+    readonly title: string;
+    readonly loading: string;
+    readonly download: string;
+    readonly fallbackNote: string;
   };
   readonly modeB: {
     readonly badge: string;
@@ -167,6 +186,10 @@ export interface Dictionary {
 export const DE: Dictionary = {
   appTitle: 'Wartungsassistent',
   appTagline: 'Antworten aus den Protokollen Ihrer Anlage — mit Quelle.',
+  common: {
+    close: 'Schließen',
+    cancel: 'Abbrechen',
+  },
   nav: {
     search: 'Suche',
     upload: 'Protokoll hochladen',
@@ -187,6 +210,12 @@ export const DE: Dictionary = {
     aiUsage: 'KI-Einsatz im Projekt',
     note: 'Demo-System mit synthetischen Protokollen. Keine echten Anlagendaten.',
   },
+  signOut: {
+    title: 'Wirklich abmelden?',
+    body: 'Sie werden abgemeldet und müssen sich für die nächste Frage neu anmelden.',
+    notice: 'Sie wurden abgemeldet.',
+    dismiss: 'Hinweis ausblenden',
+  },
   landing: {
     headline: 'Wartungswissen, das nicht mit der Schicht nach Hause geht',
     problem:
@@ -205,7 +234,10 @@ export const DE: Dictionary = {
       'Bediener erhalten nur Schritte, die eine unterwiesene Person ausführen darf, samt Hinweis, wann eine Fachkraft zu holen ist.',
     demoHeading: 'Demo-Zugänge',
     demoIntro: 'Vier Benutzer, ein Passwort. Jede Rolle zeigt eine andere Sicht auf dieselben Daten.',
+    demoBoundary:
+      'Bewusst öffentliche Demo-Umgebung: eigener, isolierter Realm, ausschließlich synthetische Daten, Anfragen begrenzt, Sitzung nach 15 Minuten beendet.',
     demoPassword: 'Passwort für alle',
+    signInAs: (username) => `Als ${username} anmelden`,
     signIn: 'Anmelden',
     signInHint:
       'Die Anmeldung läuft über Keycloak. Sie werden dorthin weitergeleitet und kommen anschließend hierher zurück.',
@@ -244,7 +276,6 @@ export const DE: Dictionary = {
   },
   help: {
     title: 'Hilfe',
-    close: 'Schließen',
     modesHeading: 'Die zwei Antwortarten',
     modeAHeading: 'Modus A — Belegte Antwort (grün)',
     modeABody:
@@ -276,10 +307,16 @@ export const DE: Dictionary = {
     explanation: 'Jede Aussage stammt aus einem Protokoll aus dem Bestand und ist belegt.',
     sources: 'Quellen',
     openSource: 'Originalprotokoll öffnen',
-    opening: 'Wird geöffnet …',
     similarity: 'Übereinstimmung',
     errorCode: 'Fehlercode',
     incidentDate: 'Datum',
+  },
+  viewer: {
+    title: 'Originalprotokoll',
+    loading: 'Protokoll wird geladen …',
+    download: 'Herunterladen',
+    fallbackNote:
+      'Dieses Protokoll folgt nicht der üblichen Gliederung. Es wird unverändert angezeigt.',
   },
   modeB: {
     badge: 'Allgemeiner Vorschlag — keine Quelle im Bestand',
@@ -331,6 +368,10 @@ export const DE: Dictionary = {
 export const EN: Dictionary = {
   appTitle: 'Maintenance Assistant',
   appTagline: "Answers from your plant's own protocols — with the source.",
+  common: {
+    close: 'Close',
+    cancel: 'Cancel',
+  },
   nav: {
     search: 'Search',
     upload: 'Upload protocol',
@@ -351,6 +392,12 @@ export const EN: Dictionary = {
     aiUsage: 'AI use in this project',
     note: 'Demo system with synthetic protocols. No real plant data.',
   },
+  signOut: {
+    title: 'Sign out?',
+    body: 'You will be signed out and will have to sign in again for your next question.',
+    notice: 'You have been signed out.',
+    dismiss: 'Dismiss this notice',
+  },
   landing: {
     headline: 'Maintenance knowledge that does not go home with the shift',
     problem:
@@ -369,7 +416,10 @@ export const EN: Dictionary = {
       'Operators only get steps an instructed person may carry out, together with a note on when to call a qualified technician.',
     demoHeading: 'Demo accounts',
     demoIntro: 'Four users, one password. Each role shows a different view of the same data.',
+    demoBoundary:
+      'A deliberately public demo environment: its own isolated realm, synthetic data only, rate-limited requests, sessions ending after 15 minutes.',
     demoPassword: 'Password for all',
+    signInAs: (username) => `Sign in as ${username}`,
     signIn: 'Sign in',
     signInHint:
       'Sign-in is handled by Keycloak. You will be redirected there and returned here afterwards.',
@@ -411,7 +461,6 @@ export const EN: Dictionary = {
   },
   help: {
     title: 'Help',
-    close: 'Close',
     modesHeading: 'The two kinds of answer',
     modeAHeading: 'Mode A — sourced answer (green)',
     modeABody:
@@ -443,10 +492,16 @@ export const EN: Dictionary = {
     explanation: 'Every statement comes from a protocol in the records and is cited.',
     sources: 'Sources',
     openSource: 'Open the original protocol',
-    opening: 'Opening …',
     similarity: 'Match',
     errorCode: 'Fault code',
     incidentDate: 'Date',
+  },
+  viewer: {
+    title: 'Original protocol',
+    loading: 'Loading the protocol …',
+    download: 'Download',
+    fallbackNote:
+      'This protocol does not follow the usual structure. It is shown exactly as it is filed.',
   },
   modeB: {
     badge: 'General suggestion — no source in the records',

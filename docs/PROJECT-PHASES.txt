@@ -113,6 +113,23 @@ Config:     Flyway auto-config was DEAD on Boot 4.1 (missing
             properties moved to spring.web.error.*.
 
 OPEN ITEMS carried forward (not blockers, do not lose):
+- SUPERSEDED 2026-08-08 (feat/shopfloor-ux): the #26 BLOB-TAB MECHANISM IS
+  GONE. Citations now open an in-app viewer dialog that fetches the same
+  document through the same HttpClient call and renders it inside the
+  application. The blob: tab, the synchronous window.open ordering and the
+  popup-blocker download fallback are deleted. The reason is worth keeping
+  straight: the token-loss problem only ever existed BECAUSE the document
+  left the application, so the viewer removes the category of problem
+  instead of working around it — nothing navigates, so nothing can
+  navigate without a token. The document arrived in the browser's raw text
+  viewer, out of the app, which on the PRIMARY DEVICE (a tablet on the
+  plant WLAN, kiosk-style terminals) is somewhere hard to come back from.
+  Download is now the only object URL left, which is what they are for.
+  THE #26 LESSON ITSELF STILL STANDS AND IS NOT SUPERSEDED: anything the
+  BROWSER performs itself (anchor navigation, form action, img/src,
+  window.open of an API URL) carries no token and must be verified by
+  clicking in a browser, not with curl. So does the regression guard in
+  search.spec.ts — no rendered source link carries a raw /api href.
 - SOURCE LINKS 401'd IN THE BROWSER — found and FIXED in #26 (merged,
   deployed, and verified by a real click on 2026-08-08: the source
   opened in a new tab as a blob: URL), after PR #25 shipped them. A browser-followed <a href> is a

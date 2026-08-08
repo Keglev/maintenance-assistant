@@ -1,10 +1,10 @@
-import { DOCUMENT } from '@angular/common';
-import { Component, OnDestroy, computed, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
 import { Citation, Machine, QueryAnswer } from '../../core/api/api.types';
 import { ApiFailure, MaintenanceApiService, classify } from '../../core/api/maintenance-api.service';
 import { I18nService } from '../../core/i18n/i18n.service';
+import { ProtocolDialog } from '../../shared/protocol/protocol-dialog';
 
 /**
  * One piece of the answer text: either prose, or a citation marker that links to its source.
@@ -33,16 +33,13 @@ export interface AnswerSegment {
  */
 @Component({
   selector: 'app-search',
-  imports: [FormsModule],
+  imports: [FormsModule, ProtocolDialog],
   templateUrl: './search.html',
   styleUrl: './search.css',
 })
-export class Search implements OnDestroy {
+export class Search {
   private readonly api = inject(MaintenanceApiService);
   private readonly i18n = inject(I18nService);
-  // Injected rather than reached for as a global: it is the seam a test uses to drive the
-  // popup-blocked path without opening real windows.
-  private readonly document = inject(DOCUMENT);
 
   protected readonly t = this.i18n.t;
 
@@ -56,13 +53,14 @@ export class Search implements OnDestroy {
   protected readonly failure = signal<ApiFailure | null>(null);
   protected readonly validation = signal<'question' | 'machine' | null>(null);
 
-  /** The protocol whose document is being fetched, so that one link can show it is working. */
-  protected readonly openingId = signal<string | null>(null);
-  /** Why opening a source failed — reported separately from a failed question. */
-  protected readonly documentFailure = signal<ApiFailure | null>(null);
+  /** The citation whose protocol the viewer is showing, or null when the viewer is closed. */
+  protected readonly viewing = signal<Citation | null>(null);
 
-  /** Object URLs still alive, so none is leaked when the component goes away. */
-  private readonly objectUrls = new Set<string>();
+  /** What to call the machine in the viewer's head: the picker's own label, not an id. */
+  protected readonly machineLabel = computed(() => {
+    const machine = this.machines().find((candidate) => candidate.id === this.machineId());
+    return machine ? `${machine.machineNo} · ${machine.name}` : '';
+  });
 
   /**
    * The answer text split into prose and citation markers.
@@ -94,12 +92,6 @@ export class Search implements OnDestroy {
       // that looks like a plant with no machines in it.
       error: () => this.machinesFailed.set(true),
     });
-  }
-
-  /** Anything still held when the view goes away is released now rather than at page unload. */
-  ngOnDestroy(): void {
-    this.objectUrls.forEach((objectUrl) => URL.revokeObjectURL(objectUrl));
-    this.objectUrls.clear();
   }
 
   protected ask(): void {
@@ -136,118 +128,31 @@ export class Search implements OnDestroy {
   }
 
   /**
-   * Opens the protocol behind a citation.
+   * Opens the protocol behind a citation, in a dialog, inside the application.
    *
    * **Why this is a handler and not an `href`.** It was an `href`, and it did not work: a
    * browser-followed anchor is a fresh navigation that never passes through Angular's interceptor
    * chain, so it carries no `Authorization` header, and the backend is a stateless JWT resource
-   * server with no cookie fallback — every click answered 401. So the document is fetched by
-   * HttpClient, which the interceptor does reach, and handed to the browser as an object URL.
+   * server with no cookie fallback — every click answered 401.
    *
-   * The tab is opened **synchronously**, before the request starts, and pointed at the blob when it
-   * arrives. Opening it in the response callback instead would be an asynchronous `window.open`,
-   * which popup blockers exist to stop; this way the window is a direct consequence of the click.
+   * The first fix (#26) fetched the document through HttpClient and opened it in a new tab as an
+   * object URL. That was right about the token and wrong about the destination: it dropped the
+   * reader into the browser's raw text viewer, out of the application, which on a shop-floor tablet
+   * is somewhere hard to come back from. The viewer dialog keeps the document here, and the whole
+   * question of what a navigation carries stops applying.
+   *
+   * All this method does now is name the citation — the dialog owns the fetch, the parsing and the
+   * download.
    */
-  protected openSource(protocolId: string, event?: Event): void {
+  protected openSource(citation: Citation, event?: Event): void {
     event?.preventDefault();
-    if (this.openingId()) {
-      return;
-    }
-    this.documentFailure.set(null);
-    this.openingId.set(protocolId);
-
-    const tab = this.document.defaultView?.open('', '_blank') ?? null;
-
-    this.api.getDocument(protocolId).subscribe({
-      next: (response) => {
-        this.openingId.set(null);
-        const blob = response.body;
-        if (!blob) {
-          this.documentFailure.set('generic');
-          tab?.close();
-          return;
-        }
-        // The backend states the type and the charset; honouring it is what makes a German
-        // protocol render as text rather than download as bytes.
-        const typed = new Blob([blob], {
-          type: response.headers.get('Content-Type') ?? 'text/plain;charset=UTF-8',
-        });
-        const objectUrl = URL.createObjectURL(typed);
-        this.trackObjectUrl(objectUrl);
-
-        if (tab) {
-          tab.location.href = objectUrl;
-        } else {
-          // The popup was blocked anyway. A download is a worse experience than a tab and a far
-          // better one than nothing, and it needs no permission.
-          this.downloadFallback(objectUrl, filenameOf(response.headers.get('Content-Disposition')));
-        }
-      },
-      error: (error: unknown) => {
-        this.openingId.set(null);
-        tab?.close();
-        this.documentFailure.set(classify(error));
-      },
-    });
-  }
-
-  /** Whether this particular source is the one currently being fetched. */
-  protected isOpening(protocolId: string): boolean {
-    return this.openingId() === protocolId;
-  }
-
-  /**
-   * Object URLs pin their blob in memory until revoked, so a technician clicking through six
-   * sources would otherwise leave six documents allocated for the life of the tab. Revoking
-   * immediately is not an option — the new tab has not finished reading it yet — so each is held
-   * briefly and then released.
-   */
-  private trackObjectUrl(objectUrl: string): void {
-    this.objectUrls.add(objectUrl);
-    setTimeout(() => {
-      URL.revokeObjectURL(objectUrl);
-      this.objectUrls.delete(objectUrl);
-    }, OBJECT_URL_TTL_MS);
-  }
-
-  private downloadFallback(objectUrl: string, filename: string): void {
-    const anchor = this.document.createElement('a');
-    anchor.href = objectUrl;
-    anchor.download = filename;
-    anchor.click();
+    this.viewing.set(citation);
   }
 
   /** Percent, rounded — a reader compares 69 % with 56 %, not 0.6896 with 0.5566. */
   protected similarityPercent(citation: Citation): number {
     return Math.round(citation.similarity * 100);
   }
-}
-
-/**
- * How long an object URL is kept alive after the tab has been pointed at it.
- *
- * Long enough for a slow tab to load it, short enough that clicking through a source list does not
- * accumulate blobs. Revoking on the new tab's load event would be tighter, but a cross-document
- * object URL gives no reliable load signal to the opener.
- */
-const OBJECT_URL_TTL_MS = 60_000;
-
-/** The readable filename the backend put in `Content-Disposition`, for the download fallback. */
-export function filenameOf(contentDisposition: string | null): string {
-  if (!contentDisposition) {
-    return 'protokoll.txt';
-  }
-  // The UTF-8 form first: the backend sends both, and it is the one that survives umlauts.
-  const encoded = /filename\*=UTF-8''([^;]+)/i.exec(contentDisposition);
-  if (encoded) {
-    try {
-      return decodeURIComponent(encoded[1]);
-    } catch {
-      // A malformed header is not worth failing a download over.
-    }
-  }
-  const plain = /filename="?([^";]+)"?/i.exec(contentDisposition);
-  return plain ? plain[1] : 'protokoll.txt';
 }
 
 /**
@@ -270,9 +175,7 @@ export function toSegments(answer: string, citations: readonly Citation[]): Answ
     }
     const citation = byLabel.get(match[1].toUpperCase());
     segments.push(
-      citation
-        ? { kind: 'marker', value: match[1], citation }
-        : { kind: 'text', value: match[0] },
+      citation ? { kind: 'marker', value: match[1], citation } : { kind: 'text', value: match[0] },
     );
     lastIndex = match.index + match[0].length;
   }

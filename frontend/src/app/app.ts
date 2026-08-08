@@ -4,6 +4,7 @@ import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { AuthService } from './core/auth/auth.service';
 import { I18nService } from './core/i18n/i18n.service';
 import { UiLanguage } from './core/i18n/dictionary';
+import { Dialog } from './shared/dialog/dialog';
 import { HelpDialog } from './shared/help/help-dialog';
 
 /** Where the footer points. Fixed URLs, so they are not worth a runtime configuration lookup. */
@@ -19,7 +20,7 @@ type KnownRole = (typeof KNOWN_ROLES)[number];
 /** Application shell: header, navigation, the language switch, the footer and the routed view. */
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, HelpDialog],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, Dialog, HelpDialog],
   templateUrl: './app.html',
   styleUrl: './app.css',
 })
@@ -37,6 +38,7 @@ export class App {
   protected readonly aiUsageUrl = AI_USAGE_URL;
 
   protected readonly helpOpen = signal(false);
+  protected readonly signOutOpen = signal(false);
 
   /**
    * The role to show next to the name.
@@ -66,7 +68,15 @@ export class App {
     this.i18n.use(language);
   }
 
-  protected signOut(): void {
+  /**
+   * Signs out, once the user has said so twice.
+   *
+   * The confirmation exists for the touchscreen. "Abmelden" sits in a header toolbar next to the
+   * language switch on a device operated with work gloves, and an accidental sign-out costs a full
+   * Keycloak round trip in the middle of a fault — the one moment nobody has time for it.
+   */
+  protected confirmSignOut(): void {
+    this.signOutOpen.set(false);
     this.auth.logout();
   }
 }

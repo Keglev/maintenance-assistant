@@ -1,0 +1,94 @@
+.viewer-machine {
+  margin: var(--s-1) 0 0;
+  font-size: var(--t-sm);
+  font-family: var(--font-mono);
+  color: var(--c-ink-muted);
+}
+
+.viewer-loading {
+  margin: 0;
+  color: var(--c-ink-muted);
+}
+
+.viewer-fallback-note {
+  margin: 0 0 var(--s-3);
+}
+
+.icon {
+  width: 14px;
+  height: 14px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* --- The parsed protocol -------------------------------------------------- */
+
+/* The header block as a metadata grid: label left, value right, so machine, date and fault code are
+   scannable rather than read. Two columns on a tablet, one on a phone. */
+.protocol-meta {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: var(--s-2) var(--s-4);
+  margin: 0 0 var(--s-5);
+  padding: var(--s-4);
+  border: 1px solid var(--c-line);
+  border-radius: var(--r-sm);
+  background: var(--c-sunken);
+  font-size: var(--t-sm);
+}
+
+.protocol-meta dt {
+  font-weight: 600;
+  color: var(--c-ink-muted);
+}
+
+.protocol-meta dd {
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
+.protocol-title {
+  margin: 0 0 var(--s-5);
+  font-size: var(--t-lg);
+}
+
+.protocol-section + .protocol-section {
+  margin-top: var(--s-5);
+}
+
+.protocol-heading {
+  margin: 0 0 var(--s-2);
+  font-size: var(--t-sm);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--c-ink-muted);
+}
+
+.protocol-paragraph {
+  margin: 0;
+  max-width: var(--read-max);
+  line-height: var(--lh-relaxed);
+}
+
+.protocol-paragraph + .protocol-paragraph {
+  margin-top: var(--s-3);
+}
+
+/* The fallback. Monospace and wrapped rather than scrolling sideways: a protocol nobody could parse
+   is still meant to be read on a tablet, not dragged left and right. */
+.protocol-raw {
+  margin: 0;
+  padding: var(--s-4);
+  border: 1px solid var(--c-line);
+  border-radius: var(--r-sm);
+  background: var(--c-sunken);
+  font-family: var(--font-mono);
+  font-size: var(--t-sm);
+  line-height: var(--lh-normal);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}

@@ -85,7 +85,30 @@ describe('AuthService', () => {
     service.login();
     service.logout();
 
-    expect(oauth.initCodeFlow).toHaveBeenCalled();
+    expect(oauth.initCodeFlow).toHaveBeenCalledWith('', {});
     expect(oauth.logOut).toHaveBeenCalled();
+  });
+
+  it('passes a login hint as an authorization request parameter, not as a credential', () => {
+    service.login('techniker');
+
+    // The flow is unchanged — same Auth Code + PKCE redirect, one extra query parameter that
+    // Keycloak uses to prefill the username. Nothing here knows a password.
+    expect(oauth.initCodeFlow).toHaveBeenCalledWith('', { login_hint: 'techniker' });
+  });
+
+  it('remembers a deliberate sign-out for the landing page, once', () => {
+    sessionStorage.clear();
+    service.logout();
+
+    // Read-and-clear: a notice that reappeared on every later visit would stop meaning anything.
+    expect(service.consumeSignedOutNotice()).toBe(true);
+    expect(service.consumeSignedOutNotice()).toBe(false);
+  });
+
+  it('reports no sign-out to a tab that never signed out', () => {
+    sessionStorage.clear();
+
+    expect(service.consumeSignedOutNotice()).toBe(false);
   });
 });

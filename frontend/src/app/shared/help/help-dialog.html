@@ -1,72 +1,45 @@
-@if (open()) {
-  <!-- The backdrop closes on click, like every modal a user has met before. The panel stops the
-       click from reaching it, so a click inside does not dismiss what it lands on. -->
-  <div class="backdrop" data-testid="help-backdrop" (click)="close()" (keydown)="onKeydown($event)">
-    <div
-      class="panel"
-      #panel
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="help-title"
-      data-testid="help-dialog"
-      (click)="$event.stopPropagation()"
-    >
-      <div class="panel-head">
-        <h2 class="panel-title" id="help-title">{{ t().help.title }}</h2>
-        <button
-          type="button"
-          class="btn btn-secondary btn-sm"
-          data-testid="help-close"
-          [attr.aria-label]="t().help.close"
-          (click)="close()"
-        >
-          <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-            <path d="M6 6l12 12M18 6L6 18" />
-          </svg>
-          {{ t().help.close }}
-        </button>
-      </div>
-
-      <div class="panel-body">
-        <section class="help-section">
-          <h3 class="help-heading">{{ t().help.modesHeading }}</h3>
-          <!-- The two modes are explained in their own colours: the reader meets the same green and
-               the same amber here that the answer will arrive in. -->
-          <div class="mode-card mode-card-a" data-testid="help-mode-a">
-            <p class="mode-card-title">{{ t().help.modeAHeading }}</p>
-            <p class="mode-card-body">{{ t().help.modeABody }}</p>
-          </div>
-          <div class="mode-card mode-card-b" data-testid="help-mode-b">
-            <p class="mode-card-title">{{ t().help.modeBHeading }}</p>
-            <p class="mode-card-body">{{ t().help.modeBBody }}</p>
-          </div>
-        </section>
-
-        <section class="help-section">
-          <h3 class="help-heading">{{ t().help.rolesHeading }}</h3>
-          <ul class="help-list">
-            <li>{{ t().help.roleOperator }}</li>
-            <li>{{ t().help.roleTechniker }}</li>
-            <li>{{ t().help.roleSchichtleiter }}</li>
-          </ul>
-        </section>
-
-        <section class="help-section">
-          <h3 class="help-heading">{{ t().demo.examplesHeading }}</h3>
-          <p class="caption">{{ t().demo.examplesIntro }}</p>
-          <ul class="examples">
-            @for (example of t().demo.examples; track example.question) {
-              <li class="example" data-testid="help-example">
-                <p class="example-machine">
-                  {{ t().demo.exampleMachine }}: <strong>{{ example.machine }}</strong>
-                </p>
-                <p class="example-question" lang="de">{{ example.question }}</p>
-                <p class="example-shows">{{ example.shows }}</p>
-              </li>
-            }
-          </ul>
-        </section>
-      </div>
+<app-dialog
+  [open]="open()"
+  [title]="t().help.title"
+  testId="help"
+  (closed)="closed.emit()"
+>
+  <section class="help-section">
+    <h3 class="help-heading">{{ t().help.modesHeading }}</h3>
+    <!-- The two modes are explained in their own colours: the reader meets the same green and
+         the same amber here that the answer will arrive in. -->
+    <div class="mode-card mode-card-a" data-testid="help-mode-a">
+      <p class="mode-card-title">{{ t().help.modeAHeading }}</p>
+      <p class="mode-card-body">{{ t().help.modeABody }}</p>
     </div>
-  </div>
-}
+    <div class="mode-card mode-card-b" data-testid="help-mode-b">
+      <p class="mode-card-title">{{ t().help.modeBHeading }}</p>
+      <p class="mode-card-body">{{ t().help.modeBBody }}</p>
+    </div>
+  </section>
+
+  <section class="help-section">
+    <h3 class="help-heading">{{ t().help.rolesHeading }}</h3>
+    <ul class="help-list">
+      <li>{{ t().help.roleOperator }}</li>
+      <li>{{ t().help.roleTechniker }}</li>
+      <li>{{ t().help.roleSchichtleiter }}</li>
+    </ul>
+  </section>
+
+  <section class="help-section">
+    <h3 class="help-heading">{{ t().demo.examplesHeading }}</h3>
+    <p class="caption">{{ t().demo.examplesIntro }}</p>
+    <ul class="examples">
+      @for (example of t().demo.examples; track example.question) {
+        <li class="example" data-testid="help-example">
+          <p class="example-machine">
+            {{ t().demo.exampleMachine }}: <strong>{{ example.machine }}</strong>
+          </p>
+          <p class="example-question" lang="de">{{ example.question }}</p>
+          <p class="example-shows">{{ example.shows }}</p>
+        </li>
+      }
+    </ul>
+  </section>
+</app-dialog>

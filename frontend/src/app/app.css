@@ -144,7 +144,7 @@
 
 .lang-switch button.active {
   background: var(--c-brand);
-  color: #fff;
+  color: var(--c-on-brand);
 }
 
 .app-user {
@@ -232,4 +232,19 @@
     gap: var(--s-5);
     border-top: 1px solid var(--c-line);
   }
+}
+
+/* --- The sign-out confirmation ------------------------------------------- */
+
+.confirm-body {
+  margin: 0 0 var(--s-5);
+  max-width: var(--read-max);
+}
+
+/* The destructive action first and the way out beside it, both at full tap height: on a touchscreen
+   a confirmation whose buttons are toolbar-sized is a second chance to mis-tap. */
+.confirm-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-3);
 }

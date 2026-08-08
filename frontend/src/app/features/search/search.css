@@ -122,7 +122,7 @@
   display: inline-block;
   padding: 0 var(--s-1);
   border-radius: 3px;
-  background: #d8ecdd;
+  background: var(--c-mode-a-chip);
   color: var(--c-mode-a-ink);
   font-size: 0.8em;
   font-weight: 700;
@@ -134,7 +134,7 @@
 .citation-marker:hover,
 .citation-marker:focus-visible {
   background: var(--c-mode-a);
-  color: #fff;
+  color: var(--c-on-mode-a);
 }
 
 /* These carry no href, so the pointer and the underline have to be stated: without them an
@@ -147,18 +147,6 @@
 .source-title {
   text-decoration: underline;
   text-underline-offset: 2px;
-}
-
-.citation-marker[aria-busy='true'],
-.source-title[aria-busy='true'] {
-  opacity: 0.6;
-  cursor: progress;
-}
-
-.source-opening {
-  margin-left: var(--s-2);
-  font-size: var(--t-xs);
-  color: var(--c-ink-muted);
 }
 
 .sources-heading,
@@ -196,7 +184,7 @@
   padding: 0.1rem var(--s-2);
   border-radius: var(--r-sm);
   background: var(--c-mode-a);
-  color: #fff;
+  color: var(--c-on-mode-a);
   font-size: var(--t-xs);
   font-weight: 700;
   font-variant-numeric: tabular-nums;
@@ -227,7 +215,11 @@
   border: 1px solid var(--c-mode-b-line);
   border-left: 6px solid var(--c-mode-b);
   /* A hatched top edge: a second, non-colour signal that this block is different in kind. */
-  background-image: repeating-linear-gradient(135deg, #f0dcb4 0 8px, transparent 8px 16px);
+  background-image: repeating-linear-gradient(
+    135deg,
+    var(--c-mode-b-hatch) 0 8px,
+    transparent 8px 16px
+  );
   background-size: 100% 6px;
   background-repeat: no-repeat;
   background-position: top left;
@@ -235,7 +227,7 @@
 }
 
 .answer-b .answer-badge {
-  color: #8a4b00;
+  color: var(--c-mode-b-ink);
 }
 
 .answer-b .answer-explanation {

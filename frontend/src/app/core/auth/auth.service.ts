@@ -4,6 +4,17 @@ import { OAuthService } from 'angular-oauth2-oidc';
 import { ConfigService } from '../config/config.service';
 import { buildAuthConfig } from './auth.config';
 
+/**
+ * Marks that this tab signed out deliberately, so the landing page can say so.
+ *
+ * sessionStorage rather than a query parameter on the redirect: `postLogoutRedirectUri` is matched
+ * against the URIs registered in the realm, and decorating it would risk a Keycloak change this
+ * project has decided not to need. It is also the right lifetime — the notice belongs to the tab
+ * that signed out, not to every tab on the machine. `logOut()` clears only its own keys, so this
+ * one survives the round trip through Keycloak.
+ */
+const SIGNED_OUT_KEY = 'maintenance-assistant.signed-out';
+
 /** Shape of the Keycloak access token claims this application reads. */
 interface AccessTokenClaims {
   preferred_username?: string;
@@ -58,14 +69,47 @@ export class AuthService {
     this.authState.update((value) => value + 1);
   }
 
-  /** Sends the browser to Keycloak's login page. */
-  login(): void {
-    this.oauth.initCodeFlow();
+  /**
+   * Sends the browser to Keycloak's login page.
+   *
+   * `loginHint` is passed as the standard `login_hint` authorization request parameter, which
+   * Keycloak uses to prefill the username field. It is a hint on the normal Auth Code + PKCE
+   * request and nothing more: the visitor still authenticates at Keycloak, and the password never
+   * passes through this application. The demo buttons on the landing page are its only caller.
+   */
+  login(loginHint?: string): void {
+    this.oauth.initCodeFlow('', loginHint ? { login_hint: loginHint } : {});
   }
 
   logout(): void {
+    this.rememberSignOut();
     this.oauth.logOut();
     this.authState.update((value) => value + 1);
+  }
+
+  /**
+   * Whether this tab has just signed out, clearing the flag as it reports it.
+   *
+   * Read-and-clear rather than read: the notice is about the sign-out that just happened, and one
+   * that reappeared on every later visit to the landing page would stop meaning anything.
+   */
+  consumeSignedOutNotice(): boolean {
+    try {
+      const signedOut = sessionStorage.getItem(SIGNED_OUT_KEY) !== null;
+      sessionStorage.removeItem(SIGNED_OUT_KEY);
+      return signedOut;
+    } catch {
+      // Storage the browser refuses to hand over costs a confirmation message, nothing more.
+      return false;
+    }
+  }
+
+  private rememberSignOut(): void {
+    try {
+      sessionStorage.setItem(SIGNED_OUT_KEY, '1');
+    } catch {
+      // See above: the sign-out itself must not depend on storage being writable.
+    }
   }
 
   /** Decodes the access token payload; returns null when there is no valid token. */

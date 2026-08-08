@@ -82,11 +82,16 @@
             <span class="role-badge" data-testid="header-role">{{ role }}</span>
           }
         </span>
+        <!-- Confirmed rather than immediate: this button sits in a toolbar on a tablet operated
+             with work gloves, and an accidental sign-out costs a full Keycloak round trip in the
+             middle of a fault. -->
         <button
           type="button"
           class="btn btn-secondary btn-sm"
           data-testid="sign-out"
-          (click)="signOut()"
+          [attr.aria-haspopup]="'dialog'"
+          [attr.aria-expanded]="signOutOpen()"
+          (click)="signOutOpen.set(true)"
         >
           {{ t().nav.signOut }}
         </button>
@@ -122,3 +127,30 @@
 </footer>
 
 <app-help-dialog [open]="helpOpen()" (closed)="helpOpen.set(false)" />
+
+<app-dialog
+  [open]="signOutOpen()"
+  [title]="t().signOut.title"
+  testId="sign-out-confirm"
+  (closed)="signOutOpen.set(false)"
+>
+  <p class="confirm-body">{{ t().signOut.body }}</p>
+  <div class="confirm-actions">
+    <button
+      type="button"
+      class="btn btn-primary"
+      data-testid="sign-out-confirm"
+      (click)="confirmSignOut()"
+    >
+      {{ t().nav.signOut }}
+    </button>
+    <button
+      type="button"
+      class="btn btn-secondary"
+      data-testid="sign-out-cancel"
+      (click)="signOutOpen.set(false)"
+    >
+      {{ t().common.cancel }}
+    </button>
+  </div>
+</app-dialog>

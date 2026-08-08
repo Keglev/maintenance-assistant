@@ -12,9 +12,12 @@ import { I18nService } from './core/i18n/i18n.service';
  * roles and pins the answer language — but a door that opens onto a 403 is still a defect.
  */
 describe('App', () => {
+  let logout: ReturnType<typeof vi.fn>;
+
   /** Builds the shell with a stubbed identity, so no OIDC library is involved. */
   async function render(roles: string[], authenticated = true) {
     TestBed.resetTestingModule();
+    logout = vi.fn();
     await TestBed.configureTestingModule({
       imports: [App],
       providers: [
@@ -25,7 +28,7 @@ describe('App', () => {
             isAuthenticated: () => authenticated,
             username: () => 'demo',
             realmRoles: () => roles,
-            logout: vi.fn(),
+            logout,
           },
         },
       ],
@@ -125,6 +128,53 @@ describe('App', () => {
       // A new tab must not get a handle on the tab holding the session.
       expect(link.getAttribute('rel')).toContain('noopener');
     }
+  });
+
+  it('asks before signing out, and does not sign out until it is confirmed', async () => {
+    const fixture = await render(['techniker']);
+    const element = fixture.nativeElement as HTMLElement;
+
+    (element.querySelector('[data-testid="sign-out"]') as HTMLButtonElement).click();
+    await fixture.whenStable();
+
+    // The button sits in a toolbar on a tablet operated with work gloves. A mis-tap that ends the
+    // session in the middle of a fault costs a full Keycloak round trip.
+    expect(element.querySelector('[data-testid="sign-out-confirm-dialog"]')).not.toBeNull();
+    expect(logout).not.toHaveBeenCalled();
+
+    (element.querySelector('[data-testid="sign-out-confirm"]') as HTMLButtonElement).click();
+    await fixture.whenStable();
+
+    expect(logout).toHaveBeenCalled();
+  });
+
+  it('leaves the session alone when the confirmation is cancelled', async () => {
+    const fixture = await render(['techniker']);
+    const element = fixture.nativeElement as HTMLElement;
+
+    (element.querySelector('[data-testid="sign-out"]') as HTMLButtonElement).click();
+    await fixture.whenStable();
+    (element.querySelector('[data-testid="sign-out-cancel"]') as HTMLButtonElement).click();
+    await fixture.whenStable();
+
+    expect(element.querySelector('[data-testid="sign-out-confirm-dialog"]')).toBeNull();
+    expect(logout).not.toHaveBeenCalled();
+  });
+
+  it('closes the sign-out confirmation on Escape without signing out', async () => {
+    const fixture = await render(['techniker']);
+    const element = fixture.nativeElement as HTMLElement;
+
+    (element.querySelector('[data-testid="sign-out"]') as HTMLButtonElement).click();
+    await fixture.whenStable();
+    element
+      .querySelector('[data-testid="sign-out-confirm-backdrop"]')!
+      .dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+    await fixture.whenStable();
+
+    // Escape is the universal "no" and must never be the one that ends the session.
+    expect(element.querySelector('[data-testid="sign-out-confirm-dialog"]')).toBeNull();
+    expect(logout).not.toHaveBeenCalled();
   });
 
   it('offers help before sign-in, because the colours need explaining first', async () => {

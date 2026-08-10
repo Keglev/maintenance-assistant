@@ -1,6 +1,7 @@
 import { Component, computed, inject, signal } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 
-import { ModeratedProtocol } from '../../core/api/api.types';
+import { Machine, ModeratedProtocol, NO_FILTER, ProtocolFilter } from '../../core/api/api.types';
 import { ApiFailure, MaintenanceApiService, classify } from '../../core/api/maintenance-api.service';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { Dialog } from '../../shared/dialog/dialog';
@@ -24,7 +25,7 @@ const PAGE_SIZE = 10;
  */
 @Component({
   selector: 'app-moderation',
-  imports: [Dialog, ProtocolDialog],
+  imports: [Dialog, FormsModule, ProtocolDialog],
   templateUrl: './moderation.html',
   styleUrl: './moderation.css',
 })
@@ -49,6 +50,30 @@ export class Moderation {
 
   protected readonly pageSize = PAGE_SIZE;
 
+  /** The machine dropdown's options. Readable by an admin since the ADR-006 role gained a job. */
+  protected readonly machines = signal<Machine[]>([]);
+  protected readonly machinesFailed = signal(false);
+
+  /** What the form currently holds — edited freely, and not yet asked for. */
+  protected readonly draft = signal<ProtocolFilter>(NO_FILTER);
+  /** What the list on screen is actually narrowed to. */
+  protected readonly applied = signal<ProtocolFilter>(NO_FILTER);
+
+  /**
+   * Whether the title and date fields are usable.
+   *
+   * The owner's rule, and the backend's: the machine comes first. Across ten machines a title
+   * fragment on its own answers with rows from machines the reviewer was not looking at. Disabling
+   * the fields says so before the request rather than after it — the 400 stays as a backstop for a
+   * caller that is not this form.
+   */
+  protected readonly machineChosen = computed(() => this.draft().machineNo !== '');
+
+  /** Whether the list on screen is narrowed, which decides which "nothing here" sentence it gets. */
+  protected readonly isFiltered = computed(() =>
+    Object.values(this.applied()).some((value) => value !== ''),
+  );
+
   protected readonly pageCount = computed(() =>
     Math.max(1, Math.ceil(this.total() / PAGE_SIZE)),
   );
@@ -57,12 +82,43 @@ export class Moderation {
 
   constructor() {
     this.load(0);
+    this.api.machines().subscribe({
+      next: (machines) => this.machines.set(machines),
+      // Not fatal: the corpus list is the view, and the filter is the extra. A failed machine call
+      // costs the dropdown, not the page.
+      error: () => this.machinesFailed.set(true),
+    });
+  }
+
+  /** Edits one field of the form. */
+  protected edit(field: keyof ProtocolFilter, value: string): void {
+    const next = { ...this.draft(), [field]: value };
+    if (field === 'machineNo' && value === '') {
+      // Clearing the machine clears what depended on it. Leaving a title behind in a field the user
+      // can no longer see or reach is how a filter starts lying about what it is filtering.
+      this.draft.set(NO_FILTER);
+      return;
+    }
+    this.draft.set(next);
+  }
+
+  /** Applies the form. Back to page 0: page 3 of the old result is not page 3 of the new one. */
+  protected applyFilter(): void {
+    this.applied.set(this.draft());
+    this.load(0);
+  }
+
+  /** Clears the form and the list back to the whole corpus. */
+  protected resetFilter(): void {
+    this.draft.set(NO_FILTER);
+    this.applied.set(NO_FILTER);
+    this.load(0);
   }
 
   protected load(page: number): void {
     this.loading.set(true);
     this.failure.set(null);
-    this.api.moderationProtocols(page, PAGE_SIZE).subscribe({
+    this.api.moderationProtocols(page, PAGE_SIZE, this.applied()).subscribe({
       next: (result) => {
         this.protocols.set(result.items);
         this.page.set(result.page);

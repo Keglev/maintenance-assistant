@@ -9,8 +9,13 @@ import org.springframework.transaction.annotation.Transactional;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.LocalDate;
 import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -57,20 +62,65 @@ public class ProtocolModerationService {
      * so a reviewer has to be able to reach the far end of it, not just the top.
      */
     public ProtocolPage list(int page, int size) {
+        return list(page, size, ProtocolFilter.none());
+    }
+
+    /**
+     * The same page, narrowed.
+     *
+     * <p>The ordering and the paging are deliberately identical to the unfiltered call — a filter
+     * narrows the set, it does not change what "next page" means. {@code total} counts the
+     * <em>filtered</em> set, because a pager that counted the corpus while showing four rows would
+     * offer sixteen pages of nothing.
+     *
+     * <p><b>The WHERE clause is assembled rather than written once with {@code :p IS NULL OR}
+     * guards.</b> Postgres cannot infer a type for a parameter that appears only in {@code IS NULL},
+     * so the guarded form needs a cast on every parameter to work at all; and it hides from the
+     * planner that a filtered query touches one machine. Only the fragments are concatenated — every
+     * value the caller supplied is bound, never interpolated.
+     */
+    public ProtocolPage list(int page, int size, ProtocolFilter filter) {
         int limit = Math.clamp(size, 1, MAX_PAGE_SIZE);
         int offset = Math.max(page, 0) * limit;
+
+        List<String> conditions = new ArrayList<>();
+        Map<String, Object> params = new LinkedHashMap<>();
+        if (filter.machineNo() != null) {
+            conditions.add("m.machine_no = :machineNo");
+            params.put("machineNo", filter.machineNo());
+        }
+        if (filter.titleContains() != null) {
+            // ILIKE rather than a regular expression: the field is a plain substring box on a
+            // review screen, and a regex there is a way for a filter to become a CPU cost.
+            conditions.add("p.title ILIKE :titlePattern ESCAPE '\\'");
+            params.put("titlePattern", containsPattern(filter.titleContains()));
+        }
+        if (filter.from() != null) {
+            conditions.add("p.created_at >= :from");
+            params.put("from", startOfDay(filter.from()));
+        }
+        if (filter.to() != null) {
+            // Inclusive, expressed as "before the next day": created_at is a timestamp, so
+            // `<= :to` at midnight would silently exclude everything filed on the chosen day.
+            conditions.add("p.created_at < :toExclusive");
+            params.put("toExclusive", startOfDay(filter.to().plusDays(1)));
+        }
+        String where = conditions.isEmpty() ? "" : " WHERE " + String.join(" AND ", conditions);
 
         List<ModeratedProtocol> rows = jdbc.sql("""
                         SELECT p.id, p.title, p.protocol_type, p.error_code, p.status,
                                p.uploaded_by, p.created_at, m.machine_no,
                                (SELECT count(*) FROM chunk c WHERE c.protocol_id = p.id) AS chunk_count
-                        FROM protocol p JOIN machine m ON m.id = p.machine_id
-                        ORDER BY p.created_at DESC, p.id
+                        FROM protocol p JOIN machine m ON m.id = p.machine_id"""
+                        + where
+                        + """
+                        \nORDER BY p.created_at DESC, p.id
                         LIMIT :limit OFFSET :offset
                         """)
                 // Tie-broken by id: two protocols uploaded in the same second would otherwise be
                 // free to swap places between pages, and a row that moves during paging is a row a
                 // reviewer can see twice or never.
+                .params(params)
                 .param("limit", limit)
                 .param("offset", offset)
                 .query((rs, rowNum) -> new ModeratedProtocol(
@@ -85,8 +135,35 @@ public class ProtocolModerationService {
                         rs.getInt("chunk_count")))
                 .list();
 
-        long total = jdbc.sql("SELECT count(*) FROM protocol").query(Long.class).single();
+        long total = jdbc.sql("SELECT count(*) FROM protocol p JOIN machine m ON m.id = p.machine_id"
+                        + where)
+                .params(params)
+                .query(Long.class)
+                .single();
         return new ProtocolPage(rows, page, limit, total);
+    }
+
+    /**
+     * A substring pattern with the wildcards the user did not intend taken away.
+     *
+     * <p>{@code %} and {@code _} are LIKE wildcards, so an unescaped {@code %} would turn a search
+     * for a literal per-cent sign into "match anything" — the filter would quietly stop filtering.
+     * The backslash goes first, because escaping it afterwards would escape the escapes.
+     */
+    private static String containsPattern(String raw) {
+        String escaped = raw.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_");
+        return "%" + escaped + "%";
+    }
+
+    /**
+     * A calendar day turned into an instant, in UTC.
+     *
+     * <p>Some zone has to be chosen, and UTC is the one the API already speaks: the timestamps this
+     * endpoint returns are UTC, so a day boundary drawn anywhere else would put a protocol on one
+     * side of the filter and show it with a date on the other.
+     */
+    private static OffsetDateTime startOfDay(LocalDate day) {
+        return day.atStartOfDay().atOffset(ZoneOffset.UTC);
     }
 
     /**
@@ -166,6 +243,61 @@ public class ProtocolModerationService {
         } catch (IOException e) {
             log.warn("Moderation: protocol row removed but its file {} could not be deleted: {}",
                     sourceFile, e.toString());
+        }
+    }
+
+    /**
+     * What the reviewer narrowed the corpus to. Every field is optional; all of them absent is the
+     * plain list.
+     *
+     * <p><b>The machine comes first, and the others are refused without it.</b> That is a product
+     * rule, not a technical one: 150 protocols across ten machines means a title fragment on its own
+     * answers with rows from machines the reviewer was not looking at, and a date range on its own
+     * answers with most of the corpus. Both are noise dressed as a result. Enforced here rather than
+     * in the controller so the rule cannot be reached around by a second caller.
+     *
+     * @param machineNo     plant identifier, matched exactly ("PR-03")
+     * @param titleContains case-insensitive substring of the title
+     * @param from          earliest upload day, inclusive
+     * @param to            latest upload day, inclusive; open-ended in either direction is allowed
+     */
+    public record ProtocolFilter(String machineNo, String titleContains, LocalDate from, LocalDate to) {
+
+        /** The stable code a client matches on. English prose from this layer is not an API. */
+        public static final String MACHINE_REQUIRED = "MACHINE_REQUIRED_FOR_FILTER";
+
+        public ProtocolFilter {
+            machineNo = blankToNull(machineNo);
+            titleContains = blankToNull(titleContains);
+            if (machineNo == null && (titleContains != null || from != null || to != null)) {
+                throw new InvalidFilterException(MACHINE_REQUIRED,
+                        "a title or date filter needs a machine: choose a machine first");
+            }
+        }
+
+        public static ProtocolFilter none() {
+            return new ProtocolFilter(null, null, null, null);
+        }
+
+        private static String blankToNull(String value) {
+            // An empty query parameter is an empty form field, which is a filter the user did not
+            // fill in — not a search for the empty string, and not a reason to refuse the request.
+            return value == null || value.isBlank() ? null : value.trim();
+        }
+    }
+
+    /** A filter combination the endpoint does not accept. Answered as 400 with {@link #code()}. */
+    public static class InvalidFilterException extends RuntimeException {
+
+        private final String code;
+
+        InvalidFilterException(String code, String message) {
+            super(message);
+            this.code = code;
+        }
+
+        public String code() {
+            return code;
         }
     }
 

@@ -91,6 +91,30 @@ export interface ModeratedProtocol {
   readonly chunkCount: number;
 }
 
+/**
+ * What the corpus list is narrowed to. Every field is a form value, so "" means "not filled in".
+ *
+ * The machine is not optional in practice: the backend refuses a title or date filter without one
+ * (400 `MACHINE_REQUIRED_FOR_FILTER`), because across ten machines a title fragment on its own
+ * answers with rows the reviewer was not looking at. The view enforces the same rule by disabling
+ * the other fields, so the 400 is a backstop rather than something a user can reach.
+ */
+export interface ProtocolFilter {
+  readonly machineNo: string;
+  readonly titleContains: string;
+  /** ISO `yyyy-MM-dd`, as an `<input type="date">` produces it. */
+  readonly from: string;
+  readonly to: string;
+}
+
+/** The unfiltered corpus: what the view shows until someone narrows it. */
+export const NO_FILTER: ProtocolFilter = {
+  machineNo: '',
+  titleContains: '',
+  from: '',
+  to: '',
+};
+
 /** One page of the corpus. `total` is what turns "Weiter" into "page 3 of 16". */
 export interface ProtocolPage {
   readonly items: readonly ModeratedProtocol[];

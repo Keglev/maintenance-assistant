@@ -39,11 +39,109 @@
     </p>
   }
 
+  <!-- Above the table, not in a drawer: with 150 protocols and growing, finding one is the first
+       thing a reviewer does, not an option they go looking for. -->
+  <form class="card filter-bar" (ngSubmit)="applyFilter()" [attr.aria-label]="t().moderation.filterLegend">
+    <div class="filter-fields">
+      <label class="field">
+        <span class="field-label">{{ t().upload.machine }}</span>
+        <select
+          name="machineNo"
+          data-testid="filter-machine"
+          [ngModel]="draft().machineNo"
+          (ngModelChange)="edit('machineNo', $event)"
+        >
+          <option value="">{{ t().moderation.filterMachineAll }}</option>
+          @for (machine of machines(); track machine.id) {
+            <option [value]="machine.machineNo">{{ machine.machineNo }} · {{ machine.name }}</option>
+          }
+        </select>
+      </label>
+
+      <!-- Disabled until a machine is chosen, which is the same rule the backend enforces with a
+           400: a title fragment over ten machines answers with rows nobody was looking for. -->
+      <label class="field">
+        <span class="field-label">{{ t().moderation.filterTitle }}</span>
+        <input
+          type="search"
+          name="titleContains"
+          data-testid="filter-title"
+          [disabled]="!machineChosen()"
+          [ngModel]="draft().titleContains"
+          (ngModelChange)="edit('titleContains', $event)"
+        />
+      </label>
+
+      <label class="field field-date">
+        <span class="field-label">{{ t().moderation.filterFrom }}</span>
+        <input
+          type="date"
+          name="from"
+          data-testid="filter-from"
+          [disabled]="!machineChosen()"
+          [ngModel]="draft().from"
+          (ngModelChange)="edit('from', $event)"
+        />
+      </label>
+
+      <label class="field field-date">
+        <span class="field-label">{{ t().moderation.filterTo }}</span>
+        <input
+          type="date"
+          name="to"
+          data-testid="filter-to"
+          [disabled]="!machineChosen()"
+          [ngModel]="draft().to"
+          (ngModelChange)="edit('to', $event)"
+        />
+      </label>
+    </div>
+
+    <!-- A disabled field with no explanation reads as broken rather than as not-yet-applicable. -->
+    <p class="field-hint" data-testid="filter-hint">{{ t().moderation.filterHint }}</p>
+
+    @if (machinesFailed()) {
+      <p class="notice notice-error" data-testid="filter-machines-error">
+        {{ t().search.machinesUnavailable }}
+      </p>
+    }
+
+    <div class="filter-actions">
+      <button type="submit" class="btn btn-primary btn-sm" data-testid="filter-apply">
+        {{ t().moderation.filterApply }}
+      </button>
+      <button
+        type="button"
+        class="btn btn-secondary btn-sm"
+        data-testid="filter-reset"
+        (click)="resetFilter()"
+      >
+        {{ t().moderation.filterReset }}
+      </button>
+    </div>
+  </form>
+
   <section class="card">
     @if (loading()) {
       <p class="hint" role="status" data-testid="moderation-loading">{{ t().moderation.loading }}</p>
     } @else if (protocols().length === 0) {
-      <p class="hint" data-testid="moderation-empty">{{ t().moderation.empty }}</p>
+      <!-- Two different "nothing here": an empty corpus is a fact, an empty filtered result is
+           something the reader can undo. A bare table would say neither. -->
+      <div class="empty-state" data-testid="moderation-empty">
+        <p class="hint">
+          {{ isFiltered() ? t().moderation.emptyFiltered : t().moderation.empty }}
+        </p>
+        @if (isFiltered()) {
+          <button
+            type="button"
+            class="btn btn-secondary btn-sm"
+            data-testid="empty-reset"
+            (click)="resetFilter()"
+          >
+            {{ t().moderation.filterReset }}
+          </button>
+        }
+      </div>
     } @else {
       <div class="table-scroll">
         <table class="moderation-table" data-testid="moderation-table">

@@ -176,6 +176,14 @@ export interface Dictionary {
     readonly uploadRateLimited: string;
     readonly generic: string;
   };
+  /**
+   * The Protokollverwaltung view.
+   *
+   * The key stays `moderation` on purpose. The user-visible name changed because "Verwaltung" and
+   * "Moderation" read like a discussion forum rather than like a maintenance record; the API paths
+   * (`/api/moderation/**`), the component and this key did not, because renaming an identifier to
+   * follow a label churns the tests and the wire contract for something no user can see.
+   */
   readonly moderation: {
     readonly heading: string;
     readonly intro: string;
@@ -186,6 +194,17 @@ export interface Dictionary {
     readonly delete: string;
     readonly loading: string;
     readonly empty: string;
+    /** The other "nothing here": a corpus that has rows, and a filter that matched none of them. */
+    readonly emptyFiltered: string;
+    readonly filterLegend: string;
+    readonly filterMachineAll: string;
+    readonly filterTitle: string;
+    readonly filterFrom: string;
+    readonly filterTo: string;
+    /** Why two of the four fields are disabled — an unexplained disabled field reads as broken. */
+    readonly filterHint: string;
+    readonly filterApply: string;
+    readonly filterReset: string;
     readonly removed: string;
     readonly alreadyGone: string;
     readonly confirmTitle: string;
@@ -267,7 +286,7 @@ export const DE: Dictionary = {
   nav: {
     search: 'Suche',
     upload: 'Protokoll hochladen',
-    moderation: 'Verwaltung',
+    moderation: 'Protokollverwaltung',
     signOut: 'Abmelden',
     language: 'Sprache',
     help: 'Hilfe',
@@ -325,7 +344,8 @@ export const DE: Dictionary = {
     operator: 'Fragen stellen, bedienerseitige Antworten.',
     techniker: 'Fragen stellen, vollständige technische Antworten.',
     schichtleiter: 'Wie Techniker, zusätzlich Protokolle hochladen.',
-    admin: 'Verwaltung in Keycloak, keine Fachfunktion in der Anwendung.',
+    admin:
+      'Prüft und entfernt Protokolle in der Protokollverwaltung. Stellt keine Fragen und lädt nichts hoch.',
     examplesHeading: 'Zum Ausprobieren',
     examplesIntro: 'Erst die Maschine wählen, dann die Frage stellen — gesucht wird je Maschine.',
     exampleMachine: 'Maschine',
@@ -419,7 +439,7 @@ export const DE: Dictionary = {
     generic: 'Die Anfrage ist fehlgeschlagen.',
   },
   moderation: {
-    heading: 'Verwaltung',
+    heading: 'Protokollverwaltung',
     intro:
       'Alle Protokolle im Bestand. Öffnen zum Prüfen, entfernen was nicht hineingehört.',
     noEditHint:
@@ -430,6 +450,16 @@ export const DE: Dictionary = {
     delete: 'Löschen',
     loading: 'Protokolle werden geladen …',
     empty: 'Keine Protokolle im Bestand.',
+    emptyFiltered: 'Zu diesem Filter gibt es kein Protokoll. Filter ändern oder zurücksetzen.',
+    filterLegend: 'Protokolle filtern',
+    filterMachineAll: 'Alle Maschinen',
+    filterTitle: 'Titel enthält',
+    filterFrom: 'Von',
+    filterTo: 'Bis',
+    filterHint:
+      'Titel und Zeitraum stehen zur Verfügung, sobald eine Maschine gewählt ist — über den ganzen Bestand hinweg findet ein Titelstück vor allem Protokolle anderer Maschinen.',
+    filterApply: 'Filtern',
+    filterReset: 'Zurücksetzen',
     removed: 'Protokoll entfernt',
     alreadyGone: 'Dieses Protokoll ist nicht mehr im Bestand.',
     confirmTitle: 'Protokoll endgültig entfernen?',
@@ -508,7 +538,7 @@ export const EN: Dictionary = {
   nav: {
     search: 'Search',
     upload: 'Upload protocol',
-    moderation: 'Moderation',
+    moderation: 'Protocol management',
     signOut: 'Sign out',
     language: 'Language',
     help: 'Help',
@@ -566,7 +596,8 @@ export const EN: Dictionary = {
     operator: 'Ask questions, operator-safe answers.',
     techniker: 'Ask questions, full technical answers.',
     schichtleiter: 'Like the technician, and may upload protocols.',
-    admin: 'Administration in Keycloak, no shop-floor function in the app.',
+    admin:
+      'Reviews and removes protocols in Protocol management. Does not ask questions and does not upload.',
     examplesHeading: 'Try these',
     examplesIntro: 'Choose the machine first, then ask — retrieval is filtered per machine.',
     exampleMachine: 'Machine',
@@ -662,7 +693,7 @@ export const EN: Dictionary = {
     generic: 'The request failed.',
   },
   moderation: {
-    heading: 'Moderation',
+    heading: 'Protocol management',
     intro: 'Every protocol in the records. Open one to review it, remove what does not belong.',
     noEditHint:
       'Protocols are not edited. A correction is: remove it and have the shift lead upload it again — so no answer can cite a source that changed after the fact.',
@@ -672,6 +703,16 @@ export const EN: Dictionary = {
     delete: 'Delete',
     loading: 'Loading protocols …',
     empty: 'No protocols in the records.',
+    emptyFiltered: 'No protocol matches this filter. Change it or reset it.',
+    filterLegend: 'Filter protocols',
+    filterMachineAll: 'All machines',
+    filterTitle: 'Title contains',
+    filterFrom: 'From',
+    filterTo: 'To',
+    filterHint:
+      'Title and date range become available once a machine is chosen — across the whole corpus a title fragment mostly finds protocols from other machines.',
+    filterApply: 'Filter',
+    filterReset: 'Reset',
     removed: 'Protocol removed',
     alreadyGone: 'This protocol is no longer in the records.',
     confirmTitle: 'Remove this protocol permanently?',

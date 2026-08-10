@@ -1,10 +1,12 @@
-import { HttpClient, HttpErrorResponse, HttpResponse } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse, HttpParams, HttpResponse } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import { ConfigService } from '../config/config.service';
 import {
   Machine,
+  NO_FILTER,
+  ProtocolFilter,
   ProtocolPage,
   QueryAnswer,
   UploadAccepted,
@@ -67,10 +69,21 @@ export class MaintenanceApiService {
    * Paged rather than "give me everything": the corpus is 150 protocols and grows every time one is
    * uploaded, and a review screen that loads all of them gets slower every month.
    */
-  moderationProtocols(page: number, size: number): Observable<ProtocolPage> {
-    return this.http.get<ProtocolPage>(`${this.apiBaseUrl}/moderation/protocols`, {
-      params: { page, size },
-    });
+  moderationProtocols(
+    page: number,
+    size: number,
+    filter: ProtocolFilter = NO_FILTER,
+  ): Observable<ProtocolPage> {
+    // Empty fields are left off the query string entirely rather than sent as "". An empty
+    // parameter is a form field nobody filled in, and a request that says `machineNo=` is a request
+    // that has to be interpreted rather than read.
+    let params = new HttpParams().set('page', page).set('size', size);
+    for (const [key, value] of Object.entries(filter)) {
+      if (value) {
+        params = params.set(key, value);
+      }
+    }
+    return this.http.get<ProtocolPage>(`${this.apiBaseUrl}/moderation/protocols`, { params });
   }
 
   /**

@@ -472,6 +472,10 @@ h3 {
 
 input[type='text'],
 input[type='file'],
+/* The filter bar's own two types. Listed rather than left to `input`, so a checkbox or a radio
+   added later does not silently inherit a full-width text-box shape. */
+input[type='search'],
+input[type='date'],
 select,
 textarea {
   width: 100%;

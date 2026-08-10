@@ -7,21 +7,27 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.core.io.Resource;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
+import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -50,23 +56,50 @@ class ModerationController {
     private final ProtocolModerationService moderation;
     private final ProtocolDocumentService documents;
 
-<span class="fc" id="L53">    ModerationController(ProtocolModerationService moderation, ProtocolDocumentService documents) {</span>
-<span class="fc" id="L54">        this.moderation = moderation;</span>
-<span class="fc" id="L55">        this.documents = documents;</span>
-<span class="fc" id="L56">    }</span>
+<span class="fc" id="L59">    ModerationController(ProtocolModerationService moderation, ProtocolDocumentService documents) {</span>
+<span class="fc" id="L60">        this.moderation = moderation;</span>
+<span class="fc" id="L61">        this.documents = documents;</span>
+<span class="fc" id="L62">    }</span>
 
     @GetMapping
     @Operation(summary = &quot;List every protocol in the corpus, newest first&quot;,
             description = &quot;Paged. `size` is clamped to 50 — the corpus grows every time a protocol &quot;
-                    + &quot;is uploaded, and an unpaged list of it is a page that gets slower forever.&quot;)
+                    + &quot;is uploaded, and an unpaged list of it is a page that gets slower forever. &quot;
+                    + &quot;Optionally narrowed by machine, by a case-insensitive title substring and by &quot;
+                    + &quot;an upload-date range. `titleContains`, `from` and `to` require `machineNo`: &quot;
+                    + &quot;without it they answer with rows from machines the reviewer was not looking &quot;
+                    + &quot;at. All four absent is the plain list.&quot;)
     @ApiResponses({
             @ApiResponse(responseCode = &quot;200&quot;, description = &quot;One page of protocols&quot;),
+            @ApiResponse(responseCode = &quot;400&quot;,
+                    description = &quot;A title or date filter was sent without a machine &quot;
+                            + &quot;(`reason: MACHINE_REQUIRED_FOR_FILTER`)&quot;),
             @ApiResponse(responseCode = &quot;403&quot;, description = &quot;Caller is not an administrator&quot;)
     })
     ProtocolModerationService.ProtocolPage list(
             @RequestParam(defaultValue = &quot;0&quot;) int page,
-            @RequestParam(defaultValue = &quot;10&quot;) int size) {
-<span class="fc" id="L69">        return moderation.list(page, size);</span>
+            @RequestParam(defaultValue = &quot;10&quot;) int size,
+            @RequestParam(required = false) String machineNo,
+            @RequestParam(required = false) String titleContains,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to) {
+        // The record's constructor is where the machine-first rule lives, so it holds for any caller
+        // rather than for this method signature only.
+<span class="fc" id="L88">        return moderation.list(page, size,</span>
+                new ProtocolModerationService.ProtocolFilter(machineNo, titleContains, from, to));
+    }
+
+    /**
+     * A filter combination the endpoint does not accept, reported with a stable code.
+     *
+     * &lt;p&gt;The code is what the frontend matches on — the same contract as the upload guards and the
+     * query path's {@code reason} field, and for the same reason: rewording an English sentence on
+     * the server must not silently change what the German interface says.
+     */
+    @ExceptionHandler(ProtocolModerationService.InvalidFilterException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    Map&lt;String, String&gt; onInvalidFilter(ProtocolModerationService.InvalidFilterException e) {
+<span class="fc" id="L102">        return Map.of(&quot;reason&quot;, e.code(), &quot;error&quot;, e.getMessage());</span>
     }
 
     @GetMapping(&quot;/{id}/document&quot;)
@@ -79,15 +112,15 @@ class ModerationController {
             @ApiResponse(responseCode = &quot;404&quot;, description = &quot;No such protocol, or its file is gone&quot;)
     })
     ResponseEntity&lt;Resource&gt; document(@PathVariable UUID id) {
-<span class="fc" id="L82">        return documents.find(id)</span>
-<span class="fc" id="L83">                .map(document -&gt; ResponseEntity.ok()</span>
-<span class="fc" id="L84">                        .contentType(MediaType.parseMediaType(document.contentType()))</span>
-<span class="fc" id="L85">                        .header(HttpHeaders.CONTENT_DISPOSITION, ContentDisposition.inline()</span>
-<span class="fc" id="L86">                                .filename(document.downloadName(), StandardCharsets.UTF_8)</span>
-<span class="fc" id="L87">                                .build()</span>
-<span class="fc" id="L88">                                .toString())</span>
-<span class="fc" id="L89">                        .body(document.resource()))</span>
-<span class="fc" id="L90">                .orElseGet(() -&gt; ResponseEntity.notFound().build());</span>
+<span class="fc" id="L115">        return documents.find(id)</span>
+<span class="fc" id="L116">                .map(document -&gt; ResponseEntity.ok()</span>
+<span class="fc" id="L117">                        .contentType(MediaType.parseMediaType(document.contentType()))</span>
+<span class="fc" id="L118">                        .header(HttpHeaders.CONTENT_DISPOSITION, ContentDisposition.inline()</span>
+<span class="fc" id="L119">                                .filename(document.downloadName(), StandardCharsets.UTF_8)</span>
+<span class="fc" id="L120">                                .build()</span>
+<span class="fc" id="L121">                                .toString())</span>
+<span class="fc" id="L122">                        .body(document.resource()))</span>
+<span class="fc" id="L123">                .orElseGet(() -&gt; ResponseEntity.notFound().build());</span>
     }
 
     @DeleteMapping(&quot;/{id}&quot;)
@@ -103,8 +136,8 @@ class ModerationController {
     ResponseEntity&lt;Void&gt; delete(@PathVariable UUID id, @AuthenticationPrincipal Jwt jwt) {
         // The username rather than the subject: it is what uploaded_by stores, so the deletion log
         // and the authorship it is judging are written in the same identity.
-<span class="fc" id="L106">        boolean removed = moderation.delete(id, jwt.getClaimAsString(&quot;preferred_username&quot;));</span>
-<span class="fc bfc" id="L107" title="All 2 branches covered.">        return removed ? ResponseEntity.noContent().build() : ResponseEntity.notFound().build();</span>
+<span class="fc" id="L139">        boolean removed = moderation.delete(id, jwt.getClaimAsString(&quot;preferred_username&quot;));</span>
+<span class="fc bfc" id="L140" title="All 2 branches covered.">        return removed ? ResponseEntity.noContent().build() : ResponseEntity.notFound().build();</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

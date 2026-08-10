@@ -302,6 +302,18 @@ Status: end of Phase 2 (data + ingestion live in production), 2026-08-07
      and CAX was out of stock at order time. CI keeps building amd64+arm64, so the
      images still run on ARM and moving back is a server swap, not a code change.
      Nothing in the stack depends on the architecture.
+     REVISED AGAIN 2026-08-10: THE arm64 BUILD IS REMOVED; both deploy workflows build
+     linux/amd64 only. The arm64 image had no consumer — production is x86_64 and the
+     ARM price advantage is gone (see the 2026-08-06 revision above) — and it was being
+     produced by qemu emulation on an amd64 runner, which is slow and not merely slow:
+     on 2026-08-10 the FRONTEND deploy hung 13+ minutes in the arm64 leg and died with
+     "qemu: uncaught target signal 4 (Illegal instruction)" during `npm ci`. Node under
+     qemu is a known failure mode. Removing the leg roughly halves deploy wall clock and
+     deletes that whole crash class. THE COST OF THE DECISION, stated: the published
+     images no longer run on ARM, so "moving back is a server swap" is no longer true —
+     it is a server swap PLUS restoring one line in each workflow (or, better, adding a
+     native arm64 runner rather than emulating one). That is a one-line change, which is
+     why it is not worth carrying a broken build to preserve.
   2. Shrink to 4GB: EUR ~5 saved; caveat: OOM risk during indexing (= broken-demo risk),
      Kafka Phase 2 won't fit. DECIDED: no, stay 8GB.
   3. Pause = snapshot -> DELETE server (stopped server still bills fully at Hetzner!);

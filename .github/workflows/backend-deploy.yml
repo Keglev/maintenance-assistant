@@ -70,7 +70,11 @@ jobs:
       - uses: docker/build-push-action@v7
         with:
           context: backend
-          platforms: linux/amd64,linux/arm64
+          # amd64 only. Production is x86_64 and the ARM rationale expired with Hetzner's 2026-06
+          # price restructuring, so the arm64 leg was building an image with no consumer — under
+          # qemu emulation, at roughly double the wall clock. Re-adding it is this one line, or a
+          # native arm64 runner. See DECISIONS.txt == COSTS & OPERATIONS ==.
+          platforms: linux/amd64
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}

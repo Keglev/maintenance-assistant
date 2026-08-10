@@ -57,7 +57,11 @@ jobs:
       - uses: docker/build-push-action@v7
         with:
           context: frontend
-          platforms: linux/amd64,linux/arm64
+          # amd64 only — and this is the leg that actually broke: `npm ci` under qemu-emulated
+          # arm64 died with "uncaught target signal 4 (Illegal instruction)" after 13 minutes on
+          # 2026-08-10. Node under qemu is a known failure mode, and the image it was building had
+          # no consumer. See DECISIONS.txt == COSTS & OPERATIONS ==.
+          platforms: linux/amd64
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}

@@ -146,6 +146,9 @@
                             <a href="#filenameOf" title="src/app/shared/protocol/protocol-document.ts" class="reference-link "><span class="reference-badge reference-badge--function" aria-hidden="true">F</span><span class="reference-link-label"><b>filenameOf</b>&nbsp;&nbsp;&nbsp;(src/.../protocol-document.ts)</span></a>
                         </li>
                         <li>
+                            <a href="#homePath" title="src/app/core/auth/role.guard.ts" class="reference-link "><span class="reference-badge reference-badge--function" aria-hidden="true">F</span><span class="reference-link-label"><b>homePath</b>&nbsp;&nbsp;&nbsp;(src/.../role.guard.ts)</span></a>
+                        </li>
+                        <li>
                             <a href="#initialLanguage" title="src/app/core/i18n/i18n.service.ts" class="reference-link "><span class="reference-badge reference-badge--function" aria-hidden="true">F</span><span class="reference-link-label"><b>initialLanguage</b>&nbsp;&nbsp;&nbsp;(src/.../i18n.service.ts)</span></a>
                         </li>
                         <li>
@@ -804,6 +807,140 @@ less complete record than the file.</p>
         </tbody>
     </table>
 </section>
+    <h3>src/app/core/auth/role.guard.ts</h3>
+    <section data-compodoc="block-methods">
+    <h3></h3>    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="homePath"></a>
+                    <span class="name">
+                        <span ><b>homePath</b></span>
+                        <a href="#homePath"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+<code>homePath(realmRoles)</code>
+                </td>
+            </tr>
+
+
+
+
+            <tr>
+                <td class="col-md-4">
+                        <div class="io-description"><p>Where a role belongs when it has nowhere else to be: after login, and after being turned away
+from a route it may not have.</p>
+<p>The admin&#39;s home is moderation, and that is a defect fix rather than a preference. Their home was
+<code>/search</code>, the search view&#39;s first call is <code>GET /api/machines</code>, and until this PR that endpoint
+refused a role with no shop-floor function — so an administrator&#39;s first screen was an error
+message. Search is not a view an admin can use at all: they may not ask questions, by decision.</p>
+</div>
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                            <td>Optional</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>realmRoles</td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+
+                        </div>
+                            <div class="io-description">
+                                
+                            </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="roleGuard"></a>
+                    <span class="name">
+                        <span ><b>roleGuard</b></span>
+                        <a href="#roleGuard"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+<code>roleGuard(...allowed: undefined)</code>
+                </td>
+            </tr>
+
+
+
+
+            <tr>
+                <td class="col-md-4">
+                        <div class="io-description"><p>Keeps a route out of the hands of roles that have no business on it.</p>
+<p>Like <a href="../guards/authGuard.html">authGuard</a>, this is convenience and not security: the upload endpoint refuses anyone
+but a Schichtleiter server-side, which is the only place the decision counts (NFR-3). What this
+buys is that an operator following a bookmarked <code>/upload</code> link gets their own view rather than a
+form that produces a 403 after they have chosen a file — and that an admin who types <code>/search</code>
+gets the view they can use rather than a machine picker that cannot be filled.</p>
+<p>Turned-away callers land on <a href="../miscellaneous/functions.html#homePath">homePath</a> rather than on a hard-coded <code>/search</code>, which is what
+makes one guard serve both directions: <code>/upload</code> is refused to an admin and <code>/search</code> is refused
+to an admin, and both send them to moderation.</p>
+</div>
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                            <td>Optional</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>allowed</td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>        <code><a href="https://angular.dev/api/router/CanActivateFn" target="_blank" >CanActivateFn</a></code>
+
+                        </div>
+                            <div class="io-description">
+                                
+                            </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</section>
     <h3>src/app/core/i18n/i18n.service.ts</h3>
     <section data-compodoc="block-methods">
     <h3></h3>    <table class="table table-sm table-bordered">
@@ -838,72 +975,6 @@ useful is better served by the language the protocols are written in.</p>
                             <b>Returns : </b>        <code><a href="../miscellaneous/typealiases.html#UiLanguage" target="_self" >UiLanguage</a></code>
 
                         </div>
-                </td>
-            </tr>
-        </tbody>
-    </table>
-</section>
-    <h3>src/app/core/auth/role.guard.ts</h3>
-    <section data-compodoc="block-methods">
-    <h3></h3>    <table class="table table-sm table-bordered">
-        <tbody>
-            <tr>
-                <td class="col-md-4">
-                    <a name="roleGuard"></a>
-                    <span class="name">
-                        <span ><b>roleGuard</b></span>
-                        <a href="#roleGuard"><span class="icon ion-ios-link"></span></a>
-                    </span>
-                </td>
-            </tr>
-            <tr>
-                <td class="col-md-4">
-<code>roleGuard(...allowed: undefined)</code>
-                </td>
-            </tr>
-
-
-
-
-            <tr>
-                <td class="col-md-4">
-                        <div class="io-description"><p>Keeps a route out of the hands of roles that have no business on it.</p>
-<p>Like <a href="../guards/authGuard.html">authGuard</a>, this is convenience and not security: the upload endpoint refuses anyone
-but a Schichtleiter server-side, which is the only place the decision counts (NFR-3). What this
-buys is that an operator following a bookmarked <code>/upload</code> link gets the search view rather than a
-form that produces a 403 after they have chosen a file.</p>
-</div>
-
-                            <div class="io-description">
-                                <b>Parameters :</b>
-                                
-                                <table class="params">
-                                    <thead>
-                                        <tr>
-                                            <td>Name</td>
-                                            <td>Optional</td>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr>
-                                                <td>allowed</td>
-
-                                            <td>
-                                                    No
-                                            </td>
-
-
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        <div class="io-description">
-                            <b>Returns : </b>        <code><a href="https://angular.dev/api/router/CanActivateFn" target="_blank" >CanActivateFn</a></code>
-
-                        </div>
-                            <div class="io-description">
-                                
-                            </div>
                 </td>
             </tr>
         </tbody>

@@ -183,6 +183,9 @@ customElements.define('compodoc-menu', class extends HTMLElement {
                                 <a href="interfaces/ProtocolDocument.html" data-type="entity-link" >ProtocolDocument</a>
                             </li>
                             <li class="link">
+                                <a href="interfaces/ProtocolFilter.html" data-type="entity-link" >ProtocolFilter</a>
+                            </li>
+                            <li class="link">
                                 <a href="interfaces/ProtocolPage.html" data-type="entity-link" >ProtocolPage</a>
                             </li>
                             <li class="link">

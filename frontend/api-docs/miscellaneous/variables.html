@@ -185,6 +185,9 @@
                             <a href="#META_LINE" title="src/app/shared/protocol/protocol-document.ts" class="reference-link "><span class="reference-badge reference-badge--variable" aria-hidden="true">V</span><span class="reference-link-label"><b>META_LINE</b>&nbsp;&nbsp;&nbsp;(src/.../protocol-document.ts)</span></a>
                         </li>
                         <li>
+                            <a href="#NO_FILTER" title="src/app/core/api/api.types.ts" class="reference-link "><span class="reference-badge reference-badge--variable" aria-hidden="true">V</span><span class="reference-link-label"><b>NO_FILTER</b>&nbsp;&nbsp;&nbsp;(src/.../api.types.ts)</span></a>
+                        </li>
+                        <li>
                             <a href="#PAGE_SIZE" title="src/app/features/moderation/moderation.ts" class="reference-link "><span class="reference-badge reference-badge--variable" aria-hidden="true">V</span><span class="reference-link-label"><b>PAGE_SIZE</b>&nbsp;&nbsp;&nbsp;(src/.../moderation.ts)</span></a>
                         </li>
                         <li>
@@ -210,6 +213,9 @@
                         </li>
                         <li>
                             <a href="#sequence" title="src/app/shared/dialog/dialog.ts" class="reference-link "><span class="reference-badge reference-badge--variable" aria-hidden="true">V</span><span class="reference-link-label"><b>sequence</b>&nbsp;&nbsp;&nbsp;(src/.../dialog.ts)</span></a>
+                        </li>
+                        <li>
+                            <a href="#SHOP_FLOOR" title="src/app/app.routes.ts" class="reference-link "><span class="reference-badge reference-badge--variable" aria-hidden="true">V</span><span class="reference-link-label"><b>SHOP_FLOOR</b>&nbsp;&nbsp;&nbsp;(src/.../app.routes.ts)</span></a>
                         </li>
                         <li>
                             <a href="#SIGNED_OUT_KEY" title="src/app/core/auth/auth.service.ts" class="reference-link "><span class="reference-badge reference-badge--variable" aria-hidden="true">V</span><span class="reference-link-label"><b>SIGNED_OUT_KEY</b>&nbsp;&nbsp;&nbsp;(src/.../auth.service.ts)</span></a>
@@ -513,7 +519,7 @@ before Angular exists — change one and the other stops agreeing.</p>
   nav: {
     search: &#x27;Suche&#x27;,
     upload: &#x27;Protokoll hochladen&#x27;,
-    moderation: &#x27;Verwaltung&#x27;,
+    moderation: &#x27;Protokollverwaltung&#x27;,
     signOut: &#x27;Abmelden&#x27;,
     language: &#x27;Sprache&#x27;,
     help: &#x27;Hilfe&#x27;,
@@ -571,7 +577,8 @@ before Angular exists — change one and the other stops agreeing.</p>
     operator: &#x27;Fragen stellen, bedienerseitige Antworten.&#x27;,
     techniker: &#x27;Fragen stellen, vollständige technische Antworten.&#x27;,
     schichtleiter: &#x27;Wie Techniker, zusätzlich Protokolle hochladen.&#x27;,
-    admin: &#x27;Verwaltung in Keycloak, keine Fachfunktion in der Anwendung.&#x27;,
+    admin:
+      &#x27;Prüft und entfernt Protokolle in der Protokollverwaltung. Stellt keine Fragen und lädt nichts hoch.&#x27;,
     examplesHeading: &#x27;Zum Ausprobieren&#x27;,
     examplesIntro: &#x27;Erst die Maschine wählen, dann die Frage stellen — gesucht wird je Maschine.&#x27;,
     exampleMachine: &#x27;Maschine&#x27;,
@@ -665,7 +672,7 @@ before Angular exists — change one and the other stops agreeing.</p>
     generic: &#x27;Die Anfrage ist fehlgeschlagen.&#x27;,
   },
   moderation: {
-    heading: &#x27;Verwaltung&#x27;,
+    heading: &#x27;Protokollverwaltung&#x27;,
     intro:
       &#x27;Alle Protokolle im Bestand. Öffnen zum Prüfen, entfernen was nicht hineingehört.&#x27;,
     noEditHint:
@@ -676,6 +683,16 @@ before Angular exists — change one and the other stops agreeing.</p>
     delete: &#x27;Löschen&#x27;,
     loading: &#x27;Protokolle werden geladen …&#x27;,
     empty: &#x27;Keine Protokolle im Bestand.&#x27;,
+    emptyFiltered: &#x27;Zu diesem Filter gibt es kein Protokoll. Filter ändern oder zurücksetzen.&#x27;,
+    filterLegend: &#x27;Protokolle filtern&#x27;,
+    filterMachineAll: &#x27;Alle Maschinen&#x27;,
+    filterTitle: &#x27;Titel enthält&#x27;,
+    filterFrom: &#x27;Von&#x27;,
+    filterTo: &#x27;Bis&#x27;,
+    filterHint:
+      &#x27;Titel und Zeitraum stehen zur Verfügung, sobald eine Maschine gewählt ist — über den ganzen Bestand hinweg findet ein Titelstück vor allem Protokolle anderer Maschinen.&#x27;,
+    filterApply: &#x27;Filtern&#x27;,
+    filterReset: &#x27;Zurücksetzen&#x27;,
     removed: &#x27;Protokoll entfernt&#x27;,
     alreadyGone: &#x27;Dieses Protokoll ist nicht mehr im Bestand.&#x27;,
     confirmTitle: &#x27;Protokoll endgültig entfernen?&#x27;,
@@ -812,7 +829,7 @@ DECISIONS.txt, which is what the two modes are called throughout the project&#39
   nav: {
     search: &#x27;Search&#x27;,
     upload: &#x27;Upload protocol&#x27;,
-    moderation: &#x27;Moderation&#x27;,
+    moderation: &#x27;Protocol management&#x27;,
     signOut: &#x27;Sign out&#x27;,
     language: &#x27;Language&#x27;,
     help: &#x27;Help&#x27;,
@@ -870,7 +887,8 @@ DECISIONS.txt, which is what the two modes are called throughout the project&#39
     operator: &#x27;Ask questions, operator-safe answers.&#x27;,
     techniker: &#x27;Ask questions, full technical answers.&#x27;,
     schichtleiter: &#x27;Like the technician, and may upload protocols.&#x27;,
-    admin: &#x27;Administration in Keycloak, no shop-floor function in the app.&#x27;,
+    admin:
+      &#x27;Reviews and removes protocols in Protocol management. Does not ask questions and does not upload.&#x27;,
     examplesHeading: &#x27;Try these&#x27;,
     examplesIntro: &#x27;Choose the machine first, then ask — retrieval is filtered per machine.&#x27;,
     exampleMachine: &#x27;Machine&#x27;,
@@ -966,7 +984,7 @@ DECISIONS.txt, which is what the two modes are called throughout the project&#39
     generic: &#x27;The request failed.&#x27;,
   },
   moderation: {
-    heading: &#x27;Moderation&#x27;,
+    heading: &#x27;Protocol management&#x27;,
     intro: &#x27;Every protocol in the records. Open one to review it, remove what does not belong.&#x27;,
     noEditHint:
       &#x27;Protocols are not edited. A correction is: remove it and have the shift lead upload it again — so no answer can cite a source that changed after the fact.&#x27;,
@@ -976,6 +994,16 @@ DECISIONS.txt, which is what the two modes are called throughout the project&#39
     delete: &#x27;Delete&#x27;,
     loading: &#x27;Loading protocols …&#x27;,
     empty: &#x27;No protocols in the records.&#x27;,
+    emptyFiltered: &#x27;No protocol matches this filter. Change it or reset it.&#x27;,
+    filterLegend: &#x27;Filter protocols&#x27;,
+    filterMachineAll: &#x27;All machines&#x27;,
+    filterTitle: &#x27;Title contains&#x27;,
+    filterFrom: &#x27;From&#x27;,
+    filterTo: &#x27;To&#x27;,
+    filterHint:
+      &#x27;Title and date range become available once a machine is chosen — across the whole corpus a title fragment mostly finds protocols from other machines.&#x27;,
+    filterApply: &#x27;Filter&#x27;,
+    filterReset: &#x27;Reset&#x27;,
     removed: &#x27;Protocol removed&#x27;,
     alreadyGone: &#x27;This protocol is no longer in the records.&#x27;,
     confirmTitle: &#x27;Remove this protocol permanently?&#x27;,
@@ -1442,6 +1470,46 @@ before Angular exists — change one and the other stops agreeing.</p>
         </tbody>
     </table>
 </section>
+    <h3>src/app/core/api/api.types.ts</h3>
+    <section data-compodoc="block-properties">
+    <h3></h3>    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="NO_FILTER"></a>
+                    <span class="name">
+                        <span ><b>NO_FILTER</b></span>
+                        <a href="#NO_FILTER"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>        <code><a href="../interfaces/ProtocolFilter.html" target="_self" >ProtocolFilter</a></code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>{
+  machineNo: &#x27;&#x27;,
+  titleContains: &#x27;&#x27;,
+  from: &#x27;&#x27;,
+  to: &#x27;&#x27;,
+}</code>
+                    </td>
+                </tr>
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-description"><p>The unfiltered corpus: what the view shows until someone narrows it.</p>
+</div>
+                </td>
+            </tr>
+
+        </tbody>
+    </table>
+</section>
     <h3>src/app/features/moderation/moderation.ts</h3>
     <section data-compodoc="block-properties">
     <h3></h3>    <table class="table table-sm table-bordered">
@@ -1554,7 +1622,10 @@ form should have prevented.</div>
   {
     path: &#x27;search&#x27;,
     loadComponent: () &#x3D;&gt; &quot;import(&#x27;./features/search/search&#x27;).then((m) &#x3D;&gt; m.Search)&quot;,
-    canActivate: [authGuard],
+    // Shop floor only, and the admin&#x27;s exclusion is the point: they may not ask questions by
+    // decision, so this view could only ever show them a picker they cannot fill and a form that
+    // 403s. Typing the URL sends them to moderation rather than to a broken page.
+    canActivate: [&quot;roleGuard(...SHOP_FLOOR)&quot;],
     title: &#x27;Suche · Wartungsassistent&#x27;,
   },
   {
@@ -1565,23 +1636,59 @@ form should have prevented.</div>
     canActivate: [&quot;roleGuard(&#x27;schichtleiter&#x27;)&quot;],
     title: &#x27;Protokoll hochladen · Wartungsassistent&#x27;,
   },
-  // &#x60;/home&#x60; is the OIDC redirect URI registered in the Keycloak realm, so the path has to keep
-  // resolving — but the Phase 1 identity page it used to show is gone. Someone arriving from a
-  // completed login wants the thing the application is for.
   {
     path: &#x27;moderation&#x27;,
     loadComponent: () &#x3D;&gt; &quot;import(&#x27;./features/moderation/moderation&#x27;).then((m) &#x3D;&gt; m.Moderation)&quot;,
     // The admin&#x27;s first shop-floor route. Guarded here and, decisively, on every endpoint it calls:
     // hiding a route is presentation, and the backend refuses the calls regardless (NFR-3).
     canActivate: [&quot;roleGuard(&#x27;admin&#x27;)&quot;],
-    title: &#x27;Verwaltung · Wartungsassistent&#x27;,
+    title: &#x27;Protokollverwaltung · Wartungsassistent&#x27;,
   },
-  { path: &#x27;home&#x27;, redirectTo: &#x27;search&#x27; },
+  // &#x60;/home&#x60; is the OIDC redirect URI registered in the Keycloak realm, so the path has to keep
+  // resolving — but the Phase 1 identity page it used to show is gone. Someone arriving from a
+  // completed login wants the thing the application is for, and which thing that is depends on
+  // their role: a fixed &#x60;redirectTo: &#x27;search&#x27;&#x60; is what landed an admin on a view full of errors.
+  {
+    path: &#x27;home&#x27;,
+    redirectTo: () &#x3D;&gt; &quot;inject(Router).parseUrl(homePath(inject(AuthService).realmRoles()))&quot;,
+  },
   { path: &#x27;**&#x27;, redirectTo: &#x27;&#x27; },
 ]</code>
                     </td>
                 </tr>
 
+
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="SHOP_FLOOR"></a>
+                    <span class="name">
+                        <span ><b>SHOP_FLOOR</b></span>
+                        <a href="#SHOP_FLOOR"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>[]</code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>[&#x27;operator&#x27;, &#x27;techniker&#x27;, &#x27;schichtleiter&#x27;]</code>
+                    </td>
+                </tr>
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-description"><p>The three roles that work on the shop floor. Admin is deliberately not one of them.</p>
+</div>
+                </td>
+            </tr>
 
         </tbody>
     </table>

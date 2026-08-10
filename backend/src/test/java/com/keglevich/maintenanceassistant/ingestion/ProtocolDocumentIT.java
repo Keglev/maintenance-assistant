@@ -217,6 +217,31 @@ class ProtocolDocumentIT {
     // Fixtures
     // ---------------------------------------------------------------------------------------
 
+    // ---------------------------------------------------------------------------------------
+    // What an archived protocol is invisible to
+    // ---------------------------------------------------------------------------------------
+
+    @Test
+    @DisplayName("an archived protocol leaves the shop-floor document endpoint and Meine Uploads")
+    void archivingRemovesAProtocolFromEveryShopFloorRead() throws IOException {
+        UUID kept = seedProtocol("Bleibt", "Symptom:\nEins.\n");
+        UUID archived = seedProtocol("Entfernt", "Symptom:\nZwei.\n");
+
+        jdbc.sql("UPDATE protocol SET deleted_at = now() WHERE id = :id").param("id", archived).update();
+
+        // A citation from before the deletion. 404 is the honest reply — the same break a hard
+        // delete produced, which is what the original ADR-006 wanted from it.
+        assertThat(documents.find(archived)).isEmpty();
+        assertThat(documents.find(kept)).isPresent();
+
+        // And the uploader is not told it is still healthy and searchable. Being told WHY it was
+        // removed is a notification feature this application does not have; showing it as INDEXED
+        // would make them stop looking for the reason their answers never cite it.
+        assertThat(statuses.findRecentUploadsOf("schichtleiter"))
+                .extracting(ProtocolStatusService.UploadStatus::title)
+                .containsExactly("Bleibt");
+    }
+
     private UUID seedProtocol(String title, String documentText) throws IOException {
         UUID id = UUID.randomUUID();
         String relative = "PR-03/%s.txt".formatted(id);

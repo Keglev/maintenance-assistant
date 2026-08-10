@@ -13,6 +13,69 @@
   margin: 0 0 var(--s-5);
 }
 
+/* Two halves of one job, so two tabs rather than two routes: a reviewer moves between the corpus
+   and what was taken out of it while deciding, and a route change would lose the filter. */
+.tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+  margin-bottom: var(--s-4);
+  border-bottom: 1px solid var(--c-line);
+}
+
+.tabs button {
+  min-height: var(--tap);
+  padding: var(--s-2) var(--s-4);
+  border: none;
+  border-bottom: 2px solid transparent;
+  background: none;
+  color: var(--c-ink-muted);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.tabs button.active {
+  color: var(--c-brand-strong);
+  border-bottom-color: var(--c-brand-strong);
+}
+
+.archive-controls {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+  margin-bottom: var(--s-4);
+}
+
+.archive-controls .field {
+  max-width: 22rem;
+}
+
+/* A reason can be a sentence. It gets room without pushing the action column off a tablet. */
+.moderation-table .reason {
+  max-width: 22rem;
+  white-space: normal;
+}
+
+/* Machine and type in the edit dialog: shown so the reviewer knows what they are correcting, and
+   visibly not a field — a greyed-out input would invite a click that does nothing. */
+.edit-locked {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-5);
+  padding: var(--s-3) var(--s-4);
+  border: 1px solid var(--c-line);
+  border-radius: var(--r-sm);
+  background: var(--c-sunken);
+}
+
+.locked-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-1);
+  margin: 0;
+}
+
 /* The filter bar. Its own card above the table, so narrowing the corpus reads as a step before
    reading it rather than as a decoration on the table's header row. */
 .filter-bar {

@@ -67,7 +67,12 @@ class ProtocolIndexer {
             return false;
         }
         if (protocol == null) {
-            log.warn("Protocol {} disappeared before indexing", protocolId);
+            // Covers "deleted while queued" as well as "never existed". An indexing run that
+            // rebuilt an archived protocol's chunks would put it back into retrieval without
+            // anyone asking — the one way a soft delete could be undone, and there is no undo by
+            // design (ADR-006 revision). The load query is where that is prevented, because it is
+            // the single door every indexing path comes through.
+            log.warn("Protocol {} disappeared before indexing (unknown or archived)", protocolId);
             return false;
         }
 
@@ -155,6 +160,7 @@ class ProtocolIndexer {
                                p.language, p.source_file
                         FROM protocol p JOIN machine m ON m.id = p.machine_id
                         WHERE p.id = :id
+                          AND p.deleted_at IS NULL
                         """)
                 .param("id", protocolId)
                 .query((rs, rowNum) -> new ProtocolRow(

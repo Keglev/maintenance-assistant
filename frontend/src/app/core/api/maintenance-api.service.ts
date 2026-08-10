@@ -4,8 +4,10 @@ import { Observable } from 'rxjs';
 
 import { ConfigService } from '../config/config.service';
 import {
+  DeletedProtocolPage,
   Machine,
   NO_FILTER,
+  ProtocolCorrection,
   ProtocolFilter,
   ProtocolPage,
   QueryAnswer,
@@ -101,9 +103,57 @@ export class MaintenanceApiService {
     });
   }
 
-  /** Removes a protocol permanently: chunks, row and file. Admin only, server-side. */
-  deleteProtocol(protocolId: string): Observable<void> {
-    return this.http.delete<void>(`${this.apiBaseUrl}/moderation/protocols/${protocolId}`);
+  /**
+   * Removes a protocol from the corpus and moves it into the archive. Admin only, server-side.
+   *
+   * The comment travels in a body rather than a query string, matching the endpoint: a sentence
+   * about a named colleague's mistake would otherwise land in access logs, proxy logs and browser
+   * history — three places nobody audited for it.
+   */
+  deleteProtocol(protocolId: string, comment: string): Observable<void> {
+    return this.http.delete<void>(`${this.apiBaseUrl}/moderation/protocols/${protocolId}`, {
+      body: { comment },
+    });
+  }
+
+  /**
+   * Corrects a protocol in place. Answers 202: the text is fixed, the search index is not yet.
+   *
+   * Re-indexing is the backend's condition of the edit rather than a follow-up call from here —
+   * a correction that could be applied without one would leave retrieval matching text the
+   * document no longer contains (ADR-006 revision).
+   */
+  editProtocol(protocolId: string, correction: ProtocolCorrection): Observable<UploadAccepted> {
+    return this.http.put<UploadAccepted>(
+      `${this.apiBaseUrl}/moderation/protocols/${protocolId}`,
+      correction,
+    );
+  }
+
+  /** One page of the archive: what was removed, by whom and why. Admin only, server-side. */
+  deletedProtocols(machineNo: string, page: number, size: number): Observable<DeletedProtocolPage> {
+    let params = new HttpParams().set('page', page).set('size', size);
+    if (machineNo) {
+      params = params.set('machineNo', machineNo);
+    }
+    return this.http.get<DeletedProtocolPage>(
+      `${this.apiBaseUrl}/moderation/protocols/deleted`,
+      { params },
+    );
+  }
+
+  /**
+   * The document of an archived protocol.
+   *
+   * A third document call rather than a parameter on one, for the reason the second one exists:
+   * they differ in what they are allowed to serve. This is the only door back to a removed
+   * protocol's content, and it is what makes the archive evidence rather than a tombstone.
+   */
+  getArchivedDocument(protocolId: string): Observable<HttpResponse<Blob>> {
+    return this.http.get(
+      `${this.apiBaseUrl}/moderation/protocols/deleted/${protocolId}/document`,
+      { observe: 'response', responseType: 'blob' },
+    );
   }
 
   /** The caller's own uploads and what became of them. Schichtleiter only, server-side. */
@@ -132,6 +182,10 @@ export type ApiFailure =
   | 'tooLarge'
   /** The file was empty, not a .txt, or not text at all — the upload guards' 400 codes. */
   | 'rejectedContent'
+  /** An edit tried to change the machine or the type — the identity lock (ADR-006 revision). */
+  | 'identityLocked'
+  /** The protocol is already in the archive, and archived is final. */
+  | 'archived'
   | 'forbidden'
   | 'notFound'
   | 'generic';
@@ -164,7 +218,15 @@ export function classify(error: unknown): ApiFailure {
     case 413:
       return 'tooLarge';
     case 400:
+      if (reasonOf(error) === 'PROTOCOL_IDENTITY_LOCKED') {
+        return 'identityLocked';
+      }
       return REJECTION_CODES.has(reasonOf(error) ?? '') ? 'rejectedContent' : 'generic';
+    // Only one thing answers 409 in this API: an edit of a protocol that is already archived. The
+    // status alone would be enough, and the code is still checked — a second conflict added later
+    // must not silently inherit this sentence.
+    case 409:
+      return reasonOf(error) === 'PROTOCOL_ARCHIVED' ? 'archived' : 'generic';
     // The protocol row exists and its file does not, or the id is unknown — the backend answers
     // the same 404 for both on purpose. For a source link it means one specific thing worth
     // saying: the evidence behind this claim can no longer be opened.
@@ -187,7 +249,15 @@ export function classify(error: unknown): ApiFailure {
  * technicality was hit. A 400 with any other code stays generic: those are field-level mistakes the
  * form should have prevented.
  */
-const REJECTION_CODES = new Set(['EMPTY_FILE', 'UNSUPPORTED_TYPE', 'NOT_TEXT']);
+const REJECTION_CODES = new Set([
+  'EMPTY_FILE',
+  'UNSUPPORTED_TYPE',
+  'NOT_TEXT',
+  // A correction that is empty or past the size cap. The same rules as an upload, checked by the
+  // same property, so it collapses to the same sentence rather than a fourth one saying the same
+  // thing about a different verb.
+  'INVALID_CONTENT',
+]);
 
 /** The body is JSON in practice and untyped in principle; a missing code is simply not a match. */
 function reasonOf(error: HttpErrorResponse): string | null {

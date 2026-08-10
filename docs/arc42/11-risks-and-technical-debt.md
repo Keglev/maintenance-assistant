@@ -49,10 +49,27 @@ leave the demo answering "come back tomorrow" to everyone else — which is the 
 availability damage rather than a bill. Content validation bounds the *garbage* case: an empty file
 or a renamed PDF is refused before a row exists.
 
-**The honest gap: remediation.** Nothing above deletes a protocol that was accepted and is simply
-bad — a plausible-looking protocol full of nonsense passes every guard here, because every guard
-here is about size, shape and rate rather than about meaning. It then sits in the corpus and can be
-retrieved and cited by a later answer. That is not an oversight to be closed with another limit; it
-is the **moderation** work package (review, hide, delete), which is the next one on the backlog.
-Until it exists, the mitigation is operational: the corpus is synthetic, the deployment is a demo,
-and a bad protocol is removed by hand from the database and the volume.
+**The gap this left, and how it is closed.** Nothing above deletes a protocol that was accepted and
+is simply bad — a plausible-looking protocol full of nonsense passes every guard here, because every
+guard here is about size, shape and rate rather than about meaning. It then sits in the corpus and
+can be retrieved and cited by a later answer. That was never an oversight to be closed with another
+limit, and it is now closed by **moderation** ([ADR-006](../adr/ADR-006-insider-threat-and-protocol-moderation.md)):
+an administrator — the role that cannot write, deliberately — reviews the whole corpus and remediates
+it in one of two ways.
+
+- **Correct it.** An in-place edit rewrites the document and **forces a re-index**, so the vectors
+  retrieval searches are always the vectors of the text on screen. A wrong Massnahme is fixed by the
+  person who spots it, rather than requiring the author to delete and retype the protocol. Machine
+  and protocol type are not editable: they are the protocol's provenance rather than its content.
+- **Archive it.** A deletion removes the **chunks** — which is what takes the protocol out of every
+  answer, instantly and for every role — and keeps the row and the file. Removing garbage must not
+  also destroy the evidence of who produced it, so the protocol stays readable to an administrator
+  and to nobody else. There is **no restore**, by design. The archive is capped at 50 deletions per
+  machine; beyond that the oldest are purged completely, which is what keeps this bounded like
+  everything else here.
+
+Both acts require a comment and are recorded in `moderation_event` with the actor and the time, so
+the audit function has its own audit trail — and that ledger survives the purge that removes its
+subject. Residual, and stated rather than closed: detection is still manual, one administrator is
+still enough, and an answer already open on a screen can still show text that has since been
+corrected.

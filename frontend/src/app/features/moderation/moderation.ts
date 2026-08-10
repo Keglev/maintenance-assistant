@@ -1,7 +1,13 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
-import { Machine, ModeratedProtocol, NO_FILTER, ProtocolFilter } from '../../core/api/api.types';
+import {
+  ArchivedProtocol,
+  Machine,
+  ModeratedProtocol,
+  NO_FILTER,
+  ProtocolFilter,
+} from '../../core/api/api.types';
 import { ApiFailure, MaintenanceApiService, classify } from '../../core/api/maintenance-api.service';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { Dialog } from '../../shared/dialog/dialog';
@@ -19,9 +25,11 @@ const PAGE_SIZE = 10;
  * restricted for quality, which bounds volume and profanity but not a *plausible* protocol with a
  * wrong Massnahme, filed by someone entitled to file it. Mode A cites that faithfully.
  *
- * <p>There is deliberately no edit. Correcting a protocol is delete-then-reupload by the
- * Schichtleiter, so that no answer can cite text that changed underneath it — the view says so
- * rather than leaving the absence to be read as an oversight.
+ * <p><b>Two things changed with ADR-006's 2026-08-10 revision.</b> A protocol can be corrected in
+ * place — the old rule against it assumed stored answers, and this system generates every answer per
+ * query — and a deletion no longer destroys the protocol, it archives it. Both require a stated
+ * reason, and neither can be undone: there is no restore, and the edit dialog will not let anyone
+ * move a protocol to another machine, because machine identity is provenance rather than content.
  */
 @Component({
   selector: 'app-moderation',
@@ -43,10 +51,62 @@ export class Moderation {
 
   /** The protocol open in the viewer, or null. */
   protected readonly viewing = signal<ModeratedProtocol | null>(null);
+  /** The archived protocol open in the viewer, or null — a different endpoint, so a different slot. */
+  protected readonly viewingArchived = signal<ArchivedProtocol | null>(null);
   /** The protocol whose deletion is being confirmed, or null. */
   protected readonly deleting = signal<ModeratedProtocol | null>(null);
+  /** Why it is being deleted. Required, here as well as on the server. */
+  protected readonly deleteComment = signal('');
   /** What was just removed, so the notice can name it. */
   protected readonly removed = signal<string | null>(null);
+  /** What was just corrected, so the notice can say it is being re-indexed. */
+  protected readonly corrected = signal<string | null>(null);
+
+  /** Which half of the view is on screen. */
+  protected readonly tab = signal<'corpus' | 'archive'>('corpus');
+
+  /** The protocol being corrected, or null. */
+  protected readonly editing = signal<ModeratedProtocol | null>(null);
+  protected readonly editTitle = signal('');
+  protected readonly editErrorCode = signal('');
+  protected readonly editContent = signal('');
+  protected readonly editComment = signal('');
+  /** The document is fetched when the dialog opens; until then there is nothing to correct. */
+  protected readonly editLoading = signal(false);
+  protected readonly editFailure = signal<ApiFailure | null>(null);
+  protected readonly editSaving = signal(false);
+
+  /** The archive, which is its own list with its own paging. */
+  protected readonly archived = signal<readonly ArchivedProtocol[]>([]);
+  protected readonly archivePage = signal(0);
+  protected readonly archiveTotal = signal(0);
+  protected readonly archiveCap = signal(0);
+  protected readonly archiveMachine = signal('');
+  protected readonly archiveLoading = signal(false);
+
+  /**
+   * Whether the correction can be submitted.
+   *
+   * The same three rules the backend enforces, checked here so the reader is told before the round
+   * trip rather than by a 400 afterwards. The backend keeps them regardless — a rule that exists
+   * only in the browser is a suggestion.
+   */
+  protected readonly canSaveEdit = computed(
+    () =>
+      this.editTitle().trim() !== '' &&
+      this.editContent().trim() !== '' &&
+      this.editComment().trim() !== '',
+  );
+
+  protected readonly canDelete = computed(() => this.deleteComment().trim() !== '');
+
+  protected readonly archivePageCount = computed(() =>
+    Math.max(1, Math.ceil(this.archiveTotal() / PAGE_SIZE)),
+  );
+  protected readonly hasPreviousArchive = computed(() => this.archivePage() > 0);
+  protected readonly hasNextArchive = computed(
+    () => this.archivePage() + 1 < this.archivePageCount(),
+  );
 
   protected readonly pageSize = PAGE_SIZE;
 
@@ -153,15 +213,17 @@ export class Moderation {
    */
   protected confirmDelete(): void {
     const target = this.deleting();
-    if (!target) {
+    const comment = this.deleteComment().trim();
+    if (!target || !comment) {
       return;
     }
     this.deleting.set(null);
     this.failure.set(null);
 
-    this.api.deleteProtocol(target.id).subscribe({
+    this.api.deleteProtocol(target.id, comment).subscribe({
       next: () => {
         this.removed.set(target.title);
+        this.deleteComment.set('');
         // Stepping back a page when the last row of the last page goes, so a confirmed delete never
         // lands the reviewer on an empty page they have to navigate out of.
         const wasLastRow = this.protocols().length === 1 && this.page() > 0;
@@ -169,6 +231,142 @@ export class Moderation {
       },
       error: (error: unknown) => this.failure.set(classify(error)),
     });
+  }
+
+  protected cancelDelete(): void {
+    this.deleting.set(null);
+    this.deleteComment.set('');
+  }
+
+  // -------------------------------------------------------------------------------------------
+  // Correction
+  // -------------------------------------------------------------------------------------------
+
+  /**
+   * Opens the edit dialog and fetches the text to correct.
+   *
+   * The current document is loaded rather than reconstructed from the row: `title` and `errorCode`
+   * live on the protocol, but the thing being corrected is the document on the volume, and an edit
+   * form pre-filled with anything else would silently replace the text with whatever the form
+   * happened to know.
+   */
+  protected startEdit(protocol: ModeratedProtocol): void {
+    this.editing.set(protocol);
+    this.editTitle.set(protocol.title);
+    this.editErrorCode.set(protocol.errorCode ?? '');
+    this.editContent.set('');
+    this.editComment.set('');
+    this.editFailure.set(null);
+    this.editLoading.set(true);
+
+    this.api.getModerationDocument(protocol.id).subscribe({
+      next: (response) => {
+        this.editLoading.set(false);
+        // `Blob.text()` decodes as UTF-8, which is what the backend sends and what this corpus
+        // needs — a protocol full of umlauts read as Latin-1 would be corrupted by the correction
+        // that was meant to fix it.
+        void response.body?.text().then((text) => this.editContent.set(text));
+      },
+      error: (error: unknown) => {
+        this.editLoading.set(false);
+        this.editFailure.set(classify(error));
+      },
+    });
+  }
+
+  protected cancelEdit(): void {
+    this.editing.set(null);
+    this.editSaving.set(false);
+  }
+
+  /**
+   * Submits the correction.
+   *
+   * Machine and type are sent back exactly as they arrived. The dialog shows them read-only and the
+   * backend refuses a change, so this is an echo rather than an input — but it is sent, because a
+   * request that omitted them would be a request that could be built by a client that thought they
+   * were optional.
+   */
+  protected saveEdit(): void {
+    const target = this.editing();
+    if (!target || !this.canSaveEdit() || this.editSaving()) {
+      return;
+    }
+    this.editSaving.set(true);
+    this.editFailure.set(null);
+
+    this.api
+      .editProtocol(target.id, {
+        machineNo: target.machineNo,
+        protocolType: target.protocolType,
+        title: this.editTitle().trim(),
+        errorCode: this.editErrorCode().trim(),
+        content: this.editContent(),
+        comment: this.editComment().trim(),
+      })
+      .subscribe({
+        next: () => {
+          this.editSaving.set(false);
+          this.editing.set(null);
+          // 202, not 200: the text is corrected and the search index is not, for a few seconds.
+          this.corrected.set(target.title);
+          this.load(this.page());
+        },
+        error: (error: unknown) => {
+          this.editSaving.set(false);
+          this.editFailure.set(classify(error));
+        },
+      });
+  }
+
+  // -------------------------------------------------------------------------------------------
+  // The archive
+  // -------------------------------------------------------------------------------------------
+
+  protected showTab(tab: 'corpus' | 'archive'): void {
+    this.tab.set(tab);
+    if (tab === 'archive') {
+      // Loaded on arrival rather than at construction: an administrator who never opens the archive
+      // should not pay for it on every visit to the corpus.
+      this.loadArchive(0);
+    }
+  }
+
+  protected loadArchive(page: number): void {
+    this.archiveLoading.set(true);
+    this.failure.set(null);
+    this.api.deletedProtocols(this.archiveMachine(), page, PAGE_SIZE).subscribe({
+      next: (result) => {
+        this.archived.set(result.items);
+        this.archivePage.set(result.page);
+        this.archiveTotal.set(result.total);
+        // The cap comes from the backend so the hint on screen cannot drift away from the number
+        // the purge actually enforces.
+        this.archiveCap.set(result.cap);
+        this.archiveLoading.set(false);
+      },
+      error: (error: unknown) => {
+        this.failure.set(classify(error));
+        this.archiveLoading.set(false);
+      },
+    });
+  }
+
+  protected filterArchive(machineNo: string): void {
+    this.archiveMachine.set(machineNo);
+    this.loadArchive(0);
+  }
+
+  protected previousArchive(): void {
+    if (this.hasPreviousArchive()) {
+      this.loadArchive(this.archivePage() - 1);
+    }
+  }
+
+  protected nextArchive(): void {
+    if (this.hasNextArchive()) {
+      this.loadArchive(this.archivePage() + 1);
+    }
   }
 
   /** Date only: which day a protocol was filed is the question, not which second. */

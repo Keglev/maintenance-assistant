@@ -35,10 +35,15 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  * Removing a protocol, against a real database and a real volume.
  *
  * <p>The claim under test is the one a mocked repository cannot make: that a delete leaves <b>no
- * retrievable orphan</b>. Chunks are what retrieval searches, so a chunk outliving its protocol is
- * not a tidiness problem — it can still be ranked, returned and cited, pointing at a row that no
- * longer exists. That is the failure this ordering exists to prevent, and the only way to see it is
- * to look in the tables afterwards.
+ * retrievable chunk and every piece of the evidence</b>. Chunks are what retrieval searches, so a
+ * chunk outliving its protocol is not a tidiness problem — it can still be ranked, returned and
+ * cited. The row, the file and the {@code moderation_event} row are the opposite requirement: they
+ * have to survive, or removing garbage would also destroy the record of who produced it. Both
+ * halves are only visible by looking in the tables afterwards.
+ *
+ * <p>The cap suite is the expensive one and earns it: fifty-one deletions is the only way to see
+ * that the purge takes the row <em>and</em> the file, leaves the ledger, and does not touch another
+ * machine's archive.
  */
 @SpringBootTest
 @ActiveProfiles("it")
@@ -65,6 +70,7 @@ class ProtocolModerationIT {
 
     @BeforeEach
     void reset() {
+        jdbc.sql("DELETE FROM moderation_event").update();
         jdbc.sql("DELETE FROM chunk").update();
         jdbc.sql("DELETE FROM protocol").update();
         machineId = jdbc.sql("SELECT id FROM machine WHERE machine_no = 'PR-03'")
@@ -72,23 +78,46 @@ class ProtocolModerationIT {
     }
 
     @Test
-    @DisplayName("a delete removes the chunks, the row and the file")
-    void deleteLeavesNoOrphan() throws IOException {
+    @DisplayName("a delete removes the chunks and keeps the evidence: row, file, and who removed it")
+    void deleteRemovesTheChunksAndKeepsTheEvidence() throws IOException {
         UUID id = seedProtocol("E-47 Druckabfall", "Symptom:\nKein Druck.\n");
         seedChunk(id, "Symptom: kein Druck");
         seedChunk(id, "Massnahme: Dichtsatz getauscht");
         Path file = filesDir.resolve("PR-03/%s.txt".formatted(id));
-        assertThat(file).exists();
 
-        boolean removed = moderation.delete(id, "admin");
+        boolean removed = moderation.delete(id, "admin", "Falsche Massnahme, Drehmoment stimmt nicht");
 
         assertThat(removed).isTrue();
         assertThat(countChunks(id))
-                .as("a chunk outliving its protocol is retrievable garbage: still rankable, still "
-                        + "citable, pointing at a row that is gone")
+                .as("the chunks are what retrieval searches — deleting them is what takes the "
+                        + "protocol out of every answer, instantly and for every role")
                 .isZero();
-        assertThat(countProtocols(id)).isZero();
-        assertThat(file).as("the file is inert once the row is gone, but it is still removed").doesNotExist();
+        // And the other half of the ADR-006 revision: the row and the file survive, so removing
+        // garbage does not also destroy the record of who produced it.
+        assertThat(countProtocols(id)).isOne();
+        assertThat(deletedAt(id)).isNotNull();
+        assertThat(file).as("the archive can only be evidence if the document is still readable")
+                .exists();
+        assertThat(eventsOf(id, "DELETE")).singleElement()
+                .satisfies(event -> {
+                    assertThat(event.actor()).isEqualTo("admin");
+                    assertThat(event.comment()).contains("Drehmoment");
+                });
+    }
+
+    @Test
+    @DisplayName("a deletion without a stated reason is refused")
+    void deletingNeedsAComment() throws IOException {
+        UUID id = seedProtocol("E-47 Druckabfall", "Symptom:\nKein Druck.\n");
+
+        // Blank counts as missing: a comment box someone tabbed past is not a stated reason, and
+        // " " in the ledger is worse than nothing because it looks like an answer.
+        for (String comment : new String[]{null, "", "   "}) {
+            assertThatThrownBy(() -> moderation.delete(id, "admin", comment))
+                    .isInstanceOf(ProtocolModerationService.InvalidModerationRequestException.class)
+                    .hasFieldOrPropertyWithValue("code", "MODERATION_COMMENT_REQUIRED");
+        }
+        assertThat(deletedAt(id)).as("refused before anything happened").isNull();
     }
 
     @Test
@@ -97,32 +126,158 @@ class ProtocolModerationIT {
         UUID id = seedProtocol("E-47 Druckabfall", "Symptom:\nKein Druck.\n");
         assertThat(documents.find(id)).isPresent();
 
-        moderation.delete(id, "admin");
+        moderation.delete(id, "admin", "Unbrauchbar");
 
-        // This is what a stale citation in an old answer hits, and 404 is the honest reply.
+        // This is what a stale citation in an old answer hits, and 404 is the honest reply. The
+        // archive changed who can still read a removed protocol, not whether the ordinary routes
+        // to it keep working.
         assertThat(documents.find(id)).isEmpty();
+        assertThat(documents.findArchived(id))
+                .as("and the one door back to it, which is what makes the archive evidence")
+                .isPresent();
+    }
+
+    @Test
+    @DisplayName("the live document endpoint does not serve an archived protocol, and vice versa")
+    void theTwoDocumentDoorsDoNotOverlap() throws IOException {
+        UUID live = seedProtocol("Noch da", "Symptom:\nEtwas.\n");
+
+        assertThat(documents.find(live)).isPresent();
+        // Asking for an archived document must not quietly serve a live protocol either: the
+        // archive read is exactly as narrow as the live one.
+        assertThat(documents.findArchived(live)).isEmpty();
     }
 
     @Test
     @DisplayName("deleting an unknown protocol reports it rather than pretending")
     void deletingWhatIsNotThereReturnsFalse() {
-        assertThat(moderation.delete(UUID.randomUUID(), "admin")).isFalse();
+        assertThat(moderation.delete(UUID.randomUUID(), "admin", "weg damit")).isFalse();
     }
 
     @Test
-    @DisplayName("a second delete completes what a half-failed first one left behind")
-    void deleteIsSafeToRetry() throws IOException {
-        UUID id = seedProtocol("Halb entfernt", "Symptom:\nEtwas.\n");
+    @DisplayName("deleting an already archived protocol changes nothing and rewrites no history")
+    void deletingTwiceIsRefused() throws IOException {
+        UUID id = seedProtocol("Einmal reicht", "Symptom:\nEtwas.\n");
+        assertThat(moderation.delete(id, "admin", "erster Grund")).isTrue();
+        OffsetDateTime firstDeletion = deletedAt(id);
+
+        assertThat(moderation.delete(id, "someone-else", "zweiter Grund")).isFalse();
+
+        // The second call must not overwrite the first deletion's timestamp or add a second
+        // reason — that would be rewriting the audit trail it is supposed to be adding to.
+        assertThat(deletedAt(id)).isEqualTo(firstDeletion);
+        assertThat(eventsOf(id, "DELETE")).hasSize(1);
+        assertThat(eventsOf(id, "DELETE").get(0).comment()).isEqualTo("erster Grund");
+    }
+
+    @Test
+    @DisplayName("a protocol whose file is already gone still archives cleanly")
+    void deleteSurvivesAMissingFile() throws IOException {
+        UUID id = seedProtocol("Datei weg", "Symptom:\nEtwas.\n");
         seedChunk(id, "ein Chunk");
-        // The shape a crash between steps leaves: the file is already gone, the row is not. A
-        // retry has to finish the job rather than fail on the part that is already done.
+        // The shape a half-failed operation or a swept volume leaves. The archive entry is still
+        // worth writing: who removed what and why does not depend on the file surviving.
         Files.delete(filesDir.resolve("PR-03/%s.txt".formatted(id)));
 
-        assertThat(moderation.delete(id, "admin")).isTrue();
+        assertThat(moderation.delete(id, "admin", "Datei fehlte schon")).isTrue();
         assertThat(countChunks(id)).isZero();
-        assertThat(countProtocols(id)).isZero();
-        // And calling it once more is simply false — nothing throws, nothing is half-done.
-        assertThat(moderation.delete(id, "admin")).isFalse();
+        assertThat(eventsOf(id, "DELETE")).hasSize(1);
+    }
+
+    // ---------------------------------------------------------------------------------------
+    // The archive
+    // ---------------------------------------------------------------------------------------
+
+    @Test
+    @DisplayName("the archive lists what was removed, newest first, with the actor and the reason")
+    void theArchiveCarriesTheReason() throws IOException {
+        UUID first = seedProtocol("PR-03", "Zuerst entfernt", day(10));
+        UUID second = seedProtocol("PR-03", "Danach entfernt", day(11));
+        moderation.delete(first, "admin", "erfundene Massnahme");
+        moderation.delete(second, "admin", "falscher Fehlercode");
+
+        ProtocolModerationService.DeletedProtocolPage archive = moderation.listDeleted(null, 0, 10);
+
+        assertThat(archive.total()).isEqualTo(2);
+        assertThat(archive.items()).extracting(ProtocolModerationService.ArchivedProtocol::title)
+                .containsExactly("Danach entfernt", "Zuerst entfernt");
+        assertThat(archive.items().get(0).deletedBy()).isEqualTo("admin");
+        // The comment is the field the whole archive exists to carry.
+        assertThat(archive.items().get(0).deleteComment()).isEqualTo("falscher Fehlercode");
+        assertThat(archive.items().get(0).deletedAt()).isNotNull();
+        assertThat(archive.cap()).isEqualTo(ProtocolModerationService.ARCHIVE_CAP);
+    }
+
+    @Test
+    @DisplayName("the archive filters by machine and pages")
+    void theArchiveFiltersAndPages() throws IOException {
+        moderation.delete(seedProtocol("PR-03", "Presse eins", day(10)), "admin", "weg");
+        moderation.delete(seedProtocol("PR-03", "Presse zwei", day(11)), "admin", "weg");
+        moderation.delete(seedProtocol("AB-02", "Dosierer", day(12)), "admin", "weg");
+
+        assertThat(moderation.listDeleted("PR-03", 0, 10).total()).isEqualTo(2);
+        assertThat(moderation.listDeleted("AB-02", 0, 10).items())
+                .extracting(ProtocolModerationService.ArchivedProtocol::title)
+                .containsExactly("Dosierer");
+        assertThat(moderation.listDeleted("PR-03", 1, 1).items()).hasSize(1);
+    }
+
+    @Test
+    @DisplayName("an archived protocol is out of the live corpus list")
+    void theArchiveIsNotTheCorpus() throws IOException {
+        UUID kept = seedProtocol("PR-03", "Bleibt", day(10));
+        UUID removed = seedProtocol("PR-03", "Geht", day(11));
+
+        moderation.delete(removed, "admin", "weg");
+
+        assertThat(titlesOf(moderation.list(0, 10))).containsExactly("Bleibt");
+        assertThat(moderation.list(0, 10).total()).isEqualTo(1);
+        assertThat(countProtocols(kept)).isOne();
+    }
+
+    @Test
+    @DisplayName("the fifty-first deletion purges the oldest one completely, row and file")
+    void theCapPurgesTheOldest() throws IOException {
+        // Fifty deletions is the ceiling; the next one has to make room. Seeded on two machines to
+        // prove the cap is per machine — a burst on one press must not push another's evidence out.
+        UUID oldest = seedProtocol("PR-03", "Der aelteste", day(1));
+        Path oldestFile = filesDir.resolve("PR-03/%s.txt".formatted(oldest));
+        UUID otherMachine = seedProtocol("AB-02", "Andere Maschine", day(1));
+        moderation.delete(oldest, "admin", "weg");
+        moderation.delete(otherMachine, "admin", "weg");
+
+        for (int i = 1; i < ProtocolModerationService.ARCHIVE_CAP; i++) {
+            moderation.delete(seedProtocol("PR-03", "Fuellprotokoll " + i, day(2)), "admin", "weg");
+        }
+        // Still exactly at the cap, so nothing has been purged yet.
+        assertThat(countProtocols(oldest)).isOne();
+        assertThat(moderation.listDeleted("PR-03", 0, 1).total())
+                .isEqualTo(ProtocolModerationService.ARCHIVE_CAP);
+
+        moderation.delete(seedProtocol("PR-03", "Einer zu viel", day(3)), "admin", "weg");
+
+        assertThat(countProtocols(oldest)).as("the oldest deletion is gone for good").isZero();
+        assertThat(oldestFile).as("row and file both, or the volume fills with unreachable text")
+                .doesNotExist();
+        assertThat(moderation.listDeleted("PR-03", 0, 1).total())
+                .isEqualTo(ProtocolModerationService.ARCHIVE_CAP);
+        // The ledger survives its subject. A cascade here would mean the fifty-first deletion
+        // erasing the record of the first — the audit function losing its own audit trail.
+        assertThat(eventsOf(oldest, "DELETE")).hasSize(1);
+        // And the other machine's archive was never touched by any of it.
+        assertThat(moderation.listDeleted("AB-02", 0, 10).total()).isOne();
+        assertThat(countProtocols(otherMachine)).isOne();
+    }
+
+    @Test
+    @DisplayName("there is no restore: nothing in this service brings a protocol back")
+    void nothingUndeletes() {
+        // Guarding a design decision rather than a behaviour, and worth the line: undelete would
+        // make the archive a staging area for putting bad protocols back (ADR-006 revision).
+        assertThat(ProtocolModerationService.class.getMethods())
+                .extracting(java.lang.reflect.Method::getName)
+                .noneMatch(name -> name.toLowerCase(java.util.Locale.ROOT).contains("restore")
+                        || name.toLowerCase(java.util.Locale.ROOT).contains("undelete"));
     }
 
     @Test
@@ -280,12 +435,12 @@ class ProtocolModerationIT {
         // 150 protocols across ten machines: a title fragment on its own answers with rows from
         // machines the reviewer was not looking at, which is noise dressed as a result.
         assertThatThrownBy(() -> filter(null, "sensor", null, null))
-                .isInstanceOf(ProtocolModerationService.InvalidFilterException.class)
+                .isInstanceOf(ProtocolModerationService.InvalidModerationRequestException.class)
                 .hasFieldOrPropertyWithValue("code", "MACHINE_REQUIRED_FOR_FILTER");
         assertThatThrownBy(() -> filter(" ", null, date(10), null))
-                .isInstanceOf(ProtocolModerationService.InvalidFilterException.class);
+                .isInstanceOf(ProtocolModerationService.InvalidModerationRequestException.class);
         assertThatThrownBy(() -> filter(null, null, null, date(10)))
-                .isInstanceOf(ProtocolModerationService.InvalidFilterException.class);
+                .isInstanceOf(ProtocolModerationService.InvalidModerationRequestException.class);
     }
 
     @Test
@@ -322,6 +477,26 @@ class ProtocolModerationIT {
 
     private static LocalDate date(int dayOfMonth) {
         return LocalDate.of(2026, 8, dayOfMonth);
+    }
+
+    private OffsetDateTime deletedAt(UUID protocolId) {
+        return jdbc.sql("SELECT deleted_at FROM protocol WHERE id = :id")
+                .param("id", protocolId).query(OffsetDateTime.class).optional().orElse(null);
+    }
+
+    private List<Event> eventsOf(UUID protocolId, String action) {
+        return jdbc.sql("""
+                        SELECT actor, comment FROM moderation_event
+                        WHERE protocol_id = :id AND action = :action
+                        ORDER BY created_at
+                        """)
+                .param("id", protocolId)
+                .param("action", action)
+                .query((rs, rowNum) -> new Event(rs.getString("actor"), rs.getString("comment")))
+                .list();
+    }
+
+    private record Event(String actor, String comment) {
     }
 
     private long countChunks(UUID protocolId) {

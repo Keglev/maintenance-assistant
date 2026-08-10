@@ -3,7 +3,7 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { TestBed } from '@angular/core/testing';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
-import { ModeratedProtocol, ProtocolPage } from '../../core/api/api.types';
+import { ArchivedProtocol, ModeratedProtocol, ProtocolPage } from '../../core/api/api.types';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { Moderation } from './moderation';
 
@@ -66,7 +66,8 @@ describe('Moderation', () => {
   function type(element: HTMLElement, testId: string, value: string): void {
     const field = element.querySelector(`[data-testid="${testId}"]`) as
       | HTMLInputElement
-      | HTMLSelectElement;
+      | HTMLSelectElement
+      | HTMLTextAreaElement;
     field.value = value;
     field.dispatchEvent(new Event(field.tagName === 'SELECT' ? 'change' : 'input'));
   }
@@ -102,17 +103,6 @@ describe('Moderation', () => {
     await fixture.whenStable();
   });
 
-  it('says plainly that protocols are not edited, only replaced', async () => {
-    const fixture = await render();
-
-    // The absence of an edit button is a decision (ADR-006), and an unexplained absence reads as
-    // an oversight.
-    expect(
-      (fixture.nativeElement as HTMLElement).querySelector('[data-testid="moderation-hint"]')
-        ?.textContent,
-    ).toContain('neu hochladen');
-  });
-
   it('names the protocol in the delete confirmation, and deletes nothing until confirmed', async () => {
     const fixture = await render();
     const element = fixture.nativeElement as HTMLElement;
@@ -123,10 +113,34 @@ describe('Moderation', () => {
     const target = element.querySelector('[data-testid="delete-target"]')?.textContent ?? '';
     expect(target).toContain('E-47 Druckabfall');
     expect(target).toContain('PR-03');
-    expect(element.querySelector('[data-testid="delete-confirm-dialog"]')?.textContent).toContain(
-      'Endgültig',
-    );
+    // The copy is the ADR-006 revision in one sentence: gone for everyone at once, no restore, and
+    // still readable in the archive.
+    const dialog = element.querySelector('[data-testid="delete-confirm-dialog"]')?.textContent ?? '';
+    expect(dialog).toContain('kein Wiederherstellen');
+    expect(dialog).toContain('Gelöschte Protokolle');
     // httpMock.verify() in afterEach proves no DELETE was sent by opening the dialog.
+  });
+
+  it('will not delete without a stated reason', async () => {
+    const fixture = await render();
+    const element = fixture.nativeElement as HTMLElement;
+
+    (element.querySelector('[data-testid="row-delete"]') as HTMLButtonElement).click();
+    await fixture.whenStable();
+
+    // Required here as well as on the server. A removal from the corpus with no reason is exactly
+    // the unexplained change the audit trail exists to make visible.
+    expect(
+      (element.querySelector('[data-testid="delete-confirm-button"]') as HTMLButtonElement).disabled,
+    ).toBe(true);
+    expect(element.querySelector('[data-testid="delete-reason-required"]')).not.toBeNull();
+
+    type(element, 'delete-comment', 'erfundene Massnahme');
+    await fixture.whenStable();
+
+    expect(
+      (element.querySelector('[data-testid="delete-confirm-button"]') as HTMLButtonElement).disabled,
+    ).toBe(false);
   });
 
   it('cancelling the confirmation deletes nothing', async () => {
@@ -147,10 +161,15 @@ describe('Moderation', () => {
 
     (element.querySelector('[data-testid="row-delete"]') as HTMLButtonElement).click();
     await fixture.whenStable();
+    type(element, 'delete-comment', 'erfundene Massnahme');
+    await fixture.whenStable();
     (element.querySelector('[data-testid="delete-confirm-button"]') as HTMLButtonElement).click();
 
     const request = httpMock.expectOne('/api/moderation/protocols/p-1');
     expect(request.request.method).toBe('DELETE');
+    // In the body, not the query string: a sentence about a named colleague's mistake would
+    // otherwise be written into access logs, proxy logs and browser history.
+    expect(request.request.body).toEqual({ comment: 'erfundene Massnahme' });
     request.flush(null, { status: 204, statusText: 'No Content' });
 
     // Reloaded rather than spliced: a delete changes the total, and therefore which rows belong
@@ -338,11 +357,245 @@ describe('Moderation', () => {
     expect(element.querySelector('[data-testid="moderation-table"]')).not.toBeNull();
   });
 
+  // -------------------------------------------------------------------------------------------
+  // Correction
+  // -------------------------------------------------------------------------------------------
+
+  /** Opens the edit dialog on the first row and answers the document fetch it makes. */
+  async function openEdit(fixture: Awaited<ReturnType<typeof render>>, text = 'Anzugsmoment 90 Nm') {
+    const element = fixture.nativeElement as HTMLElement;
+    (element.querySelector('[data-testid="row-edit"]') as HTMLButtonElement).click();
+    await fixture.whenStable();
+    httpMock
+      .expectOne('/api/moderation/protocols/p-1/document')
+      .flush(new Blob([text], { type: 'text/plain' }));
+    await fixture.whenStable();
+    await fixture.whenStable();
+    return element;
+  }
+
+  it('loads the stored text into the edit dialog rather than inventing it', async () => {
+    const fixture = await render();
+    const element = await openEdit(fixture);
+
+    // The thing being corrected is the document on the volume. A form pre-filled from anything
+    // else would silently replace the text with whatever the row happened to know.
+    expect((element.querySelector('[data-testid="edit-content"]') as HTMLTextAreaElement).value)
+      .toContain('90 Nm');
+    expect((element.querySelector('[data-testid="edit-title"]') as HTMLInputElement).value)
+      .toBe('E-47 Druckabfall');
+  });
+
+  it('shows machine and type as locked, and says why', async () => {
+    const fixture = await render();
+    const element = await openEdit(fixture);
+
+    // Shown, because a reviewer has to see what they are correcting; not editable, because a
+    // protocol's machine is its provenance rather than its content (ADR-006 revision).
+    expect(element.querySelector('[data-testid="edit-machine"]')?.textContent).toContain('PR-03');
+    expect(element.querySelector('[data-testid="edit-type"]')).not.toBeNull();
+    expect(element.querySelector('[data-testid="edit-machine"] input')).toBeNull();
+    expect(element.querySelector('[data-testid="edit-locked-hint"]')?.textContent).toContain(
+      'nicht änderbar',
+    );
+  });
+
+  it('will not save a correction without a reason', async () => {
+    const fixture = await render();
+    const element = await openEdit(fixture);
+
+    expect((element.querySelector('[data-testid="edit-save"]') as HTMLButtonElement).disabled)
+      .toBe(true);
+
+    type(element, 'edit-comment', 'Drehmoment korrigiert');
+    await fixture.whenStable();
+
+    expect((element.querySelector('[data-testid="edit-save"]') as HTMLButtonElement).disabled)
+      .toBe(false);
+  });
+
+  it('sends the correction with the unchanged machine, and says it is being re-indexed', async () => {
+    const fixture = await render();
+    const element = await openEdit(fixture);
+
+    type(element, 'edit-content', 'Anzugsmoment 120 Nm');
+    type(element, 'edit-comment', 'Drehmoment korrigiert');
+    await fixture.whenStable();
+    (element.querySelector('[data-testid="edit-save"]') as HTMLButtonElement).click();
+
+    const request = httpMock.expectOne('/api/moderation/protocols/p-1');
+    expect(request.request.method).toBe('PUT');
+    expect(request.request.body).toMatchObject({
+      // Echoed back unchanged. The backend refuses a different one; sending it is what lets the
+      // backend refuse rather than guess.
+      machineNo: 'PR-03',
+      protocolType: 'STOERUNG',
+      content: 'Anzugsmoment 120 Nm',
+      comment: 'Drehmoment korrigiert',
+    });
+    request.flush({ id: 'p-1', status: 'RECEIVED', message: 'ok' }, { status: 202, statusText: 'Accepted' });
+
+    // The list is reloaded because the row's title may have changed with it.
+    httpMock.expectOne((r) => r.url === '/api/moderation/protocols').flush(page([protocol()]));
+    await fixture.whenStable();
+
+    // 202, not 200: the text is corrected and the index catches up in a moment. Saying so is the
+    // same honesty the upload view owes its own 202.
+    expect(element.querySelector('[data-testid="corrected-notice"]')?.textContent).toContain(
+      'neu indexiert',
+    );
+  });
+
+  it('explains a refused identity change instead of failing generically', async () => {
+    const fixture = await render();
+    const element = await openEdit(fixture);
+
+    type(element, 'edit-comment', 'verschieben');
+    await fixture.whenStable();
+    (element.querySelector('[data-testid="edit-save"]') as HTMLButtonElement).click();
+    httpMock.expectOne('/api/moderation/protocols/p-1').flush(
+      { reason: 'PROTOCOL_IDENTITY_LOCKED', error: 'machine cannot be changed' },
+      { status: 400, statusText: 'Bad Request' },
+    );
+    await fixture.whenStable();
+
+    // Matched on the stable code rather than the English sentence, like every other guard.
+    expect(element.querySelector('[data-testid="edit-failure"]')?.textContent).toContain(
+      'löschen und neu anlegen',
+    );
+  });
+
+  it('says plainly when a protocol was archived under the editor', async () => {
+    const fixture = await render();
+    const element = await openEdit(fixture);
+
+    type(element, 'edit-comment', 'zu spaet');
+    await fixture.whenStable();
+    (element.querySelector('[data-testid="edit-save"]') as HTMLButtonElement).click();
+    httpMock.expectOne('/api/moderation/protocols/p-1').flush(
+      { reason: 'PROTOCOL_ARCHIVED', error: 'archived' },
+      { status: 409, statusText: 'Conflict' },
+    );
+    await fixture.whenStable();
+
+    expect(element.querySelector('[data-testid="edit-failure"]')?.textContent).toContain(
+      'endgültig',
+    );
+  });
+
+  // -------------------------------------------------------------------------------------------
+  // The archive
+  // -------------------------------------------------------------------------------------------
+
+  /** Switches to the archive tab and answers the page it loads. */
+  async function openArchive(
+    fixture: Awaited<ReturnType<typeof render>>,
+    items: Partial<ArchivedProtocol>[] = [{}],
+  ) {
+    const element = fixture.nativeElement as HTMLElement;
+    (element.querySelector('[data-testid="tab-archive"]') as HTMLButtonElement).click();
+    await fixture.whenStable();
+    const request = httpMock.expectOne((r) => r.url === '/api/moderation/protocols/deleted');
+    request.flush({
+      items: items.map((overrides) => ({
+        id: 'a-1',
+        machineNo: 'PR-03',
+        title: 'Erfundene Massnahme',
+        protocolType: 'STOERUNG',
+        errorCode: 'E-47',
+        uploadedBy: 'schichtleiter',
+        uploadedAt: '2026-08-08T10:15:00Z',
+        deletedAt: '2026-08-09T08:00:00Z',
+        deletedBy: 'admin',
+        deleteComment: 'Drehmoment war frei erfunden',
+        ...overrides,
+      })),
+      page: 0,
+      size: 10,
+      total: items.length,
+      cap: 50,
+    });
+    await fixture.whenStable();
+    return { element, request };
+  }
+
+  it('shows what was removed, by whom and why', async () => {
+    const fixture = await render();
+    const { element } = await openArchive(fixture);
+
+    expect(element.querySelector('[data-testid="archive-actor"]')?.textContent).toContain('admin');
+    // The reason is the field the whole archive exists to carry.
+    expect(element.querySelector('[data-testid="archive-comment"]')?.textContent).toContain(
+      'frei erfunden',
+    );
+    // The live corpus table is not on screen at the same time.
+    expect(element.querySelector('[data-testid="moderation-table"]')).toBeNull();
+  });
+
+  it('states the cap and that there is no restore', async () => {
+    const fixture = await render();
+    const { element } = await openArchive(fixture);
+
+    // Both are decisions, and a reviewer who assumes deletions are recoverable uses deletion
+    // differently. The cap comes from the backend so the sentence cannot drift from the rule.
+    const hint = element.querySelector('[data-testid="archive-hint"]')?.textContent ?? '';
+    expect(hint).toContain('50');
+    expect(hint).toContain('Kein Wiederherstellen');
+  });
+
+  it('offers no way to restore or edit an archived protocol', async () => {
+    const fixture = await render();
+    const { element } = await openArchive(fixture);
+
+    const row = element.querySelector('[data-testid="archive-row"]') as HTMLElement;
+    expect(row.querySelector('[data-testid="archive-open"]')).not.toBeNull();
+    // Reading it is the whole affordance. Undelete would make the archive a staging area for
+    // putting bad protocols back (ADR-006 revision).
+    expect(row.textContent).not.toContain('Wiederherstellen');
+    expect(row.querySelector('[data-testid="row-edit"]')).toBeNull();
+    expect(row.querySelector('[data-testid="row-delete"]')).toBeNull();
+  });
+
+  it('reads an archived document through the archive endpoint, not the live one', async () => {
+    const fixture = await render();
+    const { element } = await openArchive(fixture);
+
+    (element.querySelector('[data-testid="archive-open"]') as HTMLButtonElement).click();
+    await fixture.whenStable();
+
+    // The live paths answer 404 for a removed protocol; this is the only door back to its content.
+    httpMock
+      .expectOne('/api/moderation/protocols/deleted/a-1/document')
+      .flush(new Blob(['Symptom:\nErfunden.\n'], { type: 'text/plain' }));
+    await fixture.whenStable();
+    await fixture.whenStable();
+
+    expect(element.querySelector('[data-testid="protocol-dialog"]')).not.toBeNull();
+  });
+
+  it('filters the archive by machine and pages within it', async () => {
+    const fixture = await render();
+    const { element } = await openArchive(fixture);
+
+    type(element, 'archive-machine', 'AB-02');
+    await fixture.whenStable();
+
+    const request = httpMock.expectOne((r) => r.url === '/api/moderation/protocols/deleted');
+    expect(request.request.params.get('machineNo')).toBe('AB-02');
+    expect(request.request.params.get('page')).toBe('0');
+    request.flush({ items: [], page: 0, size: 10, total: 0, cap: 50 });
+    await fixture.whenStable();
+
+    expect(element.querySelector('[data-testid="archive-empty"]')).not.toBeNull();
+  });
+
   it('reports a protocol someone else already deleted, rather than failing generically', async () => {
     const fixture = await render();
     const element = fixture.nativeElement as HTMLElement;
 
     (element.querySelector('[data-testid="row-delete"]') as HTMLButtonElement).click();
+    await fixture.whenStable();
+    type(element, 'delete-comment', 'weg damit');
     await fixture.whenStable();
     (element.querySelector('[data-testid="delete-confirm-button"]') as HTMLButtonElement).click();
     httpMock

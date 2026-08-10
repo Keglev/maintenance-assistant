@@ -187,7 +187,6 @@ export interface Dictionary {
   readonly moderation: {
     readonly heading: string;
     readonly intro: string;
-    readonly noEditHint: string;
     readonly uploadedBy: string;
     readonly actions: string;
     readonly open: string;
@@ -211,6 +210,35 @@ export interface Dictionary {
     readonly confirmBody: string;
     readonly previous: string;
     readonly next: string;
+    /** The two halves of the view: the live corpus and what was removed from it. */
+    readonly tabCorpus: string;
+    readonly tabArchive: string;
+    readonly edit: string;
+    readonly editTitle: string;
+    readonly editIntro: string;
+    /** Why machine and type are shown but locked — an unexplained disabled field reads as broken. */
+    readonly editLockedHint: string;
+    readonly editContent: string;
+    readonly editContentHint: string;
+    readonly editLoading: string;
+    readonly editSave: string;
+    readonly editSaving: string;
+    readonly edited: string;
+    readonly reason: string;
+    readonly reasonHint: string;
+    readonly reasonPlaceholder: string;
+    readonly reasonRequired: string;
+    readonly archiveIntro: string;
+    /** The 50-per-machine cap and the fact that restore does not exist. */
+    readonly archiveHint: (cap: number) => string;
+    readonly archiveEmpty: string;
+    readonly archiveLoading: string;
+    readonly archiveDeletedAt: string;
+    readonly archiveDeletedBy: string;
+    readonly archiveComment: string;
+    readonly archiveNoComment: string;
+    readonly identityLocked: string;
+    readonly alreadyArchived: string;
     /** "Seite 2 von 16 (151 Protokolle)" — three numbers, one sentence per language. */
     readonly pageOf: (page: number, pages: number, total: number) => string;
   };
@@ -442,8 +470,6 @@ export const DE: Dictionary = {
     heading: 'Protokollverwaltung',
     intro:
       'Alle Protokolle im Bestand. Öffnen zum Prüfen, entfernen was nicht hineingehört.',
-    noEditHint:
-      'Protokolle werden nicht bearbeitet. Eine Korrektur ist: entfernen und vom Schichtleiter neu hochladen — so kann keine Antwort eine Quelle zitieren, die sich nachträglich geändert hat.',
     uploadedBy: 'Hochgeladen von',
     actions: 'Aktionen',
     open: 'Öffnen',
@@ -462,11 +488,43 @@ export const DE: Dictionary = {
     filterReset: 'Zurücksetzen',
     removed: 'Protokoll entfernt',
     alreadyGone: 'Dieses Protokoll ist nicht mehr im Bestand.',
-    confirmTitle: 'Protokoll endgültig entfernen?',
+    confirmTitle: 'Protokoll entfernen?',
     confirmBody:
-      'Aus Suche und Bestand entfernt. Endgültig — es gibt kein Rückgängig und keinen Papierkorb.',
+      'Sofort aus Suche und Bestand entfernt, für alle Rollen. Es gibt kein Wiederherstellen. Das Protokoll bleibt für die Prüfung unter „Gelöschte Protokolle“ lesbar.',
     previous: 'Zurück',
     next: 'Weiter',
+    tabCorpus: 'Bestand',
+    tabArchive: 'Gelöschte Protokolle',
+    edit: 'Bearbeiten',
+    editTitle: 'Protokoll korrigieren',
+    editIntro:
+      'Der Text wird ersetzt und das Protokoll sofort neu indexiert — die Suche arbeitet danach mit der korrigierten Fassung.',
+    editLockedHint:
+      'Maschine und Art sind nicht änderbar — bei falscher Zuordnung: löschen und neu anlegen.',
+    editContent: 'Protokolltext',
+    editContentHint: 'Der gespeicherte Text, wie er im Protokoll steht. Freitext ist in Ordnung.',
+    editLoading: 'Protokolltext wird geladen …',
+    editSave: 'Korrektur speichern',
+    editSaving: 'Wird gespeichert …',
+    edited: 'Protokoll korrigiert — wird neu indexiert',
+    reason: 'Grund',
+    reasonHint: 'Wird mit Name und Zeitpunkt protokolliert.',
+    reasonPlaceholder: 'z. B. Anzugsmoment war falsch, laut Herstellerangabe 120 Nm.',
+    reasonRequired: 'Ohne Grund geht es nicht — eine Änderung am Bestand muss nachvollziehbar sein.',
+    archiveIntro:
+      'Entfernte Protokolle. Aus Suche und Bestand verschwunden, hier für die Prüfung noch lesbar.',
+    archiveHint: (cap) =>
+      `Kein Wiederherstellen — das ist Absicht. Je Maschine werden die letzten ${cap} Löschungen aufbewahrt, ältere werden endgültig gelöscht.`,
+    archiveEmpty: 'Es wurde noch nichts entfernt.',
+    archiveLoading: 'Gelöschte Protokolle werden geladen …',
+    archiveDeletedAt: 'Entfernt am',
+    archiveDeletedBy: 'Entfernt von',
+    archiveComment: 'Grund',
+    archiveNoComment: '—',
+    identityLocked:
+      'Maschine und Art lassen sich nicht ändern. Ist die Zuordnung falsch, ist das Protokoll an der Wurzel falsch: löschen und neu anlegen.',
+    alreadyArchived:
+      'Dieses Protokoll wurde entfernt und lässt sich nicht mehr bearbeiten. Entfernt ist endgültig.',
     pageOf: (page, pages, total) => `Seite ${page} von ${pages} (${total} Protokolle)`,
   },
   upload: {
@@ -695,8 +753,6 @@ export const EN: Dictionary = {
   moderation: {
     heading: 'Protocol management',
     intro: 'Every protocol in the records. Open one to review it, remove what does not belong.',
-    noEditHint:
-      'Protocols are not edited. A correction is: remove it and have the shift lead upload it again — so no answer can cite a source that changed after the fact.',
     uploadedBy: 'Uploaded by',
     actions: 'Actions',
     open: 'Open',
@@ -715,11 +771,43 @@ export const EN: Dictionary = {
     filterReset: 'Reset',
     removed: 'Protocol removed',
     alreadyGone: 'This protocol is no longer in the records.',
-    confirmTitle: 'Remove this protocol permanently?',
+    confirmTitle: 'Remove this protocol?',
     confirmBody:
-      'Removed from search and from the records. Permanent — there is no undo and no recycle bin.',
+      'Removed from search and from the records immediately, for every role. There is no restore. The protocol stays readable for review under "Deleted protocols".',
     previous: 'Back',
     next: 'Next',
+    tabCorpus: 'Records',
+    tabArchive: 'Deleted protocols',
+    edit: 'Edit',
+    editTitle: 'Correct this protocol',
+    editIntro:
+      'The text is replaced and the protocol is re-indexed straight away — search works from the corrected version afterwards.',
+    editLockedHint:
+      'Machine and type cannot be changed — if either is wrong, delete this protocol and file a new one.',
+    editContent: 'Protocol text',
+    editContentHint: 'The stored text, as the protocol has it. Free text is fine.',
+    editLoading: 'Loading the protocol text …',
+    editSave: 'Save correction',
+    editSaving: 'Saving …',
+    edited: 'Protocol corrected — re-indexing',
+    reason: 'Reason',
+    reasonHint: 'Recorded with your name and the time.',
+    reasonPlaceholder: 'e.g. Torque figure was wrong; the manufacturer specifies 120 Nm.',
+    reasonRequired: 'A reason is required — a change to the records has to be accountable.',
+    archiveIntro:
+      'Protocols that were removed. Gone from search and from the records, still readable here for review.',
+    archiveHint: (cap) =>
+      `There is no restore, by design. The last ${cap} deletions per machine are kept; older ones are deleted for good.`,
+    archiveEmpty: 'Nothing has been removed yet.',
+    archiveLoading: 'Loading deleted protocols …',
+    archiveDeletedAt: 'Removed on',
+    archiveDeletedBy: 'Removed by',
+    archiveComment: 'Reason',
+    archiveNoComment: '—',
+    identityLocked:
+      'Machine and type cannot be changed. If the assignment is wrong, the protocol is wrong at its root: delete it and file a new one.',
+    alreadyArchived:
+      'This protocol was removed and can no longer be edited. Removed is final.',
     pageOf: (page, pages, total) => `Page ${page} of ${pages} (${total} protocols)`,
   },
   upload: {

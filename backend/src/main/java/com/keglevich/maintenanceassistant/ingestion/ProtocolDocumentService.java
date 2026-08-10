@@ -43,14 +43,42 @@ public class ProtocolDocumentService {
      * {@code source_file} is null, a path that no longer resolves to a readable file. They are one
      * outcome for the caller (404) and telling them apart in the response would describe the
      * database to whoever asked.
+     *
+     * <p><b>An archived protocol is one of those cases.</b> A citation from before a deletion hits
+     * a 404 here, which is exactly the honest break the original ADR-006 wanted from a hard delete —
+     * the archive changed who can still read the file, not whether a stale citation resolves. See
+     * {@link #findArchived(UUID)} for the one path that can.
      */
     public Optional<ProtocolDocument> find(UUID protocolId) {
+        return find(protocolId, false);
+    }
+
+    /**
+     * The stored document of an <b>archived</b> protocol, for administrator review.
+     *
+     * <p>A separate method rather than a boolean at every call site, because the difference is who
+     * may make the call. A soft-deleted protocol has left every shop-floor path in the application;
+     * this is the one door back to its content, and it is behind the admin-only archive endpoint.
+     * Reading what was removed is what makes the archive evidence rather than a tombstone
+     * (ADR-006 revision) — and a method named for that is harder to reuse by accident than a
+     * {@code find(id, true)} somebody copies.
+     */
+    public Optional<ProtocolDocument> findArchived(UUID protocolId) {
+        return find(protocolId, true);
+    }
+
+    private Optional<ProtocolDocument> find(UUID protocolId, boolean archived) {
         return jdbc.sql("""
                         SELECT p.title, p.source_file, p.language, m.machine_no
                         FROM protocol p JOIN machine m ON m.id = p.machine_id
                         WHERE p.id = :id
+                          AND (p.deleted_at IS NULL) = :live
                         """)
                 .param("id", protocolId)
+                // Equality against the flag rather than two SQL strings: the archive read must be
+                // as narrow as the live one, so asking for an archived document must not quietly
+                // serve a live protocol either.
+                .param("live", !archived)
                 .query((rs, rowNum) -> new StoredProtocol(
                         rs.getString("title"), rs.getString("source_file"),
                         rs.getString("language"), rs.getString("machine_no")))

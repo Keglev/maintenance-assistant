@@ -35,6 +35,12 @@ class ChunkRetriever {
     /**
      * The top {@code topK} chunks for this machine, best first.
      *
+     * <p>The {@code deleted_at IS NULL} clause is <b>redundant and stays anyway</b>. Soft deletion
+     * removes the chunks first, so an archived protocol has nothing here to match — retrieval's
+     * safety is structural rather than filtered, which is the property ADR-006's revision leans on.
+     * This line is what stands between a future bug in that ordering and a deleted protocol being
+     * cited in a green Mode A answer, and it costs a null check on a row already joined.
+     *
      * @param questionVector the embedded question, same model and width as the stored chunks
      */
     List<RetrievedChunk> retrieve(UUID machineId, float[] questionVector, int topK) {
@@ -52,6 +58,7 @@ class ChunkRetriever {
                         JOIN protocol p ON p.id = c.protocol_id
                         WHERE c.machine_id = :machineId
                           AND c.embedding IS NOT NULL
+                          AND p.deleted_at IS NULL
                         ORDER BY c.embedding <=> CAST(:vector AS vector)
                         LIMIT :topK
                         """)

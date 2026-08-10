@@ -1,6 +1,8 @@
 package com.keglevich.maintenanceassistant.web;
 
 import com.keglevich.maintenanceassistant.ingestion.ProtocolDocumentService;
+import com.keglevich.maintenanceassistant.ingestion.ProtocolEditService;
+import com.keglevich.maintenanceassistant.ingestion.ProtocolIntakeService;
 import com.keglevich.maintenanceassistant.ingestion.ProtocolModerationService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -10,6 +12,7 @@ import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.http.MediaType;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.test.context.ActiveProfiles;
@@ -23,11 +26,13 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -54,8 +59,14 @@ class ModerationFilterValidationIT {
     @Autowired
     private JwtAuthenticationConverter jwtAuthenticationConverter;
 
+    private static final java.util.UUID PROTOCOL =
+            java.util.UUID.fromString("0f9c5b02-0000-4000-8000-000000000001");
+
     @MockitoBean
     private ProtocolModerationService moderation;
+
+    @MockitoBean
+    private ProtocolEditService edits;
 
     @MockitoBean
     private ProtocolDocumentService documents;
@@ -135,6 +146,72 @@ class ModerationFilterValidationIT {
         mockMvc.perform(get("/api/moderation/protocols")
                         .param("machineNo", "PR-03").param(param, value).with(admin()))
                 .andExpect(status().isOk());
+    }
+
+    // ---------------------------------------------------------------------------------------
+    // How a refused moderation act reaches the client
+    // ---------------------------------------------------------------------------------------
+
+    @Test
+    @DisplayName("a moderation act without a comment is a 400 with a stable code")
+    void aMissingCommentIsABadRequest() throws Exception {
+        when(edits.edit(any(), any(), anyString())).thenThrow(
+                new ProtocolModerationService.InvalidModerationRequestException(
+                        ProtocolModerationService.COMMENT_REQUIRED, "a moderation comment is required"));
+
+        mockMvc.perform(put("/api/moderation/protocols/{id}", PROTOCOL)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"title\":\"T\",\"content\":\"C\"}")
+                        .with(admin()))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.reason").value("MODERATION_COMMENT_REQUIRED"));
+    }
+
+    @Test
+    @DisplayName("changing machine or type is a 400 with the identity code, not a silent no-op")
+    void movingAProtocolIsABadRequest() throws Exception {
+        when(edits.edit(any(), any(), anyString())).thenThrow(
+                new ProtocolModerationService.InvalidModerationRequestException(
+                        ProtocolEditService.IDENTITY_LOCKED, "machine cannot be changed by an edit"));
+
+        mockMvc.perform(put("/api/moderation/protocols/{id}", PROTOCOL)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"machineNo\":\"AB-02\",\"title\":\"T\",\"content\":\"C\",\"comment\":\"x\"}")
+                        .with(admin()))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.reason").value("PROTOCOL_IDENTITY_LOCKED"));
+    }
+
+    @Test
+    @DisplayName("editing an archived protocol is a 409, not a 404")
+    void editingAnArchivedProtocolIsAConflict() throws Exception {
+        when(edits.edit(any(), any(), anyString())).thenThrow(
+                new ProtocolModerationService.InvalidModerationRequestException(
+                        ProtocolEditService.PROTOCOL_ARCHIVED, "this protocol is in the archive"));
+
+        // The protocol exists and the same administrator can read it in the archive one tab over.
+        // "No such protocol" would be a lie their own screen contradicts: what is wrong is the
+        // state, not the address.
+        mockMvc.perform(put("/api/moderation/protocols/{id}", PROTOCOL)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"title\":\"T\",\"content\":\"C\",\"comment\":\"x\"}")
+                        .with(admin()))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.reason").value("PROTOCOL_ARCHIVED"));
+    }
+
+    @Test
+    @DisplayName("an empty or oversized correction is a 400 from the same rules as an upload")
+    void badContentIsABadRequest() throws Exception {
+        when(edits.edit(any(), any(), anyString())).thenThrow(
+                new ProtocolIntakeService.InvalidProtocolException("content is required"));
+
+        mockMvc.perform(put("/api/moderation/protocols/{id}", PROTOCOL)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"title\":\"T\",\"content\":\"\",\"comment\":\"x\"}")
+                        .with(admin()))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.reason").value("INVALID_CONTENT"));
     }
 
     // ---------------------------------------------------------------------------------------

@@ -16,6 +16,27 @@ import { Dialog } from '../dialog/dialog';
 import { ProtocolDocument, filenameOf, parseProtocol } from './protocol-document';
 
 /**
+ * Which endpoint a viewer reads its document from.
+ *
+ * Three paths for the same file, and they differ in exactly one thing: who may take them, and what
+ * they are allowed to serve. `citation` is the shop-floor path; `moderation` is the admin's view of
+ * the live corpus; `archive` is the only door back to a protocol that was removed — the other two
+ * answer 404 for it. A single endpoint with a flag would put that distinction in a parameter
+ * instead of in the URL, where the authorisation rule can be read.
+ */
+export type DocumentSource = 'citation' | 'moderation' | 'archive';
+
+/** Kept as a map so adding a fourth path cannot become a third arm of a nested conditional. */
+const DOCUMENT_SOURCES: Record<
+  DocumentSource,
+  (api: MaintenanceApiService, id: string) => ReturnType<MaintenanceApiService['getDocument']>
+> = {
+  citation: (api, id) => api.getDocument(id),
+  moderation: (api, id) => api.getModerationDocument(id),
+  archive: (api, id) => api.getArchivedDocument(id),
+};
+
+/**
  * The in-app protocol viewer.
  *
  * **Why the document no longer leaves the application.** #26 fetched the protocol as a blob through
@@ -57,7 +78,7 @@ export class ProtocolDialog implements OnDestroy {
    * An admin holds no shop-floor role, so a viewer hard-wired to the first would 403 for exactly the
    * person this dialog was reused for.
    */
-  readonly source = input<'citation' | 'moderation'>('citation');
+  readonly source = input<DocumentSource>('citation');
   /** What the answer called this protocol, so the dialog names what the reader clicked. */
   readonly protocolTitle = input('');
   /** The machine the question was asked about — the second half of "which document is this". */
@@ -95,10 +116,7 @@ export class ProtocolDialog implements OnDestroy {
     this.reset();
     this.loading.set(true);
 
-    const document$ =
-      this.source() === 'moderation'
-        ? this.api.getModerationDocument(protocolId)
-        : this.api.getDocument(protocolId);
+    const document$ = DOCUMENT_SOURCES[this.source()](this.api, protocolId);
 
     document$.subscribe({
       next: (response) => {

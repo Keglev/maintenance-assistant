@@ -88,18 +88,36 @@ describe('ThemeToggle', () => {
     expect(localStorage.getItem(THEME_STORAGE_KEY)).toBeNull();
   });
 
-  it('names the group and every button for a screen reader', async () => {
+  /**
+   * The buttons show icons and no text, so aria-label and title are not decoration: they are the
+   * only name this control has, for a screen reader and for a hover respectively.
+   */
+  it('names the group and every button, having no visible text to fall back on', async () => {
     const fixture = await render();
     const element = fixture.nativeElement as HTMLElement;
 
     expect(element.querySelector('[data-testid="theme-toggle"]')?.getAttribute('aria-label')).toBe(
       'Darstellung',
     );
-    // The label survives the icon-only layout below 60rem, which is why it is an attribute and not
-    // only the visible text.
-    expect(element.querySelector('[data-testid="theme-dark"]')?.getAttribute('aria-label')).toBe(
-      'Dunkel',
-    );
+    for (const [id, name] of [
+      ['theme-system', 'System'],
+      ['theme-light', 'Hell'],
+      ['theme-dark', 'Dunkel'],
+    ]) {
+      const button = element.querySelector(`[data-testid="${id}"]`) as HTMLElement;
+      expect(button.getAttribute('aria-label')).toBe(name);
+      expect(button.getAttribute('title')).toBe(name);
+      expect(button.textContent?.trim()).toBe('');
+    }
+  });
+
+  it('draws its icons inline, with nothing for the CSP to allow', async () => {
+    const fixture = await render();
+    const icons = (fixture.nativeElement as HTMLElement).querySelectorAll('.theme-switch svg');
+
+    expect(icons.length).toBe(3);
+    // Decorative: the button already carries the name, and an announced icon would double it.
+    icons.forEach((icon) => expect(icon.getAttribute('aria-hidden')).toBe('true'));
   });
 
   it('translates its labels with the interface language', async () => {
@@ -109,6 +127,8 @@ describe('ThemeToggle', () => {
     expect(element.querySelector('[data-testid="theme-toggle"]')?.getAttribute('aria-label')).toBe(
       'Appearance',
     );
-    expect(element.querySelector('[data-testid="theme-light"]')?.textContent).toContain('Light');
+    expect(element.querySelector('[data-testid="theme-light"]')?.getAttribute('title')).toBe(
+      'Light',
+    );
   });
 });

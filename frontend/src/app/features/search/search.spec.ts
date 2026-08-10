@@ -141,6 +141,25 @@ describe('Search', () => {
     );
   });
 
+  it('keeps the example questions on screen while the question is being typed', async () => {
+    const fixture = await render();
+    const element = fixture.nativeElement as HTMLElement;
+
+    const hint = element.querySelector('[data-testid="question-hint"]');
+    expect(hint?.textContent).toContain('Sensorfehler');
+
+    // The point of a hint that is not a placeholder: it is still there at the first keystroke,
+    // which is when a first-time user is working out what kind of thing to ask for.
+    const question = element.querySelector('[data-testid="question-input"]') as HTMLTextAreaElement;
+    question.value = 'Presse';
+    question.dispatchEvent(new Event('input'));
+    await fixture.whenStable();
+
+    expect(element.querySelector('[data-testid="question-hint"]')?.textContent).toContain(
+      'Sensorfehler',
+    );
+  });
+
   it('shows the similarity as a percentage a reader can compare', async () => {
     const fixture = await render();
     const element = await ask(fixture, MODE_A);

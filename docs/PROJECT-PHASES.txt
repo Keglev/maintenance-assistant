@@ -113,6 +113,33 @@ Config:     Flyway auto-config was DEAD on Boot 4.1 (missing
             properties moved to spring.web.error.*.
 
 OPEN ITEMS carried forward (not blockers, do not lose):
+- PROTOCOL TEXT ENTRY 2026-08-10 (feat/protocol-text-entry), the FIRST
+  step of the protocol-lifecycle theme. Owner's domain knowledge, and the
+  reason it was built: the Schichtleiter types the protocol at the END OF
+  THE SHIFT. Nobody opens an editor, saves a .txt and then picks it —
+  requiring a file described a workflow that does not exist. The upload
+  view now offers "Datei hochladen" / "Text eingeben"; file stays the
+  default.
+  IMPLEMENTATION, and why it is FRONTEND ONLY: the typed text is wrapped
+  into a File in the browser and submitted through the UNCHANGED
+  multipart upload call. The endpoint, the ingestion pipeline, the volume,
+  the citation path and the download are untouched and unaware; after
+  submit a typed protocol is indistinguishable from an uploaded one. A
+  backend "text" field would have been a second write path to keep in step
+  with the first, for nothing the user can see. Typed protocols are named
+  <machineNo>-<yyyyMMdd-HHmmss>-eingabe.txt (ASCII, local time) and that
+  name is what Content-Disposition later offers on download.
+  THE TEXTAREA IS FREE TEXT BY DESIGN — the corpus deliberately contains
+  messy protocols, and a form that could only produce tidy ones would add
+  only the tidy half of reality.
+  BACKLOG AFTER THIS, in order: (1) UPLOAD GUARDS — size caps and rate
+  limits, and they belong on the BACKEND: the submit button here checks
+  only that a machine is chosen and the active mode has content, and a
+  rule that exists solely in the browser is a suggestion. (2) STRUCTURED
+  ENTRY FIELDS (Symptom / Ursache / Massnahme). (3) MODERATION. (4)
+  DRAFT / APPROVE.
+  NOTE FOR THE DEMO: there is NO moderation yet, so anything submitted in
+  production STAYS in the corpus and can be cited by a later answer.
 - THEME TOGGLE PULLED FORWARD 2026-08-10 (feat/theme-toggle) from the
   v1.1 backlog, for the portfolio screenshots: a three-state control
   (System / Hell / Dunkel) in the header and at the foot of the landing

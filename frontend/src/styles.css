@@ -23,6 +23,10 @@
   --c-canvas: #f3f5f7;
   --c-surface: #ffffff;
   --c-sunken: #eceff3;
+  /* What a text field is filled with. Identical to --c-surface here, so the light theme is
+     unchanged — it exists because in the dark theme an input and the card it sits in cannot be the
+     same colour, which is exactly what they were. */
+  --c-field: #ffffff;
   --c-ink: #1b2430;
   --c-ink-muted: #55616f;
   --c-ink-faint: #7c8794;
@@ -141,39 +145,54 @@
 html[data-theme='dark'] {
   color-scheme: dark;
 
+  /* The page is the darkest thing on screen, and everything on it steps up from here. The first
+     version of this palette had SURFACE only 1.12:1 above CANVAS and leaned on the shadows to make
+     the difference — which works in the light theme and does not work at all here, because a shadow
+     is black on nearly black. Cards now step up 1.38:1 and the borders below carry the rest. */
   --c-canvas: #10161d;
-  --c-surface: #19212b;
-  --c-sunken: #212b36;
+  --c-surface: #243140;
+  /* And SUNKEN was LIGHTER than SURFACE, the inverse of the light palette: a recessed block read as
+     the most raised thing in the card it sat in. */
+  --c-sunken: #19222d;
+  /* Below the card and above the page: an input reads as inset inside the upload form and as raised
+     on the search view, where the form has no card behind it. One value, both grounds. */
+  --c-field: #18212c;
   --c-ink: #e7ecf2;
   --c-ink-muted: #a6b3c1;
-  --c-ink-faint: #7d8b99;
+  --c-ink-faint: #94a1ae;
   --c-ink-hint: #9dabbb;
-  --c-line: #2e3a47;
-  --c-line-strong: #43525f;
+  --c-line: #3a4856;
+  --c-line-strong: #5f6e7b;
 
   /* The brand and its text swap roles: a light blue on the dark canvas, dark text on top of it. */
   --c-brand: #79aef0;
   --c-brand-strong: #96c2f7;
-  --c-brand-soft: #16263a;
-  --c-brand-line: #2f486a;
+  /* Stepped up with the rest: the accepted-upload notice is a filled block on the page and has to
+     read as one. */
+  --c-brand-soft: #1c3149;
+  --c-brand-line: #3a5a80;
   --c-on-brand: #0f151c;
 
+  /* The two answer blocks step up from the page by the same amount a card does, so an answer reads
+     as a raised block rather than a stain on the background. HUE AND ROLE ARE UNCHANGED: green is
+     still green, amber still amber, and the badge, border weight, icon and hatching still carry the
+     distinction for a reader who sees neither (NFR-2). */
   --c-mode-a: #4caf6b;
   --c-mode-a-ink: #86dda2;
-  --c-mode-a-soft: #15251b;
-  --c-mode-a-line: #2b4433;
-  --c-mode-a-chip: #1f3a29;
+  --c-mode-a-soft: #1b3324;
+  --c-mode-a-line: #375a44;
+  --c-mode-a-chip: #23412e;
   --c-on-mode-a: #0d1a11;
 
   --c-mode-b: #d59a2a;
   --c-mode-b-ink: #f2c877;
-  --c-mode-b-soft: #251d10;
-  --c-mode-b-line: #4a3a1c;
-  --c-mode-b-hatch: #6b5223;
+  --c-mode-b-soft: #33280f;
+  --c-mode-b-line: #5a4620;
+  --c-mode-b-hatch: #7a5f28;
 
   --c-danger: #f3aeae;
-  --c-danger-soft: #2b1616;
-  --c-danger-line: #563030;
+  --c-danger-soft: #331a1a;
+  --c-danger-line: #6b3a3a;
 
   /* A translucent slate over a dark canvas reads as no scrim at all; this one is nearly black. */
   --c-scrim: rgb(3 6 10 / 70%);
@@ -276,9 +295,11 @@ h3 {
   color: var(--c-ink-muted);
 }
 
+/* The same helper grey as .field-hint, on purpose: an application with two greys for "this is a
+   hint" has two, and nobody can say which is which. */
 .caption {
   font-size: var(--t-sm);
-  color: var(--c-ink-muted);
+  color: var(--c-ink-hint);
 }
 
 /* --- Buttons ------------------------------------------------------------ */
@@ -385,7 +406,7 @@ textarea {
   padding: var(--s-2) var(--s-3);
   border: 1px solid var(--c-line-strong);
   border-radius: var(--r-sm);
-  background: var(--c-surface);
+  background: var(--c-field);
   color: var(--c-ink);
   font: inherit;
 }

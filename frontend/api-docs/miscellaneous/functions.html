@@ -175,6 +175,9 @@
                         <li>
                             <a href="#toSegments" title="src/app/features/search/search.ts" class="reference-link "><span class="reference-badge reference-badge--function" aria-hidden="true">F</span><span class="reference-link-label"><b>toSegments</b>&nbsp;&nbsp;&nbsp;(src/.../search.ts)</span></a>
                         </li>
+                        <li>
+                            <a href="#typedProtocolFilename" title="src/app/features/upload/upload.ts" class="reference-link "><span class="reference-badge reference-badge--function" aria-hidden="true">F</span><span class="reference-link-label"><b>typedProtocolFilename</b>&nbsp;&nbsp;&nbsp;(src/.../upload.ts)</span></a>
+                        </li>
                     </ul>
                 </td>
             </tr>
@@ -1013,6 +1016,92 @@ something the server did not.</p>
                             </div>
                         <div class="io-description">
                             <b>Returns : </b>        <code><a href="../interfaces/AnswerSegment.html" target="_self" >AnswerSegment[]</a></code>
+
+                        </div>
+                            <div class="io-description">
+                                
+                            </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</section>
+    <h3>src/app/features/upload/upload.ts</h3>
+    <section data-compodoc="block-methods">
+    <h3></h3>    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="typedProtocolFilename"></a>
+                    <span class="name">
+                        <span ><b>typedProtocolFilename</b></span>
+                        <a href="#typedProtocolFilename"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+<code>typedProtocolFilename(machineNo: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank">string</a>, at: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date" target="_blank">Date</a>)</code>
+                </td>
+            </tr>
+
+
+
+
+            <tr>
+                <td class="col-md-4">
+                        <div class="io-description"><p>The filename a typed protocol is stored and later downloaded under:
+<code>&lt;machineNo&gt;-&lt;yyyyMMdd-HHmmss&gt;-eingabe.txt</code>.</p>
+<p>ASCII only, and not for tidiness: this name travels to the volume and comes back in
+<code>Content-Disposition</code> when the viewer offers the download, and every layer in between has its own
+opinion about non-ASCII filenames. The machine number is the useful half — a Schichtleiter
+scanning the uploads list wants to see which press it was — and the timestamp to the second is
+what keeps two protocols typed in the same shift apart.</p>
+<p>Local time rather than UTC, deliberately: the name is read by the person who typed it, and 22:14
+means their shift, not a timezone conversion.</p>
+</div>
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                                <td>Type</td>
+                                            <td>Optional</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>machineNo</td>
+                                            <td>
+                                                            <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                        <tr>
+                                                <td>at</td>
+                                            <td>
+                                                            <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date" target="_blank" >Date</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
 
                         </div>
                             <div class="io-description">

@@ -164,6 +164,14 @@ is not searchable until a worker has chunked and embedded it. Hiding that behind
 message would teach a Schichtleiter that uploading and being findable are the same event, and the
 first time indexing failed they would have no idea. So the status list is part of the view, and
 it shows the failure reason rather than only the failure.</p>
+<p><strong>A protocol can be typed here as well as uploaded.</strong> Requiring a <code>.txt</code> described a workflow that
+does not exist: the Schichtleiter writes the protocol at the end of the shift, and nobody opens an
+editor, saves a file and then picks it. Typing is the normal case and the file was the special one.</p>
+<p>The typed text is wrapped into a <code>File</code> in the browser and sent through the <strong>same multipart
+call</strong>, which is why this is a frontend-only change: the endpoint, the ingestion pipeline, the
+volume, the citation path and the download all stay unaware, and a typed protocol is
+indistinguishable from an uploaded one the moment it is submitted. A backend &quot;text&quot; field would
+have been a second write path to keep in step with the first, for no gain the user can see.</p>
 
     </p>
 
@@ -288,6 +296,12 @@ it shows the failure reason rather than only the failure.</p>
                                 <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
                                     <span class="modifier">Protected</span>
                                     <span class="modifier">Readonly</span>
+                                <a href="#canSubmit" >canSubmit</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
+                                    <span class="modifier">Protected</span>
+                                    <span class="modifier">Readonly</span>
                                 <a href="#errorCode" >errorCode</a>
                             </li>
                             <li>
@@ -301,6 +315,12 @@ it shows the failure reason rather than only the failure.</p>
                                     <span class="modifier">Protected</span>
                                     <span class="modifier">Readonly</span>
                                 <a href="#file" >file</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
+                                    <span class="modifier">Private</span>
+                                    <span class="modifier">Readonly</span>
+                                <a href="#fileInput" >fileInput</a>
                             </li>
                             <li>
                                 <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
@@ -330,6 +350,12 @@ it shows the failure reason rather than only the failure.</p>
                                 <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
                                     <span class="modifier">Protected</span>
                                     <span class="modifier">Readonly</span>
+                                <a href="#mode" >mode</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
+                                    <span class="modifier">Protected</span>
+                                    <span class="modifier">Readonly</span>
                                 <a href="#refreshing" >refreshing</a>
                             </li>
                             <li>
@@ -343,6 +369,12 @@ it shows the failure reason rather than only the failure.</p>
                                     <span class="modifier">Protected</span>
                                     <span class="modifier">Readonly</span>
                                 <a href="#t" >t</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
+                                    <span class="modifier">Protected</span>
+                                    <span class="modifier">Readonly</span>
+                                <a href="#text" >text</a>
                             </li>
                             <li>
                                 <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
@@ -378,6 +410,16 @@ it shows the failure reason rather than only the failure.</p>
                         <ul class="index-list">
                             <li>
                                 <span class="reference-badge reference-badge--method" aria-hidden="true">M</span>
+                                    <span class="modifier">Private</span>
+                                <a href="#clearFileInput" >clearFileInput</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--method" aria-hidden="true">M</span>
+                                    <span class="modifier">Protected</span>
+                                <a href="#isMode" >isMode</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--method" aria-hidden="true">M</span>
                                     <span class="modifier">Protected</span>
                                 <a href="#pickFile" >pickFile</a>
                             </li>
@@ -400,6 +442,16 @@ it shows the failure reason rather than only the failure.</p>
                                 <span class="reference-badge reference-badge--method" aria-hidden="true">M</span>
                                     <span class="modifier">Protected</span>
                                 <a href="#submit" >submit</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--method" aria-hidden="true">M</span>
+                                    <span class="modifier">Private</span>
+                                <a href="#typedFile" >typedFile</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--method" aria-hidden="true">M</span>
+                                    <span class="modifier">Protected</span>
+                                <a href="#useMode" >useMode</a>
                             </li>
                         </ul>
                     </td>
@@ -424,7 +476,7 @@ it shows the failure reason rather than only the failure.</p>
                 </tr>
                         <tr>
                             <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="46" class="link-to-prism">src/app/features/upload/upload.ts:46</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="83" class="link-to-prism">src/app/features/upload/upload.ts:83</a></div>
                             </td>
                         </tr>
 
@@ -441,6 +493,116 @@ it shows the failure reason rather than only the failure.</p>
     <h3 id="methods">
         Methods
     </h3>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="clearFileInput"></a>
+                    <span class="name">
+                            <span class="modifier">Private</span>
+                        <span ><b>clearFileInput</b></span>
+                        <a href="#clearFileInput"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                        <span class="modifier-icon icon ion-ios-reset"></span>
+                    <code>clearFileInput()</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="171"
+                                    class="link-to-prism">src/app/features/upload/upload.ts:171</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+
+                        <div class="io-description">
+                            <b>Returns : </b>        <code><a href="https://www.typescriptlang.org/docs/handbook/basic-types.html" target="_blank" >void</a></code>
+
+                        </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="isMode"></a>
+                    <span class="name">
+                            <span class="modifier">Protected</span>
+                        <span ><b>isMode</b></span>
+                        <a href="#isMode"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                        <span class="modifier-icon icon ion-ios-reset"></span>
+                    <code>isMode(mode: <a href="../miscellaneous/typealiases.html#InputMode" target="_self">InputMode</a>)</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="213"
+                                    class="link-to-prism">src/app/features/upload/upload.ts:213</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                        <div class="io-description"><p>Which mode&#39;s panel to show — and, for the segmented control, which button is pressed.</p>
+</div>
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                                <td>Type</td>
+                                            <td>Optional</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>mode</td>
+                                            <td>
+                                                            <code><a href="../miscellaneous/typealiases.html#InputMode" target="_self" >InputMode</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/boolean" target="_blank" >boolean</a></code>
+
+                        </div>
+                            <div class="io-description">
+                                
+                            </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
     <table class="table table-sm table-bordered">
         <tbody>
             <tr>
@@ -463,8 +625,8 @@ it shows the failure reason rather than only the failure.</p>
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="53"
-                                    class="link-to-prism">src/app/features/upload/upload.ts:53</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="90"
+                                    class="link-to-prism">src/app/features/upload/upload.ts:90</a></div>
                         </td>
                     </tr>
 
@@ -532,8 +694,8 @@ it shows the failure reason rather than only the failure.</p>
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="107"
-                                    class="link-to-prism">src/app/features/upload/upload.ts:107</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="186"
+                                    class="link-to-prism">src/app/features/upload/upload.ts:186</a></div>
                         </td>
                     </tr>
 
@@ -577,8 +739,8 @@ than a timer somebody has to remember to clear.</p>
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="134"
-                                    class="link-to-prism">src/app/features/upload/upload.ts:134</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="218"
+                                    class="link-to-prism">src/app/features/upload/upload.ts:218</a></div>
                         </td>
                     </tr>
 
@@ -648,8 +810,8 @@ than a timer somebody has to remember to clear.</p>
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="121"
-                                    class="link-to-prism">src/app/features/upload/upload.ts:121</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="200"
+                                    class="link-to-prism">src/app/features/upload/upload.ts:200</a></div>
                         </td>
                     </tr>
 
@@ -717,8 +879,8 @@ than a timer somebody has to remember to clear.</p>
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="58"
-                                    class="link-to-prism">src/app/features/upload/upload.ts:58</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="112"
+                                    class="link-to-prism">src/app/features/upload/upload.ts:112</a></div>
                         </td>
                     </tr>
 
@@ -730,6 +892,124 @@ than a timer somebody has to remember to clear.</p>
                             <b>Returns : </b>        <code><a href="https://www.typescriptlang.org/docs/handbook/basic-types.html" target="_blank" >void</a></code>
 
                         </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="typedFile"></a>
+                    <span class="name">
+                            <span class="modifier">Private</span>
+                        <span ><b>typedFile</b></span>
+                        <a href="#typedFile"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                        <span class="modifier-icon icon ion-ios-reset"></span>
+                    <code>typedFile()</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="165"
+                                    class="link-to-prism">src/app/features/upload/upload.ts:165</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                        <div class="io-description"><p>The typed protocol, as the file the upload endpoint already knows how to take.</p>
+<p><code>text/plain</code> and the trimmed text: the ingestion pipeline reads UTF-8 text off the volume and
+chunks it by paragraph, and that is exactly what this is. Nothing downstream can tell the
+difference, which is the whole design.</p>
+</div>
+
+                        <div class="io-description">
+                            <b>Returns : </b>    <code>File</code>
+
+                        </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="useMode"></a>
+                    <span class="name">
+                            <span class="modifier">Protected</span>
+                        <span ><b>useMode</b></span>
+                        <a href="#useMode"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                        <span class="modifier-icon icon ion-ios-reset"></span>
+                    <code>useMode(mode: <a href="../miscellaneous/typealiases.html#InputMode" target="_self">InputMode</a>)</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="102"
+                                    class="link-to-prism">src/app/features/upload/upload.ts:102</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                        <div class="io-description"><p>Switches input mode and drops whatever the other mode was holding.</p>
+<p>Keeping it would mean a form that submits something the user cannot see — they typed a
+protocol, switched to file to check something, switched back, and a stale file is still
+attached. Cheaper to lose one input on an explicit mode switch than to submit a surprise.</p>
+</div>
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                                <td>Type</td>
+                                            <td>Optional</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>mode</td>
+                                            <td>
+                                                            <code><a href="../miscellaneous/typealiases.html#InputMode" target="_self" >InputMode</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>        <code><a href="https://www.typescriptlang.org/docs/handbook/basic-types.html" target="_blank" >void</a></code>
+
+                        </div>
+                            <div class="io-description">
+                                
+                            </div>
                 </td>
             </tr>
         </tbody>
@@ -767,7 +1047,7 @@ than a timer somebody has to remember to clear.</p>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="45" class="link-to-prism">src/app/features/upload/upload.ts:45</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="60" class="link-to-prism">src/app/features/upload/upload.ts:60</a></div>
                         </td>
                     </tr>
 
@@ -800,10 +1080,57 @@ than a timer somebody has to remember to clear.</p>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="28" class="link-to-prism">src/app/features/upload/upload.ts:28</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="41" class="link-to-prism">src/app/features/upload/upload.ts:41</a></div>
                         </td>
                     </tr>
 
+
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="canSubmit"></a>
+                    <span class="name">
+                            <span class="modifier">Protected</span>
+                            <span class="modifier">Readonly</span>
+                        <span ><b>canSubmit</b></span>
+                        <a href="#canSubmit"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>unknown</code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>computed(() &#x3D;&gt; {
+    if (!this.machineNo()) {
+      return false;
+    }
+    return this.mode() &#x3D;&#x3D;&#x3D; &#x27;file&#x27; ? this.file() !&#x3D;&#x3D; null : this.text().trim().length &gt; 0;
+  })</code>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="78" class="link-to-prism">src/app/features/upload/upload.ts:78</a></div>
+                        </td>
+                    </tr>
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-description"><p>Whether there is something to submit.</p>
+<p>Deliberately shallow: a machine, and content in whichever mode is active. Size caps and rate
+limits belong to the upload-guards work and are not smuggled in here — a validation rule that
+exists only in the browser is a suggestion, and the place to make it a rule is the backend.</p>
+</div>
+                </td>
+            </tr>
 
         </tbody>
     </table>
@@ -833,7 +1160,7 @@ than a timer somebody has to remember to clear.</p>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="40" class="link-to-prism">src/app/features/upload/upload.ts:40</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="55" class="link-to-prism">src/app/features/upload/upload.ts:55</a></div>
                         </td>
                     </tr>
 
@@ -866,7 +1193,7 @@ than a timer somebody has to remember to clear.</p>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="46" class="link-to-prism">src/app/features/upload/upload.ts:46</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="61" class="link-to-prism">src/app/features/upload/upload.ts:61</a></div>
                         </td>
                     </tr>
 
@@ -899,10 +1226,51 @@ than a timer somebody has to remember to clear.</p>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="36" class="link-to-prism">src/app/features/upload/upload.ts:36</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="50" class="link-to-prism">src/app/features/upload/upload.ts:50</a></div>
                         </td>
                     </tr>
 
+
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="fileInput"></a>
+                    <span class="name">
+                            <span class="modifier">Private</span>
+                            <span class="modifier">Readonly</span>
+                        <span ><b>fileInput</b></span>
+                        <a href="#fileInput"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>unknown</code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>viewChild&lt;ElementRef&lt;HTMLInputElement&gt;&gt;(&#x27;fileInput&#x27;)</code>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="69" class="link-to-prism">src/app/features/upload/upload.ts:69</a></div>
+                        </td>
+                    </tr>
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-description"><p>The native file input, so switching modes can actually clear it.</p>
+<p>Setting the <code>file</code> signal to null is not enough: the input keeps showing the chosen filename,
+and the form would be telling the user one thing while holding another.</p>
+</div>
+                </td>
+            </tr>
 
         </tbody>
     </table>
@@ -932,7 +1300,7 @@ than a timer somebody has to remember to clear.</p>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="29" class="link-to-prism">src/app/features/upload/upload.ts:29</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="42" class="link-to-prism">src/app/features/upload/upload.ts:42</a></div>
                         </td>
                     </tr>
 
@@ -965,7 +1333,7 @@ than a timer somebody has to remember to clear.</p>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="41" class="link-to-prism">src/app/features/upload/upload.ts:41</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="56" class="link-to-prism">src/app/features/upload/upload.ts:56</a></div>
                         </td>
                     </tr>
 
@@ -998,7 +1366,7 @@ than a timer somebody has to remember to clear.</p>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="37" class="link-to-prism">src/app/features/upload/upload.ts:37</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="52" class="link-to-prism">src/app/features/upload/upload.ts:52</a></div>
                         </td>
                     </tr>
 
@@ -1031,7 +1399,40 @@ than a timer somebody has to remember to clear.</p>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="33" class="link-to-prism">src/app/features/upload/upload.ts:33</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="46" class="link-to-prism">src/app/features/upload/upload.ts:46</a></div>
+                        </td>
+                    </tr>
+
+
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="mode"></a>
+                    <span class="name">
+                            <span class="modifier">Protected</span>
+                            <span class="modifier">Readonly</span>
+                        <span ><b>mode</b></span>
+                        <a href="#mode"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>unknown</code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>signal&lt;InputMode&gt;(&#x27;file&#x27;)</code>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="49" class="link-to-prism">src/app/features/upload/upload.ts:49</a></div>
                         </td>
                     </tr>
 
@@ -1064,7 +1465,7 @@ than a timer somebody has to remember to clear.</p>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="44" class="link-to-prism">src/app/features/upload/upload.ts:44</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="59" class="link-to-prism">src/app/features/upload/upload.ts:59</a></div>
                         </td>
                     </tr>
 
@@ -1097,7 +1498,7 @@ than a timer somebody has to remember to clear.</p>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="43" class="link-to-prism">src/app/features/upload/upload.ts:43</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="58" class="link-to-prism">src/app/features/upload/upload.ts:58</a></div>
                         </td>
                     </tr>
 
@@ -1130,7 +1531,40 @@ than a timer somebody has to remember to clear.</p>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="31" class="link-to-prism">src/app/features/upload/upload.ts:31</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="44" class="link-to-prism">src/app/features/upload/upload.ts:44</a></div>
+                        </td>
+                    </tr>
+
+
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="text"></a>
+                    <span class="name">
+                            <span class="modifier">Protected</span>
+                            <span class="modifier">Readonly</span>
+                        <span ><b>text</b></span>
+                        <a href="#text"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>unknown</code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>signal(&#x27;&#x27;)</code>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="51" class="link-to-prism">src/app/features/upload/upload.ts:51</a></div>
                         </td>
                     </tr>
 
@@ -1163,7 +1597,7 @@ than a timer somebody has to remember to clear.</p>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="39" class="link-to-prism">src/app/features/upload/upload.ts:39</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="54" class="link-to-prism">src/app/features/upload/upload.ts:54</a></div>
                         </td>
                     </tr>
 
@@ -1196,7 +1630,7 @@ than a timer somebody has to remember to clear.</p>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="38" class="link-to-prism">src/app/features/upload/upload.ts:38</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="53" class="link-to-prism">src/app/features/upload/upload.ts:53</a></div>
                         </td>
                     </tr>
 
@@ -1229,7 +1663,7 @@ than a timer somebody has to remember to clear.</p>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="34" class="link-to-prism">src/app/features/upload/upload.ts:34</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="47" class="link-to-prism">src/app/features/upload/upload.ts:47</a></div>
                         </td>
                     </tr>
 
@@ -1242,12 +1676,15 @@ than a timer somebody has to remember to clear.</p>
 
 
     <div class="tab-pane fade  tab-source-code" id="source">
-        <pre class="line-numbers compodoc-sourcecode"><code class="language-typescript">import { Component, inject, signal } from &#x27;@angular/core&#x27;;
+        <pre class="line-numbers compodoc-sourcecode"><code class="language-typescript">import { Component, ElementRef, computed, inject, signal, viewChild } from &#x27;@angular/core&#x27;;
 import { FormsModule } from &#x27;@angular/forms&#x27;;
 
 import { Machine, UploadStatus } from &#x27;../../core/api/api.types&#x27;;
 import { ApiFailure, MaintenanceApiService, classify } from &#x27;../../core/api/maintenance-api.service&#x27;;
 import { I18nService } from &#x27;../../core/i18n/i18n.service&#x27;;
+
+/** How the protocol got into the form: picked as a file, or typed here. */
+export type InputMode &#x3D; &#x27;file&#x27; | &#x27;text&#x27;;
 
 /**
  * The Schichtleiter&#x27;s upload view.
@@ -1261,6 +1698,16 @@ import { I18nService } from &#x27;../../core/i18n/i18n.service&#x27;;
  * message would teach a Schichtleiter that uploading and being findable are the same event, and the
  * first time indexing failed they would have no idea. So the status list is part of the view, and
  * it shows the failure reason rather than only the failure.
+ *
+ * **A protocol can be typed here as well as uploaded.** Requiring a &#x60;.txt&#x60; described a workflow that
+ * does not exist: the Schichtleiter writes the protocol at the end of the shift, and nobody opens an
+ * editor, saves a file and then picks it. Typing is the normal case and the file was the special one.
+ *
+ * The typed text is wrapped into a &#x60;File&#x60; in the browser and sent through the **same multipart
+ * call**, which is why this is a frontend-only change: the endpoint, the ingestion pipeline, the
+ * volume, the citation path and the download all stay unaware, and a typed protocol is
+ * indistinguishable from an uploaded one the moment it is submitted. A backend &quot;text&quot; field would
+ * have been a second write path to keep in step with the first, for no gain the user can see.
  */
 @Component({
   selector: &#x27;app-upload&#x27;,
@@ -1277,7 +1724,9 @@ export class Upload {
   protected readonly machines &#x3D; signal&lt;Machine[]&gt;([]);
   protected readonly uploads &#x3D; signal&lt;UploadStatus[]&gt;([]);
 
+  protected readonly mode &#x3D; signal&lt;InputMode&gt;(&#x27;file&#x27;);
   protected readonly file &#x3D; signal&lt;File | null&gt;(null);
+  protected readonly text &#x3D; signal(&#x27;&#x27;);
   protected readonly machineNo &#x3D; signal(&#x27;&#x27;);
   protected readonly type &#x3D; signal&lt;&#x27;STOERUNG&#x27; | &#x27;WARTUNG&#x27;&gt;(&#x27;STOERUNG&#x27;);
   protected readonly title &#x3D; signal(&#x27;&#x27;);
@@ -1289,6 +1738,28 @@ export class Upload {
   protected readonly accepted &#x3D; signal(false);
   protected readonly failure &#x3D; signal&lt;ApiFailure | null&gt;(null);
 
+  /**
+   * The native file input, so switching modes can actually clear it.
+   *
+   * Setting the &#x60;file&#x60; signal to null is not enough: the input keeps showing the chosen filename,
+   * and the form would be telling the user one thing while holding another.
+   */
+  private readonly fileInput &#x3D; viewChild&lt;ElementRef&lt;HTMLInputElement&gt;&gt;(&#x27;fileInput&#x27;);
+
+  /**
+   * Whether there is something to submit.
+   *
+   * Deliberately shallow: a machine, and content in whichever mode is active. Size caps and rate
+   * limits belong to the upload-guards work and are not smuggled in here — a validation rule that
+   * exists only in the browser is a suggestion, and the place to make it a rule is the backend.
+   */
+  protected readonly canSubmit &#x3D; computed(() &#x3D;&gt; {
+    if (!this.machineNo()) {
+      return false;
+    }
+    return this.mode() &#x3D;&#x3D;&#x3D; &#x27;file&#x27; ? this.file() !&#x3D;&#x3D; null : this.text().trim().length &gt; 0;
+  });
+
   constructor() {
     this.api.machines().subscribe({ next: (machines) &#x3D;&gt; this.machines.set(machines) });
     this.refresh();
@@ -1299,9 +1770,29 @@ export class Upload {
     this.file.set(input.files?.[0] ?? null);
   }
 
+  /**
+   * Switches input mode and drops whatever the other mode was holding.
+   *
+   * Keeping it would mean a form that submits something the user cannot see — they typed a
+   * protocol, switched to file to check something, switched back, and a stale file is still
+   * attached. Cheaper to lose one input on an explicit mode switch than to submit a surprise.
+   */
+  protected useMode(mode: InputMode): void {
+    if (this.mode() &#x3D;&#x3D;&#x3D; mode) {
+      return;
+    }
+    this.mode.set(mode);
+    this.file.set(null);
+    this.text.set(&#x27;&#x27;);
+    this.clearFileInput();
+  }
+
   protected submit(): void {
-    const file &#x3D; this.file();
-    if (!file || !this.machineNo() || this.submitting()) {
+    if (!this.canSubmit() || this.submitting()) {
+      return;
+    }
+    const file &#x3D; this.mode() &#x3D;&#x3D;&#x3D; &#x27;file&#x27; ? this.file() : this.typedFile();
+    if (!file) {
       return;
     }
 
@@ -1327,6 +1818,8 @@ export class Upload {
         this.submitting.set(false);
         this.accepted.set(true);
         this.file.set(null);
+        this.text.set(&#x27;&#x27;);
+        this.clearFileInput();
         this.title.set(&#x27;&#x27;);
         this.errorCode.set(&#x27;&#x27;);
         // One refresh straight away, which will usually show RECEIVED. That is the honest state,
@@ -1338,6 +1831,26 @@ export class Upload {
         this.submitting.set(false);
       },
     });
+  }
+
+  /**
+   * The typed protocol, as the file the upload endpoint already knows how to take.
+   *
+   * &#x60;text/plain&#x60; and the trimmed text: the ingestion pipeline reads UTF-8 text off the volume and
+   * chunks it by paragraph, and that is exactly what this is. Nothing downstream can tell the
+   * difference, which is the whole design.
+   */
+  private typedFile(): File {
+    return new File([this.text().trim()], typedProtocolFilename(this.machineNo(), new Date()), {
+      type: &#x27;text/plain&#x27;,
+    });
+  }
+
+  private clearFileInput(): void {
+    const input &#x3D; this.fileInput()?.nativeElement;
+    if (input) {
+      input.value &#x3D; &#x27;&#x27;;
+    }
   }
 
   /**
@@ -1374,6 +1887,11 @@ export class Upload {
     }
   }
 
+  /** Which mode&#x27;s panel to show — and, for the segmented control, which button is pressed. */
+  protected isMode(mode: InputMode): boolean {
+    return this.mode() &#x3D;&#x3D;&#x3D; mode;
+  }
+
   /** Date only: the exact second an upload happened has never been the question. */
   protected shortDate(iso: string): string {
     const date &#x3D; new Date(iso);
@@ -1386,6 +1904,30 @@ export class Upload {
         });
   }
 }
+
+/**
+ * The filename a typed protocol is stored and later downloaded under:
+ * &#x60;&lt;machineNo&gt;-&lt;yyyyMMdd-HHmmss&gt;-eingabe.txt&#x60;.
+ *
+ * ASCII only, and not for tidiness: this name travels to the volume and comes back in
+ * &#x60;Content-Disposition&#x60; when the viewer offers the download, and every layer in between has its own
+ * opinion about non-ASCII filenames. The machine number is the useful half — a Schichtleiter
+ * scanning the uploads list wants to see which press it was — and the timestamp to the second is
+ * what keeps two protocols typed in the same shift apart.
+ *
+ * Local time rather than UTC, deliberately: the name is read by the person who typed it, and 22:14
+ * means their shift, not a timezone conversion.
+ */
+export function typedProtocolFilename(machineNo: string, at: Date): string {
+  const pad &#x3D; (value: number) &#x3D;&gt; String(value).padStart(2, &#x27;0&#x27;);
+  const stamp &#x3D;
+    &#x60;${at.getFullYear()}${pad(at.getMonth() + 1)}${pad(at.getDate())}&#x60; +
+    &#x60;-${pad(at.getHours())}${pad(at.getMinutes())}${pad(at.getSeconds())}&#x60;;
+  // The seeded machine numbers are ASCII already; this is about what a future one might be, not
+  // about what is in the corpus today.
+  const machine &#x3D; machineNo.replace(/[^A-Za-z0-9_-]+/g, &#x27;-&#x27;).replace(/^-+|-+$/g, &#x27;&#x27;) || &#x27;protokoll&#x27;;
+  return &#x60;${machine}-${stamp}-eingabe.txt&#x60;;
+}
 </code></pre>
     </div>
 
@@ -1395,10 +1937,61 @@ export class Upload {
 &lt;p class&#x3D;&quot;page-lead&quot;&gt;{{ t().upload.intro }}&lt;/p&gt;
 
 &lt;form class&#x3D;&quot;upload-form&quot; (ngSubmit)&#x3D;&quot;submit()&quot;&gt;
-  &lt;label class&#x3D;&quot;field&quot;&gt;
-    &lt;span class&#x3D;&quot;field-label&quot;&gt;{{ t().upload.file }}&lt;/span&gt;
-    &lt;input type&#x3D;&quot;file&quot; accept&#x3D;&quot;.txt,.md,text/plain&quot; data-testid&#x3D;&quot;file-input&quot; (change)&#x3D;&quot;pickFile($event)&quot; /&gt;
-  &lt;/label&gt;
+  &lt;!-- Two ways in, and typing is the one that matches the shift: the protocol gets written at the
+       end of it, not saved as a .txt first. File stays the default so nothing changes for anyone
+       already used to it. --&gt;
+  &lt;div class&#x3D;&quot;field&quot;&gt;
+    &lt;span class&#x3D;&quot;field-label&quot; id&#x3D;&quot;mode-label&quot;&gt;{{ t().upload.inputMode }}&lt;/span&gt;
+    &lt;div class&#x3D;&quot;mode-switch&quot; role&#x3D;&quot;group&quot; aria-labelledby&#x3D;&quot;mode-label&quot; data-testid&#x3D;&quot;mode-switch&quot;&gt;
+      &lt;button
+        type&#x3D;&quot;button&quot;
+        data-testid&#x3D;&quot;mode-file&quot;
+        [class.active]&#x3D;&quot;isMode(&#x27;file&#x27;)&quot;
+        [attr.aria-pressed]&#x3D;&quot;isMode(&#x27;file&#x27;)&quot;
+        (click)&#x3D;&quot;useMode(&#x27;file&#x27;)&quot;
+      &gt;
+        {{ t().upload.modeFile }}
+      &lt;/button&gt;
+      &lt;button
+        type&#x3D;&quot;button&quot;
+        data-testid&#x3D;&quot;mode-text&quot;
+        [class.active]&#x3D;&quot;isMode(&#x27;text&#x27;)&quot;
+        [attr.aria-pressed]&#x3D;&quot;isMode(&#x27;text&#x27;)&quot;
+        (click)&#x3D;&quot;useMode(&#x27;text&#x27;)&quot;
+      &gt;
+        {{ t().upload.modeText }}
+      &lt;/button&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+
+  @if (isMode(&#x27;file&#x27;)) {
+    &lt;label class&#x3D;&quot;field&quot;&gt;
+      &lt;span class&#x3D;&quot;field-label&quot;&gt;{{ t().upload.file }}&lt;/span&gt;
+      &lt;input
+        type&#x3D;&quot;file&quot;
+        accept&#x3D;&quot;.txt,.md,text/plain&quot;
+        data-testid&#x3D;&quot;file-input&quot;
+        #fileInput
+        (change)&#x3D;&quot;pickFile($event)&quot;
+      /&gt;
+    &lt;/label&gt;
+  } @else {
+    &lt;label class&#x3D;&quot;field&quot;&gt;
+      &lt;span class&#x3D;&quot;field-label&quot;&gt;{{ t().upload.text }}&lt;/span&gt;
+      &lt;!-- Free text on purpose. Structured Symptom/Ursache/Massnahme fields are a later step, and
+           the corpus deliberately contains messy protocols — this form has to be able to produce
+           one, or it would only ever add the tidy half of reality. --&gt;
+      &lt;span class&#x3D;&quot;field-hint&quot; data-testid&#x3D;&quot;text-hint&quot;&gt;{{ t().upload.textHint }}&lt;/span&gt;
+      &lt;textarea
+        name&#x3D;&quot;protocolText&quot;
+        rows&#x3D;&quot;14&quot;
+        data-testid&#x3D;&quot;text-input&quot;
+        [placeholder]&#x3D;&quot;t().upload.textPlaceholder&quot;
+        [ngModel]&#x3D;&quot;text()&quot;
+        (ngModelChange)&#x3D;&quot;text.set($event)&quot;
+      &gt;&lt;/textarea&gt;
+    &lt;/label&gt;
+  }
 
   &lt;label class&#x3D;&quot;field&quot;&gt;
     &lt;span class&#x3D;&quot;field-label&quot;&gt;{{ t().upload.machine }}&lt;/span&gt;
@@ -1454,7 +2047,7 @@ export class Upload {
     type&#x3D;&quot;submit&quot;
     class&#x3D;&quot;btn btn-primary&quot;
     data-testid&#x3D;&quot;upload-button&quot;
-    [disabled]&#x3D;&quot;submitting() || !file() || !machineNo()&quot;
+    [disabled]&#x3D;&quot;submitting() || !canSubmit()&quot;
     [attr.aria-busy]&#x3D;&quot;submitting()&quot;
   &gt;
     {{ submitting() ? t().upload.submitting : t().upload.submit }}
@@ -1572,10 +2165,11 @@ export class Upload {
   margin: 0;
 }
 
+/* Same helper grey as .caption and .field-hint — one token for &quot;this is a hint&quot;, not three. */
 .hint {
   margin: var(--s-1) 0 var(--s-4);
   font-size: var(--t-sm);
-  color: var(--c-ink-muted);
+  color: var(--c-ink-hint);
 }
 
 .uploads-table {
@@ -1656,6 +2250,58 @@ export class Upload {
     width: 100%;
   }
 }
+
+/* --- Input mode ---------------------------------------------------------- */
+
+/* The same segmented shape as the language and theme switches: a control the user has already met
+   twice in this application should not need learning a third time. */
+.mode-switch {
+  display: inline-flex;
+  align-self: flex-start;
+  max-width: 100%;
+  border: 1px solid var(--c-line-strong);
+  border-radius: var(--r-sm);
+  overflow: hidden;
+}
+
+.mode-switch button {
+  min-height: var(--tap);
+  padding: 0 var(--s-4);
+  border: 0;
+  background: var(--c-surface);
+  font: inherit;
+  font-size: var(--t-sm);
+  font-weight: 600;
+  color: var(--c-ink-muted);
+  cursor: pointer;
+}
+
+.mode-switch button + button {
+  border-left: 1px solid var(--c-line);
+}
+
+.mode-switch button.active {
+  background: var(--c-brand);
+  color: var(--c-on-brand);
+}
+
+/* Twelve-plus rows on a tablet: a protocol is several paragraphs, and a three-row box tells the
+   writer to keep it short — which is exactly the wrong instruction for the corpus. */
+.upload-form textarea {
+  min-height: 18rem;
+  line-height: var(--lh-relaxed);
+}
+
+@media (max-width: 40rem) {
+  .mode-switch {
+    width: 100%;
+  }
+
+  .mode-switch button {
+    flex: 1 1 50%;
+    padding: 0 var(--s-2);
+  }
+}
 </code></pre>
     </div>
 
@@ -1684,7 +2330,7 @@ export class Upload {
 <script src="../js/libs/htmlparser.js"></script>
 <script src="../js/libs/deep-iterator.js"></script>
 <script>
-        var COMPONENT_TEMPLATE = '<div><div class="page"><h1 class="page-title">{{ t().upload.heading }}</h1><p class="page-lead">{{ t().upload.intro }}</p><form class="upload-form" (ngSubmit)="submit()">  <label class="field">    <span class="field-label">{{ t().upload.file }}</span>    <input type="file" accept=".txt,.md,text/plain" data-testid="file-input" (change)="pickFile($event)" />  </label>  <label class="field">    <span class="field-label">{{ t().upload.machine }}</span>    <select      name="machine"      data-testid="upload-machine"      [ngModel]="machineNo()"      (ngModelChange)="machineNo.set($event)"    >      <option value="">{{ t().search.machinePlaceholder }}</option>      @for (machine of machines(); track machine.id) {        <option [value]="machine.machineNo">{{ machine.machineNo }} · {{ machine.name }}</option>      }    </select>  </label>  <label class="field">    <span class="field-label">{{ t().upload.type }}</span>    <select name="type" [ngModel]="type()" (ngModelChange)="type.set($event)">      <option value="STOERUNG">{{ t().upload.typeFault }}</option>      <option value="WARTUNG">{{ t().upload.typeMaintenance }}</option>    </select>  </label>  <label class="field">    <span class="field-label"      >{{ t().upload.title }} <em class="optional">({{ t().upload.optional }})</em></span    >    <input name="title" type="text" [ngModel]="title()" (ngModelChange)="title.set($event)" />  </label>  <label class="field">    <span class="field-label"      >{{ t().upload.errorCode }} <em class="optional">({{ t().upload.optional }})</em></span    >    <input      name="errorCode"      type="text"      [ngModel]="errorCode()"      (ngModelChange)="errorCode.set($event)"    />  </label>  <label class="field">    <span class="field-label">{{ t().upload.language }}</span>    <select name="language" [ngModel]="language()" (ngModelChange)="language.set($event)">      <option value="de">Deutsch</option>      <option value="en">English</option>    </select>  </label>  <button    type="submit"    class="btn btn-primary"    data-testid="upload-button"    [disabled]="submitting() || !file() || !machineNo()"    [attr.aria-busy]="submitting()"  >    {{ submitting() ? t().upload.submitting : t().upload.submit }}  </button></form>@if (accepted()) {  <!-- 202, said out loud. The protocol exists; it is not searchable yet. -->  <p class="notice notice-info" role="status" data-testid="accepted">    <strong>{{ t().upload.accepted }}</strong> {{ t().upload.acceptedHint }}  </p>}@if (failure(); as reason) {  <p class="notice notice-error" role="alert" data-testid="upload-failure">    @switch (reason) {      @case (\'forbidden\') {        {{ t().errors.forbidden }}      }      @case (\'unavailable\') {        {{ t().errors.unavailable }}      }      @default {        {{ t().errors.generic }}      }    }  </p>}<section class="uploads card">  <div class="uploads-header">    <h2 class="section-title">{{ t().upload.myUploads }}</h2>    <button      type="button"      class="btn btn-secondary btn-sm"      data-testid="refresh-button"      [disabled]="refreshing()"      (click)="refresh()"    >      {{ t().upload.refresh }}    </button>  </div>  <p class="hint">{{ t().upload.refreshHint }}</p>  @if (uploads().length) {    <table class="uploads-table" data-testid="uploads-table">      <thead>        <tr>          <th>{{ t().upload.columnProtocol }}</th>          <th>{{ t().upload.columnStatus }}</th>          <th>{{ t().upload.columnUploaded }}</th>        </tr>      </thead>      <tbody>        @for (upload of uploads(); track upload.id) {          <tr>            <td>              <span class="upload-machine">{{ upload.machineNo }}</span>              {{ upload.title }}            </td>            <td>              <span class="status status-{{ upload.status.toLowerCase() }}">{{                statusLabel(upload.status)              }}</span>              @if (upload.failureReason) {                <!-- The reason, not only the fact. "It failed" makes re-uploading the same broken                     file the obvious next move. -->                <p class="failure-reason" data-testid="failure-reason">{{ upload.failureReason }}</p>              }            </td>            <td class="num">{{ shortDate(upload.createdAt) }}</td>          </tr>        }      </tbody>    </table>  } @else {    <p class="hint" data-testid="no-uploads">{{ t().upload.none }}</p>  }</section></div></div>'
+        var COMPONENT_TEMPLATE = '<div><div class="page"><h1 class="page-title">{{ t().upload.heading }}</h1><p class="page-lead">{{ t().upload.intro }}</p><form class="upload-form" (ngSubmit)="submit()">  <!-- Two ways in, and typing is the one that matches the shift: the protocol gets written at the       end of it, not saved as a .txt first. File stays the default so nothing changes for anyone       already used to it. -->  <div class="field">    <span class="field-label" id="mode-label">{{ t().upload.inputMode }}</span>    <div class="mode-switch" role="group" aria-labelledby="mode-label" data-testid="mode-switch">      <button        type="button"        data-testid="mode-file"        [class.active]="isMode(\'file\')"        [attr.aria-pressed]="isMode(\'file\')"        (click)="useMode(\'file\')"      >        {{ t().upload.modeFile }}      </button>      <button        type="button"        data-testid="mode-text"        [class.active]="isMode(\'text\')"        [attr.aria-pressed]="isMode(\'text\')"        (click)="useMode(\'text\')"      >        {{ t().upload.modeText }}      </button>    </div>  </div>  @if (isMode(\'file\')) {    <label class="field">      <span class="field-label">{{ t().upload.file }}</span>      <input        type="file"        accept=".txt,.md,text/plain"        data-testid="file-input"        #fileInput        (change)="pickFile($event)"      />    </label>  } @else {    <label class="field">      <span class="field-label">{{ t().upload.text }}</span>      <!-- Free text on purpose. Structured Symptom/Ursache/Massnahme fields are a later step, and           the corpus deliberately contains messy protocols — this form has to be able to produce           one, or it would only ever add the tidy half of reality. -->      <span class="field-hint" data-testid="text-hint">{{ t().upload.textHint }}</span>      <textarea        name="protocolText"        rows="14"        data-testid="text-input"        [placeholder]="t().upload.textPlaceholder"        [ngModel]="text()"        (ngModelChange)="text.set($event)"      ></textarea>    </label>  }  <label class="field">    <span class="field-label">{{ t().upload.machine }}</span>    <select      name="machine"      data-testid="upload-machine"      [ngModel]="machineNo()"      (ngModelChange)="machineNo.set($event)"    >      <option value="">{{ t().search.machinePlaceholder }}</option>      @for (machine of machines(); track machine.id) {        <option [value]="machine.machineNo">{{ machine.machineNo }} · {{ machine.name }}</option>      }    </select>  </label>  <label class="field">    <span class="field-label">{{ t().upload.type }}</span>    <select name="type" [ngModel]="type()" (ngModelChange)="type.set($event)">      <option value="STOERUNG">{{ t().upload.typeFault }}</option>      <option value="WARTUNG">{{ t().upload.typeMaintenance }}</option>    </select>  </label>  <label class="field">    <span class="field-label"      >{{ t().upload.title }} <em class="optional">({{ t().upload.optional }})</em></span    >    <input name="title" type="text" [ngModel]="title()" (ngModelChange)="title.set($event)" />  </label>  <label class="field">    <span class="field-label"      >{{ t().upload.errorCode }} <em class="optional">({{ t().upload.optional }})</em></span    >    <input      name="errorCode"      type="text"      [ngModel]="errorCode()"      (ngModelChange)="errorCode.set($event)"    />  </label>  <label class="field">    <span class="field-label">{{ t().upload.language }}</span>    <select name="language" [ngModel]="language()" (ngModelChange)="language.set($event)">      <option value="de">Deutsch</option>      <option value="en">English</option>    </select>  </label>  <button    type="submit"    class="btn btn-primary"    data-testid="upload-button"    [disabled]="submitting() || !canSubmit()"    [attr.aria-busy]="submitting()"  >    {{ submitting() ? t().upload.submitting : t().upload.submit }}  </button></form>@if (accepted()) {  <!-- 202, said out loud. The protocol exists; it is not searchable yet. -->  <p class="notice notice-info" role="status" data-testid="accepted">    <strong>{{ t().upload.accepted }}</strong> {{ t().upload.acceptedHint }}  </p>}@if (failure(); as reason) {  <p class="notice notice-error" role="alert" data-testid="upload-failure">    @switch (reason) {      @case (\'forbidden\') {        {{ t().errors.forbidden }}      }      @case (\'unavailable\') {        {{ t().errors.unavailable }}      }      @default {        {{ t().errors.generic }}      }    }  </p>}<section class="uploads card">  <div class="uploads-header">    <h2 class="section-title">{{ t().upload.myUploads }}</h2>    <button      type="button"      class="btn btn-secondary btn-sm"      data-testid="refresh-button"      [disabled]="refreshing()"      (click)="refresh()"    >      {{ t().upload.refresh }}    </button>  </div>  <p class="hint">{{ t().upload.refreshHint }}</p>  @if (uploads().length) {    <table class="uploads-table" data-testid="uploads-table">      <thead>        <tr>          <th>{{ t().upload.columnProtocol }}</th>          <th>{{ t().upload.columnStatus }}</th>          <th>{{ t().upload.columnUploaded }}</th>        </tr>      </thead>      <tbody>        @for (upload of uploads(); track upload.id) {          <tr>            <td>              <span class="upload-machine">{{ upload.machineNo }}</span>              {{ upload.title }}            </td>            <td>              <span class="status status-{{ upload.status.toLowerCase() }}">{{                statusLabel(upload.status)              }}</span>              @if (upload.failureReason) {                <!-- The reason, not only the fact. "It failed" makes re-uploading the same broken                     file the obvious next move. -->                <p class="failure-reason" data-testid="failure-reason">{{ upload.failureReason }}</p>              }            </td>            <td class="num">{{ shortDate(upload.createdAt) }}</td>          </tr>        }      </tbody>    </table>  } @else {    <p class="hint" data-testid="no-uploads">{{ t().upload.none }}</p>  }</section></div></div>'
     var COMPONENTS = [{'name': 'App', 'selector': 'app-root'},{'name': 'Dialog', 'selector': 'app-dialog'},{'name': 'HelpDialog', 'selector': 'app-help-dialog'},{'name': 'Landing', 'selector': 'app-landing'},{'name': 'ProtocolDialog', 'selector': 'app-protocol-dialog'},{'name': 'Search', 'selector': 'app-search'},{'name': 'ThemeToggle', 'selector': 'app-theme-toggle'},{'name': 'Upload', 'selector': 'app-upload'}];
     var DIRECTIVES = [];
     var ACTUAL_COMPONENT = {'name': 'Upload'};

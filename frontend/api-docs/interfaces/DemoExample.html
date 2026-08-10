@@ -459,6 +459,7 @@ export interface Dictionary {
     readonly machine: string;
     readonly machinePlaceholder: string;
     readonly question: string;
+    readonly questionHint: string;
     readonly questionPlaceholder: string;
     readonly submit: string;
     readonly working: string;
@@ -498,7 +499,13 @@ export interface Dictionary {
   readonly upload: {
     readonly heading: string;
     readonly intro: string;
+    readonly inputMode: string;
+    readonly modeFile: string;
+    readonly modeText: string;
     readonly file: string;
+    readonly text: string;
+    readonly textHint: string;
+    readonly textPlaceholder: string;
     readonly machine: string;
     readonly type: string;
     readonly typeFault: string;
@@ -647,6 +654,8 @@ export const DE: Dictionary &#x3D; {
     machine: &#x27;Maschine&#x27;,
     machinePlaceholder: &#x27;Maschine wählen …&#x27;,
     question: &#x27;Ihre Frage&#x27;,
+    questionHint:
+      &#x27;z. B.: Sensorfehler, Maschine startet nicht, Programm lädt nicht, Druck baut sich langsam auf&#x27;,
     questionPlaceholder: &#x27;z. B. Presse kommt nicht auf Druck, Fehler E-47&#x27;,
     submit: &#x27;Frage stellen&#x27;,
     working: &#x27;Antwort wird erstellt …&#x27;,
@@ -690,8 +699,15 @@ export const DE: Dictionary &#x3D; {
   upload: {
     heading: &#x27;Protokoll hochladen&#x27;,
     intro:
-      &#x27;Nur Textdateien (UTF-8). PDF und Scans werden noch nicht ausgewertet.&#x27;,
+      &#x27;Protokoll direkt eingeben oder als Textdatei hochladen (UTF-8). PDF und Scans werden noch nicht ausgewertet.&#x27;,
+    inputMode: &#x27;Eingabeart&#x27;,
+    modeFile: &#x27;Datei hochladen&#x27;,
+    modeText: &#x27;Text eingeben&#x27;,
     file: &#x27;Datei&#x27;,
+    text: &#x27;Protokolltext&#x27;,
+    textHint: &#x27;Symptom, Ursache und Massnahme in eigenen Worten — Freitext ist in Ordnung.&#x27;,
+    textPlaceholder:
+      &#x27;z. B. Presse kommt nicht auf Druck, E-47 steht an. Dichtsatz am Hauptzylinder getauscht, Druck wieder stabil.&#x27;,
     machine: &#x27;Maschine&#x27;,
     type: &#x27;Art&#x27;,
     typeFault: &#x27;Störung&#x27;,
@@ -838,6 +854,8 @@ export const EN: Dictionary &#x3D; {
     machine: &#x27;Machine&#x27;,
     machinePlaceholder: &#x27;Choose a machine …&#x27;,
     question: &#x27;Your question&#x27;,
+    questionHint:
+      &#x27;e.g.: sensor fault, machine will not start, program does not load, pressure builds up slowly&#x27;,
     questionPlaceholder: &#x27;e.g. press does not build up pressure, fault E-47&#x27;,
     submit: &#x27;Ask&#x27;,
     working: &#x27;Preparing the answer …&#x27;,
@@ -880,8 +898,16 @@ export const EN: Dictionary &#x3D; {
   },
   upload: {
     heading: &#x27;Upload a protocol&#x27;,
-    intro: &#x27;Text files only (UTF-8). PDFs and scans are not extracted yet.&#x27;,
+    intro:
+      &#x27;Write the protocol here or upload it as a text file (UTF-8). PDFs and scans are not extracted yet.&#x27;,
+    inputMode: &#x27;Input&#x27;,
+    modeFile: &#x27;Upload a file&#x27;,
+    modeText: &#x27;Write the text&#x27;,
     file: &#x27;File&#x27;,
+    text: &#x27;Protocol text&#x27;,
+    textHint: &#x27;Symptom, cause and action in your own words — free text is fine.&#x27;,
+    textPlaceholder:
+      &#x27;e.g. Press does not build up pressure, E-47 showing. Seal kit on the main cylinder replaced, pressure stable again.&#x27;,
     machine: &#x27;Machine&#x27;,
     type: &#x27;Type&#x27;,
     typeFault: &#x27;Fault&#x27;,

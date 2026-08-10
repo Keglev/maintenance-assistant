@@ -194,6 +194,17 @@ export interface Dictionary {
     readonly delete: string;
     readonly loading: string;
     readonly empty: string;
+    /** The other "nothing here": a corpus that has rows, and a filter that matched none of them. */
+    readonly emptyFiltered: string;
+    readonly filterLegend: string;
+    readonly filterMachineAll: string;
+    readonly filterTitle: string;
+    readonly filterFrom: string;
+    readonly filterTo: string;
+    /** Why two of the four fields are disabled — an unexplained disabled field reads as broken. */
+    readonly filterHint: string;
+    readonly filterApply: string;
+    readonly filterReset: string;
     readonly removed: string;
     readonly alreadyGone: string;
     readonly confirmTitle: string;
@@ -439,6 +450,16 @@ export const DE: Dictionary = {
     delete: 'Löschen',
     loading: 'Protokolle werden geladen …',
     empty: 'Keine Protokolle im Bestand.',
+    emptyFiltered: 'Zu diesem Filter gibt es kein Protokoll. Filter ändern oder zurücksetzen.',
+    filterLegend: 'Protokolle filtern',
+    filterMachineAll: 'Alle Maschinen',
+    filterTitle: 'Titel enthält',
+    filterFrom: 'Von',
+    filterTo: 'Bis',
+    filterHint:
+      'Titel und Zeitraum stehen zur Verfügung, sobald eine Maschine gewählt ist — über den ganzen Bestand hinweg findet ein Titelstück vor allem Protokolle anderer Maschinen.',
+    filterApply: 'Filtern',
+    filterReset: 'Zurücksetzen',
     removed: 'Protokoll entfernt',
     alreadyGone: 'Dieses Protokoll ist nicht mehr im Bestand.',
     confirmTitle: 'Protokoll endgültig entfernen?',
@@ -682,6 +703,16 @@ export const EN: Dictionary = {
     delete: 'Delete',
     loading: 'Loading protocols …',
     empty: 'No protocols in the records.',
+    emptyFiltered: 'No protocol matches this filter. Change it or reset it.',
+    filterLegend: 'Filter protocols',
+    filterMachineAll: 'All machines',
+    filterTitle: 'Title contains',
+    filterFrom: 'From',
+    filterTo: 'To',
+    filterHint:
+      'Title and date range become available once a machine is chosen — across the whole corpus a title fragment mostly finds protocols from other machines.',
+    filterApply: 'Filter',
+    filterReset: 'Reset',
     removed: 'Protocol removed',
     alreadyGone: 'This protocol is no longer in the records.',
     confirmTitle: 'Remove this protocol permanently?',

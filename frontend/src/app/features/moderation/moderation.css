@@ -13,6 +13,51 @@
   margin: 0 0 var(--s-5);
 }
 
+/* The filter bar. Its own card above the table, so narrowing the corpus reads as a step before
+   reading it rather than as a decoration on the table's header row. */
+.filter-bar {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+  margin-bottom: var(--s-4);
+}
+
+/* Four fields that wrap instead of scrolling: on a tablet held upright they stack, and a stacked
+   form is still usable where a horizontally scrolling one is not. */
+.filter-fields {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-3);
+}
+
+.filter-fields .field {
+  flex: 1 1 12rem;
+  min-width: 10rem;
+}
+
+/* A date input has a fixed intrinsic width; letting it grow like a text box leaves a wide field
+   with the calendar glyph stranded at the far end. */
+.filter-fields .field-date {
+  flex: 0 1 11rem;
+}
+
+.filter-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-3);
+}
+
+/* Centred and with room to breathe: an empty result is a message, and a message pinned to the
+   top-left of a wide card reads as a rendering accident. */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--s-3);
+  padding: var(--s-5) 0;
+  text-align: center;
+}
+
 /* A seven-column table does not fit a tablet held upright. The wrapper scrolls; the page does not. */
 .table-scroll {
   overflow-x: auto;

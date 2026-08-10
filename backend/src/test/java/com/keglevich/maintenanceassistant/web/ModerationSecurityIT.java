@@ -114,7 +114,7 @@ class ModerationSecurityIT {
     @Test
     @DisplayName("an admin lists the corpus, paged, with the author of each protocol")
     void anAdminMayList() throws Exception {
-        when(moderation.list(anyInt(), anyInt())).thenReturn(new ProtocolModerationService.ProtocolPage(
+        when(moderation.list(anyInt(), anyInt(), any())).thenReturn(new ProtocolModerationService.ProtocolPage(
                 List.of(new ProtocolModerationService.ModeratedProtocol(
                         PROTOCOL, "PR-03", "E-47 Druckabfall", "STOERUNG", "E-47",
                         "schichtleiter", OffsetDateTime.now(), "INDEXED", 2)),

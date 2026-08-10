@@ -46,12 +46,18 @@ public class IngestionBacklogService {
         this.budget = budget;
     }
 
-    /** @param statuses which states to pick up; {@code RECEIVED} for a first pass, {@code FAILED} for a retry */
+    /**
+     * @param statuses which states to pick up; {@code RECEIVED} for a first pass, {@code FAILED}
+     *                 for a retry. Archived protocols are never picked up: a protocol soft-deleted
+     *                 while it was still RECEIVED would otherwise be a permanent backlog entry that
+     *                 rebuilds its own chunks on every run — a deletion the next catch-up undoes.
+     */
     public int enqueue(List<String> statuses, Integer limit) {
         int max = limit != null && limit > 0 ? limit : properties.backlogBatchSize();
         List<UUID> pending = jdbc.sql("""
                         SELECT id FROM protocol
                         WHERE status IN (:statuses)
+                          AND deleted_at IS NULL
                         ORDER BY created_at
                         LIMIT :max
                         """)
@@ -73,9 +79,20 @@ public class IngestionBacklogService {
         return pending.size();
     }
 
-    /** Counts by status, for the operator answering "is it done yet". */
+    /**
+     * Counts by status, for the operator answering "is it done yet".
+     *
+     * <p>Live protocols only. The question behind this number is "is the corpus indexed", and an
+     * archived protocol is not part of the corpus — counting it would report a permanent shortfall
+     * of RECEIVED rows that no backlog run can ever clear, because the backlog correctly refuses to
+     * pick them up.
+     */
     public List<StatusCount> statusCounts() {
-        return jdbc.sql("SELECT status, count(*) AS n FROM protocol GROUP BY status ORDER BY status")
+        return jdbc.sql("""
+                        SELECT status, count(*) AS n FROM protocol
+                        WHERE deleted_at IS NULL
+                        GROUP BY status ORDER BY status
+                        """)
                 .query((rs, rowNum) -> new StatusCount(rs.getString("status"), rs.getLong("n")))
                 .list();
     }

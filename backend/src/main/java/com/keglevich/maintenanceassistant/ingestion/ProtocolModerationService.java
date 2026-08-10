@@ -32,10 +32,15 @@ import java.util.UUID;
  * and a citation traces an answer back to a specific protocol and therefore a specific author. This
  * is the remediation half. See ADR-006.
  *
- * <p><b>There is deliberately no update method.</b> Correcting a protocol is delete-then-reupload,
- * not an edit: an answer must never cite text that changed underneath it, and the ingestion path is
- * already idempotent per protocol (chunks are deleted and rewritten), so re-uploading is a first-
- * class operation rather than a workaround.
+ * <p><b>Correction lives next door, in {@link ProtocolEditService}.</b> This class used to state that
+ * there deliberately was no update method; ADR-006's 2026-08-10 revision reversed that, on the
+ * ground that the system stores no answers for an edit to invalidate. Editing is a separate service
+ * because it is a write into the ingestion pipeline — file, row, re-index — while everything here
+ * reads or retires.
+ *
+ * <p><b>Deletion is a soft delete into an archive, not a hard one.</b> The chunks still go, which is
+ * what removes the protocol from every answer; the row and the file stay so that removing garbage
+ * does not also destroy the evidence of who produced it. There is no restore, by design.
  */
 @Service
 public class ProtocolModerationService {
@@ -44,6 +49,16 @@ public class ProtocolModerationService {
 
     /** Never more than this per page, whatever the caller asks for. */
     public static final int MAX_PAGE_SIZE = 50;
+
+    /**
+     * How many deletions one machine's archive keeps before the oldest are purged for good.
+     *
+     * <p>Per machine, not global: a burst of deletions on one press must not push another machine's
+     * evidence out. Fifty is generous for this plant and arbitrary in principle — what matters is
+     * that the number exists, because an archive with no ceiling is a disk with no ceiling, and
+     * every other unbounded thing in this application is bounded (NFR-7).
+     */
+    public static final int ARCHIVE_CAP = 50;
 
     private final JdbcClient jdbc;
     private final FileStorageProperties fileProperties;
@@ -83,7 +98,11 @@ public class ProtocolModerationService {
         int limit = Math.clamp(size, 1, MAX_PAGE_SIZE);
         int offset = Math.max(page, 0) * limit;
 
-        List<String> conditions = new ArrayList<>();
+        // The live corpus, always. An archived protocol is out of every list in the application
+        // except the archive itself, including this one — the reviewer's list is what is IN the
+        // corpus, and something they already removed reappearing in it would read as the deletion
+        // having failed (ADR-006 revision).
+        List<String> conditions = new ArrayList<>(List.of("p.deleted_at IS NULL"));
         Map<String, Object> params = new LinkedHashMap<>();
         if (filter.machineNo() != null) {
             conditions.add("m.machine_no = :machineNo");
@@ -105,7 +124,7 @@ public class ProtocolModerationService {
             conditions.add("p.created_at < :toExclusive");
             params.put("toExclusive", startOfDay(filter.to().plusDays(1)));
         }
-        String where = conditions.isEmpty() ? "" : " WHERE " + String.join(" AND ", conditions);
+        String where = " WHERE " + String.join(" AND ", conditions);
 
         List<ModeratedProtocol> rows = jdbc.sql("""
                         SELECT p.id, p.title, p.protocol_type, p.error_code, p.status,
@@ -167,35 +186,40 @@ public class ProtocolModerationService {
     }
 
     /**
-     * Removes a protocol completely: chunks, row, file.
+     * Removes a protocol from the corpus and moves it into the archive.
      *
-     * <p><b>The order is the whole design.</b> Chunks first: a chunk is what retrieval searches, so
-     * a chunk whose protocol is gone is retrievable garbage — it can still be returned, ranked and
-     * cited, pointing at a row that no longer exists. The row second. The file last, because a file
-     * with no row is inert: nothing can find it, nothing will read it, and it costs a few kilobytes
-     * until someone sweeps the volume.
+     * <p><b>The chunks are still deleted, and that is the load-bearing step.</b> A chunk is what
+     * retrieval searches; deleting them is what takes the protocol out of every answer instantly and
+     * permanently, for every role, in this same request. The soft delete added around it changes who
+     * can still <em>read</em> the protocol afterwards — nobody but an administrator — not whether it
+     * can be found. Retrieval's safety is therefore structural, not a filter somebody has to
+     * remember (ADR-006 revision answers the original ADR's objection to soft deletion here).
      *
-     * <p>That ordering also makes a half-failure safe to retry. Interrupted anywhere, what survives
-     * is always the harmless end of the list, and calling this again finishes the job — each step
-     * is a delete of something that may already be absent.
+     * <p>The row and the file stay. #37 removed them, and with them the evidence that the protocol
+     * had ever existed — an administrator cleaning up a poisoned protocol would erase the trace of
+     * who filed it, finishing the job the author started. The insider-threat chain is create →
+     * detect → trace → remediate → <b>preserve</b>, and this is the last link.
      *
-     * <p>The schema declares {@code ON DELETE CASCADE} from chunk to protocol, so the first
-     * statement is technically redundant. It is written out anyway: the guarantee this method makes
-     * is "no retrievable orphan", and a guarantee that silently depends on a foreign-key clause in a
-     * migration nobody is reading is a guarantee that lasts until someone edits the migration.
+     * <p>Deleting an already-archived protocol answers false rather than deleting it twice: the
+     * second call has nothing to remove and would otherwise overwrite the first deletion's timestamp
+     * and comment with a later one, rewriting the audit trail it is supposed to be adding to.
      *
-     * @return false if there was no such protocol; true if one was removed
+     * @param comment why it was removed, required and non-blank — an unexplained change to the
+     *                corpus is the shape of the thing this audit trail exists to make visible
+     * @return false if there was no such live protocol; true if one was archived
      */
     @Transactional
-    public boolean delete(UUID protocolId, String deletedBy) {
+    public boolean delete(UUID protocolId, String deletedBy, String comment) {
+        String reason = requireComment(comment);
         Optional<DeletedProtocol> target = jdbc.sql("""
-                        SELECT p.title, p.source_file, m.machine_no
+                        SELECT p.title, p.source_file, p.machine_id, m.machine_no
                         FROM protocol p JOIN machine m ON m.id = p.machine_id
-                        WHERE p.id = :id
+                        WHERE p.id = :id AND p.deleted_at IS NULL
                         """)
                 .param("id", protocolId)
                 .query((rs, rowNum) -> new DeletedProtocol(
-                        rs.getString("title"), rs.getString("source_file"), rs.getString("machine_no")))
+                        rs.getString("title"), rs.getString("source_file"),
+                        rs.getObject("machine_id", UUID.class), rs.getString("machine_no")))
                 .optional();
 
         if (target.isEmpty()) {
@@ -205,17 +229,151 @@ public class ProtocolModerationService {
         int chunks = jdbc.sql("DELETE FROM chunk WHERE protocol_id = :id")
                 .param("id", protocolId)
                 .update();
-        jdbc.sql("DELETE FROM protocol WHERE id = :id")
+        jdbc.sql("UPDATE protocol SET deleted_at = :now, updated_at = :now WHERE id = :id")
                 .param("id", protocolId)
+                .param("now", OffsetDateTime.now())
                 .update();
-        deleteFile(target.get().sourceFile());
+        recordEvent(protocolId, "DELETE", deletedBy, reason);
 
-        // INFO, not DEBUG: this is the audit trail of the audit function. Who removed what, and
-        // enough of the protocol's identity to recognise it later — a bare UUID in a log tells a
-        // reader nothing about what was lost.
-        log.info("Moderation: {} deleted protocol {} ('{}', machine {}) with {} chunks",
-                deletedBy, protocolId, target.get().title(), target.get().machineNo(), chunks);
+        // INFO, not DEBUG: this is the audit trail of the audit function, and it is now the
+        // human-readable half of a record whose queryable half is moderation_event. Enough of the
+        // protocol's identity to recognise it later — a bare UUID tells a reader nothing about what
+        // was removed, and after a purge this line is the only place the title survives.
+        log.info("Moderation: {} archived protocol {} ('{}', machine {}), {} chunks removed: {}",
+                deletedBy, protocolId, target.get().title(), target.get().machineNo(), chunks, reason);
+
+        enforceArchiveCap(target.get().machineId(), target.get().machineNo());
         return true;
+    }
+
+    /**
+     * Keeps the archive of one machine at {@link #ARCHIVE_CAP} entries, purging the oldest
+     * deletions completely — row and file.
+     *
+     * <p>An archive that only grows is a disk that only fills, and this application bounds every
+     * other unbounded thing it has (NFR-7). The cap is per machine rather than global so that one
+     * machine under a burst of deletions cannot push another machine's evidence out.
+     *
+     * <p><b>Synchronous, as part of the delete that breached it.</b> A retention job would be a
+     * scheduler, a timer and a piece of state that can silently stop running — and an archive that
+     * quietly stopped being capped looks exactly like one that is working. This cannot stop running
+     * without deletion itself stopping.
+     *
+     * <p>The {@code moderation_event} rows of a purged protocol are deliberately <b>not</b> removed
+     * (the table carries no foreign key). The fifty-first deletion erasing the record of the first
+     * would be the audit function losing its own audit trail.
+     */
+    private void enforceArchiveCap(UUID machineId, String machineNo) {
+        List<PurgeTarget> excess = jdbc.sql("""
+                        SELECT p.id, p.title, p.source_file
+                        FROM protocol p
+                        WHERE p.machine_id = :machineId AND p.deleted_at IS NOT NULL
+                        ORDER BY p.deleted_at DESC, p.id
+                        OFFSET :cap
+                        """)
+                // OFFSET past the cap on the newest-first ordering: whatever is left is by
+                // definition everything older than the fiftieth deletion, so the query names the
+                // rows to purge rather than counting first and deciding afterwards.
+                .param("machineId", machineId)
+                .param("cap", ARCHIVE_CAP)
+                .query((rs, rowNum) -> new PurgeTarget(
+                        rs.getObject("id", UUID.class),
+                        rs.getString("title"),
+                        rs.getString("source_file")))
+                .list();
+
+        for (PurgeTarget purged : excess) {
+            jdbc.sql("DELETE FROM protocol WHERE id = :id").param("id", purged.id()).update();
+            deleteFile(purged.sourceFile());
+            // The title survives here and nowhere else once the row is gone: moderation_event keeps
+            // who removed it and why, and this line keeps what "it" was.
+            log.info("Moderation: archive cap ({}) reached for machine {} — purged protocol {} ('{}') "
+                            + "permanently; its moderation events are kept",
+                    ARCHIVE_CAP, machineNo, purged.id(), purged.title());
+        }
+    }
+
+    /**
+     * One page of the archive: what was removed from this machine, newest deletion first.
+     *
+     * <p>Joined to the {@code DELETE} event rather than storing the comment on the protocol row,
+     * because a protocol can carry several moderation acts — edits before the deletion — and the
+     * archive is asking about one of them. The latest DELETE is the one that put it here.
+     */
+    public DeletedProtocolPage listDeleted(String machineNo, int page, int size) {
+        int limit = Math.clamp(size, 1, MAX_PAGE_SIZE);
+        int offset = Math.max(page, 0) * limit;
+        String machine = machineNo == null || machineNo.isBlank() ? null : machineNo.trim();
+        String where = machine == null ? "" : " AND m.machine_no = :machineNo";
+
+        List<ArchivedProtocol> rows = jdbc.sql("""
+                        SELECT p.id, p.title, p.protocol_type, p.error_code, p.uploaded_by,
+                               p.created_at, p.deleted_at, m.machine_no,
+                               e.actor AS deleted_by, e.comment AS delete_comment
+                        FROM protocol p
+                        JOIN machine m ON m.id = p.machine_id
+                        LEFT JOIN LATERAL (
+                            SELECT actor, comment FROM moderation_event
+                            WHERE protocol_id = p.id AND action = 'DELETE'
+                            ORDER BY created_at DESC LIMIT 1
+                        ) e ON true
+                        WHERE p.deleted_at IS NOT NULL"""
+                        + where
+                        + """
+                        \nORDER BY p.deleted_at DESC, p.id
+                        LIMIT :limit OFFSET :offset
+                        """)
+                .param("machineNo", machine, java.sql.Types.VARCHAR)
+                .param("limit", limit)
+                .param("offset", offset)
+                .query((rs, rowNum) -> new ArchivedProtocol(
+                        rs.getObject("id", UUID.class),
+                        rs.getString("machine_no"),
+                        rs.getString("title"),
+                        rs.getString("protocol_type"),
+                        rs.getString("error_code"),
+                        rs.getString("uploaded_by"),
+                        rs.getObject("created_at", OffsetDateTime.class),
+                        rs.getObject("deleted_at", OffsetDateTime.class),
+                        rs.getString("deleted_by"),
+                        rs.getString("delete_comment")))
+                .list();
+
+        long total = jdbc.sql("""
+                        SELECT count(*) FROM protocol p JOIN machine m ON m.id = p.machine_id
+                        WHERE p.deleted_at IS NOT NULL"""
+                        + where)
+                .param("machineNo", machine, java.sql.Types.VARCHAR)
+                .query(Long.class)
+                .single();
+        return new DeletedProtocolPage(rows, page, limit, total, ARCHIVE_CAP);
+    }
+
+    /** Writes one line of the ledger. Called by every moderation act, including {@link #delete}. */
+    void recordEvent(UUID protocolId, String action, String actor, String comment) {
+        jdbc.sql("""
+                        INSERT INTO moderation_event (id, protocol_id, action, actor, comment)
+                        VALUES (:id, :protocolId, :action, :actor, :comment)
+                        """)
+                .param("id", UUID.randomUUID())
+                .param("protocolId", protocolId)
+                .param("action", action)
+                .param("actor", actor)
+                .param("comment", comment)
+                .update();
+    }
+
+    /** The stable code a client matches on when a moderation act arrives without its reason. */
+    public static final String COMMENT_REQUIRED = "MODERATION_COMMENT_REQUIRED";
+
+    static String requireComment(String comment) {
+        if (comment == null || comment.isBlank()) {
+            // Blank counts as missing. A comment box someone tabbed past is not a stated reason,
+            // and " " in the ledger would be worse than an empty one — it looks like an answer.
+            throw new InvalidModerationRequestException(COMMENT_REQUIRED,
+                    "a moderation comment is required: say why this protocol is being changed");
+        }
+        return comment.trim();
     }
 
     /**
@@ -270,7 +428,7 @@ public class ProtocolModerationService {
             machineNo = blankToNull(machineNo);
             titleContains = blankToNull(titleContains);
             if (machineNo == null && (titleContains != null || from != null || to != null)) {
-                throw new InvalidFilterException(MACHINE_REQUIRED,
+                throw new InvalidModerationRequestException(MACHINE_REQUIRED,
                         "a title or date filter needs a machine: choose a machine first");
             }
         }
@@ -287,11 +445,11 @@ public class ProtocolModerationService {
     }
 
     /** A filter combination the endpoint does not accept. Answered as 400 with {@link #code()}. */
-    public static class InvalidFilterException extends RuntimeException {
+    public static class InvalidModerationRequestException extends RuntimeException {
 
         private final String code;
 
-        InvalidFilterException(String code, String message) {
+        InvalidModerationRequestException(String code, String message) {
             super(message);
             this.code = code;
         }
@@ -327,6 +485,40 @@ public class ProtocolModerationService {
             int chunkCount) {
     }
 
-    private record DeletedProtocol(String title, String sourceFile, String machineNo) {
+    /**
+     * One page of the archive.
+     *
+     * @param cap the per-machine ceiling, reported so the view can state it rather than hard-code a
+     *            number that would drift the day the constant changes
+     */
+    public record DeletedProtocolPage(List<ArchivedProtocol> items, int page, int size, long total,
+                                      int cap) {
+    }
+
+    /**
+     * A protocol as the archive shows it: what it was, who filed it, and who removed it and why.
+     *
+     * @param deletedBy      actor of the DELETE event; null only for a row archived by something
+     *                       other than this service, which nothing does today
+     * @param deleteComment  the stated reason — the field the whole archive exists to carry
+     */
+    public record ArchivedProtocol(
+            UUID id,
+            String machineNo,
+            String title,
+            String protocolType,
+            String errorCode,
+            String uploadedBy,
+            OffsetDateTime uploadedAt,
+            OffsetDateTime deletedAt,
+            String deletedBy,
+            String deleteComment) {
+    }
+
+    private record DeletedProtocol(String title, String sourceFile, UUID machineId, String machineNo) {
+    }
+
+    /** What a purge needs to know: which row to drop, which file to remove, what to call it in the log. */
+    private record PurgeTarget(UUID id, String title, String sourceFile) {
     }
 }

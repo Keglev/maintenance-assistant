@@ -39,6 +39,12 @@ public class ProtocolStatusService {
     /**
      * The caller's most recent uploads, newest first.
      *
+     * <p>Archived protocols are gone from here too. An uploader seeing a protocol an administrator
+     * removed would be told it is INDEXED and searchable, which is false in the way that matters:
+     * they would stop looking for the reason their answer never cites it. Being told <em>why</em> it
+     * was removed is a notification feature this application does not have; showing it as healthy is
+     * worse than showing nothing.
+     *
      * @param uploadedBy the Keycloak username claim, which is what {@code protocol.uploaded_by}
      *                   stores — there is no user table to join against (ADR-003)
      */
@@ -48,6 +54,7 @@ public class ProtocolStatusService {
                                m.machine_no
                         FROM protocol p JOIN machine m ON m.id = p.machine_id
                         WHERE p.uploaded_by = :uploadedBy
+                          AND p.deleted_at IS NULL
                         ORDER BY p.created_at DESC
                         LIMIT :max
                         """)

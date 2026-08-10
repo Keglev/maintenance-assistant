@@ -5,7 +5,123 @@ Naming update overriding older docs: project = "maintenance-assistant",
 Keycloak realm = "maintenance". English repo name is intentional.)
 
 =====================================================================
-CURRENT STATUS — 2026-08-08, end of session (SESSION HANDOVER)
+CURRENT STATUS — 2026-08-10, end of session (SESSION HANDOVER)
+=====================================================================
+v1.0.0 IS TAGGED AND LIVE (tagged 2026-08-08 after the tablet
+walkthrough). Since the tag, the v1.1 wave shipped in SEVEN merged and
+deployed PRs, all verified (robot full-report -> Claude pre/post-merge
+verification -> Carlos merge -> live checks):
+
+  #31 fix(backend): HEAD permitted on public paths (uptime probes),
+      ERROR dispatch 404s, Swagger entry verified live.
+  #32 feat/shopfloor-ux: in-app protocol viewer dialog (SUPERSEDES the
+      #26 blob-tab; parsed Symptom/Ursache/Massnahme + raw fallback,
+      download kept), sign-out confirmation + signed-out notice, demo
+      login buttons via login_hint (ROPC rejected, recorded), demo
+      framing line, prefers-color-scheme dark theme.
+  #33 feat/theme-toggle: manual theme override, theme-init.js pre-paint
+      (CSP-safe, no inline script), nginx cache fix for the one
+      unhashed file (verified live: Cache-Control no-cache).
+  #34 feat/protocol-text-entry: typed protocols wrapped client-side
+      into a File over the UNCHANGED upload endpoint (backend never
+      knows); icon polish, dark-contrast pass (--c-field token, two
+      measured palette defects fixed), question hint (--c-ink-hint).
+  #35 feat/upload-parity-and-settings: title REQUIRED both modes,
+      language dropdown REMOVED (retrieval is language-agnostic by
+      architecture — bge-m3 shared space + answer language pinned to
+      the question; recorded in DECISIONS), two-state sun/moon toggle
+      (silent OS default), Settings/gear dialog (version from
+      package.json — NOW A RELEASE OBLIGATION: bump with each tag —
+      username, Angemeldet seit from iat, FONT SIZE Normal/Gross/Sehr
+      gross via data-font on <html>), hover/pressed tokens, landing
+      "Demo ausprobieren" jump.
+  #36 sec/upload-guards: CI builds amd64 ONLY (arm64 dropped after a
+      qemu illegal-instruction hang; DECISIONS revised — moving back =
+      server swap + one line), multipart caps 256KB/512KB aligned with
+      maintenance.ingestion.max-upload-bytes, UploadContentPolicy
+      (EMPTY_FILE / UNSUPPORTED_TYPE .txt-only, .md dropped / NOT_TEXT
+      NUL-sniff) BEFORE any row or file exists, per-user Bucket4j
+      10/min keyed on preferred_username (= uploaded_by identity),
+      413 as JSON via @RestControllerAdvice, arc42 §11.1 quantified
+      abuse math.
+  #37 feat/protocol-moderation: admin-only /api/moderation/** (class-
+      level @PreAuthorize, 403 tested for all three shop-floor roles,
+      verified 401 live), paged list, viewer reuse via source input,
+      hard delete chunks->row->file, ADR-006 insider threat, danger
+      tokens both palettes.
+  #38 feat/admin-home-and-filters: admin lands in PROTOKOLLVERWALTUNG
+      (renamed from Moderation; API paths unchanged), /search blocked
+      for admin (fixes the live "Maschinenliste nicht verfuegbar" —
+      /api/machines 403 for admin, now admin-readable for the filter),
+      machine-first filters: titleContains (ILIKE escaped) OR from/to,
+      400 without machineNo.
+  #39 feat/edit-and-delete-archive: ADR-006 DATED REVISIONS — (1) EDIT
+      allowed: answers are ephemeral, so in-place correction is safe
+      with MANDATORY re-index (delete-then-write per protocol, chunk
+      vectors provably change) + required comment; residual (open
+      screenshots) recorded as an accepted negative. IDENTITY LOCK:
+      machine and type are provenance, not properties — attempts 400
+      PROTOCOL_IDENTITY_LOCKED, never silently ignored; edit dialog
+      shows them read-only. "Words can be fixed, identity cannot."
+      (2) HARD DELETE -> SOFT DELETE AS AUDIT ARCHIVE (no restore BY
+      DESIGN): chunks deleted instantly (retrieval safe by
+      construction), deleted_at + moderation_event (actor, REQUIRED
+      comment in the REQUEST BODY — not a query param, comments would
+      otherwise land in access logs), archive capped 50/machine with
+      synchronous purge of the oldest (row + file); moderation_event
+      has NO FK to protocol so the purge cannot erase the ledger.
+      V4__moderation_archive.sql via normal Flyway on deploy. Seven
+      read paths guarded with deleted_at IS NULL — including
+      ProtocolIndexer ("deleted while queued") and
+      IngestionBacklogService, the two that could have resurrected an
+      archived protocol. Edit lives in ProtocolEditService (a write
+      into the ingestion pipeline), 409 for editing an archived
+      protocol. NEW LESSON recorded: local green is not commit green
+      (a package-private ctor passed locally from the working tree and
+      failed in CI).
+
+PENDING — CARLOS, before anything else next session:
+  1. LIVE DRILL for #38/#39 (spelled out in #39's PR body): as
+     schichtleiter upload a throwaway -> see it cited -> as admin EDIT
+     it (watch the answer change after re-index — step 4 is the whole
+     PR) -> DELETE with a comment -> gone from search + Meine Uploads
+     -> readable in Geloeschte Protokolle with the comment. Delete
+     ONLY the throwaway, never a seeded protocol.
+  2. Carlos has a PARKED LIST OF DESIGN ISSUES (his words, 2026-08-10,
+     not yet enumerated) -> he provides the list + screenshots, Claude
+     drafts ONE design-fix robot prompt.
+
+v1.1 BACKLOG AFTER THAT, in order:
+  a. Design-fix PR (Carlos's parked list).
+  b. KEYCLOAK LOGIN THEME PR (hand-deployed artifact, the only
+     remaining one): dark mode matching the app palette, back-to-
+     landing link, honors/coexists with the app theme choice;
+     optional demo autofill lands here for free if still wanted.
+  c. "Meine Uploads" pagination (last 5-10 + paging) and a visible
+     accepted-format hint on the upload view ("Nur Textdateien:
+     .txt") — small, can ride along with (a).
+  d. Footer server-health dot (public /api/health fetch, after login).
+  e. TAG v1.1.0 (remember: bump package.json version — the Settings
+     dialog reads it). Then applications reference a release with the
+     full insider-threat story: create -> detect -> trace -> remediate
+     (edit or archive) -> evidence preserved.
+  Later/documented-not-built: PDF export (generation, not serving),
+  structured Symptom/Ursache/Massnahme fields, draft/approve workflow
+  (technician writes, Schichtleiter approves — ADR-006 evolution
+  path), .docx parsing (form entry made it non-core).
+
+WORKING PROCESS (settled this session, keep):
+  Robot prompt template ends with: (1) FULL REPORT — what changed and
+  why, findings/defects caught, deviations, NOT-verified stated as
+  such; (2) gh pr checks --watch table; (3) PR URL; then stop. Never
+  merge, never tag. One branch per fresh session. Claude verifies
+  robot claims against the merged code and live production (curl
+  fingerprinting of bundles/headers/endpoints); Carlos merges unless
+  Claude flags; Carlos does every browser click ("an API call is not
+  a click").
+
+=====================================================================
+PREVIOUS STATUS — 2026-08-08 (superseded 2026-08-10, kept for history)
 =====================================================================
 Phases 0, 1, 2 and 3 are DONE. Phase 3 shipped in PRs #24 (query
 path), #25 (search UI) and #26 (source-link fix), all merged and

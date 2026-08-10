@@ -1,9 +1,50 @@
 <div class="page">
   <h1 class="page-title">{{ t().moderation.heading }}</h1>
-  <p class="page-lead">{{ t().moderation.intro }}</p>
-  <!-- The absence of an edit button is a decision, so it is stated rather than left to be read as
-       an oversight (ADR-006: an answer must never cite text that changed underneath it). -->
-  <p class="field-hint moderation-hint" data-testid="moderation-hint">{{ t().moderation.noEditHint }}</p>
+  <p class="page-lead">
+    {{ tab() === 'archive' ? t().moderation.archiveIntro : t().moderation.intro }}
+  </p>
+
+  <!-- Two halves of one job: what is in the corpus, and what was taken out of it. Tabs rather than
+       a second route, because a reviewer moves between them while deciding. -->
+  <div class="tabs" role="tablist" [attr.aria-label]="t().moderation.heading">
+    <button
+      type="button"
+      role="tab"
+      data-testid="tab-corpus"
+      [class.active]="tab() === 'corpus'"
+      [attr.aria-selected]="tab() === 'corpus'"
+      (click)="showTab('corpus')"
+    >
+      {{ t().moderation.tabCorpus }}
+    </button>
+    <button
+      type="button"
+      role="tab"
+      data-testid="tab-archive"
+      [class.active]="tab() === 'archive'"
+      [attr.aria-selected]="tab() === 'archive'"
+      (click)="showTab('archive')"
+    >
+      {{ t().moderation.tabArchive }}
+    </button>
+  </div>
+
+  @if (corrected(); as title) {
+    <p class="notice notice-info moderation-notice" role="status" data-testid="corrected-notice">
+      <!-- 202, not 200: the text is fixed and the index catches up in a moment. Saying so is the
+           same honesty the upload view owes its 202. -->
+      <span>{{ t().moderation.edited }}: {{ title }}</span>
+      <button
+        type="button"
+        class="link-button"
+        data-testid="corrected-dismiss"
+        [attr.aria-label]="t().signOut.dismiss"
+        (click)="corrected.set(null)"
+      >
+        {{ t().common.close }}
+      </button>
+    </p>
+  }
 
   @if (removed(); as title) {
     <p class="notice notice-info moderation-notice" role="status" data-testid="removed-notice">
@@ -39,6 +80,7 @@
     </p>
   }
 
+  @if (tab() === 'corpus') {
   <!-- Above the table, not in a drawer: with 150 protocols and growing, finding one is the first
        thing a reviewer does, not an option they go looking for. -->
   <form class="card filter-bar" (ngSubmit)="applyFilter()" [attr.aria-label]="t().moderation.filterLegend">
@@ -188,6 +230,18 @@
                   >
                     {{ t().moderation.open }}
                   </button>
+                  <!-- Correction before removal, in that order on screen too: since the ADR-006
+                       revision, fixing a wrong Massnahme is the cheaper and better of the two. -->
+                  <button
+                    type="button"
+                    class="btn btn-secondary btn-sm"
+                    data-testid="row-edit"
+                    [attr.aria-haspopup]="'dialog'"
+                    [attr.aria-label]="t().moderation.edit + ': ' + protocol.title"
+                    (click)="startEdit(protocol)"
+                  >
+                    {{ t().moderation.edit }}
+                  </button>
                   <button
                     type="button"
                     class="btn btn-danger btn-sm"
@@ -230,6 +284,108 @@
       </div>
     }
   </section>
+  }
+
+  @if (tab() === 'archive') {
+    <section class="card archive-controls">
+      <label class="field">
+        <span class="field-label">{{ t().upload.machine }}</span>
+        <select
+          name="archiveMachine"
+          data-testid="archive-machine"
+          [ngModel]="archiveMachine()"
+          (ngModelChange)="filterArchive($event)"
+        >
+          <option value="">{{ t().moderation.filterMachineAll }}</option>
+          @for (machine of machines(); track machine.id) {
+            <option [value]="machine.machineNo">{{ machine.machineNo }} · {{ machine.name }}</option>
+          }
+        </select>
+      </label>
+      <!-- The cap and the absence of a restore are stated, not discovered: both are decisions, and
+           a reviewer who assumes deletions are recoverable will use deletion differently. -->
+      <p class="field-hint" data-testid="archive-hint">{{ t().moderation.archiveHint(archiveCap()) }}</p>
+    </section>
+
+    <section class="card">
+      @if (archiveLoading()) {
+        <p class="hint" role="status" data-testid="archive-loading">
+          {{ t().moderation.archiveLoading }}
+        </p>
+      } @else if (archived().length === 0) {
+        <div class="empty-state" data-testid="archive-empty">
+          <p class="hint">{{ t().moderation.archiveEmpty }}</p>
+        </div>
+      } @else {
+        <div class="table-scroll">
+          <table class="moderation-table" data-testid="archive-table">
+            <thead>
+              <tr>
+                <th>{{ t().upload.columnProtocol }}</th>
+                <th>{{ t().upload.machine }}</th>
+                <th>{{ t().moderation.archiveDeletedAt }}</th>
+                <th>{{ t().moderation.archiveDeletedBy }}</th>
+                <th>{{ t().moderation.archiveComment }}</th>
+                <th><span class="sr-only">{{ t().moderation.actions }}</span></th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (protocol of archived(); track protocol.id) {
+                <tr data-testid="archive-row">
+                  <td>{{ protocol.title }}</td>
+                  <td class="machine">{{ protocol.machineNo }}</td>
+                  <td class="num">{{ shortDate(protocol.deletedAt) }}</td>
+                  <td class="uploader" data-testid="archive-actor">{{ protocol.deletedBy }}</td>
+                  <!-- The reason is the field the whole archive exists to carry. -->
+                  <td class="reason" data-testid="archive-comment">
+                    {{ protocol.deleteComment || t().moderation.archiveNoComment }}
+                  </td>
+                  <td class="row-actions">
+                    <!-- Open only. There is no restore and no edit here, by design: the archive is
+                         for looking at what was removed, not for reversing it. -->
+                    <button
+                      type="button"
+                      class="btn btn-secondary btn-sm"
+                      data-testid="archive-open"
+                      [attr.aria-haspopup]="'dialog'"
+                      [attr.aria-label]="t().moderation.open + ': ' + protocol.title"
+                      (click)="viewingArchived.set(protocol)"
+                    >
+                      {{ t().moderation.open }}
+                    </button>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+
+        <div class="pager">
+          <button
+            type="button"
+            class="btn btn-secondary btn-sm"
+            data-testid="archive-previous"
+            [disabled]="!hasPreviousArchive()"
+            (click)="previousArchive()"
+          >
+            {{ t().moderation.previous }}
+          </button>
+          <span class="pager-state num" data-testid="archive-page-state">{{
+            t().moderation.pageOf(archivePage() + 1, archivePageCount(), archiveTotal())
+          }}</span>
+          <button
+            type="button"
+            class="btn btn-secondary btn-sm"
+            data-testid="archive-next"
+            [disabled]="!hasNextArchive()"
+            (click)="nextArchive()"
+          >
+            {{ t().moderation.next }}
+          </button>
+        </div>
+      }
+    </section>
+  }
 </div>
 
 <!-- The same viewer the shop floor reads a citation with, pointed at the admin-only path: an admin
@@ -242,11 +398,21 @@
   (closed)="viewing.set(null)"
 />
 
+<!-- The archive's own viewer. Same component, third endpoint: the live paths answer 404 for a
+     removed protocol, and this is the only door back to its content. -->
+<app-protocol-dialog
+  [protocolId]="viewingArchived()?.id ?? null"
+  [protocolTitle]="viewingArchived()?.title ?? ''"
+  [machine]="viewingArchived()?.machineNo ?? ''"
+  source="archive"
+  (closed)="viewingArchived.set(null)"
+/>
+
 <app-dialog
   [open]="deleting() !== null"
   [title]="t().moderation.confirmTitle"
   testId="delete-confirm"
-  (closed)="deleting.set(null)"
+  (closed)="cancelDelete()"
 >
   @if (deleting(); as target) {
     <!-- The title and machine are repeated here on purpose: the button that opened this dialog was
@@ -258,11 +424,28 @@
     </p>
   }
   <p class="confirm-body">{{ t().moderation.confirmBody }}</p>
+
+  <!-- Required, here and on the server. Removing something from the corpus without saying why is
+       exactly the kind of unexplained change the audit trail exists to make visible. -->
+  <label class="field">
+    <span class="field-label">{{ t().moderation.reason }}</span>
+    <span class="field-hint">{{ t().moderation.reasonHint }}</span>
+    <textarea
+      name="deleteComment"
+      rows="2"
+      data-testid="delete-comment"
+      [placeholder]="t().moderation.reasonPlaceholder"
+      [ngModel]="deleteComment()"
+      (ngModelChange)="deleteComment.set($event)"
+    ></textarea>
+  </label>
+
   <div class="confirm-actions">
     <button
       type="button"
       class="btn btn-danger"
       data-testid="delete-confirm-button"
+      [disabled]="!canDelete()"
       (click)="confirmDelete()"
     >
       {{ t().moderation.delete }}
@@ -271,9 +454,137 @@
       type="button"
       class="btn btn-secondary"
       data-testid="delete-cancel"
-      (click)="deleting.set(null)"
+      (click)="cancelDelete()"
     >
       {{ t().common.cancel }}
     </button>
   </div>
+  @if (!canDelete()) {
+    <p class="field-hint" data-testid="delete-reason-required">
+      {{ t().moderation.reasonRequired }}
+    </p>
+  }
+</app-dialog>
+
+<app-dialog
+  [open]="editing() !== null"
+  [title]="t().moderation.editTitle"
+  testId="edit"
+  (closed)="cancelEdit()"
+>
+  @if (editing(); as target) {
+    <p class="confirm-body">{{ t().moderation.editIntro }}</p>
+
+    @if (editFailure(); as reason) {
+      <p class="notice notice-error" role="alert" data-testid="edit-failure">
+        @switch (reason) {
+          @case ('identityLocked') {
+            {{ t().moderation.identityLocked }}
+          }
+          @case ('archived') {
+            {{ t().moderation.alreadyArchived }}
+          }
+          @case ('notFound') {
+            {{ t().moderation.alreadyGone }}
+          }
+          @case ('rejectedContent') {
+            {{ t().errors.uploadRejected }}
+          }
+          @case ('forbidden') {
+            {{ t().errors.forbidden }}
+          }
+          @default {
+            {{ t().errors.generic }}
+          }
+        }
+      </p>
+    }
+
+    <!-- Machine and type are shown and locked. Not hidden: a reviewer has to see which machine they
+         are correcting. Not editable: identity is provenance, not content (ADR-006 revision). -->
+    <div class="edit-locked">
+      <p class="locked-field" data-testid="edit-machine">
+        <span class="field-label">{{ t().upload.machine }}</span>
+        <span class="machine">{{ target.machineNo }}</span>
+      </p>
+      <p class="locked-field" data-testid="edit-type">
+        <span class="field-label">{{ t().upload.type }}</span>
+        <span>{{
+          target.protocolType === 'WARTUNG' ? t().upload.typeMaintenance : t().upload.typeFault
+        }}</span>
+      </p>
+    </div>
+    <p class="field-hint" data-testid="edit-locked-hint">{{ t().moderation.editLockedHint }}</p>
+
+    <label class="field">
+      <span class="field-label">{{ t().upload.title }}</span>
+      <input
+        type="text"
+        name="editTitle"
+        data-testid="edit-title"
+        [ngModel]="editTitle()"
+        (ngModelChange)="editTitle.set($event)"
+      />
+    </label>
+
+    <label class="field">
+      <span class="field-label">{{ t().upload.errorCode }}</span>
+      <input
+        type="text"
+        name="editErrorCode"
+        data-testid="edit-error-code"
+        [ngModel]="editErrorCode()"
+        (ngModelChange)="editErrorCode.set($event)"
+      />
+    </label>
+
+    <label class="field">
+      <span class="field-label">{{ t().moderation.editContent }}</span>
+      <span class="field-hint">{{ t().moderation.editContentHint }}</span>
+      @if (editLoading()) {
+        <span class="hint" role="status" data-testid="edit-loading">{{
+          t().moderation.editLoading
+        }}</span>
+      }
+      <textarea
+        name="editContent"
+        rows="10"
+        data-testid="edit-content"
+        [disabled]="editLoading()"
+        [ngModel]="editContent()"
+        (ngModelChange)="editContent.set($event)"
+      ></textarea>
+    </label>
+
+    <label class="field">
+      <span class="field-label">{{ t().moderation.reason }}</span>
+      <span class="field-hint">{{ t().moderation.reasonHint }}</span>
+      <textarea
+        name="editComment"
+        rows="2"
+        data-testid="edit-comment"
+        [placeholder]="t().moderation.reasonPlaceholder"
+        [ngModel]="editComment()"
+        (ngModelChange)="editComment.set($event)"
+      ></textarea>
+    </label>
+
+    <div class="confirm-actions">
+      <button
+        type="button"
+        class="btn btn-primary"
+        data-testid="edit-save"
+        [disabled]="!canSaveEdit() || editSaving()"
+        (click)="saveEdit()"
+      >
+        {{ editSaving() ? t().moderation.editSaving : t().moderation.editSave }}
+      </button>
+      <button type="button" class="btn btn-secondary" data-testid="edit-cancel" (click)="cancelEdit()">
+        {{ t().common.cancel }}
+      </button>
+    </div>
+    @if (!canSaveEdit()) {
+      <p class="field-hint" data-testid="edit-reason-required">{{ t().moderation.reasonRequired }}</p>
+    }
+  }
 </app-dialog>

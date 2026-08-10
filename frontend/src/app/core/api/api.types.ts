@@ -122,3 +122,57 @@ export interface ProtocolPage {
   readonly size: number;
   readonly total: number;
 }
+
+/**
+ * A correction, for `PUT /api/moderation/protocols/{id}`.
+ *
+ * `machineNo` and `protocolType` are sent back unchanged and checked rather than applied — the
+ * backend answers 400 `PROTOCOL_IDENTITY_LOCKED` if either differs. They are in the shape because
+ * the form submits every field it shows, and the edit dialog shows both, read-only: a protocol's
+ * machine is its provenance, not its content (ADR-006 revision). Words can be fixed, identity
+ * cannot.
+ */
+export interface ProtocolCorrection {
+  readonly machineNo: string;
+  readonly protocolType: string;
+  readonly title: string;
+  readonly errorCode: string;
+  readonly content: string;
+  /** Why. Required — the backend refuses a blank one, and so does the dialog. */
+  readonly comment: string;
+}
+
+/**
+ * A protocol in the archive, from `GET /api/moderation/protocols/deleted`.
+ *
+ * It is out of retrieval, out of every list and out of "Meine Uploads"; this is the only place it
+ * still appears. There is no restore, by design — the archive exists so that removing garbage does
+ * not also destroy the record of who produced it.
+ */
+export interface ArchivedProtocol {
+  readonly id: string;
+  readonly machineNo: string;
+  readonly title: string;
+  readonly protocolType: string;
+  readonly errorCode: string | null;
+  readonly uploadedBy: string;
+  readonly uploadedAt: string;
+  readonly deletedAt: string;
+  readonly deletedBy: string | null;
+  /** The stated reason. The field the whole archive exists to carry. */
+  readonly deleteComment: string | null;
+}
+
+/**
+ * One page of the archive.
+ *
+ * `cap` is the per-machine ceiling, sent by the backend rather than hard-coded here so the hint on
+ * screen cannot drift away from the number the purge actually enforces.
+ */
+export interface DeletedProtocolPage {
+  readonly items: readonly ArchivedProtocol[];
+  readonly page: number;
+  readonly size: number;
+  readonly total: number;
+  readonly cap: number;
+}

@@ -42,3 +42,12 @@
   stroke-linecap: round;
   stroke-linejoin: round;
 }
+
+/* The unpressed half has to answer a pointer, or the control looks disabled in dark. */
+.theme-switch button:hover:not(.active) {
+  background: var(--c-hover);
+}
+
+.theme-switch button:active:not(.active) {
+  background: var(--c-pressed);
+}

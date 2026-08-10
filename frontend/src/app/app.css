@@ -260,3 +260,21 @@
   width: 17px;
   height: 17px;
 }
+
+/* The nav gains a surface step as well as a colour change: on a dark ground a colour-only hover on
+   an already-light label is close to invisible. */
+.app-nav a:hover {
+  background: var(--c-hover);
+}
+
+.app-nav a:active {
+  background: var(--c-pressed);
+}
+
+.lang-switch button:hover:not(.active) {
+  background: var(--c-hover);
+}
+
+.lang-switch button:active:not(.active) {
+  background: var(--c-pressed);
+}

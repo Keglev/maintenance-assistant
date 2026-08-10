@@ -375,6 +375,13 @@ export interface Dictionary {
     readonly close: string;
     readonly cancel: string;
   };
+  /** The theme control. &#x60;system&#x60; is a state of its own, so it needs a name of its own. */
+  readonly theme: {
+    readonly label: string;
+    readonly system: string;
+    readonly light: string;
+    readonly dark: string;
+  };
   readonly nav: {
     readonly search: string;
     readonly upload: string;
@@ -529,6 +536,12 @@ export const DE: Dictionary &#x3D; {
   common: {
     close: &#x27;Schließen&#x27;,
     cancel: &#x27;Abbrechen&#x27;,
+  },
+  theme: {
+    label: &#x27;Darstellung&#x27;,
+    system: &#x27;System&#x27;,
+    light: &#x27;Hell&#x27;,
+    dark: &#x27;Dunkel&#x27;,
   },
   nav: {
     search: &#x27;Suche&#x27;,
@@ -711,6 +724,12 @@ export const EN: Dictionary &#x3D; {
   common: {
     close: &#x27;Close&#x27;,
     cancel: &#x27;Cancel&#x27;,
+  },
+  theme: {
+    label: &#x27;Appearance&#x27;,
+    system: &#x27;System&#x27;,
+    light: &#x27;Light&#x27;,
+    dark: &#x27;Dark&#x27;,
   },
   nav: {
     search: &#x27;Search&#x27;,

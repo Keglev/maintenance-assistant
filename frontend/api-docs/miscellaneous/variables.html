@@ -143,6 +143,9 @@
                             <a href="#appConfig" title="src/app/app.config.ts" class="reference-link "><span class="reference-badge reference-badge--variable" aria-hidden="true">V</span><span class="reference-link-label"><b>appConfig</b>&nbsp;&nbsp;&nbsp;(src/.../app.config.ts)</span></a>
                         </li>
                         <li>
+                            <a href="#DARK_QUERY" title="src/app/core/theme/theme.service.ts" class="reference-link "><span class="reference-badge reference-badge--variable" aria-hidden="true">V</span><span class="reference-link-label"><b>DARK_QUERY</b>&nbsp;&nbsp;&nbsp;(src/.../theme.service.ts)</span></a>
+                        </li>
+                        <li>
                             <a href="#DE" title="src/app/core/i18n/dictionary.ts" class="reference-link "><span class="reference-badge reference-badge--variable" aria-hidden="true">V</span><span class="reference-link-label"><b>DE</b>&nbsp;&nbsp;&nbsp;(src/.../dictionary.ts)</span></a>
                         </li>
                         <li>
@@ -192,6 +195,9 @@
                         </li>
                         <li>
                             <a href="#STORAGE_KEY" title="src/app/core/i18n/i18n.service.ts" class="reference-link "><span class="reference-badge reference-badge--variable" aria-hidden="true">V</span><span class="reference-link-label"><b>STORAGE_KEY</b>&nbsp;&nbsp;&nbsp;(src/.../i18n.service.ts)</span></a>
+                        </li>
+                        <li>
+                            <a href="#THEME_STORAGE_KEY" title="src/app/core/theme/theme.service.ts" class="reference-link "><span class="reference-badge reference-badge--variable" aria-hidden="true">V</span><span class="reference-link-label"><b>THEME_STORAGE_KEY</b>&nbsp;&nbsp;&nbsp;(src/.../theme.service.ts)</span></a>
                         </li>
                     </ul>
                 </td>
@@ -352,6 +358,11 @@
         sendAccessToken: true,
       },
     }),
+    // Instantiated at startup so the stored theme is applied and the OS listener is attached before
+    // the first view renders. &#x60;public/theme-init.js&#x60; has already set the attribute before the first
+    // paint; this takes ownership of it — without the eager injection nothing would construct the
+    // service until a view happened to use the toggle.
+    provideAppInitializer(() &#x3D;&gt; void inject(ThemeService)),
     // Discovery document and redirect handling must complete before the first route renders,
     // otherwise the guard would see &quot;not authenticated&quot; while a login is still in flight.
     provideAppInitializer(() &#x3D;&gt; inject(AuthService).init()),
@@ -360,6 +371,68 @@
                     </td>
                 </tr>
 
+
+        </tbody>
+    </table>
+</section>
+    <h3>src/app/core/theme/theme.service.ts</h3>
+    <section data-compodoc="block-properties">
+    <h3></h3>    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="DARK_QUERY"></a>
+                    <span class="name">
+                        <span ><b>DARK_QUERY</b></span>
+                        <a href="#DARK_QUERY"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>&#x27;(prefers-color-scheme: dark)&#x27;</code>
+                    </td>
+                </tr>
+
+
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="THEME_STORAGE_KEY"></a>
+                    <span class="name">
+                        <span ><b>THEME_STORAGE_KEY</b></span>
+                        <a href="#THEME_STORAGE_KEY"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>&#x27;ma-theme&#x27;</code>
+                    </td>
+                </tr>
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-description"><p>Where the choice is remembered. Shared with <code>public/theme-init.js</code>, which reads the same key
+before Angular exists — change one and the other stops agreeing.</p>
+</div>
+                </td>
+            </tr>
 
         </tbody>
     </table>
@@ -391,6 +464,12 @@
   common: {
     close: &#x27;Schließen&#x27;,
     cancel: &#x27;Abbrechen&#x27;,
+  },
+  theme: {
+    label: &#x27;Darstellung&#x27;,
+    system: &#x27;System&#x27;,
+    light: &#x27;Hell&#x27;,
+    dark: &#x27;Dunkel&#x27;,
   },
   nav: {
     search: &#x27;Suche&#x27;,
@@ -631,6 +710,12 @@ DECISIONS.txt, which is what the two modes are called throughout the project&#39
   common: {
     close: &#x27;Close&#x27;,
     cancel: &#x27;Cancel&#x27;,
+  },
+  theme: {
+    label: &#x27;Appearance&#x27;,
+    system: &#x27;System&#x27;,
+    light: &#x27;Light&#x27;,
+    dark: &#x27;Dark&#x27;,
   },
   nav: {
     search: &#x27;Search&#x27;,

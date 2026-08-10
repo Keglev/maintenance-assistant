@@ -232,7 +232,7 @@ visitor would otherwise type. Only the description comes from the dictionary.</p
 
                             <tr>
                                 <td class="col-md-4">
-                                    <div class="io-line">Defined in <a href="" data-line="19" class="link-to-prism">src/app/features/landing/landing.ts:19</a></div>
+                                    <div class="io-line">Defined in <a href="" data-line="20" class="link-to-prism">src/app/features/landing/landing.ts:20</a></div>
                                 </td>
                             </tr>
 
@@ -271,7 +271,7 @@ visitor would otherwise type. Only the description comes from the dictionary.</p
 
                             <tr>
                                 <td class="col-md-4">
-                                    <div class="io-line">Defined in <a href="" data-line="18" class="link-to-prism">src/app/features/landing/landing.ts:18</a></div>
+                                    <div class="io-line">Defined in <a href="" data-line="19" class="link-to-prism">src/app/features/landing/landing.ts:19</a></div>
                                 </td>
                             </tr>
 
@@ -288,6 +288,7 @@ import { Router } from &#x27;@angular/router&#x27;;
 import { AuthService } from &#x27;../../core/auth/auth.service&#x27;;
 import { Dictionary } from &#x27;../../core/i18n/dictionary&#x27;;
 import { I18nService } from &#x27;../../core/i18n/i18n.service&#x27;;
+import { ThemeToggle } from &#x27;../../shared/theme/theme-toggle&#x27;;
 
 /** The demo accounts, exactly as the realm ships them (DECISIONS.txt). */
 export const DEMO_PASSWORD &#x3D; &#x27;demo1234&#x27;;
@@ -323,6 +324,7 @@ export const DEMO_USERS: readonly DemoUser[] &#x3D; [
  */
 @Component({
   selector: &#x27;app-landing&#x27;,
+  imports: [ThemeToggle],
   templateUrl: &#x27;./landing.html&#x27;,
   styleUrl: &#x27;./landing.css&#x27;,
 })

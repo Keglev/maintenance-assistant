@@ -149,6 +149,12 @@
                             <a href="#ProtocolSegment" title="src/app/shared/protocol/protocol-document.ts" class="reference-link "><span class="reference-badge reference-badge--typealias" aria-hidden="true">T</span><span class="reference-link-label"><b>ProtocolSegment</b>&nbsp;&nbsp;&nbsp;(src/.../protocol-document.ts)</span></a>
                         </li>
                         <li>
+                            <a href="#ResolvedTheme" title="src/app/core/theme/theme.service.ts" class="reference-link "><span class="reference-badge reference-badge--typealias" aria-hidden="true">T</span><span class="reference-link-label"><b>ResolvedTheme</b>&nbsp;&nbsp;&nbsp;(src/.../theme.service.ts)</span></a>
+                        </li>
+                        <li>
+                            <a href="#ThemeChoice" title="src/app/core/theme/theme.service.ts" class="reference-link "><span class="reference-badge reference-badge--typealias" aria-hidden="true">T</span><span class="reference-link-label"><b>ThemeChoice</b>&nbsp;&nbsp;&nbsp;(src/.../theme.service.ts)</span></a>
+                        </li>
+                        <li>
                             <a href="#UiLanguage" title="src/app/core/i18n/dictionary.ts" class="reference-link "><span class="reference-badge reference-badge--typealias" aria-hidden="true">T</span><span class="reference-link-label"><b>UiLanguage</b>&nbsp;&nbsp;&nbsp;(src/.../dictionary.ts)</span></a>
                         </li>
                     </ul>
@@ -253,6 +259,56 @@ the same style.</p>
             <tr>
                 <td class="col-md-4">
                     <code>    <code>literal type | literal type | literal type</code>
+</code>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</section>
+    <h3>src/app/core/theme/theme.service.ts</h3>
+    <section data-compodoc="block-typealias">
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="ResolvedTheme"></a>
+                    <span class="name "><b>ResolvedTheme</b><a href="#ResolvedTheme"><span class="icon ion-ios-link"></span></a></span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-description"><p>What is actually on screen once <code>system</code> has been resolved against the operating system.</p>
+</div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                    <code>    <code>&quot;light&quot; | &quot;dark&quot;</code>
+</code>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="ThemeChoice"></a>
+                    <span class="name "><b>ThemeChoice</b><a href="#ThemeChoice"><span class="icon ion-ios-link"></span></a></span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-description"><p>What the user chose, which is not the same as what is painted.</p>
+<p><code>system</code> is a real third state and not the absence of a choice: someone who has deliberately gone
+back to following the operating system has expressed a preference, and it has to survive a reload
+the same way the other two do.</p>
+</div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                    <code>    <code>&quot;light&quot; | &quot;dark&quot; | &quot;system&quot;</code>
 </code>
                 </td>
             </tr>

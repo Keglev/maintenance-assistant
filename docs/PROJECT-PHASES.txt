@@ -113,6 +113,48 @@ Config:     Flyway auto-config was DEAD on Boot 4.1 (missing
             properties moved to spring.web.error.*.
 
 OPEN ITEMS carried forward (not blockers, do not lose):
+- ADMIN HOME + FILTERS 2026-08-10 (feat/admin-home-and-filters), and it opens
+  with a LIVE DEFECT found the same day: an admin signing in landed on /search,
+  the search view opens with GET /api/machines, and that endpoint correctly
+  refused a role with no shop-floor function — so the first thing an
+  administrator saw after a successful login was "Maschinenliste nicht
+  verfügbar". Every piece behaved as specified and the result was still broken,
+  which is the whole lesson: the defect lived in the ROUTING, not in either
+  side of the 403.
+  THE ADMIN'S HOME IS NOW THE PROTOKOLLVERWALTUNG. /home is the OIDC redirect
+  URI, so its fixed `redirectTo: 'search'` was literally where every completed
+  login went; it is role-aware now, and the same homePath() is where roleGuard
+  sends anyone it turns away. /search is GUARDED for the three shop-floor roles
+  and its nav entry is HIDDEN for the admin — search is not a view they can use
+  at all, because asking questions is closed to them by decision. Shop-floor
+  roles are untouched. GET /api/machines is now readable by admin as well:
+  widened by one named role, not to "anyone with a token", and only because the
+  new filter needs it — machine rows are plant metadata and carry nothing a
+  protocol says.
+  FILTERS ARE MACHINE-FIRST. GET /api/moderation/protocols takes machineNo,
+  titleContains (case-insensitive substring, ILIKE with % and _ escaped) and an
+  inclusive from/to range over the upload date, keeping the paging and the
+  newest-first + id ordering. titleContains and the dates are REFUSED without a
+  machine (400, reason MACHINE_REQUIRED_FOR_FILTER) and the UI disables them
+  until one is chosen, with a hint line saying why: across ten machines a title
+  fragment answers with rows from machines the reviewer was not looking at, and
+  a bare date range answers with most of the corpus. An open-ended range (one
+  end only) IS allowed. The rule lives in the filter record, not in the
+  controller, so a second caller cannot reach around it. TWO NOTES for whoever
+  edits this next: the `to` day is compared as "before the next day" because
+  created_at is a timestamp and `<= midnight` silently drops the chosen day;
+  and day boundaries are drawn in UTC, the zone the API's own timestamps use.
+  THE RENAME IS UI-ONLY. "Verwaltung"/"Moderation" read like a discussion forum
+  rather than like a maintenance record, so the nav entry, the view heading and
+  the route title are now DE "Protokollverwaltung" / EN "Protocol management".
+  The API paths (/api/moderation/**), the component, the dictionary KEY and the
+  tests keep their names on purpose — a cosmetic rename that churned the wire
+  contract would cost a round of test edits for something no user can see.
+  Also corrected on the way past: the help dialog still described the admin as
+  having "keine Fachfunktion in der Anwendung", untrue since ADR-006.
+  PR C2 FOLLOWS: edit + soft delete + the deleted-protocols archive. Deliberately
+  NOT started here — note that ADR-006 argues against editing as it stands, so
+  C2 is where that decision gets revisited in writing rather than in code.
 - MODERATION SHIPPED 2026-08-10 (feat/protocol-moderation), and with it ADR-006
   on the insider threat. The threat, in the owner's words: a Schichtleiter can
   file a protocol that looks entirely normal and carries a wrong Massnahme, and

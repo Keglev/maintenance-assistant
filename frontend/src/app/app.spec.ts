@@ -28,6 +28,8 @@ describe('App', () => {
             isAuthenticated: () => authenticated,
             username: () => 'demo',
             realmRoles: () => roles,
+            // The settings dialog reads this; a fixed instant keeps the assertion stable.
+            signedInAt: () => new Date(2026, 7, 10, 21, 14),
             logout,
           },
         },
@@ -187,6 +189,60 @@ describe('App', () => {
         (fixture.nativeElement as HTMLElement).querySelector('[data-testid="theme-toggle"]'),
       ).not.toBeNull();
     }
+  });
+
+  it('opens the settings dialog from the gear, signed in and signed out alike', async () => {
+    for (const authenticated of [true, false]) {
+      const fixture = await render(['techniker'], authenticated);
+      const element = fixture.nativeElement as HTMLElement;
+
+      (element.querySelector('[data-testid="settings-button"]') as HTMLButtonElement).click();
+      await fixture.whenStable();
+
+      expect(element.querySelector('[data-testid="settings-dialog"]')).not.toBeNull();
+      // The version is read from package.json at build time, so it is never a stale constant.
+      expect(element.querySelector('[data-testid="settings-version"]')?.textContent?.trim()).toMatch(
+        /^\d+\.\d+\.\d+/,
+      );
+      // The account rows exist only when there is an account.
+      expect(element.querySelector('[data-testid="settings-account"]') !== null).toBe(authenticated);
+    }
+  });
+
+  it('names who is signed in and since when', async () => {
+    const fixture = await render(['schichtleiter']);
+    const element = fixture.nativeElement as HTMLElement;
+
+    (element.querySelector('[data-testid="settings-button"]') as HTMLButtonElement).click();
+    await fixture.whenStable();
+
+    expect(element.querySelector('[data-testid="settings-account"]')?.textContent).toContain('demo');
+    expect(element.querySelector('[data-testid="settings-role"]')?.textContent).toContain(
+      'Schichtleiter',
+    );
+    expect(element.querySelector('[data-testid="settings-since"]')?.textContent).toContain('21:14');
+  });
+
+  it('scales the whole interface from the settings dialog, and remembers it', async () => {
+    const fixture = await render(['operator']);
+    const element = fixture.nativeElement as HTMLElement;
+
+    (element.querySelector('[data-testid="settings-button"]') as HTMLButtonElement).click();
+    await fixture.whenStable();
+    (element.querySelector('[data-testid="font-xl"]') as HTMLButtonElement).click();
+    await fixture.whenStable();
+
+    // One attribute on <html>: the design system is rem-based, so this moves type, spacing and the
+    // 44 px tap targets together rather than only the letters.
+    expect(document.documentElement.getAttribute('data-font')).toBe('xl');
+    expect(localStorage.getItem('ma-font')).toBe('xl');
+
+    (element.querySelector('[data-testid="font-normal"]') as HTMLButtonElement).click();
+    await fixture.whenStable();
+
+    // Normal is the ABSENCE of the attribute, and of the stored value.
+    expect(document.documentElement.hasAttribute('data-font')).toBe(false);
+    expect(localStorage.getItem('ma-font')).toBeNull();
   });
 
   it('offers help before sign-in, because the colours need explaining first', async () => {

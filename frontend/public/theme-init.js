@@ -1,5 +1,5 @@
 /*
- * Puts the right data-theme on <html> before the first paint.
+ * Puts the right data-theme and data-font on <html> before the first paint.
  *
  * WHY THIS IS A FILE AND NOT AN INLINE <script>. The usual anti-flash trick is a few lines inlined
  * in <head>, and it is exactly what the production CSP forbids: script-src is 'self' with no
@@ -14,13 +14,23 @@
  */
 (function () {
   try {
-    var stored = localStorage.getItem('ma-theme');
+    // Two states plus unset. Anything that is not exactly 'light' or 'dark' — including the literal
+    // 'system' the old three-state control used to write — means "no choice", and the operating
+    // system decides.
+    var theme = localStorage.getItem('ma-theme');
     var dark =
-      stored === 'dark' ||
-      (stored !== 'light' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+      theme === 'dark' ||
+      (theme !== 'light' && window.matchMedia('(prefers-color-scheme: dark)').matches);
     document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+
+    // Font scale, applied here for the same reason as the theme: set after the first paint it would
+    // reflow the whole page in front of the reader.
+    var font = localStorage.getItem('ma-font');
+    if (font === 'lg' || font === 'xl') {
+      document.documentElement.setAttribute('data-font', font);
+    }
   } catch (error) {
     // Storage the browser refuses to hand over, or a browser without matchMedia: the stylesheet's
-    // own defaults are the light theme, so doing nothing here is already the right fallback.
+    // own defaults are the light theme at normal size, so doing nothing here is the right fallback.
   }
 })();

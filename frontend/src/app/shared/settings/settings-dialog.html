@@ -1,0 +1,67 @@
+<app-dialog
+  [open]="open()"
+  [title]="t().settings.title"
+  testId="settings"
+  (closed)="closed.emit()"
+>
+  <section class="settings-section">
+    <h3 class="settings-heading">{{ t().settings.aboutHeading }}</h3>
+    <dl class="settings-rows">
+      <dt>{{ t().settings.app }}</dt>
+      <dd>{{ t().appTitle }}</dd>
+      <dt>{{ t().settings.version }}</dt>
+      <!-- Read out of package.json at build time; a hand-maintained constant is a string that is
+           wrong from the first release nobody remembered to edit it for. -->
+      <dd class="num" data-testid="settings-version">{{ version }}</dd>
+    </dl>
+    <nav class="settings-links" [attr.aria-label]="t().settings.aboutHeading">
+      <!-- rel="noopener" on every outward link: a new tab must not get a handle on this one. -->
+      <a [href]="docsUrl" target="_blank" rel="noopener noreferrer" data-testid="settings-docs">{{
+        t().footer.docs
+      }}</a>
+      <a [href]="repoUrl" target="_blank" rel="noopener noreferrer" data-testid="settings-repo">{{
+        t().footer.repo
+      }}</a>
+    </nav>
+  </section>
+
+  @if (isAuthenticated()) {
+    <section class="settings-section" data-testid="settings-account">
+      <h3 class="settings-heading">{{ t().settings.accountHeading }}</h3>
+      <dl class="settings-rows">
+        <dt>{{ t().settings.user }}</dt>
+        <dd>
+          <span class="settings-user">{{ username() }}</span>
+          @if (roleLabel(); as role) {
+            <span class="role-badge" data-testid="settings-role">{{ role }}</span>
+          }
+        </dd>
+        <!-- Only when the token actually says so. A fabricated time here would look like a fact. -->
+        @if (signedInAt(); as since) {
+          <dt>{{ t().settings.signedInSince }}</dt>
+          <dd class="num" data-testid="settings-since">{{ since }}</dd>
+        }
+      </dl>
+    </section>
+  }
+
+  <section class="settings-section">
+    <h3 class="settings-heading" id="font-heading">{{ t().settings.fontHeading }}</h3>
+    <p class="field-hint">{{ t().settings.fontHint }}</p>
+    <div class="font-switch" role="group" aria-labelledby="font-heading" data-testid="font-switch">
+      @for (option of scales; track option) {
+        <button
+          type="button"
+          [attr.data-testid]="'font-' + option"
+          [class.active]="scale() === option"
+          [attr.aria-pressed]="scale() === option"
+          (click)="useScale(option)"
+        >
+          <!-- The label is drawn at the size it selects, so the choice previews itself. -->
+          <span class="font-sample font-sample-{{ option }}">Aa</span>
+          {{ scaleLabel(option) }}
+        </button>
+      }
+    </div>
+  </section>
+</app-dialog>

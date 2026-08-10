@@ -219,6 +219,22 @@ html {
   -webkit-text-size-adjust: 100%;
 }
 
+/*
+ * Application-wide font scaling.
+ *
+ * Every size in this design system — type, spacing, radii, the 44 px tap target — is expressed in
+ * rem, so moving the root font size moves the whole interface together rather than only its text.
+ * That is the point: a technician who needs larger type on a machinery-mounted screen needs a larger
+ * BUTTON at the same time, and a stylesheet that only grew the letters would give them the opposite.
+ */
+html[data-font='lg'] {
+  font-size: 112.5%;
+}
+
+html[data-font='xl'] {
+  font-size: 125%;
+}
+
 body {
   margin: 0;
   background: var(--c-canvas);

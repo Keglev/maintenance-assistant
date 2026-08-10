@@ -19,6 +19,8 @@ const SIGNED_OUT_KEY = 'maintenance-assistant.signed-out';
 interface AccessTokenClaims {
   preferred_username?: string;
   realm_access?: { roles?: string[] };
+  /** Issued-at, seconds since the epoch. Standard JWT claim; Keycloak always sends it. */
+  iat?: number;
 }
 
 /**
@@ -49,6 +51,23 @@ export class AuthService {
   readonly realmRoles = computed(() => {
     this.authState();
     return this.claims()?.realm_access?.roles ?? [];
+  });
+
+  /**
+   * When this session's token was issued, or null if the claim is missing or nonsensical.
+   *
+   * Null rather than a guess: "signed in since" is a fact or it is nothing, and a fabricated time
+   * on a settings screen is worse than an absent row. The token's `iat` is the honest answer to the
+   * question the user is asking — the session ends 15 minutes after it (ADR-005).
+   */
+  readonly signedInAt = computed<Date | null>(() => {
+    this.authState();
+    const issuedAt = this.claims()?.iat;
+    if (typeof issuedAt !== 'number' || !Number.isFinite(issuedAt)) {
+      return null;
+    }
+    const at = new Date(issuedAt * 1000);
+    return Number.isNaN(at.getTime()) ? null : at;
   });
 
   /**

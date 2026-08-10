@@ -248,3 +248,15 @@
   flex-wrap: wrap;
   gap: var(--s-3);
 }
+
+/* An icon-only header button: square, so it sits with the theme toggle rather than looking like a
+   text button that lost its text. The name lives in aria-label and title. */
+.btn-icon {
+  padding: var(--s-1);
+  min-width: 36px;
+}
+
+.btn-icon .icon {
+  width: 17px;
+  height: 17px;
+}

@@ -35,12 +35,27 @@ export interface Dictionary {
     readonly close: string;
     readonly cancel: string;
   };
-  /** The theme control. `system` is a state of its own, so it needs a name of its own. */
+  /** The theme control. Two states; the operating system is the silent default, not a button. */
   readonly theme: {
     readonly label: string;
-    readonly system: string;
     readonly light: string;
     readonly dark: string;
+  };
+  /** The gear dialog: what this is, who is signed in, and how large to draw it. */
+  readonly settings: {
+    readonly title: string;
+    readonly open: string;
+    readonly aboutHeading: string;
+    readonly app: string;
+    readonly version: string;
+    readonly accountHeading: string;
+    readonly user: string;
+    readonly signedInSince: string;
+    readonly fontHeading: string;
+    readonly fontHint: string;
+    readonly fontNormal: string;
+    readonly fontLarge: string;
+    readonly fontExtraLarge: string;
   };
   readonly nav: {
     readonly search: string;
@@ -206,9 +221,24 @@ export const DE: Dictionary = {
   },
   theme: {
     label: 'Darstellung',
-    system: 'System',
     light: 'Hell',
     dark: 'Dunkel',
+  },
+  settings: {
+    title: 'System',
+    open: 'Systemeinstellungen',
+    aboutHeading: 'Anwendung',
+    app: 'Programm',
+    version: 'Version',
+    accountHeading: 'Angemeldet',
+    user: 'Benutzer',
+    signedInSince: 'Angemeldet seit',
+    fontHeading: 'Schriftgröße',
+    fontHint:
+      'Gilt für die ganze Anwendung, auch für Schaltflächen und Abstände. Die Einstellung bleibt erhalten.',
+    fontNormal: 'Normal',
+    fontLarge: 'Groß',
+    fontExtraLarge: 'Sehr groß',
   },
   nav: {
     search: 'Suche',
@@ -403,9 +433,24 @@ export const EN: Dictionary = {
   },
   theme: {
     label: 'Appearance',
-    system: 'System',
     light: 'Light',
     dark: 'Dark',
+  },
+  settings: {
+    title: 'System',
+    open: 'System settings',
+    aboutHeading: 'Application',
+    app: 'Program',
+    version: 'Version',
+    accountHeading: 'Signed in',
+    user: 'User',
+    signedInSince: 'Signed in since',
+    fontHeading: 'Text size',
+    fontHint:
+      'Applies to the whole application, including buttons and spacing. The setting is remembered.',
+    fontNormal: 'Normal',
+    fontLarge: 'Large',
+    fontExtraLarge: 'Extra large',
   },
   nav: {
     search: 'Search',

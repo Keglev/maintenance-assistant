@@ -9,6 +9,9 @@
     "noFallthroughCasesInSwitch": true,
     "skipLibCheck": true,
     "isolatedModules": true,
+    // The settings dialog reads the version out of package.json rather than repeating it in a
+    // constant somebody has to remember to bump.
+    "resolveJsonModule": true,
     "experimentalDecorators": true,
     "importHelpers": true,
     "target": "ES2022",

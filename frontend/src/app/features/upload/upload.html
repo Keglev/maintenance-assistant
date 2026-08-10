@@ -82,11 +82,21 @@
     </select>
   </label>
 
+  <!-- Required in both modes: a protocol with no title reduces "Meine Uploads" to a machine number
+       and a date, and every row has to be opened to find out which one it is. -->
   <label class="field">
     <span class="field-label"
-      >{{ t().upload.title }} <em class="optional">({{ t().upload.optional }})</em></span
+      >{{ t().upload.title }} <em class="required">({{ t().upload.required }})</em></span
     >
-    <input name="title" type="text" [ngModel]="title()" (ngModelChange)="title.set($event)" />
+    <input
+      name="title"
+      type="text"
+      required
+      aria-required="true"
+      data-testid="upload-title"
+      [ngModel]="title()"
+      (ngModelChange)="title.set($event)"
+    />
   </label>
 
   <label class="field">
@@ -96,17 +106,10 @@
     <input
       name="errorCode"
       type="text"
+      data-testid="upload-error-code"
       [ngModel]="errorCode()"
       (ngModelChange)="errorCode.set($event)"
     />
-  </label>
-
-  <label class="field">
-    <span class="field-label">{{ t().upload.language }}</span>
-    <select name="language" [ngModel]="language()" (ngModelChange)="language.set($event)">
-      <option value="de">Deutsch</option>
-      <option value="en">English</option>
-    </select>
   </label>
 
   <button

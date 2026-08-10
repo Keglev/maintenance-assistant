@@ -79,6 +79,27 @@
         </button>
       </div>
 
+      <!-- The gear sits with the user block at the far right, deliberately away from the DE/EN
+           switch: language is something a reader changes while reading, settings is something they
+           open once. It is here signed out too, minus the account rows. -->
+      <button
+        type="button"
+        class="btn btn-secondary btn-sm btn-icon"
+        data-testid="settings-button"
+        [attr.aria-haspopup]="'dialog'"
+        [attr.aria-expanded]="settingsOpen()"
+        [attr.aria-label]="t().settings.open"
+        [title]="t().settings.open"
+        (click)="settingsOpen.set(true)"
+      >
+        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <circle cx="12" cy="12" r="3.2" />
+          <path
+            d="M19.4 14.4a1.6 1.6 0 0 0 .32 1.77l.06.06a1.9 1.9 0 1 1-2.69 2.69l-.06-.06a1.6 1.6 0 0 0-1.77-.32 1.6 1.6 0 0 0-.97 1.47V20a1.9 1.9 0 1 1-3.8 0v-.09a1.6 1.6 0 0 0-1.05-1.47 1.6 1.6 0 0 0-1.77.32l-.06.06a1.9 1.9 0 1 1-2.69-2.69l.06-.06a1.6 1.6 0 0 0 .32-1.77 1.6 1.6 0 0 0-1.47-.97H4a1.9 1.9 0 1 1 0-3.8h.09a1.6 1.6 0 0 0 1.47-1.05 1.6 1.6 0 0 0-.32-1.77l-.06-.06a1.9 1.9 0 1 1 2.69-2.69l.06.06a1.6 1.6 0 0 0 1.77.32H9.8a1.6 1.6 0 0 0 .97-1.47V4a1.9 1.9 0 1 1 3.8 0v.09a1.6 1.6 0 0 0 .97 1.47 1.6 1.6 0 0 0 1.77-.32l.06-.06a1.9 1.9 0 1 1 2.69 2.69l-.06.06a1.6 1.6 0 0 0-.32 1.77V9.8a1.6 1.6 0 0 0 1.47.97H20a1.9 1.9 0 1 1 0 3.8h-.09a1.6 1.6 0 0 0-1.47.97z"
+          />
+        </svg>
+      </button>
+
       @if (isAuthenticated()) {
         <span class="app-user" data-testid="header-username">
           <span class="app-username">{{ username() }}</span>
@@ -131,6 +152,8 @@
 </footer>
 
 <app-help-dialog [open]="helpOpen()" (closed)="helpOpen.set(false)" />
+
+<app-settings-dialog [open]="settingsOpen()" (closed)="settingsOpen.set(false)" />
 
 <app-dialog
   [open]="signOutOpen()"

@@ -275,3 +275,18 @@
     align-items: stretch;
   }
 }
+
+/* A source entry is a link in everything but the href, so it answers a pointer like one. */
+.source-title:hover,
+.source-title:focus-visible {
+  background: var(--c-hover);
+}
+
+.source-title:active {
+  background: var(--c-pressed);
+}
+
+.source-title {
+  padding: 0 var(--s-1);
+  border-radius: var(--r-sm);
+}

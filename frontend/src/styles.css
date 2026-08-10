@@ -45,6 +45,12 @@
   --c-brand-strong: #163a70;
   --c-brand-soft: #e9eff8;
   --c-brand-line: #b7cceb;
+  --c-brand-pressed: #10285a;
+  /* What an interactive surface becomes under the pointer and under a finger. Tokens rather than a
+     literal per component: in dark a hover has to be a VISIBLE step up, and the light theme's
+     barely-there wash simply does not read there. */
+  --c-hover: #e6ebf1;
+  --c-pressed: #d8dfe7;
   /* Text on a filled brand surface. A token because the dark palette flips it: there, the brand is
      the light colour and the text on it is dark. */
   --c-on-brand: #ffffff;
@@ -172,6 +178,11 @@ html[data-theme='dark'] {
   --c-brand-soft: #1c3149;
   --c-brand-line: #3a5a80;
   --c-on-brand: #0f151c;
+  --c-brand-pressed: #b0d3ff;
+  /* Clearly lighter than the surface, not a whisper: on a dark ground a 2 % wash is invisible, which
+     is exactly what the review reported. */
+  --c-hover: #33445a;
+  --c-pressed: #3f5470;
 
   /* The two answer blocks step up from the page by the same amount a card does, so an answer reads
      as a raised block rather than a stain on the background. HUE AND ROLE ARE UNCHANGED: green is
@@ -217,6 +228,22 @@ html[data-theme='dark'] {
 
 html {
   -webkit-text-size-adjust: 100%;
+}
+
+/*
+ * Application-wide font scaling.
+ *
+ * Every size in this design system — type, spacing, radii, the 44 px tap target — is expressed in
+ * rem, so moving the root font size moves the whole interface together rather than only its text.
+ * That is the point: a technician who needs larger type on a machinery-mounted screen needs a larger
+ * BUTTON at the same time, and a stylesheet that only grew the letters would give them the opposite.
+ */
+html[data-font='lg'] {
+  font-size: 112.5%;
+}
+
+html[data-font='xl'] {
+  font-size: 125%;
 }
 
 body {
@@ -323,11 +350,17 @@ h3 {
 
 .btn-primary {
   background: var(--c-brand);
-  color: #fff;
+  /* NOT #fff. In the dark palette the brand is the LIGHT colour, and white on it measured 2.30:1 —
+     below AA on every primary button in the application. The token exists precisely to flip. */
+  color: var(--c-on-brand);
 }
 
 .btn-primary:hover:not([disabled]) {
   background: var(--c-brand-strong);
+}
+
+.btn-primary:active:not([disabled]) {
+  background: var(--c-brand-pressed);
 }
 
 .btn-secondary {
@@ -337,7 +370,38 @@ h3 {
 }
 
 .btn-secondary:hover:not([disabled]) {
-  background: var(--c-sunken);
+  background: var(--c-hover);
+}
+
+.btn-secondary:active:not([disabled]) {
+  background: var(--c-pressed);
+}
+
+/*
+ * Pressed feedback, everywhere something is pressable.
+ *
+ * A touchscreen gives no cursor and no hover, so on the device this application is actually used on
+ * the ONLY confirmation that a tap landed is what happens when it lands. One pixel of travel plus a
+ * colour step is enough; anything more reads as a bouncing interface.
+ */
+.btn:active:not([disabled]),
+.lang-switch button:active,
+.theme-switch button:active,
+.mode-switch button:active,
+.font-switch button:active {
+  transform: translateY(1px);
+}
+
+/* A reader who asked the operating system for less motion keeps the colour step and loses the
+   travel — the feedback survives, the movement does not. */
+@media (prefers-reduced-motion: reduce) {
+  .btn:active:not([disabled]),
+  .lang-switch button:active,
+  .theme-switch button:active,
+  .mode-switch button:active,
+  .font-switch button:active {
+    transform: none;
+  }
 }
 
 /* Toolbar-sized: still tappable, but not shouting next to the primary action. */
@@ -455,4 +519,12 @@ textarea:disabled {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
+}
+
+/* The counterpart to .optional: a required field says so where the eye already is, next to its
+   label, rather than only by a submit button that refuses to light up. */
+.required {
+  font-weight: 400;
+  font-style: normal;
+  color: var(--c-ink-hint);
 }

@@ -6,6 +6,7 @@ import { I18nService } from './core/i18n/i18n.service';
 import { UiLanguage } from './core/i18n/dictionary';
 import { Dialog } from './shared/dialog/dialog';
 import { HelpDialog } from './shared/help/help-dialog';
+import { SettingsDialog } from './shared/settings/settings-dialog';
 import { ThemeToggle } from './shared/theme/theme-toggle';
 
 /** Where the footer points. Fixed URLs, so they are not worth a runtime configuration lookup. */
@@ -21,7 +22,15 @@ type KnownRole = (typeof KNOWN_ROLES)[number];
 /** Application shell: header, navigation, the language switch, the footer and the routed view. */
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, Dialog, HelpDialog, ThemeToggle],
+  imports: [
+    RouterOutlet,
+    RouterLink,
+    RouterLinkActive,
+    Dialog,
+    HelpDialog,
+    SettingsDialog,
+    ThemeToggle,
+  ],
   templateUrl: './app.html',
   styleUrl: './app.css',
 })
@@ -40,6 +49,7 @@ export class App {
 
   protected readonly helpOpen = signal(false);
   protected readonly signOutOpen = signal(false);
+  protected readonly settingsOpen = signal(false);
 
   /**
    * The role to show next to the name.

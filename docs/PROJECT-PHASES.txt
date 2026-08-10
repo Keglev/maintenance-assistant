@@ -113,6 +113,35 @@ Config:     Flyway auto-config was DEAD on Boot 4.1 (missing
             properties moved to spring.web.error.*.
 
 OPEN ITEMS carried forward (not blockers, do not lose):
+- UPLOAD FORM FIXED 2026-08-10 (feat/upload-parity-and-settings), from
+  the live review of #34. TITLE IS NOW REQUIRED in both modes — a
+  protocol without one reduces "Meine Uploads" to a machine number and a
+  date. The DOCUMENT-LANGUAGE DROPDOWN IS GONE and the frontend no longer
+  sends the parameter: retrieval is language-agnostic by architecture and
+  the answer is pinned to the QUESTION's language, so the field asked for
+  a classification nothing read (full reasoning in DECISIONS.txt ==
+  ARCHITECTURE ==). No backend change — the endpoint already declared it
+  optional. NOTE: the review's premise that text mode HID metadata fields
+  did not reproduce; all four were already outside the mode branch. A
+  spec now locks that, so it cannot start being true later.
+- THEME CONTROL IS TWO STATES 2026-08-10, light and dark, with the OS
+  preference as the SILENT default until a button is pressed. The old
+  literal "system" in localStorage reads as "no override", which is what
+  it meant, so the migration costs nothing. The pressed state tracks the
+  theme PAINTED rather than the one chosen — keyed on the choice, a first
+  visit would show two unpressed buttons and read as broken.
+- SETTINGS ("System") DIALOG 2026-08-10 behind a gear at the far right of
+  the header, with app name + version (read from package.json at build
+  time), doc/repo links, the signed-in user with role and "angemeldet
+  seit" from the token's iat, and APP-WIDE TEXT SCALING in three steps.
+  Scaling is ONE data-font attribute on <html> against a rem-based design
+  system, so type, spacing AND the 44 px tap targets move together — a
+  technician who needs bigger text needs a bigger button in the same
+  moment. Persisted as ma-font and applied by the same pre-paint script
+  as the theme (still a separate same-origin file; CSP untouched).
+  package.json's version was 0.0.0 and now reads 1.0.0, matching the
+  deployed tag — IT MUST BE BUMPED WITH EACH RELEASE TAG or the dialog
+  starts lying.
 - PROTOCOL TEXT ENTRY 2026-08-10 (feat/protocol-text-entry), the FIRST
   step of the protocol-lifecycle theme. Owner's domain knowledge, and the
   reason it was built: the Schichtleiter types the protocol at the END OF

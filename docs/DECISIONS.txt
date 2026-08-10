@@ -63,6 +63,17 @@ Status: end of Phase 2 (data + ingestion live in production), 2026-08-07
   query parameter, and the password never passes through the application. The demo box also states
   the boundary out loud — isolated realm, synthetic data only, rate-limited, 15-minute sessions — so
   the public password reads as a designed demo boundary rather than a leftover credential.
+- NO DOCUMENT-LANGUAGE FIELD ON UPLOAD (2026-08-10, feat/upload-parity-and-settings). The dropdown
+  is REMOVED from the form and the frontend stops sending the parameter. RETRIEVAL IS
+  LANGUAGE-AGNOSTIC BY ARCHITECTURE and always was: bge-m3 embeds DE and EN into ONE vector space
+  (ADR-002 — the cross-language demo, DE question against the EN FB-04 protocol, exists precisely to
+  prove it), and the answer language is pinned to the QUESTION's language in the prompt, never to
+  the document's. The protocol.language column is stored metadata with NO retrieval role, so the
+  field asked the Schichtleiter to classify their own prose and nothing read the answer — and a
+  wrong answer to it would have been invisible, which is worse than no answer. The upload endpoint
+  already declares the parameter optional (required=false), so this is a frontend-only removal with
+  NO backend change: seeded protocols keep their language values, user-created ones store none.
+  If a language ever earns a retrieval role, DETECT it from the text rather than ask.
 - ADR-004: pgvector inside Postgres, no dedicated vector DB. Relational filter + vector ranking
   in ONE query; one backup; no cross-store consistency problem. Scale ceiling documented.
 - Stack: Java 21, Spring Boot 4.1 (3.x is EOL since 2026-06-30), Angular + TypeScript (thin),

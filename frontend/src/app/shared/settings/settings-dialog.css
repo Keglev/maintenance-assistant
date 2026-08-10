@@ -1,0 +1,112 @@
+.settings-section + .settings-section {
+  margin-top: var(--s-5);
+  padding-top: var(--s-5);
+  border-top: 1px solid var(--c-line);
+}
+
+.settings-heading {
+  margin: 0 0 var(--s-3);
+  font-size: var(--t-base);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--c-ink-muted);
+}
+
+.settings-rows {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: var(--s-2) var(--s-4);
+  margin: 0;
+  font-size: var(--t-sm);
+}
+
+.settings-rows dt {
+  color: var(--c-ink-muted);
+}
+
+.settings-rows dd {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.settings-user {
+  font-family: var(--font-mono);
+}
+
+.settings-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2) var(--s-4);
+  margin-top: var(--s-3);
+  font-size: var(--t-sm);
+}
+
+.settings-links a {
+  color: var(--c-brand);
+  text-underline-offset: 2px;
+}
+
+/* --- Font scale ----------------------------------------------------------- */
+
+.font-switch {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-3);
+  margin-top: var(--s-3);
+}
+
+/* Full-height targets rather than a segmented strip: this is the control a user with poor eyesight
+   reaches for, and it should not be the smallest thing on the screen. */
+.font-switch button {
+  display: flex;
+  flex: 1 1 8rem;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s-2);
+  min-height: var(--tap);
+  padding: var(--s-2) var(--s-3);
+  border: 1px solid var(--c-line-strong);
+  border-radius: var(--r-sm);
+  background: var(--c-surface);
+  font: inherit;
+  font-size: var(--t-sm);
+  font-weight: 600;
+  color: var(--c-ink);
+  cursor: pointer;
+}
+
+.font-switch button.active {
+  background: var(--c-brand);
+  border-color: var(--c-brand);
+  color: var(--c-on-brand);
+}
+
+/* Each option is drawn at the size it selects, so the choice previews itself rather than describing
+   itself — the reader who needs the largest step can see which one it is. */
+.font-sample {
+  font-weight: 700;
+  line-height: 1;
+}
+
+.font-sample-normal {
+  font-size: 1rem;
+}
+
+.font-sample-lg {
+  font-size: 1.125rem;
+}
+
+.font-sample-xl {
+  font-size: 1.25rem;
+}
+
+.font-switch button:hover:not(.active) {
+  background: var(--c-hover);
+}
+
+.font-switch button:active:not(.active) {
+  background: var(--c-pressed);
+}

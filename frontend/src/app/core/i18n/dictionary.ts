@@ -35,12 +35,27 @@ export interface Dictionary {
     readonly close: string;
     readonly cancel: string;
   };
-  /** The theme control. `system` is a state of its own, so it needs a name of its own. */
+  /** The theme control. Two states; the operating system is the silent default, not a button. */
   readonly theme: {
     readonly label: string;
-    readonly system: string;
     readonly light: string;
     readonly dark: string;
+  };
+  /** The gear dialog: what this is, who is signed in, and how large to draw it. */
+  readonly settings: {
+    readonly title: string;
+    readonly open: string;
+    readonly aboutHeading: string;
+    readonly app: string;
+    readonly version: string;
+    readonly accountHeading: string;
+    readonly user: string;
+    readonly signedInSince: string;
+    readonly fontHeading: string;
+    readonly fontHint: string;
+    readonly fontNormal: string;
+    readonly fontLarge: string;
+    readonly fontExtraLarge: string;
   };
   readonly nav: {
     readonly search: string;
@@ -86,6 +101,7 @@ export interface Dictionary {
     readonly demoPassword: string;
     /** "Sign in as operator" — the username is the argument, and it is never translated. */
     readonly signInAs: (username: string) => string;
+    readonly tryDemo: string;
     readonly signIn: string;
     readonly signInHint: string;
     readonly plateModel: string;
@@ -172,7 +188,6 @@ export interface Dictionary {
     readonly typeMaintenance: string;
     readonly title: string;
     readonly errorCode: string;
-    readonly language: string;
     readonly submit: string;
     readonly submitting: string;
     readonly accepted: string;
@@ -188,6 +203,7 @@ export interface Dictionary {
     readonly statusIndexed: string;
     readonly statusFailed: string;
     readonly optional: string;
+    readonly required: string;
   };
 }
 
@@ -206,9 +222,24 @@ export const DE: Dictionary = {
   },
   theme: {
     label: 'Darstellung',
-    system: 'System',
     light: 'Hell',
     dark: 'Dunkel',
+  },
+  settings: {
+    title: 'System',
+    open: 'Systemeinstellungen',
+    aboutHeading: 'Anwendung',
+    app: 'Programm',
+    version: 'Version',
+    accountHeading: 'Angemeldet',
+    user: 'Benutzer',
+    signedInSince: 'Angemeldet seit',
+    fontHeading: 'Schriftgröße',
+    fontHint:
+      'Gilt für die ganze Anwendung, auch für Schaltflächen und Abstände. Die Einstellung bleibt erhalten.',
+    fontNormal: 'Normal',
+    fontLarge: 'Groß',
+    fontExtraLarge: 'Sehr groß',
   },
   nav: {
     search: 'Suche',
@@ -258,6 +289,7 @@ export const DE: Dictionary = {
       'Bewusst öffentliche Demo-Umgebung: eigener, isolierter Realm, ausschließlich synthetische Daten, Anfragen begrenzt, Sitzung nach 15 Minuten beendet.',
     demoPassword: 'Passwort für alle',
     signInAs: (username) => `Als ${username} anmelden`,
+    tryDemo: 'Demo ausprobieren',
     signIn: 'Anmelden',
     signInHint:
       'Die Anmeldung läuft über Keycloak. Sie werden dorthin weitergeleitet und kommen anschließend hierher zurück.',
@@ -374,7 +406,6 @@ export const DE: Dictionary = {
     typeMaintenance: 'Wartung',
     title: 'Titel',
     errorCode: 'Fehlercode',
-    language: 'Sprache des Dokuments',
     submit: 'Hochladen',
     submitting: 'Wird hochgeladen …',
     accepted: 'Protokoll angenommen.',
@@ -391,6 +422,7 @@ export const DE: Dictionary = {
     statusIndexed: 'Durchsuchbar',
     statusFailed: 'Fehlgeschlagen',
     optional: 'optional',
+    required: 'Pflichtfeld',
   },
 };
 
@@ -403,9 +435,24 @@ export const EN: Dictionary = {
   },
   theme: {
     label: 'Appearance',
-    system: 'System',
     light: 'Light',
     dark: 'Dark',
+  },
+  settings: {
+    title: 'System',
+    open: 'System settings',
+    aboutHeading: 'Application',
+    app: 'Program',
+    version: 'Version',
+    accountHeading: 'Signed in',
+    user: 'User',
+    signedInSince: 'Signed in since',
+    fontHeading: 'Text size',
+    fontHint:
+      'Applies to the whole application, including buttons and spacing. The setting is remembered.',
+    fontNormal: 'Normal',
+    fontLarge: 'Large',
+    fontExtraLarge: 'Extra large',
   },
   nav: {
     search: 'Search',
@@ -455,6 +502,7 @@ export const EN: Dictionary = {
       'A deliberately public demo environment: its own isolated realm, synthetic data only, rate-limited requests, sessions ending after 15 minutes.',
     demoPassword: 'Password for all',
     signInAs: (username) => `Sign in as ${username}`,
+    tryDemo: 'Try the demo',
     signIn: 'Sign in',
     signInHint:
       'Sign-in is handled by Keycloak. You will be redirected there and returned here afterwards.',
@@ -574,7 +622,6 @@ export const EN: Dictionary = {
     typeMaintenance: 'Maintenance',
     title: 'Title',
     errorCode: 'Fault code',
-    language: 'Document language',
     submit: 'Upload',
     submitting: 'Uploading …',
     accepted: 'Protocol accepted.',
@@ -591,6 +638,7 @@ export const EN: Dictionary = {
     statusIndexed: 'Searchable',
     statusFailed: 'Failed',
     optional: 'optional',
+    required: 'required',
   },
 };
 

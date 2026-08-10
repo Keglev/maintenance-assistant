@@ -176,6 +176,14 @@ export interface Dictionary {
     readonly uploadRateLimited: string;
     readonly generic: string;
   };
+  /**
+   * The Protokollverwaltung view.
+   *
+   * The key stays `moderation` on purpose. The user-visible name changed because "Verwaltung" and
+   * "Moderation" read like a discussion forum rather than like a maintenance record; the API paths
+   * (`/api/moderation/**`), the component and this key did not, because renaming an identifier to
+   * follow a label churns the tests and the wire contract for something no user can see.
+   */
   readonly moderation: {
     readonly heading: string;
     readonly intro: string;
@@ -267,7 +275,7 @@ export const DE: Dictionary = {
   nav: {
     search: 'Suche',
     upload: 'Protokoll hochladen',
-    moderation: 'Verwaltung',
+    moderation: 'Protokollverwaltung',
     signOut: 'Abmelden',
     language: 'Sprache',
     help: 'Hilfe',
@@ -325,7 +333,8 @@ export const DE: Dictionary = {
     operator: 'Fragen stellen, bedienerseitige Antworten.',
     techniker: 'Fragen stellen, vollständige technische Antworten.',
     schichtleiter: 'Wie Techniker, zusätzlich Protokolle hochladen.',
-    admin: 'Verwaltung in Keycloak, keine Fachfunktion in der Anwendung.',
+    admin:
+      'Prüft und entfernt Protokolle in der Protokollverwaltung. Stellt keine Fragen und lädt nichts hoch.',
     examplesHeading: 'Zum Ausprobieren',
     examplesIntro: 'Erst die Maschine wählen, dann die Frage stellen — gesucht wird je Maschine.',
     exampleMachine: 'Maschine',
@@ -419,7 +428,7 @@ export const DE: Dictionary = {
     generic: 'Die Anfrage ist fehlgeschlagen.',
   },
   moderation: {
-    heading: 'Verwaltung',
+    heading: 'Protokollverwaltung',
     intro:
       'Alle Protokolle im Bestand. Öffnen zum Prüfen, entfernen was nicht hineingehört.',
     noEditHint:
@@ -508,7 +517,7 @@ export const EN: Dictionary = {
   nav: {
     search: 'Search',
     upload: 'Upload protocol',
-    moderation: 'Moderation',
+    moderation: 'Protocol management',
     signOut: 'Sign out',
     language: 'Language',
     help: 'Help',
@@ -566,7 +575,8 @@ export const EN: Dictionary = {
     operator: 'Ask questions, operator-safe answers.',
     techniker: 'Ask questions, full technical answers.',
     schichtleiter: 'Like the technician, and may upload protocols.',
-    admin: 'Administration in Keycloak, no shop-floor function in the app.',
+    admin:
+      'Reviews and removes protocols in Protocol management. Does not ask questions and does not upload.',
     examplesHeading: 'Try these',
     examplesIntro: 'Choose the machine first, then ask — retrieval is filtered per machine.',
     exampleMachine: 'Machine',
@@ -662,7 +672,7 @@ export const EN: Dictionary = {
     generic: 'The request failed.',
   },
   moderation: {
-    heading: 'Moderation',
+    heading: 'Protocol management',
     intro: 'Every protocol in the records. Open one to review it, remove what does not belong.',
     noEditHint:
       'Protocols are not edited. A correction is: remove it and have the shift lead upload it again — so no answer can cite a source that changed after the fact.',

@@ -81,6 +81,9 @@ customElements.define('compodoc-menu', class extends HTMLElement {
                                 <a href="components/Landing.html" data-type="entity-link" >Landing</a>
                             </li>
                             <li class="link">
+                                <a href="components/Moderation.html" data-type="entity-link" >Moderation</a>
+                            </li>
+                            <li class="link">
                                 <a href="components/ProtocolDialog.html" data-type="entity-link" >ProtocolDialog</a>
                             </li>
                             <li class="link">
@@ -174,7 +177,13 @@ customElements.define('compodoc-menu', class extends HTMLElement {
                                 <a href="interfaces/MetaRow.html" data-type="entity-link" >MetaRow</a>
                             </li>
                             <li class="link">
+                                <a href="interfaces/ModeratedProtocol.html" data-type="entity-link" >ModeratedProtocol</a>
+                            </li>
+                            <li class="link">
                                 <a href="interfaces/ProtocolDocument.html" data-type="entity-link" >ProtocolDocument</a>
+                            </li>
+                            <li class="link">
+                                <a href="interfaces/ProtocolPage.html" data-type="entity-link" >ProtocolPage</a>
                             </li>
                             <li class="link">
                                 <a href="interfaces/QueryAnswer.html" data-type="entity-link" >QueryAnswer</a>

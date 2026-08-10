@@ -219,11 +219,23 @@ nothing here touches a header.</p>
                             </li>
                             <li>
                                 <span class="reference-badge reference-badge--method" aria-hidden="true">M</span>
+                                <a href="#deleteProtocol" >deleteProtocol</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--method" aria-hidden="true">M</span>
                                 <a href="#getDocument" >getDocument</a>
                             </li>
                             <li>
                                 <span class="reference-badge reference-badge--method" aria-hidden="true">M</span>
+                                <a href="#getModerationDocument" >getModerationDocument</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--method" aria-hidden="true">M</span>
                                 <a href="#machines" >machines</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--method" aria-hidden="true">M</span>
+                                <a href="#moderationProtocols" >moderationProtocols</a>
                             </li>
                             <li>
                                 <span class="reference-badge reference-badge--method" aria-hidden="true">M</span>
@@ -271,8 +283,8 @@ nothing here touches a header.</p>
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="33"
-                                    class="link-to-prism">src/app/core/api/maintenance-api.service.ts:33</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="39"
+                                    class="link-to-prism">src/app/core/api/maintenance-api.service.ts:39</a></div>
                         </td>
                     </tr>
 
@@ -339,6 +351,75 @@ a better feature and be a worse answer.</p>
         <tbody>
             <tr>
                 <td class="col-md-4">
+                    <a name="deleteProtocol"></a>
+                    <span class="name">
+                        <span ><b>deleteProtocol</b></span>
+                        <a href="#deleteProtocol"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+<code>deleteProtocol(protocolId: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank">string</a>)</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="92"
+                                    class="link-to-prism">src/app/core/api/maintenance-api.service.ts:92</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                        <div class="io-description"><p>Removes a protocol permanently: chunks, row and file. Admin only, server-side.</p>
+</div>
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                                <td>Type</td>
+                                            <td>Optional</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>protocolId</td>
+                                            <td>
+                                                            <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>    <code>Observable&lt;void&gt;</code>
+
+                        </div>
+                            <div class="io-description">
+                                
+                            </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
                     <a name="getDocument"></a>
                     <span class="name">
                         <span ><b>getDocument</b></span>
@@ -355,8 +436,8 @@ a better feature and be a worse answer.</p>
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="51"
-                                    class="link-to-prism">src/app/core/api/maintenance-api.service.ts:51</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="57"
+                                    class="link-to-prism">src/app/core/api/maintenance-api.service.ts:57</a></div>
                         </td>
                     </tr>
 
@@ -417,6 +498,79 @@ half: <code>Content-Type</code> decides whether the browser renders the document
         <tbody>
             <tr>
                 <td class="col-md-4">
+                    <a name="getModerationDocument"></a>
+                    <span class="name">
+                        <span ><b>getModerationDocument</b></span>
+                        <a href="#getModerationDocument"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+<code>getModerationDocument(protocolId: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank">string</a>)</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="84"
+                                    class="link-to-prism">src/app/core/api/maintenance-api.service.ts:84</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                        <div class="io-description"><p>A protocol&#39;s document through the moderation path.</p>
+<p>A separate call from <a href="getDocument">getDocument</a> rather than a parameter, because they differ in who
+may make them: the shop-floor path is open to the three roles that ask questions, and an admin
+holds none of them. Same file, same mechanics, different authorisation — which is exactly the
+kind of difference that should be visible at the call site.</p>
+</div>
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                                <td>Type</td>
+                                            <td>Optional</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>protocolId</td>
+                                            <td>
+                                                            <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>    <code>Observable&lt;HttpResponse&lt;Blob&gt;&gt;</code>
+
+                        </div>
+                            <div class="io-description">
+                                
+                            </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
                     <a name="machines"></a>
                     <span class="name">
                         <span ><b>machines</b></span>
@@ -433,8 +587,8 @@ half: <code>Content-Type</code> decides whether the browser renders the document
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="22"
-                                    class="link-to-prism">src/app/core/api/maintenance-api.service.ts:22</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="28"
+                                    class="link-to-prism">src/app/core/api/maintenance-api.service.ts:28</a></div>
                         </td>
                     </tr>
 
@@ -448,6 +602,89 @@ half: <code>Content-Type</code> decides whether the browser renders the document
                             <b>Returns : </b>        <code><a href="../interfaces/Machine.html" target="_self" >Observable&lt;Machine[]&gt;</a></code>
 
                         </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="moderationProtocols"></a>
+                    <span class="name">
+                        <span ><b>moderationProtocols</b></span>
+                        <a href="#moderationProtocols"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+<code>moderationProtocols(page: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/number" target="_blank">number</a>, size: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/number" target="_blank">number</a>)</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="70"
+                                    class="link-to-prism">src/app/core/api/maintenance-api.service.ts:70</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                        <div class="io-description"><p>One page of the whole corpus. Admin only, server-side.</p>
+<p>Paged rather than &quot;give me everything&quot;: the corpus is 150 protocols and grows every time one is
+uploaded, and a review screen that loads all of them gets slower every month.</p>
+</div>
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                                <td>Type</td>
+                                            <td>Optional</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>page</td>
+                                            <td>
+                                                            <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/number" target="_blank" >number</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                        <tr>
+                                                <td>size</td>
+                                            <td>
+                                                            <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/number" target="_blank" >number</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>        <code><a href="../interfaces/ProtocolPage.html" target="_self" >Observable&lt;ProtocolPage&gt;</a></code>
+
+                        </div>
+                            <div class="io-description">
+                                
+                            </div>
                 </td>
             </tr>
         </tbody>
@@ -472,8 +709,8 @@ half: <code>Content-Type</code> decides whether the browser renders the document
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="59"
-                                    class="link-to-prism">src/app/core/api/maintenance-api.service.ts:59</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="97"
+                                    class="link-to-prism">src/app/core/api/maintenance-api.service.ts:97</a></div>
                         </td>
                     </tr>
 
@@ -511,8 +748,8 @@ half: <code>Content-Type</code> decides whether the browser renders the document
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="64"
-                                    class="link-to-prism">src/app/core/api/maintenance-api.service.ts:64</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="102"
+                                    class="link-to-prism">src/app/core/api/maintenance-api.service.ts:102</a></div>
                         </td>
                     </tr>
 
@@ -593,7 +830,7 @@ half: <code>Content-Type</code> decides whether the browser renders the document
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="19" class="link-to-prism">src/app/core/api/maintenance-api.service.ts:19</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="25" class="link-to-prism">src/app/core/api/maintenance-api.service.ts:25</a></div>
                         </td>
                     </tr>
 
@@ -626,7 +863,7 @@ half: <code>Content-Type</code> decides whether the browser renders the document
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="18" class="link-to-prism">src/app/core/api/maintenance-api.service.ts:18</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="24" class="link-to-prism">src/app/core/api/maintenance-api.service.ts:24</a></div>
                         </td>
                     </tr>
 
@@ -644,7 +881,13 @@ import { Injectable, inject } from &#x27;@angular/core&#x27;;
 import { Observable } from &#x27;rxjs&#x27;;
 
 import { ConfigService } from &#x27;../config/config.service&#x27;;
-import { Machine, QueryAnswer, UploadAccepted, UploadStatus } from &#x27;./api.types&#x27;;
+import {
+  Machine,
+  ProtocolPage,
+  QueryAnswer,
+  UploadAccepted,
+  UploadStatus,
+} from &#x27;./api.types&#x27;;
 
 /**
  * The five calls this application makes to its own backend.
@@ -694,6 +937,38 @@ export class MaintenanceApiService {
       observe: &#x27;response&#x27;,
       responseType: &#x27;blob&#x27;,
     });
+  }
+
+  /**
+   * One page of the whole corpus. Admin only, server-side.
+   *
+   * Paged rather than &quot;give me everything&quot;: the corpus is 150 protocols and grows every time one is
+   * uploaded, and a review screen that loads all of them gets slower every month.
+   */
+  moderationProtocols(page: number, size: number): Observable&lt;ProtocolPage&gt; {
+    return this.http.get&lt;ProtocolPage&gt;(&#x60;${this.apiBaseUrl}/moderation/protocols&#x60;, {
+      params: { page, size },
+    });
+  }
+
+  /**
+   * A protocol&#x27;s document through the moderation path.
+   *
+   * A separate call from {@link getDocument} rather than a parameter, because they differ in who
+   * may make them: the shop-floor path is open to the three roles that ask questions, and an admin
+   * holds none of them. Same file, same mechanics, different authorisation — which is exactly the
+   * kind of difference that should be visible at the call site.
+   */
+  getModerationDocument(protocolId: string): Observable&lt;HttpResponse&lt;Blob&gt;&gt; {
+    return this.http.get(&#x60;${this.apiBaseUrl}/moderation/protocols/${protocolId}/document&#x60;, {
+      observe: &#x27;response&#x27;,
+      responseType: &#x27;blob&#x27;,
+    });
+  }
+
+  /** Removes a protocol permanently: chunks, row and file. Admin only, server-side. */
+  deleteProtocol(protocolId: string): Observable&lt;void&gt; {
+    return this.http.delete&lt;void&gt;(&#x60;${this.apiBaseUrl}/moderation/protocols/${protocolId}&#x60;);
   }
 
   /** The caller&#x27;s own uploads and what became of them. Schichtleiter only, server-side. */

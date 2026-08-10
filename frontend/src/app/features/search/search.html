@@ -26,6 +26,10 @@
 
   <label class="field">
     <span class="field-label">{{ t().search.question }}</span>
+    <!-- Under the label and staying there, not only in the placeholder: a placeholder disappears at
+         the first keystroke, which is exactly when a first-time user is still working out what kind
+         of thing to ask for. -->
+    <span class="field-hint" data-testid="question-hint">{{ t().search.questionHint }}</span>
     <textarea
       name="question"
       rows="3"

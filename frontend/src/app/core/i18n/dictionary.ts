@@ -119,6 +119,7 @@ export interface Dictionary {
     readonly machine: string;
     readonly machinePlaceholder: string;
     readonly question: string;
+    readonly questionHint: string;
     readonly questionPlaceholder: string;
     readonly submit: string;
     readonly working: string;
@@ -313,6 +314,8 @@ export const DE: Dictionary = {
     machine: 'Maschine',
     machinePlaceholder: 'Maschine wählen …',
     question: 'Ihre Frage',
+    questionHint:
+      'z. B.: Sensorfehler, Maschine startet nicht, Programm lädt nicht, Druck baut sich langsam auf',
     questionPlaceholder: 'z. B. Presse kommt nicht auf Druck, Fehler E-47',
     submit: 'Frage stellen',
     working: 'Antwort wird erstellt …',
@@ -511,6 +514,8 @@ export const EN: Dictionary = {
     machine: 'Machine',
     machinePlaceholder: 'Choose a machine …',
     question: 'Your question',
+    questionHint:
+      'e.g.: sensor fault, machine will not start, program does not load, pressure builds up slowly',
     questionPlaceholder: 'e.g. press does not build up pressure, fault E-47',
     submit: 'Ask',
     working: 'Preparing the answer …',

@@ -123,7 +123,7 @@
   <li class="breadcrumb-item">Interfaces</li>
   <li class="breadcrumb-item"
   >
-  ProtocolFilter</li>
+  DeletedProtocolPage</li>
 </ol>
 
 <div class="io-file io-file-path" data-compodoc="entity-file-path">
@@ -159,11 +159,9 @@
                 <h3>Description</h3>
             </p>
             <p class="comment">
-                <p>What the corpus list is narrowed to. Every field is a form value, so &quot;&quot; means &quot;not filled in&quot;.</p>
-<p>The machine is not optional in practice: the backend refuses a title or date filter without one
-(400 <code>MACHINE_REQUIRED_FOR_FILTER</code>), because across ten machines a title fragment on its own
-answers with rows the reviewer was not looking at. The view enforces the same rule by disabling
-the other fields, so the 400 is a backstop rather than something a user can reach.</p>
+                <p>One page of the archive.</p>
+<p><code>cap</code> is the per-machine ceiling, sent by the backend rather than hard-coded here so the hint on
+screen cannot drift away from the number the purge actually enforces.</p>
 
             </p>
 
@@ -181,23 +179,28 @@ the other fields, so the 400 is a backstop rather than something a user can reac
                 <td class="col-md-9">
                     <ul class="index-list">
                         <li>
-                                <a href="#from" class="reference-link ">
-                                    <span class="reference-badge reference-badge--property" aria-hidden="true">P</span><span class="reference-link-label">from</span>
+                                <a href="#cap" class="reference-link ">
+                                    <span class="reference-badge reference-badge--property" aria-hidden="true">P</span><span class="reference-link-label">cap</span>
                                 </a>
                         </li>
                         <li>
-                                <a href="#machineNo" class="reference-link ">
-                                    <span class="reference-badge reference-badge--property" aria-hidden="true">P</span><span class="reference-link-label">machineNo</span>
+                                <a href="#items" class="reference-link ">
+                                    <span class="reference-badge reference-badge--property" aria-hidden="true">P</span><span class="reference-link-label">items</span>
                                 </a>
                         </li>
                         <li>
-                                <a href="#titleContains" class="reference-link ">
-                                    <span class="reference-badge reference-badge--property" aria-hidden="true">P</span><span class="reference-link-label">titleContains</span>
+                                <a href="#page" class="reference-link ">
+                                    <span class="reference-badge reference-badge--property" aria-hidden="true">P</span><span class="reference-link-label">page</span>
                                 </a>
                         </li>
                         <li>
-                                <a href="#to" class="reference-link ">
-                                    <span class="reference-badge reference-badge--property" aria-hidden="true">P</span><span class="reference-link-label">to</span>
+                                <a href="#size" class="reference-link ">
+                                    <span class="reference-badge reference-badge--property" aria-hidden="true">P</span><span class="reference-link-label">size</span>
+                                </a>
+                        </li>
+                        <li>
+                                <a href="#total" class="reference-link ">
+                                    <span class="reference-badge reference-badge--property" aria-hidden="true">P</span><span class="reference-link-label">total</span>
                                 </a>
                         </li>
                     </ul>
@@ -215,9 +218,9 @@ the other fields, so the 400 is a backstop rather than something a user can reac
                 <tbody>
                         <tr>
                             <td class="col-md-4">
-                                <a name="from"></a>
-                                <span class="name "><b>from</b>
-                                    <a href="#from">
+                                <a name="cap"></a>
+                                <span class="name "><b>cap</b>
+                                    <a href="#cap">
                                         <span class="icon ion-ios-link"></span>
                                     </a>
                                 </span>
@@ -225,7 +228,7 @@ the other fields, so the 400 is a backstop rather than something a user can reac
                         </tr>
                         <tr>
                             <td class="col-md-4">
-                                <code>from:         <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+                                <code>cap:         <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/number" target="_blank" >number</a></code>
 </code>
                             </td>
                         </tr>
@@ -233,7 +236,7 @@ the other fields, so the 400 is a backstop rather than something a user can reac
 
                             <tr>
                                 <td class="col-md-4">
-                                    <i>Type : </i>        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+                                    <i>Type : </i>        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/number" target="_blank" >number</a></code>
 
                                 </td>
                             </tr>
@@ -244,52 +247,7 @@ the other fields, so the 400 is a backstop rather than something a user can reac
 
                             <tr>
                                 <td class="col-md-4">
-                                    <div class="io-line">Defined in <a href="" data-line="106" class="link-to-prism">src/app/core/api/api.types.ts:106</a></div>
-                                </td>
-                            </tr>
-
-                    <tr>
-                        <td class="col-md-4">
-                            <div class="io-description"><p>ISO <code>yyyy-MM-dd</code>, as an <code>&lt;input type=&quot;date&quot;&gt;</code> produces it.</p>
-</div>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-            <table class="table table-sm table-bordered">
-                <tbody>
-                        <tr>
-                            <td class="col-md-4">
-                                <a name="machineNo"></a>
-                                <span class="name "><b>machineNo</b>
-                                    <a href="#machineNo">
-                                        <span class="icon ion-ios-link"></span>
-                                    </a>
-                                </span>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="col-md-4">
-                                <code>machineNo:         <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
-</code>
-                            </td>
-                        </tr>
-
-
-                            <tr>
-                                <td class="col-md-4">
-                                    <i>Type : </i>        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
-
-                                </td>
-                            </tr>
-
-
-
-
-
-                            <tr>
-                                <td class="col-md-4">
-                                    <div class="io-line">Defined in <a href="" data-line="103" class="link-to-prism">src/app/core/api/api.types.ts:103</a></div>
+                                    <div class="io-line">Defined in <a href="" data-line="177" class="link-to-prism">src/app/core/api/api.types.ts:177</a></div>
                                 </td>
                             </tr>
 
@@ -299,9 +257,9 @@ the other fields, so the 400 is a backstop rather than something a user can reac
                 <tbody>
                         <tr>
                             <td class="col-md-4">
-                                <a name="titleContains"></a>
-                                <span class="name "><b>titleContains</b>
-                                    <a href="#titleContains">
+                                <a name="items"></a>
+                                <span class="name "><b>items</b>
+                                    <a href="#items">
                                         <span class="icon ion-ios-link"></span>
                                     </a>
                                 </span>
@@ -309,7 +267,7 @@ the other fields, so the 400 is a backstop rather than something a user can reac
                         </tr>
                         <tr>
                             <td class="col-md-4">
-                                <code>titleContains:         <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+                                <code>items:     <code>{}</code>
 </code>
                             </td>
                         </tr>
@@ -317,7 +275,7 @@ the other fields, so the 400 is a backstop rather than something a user can reac
 
                             <tr>
                                 <td class="col-md-4">
-                                    <i>Type : </i>        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+                                    <i>Type : </i>    <code>{}</code>
 
                                 </td>
                             </tr>
@@ -328,7 +286,7 @@ the other fields, so the 400 is a backstop rather than something a user can reac
 
                             <tr>
                                 <td class="col-md-4">
-                                    <div class="io-line">Defined in <a href="" data-line="104" class="link-to-prism">src/app/core/api/api.types.ts:104</a></div>
+                                    <div class="io-line">Defined in <a href="" data-line="173" class="link-to-prism">src/app/core/api/api.types.ts:173</a></div>
                                 </td>
                             </tr>
 
@@ -338,9 +296,9 @@ the other fields, so the 400 is a backstop rather than something a user can reac
                 <tbody>
                         <tr>
                             <td class="col-md-4">
-                                <a name="to"></a>
-                                <span class="name "><b>to</b>
-                                    <a href="#to">
+                                <a name="page"></a>
+                                <span class="name "><b>page</b>
+                                    <a href="#page">
                                         <span class="icon ion-ios-link"></span>
                                     </a>
                                 </span>
@@ -348,7 +306,7 @@ the other fields, so the 400 is a backstop rather than something a user can reac
                         </tr>
                         <tr>
                             <td class="col-md-4">
-                                <code>to:         <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+                                <code>page:         <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/number" target="_blank" >number</a></code>
 </code>
                             </td>
                         </tr>
@@ -356,7 +314,7 @@ the other fields, so the 400 is a backstop rather than something a user can reac
 
                             <tr>
                                 <td class="col-md-4">
-                                    <i>Type : </i>        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+                                    <i>Type : </i>        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/number" target="_blank" >number</a></code>
 
                                 </td>
                             </tr>
@@ -367,7 +325,85 @@ the other fields, so the 400 is a backstop rather than something a user can reac
 
                             <tr>
                                 <td class="col-md-4">
-                                    <div class="io-line">Defined in <a href="" data-line="107" class="link-to-prism">src/app/core/api/api.types.ts:107</a></div>
+                                    <div class="io-line">Defined in <a href="" data-line="174" class="link-to-prism">src/app/core/api/api.types.ts:174</a></div>
+                                </td>
+                            </tr>
+
+                </tbody>
+            </table>
+            <table class="table table-sm table-bordered">
+                <tbody>
+                        <tr>
+                            <td class="col-md-4">
+                                <a name="size"></a>
+                                <span class="name "><b>size</b>
+                                    <a href="#size">
+                                        <span class="icon ion-ios-link"></span>
+                                    </a>
+                                </span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="col-md-4">
+                                <code>size:         <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/number" target="_blank" >number</a></code>
+</code>
+                            </td>
+                        </tr>
+
+
+                            <tr>
+                                <td class="col-md-4">
+                                    <i>Type : </i>        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/number" target="_blank" >number</a></code>
+
+                                </td>
+                            </tr>
+
+
+
+
+
+                            <tr>
+                                <td class="col-md-4">
+                                    <div class="io-line">Defined in <a href="" data-line="175" class="link-to-prism">src/app/core/api/api.types.ts:175</a></div>
+                                </td>
+                            </tr>
+
+                </tbody>
+            </table>
+            <table class="table table-sm table-bordered">
+                <tbody>
+                        <tr>
+                            <td class="col-md-4">
+                                <a name="total"></a>
+                                <span class="name "><b>total</b>
+                                    <a href="#total">
+                                        <span class="icon ion-ios-link"></span>
+                                    </a>
+                                </span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="col-md-4">
+                                <code>total:         <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/number" target="_blank" >number</a></code>
+</code>
+                            </td>
+                        </tr>
+
+
+                            <tr>
+                                <td class="col-md-4">
+                                    <i>Type : </i>        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/number" target="_blank" >number</a></code>
+
+                                </td>
+                            </tr>
+
+
+
+
+
+                            <tr>
+                                <td class="col-md-4">
+                                    <div class="io-line">Defined in <a href="" data-line="176" class="link-to-prism">src/app/core/api/api.types.ts:176</a></div>
                                 </td>
                             </tr>
 
@@ -584,7 +620,7 @@ export interface DeletedProtocolPage {
        <script>
             var COMPODOC_CURRENT_PAGE_DEPTH = 1;
             var COMPODOC_CURRENT_PAGE_CONTEXT = 'interface';
-            var COMPODOC_CURRENT_PAGE_URL = 'ProtocolFilter.html';
+            var COMPODOC_CURRENT_PAGE_URL = 'DeletedProtocolPage.html';
             var MAX_SEARCH_RESULTS = 15;
        </script>
 

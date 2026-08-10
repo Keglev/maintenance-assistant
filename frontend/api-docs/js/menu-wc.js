@@ -156,10 +156,16 @@ customElements.define('compodoc-menu', class extends HTMLElement {
                                 <a href="interfaces/AnswerSegment.html" data-type="entity-link" >AnswerSegment</a>
                             </li>
                             <li class="link">
+                                <a href="interfaces/ArchivedProtocol.html" data-type="entity-link" >ArchivedProtocol</a>
+                            </li>
+                            <li class="link">
                                 <a href="interfaces/Citation.html" data-type="entity-link" >Citation</a>
                             </li>
                             <li class="link">
                                 <a href="interfaces/Claim.html" data-type="entity-link" >Claim</a>
+                            </li>
+                            <li class="link">
+                                <a href="interfaces/DeletedProtocolPage.html" data-type="entity-link" >DeletedProtocolPage</a>
                             </li>
                             <li class="link">
                                 <a href="interfaces/DemoExample.html" data-type="entity-link" >DemoExample</a>
@@ -178,6 +184,9 @@ customElements.define('compodoc-menu', class extends HTMLElement {
                             </li>
                             <li class="link">
                                 <a href="interfaces/ModeratedProtocol.html" data-type="entity-link" >ModeratedProtocol</a>
+                            </li>
+                            <li class="link">
+                                <a href="interfaces/ProtocolCorrection.html" data-type="entity-link" >ProtocolCorrection</a>
                             </li>
                             <li class="link">
                                 <a href="interfaces/ProtocolDocument.html" data-type="entity-link" >ProtocolDocument</a>

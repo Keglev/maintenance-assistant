@@ -123,7 +123,7 @@
   <li class="breadcrumb-item">Interfaces</li>
   <li class="breadcrumb-item"
   >
-  ProtocolFilter</li>
+  ArchivedProtocol</li>
 </ol>
 
 <div class="io-file io-file-path" data-compodoc="entity-file-path">
@@ -159,11 +159,10 @@
                 <h3>Description</h3>
             </p>
             <p class="comment">
-                <p>What the corpus list is narrowed to. Every field is a form value, so &quot;&quot; means &quot;not filled in&quot;.</p>
-<p>The machine is not optional in practice: the backend refuses a title or date filter without one
-(400 <code>MACHINE_REQUIRED_FOR_FILTER</code>), because across ten machines a title fragment on its own
-answers with rows the reviewer was not looking at. The view enforces the same rule by disabling
-the other fields, so the 400 is a backstop rather than something a user can reach.</p>
+                <p>A protocol in the archive, from <code>GET /api/moderation/protocols/deleted</code>.</p>
+<p>It is out of retrieval, out of every list and out of &quot;Meine Uploads&quot;; this is the only place it
+still appears. There is no restore, by design — the archive exists so that removing garbage does
+not also destroy the record of who produced it.</p>
 
             </p>
 
@@ -181,8 +180,28 @@ the other fields, so the 400 is a backstop rather than something a user can reac
                 <td class="col-md-9">
                     <ul class="index-list">
                         <li>
-                                <a href="#from" class="reference-link ">
-                                    <span class="reference-badge reference-badge--property" aria-hidden="true">P</span><span class="reference-link-label">from</span>
+                                <a href="#deleteComment" class="reference-link ">
+                                    <span class="reference-badge reference-badge--property" aria-hidden="true">P</span><span class="reference-link-label">deleteComment</span>
+                                </a>
+                        </li>
+                        <li>
+                                <a href="#deletedAt" class="reference-link ">
+                                    <span class="reference-badge reference-badge--property" aria-hidden="true">P</span><span class="reference-link-label">deletedAt</span>
+                                </a>
+                        </li>
+                        <li>
+                                <a href="#deletedBy" class="reference-link ">
+                                    <span class="reference-badge reference-badge--property" aria-hidden="true">P</span><span class="reference-link-label">deletedBy</span>
+                                </a>
+                        </li>
+                        <li>
+                                <a href="#errorCode" class="reference-link ">
+                                    <span class="reference-badge reference-badge--property" aria-hidden="true">P</span><span class="reference-link-label">errorCode</span>
+                                </a>
+                        </li>
+                        <li>
+                                <a href="#id" class="reference-link ">
+                                    <span class="reference-badge reference-badge--property" aria-hidden="true">P</span><span class="reference-link-label">id</span>
                                 </a>
                         </li>
                         <li>
@@ -191,13 +210,23 @@ the other fields, so the 400 is a backstop rather than something a user can reac
                                 </a>
                         </li>
                         <li>
-                                <a href="#titleContains" class="reference-link ">
-                                    <span class="reference-badge reference-badge--property" aria-hidden="true">P</span><span class="reference-link-label">titleContains</span>
+                                <a href="#protocolType" class="reference-link ">
+                                    <span class="reference-badge reference-badge--property" aria-hidden="true">P</span><span class="reference-link-label">protocolType</span>
                                 </a>
                         </li>
                         <li>
-                                <a href="#to" class="reference-link ">
-                                    <span class="reference-badge reference-badge--property" aria-hidden="true">P</span><span class="reference-link-label">to</span>
+                                <a href="#title" class="reference-link ">
+                                    <span class="reference-badge reference-badge--property" aria-hidden="true">P</span><span class="reference-link-label">title</span>
+                                </a>
+                        </li>
+                        <li>
+                                <a href="#uploadedAt" class="reference-link ">
+                                    <span class="reference-badge reference-badge--property" aria-hidden="true">P</span><span class="reference-link-label">uploadedAt</span>
+                                </a>
+                        </li>
+                        <li>
+                                <a href="#uploadedBy" class="reference-link ">
+                                    <span class="reference-badge reference-badge--property" aria-hidden="true">P</span><span class="reference-link-label">uploadedBy</span>
                                 </a>
                         </li>
                     </ul>
@@ -215,9 +244,9 @@ the other fields, so the 400 is a backstop rather than something a user can reac
                 <tbody>
                         <tr>
                             <td class="col-md-4">
-                                <a name="from"></a>
-                                <span class="name "><b>from</b>
-                                    <a href="#from">
+                                <a name="deleteComment"></a>
+                                <span class="name "><b>deleteComment</b>
+                                    <a href="#deleteComment">
                                         <span class="icon ion-ios-link"></span>
                                     </a>
                                 </span>
@@ -225,7 +254,52 @@ the other fields, so the 400 is a backstop rather than something a user can reac
                         </tr>
                         <tr>
                             <td class="col-md-4">
-                                <code>from:         <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+                                <code>deleteComment:     <code>string | null</code>
+</code>
+                            </td>
+                        </tr>
+
+
+                            <tr>
+                                <td class="col-md-4">
+                                    <i>Type : </i>    <code>string | null</code>
+
+                                </td>
+                            </tr>
+
+
+
+
+
+                            <tr>
+                                <td class="col-md-4">
+                                    <div class="io-line">Defined in <a href="" data-line="163" class="link-to-prism">src/app/core/api/api.types.ts:163</a></div>
+                                </td>
+                            </tr>
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-description"><p>The stated reason. The field the whole archive exists to carry.</p>
+</div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <table class="table table-sm table-bordered">
+                <tbody>
+                        <tr>
+                            <td class="col-md-4">
+                                <a name="deletedAt"></a>
+                                <span class="name "><b>deletedAt</b>
+                                    <a href="#deletedAt">
+                                        <span class="icon ion-ios-link"></span>
+                                    </a>
+                                </span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="col-md-4">
+                                <code>deletedAt:         <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
 </code>
                             </td>
                         </tr>
@@ -244,16 +318,127 @@ the other fields, so the 400 is a backstop rather than something a user can reac
 
                             <tr>
                                 <td class="col-md-4">
-                                    <div class="io-line">Defined in <a href="" data-line="106" class="link-to-prism">src/app/core/api/api.types.ts:106</a></div>
+                                    <div class="io-line">Defined in <a href="" data-line="160" class="link-to-prism">src/app/core/api/api.types.ts:160</a></div>
                                 </td>
                             </tr>
 
-                    <tr>
-                        <td class="col-md-4">
-                            <div class="io-description"><p>ISO <code>yyyy-MM-dd</code>, as an <code>&lt;input type=&quot;date&quot;&gt;</code> produces it.</p>
-</div>
-                        </td>
-                    </tr>
+                </tbody>
+            </table>
+            <table class="table table-sm table-bordered">
+                <tbody>
+                        <tr>
+                            <td class="col-md-4">
+                                <a name="deletedBy"></a>
+                                <span class="name "><b>deletedBy</b>
+                                    <a href="#deletedBy">
+                                        <span class="icon ion-ios-link"></span>
+                                    </a>
+                                </span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="col-md-4">
+                                <code>deletedBy:     <code>string | null</code>
+</code>
+                            </td>
+                        </tr>
+
+
+                            <tr>
+                                <td class="col-md-4">
+                                    <i>Type : </i>    <code>string | null</code>
+
+                                </td>
+                            </tr>
+
+
+
+
+
+                            <tr>
+                                <td class="col-md-4">
+                                    <div class="io-line">Defined in <a href="" data-line="161" class="link-to-prism">src/app/core/api/api.types.ts:161</a></div>
+                                </td>
+                            </tr>
+
+                </tbody>
+            </table>
+            <table class="table table-sm table-bordered">
+                <tbody>
+                        <tr>
+                            <td class="col-md-4">
+                                <a name="errorCode"></a>
+                                <span class="name "><b>errorCode</b>
+                                    <a href="#errorCode">
+                                        <span class="icon ion-ios-link"></span>
+                                    </a>
+                                </span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="col-md-4">
+                                <code>errorCode:     <code>string | null</code>
+</code>
+                            </td>
+                        </tr>
+
+
+                            <tr>
+                                <td class="col-md-4">
+                                    <i>Type : </i>    <code>string | null</code>
+
+                                </td>
+                            </tr>
+
+
+
+
+
+                            <tr>
+                                <td class="col-md-4">
+                                    <div class="io-line">Defined in <a href="" data-line="157" class="link-to-prism">src/app/core/api/api.types.ts:157</a></div>
+                                </td>
+                            </tr>
+
+                </tbody>
+            </table>
+            <table class="table table-sm table-bordered">
+                <tbody>
+                        <tr>
+                            <td class="col-md-4">
+                                <a name="id"></a>
+                                <span class="name "><b>id</b>
+                                    <a href="#id">
+                                        <span class="icon ion-ios-link"></span>
+                                    </a>
+                                </span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="col-md-4">
+                                <code>id:         <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+</code>
+                            </td>
+                        </tr>
+
+
+                            <tr>
+                                <td class="col-md-4">
+                                    <i>Type : </i>        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+
+                                </td>
+                            </tr>
+
+
+
+
+
+                            <tr>
+                                <td class="col-md-4">
+                                    <div class="io-line">Defined in <a href="" data-line="153" class="link-to-prism">src/app/core/api/api.types.ts:153</a></div>
+                                </td>
+                            </tr>
+
                 </tbody>
             </table>
             <table class="table table-sm table-bordered">
@@ -289,7 +474,7 @@ the other fields, so the 400 is a backstop rather than something a user can reac
 
                             <tr>
                                 <td class="col-md-4">
-                                    <div class="io-line">Defined in <a href="" data-line="103" class="link-to-prism">src/app/core/api/api.types.ts:103</a></div>
+                                    <div class="io-line">Defined in <a href="" data-line="154" class="link-to-prism">src/app/core/api/api.types.ts:154</a></div>
                                 </td>
                             </tr>
 
@@ -299,9 +484,9 @@ the other fields, so the 400 is a backstop rather than something a user can reac
                 <tbody>
                         <tr>
                             <td class="col-md-4">
-                                <a name="titleContains"></a>
-                                <span class="name "><b>titleContains</b>
-                                    <a href="#titleContains">
+                                <a name="protocolType"></a>
+                                <span class="name "><b>protocolType</b>
+                                    <a href="#protocolType">
                                         <span class="icon ion-ios-link"></span>
                                     </a>
                                 </span>
@@ -309,7 +494,7 @@ the other fields, so the 400 is a backstop rather than something a user can reac
                         </tr>
                         <tr>
                             <td class="col-md-4">
-                                <code>titleContains:         <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+                                <code>protocolType:         <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
 </code>
                             </td>
                         </tr>
@@ -328,7 +513,7 @@ the other fields, so the 400 is a backstop rather than something a user can reac
 
                             <tr>
                                 <td class="col-md-4">
-                                    <div class="io-line">Defined in <a href="" data-line="104" class="link-to-prism">src/app/core/api/api.types.ts:104</a></div>
+                                    <div class="io-line">Defined in <a href="" data-line="156" class="link-to-prism">src/app/core/api/api.types.ts:156</a></div>
                                 </td>
                             </tr>
 
@@ -338,9 +523,9 @@ the other fields, so the 400 is a backstop rather than something a user can reac
                 <tbody>
                         <tr>
                             <td class="col-md-4">
-                                <a name="to"></a>
-                                <span class="name "><b>to</b>
-                                    <a href="#to">
+                                <a name="title"></a>
+                                <span class="name "><b>title</b>
+                                    <a href="#title">
                                         <span class="icon ion-ios-link"></span>
                                     </a>
                                 </span>
@@ -348,7 +533,7 @@ the other fields, so the 400 is a backstop rather than something a user can reac
                         </tr>
                         <tr>
                             <td class="col-md-4">
-                                <code>to:         <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+                                <code>title:         <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
 </code>
                             </td>
                         </tr>
@@ -367,7 +552,85 @@ the other fields, so the 400 is a backstop rather than something a user can reac
 
                             <tr>
                                 <td class="col-md-4">
-                                    <div class="io-line">Defined in <a href="" data-line="107" class="link-to-prism">src/app/core/api/api.types.ts:107</a></div>
+                                    <div class="io-line">Defined in <a href="" data-line="155" class="link-to-prism">src/app/core/api/api.types.ts:155</a></div>
+                                </td>
+                            </tr>
+
+                </tbody>
+            </table>
+            <table class="table table-sm table-bordered">
+                <tbody>
+                        <tr>
+                            <td class="col-md-4">
+                                <a name="uploadedAt"></a>
+                                <span class="name "><b>uploadedAt</b>
+                                    <a href="#uploadedAt">
+                                        <span class="icon ion-ios-link"></span>
+                                    </a>
+                                </span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="col-md-4">
+                                <code>uploadedAt:         <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+</code>
+                            </td>
+                        </tr>
+
+
+                            <tr>
+                                <td class="col-md-4">
+                                    <i>Type : </i>        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+
+                                </td>
+                            </tr>
+
+
+
+
+
+                            <tr>
+                                <td class="col-md-4">
+                                    <div class="io-line">Defined in <a href="" data-line="159" class="link-to-prism">src/app/core/api/api.types.ts:159</a></div>
+                                </td>
+                            </tr>
+
+                </tbody>
+            </table>
+            <table class="table table-sm table-bordered">
+                <tbody>
+                        <tr>
+                            <td class="col-md-4">
+                                <a name="uploadedBy"></a>
+                                <span class="name "><b>uploadedBy</b>
+                                    <a href="#uploadedBy">
+                                        <span class="icon ion-ios-link"></span>
+                                    </a>
+                                </span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="col-md-4">
+                                <code>uploadedBy:         <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+</code>
+                            </td>
+                        </tr>
+
+
+                            <tr>
+                                <td class="col-md-4">
+                                    <i>Type : </i>        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+
+                                </td>
+                            </tr>
+
+
+
+
+
+                            <tr>
+                                <td class="col-md-4">
+                                    <div class="io-line">Defined in <a href="" data-line="158" class="link-to-prism">src/app/core/api/api.types.ts:158</a></div>
                                 </td>
                             </tr>
 
@@ -584,7 +847,7 @@ export interface DeletedProtocolPage {
        <script>
             var COMPODOC_CURRENT_PAGE_DEPTH = 1;
             var COMPODOC_CURRENT_PAGE_CONTEXT = 'interface';
-            var COMPODOC_CURRENT_PAGE_URL = 'ProtocolFilter.html';
+            var COMPODOC_CURRENT_PAGE_URL = 'ArchivedProtocol.html';
             var MAX_SEARCH_RESULTS = 15;
        </script>
 

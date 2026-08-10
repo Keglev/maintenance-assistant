@@ -219,7 +219,19 @@ nothing here touches a header.</p>
                             </li>
                             <li>
                                 <span class="reference-badge reference-badge--method" aria-hidden="true">M</span>
+                                <a href="#deletedProtocols" >deletedProtocols</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--method" aria-hidden="true">M</span>
                                 <a href="#deleteProtocol" >deleteProtocol</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--method" aria-hidden="true">M</span>
+                                <a href="#editProtocol" >editProtocol</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--method" aria-hidden="true">M</span>
+                                <a href="#getArchivedDocument" >getArchivedDocument</a>
                             </li>
                             <li>
                                 <span class="reference-badge reference-badge--method" aria-hidden="true">M</span>
@@ -283,8 +295,8 @@ nothing here touches a header.</p>
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="41"
-                                    class="link-to-prism">src/app/core/api/maintenance-api.service.ts:41</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="43"
+                                    class="link-to-prism">src/app/core/api/maintenance-api.service.ts:43</a></div>
                         </td>
                     </tr>
 
@@ -351,6 +363,99 @@ a better feature and be a worse answer.</p>
         <tbody>
             <tr>
                 <td class="col-md-4">
+                    <a name="deletedProtocols"></a>
+                    <span class="name">
+                        <span ><b>deletedProtocols</b></span>
+                        <a href="#deletedProtocols"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+<code>deletedProtocols(machineNo: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank">string</a>, page: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/number" target="_blank">number</a>, size: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/number" target="_blank">number</a>)</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="134"
+                                    class="link-to-prism">src/app/core/api/maintenance-api.service.ts:134</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                        <div class="io-description"><p>One page of the archive: what was removed, by whom and why. Admin only, server-side.</p>
+</div>
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                                <td>Type</td>
+                                            <td>Optional</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>machineNo</td>
+                                            <td>
+                                                            <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                        <tr>
+                                                <td>page</td>
+                                            <td>
+                                                            <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/number" target="_blank" >number</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                        <tr>
+                                                <td>size</td>
+                                            <td>
+                                                            <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/number" target="_blank" >number</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>    <code>Observable&lt;DeletedProtocolPage&gt;</code>
+
+                        </div>
+                            <div class="io-description">
+                                
+                            </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
                     <a name="deleteProtocol"></a>
                     <span class="name">
                         <span ><b>deleteProtocol</b></span>
@@ -360,22 +465,193 @@ a better feature and be a worse answer.</p>
             </tr>
             <tr>
                 <td class="col-md-4">
-<code>deleteProtocol(protocolId: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank">string</a>)</code>
+<code>deleteProtocol(protocolId: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank">string</a>, comment: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank">string</a>)</code>
                 </td>
             </tr>
 
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="105"
-                                    class="link-to-prism">src/app/core/api/maintenance-api.service.ts:105</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="113"
+                                    class="link-to-prism">src/app/core/api/maintenance-api.service.ts:113</a></div>
                         </td>
                     </tr>
 
 
             <tr>
                 <td class="col-md-4">
-                        <div class="io-description"><p>Removes a protocol permanently: chunks, row and file. Admin only, server-side.</p>
+                        <div class="io-description"><p>Removes a protocol from the corpus and moves it into the archive. Admin only, server-side.</p>
+<p>The comment travels in a body rather than a query string, matching the endpoint: a sentence
+about a named colleague&#39;s mistake would otherwise land in access logs, proxy logs and browser
+history — three places nobody audited for it.</p>
+</div>
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                                <td>Type</td>
+                                            <td>Optional</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>protocolId</td>
+                                            <td>
+                                                            <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                        <tr>
+                                                <td>comment</td>
+                                            <td>
+                                                            <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>    <code>Observable&lt;void&gt;</code>
+
+                        </div>
+                            <div class="io-description">
+                                
+                            </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="editProtocol"></a>
+                    <span class="name">
+                        <span ><b>editProtocol</b></span>
+                        <a href="#editProtocol"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+<code>editProtocol(protocolId: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank">string</a>, correction: <a href="../interfaces/ProtocolCorrection.html" target="_self">ProtocolCorrection</a>)</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="126"
+                                    class="link-to-prism">src/app/core/api/maintenance-api.service.ts:126</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                        <div class="io-description"><p>Corrects a protocol in place. Answers 202: the text is fixed, the search index is not yet.</p>
+<p>Re-indexing is the backend&#39;s condition of the edit rather than a follow-up call from here —
+a correction that could be applied without one would leave retrieval matching text the
+document no longer contains (ADR-006 revision).</p>
+</div>
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                                <td>Type</td>
+                                            <td>Optional</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>protocolId</td>
+                                            <td>
+                                                            <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                        <tr>
+                                                <td>correction</td>
+                                            <td>
+                                                            <code><a href="../interfaces/ProtocolCorrection.html" target="_self" >ProtocolCorrection</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>        <code><a href="../interfaces/UploadAccepted.html" target="_self" >Observable&lt;UploadAccepted&gt;</a></code>
+
+                        </div>
+                            <div class="io-description">
+                                
+                            </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="getArchivedDocument"></a>
+                    <span class="name">
+                        <span ><b>getArchivedDocument</b></span>
+                        <a href="#getArchivedDocument"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+<code>getArchivedDocument(protocolId: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank">string</a>)</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="152"
+                                    class="link-to-prism">src/app/core/api/maintenance-api.service.ts:152</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                        <div class="io-description"><p>The document of an archived protocol.</p>
+<p>A third document call rather than a parameter on one, for the reason the second one exists:
+they differ in what they are allowed to serve. This is the only door back to a removed
+protocol&#39;s content, and it is what makes the archive evidence rather than a tombstone.</p>
 </div>
 
                             <div class="io-description">
@@ -406,7 +682,7 @@ a better feature and be a worse answer.</p>
                                 </table>
                             </div>
                         <div class="io-description">
-                            <b>Returns : </b>    <code>Observable&lt;void&gt;</code>
+                            <b>Returns : </b>    <code>Observable&lt;HttpResponse&lt;Blob&gt;&gt;</code>
 
                         </div>
                             <div class="io-description">
@@ -436,8 +712,8 @@ a better feature and be a worse answer.</p>
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="59"
-                                    class="link-to-prism">src/app/core/api/maintenance-api.service.ts:59</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="61"
+                                    class="link-to-prism">src/app/core/api/maintenance-api.service.ts:61</a></div>
                         </td>
                     </tr>
 
@@ -514,8 +790,8 @@ half: <code>Content-Type</code> decides whether the browser renders the document
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="97"
-                                    class="link-to-prism">src/app/core/api/maintenance-api.service.ts:97</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="99"
+                                    class="link-to-prism">src/app/core/api/maintenance-api.service.ts:99</a></div>
                         </td>
                     </tr>
 
@@ -587,8 +863,8 @@ kind of difference that should be visible at the call site.</p>
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="30"
-                                    class="link-to-prism">src/app/core/api/maintenance-api.service.ts:30</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="32"
+                                    class="link-to-prism">src/app/core/api/maintenance-api.service.ts:32</a></div>
                         </td>
                     </tr>
 
@@ -626,8 +902,8 @@ kind of difference that should be visible at the call site.</p>
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="72"
-                                    class="link-to-prism">src/app/core/api/maintenance-api.service.ts:72</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="74"
+                                    class="link-to-prism">src/app/core/api/maintenance-api.service.ts:74</a></div>
                         </td>
                     </tr>
 
@@ -729,8 +1005,8 @@ uploaded, and a review screen that loads all of them gets slower every month.</p
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="110"
-                                    class="link-to-prism">src/app/core/api/maintenance-api.service.ts:110</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="160"
+                                    class="link-to-prism">src/app/core/api/maintenance-api.service.ts:160</a></div>
                         </td>
                     </tr>
 
@@ -768,8 +1044,8 @@ uploaded, and a review screen that loads all of them gets slower every month.</p
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="115"
-                                    class="link-to-prism">src/app/core/api/maintenance-api.service.ts:115</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="165"
+                                    class="link-to-prism">src/app/core/api/maintenance-api.service.ts:165</a></div>
                         </td>
                     </tr>
 
@@ -850,7 +1126,7 @@ uploaded, and a review screen that loads all of them gets slower every month.</p
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="27" class="link-to-prism">src/app/core/api/maintenance-api.service.ts:27</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="29" class="link-to-prism">src/app/core/api/maintenance-api.service.ts:29</a></div>
                         </td>
                     </tr>
 
@@ -883,7 +1159,7 @@ uploaded, and a review screen that loads all of them gets slower every month.</p
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="26" class="link-to-prism">src/app/core/api/maintenance-api.service.ts:26</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="28" class="link-to-prism">src/app/core/api/maintenance-api.service.ts:28</a></div>
                         </td>
                     </tr>
 
@@ -902,8 +1178,10 @@ import { Observable } from &#x27;rxjs&#x27;;
 
 import { ConfigService } from &#x27;../config/config.service&#x27;;
 import {
+  DeletedProtocolPage,
   Machine,
   NO_FILTER,
+  ProtocolCorrection,
   ProtocolFilter,
   ProtocolPage,
   QueryAnswer,
@@ -999,9 +1277,57 @@ export class MaintenanceApiService {
     });
   }
 
-  /** Removes a protocol permanently: chunks, row and file. Admin only, server-side. */
-  deleteProtocol(protocolId: string): Observable&lt;void&gt; {
-    return this.http.delete&lt;void&gt;(&#x60;${this.apiBaseUrl}/moderation/protocols/${protocolId}&#x60;);
+  /**
+   * Removes a protocol from the corpus and moves it into the archive. Admin only, server-side.
+   *
+   * The comment travels in a body rather than a query string, matching the endpoint: a sentence
+   * about a named colleague&#x27;s mistake would otherwise land in access logs, proxy logs and browser
+   * history — three places nobody audited for it.
+   */
+  deleteProtocol(protocolId: string, comment: string): Observable&lt;void&gt; {
+    return this.http.delete&lt;void&gt;(&#x60;${this.apiBaseUrl}/moderation/protocols/${protocolId}&#x60;, {
+      body: { comment },
+    });
+  }
+
+  /**
+   * Corrects a protocol in place. Answers 202: the text is fixed, the search index is not yet.
+   *
+   * Re-indexing is the backend&#x27;s condition of the edit rather than a follow-up call from here —
+   * a correction that could be applied without one would leave retrieval matching text the
+   * document no longer contains (ADR-006 revision).
+   */
+  editProtocol(protocolId: string, correction: ProtocolCorrection): Observable&lt;UploadAccepted&gt; {
+    return this.http.put&lt;UploadAccepted&gt;(
+      &#x60;${this.apiBaseUrl}/moderation/protocols/${protocolId}&#x60;,
+      correction,
+    );
+  }
+
+  /** One page of the archive: what was removed, by whom and why. Admin only, server-side. */
+  deletedProtocols(machineNo: string, page: number, size: number): Observable&lt;DeletedProtocolPage&gt; {
+    let params &#x3D; new HttpParams().set(&#x27;page&#x27;, page).set(&#x27;size&#x27;, size);
+    if (machineNo) {
+      params &#x3D; params.set(&#x27;machineNo&#x27;, machineNo);
+    }
+    return this.http.get&lt;DeletedProtocolPage&gt;(
+      &#x60;${this.apiBaseUrl}/moderation/protocols/deleted&#x60;,
+      { params },
+    );
+  }
+
+  /**
+   * The document of an archived protocol.
+   *
+   * A third document call rather than a parameter on one, for the reason the second one exists:
+   * they differ in what they are allowed to serve. This is the only door back to a removed
+   * protocol&#x27;s content, and it is what makes the archive evidence rather than a tombstone.
+   */
+  getArchivedDocument(protocolId: string): Observable&lt;HttpResponse&lt;Blob&gt;&gt; {
+    return this.http.get(
+      &#x60;${this.apiBaseUrl}/moderation/protocols/deleted/${protocolId}/document&#x60;,
+      { observe: &#x27;response&#x27;, responseType: &#x27;blob&#x27; },
+    );
   }
 
   /** The caller&#x27;s own uploads and what became of them. Schichtleiter only, server-side. */
@@ -1030,6 +1356,10 @@ export type ApiFailure &#x3D;
   | &#x27;tooLarge&#x27;
   /** The file was empty, not a .txt, or not text at all — the upload guards&#x27; 400 codes. */
   | &#x27;rejectedContent&#x27;
+  /** An edit tried to change the machine or the type — the identity lock (ADR-006 revision). */
+  | &#x27;identityLocked&#x27;
+  /** The protocol is already in the archive, and archived is final. */
+  | &#x27;archived&#x27;
   | &#x27;forbidden&#x27;
   | &#x27;notFound&#x27;
   | &#x27;generic&#x27;;
@@ -1062,7 +1392,15 @@ export function classify(error: unknown): ApiFailure {
     case 413:
       return &#x27;tooLarge&#x27;;
     case 400:
+      if (reasonOf(error) &#x3D;&#x3D;&#x3D; &#x27;PROTOCOL_IDENTITY_LOCKED&#x27;) {
+        return &#x27;identityLocked&#x27;;
+      }
       return REJECTION_CODES.has(reasonOf(error) ?? &#x27;&#x27;) ? &#x27;rejectedContent&#x27; : &#x27;generic&#x27;;
+    // Only one thing answers 409 in this API: an edit of a protocol that is already archived. The
+    // status alone would be enough, and the code is still checked — a second conflict added later
+    // must not silently inherit this sentence.
+    case 409:
+      return reasonOf(error) &#x3D;&#x3D;&#x3D; &#x27;PROTOCOL_ARCHIVED&#x27; ? &#x27;archived&#x27; : &#x27;generic&#x27;;
     // The protocol row exists and its file does not, or the id is unknown — the backend answers
     // the same 404 for both on purpose. For a source link it means one specific thing worth
     // saying: the evidence behind this claim can no longer be opened.
@@ -1085,7 +1423,15 @@ export function classify(error: unknown): ApiFailure {
  * technicality was hit. A 400 with any other code stays generic: those are field-level mistakes the
  * form should have prevented.
  */
-const REJECTION_CODES &#x3D; new Set([&#x27;EMPTY_FILE&#x27;, &#x27;UNSUPPORTED_TYPE&#x27;, &#x27;NOT_TEXT&#x27;]);
+const REJECTION_CODES &#x3D; new Set([
+  &#x27;EMPTY_FILE&#x27;,
+  &#x27;UNSUPPORTED_TYPE&#x27;,
+  &#x27;NOT_TEXT&#x27;,
+  // A correction that is empty or past the size cap. The same rules as an upload, checked by the
+  // same property, so it collapses to the same sentence rather than a fourth one saying the same
+  // thing about a different verb.
+  &#x27;INVALID_CONTENT&#x27;,
+]);
 
 /** The body is JSON in practice and untyped in principle; a missing code is simply not a match. */
 function reasonOf(error: HttpErrorResponse): string | null {

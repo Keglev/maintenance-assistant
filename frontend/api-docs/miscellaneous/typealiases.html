@@ -143,6 +143,9 @@
                             <a href="#ApiFailure" title="src/app/core/api/maintenance-api.service.ts" class="reference-link "><span class="reference-badge reference-badge--typealias" aria-hidden="true">T</span><span class="reference-link-label"><b>ApiFailure</b>&nbsp;&nbsp;&nbsp;(src/.../maintenance-api.service.ts)</span></a>
                         </li>
                         <li>
+                            <a href="#DocumentSource" title="src/app/shared/protocol/protocol-dialog.ts" class="reference-link "><span class="reference-badge reference-badge--typealias" aria-hidden="true">T</span><span class="reference-link-label"><b>DocumentSource</b>&nbsp;&nbsp;&nbsp;(src/.../protocol-dialog.ts)</span></a>
+                        </li>
+                        <li>
                             <a href="#FontScale" title="src/app/core/theme/font-scale.service.ts" class="reference-link "><span class="reference-badge reference-badge--typealias" aria-hidden="true">T</span><span class="reference-link-label"><b>FontScale</b>&nbsp;&nbsp;&nbsp;(src/.../font-scale.service.ts)</span></a>
                         </li>
                         <li>
@@ -216,7 +219,37 @@ can actually act on — wait a moment, come back tomorrow, or ask someone for a 
             </tr>
             <tr>
                 <td class="col-md-4">
-                    <code>    <code>&quot;rateLimited&quot; | &quot;budgetExhausted&quot; | &quot;unavailable&quot; | &quot;tooLarge&quot; | &quot;rejectedContent&quot; | &quot;forbidden&quot; | &quot;notFound&quot; | &quot;generic&quot;</code>
+                    <code>    <code>&quot;rateLimited&quot; | &quot;budgetExhausted&quot; | &quot;unavailable&quot; | &quot;tooLarge&quot; | &quot;rejectedContent&quot; | &quot;identityLocked&quot; | &quot;archived&quot; | &quot;forbidden&quot; | &quot;notFound&quot; | &quot;generic&quot;</code>
+</code>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</section>
+    <h3>src/app/shared/protocol/protocol-dialog.ts</h3>
+    <section data-compodoc="block-typealias">
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="DocumentSource"></a>
+                    <span class="name "><b>DocumentSource</b><a href="#DocumentSource"><span class="icon ion-ios-link"></span></a></span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-description"><p>Which endpoint a viewer reads its document from.</p>
+<p>Three paths for the same file, and they differ in exactly one thing: who may take them, and what
+they are allowed to serve. <code>citation</code> is the shop-floor path; <code>moderation</code> is the admin&#39;s view of
+the live corpus; <code>archive</code> is the only door back to a protocol that was removed — the other two
+answer 404 for it. A single endpoint with a flag would put that distinction in a parameter
+instead of in the URL, where the authorisation rule can be read.</p>
+</div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                    <code>    <code>&quot;citation&quot; | &quot;moderation&quot; | &quot;archive&quot;</code>
 </code>
                 </td>
             </tr>

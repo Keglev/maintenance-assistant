@@ -718,6 +718,10 @@ export type ApiFailure &#x3D;
   | &#x27;rateLimited&#x27;
   | &#x27;budgetExhausted&#x27;
   | &#x27;unavailable&#x27;
+  /** The file is larger than the server&#x27;s limit (413). */
+  | &#x27;tooLarge&#x27;
+  /** The file was empty, not a .txt, or not text at all — the upload guards&#x27; 400 codes. */
+  | &#x27;rejectedContent&#x27;
   | &#x27;forbidden&#x27;
   | &#x27;notFound&#x27;
   | &#x27;generic&#x27;;
@@ -744,6 +748,13 @@ export function classify(error: unknown): ApiFailure {
       return reasonOf(error) &#x3D;&#x3D;&#x3D; &#x27;BUDGET_EXHAUSTED&#x27; ? &#x27;budgetExhausted&#x27; : &#x27;unavailable&#x27;;
     case 403:
       return &#x27;forbidden&#x27;;
+    // The upload guards. 413 is the container refusing the bytes; the 400 codes are the endpoint
+    // refusing the content. Matched on the &#x60;reason&#x60; code rather than on the sentence, for the same
+    // reason the query path does: English prose from another layer is not an API.
+    case 413:
+      return &#x27;tooLarge&#x27;;
+    case 400:
+      return REJECTION_CODES.has(reasonOf(error) ?? &#x27;&#x27;) ? &#x27;rejectedContent&#x27; : &#x27;generic&#x27;;
     // The protocol row exists and its file does not, or the id is unknown — the backend answers
     // the same 404 for both on purpose. For a source link it means one specific thing worth
     // saying: the evidence behind this claim can no longer be opened.
@@ -757,6 +768,16 @@ export function classify(error: unknown): ApiFailure {
       return &#x27;generic&#x27;;
   }
 }
+
+/**
+ * The upload-rejection codes the backend sends with a 400.
+ *
+ * &lt;p&gt;All three mean the same thing to the person at the keyboard — this file is not something the
+ * system can read — so they collapse to one message rather than three that differ only in which
+ * technicality was hit. A 400 with any other code stays generic: those are field-level mistakes the
+ * form should have prevented.
+ */
+const REJECTION_CODES &#x3D; new Set([&#x27;EMPTY_FILE&#x27;, &#x27;UNSUPPORTED_TYPE&#x27;, &#x27;NOT_TEXT&#x27;]);
 
 /** The body is JSON in practice and untyped in principle; a missing code is simply not a match. */
 function reasonOf(error: HttpErrorResponse): string | null {

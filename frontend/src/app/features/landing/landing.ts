@@ -1,4 +1,5 @@
-import { Component, effect, inject, signal } from '@angular/core';
+import { DOCUMENT } from '@angular/common';
+import { Component, ElementRef, effect, inject, signal, viewChild } from '@angular/core';
 import { Router } from '@angular/router';
 
 import { AuthService } from '../../core/auth/auth.service';
@@ -56,6 +57,9 @@ export class Landing {
   /** Set when this tab arrived here from a sign-out, so the landing page can confirm it happened. */
   protected readonly signedOut = signal(false);
 
+  private readonly document = inject(DOCUMENT);
+  private readonly demoBox = viewChild<ElementRef<HTMLElement>>('demoBox');
+
   constructor() {
     // Read once, on arrival, and cleared as it is read: a "you have been signed out" that reappeared
     // on every later visit would stop meaning anything.
@@ -79,5 +83,28 @@ export class Landing {
    */
   protected signIn(username?: string): void {
     this.auth.login(username);
+  }
+
+  /**
+   * Takes the visitor to the demo accounts further down the page.
+   *
+   * **Focus moves with the scroll, not only the viewport.** A scroll that leaves the keyboard where
+   * it was sends the next Tab back to the top of the page, and a screen reader never learns that
+   * anything happened — the button would work for a mouse and silently fail for everyone else. The
+   * target carries `tabindex="-1"` so it can receive focus without joining the tab order.
+   *
+   * Smooth unless the operating system asked for less motion, in which case it jumps: a full-page
+   * scroll is exactly the kind of movement that setting exists to stop.
+   */
+  protected jumpToDemo(): void {
+    const target = this.demoBox()?.nativeElement;
+    if (!target) {
+      return;
+    }
+    const reduced = this.document.defaultView?.matchMedia?.('(prefers-reduced-motion: reduce)')
+      ?.matches;
+    target.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'start' });
+    // preventScroll: the scroll above is the one that should happen; focus must not fight it.
+    target.focus({ preventScroll: true });
   }
 }

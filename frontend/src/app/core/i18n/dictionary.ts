@@ -101,6 +101,7 @@ export interface Dictionary {
     readonly demoPassword: string;
     /** "Sign in as operator" — the username is the argument, and it is never translated. */
     readonly signInAs: (username: string) => string;
+    readonly tryDemo: string;
     readonly signIn: string;
     readonly signInHint: string;
     readonly plateModel: string;
@@ -288,6 +289,7 @@ export const DE: Dictionary = {
       'Bewusst öffentliche Demo-Umgebung: eigener, isolierter Realm, ausschließlich synthetische Daten, Anfragen begrenzt, Sitzung nach 15 Minuten beendet.',
     demoPassword: 'Passwort für alle',
     signInAs: (username) => `Als ${username} anmelden`,
+    tryDemo: 'Demo ausprobieren',
     signIn: 'Anmelden',
     signInHint:
       'Die Anmeldung läuft über Keycloak. Sie werden dorthin weitergeleitet und kommen anschließend hierher zurück.',
@@ -500,6 +502,7 @@ export const EN: Dictionary = {
       'A deliberately public demo environment: its own isolated realm, synthetic data only, rate-limited requests, sessions ending after 15 minutes.',
     demoPassword: 'Password for all',
     signInAs: (username) => `Sign in as ${username}`,
+    tryDemo: 'Try the demo',
     signIn: 'Sign in',
     signInHint:
       'Sign-in is handled by Keycloak. You will be redirected there and returned here afterwards.',

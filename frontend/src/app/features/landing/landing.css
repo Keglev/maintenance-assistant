@@ -280,3 +280,17 @@
   letter-spacing: 0.06em;
   color: var(--c-ink-muted);
 }
+
+.hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-3);
+  margin-top: var(--s-2);
+}
+
+/* The jump lands here, and the focus ring on the card is the only signal a keyboard user gets that
+   they arrived — so it is kept rather than suppressed. */
+.demo:focus-visible {
+  outline: 3px solid var(--c-brand);
+  outline-offset: 3px;
+}

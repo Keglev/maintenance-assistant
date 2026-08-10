@@ -161,6 +161,23 @@ describe('Landing', () => {
     ).toBeNull();
   });
 
+  it('jumps to the demo accounts and takes the keyboard with it', async () => {
+    const fixture = await render();
+    const element = fixture.nativeElement as HTMLElement;
+    const demo = element.querySelector('[data-testid="demo-users"]') as HTMLElement;
+    // jsdom implements no layout, so scrollIntoView is a stub to be observed rather than measured.
+    demo.scrollIntoView = vi.fn();
+
+    (element.querySelector('[data-testid="try-demo"]') as HTMLButtonElement).click();
+    await fixture.whenStable();
+
+    expect(demo.scrollIntoView).toHaveBeenCalled();
+    // The half that a scroll alone would miss: without this the next Tab goes back to the top of
+    // the page and a screen reader never learns that anything moved.
+    expect(document.activeElement).toBe(demo);
+    expect(demo.getAttribute('tabindex')).toBe('-1');
+  });
+
   it('repeats the theme control at the foot of the pitch', async () => {
     const fixture = await render();
 

@@ -456,3 +456,11 @@ textarea:disabled {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* The counterpart to .optional: a required field says so where the eye already is, next to its
+   label, rather than only by a submit button that refuses to light up. */
+.required {
+  font-weight: 400;
+  font-style: normal;
+  color: var(--c-ink-hint);
+}

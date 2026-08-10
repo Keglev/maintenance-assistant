@@ -53,7 +53,6 @@ export class Upload {
   protected readonly type = signal<'STOERUNG' | 'WARTUNG'>('STOERUNG');
   protected readonly title = signal('');
   protected readonly errorCode = signal('');
-  protected readonly language = signal<'de' | 'en'>('de');
 
   protected readonly submitting = signal(false);
   protected readonly refreshing = signal(false);
@@ -71,12 +70,17 @@ export class Upload {
   /**
    * Whether there is something to submit.
    *
-   * Deliberately shallow: a machine, and content in whichever mode is active. Size caps and rate
-   * limits belong to the upload-guards work and are not smuggled in here — a validation rule that
-   * exists only in the browser is a suggestion, and the place to make it a rule is the backend.
+   * A machine, a title, and content in whichever mode is active. The title is required in both
+   * modes because a protocol without one cannot be reviewed in any list — "Meine Uploads" would
+   * show a machine number and a date, and the Schichtleiter would have to open each row to find out
+   * which one is which.
+   *
+   * Deliberately shallow beyond that: size caps and rate limits belong to the upload-guards work
+   * and are not smuggled in here — a validation rule that exists only in the browser is a
+   * suggestion, and the place to make it a rule is the backend.
    */
   protected readonly canSubmit = computed(() => {
-    if (!this.machineNo()) {
+    if (!this.machineNo() || !this.title().trim()) {
       return false;
     }
     return this.mode() === 'file' ? this.file() !== null : this.text().trim().length > 0;
@@ -127,10 +131,11 @@ export class Upload {
     // The upload endpoint takes the plant identifier, not the UUID: it resolves the machine itself.
     form.append('machine', this.machineNo());
     form.append('type', this.type());
-    form.append('language', this.language());
-    if (this.title().trim()) {
-      form.append('title', this.title().trim());
-    }
+    // No `language` part. Retrieval is language-agnostic by architecture — bge-m3 embeds DE and EN
+    // into one space and the answer is pinned to the QUESTION's language — so the column never
+    // reached a decision, and asking a Schichtleiter to classify their own prose was a question
+    // whose answer nothing read. The endpoint declares the parameter optional; see DECISIONS.txt.
+    form.append('title', this.title().trim());
     if (this.errorCode().trim()) {
       form.append('errorCode', this.errorCode().trim());
     }

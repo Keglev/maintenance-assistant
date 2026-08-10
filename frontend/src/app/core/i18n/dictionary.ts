@@ -172,7 +172,6 @@ export interface Dictionary {
     readonly typeMaintenance: string;
     readonly title: string;
     readonly errorCode: string;
-    readonly language: string;
     readonly submit: string;
     readonly submitting: string;
     readonly accepted: string;
@@ -188,6 +187,7 @@ export interface Dictionary {
     readonly statusIndexed: string;
     readonly statusFailed: string;
     readonly optional: string;
+    readonly required: string;
   };
 }
 
@@ -374,7 +374,6 @@ export const DE: Dictionary = {
     typeMaintenance: 'Wartung',
     title: 'Titel',
     errorCode: 'Fehlercode',
-    language: 'Sprache des Dokuments',
     submit: 'Hochladen',
     submitting: 'Wird hochgeladen …',
     accepted: 'Protokoll angenommen.',
@@ -391,6 +390,7 @@ export const DE: Dictionary = {
     statusIndexed: 'Durchsuchbar',
     statusFailed: 'Fehlgeschlagen',
     optional: 'optional',
+    required: 'Pflichtfeld',
   },
 };
 
@@ -574,7 +574,6 @@ export const EN: Dictionary = {
     typeMaintenance: 'Maintenance',
     title: 'Title',
     errorCode: 'Fault code',
-    language: 'Document language',
     submit: 'Upload',
     submitting: 'Uploading …',
     accepted: 'Protocol accepted.',
@@ -591,6 +590,7 @@ export const EN: Dictionary = {
     statusIndexed: 'Searchable',
     statusFailed: 'Failed',
     optional: 'optional',
+    required: 'required',
   },
 };
 

@@ -26,6 +26,11 @@
   --c-ink: #1b2430;
   --c-ink-muted: #55616f;
   --c-ink-faint: #7c8794;
+  /* Helper text under a label: examples, hints, the sentence that tells a first-time user what to
+     put in a field. Its own token rather than a reuse of --c-ink-muted, because it has to stay
+     readable while reading as secondary in BOTH palettes — and deliberately a neutral, so it can
+     never be mistaken for the green or the amber those two hues are reserved for (NFR-2). */
+  --c-ink-hint: #5a6675;
   --c-line: #d6dbe1;
   --c-line-strong: #b6bfc9;
 
@@ -142,6 +147,7 @@ html[data-theme='dark'] {
   --c-ink: #e7ecf2;
   --c-ink-muted: #a6b3c1;
   --c-ink-faint: #7d8b99;
+  --c-ink-hint: #9dabbb;
   --c-line: #2e3a47;
   --c-line-strong: #43525f;
 
@@ -354,6 +360,14 @@ h3 {
   font-weight: 600;
   font-size: var(--t-sm);
   color: var(--c-ink);
+}
+
+/* Sits under the label and stays there while the field is being filled in — unlike a placeholder,
+   which disappears exactly when a first-time user is trying to follow it. */
+.field-hint {
+  font-size: var(--t-sm);
+  line-height: var(--lh-normal);
+  color: var(--c-ink-hint);
 }
 
 .optional {

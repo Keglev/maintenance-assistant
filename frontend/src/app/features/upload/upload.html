@@ -3,10 +3,61 @@
 <p class="page-lead">{{ t().upload.intro }}</p>
 
 <form class="upload-form" (ngSubmit)="submit()">
-  <label class="field">
-    <span class="field-label">{{ t().upload.file }}</span>
-    <input type="file" accept=".txt,.md,text/plain" data-testid="file-input" (change)="pickFile($event)" />
-  </label>
+  <!-- Two ways in, and typing is the one that matches the shift: the protocol gets written at the
+       end of it, not saved as a .txt first. File stays the default so nothing changes for anyone
+       already used to it. -->
+  <div class="field">
+    <span class="field-label" id="mode-label">{{ t().upload.inputMode }}</span>
+    <div class="mode-switch" role="group" aria-labelledby="mode-label" data-testid="mode-switch">
+      <button
+        type="button"
+        data-testid="mode-file"
+        [class.active]="isMode('file')"
+        [attr.aria-pressed]="isMode('file')"
+        (click)="useMode('file')"
+      >
+        {{ t().upload.modeFile }}
+      </button>
+      <button
+        type="button"
+        data-testid="mode-text"
+        [class.active]="isMode('text')"
+        [attr.aria-pressed]="isMode('text')"
+        (click)="useMode('text')"
+      >
+        {{ t().upload.modeText }}
+      </button>
+    </div>
+  </div>
+
+  @if (isMode('file')) {
+    <label class="field">
+      <span class="field-label">{{ t().upload.file }}</span>
+      <input
+        type="file"
+        accept=".txt,.md,text/plain"
+        data-testid="file-input"
+        #fileInput
+        (change)="pickFile($event)"
+      />
+    </label>
+  } @else {
+    <label class="field">
+      <span class="field-label">{{ t().upload.text }}</span>
+      <!-- Free text on purpose. Structured Symptom/Ursache/Massnahme fields are a later step, and
+           the corpus deliberately contains messy protocols — this form has to be able to produce
+           one, or it would only ever add the tidy half of reality. -->
+      <span class="field-hint" data-testid="text-hint">{{ t().upload.textHint }}</span>
+      <textarea
+        name="protocolText"
+        rows="14"
+        data-testid="text-input"
+        [placeholder]="t().upload.textPlaceholder"
+        [ngModel]="text()"
+        (ngModelChange)="text.set($event)"
+      ></textarea>
+    </label>
+  }
 
   <label class="field">
     <span class="field-label">{{ t().upload.machine }}</span>
@@ -62,7 +113,7 @@
     type="submit"
     class="btn btn-primary"
     data-testid="upload-button"
-    [disabled]="submitting() || !file() || !machineNo()"
+    [disabled]="submitting() || !canSubmit()"
     [attr.aria-busy]="submitting()"
   >
     {{ submitting() ? t().upload.submitting : t().upload.submit }}

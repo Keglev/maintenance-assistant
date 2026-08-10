@@ -5,7 +5,7 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
 import { UploadStatus } from '../../core/api/api.types';
 import { I18nService } from '../../core/i18n/i18n.service';
-import { Upload } from './upload';
+import { Upload, typedProtocolFilename } from './upload';
 
 /**
  * The upload view exists to be honest about a 202: the protocol is stored and not yet searchable.
@@ -130,6 +130,175 @@ describe('Upload', () => {
     ).not.toBeNull();
   });
 
+  // -------------------------------------------------------------------------------------
+  // Typing a protocol instead of picking a file
+  // -------------------------------------------------------------------------------------
+
+  describe('text entry', () => {
+    /** Types into the textarea after switching to text mode, the way a user reaches it. */
+    async function type(fixture: Awaited<ReturnType<typeof render>>, value: string) {
+      const element = fixture.nativeElement as HTMLElement;
+      (element.querySelector('[data-testid="mode-text"]') as HTMLButtonElement).click();
+      await fixture.whenStable();
+
+      const textarea = element.querySelector('[data-testid="text-input"]') as HTMLTextAreaElement;
+      textarea.value = value;
+      textarea.dispatchEvent(new Event('input'));
+      await fixture.whenStable();
+      return element;
+    }
+
+    function submitButton(element: HTMLElement) {
+      return element.querySelector('[data-testid="upload-button"]') as HTMLButtonElement;
+    }
+
+    function chooseMachine(fixture: Awaited<ReturnType<typeof render>>) {
+      (
+        fixture.componentInstance as unknown as { machineNo: { set: (value: string) => void } }
+      ).machineNo.set('PR-03');
+    }
+
+    it('offers the file mode by default, so nothing changes for anyone used to it', async () => {
+      const fixture = await render();
+      const element = fixture.nativeElement as HTMLElement;
+
+      expect(element.querySelector('[data-testid="mode-file"]')?.getAttribute('aria-pressed')).toBe(
+        'true',
+      );
+      expect(element.querySelector('[data-testid="file-input"]')).not.toBeNull();
+      expect(element.querySelector('[data-testid="text-input"]')).toBeNull();
+    });
+
+    it('refuses to submit with neither a file nor any text', async () => {
+      const fixture = await render();
+      chooseMachine(fixture);
+      await fixture.whenStable();
+
+      expect(submitButton(fixture.nativeElement as HTMLElement).disabled).toBe(true);
+    });
+
+    it('refuses to submit text that is only whitespace', async () => {
+      const fixture = await render();
+      chooseMachine(fixture);
+      const element = await type(fixture, '   \n\t  \n ');
+
+      // A protocol of three spaces is an empty protocol that would still reach the embedder.
+      expect(submitButton(element).disabled).toBe(true);
+    });
+
+    it('submits on typed text alone, with no file anywhere', async () => {
+      const fixture = await render();
+      chooseMachine(fixture);
+      const element = await type(fixture, 'Presse kommt nicht auf Druck.');
+
+      expect(submitButton(element).disabled).toBe(false);
+    });
+
+    it('submits on a file alone, as it always did', async () => {
+      const fixture = await render();
+      chooseMachine(fixture);
+      (
+        fixture.componentInstance as unknown as { file: { set: (value: File) => void } }
+      ).file.set(new File(['x'], 'p.txt', { type: 'text/plain' }));
+      await fixture.whenStable();
+
+      expect(submitButton(fixture.nativeElement as HTMLElement).disabled).toBe(false);
+    });
+
+    it('clears the other mode when the mode is switched', async () => {
+      const fixture = await render();
+      chooseMachine(fixture);
+      const element = await type(fixture, 'Etwas getippt.');
+      expect(submitButton(element).disabled).toBe(false);
+
+      (element.querySelector('[data-testid="mode-file"]') as HTMLButtonElement).click();
+      await fixture.whenStable();
+
+      // A stale input the user can no longer see would be submitted as a surprise.
+      expect(submitButton(element).disabled).toBe(true);
+
+      (element.querySelector('[data-testid="mode-text"]') as HTMLButtonElement).click();
+      await fixture.whenStable();
+      expect(
+        (element.querySelector('[data-testid="text-input"]') as HTMLTextAreaElement).value,
+      ).toBe('');
+    });
+
+    /**
+     * THE ASSERTION THIS FEATURE RESTS ON.
+     *
+     * The whole reason no backend change was needed is that a typed protocol arrives as the same
+     * multipart file an uploaded one does. If the File were empty, misnamed or the wrong type, the
+     * pipeline would take it anyway and fail somewhere far from here — so the bytes are read back
+     * out of the request rather than trusted.
+     */
+    it('sends the typed text as a text/plain File through the unchanged upload call', async () => {
+      const written = 'Symptom:\nKein Druck.\n\nMassnahme:\nDichtsatz getauscht.';
+      const fixture = await render();
+      chooseMachine(fixture);
+      const element = await type(fixture, `  ${written}  `);
+
+      submitButton(element).click();
+      const request = httpMock.expectOne('/api/protocols');
+      const body = request.request.body as FormData;
+      const file = body.get('file') as File;
+
+      expect(file).toBeInstanceOf(File);
+      expect(file.type).toBe('text/plain');
+      // Trimmed: the leading spaces are an artefact of typing, not part of the protocol.
+      expect(await file.text()).toBe(written);
+      // The metadata fields apply to both modes and are unchanged by this feature.
+      expect(body.get('machine')).toBe('PR-03');
+      expect(body.get('type')).toBe('STOERUNG');
+      expect(body.get('language')).toBe('de');
+
+      request.flush({ id: 'p-9', status: 'RECEIVED', message: 'queued' }, { status: 202, statusText: 'Accepted' });
+      httpMock.expectOne('/api/protocols/mine').flush(UPLOADS);
+      await fixture.whenStable();
+    });
+
+    it('names a typed protocol after its machine and the moment it was written', async () => {
+      const fixture = await render();
+      chooseMachine(fixture);
+      const element = await type(fixture, 'Etwas.');
+
+      submitButton(element).click();
+      const request = httpMock.expectOne('/api/protocols');
+      const file = (request.request.body as FormData).get('file') as File;
+
+      // The name reaches the volume and comes back in Content-Disposition when the viewer offers
+      // the download, so it has to be readable and ASCII.
+      expect(file.name).toMatch(/^PR-03-\d{8}-\d{6}-eingabe\.txt$/);
+
+      request.flush({ id: 'p-9', status: 'RECEIVED', message: 'queued' }, { status: 202, statusText: 'Accepted' });
+      httpMock.expectOne('/api/protocols/mine').flush(UPLOADS);
+      await fixture.whenStable();
+    });
+
+    it('accepts a typed protocol exactly as it accepts an uploaded one', async () => {
+      const fixture = await render();
+      chooseMachine(fixture);
+      const element = await type(fixture, 'Presse kommt nicht auf Druck.');
+
+      submitButton(element).click();
+      httpMock
+        .expectOne('/api/protocols')
+        .flush({ id: 'p-9', status: 'RECEIVED', message: 'queued' }, { status: 202, statusText: 'Accepted' });
+      // The same refresh as after a file upload — the call is identical, so the aftermath is too.
+      httpMock.expectOne('/api/protocols/mine').flush(UPLOADS);
+      await fixture.whenStable();
+
+      expect(element.querySelector('[data-testid="accepted"]')?.textContent).toContain(
+        'angenommen',
+      );
+      // The textarea is emptied, so the next protocol does not start with the previous one in it.
+      expect(
+        (element.querySelector('[data-testid="text-input"]') as HTMLTextAreaElement).value,
+      ).toBe('');
+      expect(submitButton(element).disabled).toBe(true);
+    });
+  });
+
   it('reports a refused upload as a permission problem', async () => {
     const fixture = await render();
     const element = fixture.nativeElement as HTMLElement;
@@ -147,6 +316,30 @@ describe('Upload', () => {
 
     expect(element.querySelector('[data-testid="upload-failure"]')?.textContent).toContain(
       'Berechtigung',
+    );
+  });
+});
+
+describe('typedProtocolFilename', () => {
+  it('names the file after the machine and the local wall clock, to the second', () => {
+    // Local rather than UTC: the name is read by the person who typed it, and 22:14 means their
+    // shift. Two protocols in one shift are told apart by the seconds.
+    const at = new Date(2026, 7, 10, 22, 14, 5);
+
+    expect(typedProtocolFilename('PR-03', at)).toBe('PR-03-20260810-221405-eingabe.txt');
+  });
+
+  it('keeps the name ASCII, whatever a future machine number looks like', () => {
+    // The name travels to the volume and comes back in Content-Disposition; every layer between
+    // has its own opinion about non-ASCII filenames.
+    expect(typedProtocolFilename('Förderband/04', new Date(2026, 0, 2, 3, 4, 5))).toBe(
+      'F-rderband-04-20260102-030405-eingabe.txt',
+    );
+  });
+
+  it('still produces a usable name when the machine number is unusable', () => {
+    expect(typedProtocolFilename('///', new Date(2026, 0, 2, 3, 4, 5))).toBe(
+      'protokoll-20260102-030405-eingabe.txt',
     );
   });
 });

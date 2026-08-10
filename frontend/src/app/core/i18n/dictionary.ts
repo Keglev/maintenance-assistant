@@ -158,7 +158,13 @@ export interface Dictionary {
   readonly upload: {
     readonly heading: string;
     readonly intro: string;
+    readonly inputMode: string;
+    readonly modeFile: string;
+    readonly modeText: string;
     readonly file: string;
+    readonly text: string;
+    readonly textHint: string;
+    readonly textPlaceholder: string;
     readonly machine: string;
     readonly type: string;
     readonly typeFault: string;
@@ -350,8 +356,15 @@ export const DE: Dictionary = {
   upload: {
     heading: 'Protokoll hochladen',
     intro:
-      'Nur Textdateien (UTF-8). PDF und Scans werden noch nicht ausgewertet.',
+      'Protokoll direkt eingeben oder als Textdatei hochladen (UTF-8). PDF und Scans werden noch nicht ausgewertet.',
+    inputMode: 'Eingabeart',
+    modeFile: 'Datei hochladen',
+    modeText: 'Text eingeben',
     file: 'Datei',
+    text: 'Protokolltext',
+    textHint: 'Symptom, Ursache und Massnahme in eigenen Worten — Freitext ist in Ordnung.',
+    textPlaceholder:
+      'z. B. Presse kommt nicht auf Druck, E-47 steht an. Dichtsatz am Hauptzylinder getauscht, Druck wieder stabil.',
     machine: 'Maschine',
     type: 'Art',
     typeFault: 'Störung',
@@ -540,8 +553,16 @@ export const EN: Dictionary = {
   },
   upload: {
     heading: 'Upload a protocol',
-    intro: 'Text files only (UTF-8). PDFs and scans are not extracted yet.',
+    intro:
+      'Write the protocol here or upload it as a text file (UTF-8). PDFs and scans are not extracted yet.',
+    inputMode: 'Input',
+    modeFile: 'Upload a file',
+    modeText: 'Write the text',
     file: 'File',
+    text: 'Protocol text',
+    textHint: 'Symptom, cause and action in your own words — free text is fine.',
+    textPlaceholder:
+      'e.g. Press does not build up pressure, E-47 showing. Seal kit on the main cylinder replaced, pressure stable again.',
     machine: 'Machine',
     type: 'Type',
     typeFault: 'Fault',

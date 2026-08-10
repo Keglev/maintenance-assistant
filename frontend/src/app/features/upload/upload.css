@@ -112,3 +112,55 @@
     width: 100%;
   }
 }
+
+/* --- Input mode ---------------------------------------------------------- */
+
+/* The same segmented shape as the language and theme switches: a control the user has already met
+   twice in this application should not need learning a third time. */
+.mode-switch {
+  display: inline-flex;
+  align-self: flex-start;
+  max-width: 100%;
+  border: 1px solid var(--c-line-strong);
+  border-radius: var(--r-sm);
+  overflow: hidden;
+}
+
+.mode-switch button {
+  min-height: var(--tap);
+  padding: 0 var(--s-4);
+  border: 0;
+  background: var(--c-surface);
+  font: inherit;
+  font-size: var(--t-sm);
+  font-weight: 600;
+  color: var(--c-ink-muted);
+  cursor: pointer;
+}
+
+.mode-switch button + button {
+  border-left: 1px solid var(--c-line);
+}
+
+.mode-switch button.active {
+  background: var(--c-brand);
+  color: var(--c-on-brand);
+}
+
+/* Twelve-plus rows on a tablet: a protocol is several paragraphs, and a three-row box tells the
+   writer to keep it short — which is exactly the wrong instruction for the corpus. */
+.upload-form textarea {
+  min-height: 18rem;
+  line-height: var(--lh-relaxed);
+}
+
+@media (max-width: 40rem) {
+  .mode-switch {
+    width: 100%;
+  }
+
+  .mode-switch button {
+    flex: 1 1 50%;
+    padding: 0 var(--s-2);
+  }
+}

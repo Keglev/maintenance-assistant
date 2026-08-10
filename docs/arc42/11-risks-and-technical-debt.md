@@ -13,3 +13,46 @@
 | R-6 | **Single VPS, no redundancy.** | The demo is down if the host is down. | Accepted for a portfolio deployment; recovery is a fresh `docker compose up` from a snapshot. |
 | R-7 | **Keycloak realm drift.** A change made in the admin console but not re-exported disappears on the next fresh start. | Demo users or roles could vanish. | The realm export is versioned in the repository and imported at startup; re-export is part of any realm change. |
 | R-8 | **Free-text `error_code`** (no lookup table), and `downtime_minutes` captured but unused in Phase 1. | Minor inconsistency in the data model. | Accepted knowingly; both are open review points in [DOMAIN-MODEL.md](../DOMAIN-MODEL.md) §4. |
+
+## 11.1 Upload abuse, quantified
+
+R-4 above is stated in adjectives ("a few euros, not hundreds"). Since the write path became a
+form anyone with a demo password can reach, it is worth stating in numbers. Every figure below is
+measured, not estimated — the sources are the Phase 2 ingestion run and ADR-002.
+
+**The write path is not open.** Uploading requires the `schichtleiter` realm role, checked
+server-side (NFR-3); the demo simply publishes an account that has it. So the question is not
+"what can a stranger do" but "what can one authenticated demo user do", which is a much smaller one.
+
+**What a saturating attacker actually costs, per day:**
+
+| Bound | Value | Source |
+|---|---|---|
+| Embedding calls per day, all users | 500 | `LLM_EMBEDDING_DAILY_CALL_BUDGET`, counted in Postgres |
+| Protocols that buys, at ~1.1 chunks each | **~200/day** | 150 protocols → 166 chunks, measured |
+| Cost of embedding the entire 150-protocol corpus | **EUR 0.00055** (27,713 tokens) | Phase 2 production run |
+| Therefore, a full day of saturation | **well under one cent** | arithmetic on the two rows above |
+| Disk for 200 protocols/day at a few KB each | **~1 MB/day** | corpus file sizes |
+| Time to fill the 74 GB disk at that rate | **decades** | arithmetic |
+| Nightly backup growth | negligible against a 752 KB dump | measured 2026-08-07 |
+
+The daily embedding budget is the ceiling that matters, and it is deliberately the one guard that
+lives in Postgres: it survives a restart and it is shared, so it holds regardless of how many
+application instances run or how often they are redeployed. Everything else bounds the shape of the
+spend rather than its total.
+
+**What the other guards bound.** The size cap (256 KB per file, 512 KB per request) bounds the
+single-request case: without it one request could hand the embedder a book, and the cost of a
+protocol is proportional to its length rather than to the fact of it. The per-user rate limit
+(10/minute) bounds the burst case, so a script cannot spend the day's budget in the first minute and
+leave the demo answering "come back tomorrow" to everyone else — which is the real damage, and it is
+availability damage rather than a bill. Content validation bounds the *garbage* case: an empty file
+or a renamed PDF is refused before a row exists.
+
+**The honest gap: remediation.** Nothing above deletes a protocol that was accepted and is simply
+bad — a plausible-looking protocol full of nonsense passes every guard here, because every guard
+here is about size, shape and rate rather than about meaning. It then sits in the corpus and can be
+retrieved and cited by a later answer. That is not an oversight to be closed with another limit; it
+is the **moderation** work package (review, hide, delete), which is the next one on the backlog.
+Until it exists, the mitigation is operational: the corpus is synthetic, the deployment is a demo,
+and a bad protocol is removed by hand from the database and the volume.

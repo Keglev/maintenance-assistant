@@ -170,6 +170,9 @@ export interface Dictionary {
     readonly unavailable: string;
     readonly forbidden: string;
     readonly documentMissing: string;
+    readonly uploadTooLarge: string;
+    readonly uploadRejected: string;
+    readonly uploadRateLimited: string;
     readonly generic: string;
   };
   readonly upload: {
@@ -386,6 +389,12 @@ export const DE: Dictionary = {
     forbidden: 'Für diese Aktion fehlt Ihnen die Berechtigung.',
     documentMissing:
       'Das Originalprotokoll lässt sich nicht mehr öffnen. Die Angaben in der Antwort stammen aus diesem Protokoll, die Datei ist aber nicht mehr im Bestand.',
+    uploadTooLarge:
+      'Die Datei ist zu groß. Ein Protokoll ist eine Seite Text — bitte kürzen oder als Text eingeben.',
+    uploadRejected:
+      'Diese Datei kann nicht gelesen werden. Angenommen werden nur Textdateien (.txt) mit Inhalt — PDF und Scans noch nicht.',
+    uploadRateLimited:
+      'Zu viele Uploads in kurzer Zeit. Bitte kurz warten und erneut versuchen.',
     generic: 'Die Anfrage ist fehlgeschlagen.',
   },
   upload: {
@@ -602,6 +611,11 @@ export const EN: Dictionary = {
     forbidden: 'You do not have permission for this action.',
     documentMissing:
       'The original protocol can no longer be opened. The answer above was taken from it, but the file is no longer in the records.',
+    uploadTooLarge:
+      'The file is too large. A protocol is a page of text — please shorten it or type it in instead.',
+    uploadRejected:
+      'This file cannot be read. Only text files (.txt) with content are accepted — PDFs and scans are not supported yet.',
+    uploadRateLimited: 'Too many uploads in a short time. Please wait a moment and try again.',
     generic: 'The request failed.',
   },
   upload: {

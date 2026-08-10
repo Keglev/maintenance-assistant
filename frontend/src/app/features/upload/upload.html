@@ -139,6 +139,15 @@
       @case ('unavailable') {
         {{ t().errors.unavailable }}
       }
+      @case ('tooLarge') {
+        {{ t().errors.uploadTooLarge }}
+      }
+      @case ('rejectedContent') {
+        {{ t().errors.uploadRejected }}
+      }
+      @case ('rateLimited') {
+        {{ t().errors.uploadRateLimited }}
+      }
       @default {
         {{ t().errors.generic }}
       }

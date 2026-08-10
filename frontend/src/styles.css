@@ -73,6 +73,11 @@
   --c-mode-b-hatch: #f0dcb4;
 
   --c-danger: #7a1f1f;
+  /* A filled destructive button, and the text on it. */
+  --c-danger-strong: #8f2626;
+  --c-danger-hover: #7a1f1f;
+  --c-danger-pressed: #5f1717;
+  --c-on-danger: #ffffff;
   --c-danger-soft: #fdecec;
   --c-danger-line: #e0b4b4;
 
@@ -202,6 +207,10 @@ html[data-theme='dark'] {
   --c-mode-b-hatch: #7a5f28;
 
   --c-danger: #f3aeae;
+  --c-danger-strong: #e08a8a;
+  --c-danger-hover: #eda0a0;
+  --c-danger-pressed: #c97070;
+  --c-on-danger: #2a1111;
   --c-danger-soft: #331a1a;
   --c-danger-line: #6b3a3a;
 
@@ -527,4 +536,19 @@ textarea:disabled {
   font-weight: 400;
   font-style: normal;
   color: var(--c-ink-hint);
+}
+
+/* The one destructive action in the application. Its own variant rather than a red .btn-primary,
+   because a delete that looks like a submit is the button people press by habit. */
+.btn-danger {
+  background: var(--c-danger-strong);
+  color: var(--c-on-danger);
+}
+
+.btn-danger:hover:not([disabled]) {
+  background: var(--c-danger-hover);
+}
+
+.btn-danger:active:not([disabled]) {
+  background: var(--c-danger-pressed);
 }

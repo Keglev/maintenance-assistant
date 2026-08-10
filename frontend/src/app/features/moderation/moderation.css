@@ -1,0 +1,137 @@
+.moderation-hint {
+  display: block;
+  max-width: var(--read-max);
+  margin: 0 0 var(--s-5);
+}
+
+.moderation-notice {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-3);
+  margin: 0 0 var(--s-5);
+}
+
+/* A seven-column table does not fit a tablet held upright. The wrapper scrolls; the page does not. */
+.table-scroll {
+  overflow-x: auto;
+}
+
+.moderation-table {
+  border-collapse: collapse;
+  width: 100%;
+  min-width: 44rem;
+  font-size: var(--t-sm);
+}
+
+.moderation-table th,
+.moderation-table td {
+  text-align: left;
+  padding: var(--s-2) var(--s-3);
+  border-bottom: 1px solid var(--c-line);
+  vertical-align: middle;
+}
+
+.moderation-table th {
+  font-size: var(--t-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--c-ink-muted);
+}
+
+.machine,
+.uploader {
+  font-family: var(--font-mono);
+  white-space: nowrap;
+}
+
+.row-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+  justify-content: flex-end;
+}
+
+.status {
+  display: inline-block;
+  padding: 0.1rem var(--s-2);
+  border-radius: var(--r-pill);
+  font-size: var(--t-xs);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.status-received {
+  background: var(--c-brand-soft);
+  color: var(--c-brand);
+}
+
+.status-indexed {
+  background: var(--c-mode-a-chip);
+  color: var(--c-mode-a-ink);
+}
+
+.status-failed {
+  background: var(--c-danger-soft);
+  color: var(--c-danger);
+}
+
+/* --- Paging --------------------------------------------------------------- */
+
+.pager {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-3);
+  margin-top: var(--s-4);
+  padding-top: var(--s-4);
+  border-top: 1px solid var(--c-line);
+}
+
+.pager-state {
+  font-size: var(--t-sm);
+  color: var(--c-ink-muted);
+}
+
+/* --- The delete confirmation ---------------------------------------------- */
+
+.confirm-target {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--s-2) var(--s-3);
+  margin: 0 0 var(--s-3);
+  font-size: var(--t-lg);
+}
+
+.confirm-body {
+  margin: 0 0 var(--s-5);
+  max-width: var(--read-max);
+}
+
+.confirm-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-3);
+}
+
+.hint {
+  margin: 0;
+  font-size: var(--t-sm);
+  color: var(--c-ink-hint);
+}
+
+/* Visible to a screen reader, not to the eye: the actions column has no heading worth showing, and
+   an empty <th> reads as an unlabelled column rather than as no label. */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}

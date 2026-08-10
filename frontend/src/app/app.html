@@ -30,6 +30,13 @@
             t().nav.upload
           }}</a>
         }
+        <!-- The admin's only entry into the application. Until moderation existed they signed in to
+             an empty shell, which is why this link is the whole nav for them. -->
+        @if (canModerate()) {
+          <a routerLink="/moderation" routerLinkActive="active" data-testid="nav-moderation">{{
+            t().nav.moderation
+          }}</a>
+        }
       </nav>
     }
 

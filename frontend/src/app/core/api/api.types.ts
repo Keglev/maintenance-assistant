@@ -70,3 +70,31 @@ export interface UploadAccepted {
   readonly status: string;
   readonly message: string;
 }
+
+/**
+ * One protocol as the moderation view sees it, from `GET /api/moderation/protocols`.
+ *
+ * `uploadedBy` is the reason this view exists rather than a nicety: the threat ADR-006 describes is
+ * a plausible protocol filed by an authorised writer, and a reviewer who can see the protocol but
+ * not its author can remove the text without learning anything.
+ */
+export interface ModeratedProtocol {
+  readonly id: string;
+  readonly machineNo: string;
+  readonly title: string;
+  readonly protocolType: string;
+  readonly errorCode: string | null;
+  readonly uploadedBy: string;
+  readonly uploadedAt: string;
+  readonly status: 'RECEIVED' | 'INDEXED' | 'FAILED';
+  /** Searchable pieces this protocol contributes; 0 means stored but not retrievable. */
+  readonly chunkCount: number;
+}
+
+/** One page of the corpus. `total` is what turns "Weiter" into "page 3 of 16". */
+export interface ProtocolPage {
+  readonly items: readonly ModeratedProtocol[];
+  readonly page: number;
+  readonly size: number;
+  readonly total: number;
+}

@@ -42,7 +42,7 @@ Sign in with any of these — the role decides what the answer looks like. Passw
 | `operator` | Ask questions; answers contain operator-safe steps only |
 | `techniker` | Ask questions; full technical answers |
 | `schichtleiter` | The above, plus uploading new protocols |
-| `admin` | User and role administration in Keycloak |
+| `admin` | User and role administration in Keycloak; moderates the corpus — reviews and removes any protocol ([ADR-006](docs/adr/ADR-006-insider-threat-and-protocol-moderation.md)) |
 
 Then pick the machine and paste one of these. Each is tied to a seeded case and shows a different
 behaviour:

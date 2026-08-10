@@ -35,6 +35,14 @@ export const routes: Routes = [
   // `/home` is the OIDC redirect URI registered in the Keycloak realm, so the path has to keep
   // resolving — but the Phase 1 identity page it used to show is gone. Someone arriving from a
   // completed login wants the thing the application is for.
+  {
+    path: 'moderation',
+    loadComponent: () => import('./features/moderation/moderation').then((m) => m.Moderation),
+    // The admin's first shop-floor route. Guarded here and, decisively, on every endpoint it calls:
+    // hiding a route is presentation, and the backend refuses the calls regardless (NFR-3).
+    canActivate: [roleGuard('admin')],
+    title: 'Verwaltung · Wartungsassistent',
+  },
   { path: 'home', redirectTo: 'search' },
   { path: '**', redirectTo: '' },
 ];

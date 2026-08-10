@@ -22,9 +22,13 @@
 
     @if (isAuthenticated()) {
       <nav class="app-nav" [attr.aria-label]="t().nav.menu">
-        <a routerLink="/search" routerLinkActive="active" data-testid="nav-search">{{
-          t().nav.search
-        }}</a>
+        <!-- Not for the admin: they may not ask questions by decision, so this entry led them to a
+             machine picker they are not allowed to fill. -->
+        @if (canSearch()) {
+          <a routerLink="/search" routerLinkActive="active" data-testid="nav-search">{{
+            t().nav.search
+          }}</a>
+        }
         @if (canUpload()) {
           <a routerLink="/upload" routerLinkActive="active" data-testid="nav-upload">{{
             t().nav.upload

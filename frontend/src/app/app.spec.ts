@@ -78,7 +78,7 @@ describe('App', () => {
     }
   });
 
-  it('offers the moderation view to an admin, and to nobody else', async () => {
+  it('offers the protocol management view to an admin, and to nobody else', async () => {
     const admin = await render(['admin']);
     expect(
       (admin.nativeElement as HTMLElement).querySelector('[data-testid="nav-moderation"]'),
@@ -93,6 +93,41 @@ describe('App', () => {
         role,
       ).toBeNull();
     }
+  });
+
+  it('hides the search entry from an admin, and only from an admin', async () => {
+    const admin = await render(['admin']);
+
+    // The live defect this closes: /search opens with GET /api/machines, which refuses a role that
+    // may not ask questions — so the entry led an administrator to an error message.
+    expect(
+      (admin.nativeElement as HTMLElement).querySelector('[data-testid="nav-search"]'),
+    ).toBeNull();
+
+    for (const role of ['operator', 'techniker', 'schichtleiter']) {
+      const fixture = await render([role]);
+      expect(
+        (fixture.nativeElement as HTMLElement).querySelector('[data-testid="nav-search"]'),
+        role,
+      ).not.toBeNull();
+    }
+  });
+
+  it('names the protocol management entry in both languages', async () => {
+    const fixture = await render(['admin']);
+    const element = fixture.nativeElement as HTMLElement;
+
+    // "Verwaltung"/"Moderation" read like a discussion forum; this is a maintenance record.
+    expect(element.querySelector('[data-testid="nav-moderation"]')?.textContent).toContain(
+      'Protokollverwaltung',
+    );
+
+    (element.querySelector('[data-testid="lang-en"]') as HTMLButtonElement).click();
+    await fixture.whenStable();
+
+    expect(element.querySelector('[data-testid="nav-moderation"]')?.textContent).toContain(
+      'Protocol management',
+    );
   });
 
   it('shows no navigation at all before sign-in', async () => {

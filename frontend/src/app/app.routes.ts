@@ -1,7 +1,11 @@
-import { Routes } from '@angular/router';
+import { inject } from '@angular/core';
+import { Router, Routes } from '@angular/router';
 
-import { authGuard } from './core/auth/auth.guard';
-import { roleGuard } from './core/auth/role.guard';
+import { AuthService } from './core/auth/auth.service';
+import { homePath, roleGuard } from './core/auth/role.guard';
+
+/** The three roles that work on the shop floor. Admin is deliberately not one of them. */
+const SHOP_FLOOR = ['operator', 'techniker', 'schichtleiter'];
 
 export const routes: Routes = [
   // The landing page is what a logged-out visitor gets, at `/` and at `/login` alike: the guard
@@ -21,7 +25,10 @@ export const routes: Routes = [
   {
     path: 'search',
     loadComponent: () => import('./features/search/search').then((m) => m.Search),
-    canActivate: [authGuard],
+    // Shop floor only, and the admin's exclusion is the point: they may not ask questions by
+    // decision, so this view could only ever show them a picker they cannot fill and a form that
+    // 403s. Typing the URL sends them to moderation rather than to a broken page.
+    canActivate: [roleGuard(...SHOP_FLOOR)],
     title: 'Suche · Wartungsassistent',
   },
   {
@@ -32,17 +39,21 @@ export const routes: Routes = [
     canActivate: [roleGuard('schichtleiter')],
     title: 'Protokoll hochladen · Wartungsassistent',
   },
-  // `/home` is the OIDC redirect URI registered in the Keycloak realm, so the path has to keep
-  // resolving — but the Phase 1 identity page it used to show is gone. Someone arriving from a
-  // completed login wants the thing the application is for.
   {
     path: 'moderation',
     loadComponent: () => import('./features/moderation/moderation').then((m) => m.Moderation),
     // The admin's first shop-floor route. Guarded here and, decisively, on every endpoint it calls:
     // hiding a route is presentation, and the backend refuses the calls regardless (NFR-3).
     canActivate: [roleGuard('admin')],
-    title: 'Verwaltung · Wartungsassistent',
+    title: 'Protokollverwaltung · Wartungsassistent',
   },
-  { path: 'home', redirectTo: 'search' },
+  // `/home` is the OIDC redirect URI registered in the Keycloak realm, so the path has to keep
+  // resolving — but the Phase 1 identity page it used to show is gone. Someone arriving from a
+  // completed login wants the thing the application is for, and which thing that is depends on
+  // their role: a fixed `redirectTo: 'search'` is what landed an admin on a view full of errors.
+  {
+    path: 'home',
+    redirectTo: () => inject(Router).parseUrl(homePath(inject(AuthService).realmRoles())),
+  },
   { path: '**', redirectTo: '' },
 ];

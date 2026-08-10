@@ -58,11 +58,25 @@ export class App {
    * a permission model the application does not have. The highest-privilege match wins so that a
    * Schichtleiter who also carries `operator` is not labelled the lesser of the two.
    */
+  /** The one role whose navigation differs in kind rather than in degree. */
+  private readonly isAdmin = computed(() =>
+    this.auth.realmRoles().some((role) => role.toLowerCase() === 'admin'),
+  );
+
   protected readonly roleLabel = computed(() => {
     const held = new Set(this.auth.realmRoles().map((role) => role.toLowerCase()));
     const role = KNOWN_ROLES.find((candidate) => held.has(candidate));
     return role ? this.t().roles[role as KnownRole] : '';
   });
+
+  /**
+   * Whether to offer the search view.
+   *
+   * Everyone but the admin, and that is the same defect the routing fixes seen from the header: an
+   * admin may not ask questions by decision, so the entry led to a view whose machine picker they
+   * are not allowed to fill. A nav entry onto an error message is worse than no nav entry.
+   */
+  protected readonly canSearch = computed(() => !this.isAdmin());
 
   /**
    * Whether to offer the upload view at all.
@@ -76,15 +90,13 @@ export class App {
   );
 
   /**
-   * Whether to offer the moderation view.
+   * Whether to offer the Protokollverwaltung view.
    *
    * Presentation, like {@link canUpload} — the route guard and the backend decide. What it buys is
    * that the three shop-floor roles are not shown a door onto a 403, and that the admin, who until
    * now signed in to an empty application, has one.
    */
-  protected readonly canModerate = computed(() =>
-    this.auth.realmRoles().some((role) => role.toLowerCase() === 'admin'),
-  );
+  protected readonly canModerate = this.isAdmin;
 
   protected use(language: UiLanguage): void {
     this.i18n.use(language);

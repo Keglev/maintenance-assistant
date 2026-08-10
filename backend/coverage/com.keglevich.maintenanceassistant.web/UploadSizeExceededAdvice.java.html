@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>UploadSizeExceededAdvice.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">maintenance-assistant</a> &gt; <a href="index.source.html" class="el_package">com.keglevich.maintenanceassistant.web</a> &gt; <span class="el_source">UploadSizeExceededAdvice.java</span></div><h1>UploadSizeExceededAdvice.java</h1><pre class="source lang-java linenums">package com.keglevich.maintenanceassistant.web;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
+
+import java.util.Map;
+
+/**
+ * Turns an oversized upload into JSON the client can read.
+ *
+ * &lt;p&gt;&lt;b&gt;Why this is global advice and not an {@code @ExceptionHandler} on the upload controller.&lt;/b&gt;
+ * The container refuses an oversized multipart while &lt;em&gt;parsing the request&lt;/em&gt;, which happens
+ * before the dispatcher has resolved a handler — so there is no controller for a controller-local
+ * handler to belong to, and one written there is never invoked. Global advice is consulted even when
+ * the handler is null, which is the only reason this fires at all.
+ *
+ * &lt;p&gt;Without it the answer is the container's own HTML error page: the upload view would receive a
+ * blob of markup where it expects a body it can read, and would show its generic failure message for
+ * a problem that has a precise, actionable explanation. The limit is stated with a number because
+ * &quot;too large&quot; without one leaves the writer guessing how much to cut.
+ *
+ * &lt;p&gt;This is the CONTAINER's ceiling ({@code spring.servlet.multipart.max-file-size}). The decoded
+ * text has a second, lower ceiling in the ingestion module which reports itself as a 400; both are
+ * real and they guard different things — bytes on the wire, and characters reaching the embedder.
+ */
+@RestControllerAdvice
+class UploadSizeExceededAdvice {
+
+    /**
+     * The configured limit, as configured — {@code 256KB} rather than {@code 262144}.
+     *
+     * &lt;p&gt;Read from the property rather than from the exception, and measured rather than assumed:
+     * {@code MaxUploadSizeExceededException.getMaxUploadSize()} returns &lt;b&gt;-1&lt;/b&gt; here, so the
+     * obvious implementation produced &quot;larger than the -1 byte limit&quot;. The property is also the
+     * friendlier number — a person cutting a file down thinks in KB.
+     */
+    private final String maxFileSize;
+
+<span class="fc" id="L43">    UploadSizeExceededAdvice(@Value(&quot;${spring.servlet.multipart.max-file-size}&quot;) String maxFileSize) {</span>
+<span class="fc" id="L44">        this.maxFileSize = maxFileSize;</span>
+<span class="fc" id="L45">    }</span>
+
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    // CONTENT_TOO_LARGE, not PAYLOAD_TOO_LARGE: same 413, and the older constant is deprecated as of
+    // Spring 7 (the RFC renamed the status).
+    @ResponseStatus(HttpStatus.CONTENT_TOO_LARGE)
+    Map&lt;String, String&gt; onTooLarge(MaxUploadSizeExceededException e) {
+<span class="fc" id="L52">        return Map.of(</span>
+                &quot;reason&quot;, &quot;FILE_TOO_LARGE&quot;,
+                &quot;limit&quot;, maxFileSize,
+<span class="fc" id="L55">                &quot;error&quot;, &quot;The uploaded file is larger than the %s limit.&quot;.formatted(maxFileSize));</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

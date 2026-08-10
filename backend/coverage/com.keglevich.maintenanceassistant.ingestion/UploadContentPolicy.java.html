@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>UploadContentPolicy.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">maintenance-assistant</a> &gt; <a href="index.source.html" class="el_package">com.keglevich.maintenanceassistant.ingestion</a> &gt; <span class="el_source">UploadContentPolicy.java</span></div><h1>UploadContentPolicy.java</h1><pre class="source lang-java linenums">package com.keglevich.maintenanceassistant.ingestion;
+
+import java.util.Locale;
+
+/**
+ * What may be uploaded at all, decided before anything is stored.
+ *
+ * &lt;p&gt;Every rejection here happens &lt;b&gt;before&lt;/b&gt; a row exists and before a byte reaches the volume,
+ * which is the property worth stating: a refused upload leaves nothing behind to clean up, so the
+ * moderation work package only ever has to deal with content that was accepted on purpose.
+ *
+ * &lt;p&gt;Rejections carry a stable {@code code} rather than only a sentence. The frontend translates the
+ * code; matching on English prose from another layer breaks the first time someone rewords it — the
+ * same reasoning as the query path's {@code reason} field.
+ */
+public final class UploadContentPolicy {
+
+    /**
+     * How far into the file to look for a NUL byte.
+     *
+     * &lt;p&gt;A NUL in the first 8 KB is a sufficient binary test for this application and no detection
+     * library is worth adding for it: real UTF-8 text never contains one, and every format actually
+     * being guarded against — PDF, ZIP, images, Office documents — has them within the first few
+     * hundred bytes. Anything that slips past this still has to survive strict UTF-8 decoding
+     * immediately afterwards, which is the real filter; this one exists to give a clear &quot;that is not
+     * a text file&quot; instead of a decoder complaint about a malformed byte sequence.
+     */
+    private static final int BINARY_SNIFF_BYTES = 8192;
+
+    private UploadContentPolicy() {
+    }
+
+    /** A rejected upload, with a code the frontend can translate. */
+    public static class RejectedUploadException extends RuntimeException {
+
+        private final String code;
+
+        RejectedUploadException(String code, String message) {
+<span class="fc" id="L39">            super(message);</span>
+<span class="fc" id="L40">            this.code = code;</span>
+<span class="fc" id="L41">        }</span>
+
+        public String code() {
+<span class="fc" id="L44">            return code;</span>
+        }
+    }
+
+    /**
+     * Checks the submitted bytes and filename.
+     *
+     * @param filename the client-supplied name, which is untrusted and used only for its extension
+     * @param bytes    the raw upload
+     * @throws RejectedUploadException with a stable code, if this is not something to store
+     */
+    public static void verify(String filename, byte[] bytes) {
+<span class="pc bpc" id="L56" title="1 of 4 branches missed.">        if (bytes == null || bytes.length == 0) {</span>
+<span class="fc" id="L57">            throw new RejectedUploadException(&quot;EMPTY_FILE&quot;, &quot;the uploaded file is empty&quot;);</span>
+        }
+<span class="fc bfc" id="L59" title="All 2 branches covered.">        if (!hasAcceptedExtension(filename)) {</span>
+<span class="fc" id="L60">            throw new RejectedUploadException(&quot;UNSUPPORTED_TYPE&quot;,</span>
+                    &quot;only .txt files are accepted; PDF and scan extraction is not implemented yet&quot;);
+        }
+<span class="fc bfc" id="L63" title="All 2 branches covered.">        if (looksBinary(bytes)) {</span>
+<span class="fc" id="L64">            throw new RejectedUploadException(&quot;NOT_TEXT&quot;,</span>
+                    &quot;the uploaded file is not text; PDF and scan extraction is not implemented yet&quot;);
+        }
+<span class="fc" id="L67">    }</span>
+
+    /**
+     * {@code .txt} only, and {@code .md} is no longer accepted.
+     *
+     * &lt;p&gt;Markdown was a developer convenience from the days when the only way to get a protocol into
+     * the system was to write a file. Typed entry replaced that: a Schichtleiter now writes prose in
+     * the form and the browser wraps it as {@code .txt}, so the extension no longer has to
+     * accommodate whatever a developer had lying around. Narrowing it costs nothing real — the
+     * pipeline treats both identically as plain text — and it removes one way for a file nobody
+     * intended to reach the corpus. A missing extension is refused for the same reason: it is
+     * indistinguishable from a renamed binary at this point.
+     */
+    private static boolean hasAcceptedExtension(String filename) {
+<span class="pc bpc" id="L81" title="2 of 4 branches missed.">        if (filename == null || filename.isBlank()) {</span>
+<span class="nc" id="L82">            return false;</span>
+        }
+<span class="fc" id="L84">        return filename.toLowerCase(Locale.ROOT).endsWith(&quot;.txt&quot;);</span>
+    }
+
+    private static boolean looksBinary(byte[] bytes) {
+<span class="fc" id="L88">        int limit = Math.min(bytes.length, BINARY_SNIFF_BYTES);</span>
+<span class="fc bfc" id="L89" title="All 2 branches covered.">        for (int i = 0; i &lt; limit; i++) {</span>
+<span class="fc bfc" id="L90" title="All 2 branches covered.">            if (bytes[i] == 0) {</span>
+<span class="fc" id="L91">                return true;</span>
+            }
+        }
+<span class="fc" id="L94">        return false;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

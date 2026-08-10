@@ -1,10 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ProtocolUploadController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">maintenance-assistant</a> &gt; <a href="index.source.html" class="el_package">com.keglevich.maintenanceassistant.web</a> &gt; <span class="el_source">ProtocolUploadController.java</span></div><h1>ProtocolUploadController.java</h1><pre class="source lang-java linenums">package com.keglevich.maintenanceassistant.web;
 
 import com.keglevich.maintenanceassistant.ingestion.ProtocolIntakeService;
+import com.keglevich.maintenanceassistant.ingestion.UploadContentPolicy;
+import com.keglevich.maintenanceassistant.ingestion.UploadRateLimiter;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -38,10 +41,12 @@ import java.util.UUID;
 class ProtocolUploadController {
 
     private final ProtocolIntakeService intake;
+    private final UploadRateLimiter rateLimiter;
 
-<span class="fc" id="L42">    ProtocolUploadController(ProtocolIntakeService intake) {</span>
-<span class="fc" id="L43">        this.intake = intake;</span>
-<span class="fc" id="L44">    }</span>
+<span class="fc" id="L46">    ProtocolUploadController(ProtocolIntakeService intake, UploadRateLimiter rateLimiter) {</span>
+<span class="fc" id="L47">        this.intake = intake;</span>
+<span class="fc" id="L48">        this.rateLimiter = rateLimiter;</span>
+<span class="fc" id="L49">    }</span>
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize(&quot;hasRole('SCHICHTLEITER')&quot;)
@@ -51,7 +56,9 @@ class ProtocolUploadController {
     @ApiResponses({
             @ApiResponse(responseCode = &quot;202&quot;, description = &quot;Accepted; indexing runs asynchronously&quot;),
             @ApiResponse(responseCode = &quot;400&quot;, description = &quot;Unknown machine, bad field, or not UTF-8 text&quot;),
-            @ApiResponse(responseCode = &quot;403&quot;, description = &quot;Caller is not a Schichtleiter&quot;)
+            @ApiResponse(responseCode = &quot;403&quot;, description = &quot;Caller is not a Schichtleiter&quot;),
+            @ApiResponse(responseCode = &quot;413&quot;, description = &quot;File larger than the configured limit&quot;),
+            @ApiResponse(responseCode = &quot;429&quot;, description = &quot;Too many uploads; see Retry-After&quot;)
     })
     ResponseEntity&lt;Map&lt;String, String&gt;&gt; upload(
             @RequestPart(&quot;file&quot;) MultipartFile file,
@@ -62,27 +69,41 @@ class ProtocolUploadController {
             @RequestParam(value = &quot;language&quot;, required = false) String language,
             @AuthenticationPrincipal Jwt jwt) {
 
-<span class="nc bnc" id="L65" title="All 2 branches missed.">        if (file.isEmpty()) {</span>
-<span class="nc" id="L66">            throw new ProtocolIntakeService.InvalidProtocolException(&quot;file is empty&quot;);</span>
-        }
-<span class="nc" id="L68">        String content = readAsText(file);</span>
+        // The username claim, per ADR-003. There is no user row for this to reference — and it is
+        // the same identity the resulting row is attributed to, which is why the limit is keyed on it.
+<span class="fc" id="L74">        String uploadedBy = jwt.getClaimAsString(&quot;preferred_username&quot;);</span>
+        // Before anything is read or written: a burst that is going to be refused should be refused
+        // at its cheapest point.
+<span class="fc" id="L77">        rateLimiter.check(uploadedBy);</span>
 
-<span class="nc" id="L70">        UUID id = intake.accept(new ProtocolIntakeService.NewProtocol(</span>
+        // Everything below happens before a row exists and before a byte reaches the volume, so a
+        // rejected upload leaves nothing behind.
+<span class="fc" id="L81">        UploadContentPolicy.verify(file.getOriginalFilename(), bytesOf(file));</span>
+<span class="fc" id="L82">        String content = readAsText(file);</span>
+
+<span class="fc" id="L84">        UUID id = intake.accept(new ProtocolIntakeService.NewProtocol(</span>
                 machineNo,
                 protocolType,
                 errorCode,
                 // A note typed on a tablet often has no title of its own; the file name is what the
                 // person actually called it, and is better than an empty column.
-<span class="nc bnc" id="L76" title="All 4 branches missed.">                title != null &amp;&amp; !title.isBlank() ? title : stripExtension(file.getOriginalFilename()),</span>
+<span class="pc bpc" id="L90" title="2 of 4 branches missed.">                title != null &amp;&amp; !title.isBlank() ? title : stripExtension(file.getOriginalFilename()),</span>
                 language,
                 content,
-                // The username claim, per ADR-003. There is no user row for this to reference.
-<span class="nc" id="L80">                jwt.getClaimAsString(&quot;preferred_username&quot;)));</span>
+                uploadedBy));
 
-<span class="nc" id="L82">        return ResponseEntity.accepted().body(Map.of(</span>
-<span class="nc" id="L83">                &quot;id&quot;, id.toString(),</span>
+<span class="fc" id="L95">        return ResponseEntity.accepted().body(Map.of(</span>
+<span class="fc" id="L96">                &quot;id&quot;, id.toString(),</span>
                 &quot;status&quot;, &quot;RECEIVED&quot;,
                 &quot;message&quot;, &quot;Protocol stored and queued for indexing&quot;));
+    }
+
+    private static byte[] bytesOf(MultipartFile file) {
+        try {
+<span class="fc" id="L103">            return file.getBytes();</span>
+<span class="nc" id="L104">        } catch (IOException e) {</span>
+<span class="nc" id="L105">            throw new UncheckedIOException(e);</span>
+        }
     }
 
     /**
@@ -91,28 +112,51 @@ class ProtocolUploadController {
      */
     private static String readAsText(MultipartFile file) {
         try {
-<span class="nc" id="L94">            return ProtocolIntakeService.decodeStrictUtf8(file.getBytes());</span>
-<span class="nc" id="L95">        } catch (CharacterCodingException e) {</span>
-<span class="nc" id="L96">            throw new ProtocolIntakeService.InvalidProtocolException(</span>
+<span class="fc" id="L115">            return ProtocolIntakeService.decodeStrictUtf8(file.getBytes());</span>
+<span class="nc" id="L116">        } catch (CharacterCodingException e) {</span>
+<span class="nc" id="L117">            throw new ProtocolIntakeService.InvalidProtocolException(</span>
                     &quot;only UTF-8 text files are accepted; PDF and scan extraction is not implemented yet&quot;);
-<span class="nc" id="L98">        } catch (IOException e) {</span>
-<span class="nc" id="L99">            throw new UncheckedIOException(e);</span>
+<span class="nc" id="L119">        } catch (IOException e) {</span>
+<span class="nc" id="L120">            throw new UncheckedIOException(e);</span>
         }
     }
 
     private static String stripExtension(String filename) {
-<span class="nc bnc" id="L104" title="All 4 branches missed.">        if (filename == null || filename.isBlank()) {</span>
-<span class="nc" id="L105">            return &quot;Protokoll&quot;;</span>
+<span class="nc bnc" id="L125" title="All 4 branches missed.">        if (filename == null || filename.isBlank()) {</span>
+<span class="nc" id="L126">            return &quot;Protokoll&quot;;</span>
         }
-<span class="nc" id="L107">        int dot = filename.lastIndexOf('.');</span>
-<span class="nc bnc" id="L108" title="All 2 branches missed.">        return dot &gt; 0 ? filename.substring(0, dot) : filename;</span>
+<span class="nc" id="L128">        int dot = filename.lastIndexOf('.');</span>
+<span class="nc bnc" id="L129" title="All 2 branches missed.">        return dot &gt; 0 ? filename.substring(0, dot) : filename;</span>
     }
 
     /** The caller's mistake, reported as one. */
     @ExceptionHandler(ProtocolIntakeService.InvalidProtocolException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     Map&lt;String, String&gt; onInvalid(ProtocolIntakeService.InvalidProtocolException e) {
-<span class="nc" id="L115">        return Map.of(&quot;error&quot;, e.getMessage());</span>
+<span class="nc" id="L136">        return Map.of(&quot;error&quot;, e.getMessage());</span>
     }
+
+    /**
+     * A refused upload, with a stable code beside the sentence.
+     *
+     * &lt;p&gt;The code is what the frontend translates. Matching on English prose from another layer
+     * breaks the first time someone rewords it — the same reasoning as the query path's
+     * {@code reason} field, and the same contract.
+     */
+    @ExceptionHandler(UploadContentPolicy.RejectedUploadException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    Map&lt;String, String&gt; onRejected(UploadContentPolicy.RejectedUploadException e) {
+<span class="fc" id="L149">        return Map.of(&quot;reason&quot;, e.code(), &quot;error&quot;, e.getMessage());</span>
+    }
+
+    /** 429 with {@code Retry-After}, matching the query path exactly. */
+    @ExceptionHandler(UploadRateLimiter.UploadRateLimitExceededException.class)
+    ResponseEntity&lt;Map&lt;String, String&gt;&gt; onRateLimited(
+            UploadRateLimiter.UploadRateLimitExceededException e) {
+<span class="fc" id="L156">        return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)</span>
+<span class="fc" id="L157">                .header(HttpHeaders.RETRY_AFTER, Long.toString(e.retryAfterSeconds()))</span>
+<span class="fc" id="L158">                .body(Map.of(&quot;reason&quot;, &quot;RATE_LIMITED&quot;, &quot;error&quot;, e.getMessage()));</span>
+    }
+
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

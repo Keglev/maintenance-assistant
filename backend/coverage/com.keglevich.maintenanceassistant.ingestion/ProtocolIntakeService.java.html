@@ -53,7 +53,7 @@ public class ProtocolIntakeService {
      * @param content     the document, already decoded as text
      * @param uploadedBy  Keycloak username from the token — no user row exists to point at (ADR-003)
      */
-<span class="nc" id="L56">    public record NewProtocol(String machineNo, String protocolType, String errorCode, String title,</span>
+<span class="fc" id="L56">    public record NewProtocol(String machineNo, String protocolType, String errorCode, String title,</span>
                               String language, String content, String uploadedBy) {
     }
 
@@ -147,11 +147,11 @@ public class ProtocolIntakeService {
      * produce a protocol that embeds noise and looks indexed.
      */
     public static String decodeStrictUtf8(byte[] bytes) throws CharacterCodingException {
-<span class="nc" id="L150">        return StandardCharsets.UTF_8.newDecoder()</span>
-<span class="nc" id="L151">                .onMalformedInput(CodingErrorAction.REPORT)</span>
-<span class="nc" id="L152">                .onUnmappableCharacter(CodingErrorAction.REPORT)</span>
-<span class="nc" id="L153">                .decode(java.nio.ByteBuffer.wrap(bytes))</span>
-<span class="nc" id="L154">                .toString();</span>
+<span class="fc" id="L150">        return StandardCharsets.UTF_8.newDecoder()</span>
+<span class="fc" id="L151">                .onMalformedInput(CodingErrorAction.REPORT)</span>
+<span class="fc" id="L152">                .onUnmappableCharacter(CodingErrorAction.REPORT)</span>
+<span class="fc" id="L153">                .decode(java.nio.ByteBuffer.wrap(bytes))</span>
+<span class="fc" id="L154">                .toString();</span>
     }
 
     private static String detectOrValidateLanguage(String language) {

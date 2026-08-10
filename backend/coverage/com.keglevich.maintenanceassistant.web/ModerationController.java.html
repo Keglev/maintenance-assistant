@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ModerationController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">maintenance-assistant</a> &gt; <a href="index.source.html" class="el_package">com.keglevich.maintenanceassistant.web</a> &gt; <span class="el_source">ModerationController.java</span></div><h1>ModerationController.java</h1><pre class="source lang-java linenums">package com.keglevich.maintenanceassistant.web;
+
+import com.keglevich.maintenanceassistant.ingestion.ProtocolDocumentService;
+import com.keglevich.maintenanceassistant.ingestion.ProtocolModerationService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.core.io.Resource;
+import org.springframework.http.ContentDisposition;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.nio.charset.StandardCharsets;
+import java.util.UUID;
+
+/**
+ * Moderation: the administrator's view of the whole corpus, and the power to remove from it.
+ *
+ * &lt;p&gt;This is the admin role's &lt;b&gt;first shop-floor function&lt;/b&gt;. Until now it was an IT role with no
+ * business in the application, and the reason it has one now is ADR-006: an authorised writer can
+ * file a plausible protocol with a wrong Massnahme, Mode A will cite it faithfully, and no limit on
+ * size, rate or vocabulary catches that. Traceability was already in place; this is remediation.
+ *
+ * &lt;p&gt;Its own controller and its own path prefix rather than more methods on
+ * {@link ProtocolReadController}, because the authorisation rule is the feature. Everything under
+ * {@code /api/moderation} is admin-only, and a reader can see that from the path.
+ *
+ * &lt;p&gt;&lt;b&gt;Reading here is not answering.&lt;/b&gt; The shop-floor document endpoint is restricted to the
+ * three roles that ask questions, because it exists to make a citation checkable. This one exists to
+ * let a reviewer read a protocol they are deciding the fate of — a different act, on a path an admin
+ * reaches without holding a shop-floor role.
+ */
+@RestController
+@RequestMapping(&quot;/api/moderation/protocols&quot;)
+@Tag(name = &quot;Moderation&quot;, description = &quot;Administrator review and removal of protocols&quot;)
+@PreAuthorize(&quot;hasRole('ADMIN')&quot;)
+class ModerationController {
+
+    private final ProtocolModerationService moderation;
+    private final ProtocolDocumentService documents;
+
+<span class="fc" id="L53">    ModerationController(ProtocolModerationService moderation, ProtocolDocumentService documents) {</span>
+<span class="fc" id="L54">        this.moderation = moderation;</span>
+<span class="fc" id="L55">        this.documents = documents;</span>
+<span class="fc" id="L56">    }</span>
+
+    @GetMapping
+    @Operation(summary = &quot;List every protocol in the corpus, newest first&quot;,
+            description = &quot;Paged. `size` is clamped to 50 — the corpus grows every time a protocol &quot;
+                    + &quot;is uploaded, and an unpaged list of it is a page that gets slower forever.&quot;)
+    @ApiResponses({
+            @ApiResponse(responseCode = &quot;200&quot;, description = &quot;One page of protocols&quot;),
+            @ApiResponse(responseCode = &quot;403&quot;, description = &quot;Caller is not an administrator&quot;)
+    })
+    ProtocolModerationService.ProtocolPage list(
+            @RequestParam(defaultValue = &quot;0&quot;) int page,
+            @RequestParam(defaultValue = &quot;10&quot;) int size) {
+<span class="fc" id="L69">        return moderation.list(page, size);</span>
+    }
+
+    @GetMapping(&quot;/{id}/document&quot;)
+    @Operation(summary = &quot;Read the original document of any protocol&quot;,
+            description = &quot;The same file the shop floor sees behind a citation, reachable by an &quot;
+                    + &quot;administrator who holds no shop-floor role. Reviewing is not answering.&quot;)
+    @ApiResponses({
+            @ApiResponse(responseCode = &quot;200&quot;, description = &quot;The document&quot;),
+            @ApiResponse(responseCode = &quot;403&quot;, description = &quot;Caller is not an administrator&quot;),
+            @ApiResponse(responseCode = &quot;404&quot;, description = &quot;No such protocol, or its file is gone&quot;)
+    })
+    ResponseEntity&lt;Resource&gt; document(@PathVariable UUID id) {
+<span class="fc" id="L82">        return documents.find(id)</span>
+<span class="fc" id="L83">                .map(document -&gt; ResponseEntity.ok()</span>
+<span class="fc" id="L84">                        .contentType(MediaType.parseMediaType(document.contentType()))</span>
+<span class="fc" id="L85">                        .header(HttpHeaders.CONTENT_DISPOSITION, ContentDisposition.inline()</span>
+<span class="fc" id="L86">                                .filename(document.downloadName(), StandardCharsets.UTF_8)</span>
+<span class="fc" id="L87">                                .build()</span>
+<span class="fc" id="L88">                                .toString())</span>
+<span class="fc" id="L89">                        .body(document.resource()))</span>
+<span class="fc" id="L90">                .orElseGet(() -&gt; ResponseEntity.notFound().build());</span>
+    }
+
+    @DeleteMapping(&quot;/{id}&quot;)
+    @Operation(summary = &quot;Remove a protocol from the corpus, permanently&quot;,
+            description = &quot;Deletes its chunks, its row and its file. There is no undo and no soft &quot;
+                    + &quot;delete: correcting a protocol is delete-then-reupload, so that no answer can &quot;
+                    + &quot;cite text that changed underneath it (ADR-006).&quot;)
+    @ApiResponses({
+            @ApiResponse(responseCode = &quot;204&quot;, description = &quot;Removed&quot;),
+            @ApiResponse(responseCode = &quot;403&quot;, description = &quot;Caller is not an administrator&quot;),
+            @ApiResponse(responseCode = &quot;404&quot;, description = &quot;No such protocol&quot;)
+    })
+    ResponseEntity&lt;Void&gt; delete(@PathVariable UUID id, @AuthenticationPrincipal Jwt jwt) {
+        // The username rather than the subject: it is what uploaded_by stores, so the deletion log
+        // and the authorship it is judging are written in the same identity.
+<span class="fc" id="L106">        boolean removed = moderation.delete(id, jwt.getClaimAsString(&quot;preferred_username&quot;));</span>
+<span class="fc bfc" id="L107" title="All 2 branches covered.">        return removed ? ResponseEntity.noContent().build() : ResponseEntity.notFound().build();</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

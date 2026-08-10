@@ -43,41 +43,69 @@ public class ProtocolDocumentService {
      * {@code source_file} is null, a path that no longer resolves to a readable file. They are one
      * outcome for the caller (404) and telling them apart in the response would describe the
      * database to whoever asked.
+     *
+     * &lt;p&gt;&lt;b&gt;An archived protocol is one of those cases.&lt;/b&gt; A citation from before a deletion hits
+     * a 404 here, which is exactly the honest break the original ADR-006 wanted from a hard delete —
+     * the archive changed who can still read the file, not whether a stale citation resolves. See
+     * {@link #findArchived(UUID)} for the one path that can.
      */
     public Optional&lt;ProtocolDocument&gt; find(UUID protocolId) {
-<span class="fc" id="L48">        return jdbc.sql(&quot;&quot;&quot;</span>
+<span class="fc" id="L53">        return find(protocolId, false);</span>
+    }
+
+    /**
+     * The stored document of an &lt;b&gt;archived&lt;/b&gt; protocol, for administrator review.
+     *
+     * &lt;p&gt;A separate method rather than a boolean at every call site, because the difference is who
+     * may make the call. A soft-deleted protocol has left every shop-floor path in the application;
+     * this is the one door back to its content, and it is behind the admin-only archive endpoint.
+     * Reading what was removed is what makes the archive evidence rather than a tombstone
+     * (ADR-006 revision) — and a method named for that is harder to reuse by accident than a
+     * {@code find(id, true)} somebody copies.
+     */
+    public Optional&lt;ProtocolDocument&gt; findArchived(UUID protocolId) {
+<span class="fc" id="L67">        return find(protocolId, true);</span>
+    }
+
+    private Optional&lt;ProtocolDocument&gt; find(UUID protocolId, boolean archived) {
+<span class="fc" id="L71">        return jdbc.sql(&quot;&quot;&quot;</span>
                         SELECT p.title, p.source_file, p.language, m.machine_no
                         FROM protocol p JOIN machine m ON m.id = p.machine_id
                         WHERE p.id = :id
+                          AND (p.deleted_at IS NULL) = :live
                         &quot;&quot;&quot;)
-<span class="fc" id="L53">                .param(&quot;id&quot;, protocolId)</span>
-<span class="fc" id="L54">                .query((rs, rowNum) -&gt; new StoredProtocol(</span>
-<span class="fc" id="L55">                        rs.getString(&quot;title&quot;), rs.getString(&quot;source_file&quot;),</span>
-<span class="fc" id="L56">                        rs.getString(&quot;language&quot;), rs.getString(&quot;machine_no&quot;)))</span>
-<span class="fc" id="L57">                .optional()</span>
-<span class="fc" id="L58">                .flatMap(stored -&gt; resolve(protocolId, stored));</span>
+<span class="fc bfc" id="L77" title="All 2 branches covered.">                .param(&quot;id&quot;, protocolId)</span>
+                // Equality against the flag rather than two SQL strings: the archive read must be
+                // as narrow as the live one, so asking for an archived document must not quietly
+                // serve a live protocol either.
+<span class="fc" id="L81">                .param(&quot;live&quot;, !archived)</span>
+<span class="fc" id="L82">                .query((rs, rowNum) -&gt; new StoredProtocol(</span>
+<span class="fc" id="L83">                        rs.getString(&quot;title&quot;), rs.getString(&quot;source_file&quot;),</span>
+<span class="fc" id="L84">                        rs.getString(&quot;language&quot;), rs.getString(&quot;machine_no&quot;)))</span>
+<span class="fc" id="L85">                .optional()</span>
+<span class="fc" id="L86">                .flatMap(stored -&gt; resolve(protocolId, stored));</span>
     }
 
     private Optional&lt;ProtocolDocument&gt; resolve(UUID protocolId, StoredProtocol stored) {
-<span class="pc bpc" id="L62" title="1 of 4 branches missed.">        if (stored.sourceFile() == null || stored.sourceFile().isBlank()) {</span>
-<span class="fc" id="L63">            return Optional.empty();</span>
+<span class="pc bpc" id="L90" title="1 of 4 branches missed.">        if (stored.sourceFile() == null || stored.sourceFile().isBlank()) {</span>
+<span class="fc" id="L91">            return Optional.empty();</span>
         }
-<span class="fc" id="L65">        Path base = Path.of(properties.basePath()).toAbsolutePath().normalize();</span>
-<span class="fc" id="L66">        Path path = base.resolve(stored.sourceFile()).normalize();</span>
+<span class="fc" id="L93">        Path base = Path.of(properties.basePath()).toAbsolutePath().normalize();</span>
+<span class="fc" id="L94">        Path path = base.resolve(stored.sourceFile()).normalize();</span>
 
         // The path comes from our own database and is still checked. `source_file` is a column, and
         // a column is only ever as trustworthy as everything that has written to it since the
         // schema was created — including a future import, a manual fix, or a restored dump. The
         // check costs one comparison and removes the whole class of question.
-<span class="pc bpc" id="L72" title="1 of 6 branches missed.">        if (!path.startsWith(base) || !Files.isReadable(path) || Files.isDirectory(path)) {</span>
-<span class="fc" id="L73">            return Optional.empty();</span>
+<span class="pc bpc" id="L100" title="1 of 6 branches missed.">        if (!path.startsWith(base) || !Files.isReadable(path) || Files.isDirectory(path)) {</span>
+<span class="fc" id="L101">            return Optional.empty();</span>
         }
 
-<span class="fc" id="L76">        return Optional.of(new ProtocolDocument(</span>
+<span class="fc" id="L104">        return Optional.of(new ProtocolDocument(</span>
                 new FileSystemResource(path),
-<span class="fc" id="L78">                downloadName(protocolId, stored),</span>
-<span class="fc" id="L79">                contentType(path),</span>
-<span class="fc" id="L80">                sizeOf(path)));</span>
+<span class="fc" id="L106">                downloadName(protocolId, stored),</span>
+<span class="fc" id="L107">                contentType(path),</span>
+<span class="fc" id="L108">                sizeOf(path)));</span>
     }
 
     /**
@@ -89,23 +117,23 @@ public class ProtocolDocumentService {
      * {@code Content-Disposition} filename crossing an umlaut is a well-known source of mojibake.
      */
     private static String downloadName(UUID protocolId, StoredProtocol stored) {
-<span class="fc" id="L92">        String base = &quot;%s-%s&quot;.formatted(</span>
-<span class="pc bpc" id="L93" title="1 of 2 branches missed.">                stored.machineNo() == null ? &quot;protokoll&quot; : stored.machineNo(),</span>
-<span class="pc bpc" id="L94" title="1 of 2 branches missed.">                stored.title() == null ? protocolId.toString() : stored.title());</span>
-<span class="fc" id="L95">        String ascii = java.text.Normalizer.normalize(base, java.text.Normalizer.Form.NFD)</span>
-<span class="fc" id="L96">                .replace(&quot;ß&quot;, &quot;ss&quot;)</span>
-<span class="fc" id="L97">                .replaceAll(&quot;\\p{M}+&quot;, &quot;&quot;)</span>
-<span class="fc" id="L98">                .replaceAll(&quot;[^A-Za-z0-9._-]+&quot;, &quot;-&quot;)</span>
-<span class="fc" id="L99">                .replaceAll(&quot;-{2,}&quot;, &quot;-&quot;)</span>
-<span class="fc" id="L100">                .replaceAll(&quot;^-|-$&quot;, &quot;&quot;);</span>
-<span class="pc bpc" id="L101" title="1 of 2 branches missed.">        String safe = ascii.isBlank() ? protocolId.toString() : ascii;</span>
-<span class="pc bpc" id="L102" title="1 of 2 branches missed.">        return (safe.length() &gt; 80 ? safe.substring(0, 80) : safe) + extensionOf(stored.sourceFile());</span>
+<span class="fc" id="L120">        String base = &quot;%s-%s&quot;.formatted(</span>
+<span class="pc bpc" id="L121" title="1 of 2 branches missed.">                stored.machineNo() == null ? &quot;protokoll&quot; : stored.machineNo(),</span>
+<span class="pc bpc" id="L122" title="1 of 2 branches missed.">                stored.title() == null ? protocolId.toString() : stored.title());</span>
+<span class="fc" id="L123">        String ascii = java.text.Normalizer.normalize(base, java.text.Normalizer.Form.NFD)</span>
+<span class="fc" id="L124">                .replace(&quot;ß&quot;, &quot;ss&quot;)</span>
+<span class="fc" id="L125">                .replaceAll(&quot;\\p{M}+&quot;, &quot;&quot;)</span>
+<span class="fc" id="L126">                .replaceAll(&quot;[^A-Za-z0-9._-]+&quot;, &quot;-&quot;)</span>
+<span class="fc" id="L127">                .replaceAll(&quot;-{2,}&quot;, &quot;-&quot;)</span>
+<span class="fc" id="L128">                .replaceAll(&quot;^-|-$&quot;, &quot;&quot;);</span>
+<span class="pc bpc" id="L129" title="1 of 2 branches missed.">        String safe = ascii.isBlank() ? protocolId.toString() : ascii;</span>
+<span class="pc bpc" id="L130" title="1 of 2 branches missed.">        return (safe.length() &gt; 80 ? safe.substring(0, 80) : safe) + extensionOf(stored.sourceFile());</span>
     }
 
     private static String extensionOf(String sourceFile) {
-<span class="fc" id="L106">        int dot = sourceFile.lastIndexOf('.');</span>
-<span class="fc" id="L107">        int slash = Math.max(sourceFile.lastIndexOf('/'), sourceFile.lastIndexOf('\\'));</span>
-<span class="pc bpc" id="L108" title="2 of 4 branches missed.">        return dot &gt; slash &amp;&amp; dot &gt;= 0 ? sourceFile.substring(dot).toLowerCase(Locale.ROOT) : &quot;&quot;;</span>
+<span class="fc" id="L134">        int dot = sourceFile.lastIndexOf('.');</span>
+<span class="fc" id="L135">        int slash = Math.max(sourceFile.lastIndexOf('/'), sourceFile.lastIndexOf('\\'));</span>
+<span class="pc bpc" id="L136" title="2 of 4 branches missed.">        return dot &gt; slash &amp;&amp; dot &gt;= 0 ? sourceFile.substring(dot).toLowerCase(Locale.ROOT) : &quot;&quot;;</span>
     }
 
     /**
@@ -118,36 +146,36 @@ public class ProtocolDocumentService {
      * have to sniff German umlauts.
      */
     private static String contentType(Path path) {
-<span class="fc" id="L121">        String probed = probe(path);</span>
-<span class="pc bpc" id="L122" title="2 of 4 branches missed.">        if (probed != null &amp;&amp; !probed.equals(&quot;application/octet-stream&quot;)) {</span>
-<span class="pc bpc" id="L123" title="2 of 4 branches missed.">            return probed.startsWith(&quot;text/&quot;) &amp;&amp; !probed.contains(&quot;charset&quot;)</span>
-<span class="fc" id="L124">                    ? probed + &quot;;charset=UTF-8&quot;</span>
-<span class="nc" id="L125">                    : probed;</span>
+<span class="fc" id="L149">        String probed = probe(path);</span>
+<span class="pc bpc" id="L150" title="2 of 4 branches missed.">        if (probed != null &amp;&amp; !probed.equals(&quot;application/octet-stream&quot;)) {</span>
+<span class="pc bpc" id="L151" title="2 of 4 branches missed.">            return probed.startsWith(&quot;text/&quot;) &amp;&amp; !probed.contains(&quot;charset&quot;)</span>
+<span class="fc" id="L152">                    ? probed + &quot;;charset=UTF-8&quot;</span>
+<span class="nc" id="L153">                    : probed;</span>
         }
-<span class="nc" id="L127">        String name = path.getFileName().toString().toLowerCase(Locale.ROOT);</span>
-<span class="nc bnc" id="L128" title="All 2 branches missed.">        if (name.endsWith(&quot;.pdf&quot;)) {</span>
-<span class="nc" id="L129">            return &quot;application/pdf&quot;;</span>
+<span class="nc" id="L155">        String name = path.getFileName().toString().toLowerCase(Locale.ROOT);</span>
+<span class="nc bnc" id="L156" title="All 2 branches missed.">        if (name.endsWith(&quot;.pdf&quot;)) {</span>
+<span class="nc" id="L157">            return &quot;application/pdf&quot;;</span>
         }
-<span class="nc bnc" id="L131" title="All 2 branches missed.">        if (name.endsWith(&quot;.md&quot;)) {</span>
-<span class="nc" id="L132">            return &quot;text/markdown;charset=UTF-8&quot;;</span>
+<span class="nc bnc" id="L159" title="All 2 branches missed.">        if (name.endsWith(&quot;.md&quot;)) {</span>
+<span class="nc" id="L160">            return &quot;text/markdown;charset=UTF-8&quot;;</span>
         }
-<span class="nc" id="L134">        return &quot;text/plain;charset=UTF-8&quot;;</span>
+<span class="nc" id="L162">        return &quot;text/plain;charset=UTF-8&quot;;</span>
     }
 
     private static String probe(Path path) {
         try {
-<span class="fc" id="L139">            return Files.probeContentType(path);</span>
-<span class="nc" id="L140">        } catch (IOException e) {</span>
-<span class="nc" id="L141">            return null;</span>
+<span class="fc" id="L167">            return Files.probeContentType(path);</span>
+<span class="nc" id="L168">        } catch (IOException e) {</span>
+<span class="nc" id="L169">            return null;</span>
         }
     }
 
     private static long sizeOf(Path path) {
         try {
-<span class="fc" id="L147">            return Files.size(path);</span>
-<span class="nc" id="L148">        } catch (IOException e) {</span>
+<span class="fc" id="L175">            return Files.size(path);</span>
+<span class="nc" id="L176">        } catch (IOException e) {</span>
             // A length header is a courtesy; the stream is the answer.
-<span class="nc" id="L150">            return -1L;</span>
+<span class="nc" id="L178">            return -1L;</span>
         }
     }
 
@@ -157,10 +185,10 @@ public class ProtocolDocumentService {
      * @param contentType  what it is, including the charset for text
      * @param sizeBytes    file size, or -1 when it could not be read
      */
-<span class="fc" id="L160">    public record ProtocolDocument(Resource resource, String downloadName, String contentType, long sizeBytes) {</span>
+<span class="fc" id="L188">    public record ProtocolDocument(Resource resource, String downloadName, String contentType, long sizeBytes) {</span>
     }
 
-<span class="fc" id="L163">    private record StoredProtocol(String title, String sourceFile, String language, String machineNo) {</span>
+<span class="fc" id="L191">    private record StoredProtocol(String title, String sourceFile, String language, String machineNo) {</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

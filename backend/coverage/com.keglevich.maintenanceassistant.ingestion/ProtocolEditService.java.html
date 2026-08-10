@@ -1,0 +1,230 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ProtocolEditService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">maintenance-assistant</a> &gt; <a href="index.source.html" class="el_package">com.keglevich.maintenanceassistant.ingestion</a> &gt; <span class="el_source">ProtocolEditService.java</span></div><h1>ProtocolEditService.java</h1><pre class="source lang-java linenums">package com.keglevich.maintenanceassistant.ingestion;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.jdbc.core.simple.JdbcClient;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.time.OffsetDateTime;
+import java.util.Optional;
+import java.util.UUID;
+
+/**
+ * In-place correction of a protocol, with a re-index that is not optional.
+ *
+ * &lt;p&gt;&lt;b&gt;Why this exists at all.&lt;/b&gt; ADR-006 originally refused editing, on the ground that an answer
+ * cites a protocol as it stood when the answer was produced. Its 2026-08-10 revision reversed that:
+ * the system stores no answers. Every answer is generated per query and every citation resolves live,
+ * so the population of answers that could point at changed text is not the corpus of everything ever
+ * said — it is whatever is open on a screen right now. What tipped it is the plant: a wrong torque
+ * figure should be corrected by the person who spots it, and the old path (delete, tell the
+ * Schichtleiter, have them retype the whole protocol) is expensive enough that the wrong figure
+ * stays instead.
+ *
+ * &lt;p&gt;&lt;b&gt;Re-indexing is a condition of the flow, not a step in it.&lt;/b&gt; An edit that rewrote the file
+ * and left the old chunks would be strictly worse than no edit: retrieval would keep matching the
+ * old text while the document read correctly, and the citation would point at a protocol that no
+ * longer says what was matched. So the status goes back to {@code RECEIVED} and the same event the
+ * upload path publishes is published here — the indexer deletes and rewrites the chunks, and the
+ * vector the search uses is always the vector of the text on screen.
+ *
+ * &lt;p&gt;&lt;b&gt;Machine and protocol type are not editable.&lt;/b&gt; Title, fault code and text are words about
+ * an event; machine identity is the protocol's provenance — what retrieval filters on and what the
+ * citation names. Re-attributing a defect to another machine is not a correction, it is a different
+ * protocol wearing this one's history. Words can be fixed, identity cannot.
+ */
+@Service
+public class ProtocolEditService {
+
+<span class="fc" id="L46">    private static final Logger log = LoggerFactory.getLogger(ProtocolEditService.class);</span>
+
+    /** A caller trying to move a protocol to another machine or reclassify it. */
+    public static final String IDENTITY_LOCKED = &quot;PROTOCOL_IDENTITY_LOCKED&quot;;
+    /** A caller trying to edit something that is already in the archive. */
+    public static final String PROTOCOL_ARCHIVED = &quot;PROTOCOL_ARCHIVED&quot;;
+
+    private final JdbcClient jdbc;
+    private final ApplicationEventPublisher events;
+    private final ProtocolModerationService moderation;
+    private final FileStorageProperties fileProperties;
+    private final IngestionProperties ingestionProperties;
+
+    ProtocolEditService(JdbcClient jdbc, ApplicationEventPublisher events,
+                        ProtocolModerationService moderation, FileStorageProperties fileProperties,
+<span class="fc" id="L61">                        IngestionProperties ingestionProperties) {</span>
+<span class="fc" id="L62">        this.jdbc = jdbc;</span>
+<span class="fc" id="L63">        this.events = events;</span>
+<span class="fc" id="L64">        this.moderation = moderation;</span>
+<span class="fc" id="L65">        this.fileProperties = fileProperties;</span>
+<span class="fc" id="L66">        this.ingestionProperties = ingestionProperties;</span>
+<span class="fc" id="L67">    }</span>
+
+    /**
+     * What an administrator submitted.
+     *
+     * @param machineNo     echoed back by the client and checked, not applied — see
+     *                      {@link #IDENTITY_LOCKED}. Null means &quot;not sent&quot;, which is accepted.
+     * @param protocolType  same treatment as {@code machineNo}
+     * @param content       the full corrected text, replacing the stored document
+     * @param comment       why, required and non-blank
+     */
+<span class="fc" id="L78">    public record Correction(String machineNo, String protocolType, String title, String errorCode,</span>
+                             String content, String comment) {
+    }
+
+    /**
+     * Applies a correction and queues the protocol for re-indexing.
+     *
+     * &lt;p&gt;Transactional, and the file is rewritten inside it. That is the opposite trade from
+     * {@link ProtocolIntakeService#accept}, which writes the file first on purpose: there, a rolled
+     * back insert leaves an orphan file nothing can reach. Here the file already belongs to a row
+     * that will survive either way, so the failure to avoid is the mirror image — a committed row
+     * describing text that was never written. Writing inside the transaction means a failed update
+     * leaves the row unchanged; the file is then the odd one out, and the re-index that follows a
+     * successful edit is what makes file and chunks agree again.
+     *
+     * @return empty if there is no such live protocol — see {@link #PROTOCOL_ARCHIVED} for the
+     *         archived case, which is refused rather than reported as missing
+     */
+    @Transactional
+    public Optional&lt;UUID&gt; edit(UUID protocolId, Correction correction, String editedBy) {
+        // Before anything is read: a correction with no stated reason is an unexplained change to
+        // the corpus, which is the shape of the thing the audit trail exists to make visible.
+<span class="fc" id="L100">        String comment = ProtocolModerationService.requireComment(correction.comment());</span>
+
+<span class="fc" id="L102">        Optional&lt;Stored&gt; found = load(protocolId);</span>
+<span class="fc bfc" id="L103" title="All 2 branches covered.">        if (found.isEmpty()) {</span>
+<span class="fc" id="L104">            return Optional.empty();</span>
+        }
+<span class="fc" id="L106">        Stored stored = found.get();</span>
+
+<span class="fc bfc" id="L108" title="All 2 branches covered.">        if (stored.deletedAt() != null) {</span>
+            // 409 rather than 404, decided here and mapped in the controller: the protocol exists
+            // and this same administrator can read it in the archive one tab over. Answering &quot;no
+            // such protocol&quot; would be a lie their own screen contradicts. What is wrong is the
+            // request, not the address — nothing is editable once it has been retired, because an
+            // edit re-indexes and re-indexing an archived protocol would put it back into search.
+<span class="fc" id="L114">            throw new ProtocolModerationService.InvalidModerationRequestException(PROTOCOL_ARCHIVED,</span>
+                    &quot;this protocol is in the archive and cannot be edited; archived is final&quot;);
+        }
+<span class="fc" id="L117">        requireUnchangedIdentity(correction.machineNo(), stored.machineNo(), &quot;machine&quot;);</span>
+<span class="fc" id="L118">        requireUnchangedIdentity(correction.protocolType(), stored.protocolType(), &quot;type&quot;);</span>
+
+<span class="fc" id="L120">        String title = required(correction.title(), &quot;title&quot;);</span>
+<span class="fc" id="L121">        String content = required(correction.content(), &quot;content&quot;);</span>
+        // The same ceiling the upload path enforces, read from the same property. A correction that
+        // could be larger than the document it replaces would be a way around #36's size cap.
+<span class="fc bfc" id="L124" title="All 2 branches covered.">        if (content.getBytes(StandardCharsets.UTF_8).length &gt; ingestionProperties.maxUploadBytes()) {</span>
+<span class="fc" id="L125">            throw new ProtocolIntakeService.InvalidProtocolException(</span>
+<span class="fc" id="L126">                    &quot;text exceeds the %d byte limit&quot;.formatted(ingestionProperties.maxUploadBytes()));</span>
+        }
+
+<span class="fc" id="L129">        writeDocument(stored.sourceFile(), content);</span>
+
+<span class="fc" id="L131">        jdbc.sql(&quot;&quot;&quot;</span>
+                        UPDATE protocol
+                        SET title = :title, error_code = :errorCode, symptom = :content,
+                            status = 'RECEIVED', indexed_at = NULL, failure_reason = NULL,
+                            updated_at = :now
+                        WHERE id = :id
+                        &quot;&quot;&quot;)
+<span class="fc" id="L138">                .param(&quot;id&quot;, protocolId)</span>
+<span class="fc" id="L139">                .param(&quot;title&quot;, title)</span>
+<span class="fc" id="L140">                .param(&quot;errorCode&quot;, blankToNull(correction.errorCode()), java.sql.Types.VARCHAR)</span>
+                // `symptom` holds the document text, as the upload path writes it (DOMAIN-MODEL.md).
+<span class="fc" id="L142">                .param(&quot;content&quot;, content)</span>
+<span class="fc" id="L143">                .param(&quot;now&quot;, OffsetDateTime.now())</span>
+<span class="fc" id="L144">                .update();</span>
+
+<span class="fc" id="L146">        moderation.recordEvent(protocolId, &quot;EDIT&quot;, editedBy, comment);</span>
+
+        // AFTER_COMMIT on the listener, so the indexer never looks for an update it cannot see yet.
+<span class="fc" id="L149">        events.publishEvent(new ProtocolReceivedEvent(protocolId));</span>
+<span class="fc" id="L150">        log.info(&quot;Moderation: {} edited protocol {} ('{}' -&gt; '{}', machine {}), re-indexing: {}&quot;,</span>
+<span class="fc" id="L151">                editedBy, protocolId, stored.title(), title, stored.machineNo(), comment);</span>
+<span class="fc" id="L152">        return Optional.of(protocolId);</span>
+    }
+
+    /**
+     * Refuses a request that would change what a protocol &lt;em&gt;is&lt;/em&gt;.
+     *
+     * &lt;p&gt;Refused rather than ignored. A client that thought it was moving a protocol to another
+     * machine and received a 200 would have been told it succeeded, and the next person to read
+     * that screen would believe the protocol had moved.
+     */
+    private static void requireUnchangedIdentity(String submitted, String stored, String field) {
+<span class="pc bpc" id="L163" title="1 of 6 branches missed.">        if (submitted != null &amp;&amp; !submitted.isBlank() &amp;&amp; !submitted.trim().equalsIgnoreCase(stored)) {</span>
+<span class="fc" id="L164">            throw new ProtocolModerationService.InvalidModerationRequestException(IDENTITY_LOCKED,</span>
+                    (&quot;%s cannot be changed by an edit (submitted '%s', stored '%s'): a protocol's &quot;
+                            + &quot;machine and type are its identity, not its content. If they are wrong, &quot;
+                            + &quot;delete it and upload a new one.&quot;)
+<span class="fc" id="L168">                            .formatted(field, submitted.trim(), stored));</span>
+        }
+<span class="fc" id="L170">    }</span>
+
+    private Optional&lt;Stored&gt; load(UUID protocolId) {
+<span class="fc" id="L173">        return jdbc.sql(&quot;&quot;&quot;</span>
+                        SELECT p.title, p.protocol_type, p.source_file, p.deleted_at, m.machine_no
+                        FROM protocol p JOIN machine m ON m.id = p.machine_id
+                        WHERE p.id = :id
+                        &quot;&quot;&quot;)
+<span class="fc" id="L178">                .param(&quot;id&quot;, protocolId)</span>
+<span class="fc" id="L179">                .query((rs, rowNum) -&gt; new Stored(</span>
+<span class="fc" id="L180">                        rs.getString(&quot;title&quot;),</span>
+<span class="fc" id="L181">                        rs.getString(&quot;protocol_type&quot;),</span>
+<span class="fc" id="L182">                        rs.getString(&quot;source_file&quot;),</span>
+<span class="fc" id="L183">                        rs.getObject(&quot;deleted_at&quot;, OffsetDateTime.class),</span>
+<span class="fc" id="L184">                        rs.getString(&quot;machine_no&quot;)))</span>
+<span class="fc" id="L185">                .optional();</span>
+    }
+
+    /**
+     * Overwrites the stored document in place.
+     *
+     * &lt;p&gt;Same path, deliberately. The file name is {@code &lt;machine&gt;/&lt;protocol-id&gt;.txt} and the id
+     * does not change, so a correction leaves no second file behind and the citation, the row and
+     * the volume keep pointing at one another. The path still gets the containment check every
+     * other reader of {@code source_file} makes — it is a column, and a column is only as
+     * trustworthy as everything that has ever written to it.
+     */
+    private void writeDocument(String sourceFile, String content) {
+<span class="pc bpc" id="L198" title="2 of 4 branches missed.">        if (sourceFile == null || sourceFile.isBlank()) {</span>
+<span class="nc" id="L199">            throw new ProtocolIntakeService.InvalidProtocolException(</span>
+                    &quot;this protocol has no stored document to correct&quot;);
+        }
+<span class="fc" id="L202">        Path base = Path.of(fileProperties.basePath()).toAbsolutePath().normalize();</span>
+<span class="fc" id="L203">        Path path = base.resolve(sourceFile).normalize();</span>
+<span class="pc bpc" id="L204" title="1 of 2 branches missed.">        if (!path.startsWith(base)) {</span>
+<span class="nc" id="L205">            throw new IllegalStateException(&quot;source file outside the protocol volume: &quot; + sourceFile);</span>
+        }
+        try {
+<span class="fc" id="L208">            Files.createDirectories(path.getParent());</span>
+<span class="fc" id="L209">            Files.writeString(path, content, StandardCharsets.UTF_8);</span>
+<span class="nc" id="L210">        } catch (IOException e) {</span>
+<span class="nc" id="L211">            throw new UncheckedIOException(&quot;cannot rewrite protocol document &quot; + sourceFile, e);</span>
+<span class="fc" id="L212">        }</span>
+<span class="fc" id="L213">    }</span>
+
+    private static String required(String value, String field) {
+<span class="pc bpc" id="L216" title="1 of 4 branches missed.">        if (value == null || value.isBlank()) {</span>
+<span class="fc" id="L217">            throw new ProtocolIntakeService.InvalidProtocolException(field + &quot; is required&quot;);</span>
+        }
+<span class="fc" id="L219">        return value.strip();</span>
+    }
+
+    private static String blankToNull(String value) {
+<span class="pc bpc" id="L223" title="2 of 4 branches missed.">        return value == null || value.isBlank() ? null : value.strip();</span>
+    }
+
+<span class="fc" id="L226">    private record Stored(String title, String protocolType, String sourceFile,</span>
+                          OffsetDateTime deletedAt, String machineNo) {
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

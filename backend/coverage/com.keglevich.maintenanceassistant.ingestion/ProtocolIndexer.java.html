@@ -67,44 +67,49 @@ class ProtocolIndexer {
 <span class="nc" id="L67">            return false;</span>
 <span class="fc" id="L68">        }</span>
 <span class="pc bpc" id="L69" title="1 of 2 branches missed.">        if (protocol == null) {</span>
-<span class="nc" id="L70">            log.warn(&quot;Protocol {} disappeared before indexing&quot;, protocolId);</span>
-<span class="nc" id="L71">            return false;</span>
+            // Covers &quot;deleted while queued&quot; as well as &quot;never existed&quot;. An indexing run that
+            // rebuilt an archived protocol's chunks would put it back into retrieval without
+            // anyone asking — the one way a soft delete could be undone, and there is no undo by
+            // design (ADR-006 revision). The load query is where that is prevented, because it is
+            // the single door every indexing path comes through.
+<span class="nc" id="L75">            log.warn(&quot;Protocol {} disappeared before indexing (unknown or archived)&quot;, protocolId);</span>
+<span class="nc" id="L76">            return false;</span>
         }
 
         try {
-<span class="fc" id="L75">            String text = readDocument(protocol);</span>
-<span class="fc" id="L76">            List&lt;String&gt; chunks = chunker.chunk(text, contextLine(protocol));</span>
-<span class="pc bpc" id="L77" title="1 of 2 branches missed.">            if (chunks.isEmpty()) {</span>
-<span class="nc" id="L78">                throw new IllegalStateException(&quot;document produced no chunks — is the file empty?&quot;);</span>
+<span class="fc" id="L80">            String text = readDocument(protocol);</span>
+<span class="fc" id="L81">            List&lt;String&gt; chunks = chunker.chunk(text, contextLine(protocol));</span>
+<span class="pc bpc" id="L82" title="1 of 2 branches missed.">            if (chunks.isEmpty()) {</span>
+<span class="nc" id="L83">                throw new IllegalStateException(&quot;document produced no chunks — is the file empty?&quot;);</span>
             }
 
             // Reserved for the whole protocol before any of it is sent, so a protocol is never
             // left half-embedded by the budget running out between batches.
-<span class="fc" id="L83">            int estimatedCalls = (chunks.size() + embeddingProperties.batchSize() - 1)</span>
-<span class="fc" id="L84">                    / embeddingProperties.batchSize();</span>
-<span class="fc" id="L85">            budget.checkHeadroom(estimatedCalls);</span>
+<span class="fc" id="L88">            int estimatedCalls = (chunks.size() + embeddingProperties.batchSize() - 1)</span>
+<span class="fc" id="L89">                    / embeddingProperties.batchSize();</span>
+<span class="fc" id="L90">            budget.checkHeadroom(estimatedCalls);</span>
 
             // The client records its own usage as each request is served — see EmbeddingClient.
-<span class="fc" id="L88">            EmbeddingClient.EmbeddingBatch embedded = embeddingClient.embed(chunks);</span>
+<span class="fc" id="L93">            EmbeddingClient.EmbeddingBatch embedded = embeddingClient.embed(chunks);</span>
 
-<span class="pc bpc" id="L90" title="1 of 2 branches missed.">            if (embedded.vectors().size() != chunks.size()) {</span>
-<span class="nc" id="L91">                throw new IllegalStateException(&quot;provider returned %d vectors for %d chunks&quot;</span>
-<span class="nc" id="L92">                        .formatted(embedded.vectors().size(), chunks.size()));</span>
+<span class="pc bpc" id="L95" title="1 of 2 branches missed.">            if (embedded.vectors().size() != chunks.size()) {</span>
+<span class="nc" id="L96">                throw new IllegalStateException(&quot;provider returned %d vectors for %d chunks&quot;</span>
+<span class="nc" id="L97">                        .formatted(embedded.vectors().size(), chunks.size()));</span>
             }
 
-<span class="fc" id="L95">            writer.writeChunks(protocol.id(), protocol.machineId(), protocol.errorCode(),</span>
-<span class="fc" id="L96">                    protocol.language(), chunks, embedded.vectors());</span>
+<span class="fc" id="L100">            writer.writeChunks(protocol.id(), protocol.machineId(), protocol.errorCode(),</span>
+<span class="fc" id="L101">                    protocol.language(), chunks, embedded.vectors());</span>
 
-<span class="fc" id="L98">            log.info(&quot;Indexed {} ({}): {} chunks, {} provider calls, {} tokens&quot;,</span>
-<span class="fc" id="L99">                    protocol.machineNo(), protocolId, chunks.size(),</span>
-<span class="fc" id="L100">                    embedded.providerCalls(), embedded.promptTokens());</span>
-<span class="fc" id="L101">            return true;</span>
+<span class="fc" id="L103">            log.info(&quot;Indexed {} ({}): {} chunks, {} provider calls, {} tokens&quot;,</span>
+<span class="fc" id="L104">                    protocol.machineNo(), protocolId, chunks.size(),</span>
+<span class="fc" id="L105">                    embedded.providerCalls(), embedded.promptTokens());</span>
+<span class="fc" id="L106">            return true;</span>
 
-<span class="fc" id="L103">        } catch (Exception e) {</span>
-<span class="fc" id="L104">            String reason = &quot;%s: %s&quot;.formatted(e.getClass().getSimpleName(), e.getMessage());</span>
-<span class="fc" id="L105">            log.warn(&quot;Indexing failed for {} ({}): {}&quot;, protocol.machineNo(), protocolId, reason);</span>
-<span class="fc" id="L106">            writer.markFailed(protocolId, reason);</span>
-<span class="fc" id="L107">            return false;</span>
+<span class="fc" id="L108">        } catch (Exception e) {</span>
+<span class="fc" id="L109">            String reason = &quot;%s: %s&quot;.formatted(e.getClass().getSimpleName(), e.getMessage());</span>
+<span class="fc" id="L110">            log.warn(&quot;Indexing failed for {} ({}): {}&quot;, protocol.machineNo(), protocolId, reason);</span>
+<span class="fc" id="L111">            writer.markFailed(protocolId, reason);</span>
+<span class="fc" id="L112">            return false;</span>
         }
     }
 
@@ -113,11 +118,11 @@ class ProtocolIndexer {
      * still says what it is about once it is separated from its row — see {@link ProtocolChunker}.
      */
     private static String contextLine(ProtocolRow p) {
-<span class="fc" id="L116">        StringBuilder out = new StringBuilder(p.machineNo());</span>
-<span class="pc bpc" id="L117" title="1 of 4 branches missed.">        if (p.errorCode() != null &amp;&amp; !p.errorCode().isBlank()) {</span>
-<span class="fc" id="L118">            out.append(&quot; · &quot;).append(p.errorCode().strip());</span>
+<span class="fc" id="L121">        StringBuilder out = new StringBuilder(p.machineNo());</span>
+<span class="pc bpc" id="L122" title="1 of 4 branches missed.">        if (p.errorCode() != null &amp;&amp; !p.errorCode().isBlank()) {</span>
+<span class="fc" id="L123">            out.append(&quot; · &quot;).append(p.errorCode().strip());</span>
         }
-<span class="fc" id="L120">        return out.append(&quot; · &quot;).append(p.title()).toString();</span>
+<span class="fc" id="L125">        return out.append(&quot; · &quot;).append(p.title()).toString();</span>
     }
 
     /**
@@ -129,46 +134,47 @@ class ProtocolIndexer {
      * refusing it.
      */
     private String readDocument(ProtocolRow protocol) throws IOException {
-<span class="pc bpc" id="L132" title="2 of 4 branches missed.">        if (protocol.sourceFile() == null || protocol.sourceFile().isBlank()) {</span>
-<span class="nc" id="L133">            throw new IllegalStateException(&quot;protocol has no source_file&quot;);</span>
+<span class="pc bpc" id="L137" title="2 of 4 branches missed.">        if (protocol.sourceFile() == null || protocol.sourceFile().isBlank()) {</span>
+<span class="nc" id="L138">            throw new IllegalStateException(&quot;protocol has no source_file&quot;);</span>
         }
-<span class="fc" id="L135">        Path path = Path.of(fileProperties.basePath()).resolve(protocol.sourceFile()).normalize();</span>
-<span class="fc bfc" id="L136" title="All 2 branches covered.">        if (!Files.isReadable(path)) {</span>
-<span class="fc" id="L137">            throw new IllegalStateException(&quot;source file missing or unreadable: &quot; + protocol.sourceFile());</span>
+<span class="fc" id="L140">        Path path = Path.of(fileProperties.basePath()).resolve(protocol.sourceFile()).normalize();</span>
+<span class="fc bfc" id="L141" title="All 2 branches covered.">        if (!Files.isReadable(path)) {</span>
+<span class="fc" id="L142">            throw new IllegalStateException(&quot;source file missing or unreadable: &quot; + protocol.sourceFile());</span>
         }
         try {
-<span class="fc" id="L140">            String text = Files.readString(path, StandardCharsets.UTF_8);</span>
-<span class="pc bpc" id="L141" title="1 of 2 branches missed.">            if (text.isBlank()) {</span>
-<span class="nc" id="L142">                throw new IllegalStateException(&quot;source file is empty: &quot; + protocol.sourceFile());</span>
+<span class="fc" id="L145">            String text = Files.readString(path, StandardCharsets.UTF_8);</span>
+<span class="pc bpc" id="L146" title="1 of 2 branches missed.">            if (text.isBlank()) {</span>
+<span class="nc" id="L147">                throw new IllegalStateException(&quot;source file is empty: &quot; + protocol.sourceFile());</span>
             }
-<span class="fc" id="L144">            return text;</span>
-<span class="nc" id="L145">        } catch (MalformedInputException e) {</span>
-<span class="nc" id="L146">            throw new IllegalStateException(</span>
+<span class="fc" id="L149">            return text;</span>
+<span class="nc" id="L150">        } catch (MalformedInputException e) {</span>
+<span class="nc" id="L151">            throw new IllegalStateException(</span>
                     &quot;source file is not UTF-8 text (PDF and scan extraction is not implemented): &quot;
-<span class="nc" id="L148">                            + protocol.sourceFile(), e);</span>
+<span class="nc" id="L153">                            + protocol.sourceFile(), e);</span>
         }
     }
 
     private Optional&lt;ProtocolRow&gt; load(UUID protocolId) {
-<span class="fc" id="L153">        return jdbc.sql(&quot;&quot;&quot;</span>
+<span class="fc" id="L158">        return jdbc.sql(&quot;&quot;&quot;</span>
                         SELECT p.id, p.machine_id, m.machine_no, p.error_code, p.title,
                                p.language, p.source_file
                         FROM protocol p JOIN machine m ON m.id = p.machine_id
                         WHERE p.id = :id
+                          AND p.deleted_at IS NULL
                         &quot;&quot;&quot;)
-<span class="fc" id="L159">                .param(&quot;id&quot;, protocolId)</span>
-<span class="fc" id="L160">                .query((rs, rowNum) -&gt; new ProtocolRow(</span>
-<span class="fc" id="L161">                        rs.getObject(&quot;id&quot;, UUID.class),</span>
-<span class="fc" id="L162">                        rs.getObject(&quot;machine_id&quot;, UUID.class),</span>
-<span class="fc" id="L163">                        rs.getString(&quot;machine_no&quot;),</span>
-<span class="fc" id="L164">                        rs.getString(&quot;error_code&quot;),</span>
-<span class="fc" id="L165">                        rs.getString(&quot;title&quot;),</span>
-<span class="fc" id="L166">                        rs.getString(&quot;language&quot;),</span>
-<span class="fc" id="L167">                        rs.getString(&quot;source_file&quot;)))</span>
-<span class="fc" id="L168">                .optional();</span>
+<span class="fc" id="L165">                .param(&quot;id&quot;, protocolId)</span>
+<span class="fc" id="L166">                .query((rs, rowNum) -&gt; new ProtocolRow(</span>
+<span class="fc" id="L167">                        rs.getObject(&quot;id&quot;, UUID.class),</span>
+<span class="fc" id="L168">                        rs.getObject(&quot;machine_id&quot;, UUID.class),</span>
+<span class="fc" id="L169">                        rs.getString(&quot;machine_no&quot;),</span>
+<span class="fc" id="L170">                        rs.getString(&quot;error_code&quot;),</span>
+<span class="fc" id="L171">                        rs.getString(&quot;title&quot;),</span>
+<span class="fc" id="L172">                        rs.getString(&quot;language&quot;),</span>
+<span class="fc" id="L173">                        rs.getString(&quot;source_file&quot;)))</span>
+<span class="fc" id="L174">                .optional();</span>
     }
 
-<span class="fc" id="L171">    private record ProtocolRow(UUID id, UUID machineId, String machineNo, String errorCode,</span>
+<span class="fc" id="L177">    private record ProtocolRow(UUID id, UUID machineId, String machineNo, String errorCode,</span>
                                String title, String language, String sourceFile) {
     }
 }

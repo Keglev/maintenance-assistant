@@ -60,8 +60,8 @@ public class ProtocolIntakeService {
     /** Rejected input that is the caller's fault; the web layer maps this to 400. */
     public static class InvalidProtocolException extends RuntimeException {
         public InvalidProtocolException(String message) {
-<span class="nc" id="L63">            super(message);</span>
-<span class="nc" id="L64">        }</span>
+<span class="fc" id="L63">            super(message);</span>
+<span class="fc" id="L64">        }</span>
     }
 
     /**
@@ -76,23 +76,23 @@ public class ProtocolIntakeService {
      */
     @Transactional
     public UUID accept(NewProtocol submission) {
-<span class="nc" id="L79">        String machineNo = required(submission.machineNo(), &quot;machine&quot;);</span>
-<span class="nc" id="L80">        UUID machineId = resolveMachine(machineNo);</span>
-<span class="nc" id="L81">        String type = requireOneOf(submission.protocolType(), &quot;type&quot;, &quot;STOERUNG&quot;, &quot;WARTUNG&quot;);</span>
-<span class="nc" id="L82">        String language = detectOrValidateLanguage(submission.language());</span>
-<span class="nc" id="L83">        String title = required(submission.title(), &quot;title&quot;);</span>
-<span class="nc" id="L84">        String content = required(submission.content(), &quot;content&quot;);</span>
+<span class="fc" id="L79">        String machineNo = required(submission.machineNo(), &quot;machine&quot;);</span>
+<span class="fc" id="L80">        UUID machineId = resolveMachine(machineNo);</span>
+<span class="fc" id="L81">        String type = requireOneOf(submission.protocolType(), &quot;type&quot;, &quot;STOERUNG&quot;, &quot;WARTUNG&quot;);</span>
+<span class="fc" id="L82">        String language = detectOrValidateLanguage(submission.language());</span>
+<span class="fc" id="L83">        String title = required(submission.title(), &quot;title&quot;);</span>
+<span class="fc" id="L84">        String content = required(submission.content(), &quot;content&quot;);</span>
 
-<span class="nc bnc" id="L86" title="All 2 branches missed.">        if (content.getBytes(StandardCharsets.UTF_8).length &gt; ingestionProperties.maxUploadBytes()) {</span>
+<span class="pc bpc" id="L86" title="1 of 2 branches missed.">        if (content.getBytes(StandardCharsets.UTF_8).length &gt; ingestionProperties.maxUploadBytes()) {</span>
 <span class="nc" id="L87">            throw new InvalidProtocolException(&quot;file exceeds the %d byte limit&quot;</span>
 <span class="nc" id="L88">                    .formatted(ingestionProperties.maxUploadBytes()));</span>
         }
 
-<span class="nc" id="L91">        UUID protocolId = UUID.randomUUID();</span>
-<span class="nc" id="L92">        String relativePath = &quot;%s/%s.txt&quot;.formatted(machineNo, protocolId);</span>
-<span class="nc" id="L93">        writeDocument(relativePath, content);</span>
+<span class="fc" id="L91">        UUID protocolId = UUID.randomUUID();</span>
+<span class="fc" id="L92">        String relativePath = &quot;%s/%s.txt&quot;.formatted(machineNo, protocolId);</span>
+<span class="fc" id="L93">        writeDocument(relativePath, content);</span>
 
-<span class="nc" id="L95">        jdbc.sql(&quot;&quot;&quot;</span>
+<span class="fc" id="L95">        jdbc.sql(&quot;&quot;&quot;</span>
                         INSERT INTO protocol (
                             id, machine_id, incident_date, protocol_type, error_code, title,
                             symptom, language, source_file, status, uploaded_by)
@@ -100,45 +100,45 @@ public class ProtocolIntakeService {
                             :id, :machineId, :incidentDate, :protocolType, :errorCode, :title,
                             :symptom, :language, :sourceFile, 'RECEIVED', :uploadedBy)
                         &quot;&quot;&quot;)
-<span class="nc" id="L103">                .param(&quot;id&quot;, protocolId)</span>
-<span class="nc" id="L104">                .param(&quot;machineId&quot;, machineId)</span>
+<span class="fc" id="L103">                .param(&quot;id&quot;, protocolId)</span>
+<span class="fc" id="L104">                .param(&quot;machineId&quot;, machineId)</span>
                 // The upload carries no incident date of its own yet; the structured Schichtleiter
                 // form (Phase 3 UI) supplies one. Today's date is honest for a note typed today.
-<span class="nc" id="L107">                .param(&quot;incidentDate&quot;, LocalDate.now())</span>
-<span class="nc" id="L108">                .param(&quot;protocolType&quot;, type)</span>
-<span class="nc" id="L109">                .param(&quot;errorCode&quot;, blankToNull(submission.errorCode()), java.sql.Types.VARCHAR)</span>
-<span class="nc" id="L110">                .param(&quot;title&quot;, title)</span>
+<span class="fc" id="L107">                .param(&quot;incidentDate&quot;, LocalDate.now())</span>
+<span class="fc" id="L108">                .param(&quot;protocolType&quot;, type)</span>
+<span class="fc" id="L109">                .param(&quot;errorCode&quot;, blankToNull(submission.errorCode()), java.sql.Types.VARCHAR)</span>
+<span class="fc" id="L110">                .param(&quot;title&quot;, title)</span>
                 // Extracted text lands in `symptom` per DOMAIN-MODEL.md: an uploaded document is
                 // raw observation, not the structured cause/action a form would separate.
-<span class="nc" id="L113">                .param(&quot;symptom&quot;, content)</span>
-<span class="nc" id="L114">                .param(&quot;language&quot;, language)</span>
-<span class="nc" id="L115">                .param(&quot;sourceFile&quot;, relativePath)</span>
-<span class="nc" id="L116">                .param(&quot;uploadedBy&quot;, submission.uploadedBy())</span>
-<span class="nc" id="L117">                .update();</span>
+<span class="fc" id="L113">                .param(&quot;symptom&quot;, content)</span>
+<span class="fc" id="L114">                .param(&quot;language&quot;, language)</span>
+<span class="fc" id="L115">                .param(&quot;sourceFile&quot;, relativePath)</span>
+<span class="fc" id="L116">                .param(&quot;uploadedBy&quot;, submission.uploadedBy())</span>
+<span class="fc" id="L117">                .update();</span>
 
-<span class="nc" id="L119">        events.publishEvent(new ProtocolReceivedEvent(protocolId));</span>
-<span class="nc" id="L120">        log.info(&quot;Accepted protocol {} for {} from {} ({} bytes)&quot;,</span>
-<span class="nc" id="L121">                protocolId, machineNo, submission.uploadedBy(), content.length());</span>
-<span class="nc" id="L122">        return protocolId;</span>
+<span class="fc" id="L119">        events.publishEvent(new ProtocolReceivedEvent(protocolId));</span>
+<span class="fc" id="L120">        log.info(&quot;Accepted protocol {} for {} from {} ({} bytes)&quot;,</span>
+<span class="fc" id="L121">                protocolId, machineNo, submission.uploadedBy(), content.length());</span>
+<span class="fc" id="L122">        return protocolId;</span>
     }
 
     private UUID resolveMachine(String machineNo) {
-<span class="nc" id="L126">        return jdbc.sql(&quot;SELECT id FROM machine WHERE machine_no = :machineNo&quot;)</span>
-<span class="nc" id="L127">                .param(&quot;machineNo&quot;, machineNo)</span>
-<span class="nc" id="L128">                .query(UUID.class)</span>
-<span class="nc" id="L129">                .optional()</span>
-<span class="nc" id="L130">                .orElseThrow(() -&gt; new InvalidProtocolException(&quot;unknown machine: &quot; + machineNo));</span>
+<span class="fc" id="L126">        return jdbc.sql(&quot;SELECT id FROM machine WHERE machine_no = :machineNo&quot;)</span>
+<span class="fc" id="L127">                .param(&quot;machineNo&quot;, machineNo)</span>
+<span class="fc" id="L128">                .query(UUID.class)</span>
+<span class="fc" id="L129">                .optional()</span>
+<span class="pc" id="L130">                .orElseThrow(() -&gt; new InvalidProtocolException(&quot;unknown machine: &quot; + machineNo));</span>
     }
 
     private void writeDocument(String relativePath, String content) {
-<span class="nc" id="L134">        Path path = Path.of(fileProperties.basePath()).resolve(relativePath).normalize();</span>
+<span class="fc" id="L134">        Path path = Path.of(fileProperties.basePath()).resolve(relativePath).normalize();</span>
         try {
-<span class="nc" id="L136">            Files.createDirectories(path.getParent());</span>
-<span class="nc" id="L137">            Files.writeString(path, content, StandardCharsets.UTF_8);</span>
+<span class="fc" id="L136">            Files.createDirectories(path.getParent());</span>
+<span class="fc" id="L137">            Files.writeString(path, content, StandardCharsets.UTF_8);</span>
 <span class="nc" id="L138">        } catch (IOException e) {</span>
 <span class="nc" id="L139">            throw new UncheckedIOException(&quot;cannot store protocol document &quot; + relativePath, e);</span>
-<span class="nc" id="L140">        }</span>
-<span class="nc" id="L141">    }</span>
+<span class="fc" id="L140">        }</span>
+<span class="fc" id="L141">    }</span>
 
     /**
      * Text only, and checked rather than trusted. The bytes are decoded strictly as UTF-8 by the
@@ -155,33 +155,33 @@ public class ProtocolIntakeService {
     }
 
     private static String detectOrValidateLanguage(String language) {
-<span class="nc bnc" id="L158" title="All 4 branches missed.">        if (language == null || language.isBlank()) {</span>
+<span class="pc bpc" id="L158" title="2 of 4 branches missed.">        if (language == null || language.isBlank()) {</span>
             // Nothing is translated (DECISIONS.txt), so the value only tags what was written.
             // German is the plant's language and the safe default for an unlabelled note.
 <span class="nc" id="L161">            return &quot;de&quot;;</span>
         }
-<span class="nc" id="L163">        return requireOneOf(language, &quot;language&quot;, &quot;de&quot;, &quot;en&quot;);</span>
+<span class="fc" id="L163">        return requireOneOf(language, &quot;language&quot;, &quot;de&quot;, &quot;en&quot;);</span>
     }
 
     private static String required(String value, String field) {
-<span class="nc bnc" id="L167" title="All 4 branches missed.">        if (value == null || value.isBlank()) {</span>
+<span class="pc bpc" id="L167" title="2 of 4 branches missed.">        if (value == null || value.isBlank()) {</span>
 <span class="nc" id="L168">            throw new InvalidProtocolException(field + &quot; is required&quot;);</span>
         }
-<span class="nc" id="L170">        return value.strip();</span>
+<span class="fc" id="L170">        return value.strip();</span>
     }
 
     private static String requireOneOf(String value, String field, String... allowed) {
-<span class="nc" id="L174">        String candidate = required(value, field);</span>
-<span class="nc bnc" id="L175" title="All 2 branches missed.">        for (String option : allowed) {</span>
-<span class="nc bnc" id="L176" title="All 2 branches missed.">            if (option.equalsIgnoreCase(candidate)) {</span>
-<span class="nc" id="L177">                return option;</span>
+<span class="fc" id="L174">        String candidate = required(value, field);</span>
+<span class="pc bpc" id="L175" title="1 of 2 branches missed.">        for (String option : allowed) {</span>
+<span class="pc bpc" id="L176" title="1 of 2 branches missed.">            if (option.equalsIgnoreCase(candidate)) {</span>
+<span class="fc" id="L177">                return option;</span>
             }
         }
 <span class="nc" id="L180">        throw new InvalidProtocolException(&quot;%s must be one of %s&quot;.formatted(field, String.join(&quot;, &quot;, allowed)));</span>
     }
 
     private static String blankToNull(String value) {
-<span class="nc bnc" id="L184" title="All 4 branches missed.">        return value == null || value.isBlank() ? null : value.strip();</span>
+<span class="pc bpc" id="L184" title="2 of 4 branches missed.">        return value == null || value.isBlank() ? null : value.strip();</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

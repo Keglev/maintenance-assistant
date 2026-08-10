@@ -46,38 +46,55 @@ public class IngestionBacklogService {
 <span class="fc" id="L46">        this.budget = budget;</span>
 <span class="fc" id="L47">    }</span>
 
-    /** @param statuses which states to pick up; {@code RECEIVED} for a first pass, {@code FAILED} for a retry */
+    /**
+     * @param statuses which states to pick up; {@code RECEIVED} for a first pass, {@code FAILED}
+     *                 for a retry. Archived protocols are never picked up: a protocol soft-deleted
+     *                 while it was still RECEIVED would otherwise be a permanent backlog entry that
+     *                 rebuilds its own chunks on every run — a deletion the next catch-up undoes.
+     */
     public int enqueue(List&lt;String&gt; statuses, Integer limit) {
-<span class="pc bpc" id="L51" title="3 of 4 branches missed.">        int max = limit != null &amp;&amp; limit &gt; 0 ? limit : properties.backlogBatchSize();</span>
-<span class="fc" id="L52">        List&lt;UUID&gt; pending = jdbc.sql(&quot;&quot;&quot;</span>
+<span class="pc bpc" id="L56" title="3 of 4 branches missed.">        int max = limit != null &amp;&amp; limit &gt; 0 ? limit : properties.backlogBatchSize();</span>
+<span class="fc" id="L57">        List&lt;UUID&gt; pending = jdbc.sql(&quot;&quot;&quot;</span>
                         SELECT id FROM protocol
                         WHERE status IN (:statuses)
+                          AND deleted_at IS NULL
                         ORDER BY created_at
                         LIMIT :max
                         &quot;&quot;&quot;)
-<span class="fc" id="L58">                .param(&quot;statuses&quot;, statuses)</span>
-<span class="fc" id="L59">                .param(&quot;max&quot;, max)</span>
-<span class="fc" id="L60">                .query(UUID.class)</span>
-<span class="fc" id="L61">                .list();</span>
+<span class="fc" id="L64">                .param(&quot;statuses&quot;, statuses)</span>
+<span class="fc" id="L65">                .param(&quot;max&quot;, max)</span>
+<span class="fc" id="L66">                .query(UUID.class)</span>
+<span class="fc" id="L67">                .list();</span>
 
-<span class="fc bfc" id="L63" title="All 2 branches covered.">        if (pending.isEmpty()) {</span>
-<span class="fc" id="L64">            log.info(&quot;Backlog: nothing in {}&quot;, statuses);</span>
-<span class="fc" id="L65">            return 0;</span>
+<span class="fc bfc" id="L69" title="All 2 branches covered.">        if (pending.isEmpty()) {</span>
+<span class="fc" id="L70">            log.info(&quot;Backlog: nothing in {}&quot;, statuses);</span>
+<span class="fc" id="L71">            return 0;</span>
         }
 
-<span class="fc" id="L68">        log.info(&quot;Backlog: enqueueing {} protocols in {} ({} embedding calls used today)&quot;,</span>
-<span class="fc" id="L69">                pending.size(), statuses, budget.usedToday());</span>
+<span class="fc" id="L74">        log.info(&quot;Backlog: enqueueing {} protocols in {} ({} embedding calls used today)&quot;,</span>
+<span class="fc" id="L75">                pending.size(), statuses, budget.usedToday());</span>
         // Submission is bounded by the executor's queue; the overflow policy runs the excess on
         // this thread, so a 150-protocol backlog throttles rather than being dropped.
-<span class="fc" id="L72">        pending.forEach(id -&gt; events.publishEvent(new ProtocolReceivedEvent(id)));</span>
-<span class="fc" id="L73">        return pending.size();</span>
+<span class="fc" id="L78">        pending.forEach(id -&gt; events.publishEvent(new ProtocolReceivedEvent(id)));</span>
+<span class="fc" id="L79">        return pending.size();</span>
     }
 
-    /** Counts by status, for the operator answering &quot;is it done yet&quot;. */
+    /**
+     * Counts by status, for the operator answering &quot;is it done yet&quot;.
+     *
+     * &lt;p&gt;Live protocols only. The question behind this number is &quot;is the corpus indexed&quot;, and an
+     * archived protocol is not part of the corpus — counting it would report a permanent shortfall
+     * of RECEIVED rows that no backlog run can ever clear, because the backlog correctly refuses to
+     * pick them up.
+     */
     public List&lt;StatusCount&gt; statusCounts() {
-<span class="nc" id="L78">        return jdbc.sql(&quot;SELECT status, count(*) AS n FROM protocol GROUP BY status ORDER BY status&quot;)</span>
-<span class="nc" id="L79">                .query((rs, rowNum) -&gt; new StatusCount(rs.getString(&quot;status&quot;), rs.getLong(&quot;n&quot;)))</span>
-<span class="nc" id="L80">                .list();</span>
+<span class="nc" id="L91">        return jdbc.sql(&quot;&quot;&quot;</span>
+                        SELECT status, count(*) AS n FROM protocol
+                        WHERE deleted_at IS NULL
+                        GROUP BY status ORDER BY status
+                        &quot;&quot;&quot;)
+<span class="nc" id="L96">                .query((rs, rowNum) -&gt; new StatusCount(rs.getString(&quot;status&quot;), rs.getLong(&quot;n&quot;)))</span>
+<span class="nc" id="L97">                .list();</span>
     }
 
     /**
@@ -88,23 +105,23 @@ public class IngestionBacklogService {
      * can read without a database session is not visible.
      */
     public Usage usageToday() {
-<span class="nc" id="L91">        int used = budget.usedToday();</span>
-<span class="nc" id="L92">        long tokens = budget.tokensToday();</span>
-<span class="nc" id="L93">        return new Usage(used, Math.max(0, dailyBudget() - used), tokens,</span>
+<span class="nc" id="L108">        int used = budget.usedToday();</span>
+<span class="nc" id="L109">        long tokens = budget.tokensToday();</span>
+<span class="nc" id="L110">        return new Usage(used, Math.max(0, dailyBudget() - used), tokens,</span>
                 // ADR-002 prices bge-m3 at EUR 0.02 per million input tokens; embeddings bill input
                 // only. Reported in EUR so &quot;measured in cents&quot; stays a measurement.
-<span class="nc" id="L96">                Math.round(tokens / 1_000_000.0 * 0.02 * 100_000.0) / 100_000.0);</span>
+<span class="nc" id="L113">                Math.round(tokens / 1_000_000.0 * 0.02 * 100_000.0) / 100_000.0);</span>
     }
 
     private int dailyBudget() {
-<span class="nc" id="L100">        return embeddingProperties.dailyCallBudget();</span>
+<span class="nc" id="L117">        return embeddingProperties.dailyCallBudget();</span>
     }
 
-<span class="nc" id="L103">    public record StatusCount(String status, long count) {</span>
+<span class="nc" id="L120">    public record StatusCount(String status, long count) {</span>
     }
 
     /** @param estimatedEur input tokens priced at the ADR-002 rate, rounded to five decimals */
-<span class="nc" id="L107">    public record Usage(int callsToday, int callsRemaining, long promptTokensToday, double estimatedEur) {</span>
+<span class="nc" id="L124">    public record Usage(int callsToday, int callsRemaining, long promptTokensToday, double estimatedEur) {</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

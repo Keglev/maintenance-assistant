@@ -39,29 +39,36 @@ public class ProtocolStatusService {
     /**
      * The caller's most recent uploads, newest first.
      *
+     * &lt;p&gt;Archived protocols are gone from here too. An uploader seeing a protocol an administrator
+     * removed would be told it is INDEXED and searchable, which is false in the way that matters:
+     * they would stop looking for the reason their answer never cites it. Being told &lt;em&gt;why&lt;/em&gt; it
+     * was removed is a notification feature this application does not have; showing it as healthy is
+     * worse than showing nothing.
+     *
      * @param uploadedBy the Keycloak username claim, which is what {@code protocol.uploaded_by}
      *                   stores — there is no user table to join against (ADR-003)
      */
     public List&lt;UploadStatus&gt; findRecentUploadsOf(String uploadedBy) {
-<span class="fc" id="L46">        return jdbc.sql(&quot;&quot;&quot;</span>
+<span class="fc" id="L52">        return jdbc.sql(&quot;&quot;&quot;</span>
                         SELECT p.id, p.title, p.status, p.failure_reason, p.created_at, p.indexed_at,
                                m.machine_no
                         FROM protocol p JOIN machine m ON m.id = p.machine_id
                         WHERE p.uploaded_by = :uploadedBy
+                          AND p.deleted_at IS NULL
                         ORDER BY p.created_at DESC
                         LIMIT :max
                         &quot;&quot;&quot;)
-<span class="fc" id="L54">                .param(&quot;uploadedBy&quot;, uploadedBy)</span>
-<span class="fc" id="L55">                .param(&quot;max&quot;, MAX_ROWS)</span>
-<span class="fc" id="L56">                .query((rs, rowNum) -&gt; new UploadStatus(</span>
-<span class="fc" id="L57">                        rs.getObject(&quot;id&quot;, UUID.class),</span>
-<span class="fc" id="L58">                        rs.getString(&quot;machine_no&quot;),</span>
-<span class="fc" id="L59">                        rs.getString(&quot;title&quot;),</span>
-<span class="fc" id="L60">                        rs.getString(&quot;status&quot;),</span>
-<span class="fc" id="L61">                        rs.getString(&quot;failure_reason&quot;),</span>
-<span class="fc" id="L62">                        rs.getObject(&quot;created_at&quot;, OffsetDateTime.class),</span>
-<span class="fc" id="L63">                        rs.getObject(&quot;indexed_at&quot;, OffsetDateTime.class)))</span>
-<span class="fc" id="L64">                .list();</span>
+<span class="fc" id="L61">                .param(&quot;uploadedBy&quot;, uploadedBy)</span>
+<span class="fc" id="L62">                .param(&quot;max&quot;, MAX_ROWS)</span>
+<span class="fc" id="L63">                .query((rs, rowNum) -&gt; new UploadStatus(</span>
+<span class="fc" id="L64">                        rs.getObject(&quot;id&quot;, UUID.class),</span>
+<span class="fc" id="L65">                        rs.getString(&quot;machine_no&quot;),</span>
+<span class="fc" id="L66">                        rs.getString(&quot;title&quot;),</span>
+<span class="fc" id="L67">                        rs.getString(&quot;status&quot;),</span>
+<span class="fc" id="L68">                        rs.getString(&quot;failure_reason&quot;),</span>
+<span class="fc" id="L69">                        rs.getObject(&quot;created_at&quot;, OffsetDateTime.class),</span>
+<span class="fc" id="L70">                        rs.getObject(&quot;indexed_at&quot;, OffsetDateTime.class)))</span>
+<span class="fc" id="L71">                .list();</span>
     }
 
     /**
@@ -70,7 +77,7 @@ public class ProtocolStatusService {
      *                      logged only, because &quot;it failed&quot; without a reason makes re-uploading the
      *                      same broken file the obvious next move
      */
-<span class="fc" id="L73">    public record UploadStatus(</span>
+<span class="fc" id="L80">    public record UploadStatus(</span>
             UUID id,
             String machineNo,
             String title,

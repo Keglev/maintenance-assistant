@@ -5,13 +5,13 @@
 | **Status** | Accepted |
 | **Date** | 2026-08-10 |
 | **Deciders** | Project owner (solo) |
-| **Related** | Builds on [ADR-003](ADR-003-keycloak-for-iam.md) (roles, `preferred_username`); the quantified limits it starts from are in [arc42 §11.1](../arc42/11-risks-and-technical-debt.md); implements the remediation half of NFR-2's citation promise |
+| **Related** | Builds on [ADR-003](ADR-003-keycloak-for-iam.md) (roles, `preferred_username`); the quantified limits it starts from are in [arc42 §11.1](../architecture/11-risks-and-technical-debt.html); implements the remediation half of NFR-2's citation promise |
 
 ## Context
 
 Every guard this project has built so far bounds **how much** and **how fast**. The write path is
 restricted to one role (DECISIONS.txt: quality, consistency, anti-garbage). PR #36 added a size cap,
-a content check and a per-user rate limit, and [arc42 §11.1](../arc42/11-risks-and-technical-debt.md)
+a content check and a per-user rate limit, and [arc42 §11.1](../architecture/11-risks-and-technical-debt.html)
 quantifies what they are worth: a saturating attacker costs well under a cent a day and needs decades
 to fill the disk.
 

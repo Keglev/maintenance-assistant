@@ -24,10 +24,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
@@ -353,62 +351,6 @@ class IngestionPipelineIT {
         @Bean
         DynamicPropertyRegistrar protocolFilesPath() {
             return registry -> registry.add("maintenance.files.base-path", () -> filesDir.toString());
-        }
-    }
-
-    /**
-     * Deterministic vectors derived from the text's hash. Not meaningful as embeddings — this test
-     * is about the pipeline and the schema, not about retrieval quality, which is measured against
-     * the real provider in the manual corpus run.
-     */
-    static class FakeEmbeddingClient implements EmbeddingClient {
-
-        private final AtomicInteger calls = new AtomicInteger();
-        private final EmbeddingBudget budget;
-        private volatile String nextFailure;
-
-        FakeEmbeddingClient(EmbeddingBudget budget) {
-            this.budget = budget;
-        }
-
-        void reset() {
-            calls.set(0);
-            nextFailure = null;
-        }
-
-        void failNext(String message) {
-            nextFailure = message;
-        }
-
-        @Override
-        public int dimensions() {
-            return 1024;
-        }
-
-        @Override
-        public EmbeddingBatch embed(List<String> texts) {
-            String failure = nextFailure;
-            if (failure != null) {
-                nextFailure = null;
-                throw new EmbeddingException(failure);
-            }
-            calls.incrementAndGet();
-            List<float[]> vectors = new ArrayList<>(texts.size());
-            for (String text : texts) {
-                float[] vector = new float[1024];
-                int seed = text.hashCode();
-                for (int i = 0; i < vector.length; i++) {
-                    seed = seed * 1_103_515_245 + 12_345;
-                    vector[i] = (seed >>> 8) / (float) (1 << 24) - 0.5f;
-                }
-                vectors.add(vector);
-            }
-            // Roughly a token per four characters, so the budget assertions have something real to
-            // count without pretending this is the provider's own accounting.
-            long tokens = texts.stream().mapToLong(t -> Math.max(1, t.length() / 4)).sum();
-            // Same contract as the real client: the implementation records its own usage.
-            budget.record(1, tokens);
-            return new EmbeddingBatch(vectors, 1, tokens);
         }
     }
 }

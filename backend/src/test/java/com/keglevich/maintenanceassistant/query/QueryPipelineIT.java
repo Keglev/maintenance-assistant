@@ -118,6 +118,30 @@ class QueryPipelineIT {
     }
 
     @Test
+    @DisplayName("an archived protocol cannot be retrieved even if its chunk somehow survived")
+    void archivedProtocolsAreNeverRetrieved() {
+        // Moderation deletes the chunks, so this state should not exist. The chunk is left in place
+        // here deliberately, to test the SECOND line of defence rather than the first: ADR-006's
+        // objection to soft deletion was that it makes every query grow a filter it must never
+        // forget, and this is the query that must never forget it. A deleted protocol surfacing in
+        // a list is embarrassing; one cited in a green Mode A answer is the failure this whole
+        // application exists to prevent.
+        jdbc.sql("""
+                        UPDATE protocol SET deleted_at = now()
+                        WHERE machine_id = :machineId AND title LIKE 'E-47%'
+                        """)
+                .param("machineId", presse3)
+                .update();
+        cache.clear();
+
+        queries.ask("Presse kommt nicht auf Druck, Fehler E-47", presse3, QueryRole.TECHNIKER, "sub-9");
+
+        assertThat(chat.lastUserPrompt())
+                .as("the archived protocols must not reach the model as sources")
+                .doesNotContain("Druck bricht kurz ein");
+    }
+
+    @Test
     @DisplayName("similarity comes back on the 0..1 scale the threshold is expressed in")
     void similarityIsReportedOnTheThresholdScale() {
         QueryAnswer answer = queries.ask("Presse kommt nicht auf Druck, Fehler E-47",

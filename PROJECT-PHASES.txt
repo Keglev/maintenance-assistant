@@ -113,6 +113,56 @@ Config:     Flyway auto-config was DEAD on Boot 4.1 (missing
             properties moved to spring.web.error.*.
 
 OPEN ITEMS carried forward (not blockers, do not lose):
+- EDIT + ARCHIVE 2026-08-10 (feat/edit-and-delete-archive). TWO DECISIONS FROM
+  ADR-006 WERE REVERSED, and the revision is APPENDED to the ADR rather than
+  rewritten into it — the original text stands, the way the ARM entry in
+  DECISIONS.txt stands.
+  (1) EDITING IS ALLOWED NOW. The argument against it was that an answer cites a
+  protocol as it stood when the answer was produced. THAT ARGUMENT ASSUMED
+  ANSWERS ARE STORED, and they are not: every answer is generated per query and
+  every citation resolves live. There is no answer table, no answer history and
+  no shareable answer URL, so the exposure is not everything the system has ever
+  said — it is the answers currently open on a screen. THAT RESIDUAL IS REAL AND
+  IS WRITTEN DOWN rather than explained away; what makes it acceptable is that
+  an edit replaces a wrong Massnahme with a right one, is attributed with a
+  mandatory comment, and RE-INDEXES. Re-indexing is a CONDITION of the flow, not
+  a step in it: an edit that left the old chunks would be worse than no edit,
+  because retrieval would keep matching text the document no longer contains.
+  MACHINE AND TYPE ARE NOT EDITABLE, and a request that tries is refused 400
+  (PROTOCOL_IDENTITY_LOCKED), never silently ignored — a client told 200 would
+  report a move that did not happen. The rule in one line: WORDS CAN BE FIXED,
+  IDENTITY CANNOT. Editing an archived protocol is 409, not 404: the same admin
+  can read it in the archive one tab over, so "no such protocol" would be a lie
+  their own screen contradicts.
+  (2) DELETION IS NOW AN ARCHIVE. #37's hard delete removed the bad protocol AND
+  the evidence that it ever existed, which is the one thing the insider-threat
+  chain cannot lose — it was missing its last link, PRESERVE. The chunks are
+  still deleted (instant removal from every answer, every role), deleted_at is
+  set, the row and the file stay, and a moderation_event records actor + comment.
+  NO RESTORE, BY DESIGN — no endpoint, no flag, and a test that fails if a route
+  named restore/undelete appears. Capped at 50 per machine; past that the oldest
+  are purged completely, enforced SYNCHRONOUSLY by the delete that breached the
+  cap (a retention job is a scheduler that can silently stop running).
+  THE ADR'S OWN OBJECTION TO SOFT DELETE IS ANSWERED, not ignored: it said soft
+  delete makes every query grow a filter it must never forget, and that a
+  forgotten filter makes a deleted protocol citable again. The answer is that
+  RETRIEVAL IS PROTECTED BY THERE BEING NOTHING TO RETRIEVE. The deleted_at
+  guards on the row-based reads are the second line, and what they prevent is a
+  deleted protocol showing up in a LIST — visible and harmless — rather than in
+  a green Mode A answer.
+  READ-PATH AUDIT (all guarded): retrieval, the corpus list, Meine Uploads, the
+  live document endpoints, the indexer's load and the backlog enqueue. THE LAST
+  TWO ARE THE DANGEROUS ONES — either would have rebuilt an archived protocol's
+  chunks and put it back into search, which is the only way a soft delete could
+  be undone.
+  moderation_event has NO FOREIGN KEY to protocol, deliberately: a cascade would
+  mean the 51st deletion erasing the record of the first.
+  NOTE FOR THE NEXT SESSION: the migration is V4 and runs through the normal
+  Flyway path on deploy — no manual step, unlike a compose or Caddy change.
+  STILL OPEN from ADR-006, unchanged: draft/approve, four-eyes deletion,
+  automated suspicion signals. Four-eyes is now a BIGGER gap than it was, because
+  the single admin account can change what the corpus says and not only remove
+  from it.
 - ADMIN HOME + FILTERS 2026-08-10 (feat/admin-home-and-filters), and it opens
   with a LIVE DEFECT found the same day: an admin signing in landed on /search,
   the search view opens with GET /api/machines, and that endpoint correctly

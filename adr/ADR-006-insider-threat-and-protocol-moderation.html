@@ -343,6 +343,199 @@ ADR-006-insider-threat-and-protocol-moderation · maintenance-assistant Docs</ti
         problem this demo does not yet have. It is the natural successor
         if editing is ever wanted.</li>
         </ul>
+        <hr />
+        <h2
+        id="revision-2026-08-10-editing-is-allowed-deletion-becomes-an-archive">Revision
+        — 2026-08-10: editing is allowed, deletion becomes an
+        archive</h2>
+        <p><em>Appended, not rewritten. Everything above is what was
+        decided and shipped in #37 and is left standing; this section
+        records what changed, and why the reasoning above does not
+        survive contact with the two things it did not weigh.</em></p>
+        <h3
+        id="editing-previously-rejected-is-now-the-primary-correction-path">1.
+        Editing, previously rejected, is now the primary correction
+        path</h3>
+        <p>The argument against editing was: <em>an answer cites a
+        protocol as it stood when the answer was produced, so an edit
+        makes a citation that still resolves and is no longer what was
+        read.</em></p>
+        <p><strong>What that argument assumed, and the system does not
+        do: it assumed answers are stored.</strong> They are not. Every
+        answer is generated per query, from a retrieval that runs at
+        that moment, and a citation is resolved live against the
+        protocol the technician is looking at. There is no answer table,
+        no answer history and no shareable answer URL — the query cache
+        is keyed by question and role and expires, and it is a cost
+        control, not a record. So the population of “answers pointing at
+        text that changed underneath them” is not the corpus of
+        everything the system has ever said. It is <em>the answers
+        currently open on a screen</em>.</p>
+        <p><strong>That residual is real and is not being explained
+        away.</strong> A technician holding a screenshot, or a tab open
+        since before the correction, can still read a claim beside a
+        protocol that now says something else. Three things make that
+        acceptable where the original framing did not:</p>
+        <ul>
+        <li>The direction of the change. An edit exists to replace a
+        <strong>wrong Massnahme with a right one</strong>. The stale
+        reader is holding the wrong version either way; the edit is what
+        makes every subsequent reader hold the right one, and the
+        previous rule made that improvement impossible to deliver
+        without first destroying the protocol.</li>
+        <li>It is recorded. Every edit writes a
+        <code>moderation_event</code> row — who, when, and a
+        <strong>mandatory comment saying why</strong>. “The text changed
+        and nobody can say when or by whose hand” was the actual danger;
+        a corrected protocol with a dated, attributed, explained edit is
+        the opposite of that.</li>
+        <li>It re-indexes. An edit that changed the file but left the
+        old chunks in place would be strictly worse than no edit at all:
+        retrieval would keep matching the wrong text while the document
+        read correctly. <strong>Re-indexing is therefore not a step in
+        the flow, it is a condition of the flow</strong> — the same
+        delete-then-write path an upload takes, so the vector the search
+        uses is always the vector of the text on screen.</li>
+        </ul>
+        <p><strong>Real-plant rationale, which is what tipped
+        it.</strong> A wrong torque figure is corrected in seconds by
+        the person who spots it. Under the old rule the correction was:
+        delete the protocol, tell the Schichtleiter, have them retype
+        the whole thing and re-upload it. That is not a stricter process
+        — it is a process expensive enough that the wrong figure stays
+        in the corpus instead.</p>
+        <h4 id="machine-and-protocol-type-are-not-editable">Machine and
+        protocol type are not editable</h4>
+        <p>Title, fault code and the text are words about an event.
+        <strong>Machine identity is not a property of a protocol, it is
+        its provenance</strong> — it is what the retrieval filter runs
+        on, what the citation names, and what makes the protocol
+        evidence about <em>that</em> press rather than about presses in
+        general. Re-attributing a defect to another machine is not a
+        correction; it is a different protocol wearing this one’s
+        history, and it would silently move a record out of one
+        machine’s evidence and into another’s without the second
+        machine’s uploader ever touching it. Protocol type is the same
+        shape of claim one level down: a classification, not
+        content.</p>
+        <p>The rule in one line: <strong>words can be fixed, identity
+        cannot.</strong> If the machine is wrong, the protocol is wrong
+        at its root, and the path is delete plus a fresh upload — which
+        now costs an archive entry rather than a hole. A request that
+        tries to change either field is <strong>refused with a 400 and a
+        stable code</strong>, not silently ignored: a client that
+        thought it was moving a protocol and got a 200 back would be
+        told it succeeded.</p>
+        <h3
+        id="hard-delete-becomes-a-soft-delete-that-is-an-audit-archive">2.
+        Hard delete becomes a soft delete that is an audit archive</h3>
+        <p>#37 deleted the chunks, the row and the file. That removed
+        the bad protocol and, with it, <strong>the evidence that it had
+        ever existed</strong> — which is the one thing the
+        insider-threat chain cannot afford to lose. The chain this ADR
+        is built on is <em>create → detect → trace → remediate</em>, and
+        it was missing its last link: <strong>preserve</strong>. An
+        administrator who cleans up a poisoned protocol and thereby
+        erases the record of who filed it has completed the attacker’s
+        work for them.</p>
+        <p>Deletion now: chunks are deleted (unchanged, and it is the
+        load-bearing step), <code>deleted_at</code> is set, and a
+        <code>moderation_event</code> row records the actor and a
+        <strong>mandatory comment</strong>. The row and the file stay.
+        The protocol is dead to every read path in the application
+        except one admin archive view.</p>
+        <p><strong>This is an archive, not a recycle bin, and the
+        difference is the whole design:</strong></p>
+        <ul>
+        <li><strong>Removal is instant and total for every
+        role.</strong> A soft-deleted protocol leaves retrieval, the
+        protocol list, “Meine Uploads” and the shop-floor document
+        endpoint in the same request that deleted it.</li>
+        <li><strong>There is no restore, by design.</strong> No
+        endpoint, no UI, no flag. Undelete would make the archive a
+        staging area for putting bad protocols back, and would give the
+        moderation power a reverse gear its own audit trail cannot
+        describe. Correcting a protocol is what editing is now for; the
+        archive is for looking at what was removed, not for reversing
+        it.</li>
+        <li><strong>The admin can still read it</strong>, content and
+        all, which is what makes it evidence rather than a
+        tombstone.</li>
+        <li><strong>It is capped at 50 per machine.</strong> Past that,
+        the oldest deletions are purged completely — row and file —
+        because an archive that only grows is a disk that only fills,
+        and this application already bounds every other unbounded thing
+        it has (NFR-7). The <code>moderation_event</code> rows are
+        <em>not</em> purged with them: see below.</li>
+        </ul>
+        <h4
+        id="the-objection-this-adr-raised-against-soft-delete-answered">The
+        objection this ADR raised against soft delete, answered</h4>
+        <p>The deferred-items table above rejected soft delete on a
+        specific and good ground:</p>
+        <blockquote>
+        <p>…every query in the system growing a filter it must never
+        forget — a filter that, forgotten once, makes a “deleted”
+        protocol citable again. That failure is worse than the mis-click
+        it prevents.</p>
+        </blockquote>
+        <p>That objection stands, and it is why <strong>the chunks are
+        still deleted.</strong> Retrieval is not protected by a
+        <code>deleted_at</code> filter it could forget; it is protected
+        by there being nothing left to retrieve. The
+        <code>WHERE deleted_at IS NULL</code> guards on the row-based
+        reads are the second line, and the failure they guard against is
+        a deleted protocol appearing in a <em>list</em> — visible,
+        embarrassing and harmless — rather than being cited in an
+        answer. The dangerous failure mode was designed out; the
+        survivable one is filtered.</p>
+        <p>The other half of the original objection — the retention job
+        — did not survive either, and did not need to: the cap is
+        enforced synchronously by the delete that breaches it. There is
+        no scheduler, no timer and no state that can silently stop
+        running.</p>
+        <h4 id="why-moderation_event-outlives-the-protocol">Why
+        <code>moderation_event</code> outlives the protocol</h4>
+        <p><code>moderation_event</code> carries no foreign key to
+        <code>protocol</code>, deliberately. When the cap purges the
+        oldest deletions, the ledger entries stay. A cascade would mean
+        the fifty-first deletion erased the record of the first —
+        <strong>the audit function losing its own audit trail</strong>,
+        which is the exact failure this revision exists to prevent. The
+        purge is logged at INFO with the protocol’s identity, so the
+        human-readable “what was it” survives next to the
+        machine-readable “who removed it and why”.</p>
+        <h3 id="consequences-of-this-revision">Consequences of this
+        revision</h3>
+        <p><strong>Positive</strong></p>
+        <ul>
+        <li>Correction is now cheap enough to actually happen, and every
+        correction is attributed and explained.</li>
+        <li>Removing garbage no longer destroys the evidence of who
+        produced it.</li>
+        <li>Retrieval’s safety property is structural (no chunks) rather
+        than dependent on a filter.</li>
+        </ul>
+        <p><strong>Negative, and accepted</strong></p>
+        <ul>
+        <li><strong>A stale open answer can still cite corrected
+        text.</strong> Narrowed, not eliminated. Versioned protocols
+        remain the correct fix and remain deferred, for the same
+        proportion reasons as above.</li>
+        <li><strong>The archive is a second place bad content
+        lives.</strong> Only an administrator can read it, and it is out
+        of retrieval entirely, but it is not nothing.</li>
+        <li><strong>The cap destroys old evidence.</strong> Fifty
+        deletions per machine is generous for this plant and arbitrary
+        in principle; a machine under sustained attack would roll its
+        oldest evidence out of the archive. The
+        <code>moderation_event</code> ledger is what survives that,
+        which is why it is not cascaded.</li>
+        <li><strong>Still one administrator.</strong> Editing hands that
+        single account the power to change what the corpus says, not
+        only to remove from it. Four-eyes remains deferred and is now a
+        larger gap than it was.</li>
+        </ul>
       </article>
     </main>
 
@@ -378,6 +571,25 @@ ADR-006-insider-threat-and-protocol-moderation · maintenance-assistant Docs</ti
       deferred</a></li>
       <li><a href="#alternatives-considered"
       id="toc-alternatives-considered">Alternatives considered</a></li>
+      <li><a
+      href="#revision-2026-08-10-editing-is-allowed-deletion-becomes-an-archive"
+      id="toc-revision-2026-08-10-editing-is-allowed-deletion-becomes-an-archive">Revision
+      — 2026-08-10: editing is allowed, deletion becomes an archive</a>
+      <ul>
+      <li><a
+      href="#editing-previously-rejected-is-now-the-primary-correction-path"
+      id="toc-editing-previously-rejected-is-now-the-primary-correction-path">1.
+      Editing, previously rejected, is now the primary correction
+      path</a></li>
+      <li><a
+      href="#hard-delete-becomes-a-soft-delete-that-is-an-audit-archive"
+      id="toc-hard-delete-becomes-a-soft-delete-that-is-an-audit-archive">2.
+      Hard delete becomes a soft delete that is an audit
+      archive</a></li>
+      <li><a href="#consequences-of-this-revision"
+      id="toc-consequences-of-this-revision">Consequences of this
+      revision</a></li>
+      </ul></li>
       </ul></li>
       </ul>
     </nav>

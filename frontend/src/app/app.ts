@@ -75,6 +75,17 @@ export class App {
     this.auth.realmRoles().some((role) => role.toLowerCase() === 'schichtleiter'),
   );
 
+  /**
+   * Whether to offer the moderation view.
+   *
+   * Presentation, like {@link canUpload} — the route guard and the backend decide. What it buys is
+   * that the three shop-floor roles are not shown a door onto a 403, and that the admin, who until
+   * now signed in to an empty application, has one.
+   */
+  protected readonly canModerate = computed(() =>
+    this.auth.realmRoles().some((role) => role.toLowerCase() === 'admin'),
+  );
+
   protected use(language: UiLanguage): void {
     this.i18n.use(language);
   }

@@ -1,0 +1,181 @@
+<div class="page">
+  <h1 class="page-title">{{ t().moderation.heading }}</h1>
+  <p class="page-lead">{{ t().moderation.intro }}</p>
+  <!-- The absence of an edit button is a decision, so it is stated rather than left to be read as
+       an oversight (ADR-006: an answer must never cite text that changed underneath it). -->
+  <p class="field-hint moderation-hint" data-testid="moderation-hint">{{ t().moderation.noEditHint }}</p>
+
+  @if (removed(); as title) {
+    <p class="notice notice-info moderation-notice" role="status" data-testid="removed-notice">
+      <span>{{ t().moderation.removed }}: {{ title }}</span>
+      <button
+        type="button"
+        class="link-button"
+        data-testid="removed-dismiss"
+        [attr.aria-label]="t().signOut.dismiss"
+        (click)="removed.set(null)"
+      >
+        {{ t().common.close }}
+      </button>
+    </p>
+  }
+
+  @if (failure(); as reason) {
+    <p class="notice notice-error" role="alert" data-testid="moderation-failure">
+      @switch (reason) {
+        @case ('forbidden') {
+          {{ t().errors.forbidden }}
+        }
+        @case ('notFound') {
+          {{ t().moderation.alreadyGone }}
+        }
+        @case ('unavailable') {
+          {{ t().errors.unavailable }}
+        }
+        @default {
+          {{ t().errors.generic }}
+        }
+      }
+    </p>
+  }
+
+  <section class="card">
+    @if (loading()) {
+      <p class="hint" role="status" data-testid="moderation-loading">{{ t().moderation.loading }}</p>
+    } @else if (protocols().length === 0) {
+      <p class="hint" data-testid="moderation-empty">{{ t().moderation.empty }}</p>
+    } @else {
+      <div class="table-scroll">
+        <table class="moderation-table" data-testid="moderation-table">
+          <thead>
+            <tr>
+              <th>{{ t().upload.columnProtocol }}</th>
+              <th>{{ t().upload.machine }}</th>
+              <th>{{ t().upload.type }}</th>
+              <th>{{ t().moderation.uploadedBy }}</th>
+              <th>{{ t().upload.columnUploaded }}</th>
+              <th>{{ t().upload.columnStatus }}</th>
+              <th><span class="sr-only">{{ t().moderation.actions }}</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (protocol of protocols(); track protocol.id) {
+              <tr data-testid="moderation-row">
+                <td>{{ protocol.title }}</td>
+                <td class="machine">{{ protocol.machineNo }}</td>
+                <td>
+                  {{
+                    protocol.protocolType === 'WARTUNG'
+                      ? t().upload.typeMaintenance
+                      : t().upload.typeFault
+                  }}
+                </td>
+                <!-- The author, on screen. A reviewer who can see a bad protocol but not who filed
+                     it can remove the text and learn nothing (ADR-006). -->
+                <td class="uploader" data-testid="row-uploader">{{ protocol.uploadedBy }}</td>
+                <td class="num">{{ shortDate(protocol.uploadedAt) }}</td>
+                <td>
+                  <span class="status status-{{ protocol.status.toLowerCase() }}">{{
+                    statusLabel(protocol.status)
+                  }}</span>
+                </td>
+                <td class="row-actions">
+                  <button
+                    type="button"
+                    class="btn btn-secondary btn-sm"
+                    data-testid="row-open"
+                    [attr.aria-haspopup]="'dialog'"
+                    [attr.aria-label]="t().moderation.open + ': ' + protocol.title"
+                    (click)="viewing.set(protocol)"
+                  >
+                    {{ t().moderation.open }}
+                  </button>
+                  <button
+                    type="button"
+                    class="btn btn-danger btn-sm"
+                    data-testid="row-delete"
+                    [attr.aria-haspopup]="'dialog'"
+                    [attr.aria-label]="t().moderation.delete + ': ' + protocol.title"
+                    (click)="deleting.set(protocol)"
+                  >
+                    {{ t().moderation.delete }}
+                  </button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <div class="pager">
+        <button
+          type="button"
+          class="btn btn-secondary btn-sm"
+          data-testid="page-previous"
+          [disabled]="!hasPrevious()"
+          (click)="previous()"
+        >
+          {{ t().moderation.previous }}
+        </button>
+        <span class="pager-state num" data-testid="page-state">{{
+          t().moderation.pageOf(page() + 1, pageCount(), total())
+        }}</span>
+        <button
+          type="button"
+          class="btn btn-secondary btn-sm"
+          data-testid="page-next"
+          [disabled]="!hasNext()"
+          (click)="next()"
+        >
+          {{ t().moderation.next }}
+        </button>
+      </div>
+    }
+  </section>
+</div>
+
+<!-- The same viewer the shop floor reads a citation with, pointed at the admin-only path: an admin
+     holds no shop-floor role, so the citation path would 403 for exactly this reader. -->
+<app-protocol-dialog
+  [protocolId]="viewing()?.id ?? null"
+  [protocolTitle]="viewing()?.title ?? ''"
+  [machine]="viewing()?.machineNo ?? ''"
+  source="moderation"
+  (closed)="viewing.set(null)"
+/>
+
+<app-dialog
+  [open]="deleting() !== null"
+  [title]="t().moderation.confirmTitle"
+  testId="delete-confirm"
+  (closed)="deleting.set(null)"
+>
+  @if (deleting(); as target) {
+    <!-- The title and machine are repeated here on purpose: the button that opened this dialog was
+         one of ten identical ones in a row, and "are you sure" without naming the thing is how the
+         wrong row gets deleted. -->
+    <p class="confirm-target" data-testid="delete-target">
+      <strong>{{ target.title }}</strong>
+      <span class="machine">{{ target.machineNo }}</span>
+    </p>
+  }
+  <p class="confirm-body">{{ t().moderation.confirmBody }}</p>
+  <div class="confirm-actions">
+    <button
+      type="button"
+      class="btn btn-danger"
+      data-testid="delete-confirm-button"
+      (click)="confirmDelete()"
+    >
+      {{ t().moderation.delete }}
+    </button>
+    <button
+      type="button"
+      class="btn btn-secondary"
+      data-testid="delete-cancel"
+      (click)="deleting.set(null)"
+    >
+      {{ t().common.cancel }}
+    </button>
+  </div>
+</app-dialog>

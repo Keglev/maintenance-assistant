@@ -3,7 +3,13 @@ import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import { ConfigService } from '../config/config.service';
-import { Machine, QueryAnswer, UploadAccepted, UploadStatus } from './api.types';
+import {
+  Machine,
+  ProtocolPage,
+  QueryAnswer,
+  UploadAccepted,
+  UploadStatus,
+} from './api.types';
 
 /**
  * The five calls this application makes to its own backend.
@@ -53,6 +59,38 @@ export class MaintenanceApiService {
       observe: 'response',
       responseType: 'blob',
     });
+  }
+
+  /**
+   * One page of the whole corpus. Admin only, server-side.
+   *
+   * Paged rather than "give me everything": the corpus is 150 protocols and grows every time one is
+   * uploaded, and a review screen that loads all of them gets slower every month.
+   */
+  moderationProtocols(page: number, size: number): Observable<ProtocolPage> {
+    return this.http.get<ProtocolPage>(`${this.apiBaseUrl}/moderation/protocols`, {
+      params: { page, size },
+    });
+  }
+
+  /**
+   * A protocol's document through the moderation path.
+   *
+   * A separate call from {@link getDocument} rather than a parameter, because they differ in who
+   * may make them: the shop-floor path is open to the three roles that ask questions, and an admin
+   * holds none of them. Same file, same mechanics, different authorisation — which is exactly the
+   * kind of difference that should be visible at the call site.
+   */
+  getModerationDocument(protocolId: string): Observable<HttpResponse<Blob>> {
+    return this.http.get(`${this.apiBaseUrl}/moderation/protocols/${protocolId}/document`, {
+      observe: 'response',
+      responseType: 'blob',
+    });
+  }
+
+  /** Removes a protocol permanently: chunks, row and file. Admin only, server-side. */
+  deleteProtocol(protocolId: string): Observable<void> {
+    return this.http.delete<void>(`${this.apiBaseUrl}/moderation/protocols/${protocolId}`);
   }
 
   /** The caller's own uploads and what became of them. Schichtleiter only, server-side. */

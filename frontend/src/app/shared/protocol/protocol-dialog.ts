@@ -49,6 +49,15 @@ export class ProtocolDialog implements OnDestroy {
 
   /** The protocol to show, or `null` when the viewer is closed. Setting it starts the fetch. */
   readonly protocolId = input<string | null>(null);
+  /**
+   * Which endpoint to read the document from.
+   *
+   * The same file, fetched over a path with a different authorisation rule: `citation` is the
+   * shop-floor path, open to the three roles that ask questions, and `moderation` is the admin one.
+   * An admin holds no shop-floor role, so a viewer hard-wired to the first would 403 for exactly the
+   * person this dialog was reused for.
+   */
+  readonly source = input<'citation' | 'moderation'>('citation');
   /** What the answer called this protocol, so the dialog names what the reader clicked. */
   readonly protocolTitle = input('');
   /** The machine the question was asked about — the second half of "which document is this". */
@@ -86,7 +95,12 @@ export class ProtocolDialog implements OnDestroy {
     this.reset();
     this.loading.set(true);
 
-    this.api.getDocument(protocolId).subscribe({
+    const document$ =
+      this.source() === 'moderation'
+        ? this.api.getModerationDocument(protocolId)
+        : this.api.getDocument(protocolId);
+
+    document$.subscribe({
       next: (response) => {
         this.loading.set(false);
         const blob = response.body;

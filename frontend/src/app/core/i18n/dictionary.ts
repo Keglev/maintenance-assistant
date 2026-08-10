@@ -60,6 +60,7 @@ export interface Dictionary {
   readonly nav: {
     readonly search: string;
     readonly upload: string;
+    readonly moderation: string;
     readonly signOut: string;
     readonly language: string;
     readonly help: string;
@@ -175,6 +176,25 @@ export interface Dictionary {
     readonly uploadRateLimited: string;
     readonly generic: string;
   };
+  readonly moderation: {
+    readonly heading: string;
+    readonly intro: string;
+    readonly noEditHint: string;
+    readonly uploadedBy: string;
+    readonly actions: string;
+    readonly open: string;
+    readonly delete: string;
+    readonly loading: string;
+    readonly empty: string;
+    readonly removed: string;
+    readonly alreadyGone: string;
+    readonly confirmTitle: string;
+    readonly confirmBody: string;
+    readonly previous: string;
+    readonly next: string;
+    /** "Seite 2 von 16 (151 Protokolle)" — three numbers, one sentence per language. */
+    readonly pageOf: (page: number, pages: number, total: number) => string;
+  };
   readonly upload: {
     readonly heading: string;
     readonly intro: string;
@@ -247,6 +267,7 @@ export const DE: Dictionary = {
   nav: {
     search: 'Suche',
     upload: 'Protokoll hochladen',
+    moderation: 'Verwaltung',
     signOut: 'Abmelden',
     language: 'Sprache',
     help: 'Hilfe',
@@ -397,6 +418,27 @@ export const DE: Dictionary = {
       'Zu viele Uploads in kurzer Zeit. Bitte kurz warten und erneut versuchen.',
     generic: 'Die Anfrage ist fehlgeschlagen.',
   },
+  moderation: {
+    heading: 'Verwaltung',
+    intro:
+      'Alle Protokolle im Bestand. Öffnen zum Prüfen, entfernen was nicht hineingehört.',
+    noEditHint:
+      'Protokolle werden nicht bearbeitet. Eine Korrektur ist: entfernen und vom Schichtleiter neu hochladen — so kann keine Antwort eine Quelle zitieren, die sich nachträglich geändert hat.',
+    uploadedBy: 'Hochgeladen von',
+    actions: 'Aktionen',
+    open: 'Öffnen',
+    delete: 'Löschen',
+    loading: 'Protokolle werden geladen …',
+    empty: 'Keine Protokolle im Bestand.',
+    removed: 'Protokoll entfernt',
+    alreadyGone: 'Dieses Protokoll ist nicht mehr im Bestand.',
+    confirmTitle: 'Protokoll endgültig entfernen?',
+    confirmBody:
+      'Aus Suche und Bestand entfernt. Endgültig — es gibt kein Rückgängig und keinen Papierkorb.',
+    previous: 'Zurück',
+    next: 'Weiter',
+    pageOf: (page, pages, total) => `Seite ${page} von ${pages} (${total} Protokolle)`,
+  },
   upload: {
     heading: 'Protokoll hochladen',
     intro:
@@ -466,6 +508,7 @@ export const EN: Dictionary = {
   nav: {
     search: 'Search',
     upload: 'Upload protocol',
+    moderation: 'Moderation',
     signOut: 'Sign out',
     language: 'Language',
     help: 'Help',
@@ -617,6 +660,26 @@ export const EN: Dictionary = {
       'This file cannot be read. Only text files (.txt) with content are accepted — PDFs and scans are not supported yet.',
     uploadRateLimited: 'Too many uploads in a short time. Please wait a moment and try again.',
     generic: 'The request failed.',
+  },
+  moderation: {
+    heading: 'Moderation',
+    intro: 'Every protocol in the records. Open one to review it, remove what does not belong.',
+    noEditHint:
+      'Protocols are not edited. A correction is: remove it and have the shift lead upload it again — so no answer can cite a source that changed after the fact.',
+    uploadedBy: 'Uploaded by',
+    actions: 'Actions',
+    open: 'Open',
+    delete: 'Delete',
+    loading: 'Loading protocols …',
+    empty: 'No protocols in the records.',
+    removed: 'Protocol removed',
+    alreadyGone: 'This protocol is no longer in the records.',
+    confirmTitle: 'Remove this protocol permanently?',
+    confirmBody:
+      'Removed from search and from the records. Permanent — there is no undo and no recycle bin.',
+    previous: 'Back',
+    next: 'Next',
+    pageOf: (page, pages, total) => `Page ${page} of ${pages} (${total} protocols)`,
   },
   upload: {
     heading: 'Upload a protocol',

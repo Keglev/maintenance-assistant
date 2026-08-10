@@ -78,6 +78,23 @@ describe('App', () => {
     }
   });
 
+  it('offers the moderation view to an admin, and to nobody else', async () => {
+    const admin = await render(['admin']);
+    expect(
+      (admin.nativeElement as HTMLElement).querySelector('[data-testid="nav-moderation"]'),
+    ).not.toBeNull();
+
+    for (const role of ['operator', 'techniker', 'schichtleiter']) {
+      const fixture = await render([role]);
+      // Presentation, not protection — but the Schichtleiter is the role moderation exists to
+      // check, and a door onto it in their nav would be the wrong invitation.
+      expect(
+        (fixture.nativeElement as HTMLElement).querySelector('[data-testid="nav-moderation"]'),
+        role,
+      ).toBeNull();
+    }
+  });
+
   it('shows no navigation at all before sign-in', async () => {
     const fixture = await render([], false);
 

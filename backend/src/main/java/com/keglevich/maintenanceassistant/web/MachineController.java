@@ -19,8 +19,15 @@ import java.util.List;
  *
  * <p>Open to the same three shop-floor roles as the query itself: knowing which machines the plant
  * has is a precondition of asking about one, so gating it more tightly than the question would make
- * the question unaskable. Admin is excluded for the same reason it is on the query — it is a
- * Keycloak IT role, not a shop-floor one.
+ * the question unaskable.
+ *
+ * <p><b>And to the admin, since ADR-006 gave that role a shop-floor function.</b> It cannot ask a
+ * question and must not be able to, but the moderation view filters the corpus by machine, and a
+ * machine filter needs the machine list. Refusing it produced a live defect: the admin's landing
+ * page rendered "Maschinenliste nicht verfügbar" because the first call it made was one the role was
+ * correctly forbidden to make. This is plant metadata — ten rows of identifier, name and location,
+ * no protocol content and nothing a protocol says — so widening the read is proportionate where
+ * widening {@code POST /api/query} would not be.
  */
 @RestController
 @RequestMapping("/api/machines")
@@ -34,9 +41,11 @@ class MachineController {
     }
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('OPERATOR', 'TECHNIKER', 'SCHICHTLEITER')")
+    @PreAuthorize("hasAnyRole('OPERATOR', 'TECHNIKER', 'SCHICHTLEITER', 'ADMIN')")
     @Operation(summary = "List the machines a question can be asked about",
-            description = "Ordered by plant identifier. Unpaged: this is a fixed-size plant.")
+            description = "Ordered by plant identifier. Unpaged: this is a fixed-size plant. "
+                    + "Readable by an administrator too — the moderation filter needs it, and "
+                    + "plant metadata carries nothing a protocol says.")
     List<MachineCatalog.Machine> list() {
         return machines.findAll();
     }

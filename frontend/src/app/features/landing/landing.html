@@ -130,4 +130,12 @@
       }
     </ul>
   </section>
+
+  <!-- The same control as in the header, at the foot of the page. The header does not stick, and by
+       the time a visitor has read the pitch it is several screens above them — on a tablet that is a
+       long scroll back for a setting they are looking at the result of right now. -->
+  <section class="appearance" aria-labelledby="appearance-heading">
+    <h2 class="appearance-title" id="appearance-heading">{{ t().theme.label }}</h2>
+    <app-theme-toggle />
+  </section>
 </div>

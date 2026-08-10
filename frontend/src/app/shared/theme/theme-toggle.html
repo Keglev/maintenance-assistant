@@ -1,0 +1,48 @@
+<!-- Labelled as a group, so a screen reader announces what the three buttons are for before reading
+     them out. The icons are decorative; the accessible name comes from aria-label on each button. -->
+<div class="theme-switch" role="group" [attr.aria-label]="t().theme.label" data-testid="theme-toggle">
+  <button
+    type="button"
+    data-testid="theme-system"
+    [class.active]="choice() === 'system'"
+    [attr.aria-pressed]="choice() === 'system'"
+    [attr.aria-label]="t().theme.system"
+    [title]="t().theme.system"
+    (click)="use('system')"
+  >
+    <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <rect x="2.5" y="4" width="19" height="13" rx="2" />
+      <path d="M9 20.5h6" />
+    </svg>
+    <span class="theme-text">{{ t().theme.system }}</span>
+  </button>
+  <button
+    type="button"
+    data-testid="theme-light"
+    [class.active]="choice() === 'light'"
+    [attr.aria-pressed]="choice() === 'light'"
+    [attr.aria-label]="t().theme.light"
+    [title]="t().theme.light"
+    (click)="use('light')"
+  >
+    <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <circle cx="12" cy="12" r="4.2" />
+      <path d="M12 2.6v2.4M12 19v2.4M4.2 12H1.8M22.2 12h-2.4M6.3 6.3L4.6 4.6M19.4 19.4l-1.7-1.7M17.7 6.3l1.7-1.7M4.6 19.4l1.7-1.7" />
+    </svg>
+    <span class="theme-text">{{ t().theme.light }}</span>
+  </button>
+  <button
+    type="button"
+    data-testid="theme-dark"
+    [class.active]="choice() === 'dark'"
+    [attr.aria-pressed]="choice() === 'dark'"
+    [attr.aria-label]="t().theme.dark"
+    [title]="t().theme.dark"
+    (click)="use('dark')"
+  >
+    <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <path d="M20.5 14.6A8.6 8.6 0 0 1 9.4 3.5a8.6 8.6 0 1 0 11.1 11.1z" />
+    </svg>
+    <span class="theme-text">{{ t().theme.dark }}</span>
+  </button>
+</div>

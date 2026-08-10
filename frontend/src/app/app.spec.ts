@@ -177,6 +177,18 @@ describe('App', () => {
     expect(logout).not.toHaveBeenCalled();
   });
 
+  it('offers the theme control in the header, signed in and signed out alike', async () => {
+    for (const authenticated of [true, false]) {
+      const fixture = await render(['operator'], authenticated);
+
+      // Screenshots are taken logged out too, and the header renders in both states — so one
+      // control in the shell covers both rather than two controls that would appear together.
+      expect(
+        (fixture.nativeElement as HTMLElement).querySelector('[data-testid="theme-toggle"]'),
+      ).not.toBeNull();
+    }
+  });
+
   it('offers help before sign-in, because the colours need explaining first', async () => {
     const fixture = await render([], false);
     const element = fixture.nativeElement as HTMLElement;

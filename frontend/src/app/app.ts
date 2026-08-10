@@ -6,6 +6,7 @@ import { I18nService } from './core/i18n/i18n.service';
 import { UiLanguage } from './core/i18n/dictionary';
 import { Dialog } from './shared/dialog/dialog';
 import { HelpDialog } from './shared/help/help-dialog';
+import { ThemeToggle } from './shared/theme/theme-toggle';
 
 /** Where the footer points. Fixed URLs, so they are not worth a runtime configuration lookup. */
 export const DOCS_URL = 'https://keglev.github.io/maintenance-assistant/';
@@ -20,7 +21,7 @@ type KnownRole = (typeof KNOWN_ROLES)[number];
 /** Application shell: header, navigation, the language switch, the footer and the routed view. */
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, Dialog, HelpDialog],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, Dialog, HelpDialog, ThemeToggle],
   templateUrl: './app.html',
   styleUrl: './app.css',
 })

@@ -1,0 +1,64 @@
+/* Deliberately the language switch's shape: they sit next to each other in the header, and two
+   segmented controls that looked different would read as two unrelated kinds of setting. */
+.theme-switch {
+  display: inline-flex;
+  border: 1px solid var(--c-line-strong);
+  border-radius: var(--r-sm);
+  overflow: hidden;
+}
+
+.theme-switch button {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+  min-height: 36px;
+  padding: 0 var(--s-3);
+  border: 0;
+  background: var(--c-surface);
+  font: inherit;
+  font-size: var(--t-sm);
+  font-weight: 600;
+  color: var(--c-ink-muted);
+  cursor: pointer;
+}
+
+.theme-switch button + button {
+  border-left: 1px solid var(--c-line);
+}
+
+.theme-switch button.active {
+  background: var(--c-brand);
+  color: var(--c-on-brand);
+}
+
+.icon {
+  flex: 0 0 auto;
+  width: 15px;
+  height: 15px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* Three labelled buttons are wider than the header has to spare once the machine name, the role
+   badge and the language switch are in it. Below that width the icons carry the meaning and the
+   aria-label carries it for anyone who cannot see them — the text is the redundant part, not the
+   accessible name. */
+@media (max-width: 60rem) {
+  .theme-text {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .theme-switch button {
+    padding: 0 var(--s-3);
+  }
+}

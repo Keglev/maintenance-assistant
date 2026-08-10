@@ -161,6 +161,19 @@ describe('Landing', () => {
     ).toBeNull();
   });
 
+  it('repeats the theme control at the foot of the pitch', async () => {
+    const fixture = await render();
+
+    // The header does not stick, and by the time a visitor has read the whole pitch it is several
+    // screens above them — on a tablet that is a long scroll back for a setting whose effect they
+    // are looking at right now.
+    expect(
+      (fixture.nativeElement as HTMLElement).querySelector(
+        '.appearance [data-testid="theme-toggle"]',
+      ),
+    ).not.toBeNull();
+  });
+
   it('states the problem before the technology', async () => {
     const fixture = await render();
     const element = fixture.nativeElement as HTMLElement;

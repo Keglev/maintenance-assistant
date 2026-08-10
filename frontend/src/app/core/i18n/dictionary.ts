@@ -35,6 +35,13 @@ export interface Dictionary {
     readonly close: string;
     readonly cancel: string;
   };
+  /** The theme control. `system` is a state of its own, so it needs a name of its own. */
+  readonly theme: {
+    readonly label: string;
+    readonly system: string;
+    readonly light: string;
+    readonly dark: string;
+  };
   readonly nav: {
     readonly search: string;
     readonly upload: string;
@@ -189,6 +196,12 @@ export const DE: Dictionary = {
   common: {
     close: 'Schließen',
     cancel: 'Abbrechen',
+  },
+  theme: {
+    label: 'Darstellung',
+    system: 'System',
+    light: 'Hell',
+    dark: 'Dunkel',
   },
   nav: {
     search: 'Suche',
@@ -371,6 +384,12 @@ export const EN: Dictionary = {
   common: {
     close: 'Close',
     cancel: 'Cancel',
+  },
+  theme: {
+    label: 'Appearance',
+    system: 'System',
+    light: 'Light',
+    dark: 'Dark',
   },
   nav: {
     search: 'Search',

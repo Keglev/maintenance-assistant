@@ -6,9 +6,9 @@ import { THEME_STORAGE_KEY } from '../../core/theme/theme.service';
 import { ThemeToggle } from './theme-toggle';
 
 /**
- * Three states, and the control has to say which one is active — a segmented control whose active
- * segment is only a colour tells a screen-reader user nothing, and "system" looking the same as
- * "light" is what makes someone press it twice.
+ * Two buttons, and the operating system as the silent default until one of them is pressed. What is
+ * asserted is that the control always says which theme is ON SCREEN — with nothing stored that is
+ * the OS's answer, and a control showing neither half pressed would look broken on a first visit.
  */
 describe('ThemeToggle', () => {
   /** Stubbed rather than spied on: jsdom implements no matchMedia to spy on. */
@@ -31,6 +31,10 @@ describe('ThemeToggle', () => {
     return fixture;
   }
 
+  function pressed(element: HTMLElement, id: string) {
+    return element.querySelector(`[data-testid="${id}"]`)?.getAttribute('aria-pressed');
+  }
+
   beforeEach(() => {
     localStorage.clear();
     document.documentElement.removeAttribute('data-theme');
@@ -42,16 +46,37 @@ describe('ThemeToggle', () => {
     vi.restoreAllMocks();
   });
 
-  it('offers all three states, with system active by default', async () => {
+  it('offers exactly two states — the system is the default, not a button', async () => {
     const fixture = await render();
     const element = fixture.nativeElement as HTMLElement;
 
-    for (const state of ['theme-system', 'theme-light', 'theme-dark']) {
-      expect(element.querySelector(`[data-testid="${state}"]`)).not.toBeNull();
-    }
-    expect(element.querySelector('[data-testid="theme-system"]')?.getAttribute('aria-pressed')).toBe(
-      'true',
-    );
+    expect(element.querySelectorAll('.theme-switch button').length).toBe(2);
+    expect(element.querySelector('[data-testid="theme-system"]')).toBeNull();
+  });
+
+  it('shows the operating system theme as the active one before any choice is made', async () => {
+    mockSystemDark(true);
+    const fixture = await render();
+    const element = fixture.nativeElement as HTMLElement;
+
+    // Nothing is stored, so nothing was "chosen" — but dark IS what is on screen, and the control
+    // has to say so rather than show two unpressed buttons.
+    expect(pressed(element, 'theme-dark')).toBe('true');
+    expect(pressed(element, 'theme-light')).toBe('false');
+    expect(localStorage.getItem(THEME_STORAGE_KEY)).toBeNull();
+  });
+
+  it('stores an explicit choice that then beats the operating system', async () => {
+    mockSystemDark(true);
+    const fixture = await render();
+    const element = fixture.nativeElement as HTMLElement;
+
+    (element.querySelector('[data-testid="theme-light"]') as HTMLButtonElement).click();
+    await fixture.whenStable();
+
+    expect(document.documentElement.getAttribute('data-theme')).toBe('light');
+    expect(localStorage.getItem(THEME_STORAGE_KEY)).toBe('light');
+    expect(pressed(element, 'theme-light')).toBe('true');
   });
 
   it('applies and records the chosen theme', async () => {
@@ -63,36 +88,22 @@ describe('ThemeToggle', () => {
 
     expect(document.documentElement.getAttribute('data-theme')).toBe('dark');
     expect(localStorage.getItem(THEME_STORAGE_KEY)).toBe('dark');
-    expect(element.querySelector('[data-testid="theme-dark"]')?.getAttribute('aria-pressed')).toBe(
-      'true',
-    );
-    expect(element.querySelector('[data-testid="theme-system"]')?.getAttribute('aria-pressed')).toBe(
-      'false',
-    );
-  });
-
-  it('goes back to following the operating system', async () => {
-    mockSystemDark(true);
-    const fixture = await render();
-    const element = fixture.nativeElement as HTMLElement;
-
-    (element.querySelector('[data-testid="theme-light"]') as HTMLButtonElement).click();
-    await fixture.whenStable();
-    expect(document.documentElement.getAttribute('data-theme')).toBe('light');
-
-    // Returning to "system" is a real choice, not a reset: the OS says dark, so dark comes back.
-    (element.querySelector('[data-testid="theme-system"]') as HTMLButtonElement).click();
-    await fixture.whenStable();
-
-    expect(document.documentElement.getAttribute('data-theme')).toBe('dark');
-    expect(localStorage.getItem(THEME_STORAGE_KEY)).toBeNull();
   });
 
   /**
-   * The buttons show icons and no text, so aria-label and title are not decoration: they are the
-   * only name this control has, for a screen reader and for a hover respectively.
+   * MIGRATION. The three-state control wrote the literal "system" into the same key. It must read
+   * as "no override" — a stored value the new control cannot express is not an error state.
    */
-  it('names the group and every button, having no visible text to fall back on', async () => {
+  it('treats a stored "system" from the old control as no choice at all', async () => {
+    localStorage.setItem(THEME_STORAGE_KEY, 'system');
+    mockSystemDark(true);
+    const fixture = await render();
+
+    expect(document.documentElement.getAttribute('data-theme')).toBe('dark');
+    expect(pressed(fixture.nativeElement as HTMLElement, 'theme-dark')).toBe('true');
+  });
+
+  it('names both buttons, having no visible text to fall back on', async () => {
     const fixture = await render();
     const element = fixture.nativeElement as HTMLElement;
 
@@ -100,7 +111,6 @@ describe('ThemeToggle', () => {
       'Darstellung',
     );
     for (const [id, name] of [
-      ['theme-system', 'System'],
       ['theme-light', 'Hell'],
       ['theme-dark', 'Dunkel'],
     ]) {
@@ -115,20 +125,17 @@ describe('ThemeToggle', () => {
     const fixture = await render();
     const icons = (fixture.nativeElement as HTMLElement).querySelectorAll('.theme-switch svg');
 
-    expect(icons.length).toBe(3);
-    // Decorative: the button already carries the name, and an announced icon would double it.
+    expect(icons.length).toBe(2);
     icons.forEach((icon) => expect(icon.getAttribute('aria-hidden')).toBe('true'));
   });
 
   it('translates its labels with the interface language', async () => {
     const fixture = await render('en');
-    const element = fixture.nativeElement as HTMLElement;
 
-    expect(element.querySelector('[data-testid="theme-toggle"]')?.getAttribute('aria-label')).toBe(
-      'Appearance',
-    );
-    expect(element.querySelector('[data-testid="theme-light"]')?.getAttribute('title')).toBe(
-      'Light',
-    );
+    expect(
+      (fixture.nativeElement as HTMLElement)
+        .querySelector('[data-testid="theme-light"]')
+        ?.getAttribute('title'),
+    ).toBe('Light');
   });
 });

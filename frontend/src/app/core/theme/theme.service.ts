@@ -4,9 +4,9 @@ import { Injectable, computed, effect, inject, signal } from '@angular/core';
 /**
  * What the user chose, which is not the same as what is painted.
  *
- * `system` is a real third state and not the absence of a choice: someone who has deliberately gone
- * back to following the operating system has expressed a preference, and it has to survive a reload
- * the same way the other two do.
+ * `system` is the absence of a choice rather than a third button. The control offers light and dark;
+ * until one of them is pressed the application silently follows the operating system, which is what
+ * a first visit should do without spending a third of a segmented control saying so.
  */
 export type ThemeChoice = 'light' | 'dark' | 'system';
 
@@ -97,7 +97,9 @@ export class ThemeService {
  *
  * Anything unrecognised counts as no override rather than as an error: the key is in localStorage
  * where a user or an old build could have left anything, and the worst outcome of a bad value should
- * be the default theme.
+ * be the default theme. That covers the migration for free — the three-state control wrote the
+ * literal `"system"`, which is now simply an unrecognised value and therefore means "no override",
+ * exactly what it meant before.
  */
 function storedChoice(): ThemeChoice {
   try {

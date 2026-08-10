@@ -1,29 +1,17 @@
 <!-- Icons only, and therefore aria-label and title on every button rather than as an afterthought:
      with the text gone they are the ONLY name this control has. The group carries its own label so a
-     screen reader says what the three are for before reading them out, and title gives a sighted
-     user the same wording on hover. The SVGs are inline and aria-hidden — no icon font, no
-     third-party set, nothing the CSP would have to allow. -->
+     screen reader says what the two are for before reading them out, and title gives a sighted user
+     the same wording on hover. The SVGs are inline and aria-hidden — no icon font, no third-party
+     set, nothing the CSP would have to allow.
+
+     Pressed tracks the theme actually on screen, not the stored choice: with no choice stored the
+     operating system decides, and a control with neither half pressed would look broken. -->
 <div class="theme-switch" role="group" [attr.aria-label]="t().theme.label" data-testid="theme-toggle">
   <button
     type="button"
-    data-testid="theme-system"
-    [class.active]="choice() === 'system'"
-    [attr.aria-pressed]="choice() === 'system'"
-    [attr.aria-label]="t().theme.system"
-    [title]="t().theme.system"
-    (click)="use('system')"
-  >
-    <!-- A monitor: "whatever the machine is set to". -->
-    <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-      <rect x="2.5" y="4" width="19" height="12.5" rx="2" />
-      <path d="M8.5 20.5h7M12 16.5v4" />
-    </svg>
-  </button>
-  <button
-    type="button"
     data-testid="theme-light"
-    [class.active]="choice() === 'light'"
-    [attr.aria-pressed]="choice() === 'light'"
+    [class.active]="resolved() === 'light'"
+    [attr.aria-pressed]="resolved() === 'light'"
     [attr.aria-label]="t().theme.light"
     [title]="t().theme.light"
     (click)="use('light')"
@@ -38,8 +26,8 @@
   <button
     type="button"
     data-testid="theme-dark"
-    [class.active]="choice() === 'dark'"
-    [attr.aria-pressed]="choice() === 'dark'"
+    [class.active]="resolved() === 'dark'"
+    [attr.aria-pressed]="resolved() === 'dark'"
     [attr.aria-label]="t().theme.dark"
     [title]="t().theme.dark"
     (click)="use('dark')"

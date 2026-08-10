@@ -381,6 +381,56 @@ describe('Upload', () => {
     });
   });
 
+  describe('server-side guards, as the user reads them', () => {
+    /** Submits a valid-looking upload and fails it with the given status and body. */
+    async function refuse(status: number, body: Record<string, string>) {
+      const fixture = await render();
+      const element = fixture.nativeElement as HTMLElement;
+      const component = fixture.componentInstance as unknown as {
+        file: { set: (value: File) => void };
+        machineNo: { set: (value: string) => void };
+        title: { set: (value: string) => void };
+      };
+      component.file.set(new File(['x'], 'p.txt', { type: 'text/plain' }));
+      component.machineNo.set('PR-03');
+      component.title.set('E-47');
+      await fixture.whenStable();
+
+      (element.querySelector('[data-testid="upload-button"]') as HTMLButtonElement).click();
+      httpMock.expectOne('/api/protocols').flush(body, { status, statusText: 'refused' });
+      await fixture.whenStable();
+      return element.querySelector('[data-testid="upload-failure"]')?.textContent ?? '';
+    }
+
+    it('explains a 413 as a file to shorten, not as a failure', async () => {
+      const text = await refuse(413, { reason: 'FILE_TOO_LARGE', limit: '256KB' });
+
+      expect(text).toContain('zu groß');
+    });
+
+    it('explains a refused file as the wrong kind of file', async () => {
+      // All three backend codes mean the same thing to the person at the keyboard: this file is
+      // not something the system can read.
+      for (const reason of ['EMPTY_FILE', 'UNSUPPORTED_TYPE', 'NOT_TEXT']) {
+        const text = await refuse(400, { reason, error: 'nope' });
+        expect(text, reason).toContain('nicht gelesen werden');
+      }
+    });
+
+    it('leaves an ordinary 400 generic, because it is a different kind of mistake', async () => {
+      // A field-level error the form should have prevented is not "your file is unreadable".
+      const text = await refuse(400, { error: 'unknown machine: XX-99' });
+
+      expect(text).toContain('fehlgeschlagen');
+    });
+
+    it('explains an upload rate limit as something to wait out', async () => {
+      const text = await refuse(429, { reason: 'RATE_LIMITED', error: 'slow down' });
+
+      expect(text).toContain('Zu viele Uploads');
+    });
+  });
+
   it('reports a refused upload as a permission problem', async () => {
     const fixture = await render();
     const element = fixture.nativeElement as HTMLElement;

@@ -77,6 +77,10 @@ export type ApiFailure =
   | 'rateLimited'
   | 'budgetExhausted'
   | 'unavailable'
+  /** The file is larger than the server's limit (413). */
+  | 'tooLarge'
+  /** The file was empty, not a .txt, or not text at all — the upload guards' 400 codes. */
+  | 'rejectedContent'
   | 'forbidden'
   | 'notFound'
   | 'generic';
@@ -103,6 +107,13 @@ export function classify(error: unknown): ApiFailure {
       return reasonOf(error) === 'BUDGET_EXHAUSTED' ? 'budgetExhausted' : 'unavailable';
     case 403:
       return 'forbidden';
+    // The upload guards. 413 is the container refusing the bytes; the 400 codes are the endpoint
+    // refusing the content. Matched on the `reason` code rather than on the sentence, for the same
+    // reason the query path does: English prose from another layer is not an API.
+    case 413:
+      return 'tooLarge';
+    case 400:
+      return REJECTION_CODES.has(reasonOf(error) ?? '') ? 'rejectedContent' : 'generic';
     // The protocol row exists and its file does not, or the id is unknown — the backend answers
     // the same 404 for both on purpose. For a source link it means one specific thing worth
     // saying: the evidence behind this claim can no longer be opened.
@@ -116,6 +127,16 @@ export function classify(error: unknown): ApiFailure {
       return 'generic';
   }
 }
+
+/**
+ * The upload-rejection codes the backend sends with a 400.
+ *
+ * <p>All three mean the same thing to the person at the keyboard — this file is not something the
+ * system can read — so they collapse to one message rather than three that differ only in which
+ * technicality was hit. A 400 with any other code stays generic: those are field-level mistakes the
+ * form should have prevented.
+ */
+const REJECTION_CODES = new Set(['EMPTY_FILE', 'UNSUPPORTED_TYPE', 'NOT_TEXT']);
 
 /** The body is JSON in practice and untyped in principle; a missing code is simply not a match. */
 function reasonOf(error: HttpErrorResponse): string | null {

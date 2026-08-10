@@ -113,6 +113,21 @@ Config:     Flyway auto-config was DEAD on Boot 4.1 (missing
             properties moved to spring.web.error.*.
 
 OPEN ITEMS carried forward (not blockers, do not lose):
+- THEME TOGGLE PULLED FORWARD 2026-08-10 (feat/theme-toggle) from the
+  v1.1 backlog, for the portfolio screenshots: a three-state control
+  (System / Hell / Dunkel) in the header and at the foot of the landing
+  page, remembered in localStorage under `ma-theme`. The dark palette
+  now lives ONCE, under html[data-theme="dark"]; the OS preference is
+  resolved in ThemeService and in public/theme-init.js and writes the
+  same attribute, because CSS cannot share one declaration block between
+  a media query and an attribute selector and two copies would drift.
+  NOTE FOR THE CSP: theme-init.js is a SEPARATE same-origin file loaded
+  in <head>, not an inline script — script-src is 'self' with no
+  'unsafe-inline' and it was not weakened for this.
+  STILL ON THE BACKLOG, unchanged: the KEYCLOAK LOGIN PAGE is not
+  themed by any of this. It is rendered by Keycloak, needs a Keycloak
+  theme, and that theme is a hand-deployed artifact on a host where CI
+  ships images only (OPS RULE) — a separate PR by design.
 - SUPERSEDED 2026-08-08 (feat/shopfloor-ux): the #26 BLOB-TAB MECHANISM IS
   GONE. Citations now open an in-app viewer dialog that fetches the same
   document through the same HttpClient call and renders it inside the

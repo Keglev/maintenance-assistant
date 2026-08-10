@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Decisions ·
+ADR-006-insider-threat-and-protocol-moderation · maintenance-assistant Docs</title>
+
+  <!-- Set the theme before the stylesheet paints, otherwise the page flashes
+       the default theme for one frame before the saved choice applies. -->
+  <script>
+    (function () {
+      try {
+        var t = localStorage.getItem("maintenance-assistant-theme") ||
+          (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+        document.documentElement.setAttribute("data-theme", t);
+      } catch (e) {
+        document.documentElement.setAttribute("data-theme", "light");
+      }
+    })();
+  </script>
+
+  <link rel="stylesheet" href="/maintenance-assistant/assets/docs.css" />
+</head>
+
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <header class="topbar">
+    <div class="topbar-inner">
+      <button class="menu-btn" aria-label="Toggle navigation">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="18" x2="21" y2="18" />
+        </svg>
+      </button>
+
+      <a href="/maintenance-assistant/" class="brand">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <path d="M14.7 6.3a5 5 0 0 0-6.6 6.6l-5 5a2 2 0 1 0 2.8 2.8l5-5a5 5 0 0 0 6.6-6.6l-2.9 2.9-2.1-2.1 2.2-3.6z" />
+        </svg>
+        maintenance-assistant Docs
+      </a>
+
+      <div class="topbar-tools">
+        <span class="lang-switch">
+          <a href="/maintenance-assistant/" aria-current="true">EN</a>
+          <a href="/maintenance-assistant/index-de.html">DE</a>
+        </span>
+        <button class="theme-toggle" aria-label="Toggle light or dark theme">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <circle cx="12" cy="12" r="9" /><path d="M12 3a9 9 0 0 0 0 18z" fill="currentColor" stroke="none" />
+          </svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <div class="layout">
+    <!-- Sidebar navigation, included by app-docs.html as a Pandoc partial. One
+         sidebar serves the whole site: this repository has a single arc42 tree and a
+         single decision log, so the per-tier sidebars the sibling repositories need
+         would be three copies of the same list here. The active link is marked at
+         runtime by docs.js. Do not put template syntax in this comment - a partial
+         is itself a template. -->
+    <aside class="sidebar">
+      <p class="nav-title">Docs</p>
+      <ul>
+        <li><a href="/maintenance-assistant/">Docs home</a></li>
+        <li><a href="/maintenance-assistant/overview.html">Overview</a></li>
+        <li><a href="/maintenance-assistant/overview-de.html">&Uuml;berblick (DE)</a></li>
+        <li><a href="/maintenance-assistant/llm-approach.html">AI &amp; LLM approach</a></li>
+      </ul>
+
+      <p class="nav-title">Requirements</p>
+      <ul>
+        <li><a href="/maintenance-assistant/REQUIREMENTS.html">Requirements &amp; NFRs</a></li>
+        <li><a href="/maintenance-assistant/DOMAIN-MODEL.html">Domain model</a></li>
+      </ul>
+
+      <details class="nav-group">
+        <summary>Architecture (arc42)</summary>
+        <ul>
+          <li><a href="/maintenance-assistant/architecture/index.html">Architecture index</a></li>
+          <li><a href="/maintenance-assistant/architecture/01-introduction-and-goals.html">1 &middot; Introduction &amp; Goals</a></li>
+          <li><a href="/maintenance-assistant/architecture/02-architecture-constraints.html">2 &middot; Constraints</a></li>
+          <li><a href="/maintenance-assistant/architecture/03-context-and-scope.html">3 &middot; Context &amp; Scope</a></li>
+          <li><a href="/maintenance-assistant/architecture/04-solution-strategy.html">4 &middot; Solution Strategy</a></li>
+          <li><a href="/maintenance-assistant/architecture/05-building-block-view.html">5 &middot; Building Blocks</a></li>
+          <li><a href="/maintenance-assistant/architecture/06-runtime-view.html">6 &middot; Runtime View</a></li>
+          <li><a href="/maintenance-assistant/architecture/07-deployment-view.html">7 &middot; Deployment</a></li>
+          <li><a href="/maintenance-assistant/architecture/08-crosscutting-concepts.html">8 &middot; Concepts</a></li>
+          <li><a href="/maintenance-assistant/architecture/09-architecture-decisions.html">9 &middot; Decisions</a></li>
+          <li><a href="/maintenance-assistant/architecture/10-quality-requirements.html">10 &middot; Quality Requirements</a></li>
+          <li><a href="/maintenance-assistant/architecture/11-risks-and-technical-debt.html">11 &middot; Risks &amp; Debt</a></li>
+          <li><a href="/maintenance-assistant/architecture/12-glossary.html">12 &middot; Glossary</a></li>
+        </ul>
+      </details>
+
+      <details class="nav-group">
+        <summary>Decisions (ADRs)</summary>
+        <ul>
+          <li><a href="/maintenance-assistant/adr/index.html">Decision index</a></li>
+          <li><a href="/maintenance-assistant/adr/ADR-001-modular-monolith-first.html">ADR-001 Modular monolith</a></li>
+          <li><a href="/maintenance-assistant/adr/ADR-002-eu-hosted-llm-provider.html">ADR-002 EU LLM provider</a></li>
+          <li><a href="/maintenance-assistant/adr/ADR-003-keycloak-for-iam.html">ADR-003 Keycloak as IdP</a></li>
+          <li><a href="/maintenance-assistant/adr/ADR-004-pgvector-for-vector-search.html">ADR-004 pgvector</a></li>
+        </ul>
+      </details>
+
+      <p class="nav-title">Frontend</p>
+      <ul>
+        <li><a href="/maintenance-assistant/frontend-architecture.html">Frontend architecture</a></li>
+      </ul>
+
+      <p class="nav-title">Quality</p>
+      <ul>
+        <li><a href="/maintenance-assistant/backend/api-docs/index.html">Backend API</a></li>
+        <li><a href="/maintenance-assistant/frontend/api-docs/index.html">Frontend API</a></li>
+        <li><a href="/maintenance-assistant/backend/coverage/index.html">Backend coverage</a></li>
+        <li><a href="/maintenance-assistant/frontend/coverage/index.html">Frontend coverage</a></li>
+      </ul>
+    </aside>
+    <main class="content" id="main">
+      <article class="doc-body">
+        <h1
+        id="adr-006-answer-the-insider-threat-with-traceability-and-moderation-not-with-approval">ADR-006:
+        Answer the Insider Threat with Traceability and Moderation, Not
+        with Approval</h1>
+        <table>
+        <colgroup>
+        <col style="width: 50%" />
+        <col style="width: 50%" />
+        </colgroup>
+        <tbody>
+        <tr class="odd">
+        <td><strong>Status</strong></td>
+        <td>Accepted</td>
+        </tr>
+        <tr class="even">
+        <td><strong>Date</strong></td>
+        <td>2026-08-10</td>
+        </tr>
+        <tr class="odd">
+        <td><strong>Deciders</strong></td>
+        <td>Project owner (solo)</td>
+        </tr>
+        <tr class="even">
+        <td><strong>Related</strong></td>
+        <td>Builds on <a
+        href="ADR-003-keycloak-for-iam.html">ADR-003</a> (roles,
+        <code>preferred_username</code>); the quantified limits it
+        starts from are in <a
+        href="../architecture/11-risks-and-technical-debt.html">arc42
+        §11.1</a>; implements the remediation half of NFR-2’s citation
+        promise</td>
+        </tr>
+        </tbody>
+        </table>
+        <h2 id="context">Context</h2>
+        <p>Every guard this project has built so far bounds <strong>how
+        much</strong> and <strong>how fast</strong>. The write path is
+        restricted to one role (DECISIONS.txt: quality, consistency,
+        anti-garbage). PR #36 added a size cap, a content check and a
+        per-user rate limit, and <a
+        href="../architecture/11-risks-and-technical-debt.html">arc42
+        §11.1</a> quantifies what they are worth: a saturating attacker
+        costs well under a cent a day and needs decades to fill the
+        disk.</p>
+        <p>None of that addresses the threat the project owner raised
+        from plant experience, and it is the one that matters:</p>
+        <blockquote>
+        <p>A Schichtleiter can file a protocol that looks entirely
+        normal and contains a wrong Massnahme.</p>
+        </blockquote>
+        <p><strong>This is worse than profanity or volume, and it is
+        worse precisely because of what makes the system good.</strong>
+        Mode A does not paraphrase and does not hedge — it answers from
+        the corpus and names the protocol each claim came from. A
+        poisoned protocol is therefore repeated faithfully, to a
+        technician who has been taught that a green answer with a
+        citation is the trustworthy kind. The citation discipline that
+        makes a correct answer checkable makes an incorrect one
+        credible.</p>
+        <p>It cannot be filtered. There is no size, rate, encoding or
+        vocabulary test that separates “the seal kit was replaced” from
+        “the seal kit was replaced” with the wrong torque figure. The
+        content is plausible by construction, because the person writing
+        it knows what plausible looks like.</p>
+        <h2 id="decision">Decision</h2>
+        <p><strong>Answer it in three parts, of which two already
+        existed.</strong></p>
+        <h3
+        id="traceability-already-in-place-now-stated-as-a-control">1.
+        Traceability — already in place, now stated as a control</h3>
+        <p><code>protocol.uploaded_by</code> records the Keycloak
+        username of the author on every upload (ADR-003: the token’s
+        <code>preferred_username</code>, since there is no user table to
+        reference). Combined with Mode A’s citation discipline, every
+        answer traces to a specific protocol, and every protocol to a
+        specific person. A bad answer is therefore attributable — not by
+        investigation, but by reading two fields.</p>
+        <p>This is the half that makes the threat <em>bounded</em>
+        rather than anonymous, and it was a side effect of decisions
+        made for other reasons. It is written down here as a control so
+        that nobody removes it as a redundant column.</p>
+        <h3 id="containment-already-in-place">2. Containment — already
+        in place</h3>
+        <p>NFR-7’s budgets and #36’s guards bound the volume of what one
+        account can insert (~200 protocols/day across all users, and 10
+        uploads/minute each). They do not stop one bad protocol; they
+        stop a thousand.</p>
+        <h3 id="remediation-this-pr">3. Remediation — this PR</h3>
+        <p>The <strong>admin</strong> role gets its first shop-floor
+        function: list every protocol in the corpus, read any of them,
+        and delete any of them. Deletion is hard and immediate — chunks,
+        row, file — and logged at INFO with the protocol’s identity and
+        the administrator’s username.</p>
+        <p>Moderation is deliberately given to the role that
+        <strong>cannot write</strong>. The Schichtleiter is the role
+        this decision is about; a moderation tool they could reach would
+        let the author of a bad protocol remove the evidence, and the
+        audit function would be judging itself.</p>
+        <h3
+        id="correction-is-delete-then-reupload-not-editing">Correction
+        is delete-then-reupload, not editing</h3>
+        <p>There is no edit endpoint and no edit UI, and that is the
+        decision rather than the backlog.</p>
+        <p>An answer cites a protocol as it stood when the answer was
+        produced. If a protocol could be edited in place, an answer
+        already on a technician’s screen — or quoted in a handover, or
+        screenshotted into a ticket — would point at a source whose text
+        had silently changed. The citation would still resolve, which is
+        the dangerous part: it would look verified and no longer be.</p>
+        <p>Deleting instead makes the break honest. The old citation
+        404s, which is a visible, checkable state. And the replacement
+        path costs nothing: re-ingestion is already idempotent per
+        protocol (chunks are deleted and rewritten), so re-uploading a
+        corrected protocol is a first-class operation rather than a
+        workaround.</p>
+        <h2 id="consequences">Consequences</h2>
+        <p><strong>Positive</strong></p>
+        <ul>
+        <li>The threat becomes attributable and reversible, which is
+        what “we cannot filter it” leaves as the only honest
+        answer.</li>
+        <li>The admin role stops being an empty seat in the
+        application.</li>
+        <li>Deletion is auditable: who removed what, in the log, in the
+        same identity the authorship is recorded in.</li>
+        <li>No schema change, no new service, no new dependency — three
+        endpoints and a table view.</li>
+        </ul>
+        <p><strong>Negative, and accepted</strong></p>
+        <ul>
+        <li><strong>Deletion is irreversible.</strong> There is no soft
+        delete, no retention window and no undo. A mis-click removes a
+        protocol permanently, mitigated only by a confirmation dialog
+        that names the protocol.</li>
+        <li><strong>One administrator is enough.</strong> No four-eyes
+        rule, so the moderation power is exactly as trustworthy as the
+        single account that holds it — which for this demo is a
+        published one.</li>
+        <li><strong>Detection is manual.</strong> Nothing surfaces a
+        suspicious protocol; an administrator has to be looking. The
+        corpus is 150 protocols and paged ten at a time, which is
+        reviewable; at ten thousand it would not be.</li>
+        <li><strong>The window stays open.</strong> A bad protocol is
+        citable from the moment it is indexed until someone removes it.
+        This decision shortens that window; it does not close it.</li>
+        </ul>
+        <h2 id="what-is-deliberately-deferred">What is deliberately
+        deferred</h2>
+        <p>Stated plainly, in the same spirit as ADR-005’s rejection of
+        the BFF: these are the right answers in an enterprise, and the
+        wrong amount of machinery for this system today.</p>
+        <table>
+        <colgroup>
+        <col style="width: 33%" />
+        <col style="width: 33%" />
+        <col style="width: 33%" />
+        </colgroup>
+        <thead>
+        <tr class="header">
+        <th>Deferred</th>
+        <th>What it would add</th>
+        <th>Why not now</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr class="odd">
+        <td><strong>Draft / approve workflow</strong> — technician
+        writes, Schichtleiter approves before indexing</td>
+        <td>Closes the window entirely: nothing is citable until a
+        second person has read it</td>
+        <td>A second state on every protocol, a review queue, a
+        notification path, and a role that must be present for the
+        corpus to grow at all. It also contradicts the reason write
+        access was narrowed in the first place (DECISIONS.txt): the
+        bottleneck was accepted deliberately. The right evolution, and a
+        work package rather than a feature.</td>
+        </tr>
+        <tr class="even">
+        <td><strong>Four-eyes deletion</strong> — a second administrator
+        confirms</td>
+        <td>Removes the single-admin trust assumption above</td>
+        <td>There is one administrator. A quorum of one is theatre.</td>
+        </tr>
+        <tr class="odd">
+        <td><strong>Soft delete with retention</strong> — hide, keep for
+        N days, then purge</td>
+        <td>Makes a mis-click recoverable and keeps a forensic
+        trail</td>
+        <td>A <code>deleted_at</code> column, a retention job, and every
+        query in the system growing a filter it must never forget — a
+        filter that, forgotten once, makes a “deleted” protocol citable
+        again. That failure is worse than the mis-click it prevents.
+        Reconsider when deletion is frequent enough to be routine.</td>
+        </tr>
+        <tr class="even">
+        <td><strong>Automated suspicion signals</strong> — flag
+        protocols that contradict others about the same machine</td>
+        <td>Turns manual review into triage</td>
+        <td>Needs a notion of contradiction the system does not have.
+        Closer to a research question than a feature.</td>
+        </tr>
+        </tbody>
+        </table>
+        <h2 id="alternatives-considered">Alternatives considered</h2>
+        <ul>
+        <li><strong>Restrict writing further</strong> (e.g. only an
+        admin may upload). Rejected: it does not address the threat — it
+        renames the role that can carry it out — and it removes the
+        feature the shop floor actually needs.</li>
+        <li><strong>Trust the role and do nothing.</strong> Rejected:
+        the write restriction was already justified as a quality
+        control, and a quality control with no remediation path is a
+        policy rather than a mechanism.</li>
+        <li><strong>Version protocols instead of deleting</strong> (keep
+        every revision, cite a specific one). The most correct answer,
+        and it makes editing safe by making citations point at immutable
+        versions. Rejected for now on proportion: it is a schema change,
+        a citation-format change and a retrieval change, to solve a
+        problem this demo does not yet have. It is the natural successor
+        if editing is ever wanted.</li>
+        </ul>
+      </article>
+    </main>
+
+        <nav class="toc" aria-label="On this page">
+      <p class="toc-title">On this page</p>
+      <ul>
+      <li><a
+      href="#adr-006-answer-the-insider-threat-with-traceability-and-moderation-not-with-approval"
+      id="toc-adr-006-answer-the-insider-threat-with-traceability-and-moderation-not-with-approval">ADR-006:
+      Answer the Insider Threat with Traceability and Moderation, Not
+      with Approval</a>
+      <ul>
+      <li><a href="#context" id="toc-context">Context</a></li>
+      <li><a href="#decision" id="toc-decision">Decision</a>
+      <ul>
+      <li><a
+      href="#traceability-already-in-place-now-stated-as-a-control"
+      id="toc-traceability-already-in-place-now-stated-as-a-control">1.
+      Traceability — already in place, now stated as a control</a></li>
+      <li><a href="#containment-already-in-place"
+      id="toc-containment-already-in-place">2. Containment — already in
+      place</a></li>
+      <li><a href="#remediation-this-pr" id="toc-remediation-this-pr">3.
+      Remediation — this PR</a></li>
+      <li><a href="#correction-is-delete-then-reupload-not-editing"
+      id="toc-correction-is-delete-then-reupload-not-editing">Correction
+      is delete-then-reupload, not editing</a></li>
+      </ul></li>
+      <li><a href="#consequences"
+      id="toc-consequences">Consequences</a></li>
+      <li><a href="#what-is-deliberately-deferred"
+      id="toc-what-is-deliberately-deferred">What is deliberately
+      deferred</a></li>
+      <li><a href="#alternatives-considered"
+      id="toc-alternatives-considered">Alternatives considered</a></li>
+      </ul></li>
+      </ul>
+    </nav>
+      </div>
+
+  <footer class="footer">
+    maintenance-assistant · Generated by the docs pipeline
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <script src="/maintenance-assistant/assets/docs.js"></script>
+</body>
+</html>

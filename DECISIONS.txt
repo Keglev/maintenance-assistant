@@ -8,7 +8,8 @@ Status: end of Phase 2 (data + ingestion live in production), 2026-08-07
   technician; faults re-diagnosed although solved last month
 - NOT a ticketing/CMMS system; escalation chain is context only
 - Roles: Operator (operator-safe answers only) / Techniker (full answers) /
-  Schichtleiter (sole write access: create + upload protocols) / Admin (Keycloak IT role only)
+  Schichtleiter (sole write access: create + upload protocols) / Admin (Keycloak IT role, AND
+  since 2026-08-10 the corpus moderator: reads and deletes any protocol — ADR-006)
 - Write access restricted to Schichtleiter: quality + consistency + anti-garbage.
   Known limitation (documented): fixer != documenter, depends on shift handover.
 - Two answer modes, visually distinct (anti-hallucination):

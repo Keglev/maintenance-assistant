@@ -113,6 +113,28 @@ Config:     Flyway auto-config was DEAD on Boot 4.1 (missing
             properties moved to spring.web.error.*.
 
 OPEN ITEMS carried forward (not blockers, do not lose):
+- MODERATION SHIPPED 2026-08-10 (feat/protocol-moderation), and with it ADR-006
+  on the insider threat. The threat, in the owner's words: a Schichtleiter can
+  file a protocol that looks entirely normal and carries a wrong Massnahme, and
+  Mode A will cite it faithfully — the citation discipline that makes a correct
+  answer checkable makes an incorrect one credible. It cannot be filtered; no
+  size, rate or vocabulary test separates a right torque figure from a wrong one.
+  THE ANSWER IS THREE PARTS, two of which already existed: traceability
+  (uploaded_by + citation discipline: every answer traces to a protocol and
+  therefore to a person), containment (NFR-7 budgets + the #36 guards bound the
+  volume), and now REMEDIATION — the admin role's first shop-floor function:
+  GET/DELETE under /api/moderation, a paged view of the whole corpus, and a hard
+  delete of chunks + row + file. Moderation belongs to the role that CANNOT
+  write, deliberately: a tool the Schichtleiter could reach would let the author
+  of a bad protocol remove the evidence.
+  NO EDITING, BY DESIGN. Correction is delete-then-reupload, so that no answer
+  can cite text that changed underneath it — an edited protocol would leave a
+  citation that still resolves and is no longer what was read.
+  LIFECYCLE ITEMS STILL OPEN, in order: (1) DRAFT/APPROVE (technician writes,
+  Schichtleiter approves before indexing) — the only thing that closes the window
+  between a bad upload and its removal; (2) four-eyes deletion; (3) soft delete
+  with retention. All three are argued and deferred in ADR-006 rather than left
+  as silence.
 - UPLOAD FORM FIXED 2026-08-10 (feat/upload-parity-and-settings), from
   the live review of #34. TITLE IS NOW REQUIRED in both modes — a
   protocol without one reduces "Meine Uploads" to a machine number and a

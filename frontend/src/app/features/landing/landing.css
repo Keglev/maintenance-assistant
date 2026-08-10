@@ -61,7 +61,7 @@
   height: 7px;
   border-radius: 50%;
   background: var(--c-line-strong);
-  box-shadow: inset 0 1px 1px rgb(255 255 255 / 70%);
+  box-shadow: inset 0 1px 1px var(--c-rivet-shine);
 }
 
 .plate-rivet-tl {
@@ -260,4 +260,23 @@
   .btn-demo {
     width: 100%;
   }
+}
+
+/* --- Appearance ---------------------------------------------------------- */
+
+.appearance {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-3) var(--s-4);
+  padding-top: var(--s-5);
+  border-top: 1px solid var(--c-line);
+}
+
+.appearance-title {
+  margin: 0;
+  font-size: var(--t-sm);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--c-ink-muted);
 }

@@ -65,9 +65,10 @@
      different one: the same translucent slate over a dark canvas reads as no scrim at all. */
   --c-scrim: rgb(27 36 48 / 55%);
 
-  /* The Typenschild's brushed face on the landing page. */
+  /* The Typenschild's brushed face on the landing page, and the light caught on its rivets. */
   --c-plate-from: #f7f9fb;
   --c-plate-to: #e7ebf0;
+  --c-rivet-shine: rgb(255 255 255 / 70%);
 
   /* --- Type -------------------------------------------------------------- */
   --font-sans:
@@ -112,70 +113,75 @@
 }
 
 /*
- * Dark, when the operating system asks for it.
+ * Dark.
  *
  * This is a shop-floor concern before it is a taste one: the night shift works in dim halls, and a
  * near-white page at 03:00 is the thing that gets a tablet turned face down. Only the colour tokens
  * are redefined — every layout, spacing and type decision above is shared, so the two themes cannot
  * drift apart.
  *
+ * THE DARK VALUES EXIST EXACTLY ONCE, and this selector is why. They have to apply under two
+ * conditions — the operating system asking for dark, and a user choosing dark in the application —
+ * and CSS cannot share one declaration block between an attribute selector and a media query. Rather
+ * than write the palette twice and watch the two copies drift, `ThemeService` and
+ * `public/theme-init.js` resolve the operating-system preference in code and write the SAME
+ * attribute a manual choice writes. One condition in CSS, one palette, one place to edit a colour.
+ *
  * THE MODE A / MODE B DISTINCTION SURVIVES INTACT, and that is the constraint this block is written
  * around: NFR-2 makes it the anti-hallucination mechanism, not a theme choice. Green and amber keep
  * their hues and their roles, adjusted in lightness for a dark surface rather than reinterpreted,
  * and the badge text, the border weight, the icon and the hatching still carry the difference for a
  * reader who sees neither hue.
- *
- * No toggle in this release: a manual override is a v1.1 item. The system preference is the one
- * signal available without inventing a setting nobody asked for.
  */
-@media (prefers-color-scheme: dark) {
-  :root {
-    color-scheme: dark;
+html[data-theme='dark'] {
+  color-scheme: dark;
 
-    --c-canvas: #10161d;
-    --c-surface: #19212b;
-    --c-sunken: #212b36;
-    --c-ink: #e7ecf2;
-    --c-ink-muted: #a6b3c1;
-    --c-ink-faint: #7d8b99;
-    --c-line: #2e3a47;
-    --c-line-strong: #43525f;
+  --c-canvas: #10161d;
+  --c-surface: #19212b;
+  --c-sunken: #212b36;
+  --c-ink: #e7ecf2;
+  --c-ink-muted: #a6b3c1;
+  --c-ink-faint: #7d8b99;
+  --c-line: #2e3a47;
+  --c-line-strong: #43525f;
 
-    /* The brand and its text swap roles: a light blue on the dark canvas, dark text on top of it. */
-    --c-brand: #79aef0;
-    --c-brand-strong: #96c2f7;
-    --c-brand-soft: #16263a;
-    --c-brand-line: #2f486a;
-    --c-on-brand: #0f151c;
+  /* The brand and its text swap roles: a light blue on the dark canvas, dark text on top of it. */
+  --c-brand: #79aef0;
+  --c-brand-strong: #96c2f7;
+  --c-brand-soft: #16263a;
+  --c-brand-line: #2f486a;
+  --c-on-brand: #0f151c;
 
-    --c-mode-a: #4caf6b;
-    --c-mode-a-ink: #86dda2;
-    --c-mode-a-soft: #15251b;
-    --c-mode-a-line: #2b4433;
-    --c-mode-a-chip: #1f3a29;
-    --c-on-mode-a: #0d1a11;
+  --c-mode-a: #4caf6b;
+  --c-mode-a-ink: #86dda2;
+  --c-mode-a-soft: #15251b;
+  --c-mode-a-line: #2b4433;
+  --c-mode-a-chip: #1f3a29;
+  --c-on-mode-a: #0d1a11;
 
-    --c-mode-b: #d59a2a;
-    --c-mode-b-ink: #f2c877;
-    --c-mode-b-soft: #251d10;
-    --c-mode-b-line: #4a3a1c;
-    --c-mode-b-hatch: #6b5223;
+  --c-mode-b: #d59a2a;
+  --c-mode-b-ink: #f2c877;
+  --c-mode-b-soft: #251d10;
+  --c-mode-b-line: #4a3a1c;
+  --c-mode-b-hatch: #6b5223;
 
-    --c-danger: #f3aeae;
-    --c-danger-soft: #2b1616;
-    --c-danger-line: #563030;
+  --c-danger: #f3aeae;
+  --c-danger-soft: #2b1616;
+  --c-danger-line: #563030;
 
-    /* A translucent slate over a dark canvas reads as no scrim at all; this one is nearly black. */
-    --c-scrim: rgb(3 6 10 / 70%);
+  /* A translucent slate over a dark canvas reads as no scrim at all; this one is nearly black. */
+  --c-scrim: rgb(3 6 10 / 70%);
 
-    --c-plate-from: #202a35;
-    --c-plate-to: #161e27;
+  --c-plate-from: #202a35;
+  --c-plate-to: #161e27;
+  /* The same highlight at light-theme strength turns four rivets into four headlights on a dark
+     plate; steel in a dim hall catches less light, not more. */
+  --c-rivet-shine: rgb(255 255 255 / 22%);
 
-    /* Shadows do not separate surfaces on a dark background the way they do on a light one, so they
-       are deepened and the borders above do the rest of the work. */
-    --shadow-sm: 0 1px 2px rgb(0 0 0 / 45%);
-    --shadow-md: 0 8px 24px rgb(0 0 0 / 55%);
-  }
+  /* Shadows do not separate surfaces on a dark background the way they do on a light one, so they
+     are deepened and the borders above do the rest of the work. */
+  --shadow-sm: 0 1px 2px rgb(0 0 0 / 45%);
+  --shadow-md: 0 8px 24px rgb(0 0 0 / 55%);
 }
 
 *,

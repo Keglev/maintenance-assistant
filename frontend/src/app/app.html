@@ -52,6 +52,10 @@
         {{ t().nav.help }}
       </button>
 
+      <!-- Always visible, signed in or not: the header renders in both states, and a recruiter
+           taking screenshots of the logged-out landing page needs the control there too. -->
+      <app-theme-toggle />
+
       <!-- Two buttons rather than a dropdown: with exactly two languages, a dropdown costs a click
            to discover what a pair of labels already shows. -->
       <div class="lang-switch" role="group" [attr.aria-label]="t().nav.language">

@@ -8,8 +8,12 @@
   <base href="/">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="Antworten aus den Wartungsprotokollen der eigenen Anlage — belegt und mit Quelle. Answers from a plant's own maintenance records, cited.">
-  <meta name="color-scheme" content="light">
+  <meta name="color-scheme" content="light dark">
   <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <!-- Sets data-theme before the first paint, so a dark-theme user does not get a white flash on a
+       hard reload. A SEPARATE FILE rather than an inline script on purpose: the production CSP is
+       script-src 'self' with no 'unsafe-inline', and it is not being weakened for a cosmetic fix. -->
+  <script src="theme-init.js"></script>
 </head>
 <body>
   <app-root></app-root>

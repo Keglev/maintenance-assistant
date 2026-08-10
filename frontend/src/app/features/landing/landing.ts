@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 import { AuthService } from '../../core/auth/auth.service';
 import { Dictionary } from '../../core/i18n/dictionary';
 import { I18nService } from '../../core/i18n/i18n.service';
+import { ThemeToggle } from '../../shared/theme/theme-toggle';
 
 /** The demo accounts, exactly as the realm ships them (DECISIONS.txt). */
 export const DEMO_PASSWORD = 'demo1234';
@@ -39,6 +40,7 @@ export const DEMO_USERS: readonly DemoUser[] = [
  */
 @Component({
   selector: 'app-landing',
+  imports: [ThemeToggle],
   templateUrl: './landing.html',
   styleUrl: './landing.css',
 })

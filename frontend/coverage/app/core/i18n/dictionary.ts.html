@@ -634,7 +634,40 @@
 <a name='L569'></a><a href='#L569'>569</a>
 <a name='L570'></a><a href='#L570'>570</a>
 <a name='L571'></a><a href='#L571'>571</a>
-<a name='L572'></a><a href='#L572'>572</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L572'></a><a href='#L572'>572</a>
+<a name='L573'></a><a href='#L573'>573</a>
+<a name='L574'></a><a href='#L574'>574</a>
+<a name='L575'></a><a href='#L575'>575</a>
+<a name='L576'></a><a href='#L576'>576</a>
+<a name='L577'></a><a href='#L577'>577</a>
+<a name='L578'></a><a href='#L578'>578</a>
+<a name='L579'></a><a href='#L579'>579</a>
+<a name='L580'></a><a href='#L580'>580</a>
+<a name='L581'></a><a href='#L581'>581</a>
+<a name='L582'></a><a href='#L582'>582</a>
+<a name='L583'></a><a href='#L583'>583</a>
+<a name='L584'></a><a href='#L584'>584</a>
+<a name='L585'></a><a href='#L585'>585</a>
+<a name='L586'></a><a href='#L586'>586</a>
+<a name='L587'></a><a href='#L587'>587</a>
+<a name='L588'></a><a href='#L588'>588</a>
+<a name='L589'></a><a href='#L589'>589</a>
+<a name='L590'></a><a href='#L590'>590</a>
+<a name='L591'></a><a href='#L591'>591</a>
+<a name='L592'></a><a href='#L592'>592</a>
+<a name='L593'></a><a href='#L593'>593</a>
+<a name='L594'></a><a href='#L594'>594</a>
+<a name='L595'></a><a href='#L595'>595</a>
+<a name='L596'></a><a href='#L596'>596</a>
+<a name='L597'></a><a href='#L597'>597</a>
+<a name='L598'></a><a href='#L598'>598</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -1014,6 +1047,15 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -1075,6 +1117,16 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -1326,6 +1378,7 @@ export interface Dictionary {
     readonly machine: string;
     readonly machinePlaceholder: string;
     readonly question: string;
+    readonly questionHint: string;
     readonly questionPlaceholder: string;
     readonly submit: string;
     readonly working: string;
@@ -1365,7 +1418,13 @@ export interface Dictionary {
   readonly upload: {
     readonly heading: string;
     readonly intro: string;
+    readonly inputMode: string;
+    readonly modeFile: string;
+    readonly modeText: string;
     readonly file: string;
+    readonly text: string;
+    readonly textHint: string;
+    readonly textPlaceholder: string;
     readonly machine: string;
     readonly type: string;
     readonly typeFault: string;
@@ -1514,6 +1573,8 @@ export const DE: Dictionary = {
     machine: 'Maschine',
     machinePlaceholder: 'Maschine wählen …',
     question: 'Ihre Frage',
+    questionHint:
+      'z. B.: Sensorfehler, Maschine startet nicht, Programm lädt nicht, Druck baut sich langsam auf',
     questionPlaceholder: 'z. B. Presse kommt nicht auf Druck, Fehler E-47',
     submit: 'Frage stellen',
     working: 'Antwort wird erstellt …',
@@ -1557,8 +1618,15 @@ export const DE: Dictionary = {
   upload: {
     heading: 'Protokoll hochladen',
     intro:
-      'Nur Textdateien (UTF-8). PDF und Scans werden noch nicht ausgewertet.',
+      'Protokoll direkt eingeben oder als Textdatei hochladen (UTF-8). PDF und Scans werden noch nicht ausgewertet.',
+    inputMode: 'Eingabeart',
+    modeFile: 'Datei hochladen',
+    modeText: 'Text eingeben',
     file: 'Datei',
+    text: 'Protokolltext',
+    textHint: 'Symptom, Ursache und Massnahme in eigenen Worten — Freitext ist in Ordnung.',
+    textPlaceholder:
+      'z. B. Presse kommt nicht auf Druck, E-47 steht an. Dichtsatz am Hauptzylinder getauscht, Druck wieder stabil.',
     machine: 'Maschine',
     type: 'Art',
     typeFault: 'Störung',
@@ -1705,6 +1773,8 @@ export const EN: Dictionary = {
     machine: 'Machine',
     machinePlaceholder: 'Choose a machine …',
     question: 'Your question',
+    questionHint:
+      'e.g.: sensor fault, machine will not start, program does not load, pressure builds up slowly',
     questionPlaceholder: 'e.g. press does not build up pressure, fault E-47',
     submit: 'Ask',
     working: 'Preparing the answer …',
@@ -1747,8 +1817,16 @@ export const EN: Dictionary = {
   },
   upload: {
     heading: 'Upload a protocol',
-    intro: 'Text files only (UTF-8). PDFs and scans are not extracted yet.',
+    intro:
+      'Write the protocol here or upload it as a text file (UTF-8). PDFs and scans are not extracted yet.',
+    inputMode: 'Input',
+    modeFile: 'Upload a file',
+    modeText: 'Write the text',
     file: 'File',
+    text: 'Protocol text',
+    textHint: 'Symptom, cause and action in your own words — free text is fine.',
+    textPlaceholder:
+      'e.g. Press does not build up pressure, E-47 showing. Seal kit on the main cylinder replaced, pressure stable again.',
     machine: 'Machine',
     type: 'Type',
     typeFault: 'Fault',
@@ -1783,7 +1861,7 @@ export const DICTIONARIES: Readonly&lt;Record&lt;UiLanguage, Dictionary&gt;&gt; 
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-08-10T07:49:12.276Z
+                at 2026-08-10T08:40:31.829Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>

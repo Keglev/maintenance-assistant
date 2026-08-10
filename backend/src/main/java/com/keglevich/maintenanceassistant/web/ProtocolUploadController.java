@@ -1,10 +1,13 @@
 package com.keglevich.maintenanceassistant.web;
 
 import com.keglevich.maintenanceassistant.ingestion.ProtocolIntakeService;
+import com.keglevich.maintenanceassistant.ingestion.UploadContentPolicy;
+import com.keglevich.maintenanceassistant.ingestion.UploadRateLimiter;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -38,9 +41,11 @@ import java.util.UUID;
 class ProtocolUploadController {
 
     private final ProtocolIntakeService intake;
+    private final UploadRateLimiter rateLimiter;
 
-    ProtocolUploadController(ProtocolIntakeService intake) {
+    ProtocolUploadController(ProtocolIntakeService intake, UploadRateLimiter rateLimiter) {
         this.intake = intake;
+        this.rateLimiter = rateLimiter;
     }
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -51,7 +56,9 @@ class ProtocolUploadController {
     @ApiResponses({
             @ApiResponse(responseCode = "202", description = "Accepted; indexing runs asynchronously"),
             @ApiResponse(responseCode = "400", description = "Unknown machine, bad field, or not UTF-8 text"),
-            @ApiResponse(responseCode = "403", description = "Caller is not a Schichtleiter")
+            @ApiResponse(responseCode = "403", description = "Caller is not a Schichtleiter"),
+            @ApiResponse(responseCode = "413", description = "File larger than the configured limit"),
+            @ApiResponse(responseCode = "429", description = "Too many uploads; see Retry-After")
     })
     ResponseEntity<Map<String, String>> upload(
             @RequestPart("file") MultipartFile file,
@@ -62,9 +69,16 @@ class ProtocolUploadController {
             @RequestParam(value = "language", required = false) String language,
             @AuthenticationPrincipal Jwt jwt) {
 
-        if (file.isEmpty()) {
-            throw new ProtocolIntakeService.InvalidProtocolException("file is empty");
-        }
+        // The username claim, per ADR-003. There is no user row for this to reference — and it is
+        // the same identity the resulting row is attributed to, which is why the limit is keyed on it.
+        String uploadedBy = jwt.getClaimAsString("preferred_username");
+        // Before anything is read or written: a burst that is going to be refused should be refused
+        // at its cheapest point.
+        rateLimiter.check(uploadedBy);
+
+        // Everything below happens before a row exists and before a byte reaches the volume, so a
+        // rejected upload leaves nothing behind.
+        UploadContentPolicy.verify(file.getOriginalFilename(), bytesOf(file));
         String content = readAsText(file);
 
         UUID id = intake.accept(new ProtocolIntakeService.NewProtocol(
@@ -76,13 +90,20 @@ class ProtocolUploadController {
                 title != null && !title.isBlank() ? title : stripExtension(file.getOriginalFilename()),
                 language,
                 content,
-                // The username claim, per ADR-003. There is no user row for this to reference.
-                jwt.getClaimAsString("preferred_username")));
+                uploadedBy));
 
         return ResponseEntity.accepted().body(Map.of(
                 "id", id.toString(),
                 "status", "RECEIVED",
                 "message", "Protocol stored and queued for indexing"));
+    }
+
+    private static byte[] bytesOf(MultipartFile file) {
+        try {
+            return file.getBytes();
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
     }
 
     /**
@@ -114,4 +135,27 @@ class ProtocolUploadController {
     Map<String, String> onInvalid(ProtocolIntakeService.InvalidProtocolException e) {
         return Map.of("error", e.getMessage());
     }
+
+    /**
+     * A refused upload, with a stable code beside the sentence.
+     *
+     * <p>The code is what the frontend translates. Matching on English prose from another layer
+     * breaks the first time someone rewords it — the same reasoning as the query path's
+     * {@code reason} field, and the same contract.
+     */
+    @ExceptionHandler(UploadContentPolicy.RejectedUploadException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    Map<String, String> onRejected(UploadContentPolicy.RejectedUploadException e) {
+        return Map.of("reason", e.code(), "error", e.getMessage());
+    }
+
+    /** 429 with {@code Retry-After}, matching the query path exactly. */
+    @ExceptionHandler(UploadRateLimiter.UploadRateLimitExceededException.class)
+    ResponseEntity<Map<String, String>> onRateLimited(
+            UploadRateLimiter.UploadRateLimitExceededException e) {
+        return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                .header(HttpHeaders.RETRY_AFTER, Long.toString(e.retryAfterSeconds()))
+                .body(Map.of("reason", "RATE_LIMITED", "error", e.getMessage()));
+    }
+
 }

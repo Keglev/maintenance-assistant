@@ -24,6 +24,17 @@ spring:
         jwt:
           issuer-uri: ${KEYCLOAK_ISSUER_URI:http://localhost:8081/realms/maintenance}
 
+  servlet:
+    multipart:
+      # STATED, not inherited. Boot's implicit default is 1 MB, which was never a decision
+      # anyone made — and a limit nobody chose is a limit nobody can defend. A protocol is
+      # a page of text (the whole 150-document corpus is 27,713 tokens), so 256 KiB is
+      # roughly 50x the largest realistic one and still 100x below anything that could
+      # hurt this host. The request cap is double the file cap: the same file plus a
+      # handful of short form fields, and no more.
+      max-file-size: ${UPLOAD_MAX_FILE_SIZE:256KB}
+      max-request-size: ${UPLOAD_MAX_REQUEST_SIZE:512KB}
+
   web:
     error:
       # Stack traces are never part of an HTTP response. Boot 4 moved these out of
@@ -46,9 +57,15 @@ maintenance:
     resource: classpath:corpus/protocols.ndjson
 
   ingestion:
-    # 1 MiB. A shift protocol is a page of text; anything larger is a PDF someone
-    # renamed, and rejecting it before it reaches the volume is cheaper than after.
-    max-upload-bytes: ${INGESTION_MAX_UPLOAD_BYTES:1048576}
+    # 256 KiB of DECODED text, matching the multipart cap above. The whole 150-protocol
+    # corpus is 27,713 tokens, so one protocol is a few KB: this is ~50x the largest
+    # realistic protocol and still far below anything that could hurt. A shift protocol
+    # is a page of text; anything larger is a PDF someone renamed, and rejecting it
+    # before it reaches the volume is cheaper than after.
+    max-upload-bytes: ${INGESTION_MAX_UPLOAD_BYTES:262144}
+    # NFR-7, burst case. Per user per minute, in memory — the cross-instance backstop is
+    # the daily embedding budget in Postgres, not this bucket.
+    uploads-per-minute: ${INGESTION_UPLOADS_PER_MINUTE:10}
     # Also the provider concurrency: one embedding call in flight per worker. Small
     # deliberately — 150 documents is not a stream, and four parallel callers is
     # politeness toward a shared gateway.

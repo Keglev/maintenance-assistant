@@ -217,6 +217,102 @@
         </tr>
         </tbody>
         </table>
+        <h2 id="upload-abuse-quantified">11.1 Upload abuse,
+        quantified</h2>
+        <p>R-4 above is stated in adjectives (“a few euros, not
+        hundreds”). Since the write path became a form anyone with a
+        demo password can reach, it is worth stating in numbers. Every
+        figure below is measured, not estimated — the sources are the
+        Phase 2 ingestion run and ADR-002.</p>
+        <p><strong>The write path is not open.</strong> Uploading
+        requires the <code>schichtleiter</code> realm role, checked
+        server-side (NFR-3); the demo simply publishes an account that
+        has it. So the question is not “what can a stranger do” but
+        “what can one authenticated demo user do”, which is a much
+        smaller one.</p>
+        <p><strong>What a saturating attacker actually costs, per
+        day:</strong></p>
+        <table>
+        <colgroup>
+        <col style="width: 33%" />
+        <col style="width: 33%" />
+        <col style="width: 33%" />
+        </colgroup>
+        <thead>
+        <tr class="header">
+        <th>Bound</th>
+        <th>Value</th>
+        <th>Source</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr class="odd">
+        <td>Embedding calls per day, all users</td>
+        <td>500</td>
+        <td><code>LLM_EMBEDDING_DAILY_CALL_BUDGET</code>, counted in
+        Postgres</td>
+        </tr>
+        <tr class="even">
+        <td>Protocols that buys, at ~1.1 chunks each</td>
+        <td><strong>~200/day</strong></td>
+        <td>150 protocols → 166 chunks, measured</td>
+        </tr>
+        <tr class="odd">
+        <td>Cost of embedding the entire 150-protocol corpus</td>
+        <td><strong>EUR 0.00055</strong> (27,713 tokens)</td>
+        <td>Phase 2 production run</td>
+        </tr>
+        <tr class="even">
+        <td>Therefore, a full day of saturation</td>
+        <td><strong>well under one cent</strong></td>
+        <td>arithmetic on the two rows above</td>
+        </tr>
+        <tr class="odd">
+        <td>Disk for 200 protocols/day at a few KB each</td>
+        <td><strong>~1 MB/day</strong></td>
+        <td>corpus file sizes</td>
+        </tr>
+        <tr class="even">
+        <td>Time to fill the 74 GB disk at that rate</td>
+        <td><strong>decades</strong></td>
+        <td>arithmetic</td>
+        </tr>
+        <tr class="odd">
+        <td>Nightly backup growth</td>
+        <td>negligible against a 752 KB dump</td>
+        <td>measured 2026-08-07</td>
+        </tr>
+        </tbody>
+        </table>
+        <p>The daily embedding budget is the ceiling that matters, and
+        it is deliberately the one guard that lives in Postgres: it
+        survives a restart and it is shared, so it holds regardless of
+        how many application instances run or how often they are
+        redeployed. Everything else bounds the shape of the spend rather
+        than its total.</p>
+        <p><strong>What the other guards bound.</strong> The size cap
+        (256 KB per file, 512 KB per request) bounds the single-request
+        case: without it one request could hand the embedder a book, and
+        the cost of a protocol is proportional to its length rather than
+        to the fact of it. The per-user rate limit (10/minute) bounds
+        the burst case, so a script cannot spend the day’s budget in the
+        first minute and leave the demo answering “come back tomorrow”
+        to everyone else — which is the real damage, and it is
+        availability damage rather than a bill. Content validation
+        bounds the <em>garbage</em> case: an empty file or a renamed PDF
+        is refused before a row exists.</p>
+        <p><strong>The honest gap: remediation.</strong> Nothing above
+        deletes a protocol that was accepted and is simply bad — a
+        plausible-looking protocol full of nonsense passes every guard
+        here, because every guard here is about size, shape and rate
+        rather than about meaning. It then sits in the corpus and can be
+        retrieved and cited by a later answer. That is not an oversight
+        to be closed with another limit; it is the
+        <strong>moderation</strong> work package (review, hide, delete),
+        which is the next one on the backlog. Until it exists, the
+        mitigation is operational: the corpus is synthetic, the
+        deployment is a demo, and a bad protocol is removed by hand from
+        the database and the volume.</p>
       </article>
     </main>
 
@@ -224,8 +320,12 @@
       <p class="toc-title">On this page</p>
       <ul>
       <li><a href="#risks-and-technical-debt"
-      id="toc-risks-and-technical-debt">11. Risks and Technical
-      Debt</a></li>
+      id="toc-risks-and-technical-debt">11. Risks and Technical Debt</a>
+      <ul>
+      <li><a href="#upload-abuse-quantified"
+      id="toc-upload-abuse-quantified">11.1 Upload abuse,
+      quantified</a></li>
+      </ul></li>
       </ul>
     </nav>
       </div>

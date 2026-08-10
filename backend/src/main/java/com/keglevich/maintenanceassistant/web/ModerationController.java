@@ -7,21 +7,27 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.core.io.Resource;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
+import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -58,15 +64,42 @@ class ModerationController {
     @GetMapping
     @Operation(summary = "List every protocol in the corpus, newest first",
             description = "Paged. `size` is clamped to 50 — the corpus grows every time a protocol "
-                    + "is uploaded, and an unpaged list of it is a page that gets slower forever.")
+                    + "is uploaded, and an unpaged list of it is a page that gets slower forever. "
+                    + "Optionally narrowed by machine, by a case-insensitive title substring and by "
+                    + "an upload-date range. `titleContains`, `from` and `to` require `machineNo`: "
+                    + "without it they answer with rows from machines the reviewer was not looking "
+                    + "at. All four absent is the plain list.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "One page of protocols"),
+            @ApiResponse(responseCode = "400",
+                    description = "A title or date filter was sent without a machine "
+                            + "(`reason: MACHINE_REQUIRED_FOR_FILTER`)"),
             @ApiResponse(responseCode = "403", description = "Caller is not an administrator")
     })
     ProtocolModerationService.ProtocolPage list(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
-        return moderation.list(page, size);
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String machineNo,
+            @RequestParam(required = false) String titleContains,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to) {
+        // The record's constructor is where the machine-first rule lives, so it holds for any caller
+        // rather than for this method signature only.
+        return moderation.list(page, size,
+                new ProtocolModerationService.ProtocolFilter(machineNo, titleContains, from, to));
+    }
+
+    /**
+     * A filter combination the endpoint does not accept, reported with a stable code.
+     *
+     * <p>The code is what the frontend matches on — the same contract as the upload guards and the
+     * query path's {@code reason} field, and for the same reason: rewording an English sentence on
+     * the server must not silently change what the German interface says.
+     */
+    @ExceptionHandler(ProtocolModerationService.InvalidFilterException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    Map<String, String> onInvalidFilter(ProtocolModerationService.InvalidFilterException e) {
+        return Map.of("reason", e.code(), "error", e.getMessage());
     }
 
     @GetMapping("/{id}/document")

@@ -1,0 +1,1509 @@
+<!doctype html>
+<html class="no-js" lang="">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="x-ua-compatible" content="ie=edge">
+        <title>maintenance-assistant-frontend documentation</title>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <link rel="icon" type="image/x-icon" href="../images/favicon.ico">
+	   <link rel="stylesheet" href="../styles/style.css">
+        <link rel="stylesheet" href="../styles/dark.css">
+    </head>
+    <body>
+          <script>
+               // Blocking script to avoid flickering dark mode
+               // Dark mode toggle button
+               var useDark = window.matchMedia('(prefers-color-scheme: dark)');
+               var darkModeState = useDark.matches;
+               var $darkModeToggleSwitchers = document.querySelectorAll('.dark-mode-switch input');
+               var $darkModeToggles = document.querySelectorAll('.dark-mode-switch');
+               var darkModeStateLocal = localStorage.getItem('compodoc_darkmode-state');
+
+               function checkToggle(check) {
+                    for (var i = 0; i < $darkModeToggleSwitchers.length; i++) {
+                         $darkModeToggleSwitchers[i].checked = check;
+                    }
+               }
+
+               function toggleDarkMode(state) {
+                    if (window.localStorage) {
+                         localStorage.setItem('compodoc_darkmode-state', state);
+                    }
+
+                    checkToggle(state);
+
+                    const hasClass = document.body.classList.contains('dark');
+
+                    if (state) {
+                         for (var i = 0; i < $darkModeToggles.length; i++) {
+                              $darkModeToggles[i].classList.add('dark');
+                         }
+                         if (!hasClass) {
+                              document.body.classList.add('dark');
+                         }
+                    } else {
+                         for (var i = 0; i < $darkModeToggles.length; i++) {
+                              $darkModeToggles[i].classList.remove('dark');
+                         }
+                         if (hasClass) {
+                              document.body.classList.remove('dark');
+                         }
+                    }
+               }
+
+               useDark.addEventListener('change', function (evt) {
+                    toggleDarkMode(evt.matches);
+               });
+               if (darkModeStateLocal) {
+                    darkModeState = darkModeStateLocal === 'true';
+               }
+               toggleDarkMode(darkModeState);
+          </script>
+          <script>
+              // --- Iframe navigation tracking for Template Playground ---
+              function sendCurrentUrlToParent() {
+                  if (window.parent && window.parent !== window) {
+                      window.parent.postMessage({
+                          type: 'compodoc-iframe-navigate',
+                          url: window.location.pathname + window.location.hash
+                      }, '*');
+                  }
+              }
+              window.addEventListener('hashchange', sendCurrentUrlToParent, false);
+              window.addEventListener('popstate', sendCurrentUrlToParent, false);
+              window.addEventListener('DOMContentLoaded', sendCurrentUrlToParent, false);
+          </script>
+
+        <div class="navbar navbar-default navbar-fixed-top d-md-none p-0">
+               <div class="d-flex">
+                    <a href="../" class="navbar-brand">maintenance-assistant-frontend documentation</a>
+                    <button type="button" class="btn btn-default btn-menu ion-ios-menu" id="btn-menu"></button>
+               </div>
+        </div>
+
+        <div class="xs-menu menu" id="mobile-menu">
+                <div id="book-search-input" role="search">
+    <input type="text" placeholder="Type to search">
+    <button type="button"
+        class="search-input-clear"
+        aria-label="Clear search"
+        data-search-input-clear>&times;</button>
+</div>
+            <compodoc-menu></compodoc-menu>
+        </div>
+
+        <div class="container-fluid main">
+           <div class="row main">
+               <div class="d-none d-md-block menu">
+                   <compodoc-menu mode="normal"></compodoc-menu>
+               </div>
+               <!-- START CONTENT -->
+               <div class="content component">
+                   <div class="content-data">
+
+
+
+
+
+
+
+
+<ol class="breadcrumb">
+  <li class="breadcrumb-item">Components</li>
+  <li class="breadcrumb-item"
+  >
+  SettingsDialog</li>
+</ol>
+
+<div class="io-file io-file-path" data-compodoc="entity-file-path">
+    <span class="icon ion-ios-document" aria-hidden="true"></span>
+    <code>src/app/shared/settings/settings-dialog.ts</code>
+</div>
+
+<ul class="nav nav-tabs" role="tablist">
+        <li class="nav-item">
+            <a href="#info" class="nav-link active"
+                role="tab" id="info-tab" data-bs-toggle="tab" data-link="info">Info</a>
+        </li>
+        <li class="nav-item">
+            <a href="#api" class="nav-link"
+                role="tab" id="api-tab" data-bs-toggle="tab" data-link="api">API</a>
+        </li>
+        <li class="nav-item">
+            <a href="#source" class="nav-link"
+                role="tab" id="source-tab" data-bs-toggle="tab" data-link="source">Source</a>
+        </li>
+        <li class="nav-item">
+            <a href="#templateData" class="nav-link"
+                role="tab" id="templateData-tab" data-bs-toggle="tab" data-link="template">Template</a>
+        </li>
+        <li class="nav-item">
+            <a href="#styleData" class="nav-link"
+                role="tab" id="styleData-tab" data-bs-toggle="tab" data-link="style">Styles</a>
+        </li>
+        <li class="nav-item">
+            <a href="#tree" class="nav-link"
+                role="tab" id="tree-tab" data-bs-toggle="tab" data-link="dom-tree">DOM Tree</a>
+        </li>
+</ul>
+
+<div class="tab-content">
+    <div class="tab-pane fade active in" id="info">
+    <p class="comment">
+        <h3>Description</h3>
+    </p>
+    <p class="comment">
+        <p>The &quot;System&quot; dialog behind the gear: what this application is, who is signed in, and how large it
+should be drawn.</p>
+<p>It is where the font control lives rather than the header, because it is set once and then left
+alone — a permanent third control in a toolbar for a decision made on the first day would cost
+room on every screen after it. The gear sits with the user block, away from the language switch,
+which is where a B2B interface puts settings.</p>
+<p>The version comes from <code>package.json</code> at build time. A hand-maintained constant is a string that
+is wrong from the first release nobody remembered to edit it for.</p>
+
+    </p>
+
+
+
+    <p class="comment">
+        <h3>Example</h3>
+    </p>
+    <div class="io-description">
+    </div>
+
+<section data-compodoc="block-metadata">
+    <h3>Metadata</h3>
+    <table class="table table-sm table-hover metadata">
+        <tbody>
+
+            <tr>
+                <td class="col-md-3">changeDetection</td>
+                <td class="col-md-9"><code>ChangeDetectionStrategy.OnPush</code></td>
+            </tr>
+
+
+
+
+
+
+
+
+
+
+
+            <tr>
+                <td class="col-md-3">selector</td>
+                <td class="col-md-9"><code>app-settings-dialog</code></td>
+            </tr>
+
+            <tr>
+                <td class="col-md-3">standalone</td>
+                <td class="col-md-9"><code>true</code></td>
+            </tr>
+
+            <tr>
+                <td class="col-md-3">imports</td>
+                <td class="col-md-9">
+                        <div>        <code><a href="../components/Dialog.html" target="_self" >Dialog</a></code>
+</div>
+                </td>
+            </tr>
+
+            <tr>
+                <td class="col-md-3">styleUrls</td>
+                <td class="col-md-9"><code>./settings-dialog.css</code></td>
+            </tr>
+
+
+
+
+            <tr>
+                <td class="col-md-3">templateUrl</td>
+                <td class="col-md-9"><code>./settings-dialog.html</code></td>
+            </tr>
+
+
+
+            <tr>
+                <td class="col-md-3">styleUrl</td>
+                <td class="col-md-9"><code>./settings-dialog.css</code></td>
+            </tr>
+
+
+
+
+
+        </tbody>
+    </table>
+</section>
+
+        <section data-compodoc="block-relationships">
+            <h3>Relationships</h3>
+
+            <div class="row pt-3">
+                <div class="col-sm-6">
+                    <h4>Used by</h4>
+                        <ul class="list-unstyled relationships-list">
+                                <li>
+                                            <code><a href="../components/App.html" target="_self" >App</a></code>
+                                </li>
+                        </ul>
+                </div>
+
+                <div class="col-sm-6">
+                    <h4>Depends on</h4>
+                        <ul class="list-unstyled relationships-list">
+                                <li>
+                                            <code><a href="../components/Dialog.html" target="_self" >Dialog</a></code>
+                                </li>
+                        </ul>
+                </div>
+            </div>
+        </section>
+</div>
+
+    <div class="tab-pane fade " id="api">    <section data-compodoc="block-index">
+    <h3 id="index">Index</h3>
+        <table class="table table-sm table-bordered index-table">
+            <tbody>
+                <tr>
+                    <td class="col-md-3">
+                        <h6><b>Properties</b></h6>
+                    </td>
+                    <td class="col-md-9">
+                        <ul class="index-list">
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
+                                    <span class="modifier">Private</span>
+                                    <span class="modifier">Readonly</span>
+                                <a href="#auth" >auth</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
+                                    <span class="modifier">Protected</span>
+                                    <span class="modifier">Readonly</span>
+                                <a href="#docsUrl" >docsUrl</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
+                                    <span class="modifier">Private</span>
+                                    <span class="modifier">Readonly</span>
+                                <a href="#fonts" >fonts</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
+                                    <span class="modifier">Private</span>
+                                    <span class="modifier">Readonly</span>
+                                <a href="#i18n" >i18n</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
+                                    <span class="modifier">Protected</span>
+                                    <span class="modifier">Readonly</span>
+                                <a href="#isAuthenticated" >isAuthenticated</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
+                                    <span class="modifier">Protected</span>
+                                    <span class="modifier">Readonly</span>
+                                <a href="#repoUrl" >repoUrl</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
+                                    <span class="modifier">Protected</span>
+                                    <span class="modifier">Readonly</span>
+                                <a href="#roleLabel" >roleLabel</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
+                                    <span class="modifier">Protected</span>
+                                    <span class="modifier">Readonly</span>
+                                <a href="#scale" >scale</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
+                                    <span class="modifier">Protected</span>
+                                    <span class="modifier">Readonly</span>
+                                <a href="#scales" >scales</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
+                                    <span class="modifier">Protected</span>
+                                    <span class="modifier">Readonly</span>
+                                <a href="#signedInAt" >signedInAt</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
+                                    <span class="modifier">Protected</span>
+                                    <span class="modifier">Readonly</span>
+                                <a href="#t" >t</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
+                                    <span class="modifier">Protected</span>
+                                    <span class="modifier">Readonly</span>
+                                <a href="#username" >username</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
+                                    <span class="modifier">Protected</span>
+                                    <span class="modifier">Readonly</span>
+                                <a href="#version" >version</a>
+                            </li>
+                        </ul>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <table class="table table-sm table-bordered index-table">
+            <tbody>
+                <tr>
+                    <td class="col-md-3">
+                        <h6><b>Methods</b></h6>
+                    </td>
+                    <td class="col-md-9">
+                        <ul class="index-list">
+                            <li>
+                                <span class="reference-badge reference-badge--method" aria-hidden="true">M</span>
+                                    <span class="modifier">Protected</span>
+                                <a href="#scaleLabel" >scaleLabel</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--method" aria-hidden="true">M</span>
+                                    <span class="modifier">Protected</span>
+                                <a href="#useScale" >useScale</a>
+                            </li>
+                        </ul>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <table class="table table-sm table-bordered index-table">
+            <tbody>
+                <tr>
+                    <td class="col-md-3">
+                        <h6><b>Inputs</b></h6>
+                    </td>
+                    <td class="col-md-9">
+                        <ul class="index-list">
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">I</span><a href="#open" >open</a>
+                            </li>
+                        </ul>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <table class="table table-sm table-bordered index-table">
+            <tbody>
+                <tr>
+                    <td class="col-md-3">
+                        <h6><b>Outputs</b></h6>
+                    </td>
+                    <td class="col-md-9">
+                        <ul class="index-list">
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">O</span><a href="#closed" >closed</a>
+                            </li>
+                        </ul>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+
+
+</section>
+
+
+    <section data-compodoc="block-inputs">
+    <h3 id="inputs">Inputs</h3>
+        <table class="table table-sm table-bordered">
+            <tbody>
+                <tr>
+                    <td class="col-md-4">
+                        <a name="open"></a>
+                        <b>open</b>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/boolean" target="_blank" >boolean</a></code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>false</code>
+                    </td>
+                </tr>
+                        <tr>
+                            <td class="col-md-2" colspan="2">
+                                    <div class="io-line">Defined in <a href="" data-line="41" class="link-to-prism">src/app/shared/settings/settings-dialog.ts:41</a></div>
+                            </td>
+                        </tr>
+            </tbody>
+        </table>
+</section>
+
+    <section data-compodoc="block-outputs">
+    <h3 id="outputs">Outputs</h3>
+        <table class="table table-sm table-bordered">
+            <tbody>
+                <tr>
+                    <td class="col-md-4">
+                        <a name="closed"></a>
+                        <b>closed</b>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>        <code><a href="https://www.typescriptlang.org/docs/handbook/basic-types.html" target="_blank" >void</a></code>
+
+                    </td>
+                </tr>
+                        <tr>
+                            <td class="col-md-2" colspan="2">
+                                    <div class="io-line">Defined in <a href="" data-line="42" class="link-to-prism">src/app/shared/settings/settings-dialog.ts:42</a></div>
+                            </td>
+                        </tr>
+            </tbody>
+        </table>
+</section>
+
+
+
+    <section data-compodoc="block-methods">
+    
+    <h3 id="methods">
+        Methods
+    </h3>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="scaleLabel"></a>
+                    <span class="name">
+                            <span class="modifier">Protected</span>
+                        <span ><b>scaleLabel</b></span>
+                        <a href="#scaleLabel"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                        <span class="modifier-icon icon ion-ios-reset"></span>
+                    <code>scaleLabel(scale: <a href="../miscellaneous/typealiases.html#FontScale" target="_self">FontScale</a>)</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="75"
+                                    class="link-to-prism">src/app/shared/settings/settings-dialog.ts:75</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                                <td>Type</td>
+                                            <td>Optional</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>scale</td>
+                                            <td>
+                                                            <code><a href="../miscellaneous/typealiases.html#FontScale" target="_self" >FontScale</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+
+                        </div>
+                            <div class="io-description">
+                                
+                            </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="useScale"></a>
+                    <span class="name">
+                            <span class="modifier">Protected</span>
+                        <span ><b>useScale</b></span>
+                        <a href="#useScale"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                        <span class="modifier-icon icon ion-ios-reset"></span>
+                    <code>useScale(scale: <a href="../miscellaneous/typealiases.html#FontScale" target="_self">FontScale</a>)</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="87"
+                                    class="link-to-prism">src/app/shared/settings/settings-dialog.ts:87</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                                <td>Type</td>
+                                            <td>Optional</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>scale</td>
+                                            <td>
+                                                            <code><a href="../miscellaneous/typealiases.html#FontScale" target="_self" >FontScale</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>        <code><a href="https://www.typescriptlang.org/docs/handbook/basic-types.html" target="_blank" >void</a></code>
+
+                        </div>
+                            <div class="io-description">
+                                
+                            </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</section>
+
+    <section data-compodoc="block-properties">
+    
+    <h3 id="inputs">
+        Properties
+    </h3>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="auth"></a>
+                    <span class="name">
+                            <span class="modifier">Private</span>
+                            <span class="modifier">Readonly</span>
+                        <span ><b>auth</b></span>
+                        <a href="#auth"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>unknown</code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>inject(AuthService)</code>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="36" class="link-to-prism">src/app/shared/settings/settings-dialog.ts:36</a></div>
+                        </td>
+                    </tr>
+
+
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="docsUrl"></a>
+                    <span class="name">
+                            <span class="modifier">Protected</span>
+                            <span class="modifier">Readonly</span>
+                        <span ><b>docsUrl</b></span>
+                        <a href="#docsUrl"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>unknown</code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>DOCS_URL</code>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="45" class="link-to-prism">src/app/shared/settings/settings-dialog.ts:45</a></div>
+                        </td>
+                    </tr>
+
+
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="fonts"></a>
+                    <span class="name">
+                            <span class="modifier">Private</span>
+                            <span class="modifier">Readonly</span>
+                        <span ><b>fonts</b></span>
+                        <a href="#fonts"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>unknown</code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>inject(FontScaleService)</code>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="37" class="link-to-prism">src/app/shared/settings/settings-dialog.ts:37</a></div>
+                        </td>
+                    </tr>
+
+
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="i18n"></a>
+                    <span class="name">
+                            <span class="modifier">Private</span>
+                            <span class="modifier">Readonly</span>
+                        <span ><b>i18n</b></span>
+                        <a href="#i18n"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>unknown</code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>inject(I18nService)</code>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="35" class="link-to-prism">src/app/shared/settings/settings-dialog.ts:35</a></div>
+                        </td>
+                    </tr>
+
+
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="isAuthenticated"></a>
+                    <span class="name">
+                            <span class="modifier">Protected</span>
+                            <span class="modifier">Readonly</span>
+                        <span ><b>isAuthenticated</b></span>
+                        <a href="#isAuthenticated"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>unknown</code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>this.auth.isAuthenticated</code>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="48" class="link-to-prism">src/app/shared/settings/settings-dialog.ts:48</a></div>
+                        </td>
+                    </tr>
+
+
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="repoUrl"></a>
+                    <span class="name">
+                            <span class="modifier">Protected</span>
+                            <span class="modifier">Readonly</span>
+                        <span ><b>repoUrl</b></span>
+                        <a href="#repoUrl"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>unknown</code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>REPO_URL</code>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="46" class="link-to-prism">src/app/shared/settings/settings-dialog.ts:46</a></div>
+                        </td>
+                    </tr>
+
+
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="roleLabel"></a>
+                    <span class="name">
+                            <span class="modifier">Protected</span>
+                            <span class="modifier">Readonly</span>
+                        <span ><b>roleLabel</b></span>
+                        <a href="#roleLabel"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>unknown</code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>computed(() &#x3D;&gt; {
+    const held &#x3D; new Set(this.auth.realmRoles().map((role) &#x3D;&gt; role.toLowerCase()));
+    const role &#x3D; KNOWN_ROLES.find((candidate) &#x3D;&gt; held.has(candidate));
+    return role ? this.t().roles[role] : &#x27;&#x27;;
+  })</code>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="55" class="link-to-prism">src/app/shared/settings/settings-dialog.ts:55</a></div>
+                        </td>
+                    </tr>
+
+
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="scale"></a>
+                    <span class="name">
+                            <span class="modifier">Protected</span>
+                            <span class="modifier">Readonly</span>
+                        <span ><b>scale</b></span>
+                        <a href="#scale"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>unknown</code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>this.fonts.scale</code>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="50" class="link-to-prism">src/app/shared/settings/settings-dialog.ts:50</a></div>
+                        </td>
+                    </tr>
+
+
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="scales"></a>
+                    <span class="name">
+                            <span class="modifier">Protected</span>
+                            <span class="modifier">Readonly</span>
+                        <span ><b>scales</b></span>
+                        <a href="#scales"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>{}</code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>[&#x27;normal&#x27;, &#x27;lg&#x27;, &#x27;xl&#x27;]</code>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="53" class="link-to-prism">src/app/shared/settings/settings-dialog.ts:53</a></div>
+                        </td>
+                    </tr>
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-description"><p>The three steps, in the order they are offered.</p>
+</div>
+                </td>
+            </tr>
+
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="signedInAt"></a>
+                    <span class="name">
+                            <span class="modifier">Protected</span>
+                            <span class="modifier">Readonly</span>
+                        <span ><b>signedInAt</b></span>
+                        <a href="#signedInAt"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>unknown</code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>computed(() &#x3D;&gt; {
+    const at &#x3D; this.auth.signedInAt();
+    if (!at) {
+      return &#x27;&#x27;;
+    }
+    return at.toLocaleTimeString(this.i18n.language(), { hour: &#x27;2-digit&#x27;, minute: &#x27;2-digit&#x27; });
+  })</code>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="67" class="link-to-prism">src/app/shared/settings/settings-dialog.ts:67</a></div>
+                        </td>
+                    </tr>
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-description"><p>&quot;Signed in since 21:14&quot; — or nothing at all.</p>
+<p>The row disappears rather than showing a guess when the token carries no <code>iat</code>: a fabricated
+time on a settings screen is worse than an absent row, because it looks like a fact.</p>
+</div>
+                </td>
+            </tr>
+
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="t"></a>
+                    <span class="name">
+                            <span class="modifier">Protected</span>
+                            <span class="modifier">Readonly</span>
+                        <span ><b>t</b></span>
+                        <a href="#t"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>unknown</code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>this.i18n.t</code>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="39" class="link-to-prism">src/app/shared/settings/settings-dialog.ts:39</a></div>
+                        </td>
+                    </tr>
+
+
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="username"></a>
+                    <span class="name">
+                            <span class="modifier">Protected</span>
+                            <span class="modifier">Readonly</span>
+                        <span ><b>username</b></span>
+                        <a href="#username"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>unknown</code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>this.auth.username</code>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="49" class="link-to-prism">src/app/shared/settings/settings-dialog.ts:49</a></div>
+                        </td>
+                    </tr>
+
+
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="version"></a>
+                    <span class="name">
+                            <span class="modifier">Protected</span>
+                            <span class="modifier">Readonly</span>
+                        <span ><b>version</b></span>
+                        <a href="#version"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>unknown</code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>version</code>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="44" class="link-to-prism">src/app/shared/settings/settings-dialog.ts:44</a></div>
+                        </td>
+                    </tr>
+
+
+        </tbody>
+    </table>
+</section>
+
+</div>
+
+
+    <div class="tab-pane fade  tab-source-code" id="source">
+        <pre class="line-numbers compodoc-sourcecode"><code class="language-typescript">import { Component, computed, inject, input, output } from &#x27;@angular/core&#x27;;
+
+import { version } from &#x27;../../../../package.json&#x27;;
+import { AuthService } from &#x27;../../core/auth/auth.service&#x27;;
+import { FontScale, FontScaleService } from &#x27;../../core/theme/font-scale.service&#x27;;
+import { I18nService } from &#x27;../../core/i18n/i18n.service&#x27;;
+import { Dialog } from &#x27;../dialog/dialog&#x27;;
+
+/** Where the settings dialog points. Same fixed URLs the footer uses. */
+export const DOCS_URL &#x3D; &#x27;https://keglev.github.io/maintenance-assistant/&#x27;;
+export const REPO_URL &#x3D; &#x27;https://github.com/Keglev/maintenance-assistant&#x27;;
+
+/** The realm roles this interface knows how to name, most privileged first. */
+const KNOWN_ROLES &#x3D; [&#x27;admin&#x27;, &#x27;schichtleiter&#x27;, &#x27;techniker&#x27;, &#x27;operator&#x27;] as const;
+
+/**
+ * The &quot;System&quot; dialog behind the gear: what this application is, who is signed in, and how large it
+ * should be drawn.
+ *
+ * It is where the font control lives rather than the header, because it is set once and then left
+ * alone — a permanent third control in a toolbar for a decision made on the first day would cost
+ * room on every screen after it. The gear sits with the user block, away from the language switch,
+ * which is where a B2B interface puts settings.
+ *
+ * The version comes from &#x60;package.json&#x60; at build time. A hand-maintained constant is a string that
+ * is wrong from the first release nobody remembered to edit it for.
+ */
+@Component({
+  selector: &#x27;app-settings-dialog&#x27;,
+  imports: [Dialog],
+  templateUrl: &#x27;./settings-dialog.html&#x27;,
+  styleUrl: &#x27;./settings-dialog.css&#x27;,
+})
+export class SettingsDialog {
+  private readonly i18n &#x3D; inject(I18nService);
+  private readonly auth &#x3D; inject(AuthService);
+  private readonly fonts &#x3D; inject(FontScaleService);
+
+  protected readonly t &#x3D; this.i18n.t;
+
+  readonly open &#x3D; input(false);
+  readonly closed &#x3D; output&lt;void&gt;();
+
+  protected readonly version &#x3D; version;
+  protected readonly docsUrl &#x3D; DOCS_URL;
+  protected readonly repoUrl &#x3D; REPO_URL;
+
+  protected readonly isAuthenticated &#x3D; this.auth.isAuthenticated;
+  protected readonly username &#x3D; this.auth.username;
+  protected readonly scale &#x3D; this.fonts.scale;
+
+  /** The three steps, in the order they are offered. */
+  protected readonly scales: readonly FontScale[] &#x3D; [&#x27;normal&#x27;, &#x27;lg&#x27;, &#x27;xl&#x27;];
+
+  protected readonly roleLabel &#x3D; computed(() &#x3D;&gt; {
+    const held &#x3D; new Set(this.auth.realmRoles().map((role) &#x3D;&gt; role.toLowerCase()));
+    const role &#x3D; KNOWN_ROLES.find((candidate) &#x3D;&gt; held.has(candidate));
+    return role ? this.t().roles[role] : &#x27;&#x27;;
+  });
+
+  /**
+   * &quot;Signed in since 21:14&quot; — or nothing at all.
+   *
+   * The row disappears rather than showing a guess when the token carries no &#x60;iat&#x60;: a fabricated
+   * time on a settings screen is worse than an absent row, because it looks like a fact.
+   */
+  protected readonly signedInAt &#x3D; computed(() &#x3D;&gt; {
+    const at &#x3D; this.auth.signedInAt();
+    if (!at) {
+      return &#x27;&#x27;;
+    }
+    return at.toLocaleTimeString(this.i18n.language(), { hour: &#x27;2-digit&#x27;, minute: &#x27;2-digit&#x27; });
+  });
+
+  protected scaleLabel(scale: FontScale): string {
+    const labels &#x3D; this.t().settings;
+    switch (scale) {
+      case &#x27;lg&#x27;:
+        return labels.fontLarge;
+      case &#x27;xl&#x27;:
+        return labels.fontExtraLarge;
+      default:
+        return labels.fontNormal;
+    }
+  }
+
+  protected useScale(scale: FontScale): void {
+    this.fonts.use(scale);
+  }
+}
+</code></pre>
+    </div>
+
+    <div class="tab-pane fade " id="templateData">
+        <pre class="line-numbers"><code class="language-html">&lt;app-dialog
+  [open]&#x3D;&quot;open()&quot;
+  [title]&#x3D;&quot;t().settings.title&quot;
+  testId&#x3D;&quot;settings&quot;
+  (closed)&#x3D;&quot;closed.emit()&quot;
+&gt;
+  &lt;section class&#x3D;&quot;settings-section&quot;&gt;
+    &lt;h3 class&#x3D;&quot;settings-heading&quot;&gt;{{ t().settings.aboutHeading }}&lt;/h3&gt;
+    &lt;dl class&#x3D;&quot;settings-rows&quot;&gt;
+      &lt;dt&gt;{{ t().settings.app }}&lt;/dt&gt;
+      &lt;dd&gt;{{ t().appTitle }}&lt;/dd&gt;
+      &lt;dt&gt;{{ t().settings.version }}&lt;/dt&gt;
+      &lt;!-- Read out of package.json at build time; a hand-maintained constant is a string that is
+           wrong from the first release nobody remembered to edit it for. --&gt;
+      &lt;dd class&#x3D;&quot;num&quot; data-testid&#x3D;&quot;settings-version&quot;&gt;{{ version }}&lt;/dd&gt;
+    &lt;/dl&gt;
+    &lt;nav class&#x3D;&quot;settings-links&quot; [attr.aria-label]&#x3D;&quot;t().settings.aboutHeading&quot;&gt;
+      &lt;!-- rel&#x3D;&quot;noopener&quot; on every outward link: a new tab must not get a handle on this one. --&gt;
+      &lt;a [href]&#x3D;&quot;docsUrl&quot; target&#x3D;&quot;_blank&quot; rel&#x3D;&quot;noopener noreferrer&quot; data-testid&#x3D;&quot;settings-docs&quot;&gt;{{
+        t().footer.docs
+      }}&lt;/a&gt;
+      &lt;a [href]&#x3D;&quot;repoUrl&quot; target&#x3D;&quot;_blank&quot; rel&#x3D;&quot;noopener noreferrer&quot; data-testid&#x3D;&quot;settings-repo&quot;&gt;{{
+        t().footer.repo
+      }}&lt;/a&gt;
+    &lt;/nav&gt;
+  &lt;/section&gt;
+
+  @if (isAuthenticated()) {
+    &lt;section class&#x3D;&quot;settings-section&quot; data-testid&#x3D;&quot;settings-account&quot;&gt;
+      &lt;h3 class&#x3D;&quot;settings-heading&quot;&gt;{{ t().settings.accountHeading }}&lt;/h3&gt;
+      &lt;dl class&#x3D;&quot;settings-rows&quot;&gt;
+        &lt;dt&gt;{{ t().settings.user }}&lt;/dt&gt;
+        &lt;dd&gt;
+          &lt;span class&#x3D;&quot;settings-user&quot;&gt;{{ username() }}&lt;/span&gt;
+          @if (roleLabel(); as role) {
+            &lt;span class&#x3D;&quot;role-badge&quot; data-testid&#x3D;&quot;settings-role&quot;&gt;{{ role }}&lt;/span&gt;
+          }
+        &lt;/dd&gt;
+        &lt;!-- Only when the token actually says so. A fabricated time here would look like a fact. --&gt;
+        @if (signedInAt(); as since) {
+          &lt;dt&gt;{{ t().settings.signedInSince }}&lt;/dt&gt;
+          &lt;dd class&#x3D;&quot;num&quot; data-testid&#x3D;&quot;settings-since&quot;&gt;{{ since }}&lt;/dd&gt;
+        }
+      &lt;/dl&gt;
+    &lt;/section&gt;
+  }
+
+  &lt;section class&#x3D;&quot;settings-section&quot;&gt;
+    &lt;h3 class&#x3D;&quot;settings-heading&quot; id&#x3D;&quot;font-heading&quot;&gt;{{ t().settings.fontHeading }}&lt;/h3&gt;
+    &lt;p class&#x3D;&quot;field-hint&quot;&gt;{{ t().settings.fontHint }}&lt;/p&gt;
+    &lt;div class&#x3D;&quot;font-switch&quot; role&#x3D;&quot;group&quot; aria-labelledby&#x3D;&quot;font-heading&quot; data-testid&#x3D;&quot;font-switch&quot;&gt;
+      @for (option of scales; track option) {
+        &lt;button
+          type&#x3D;&quot;button&quot;
+          [attr.data-testid]&#x3D;&quot;&#x27;font-&#x27; + option&quot;
+          [class.active]&#x3D;&quot;scale() &#x3D;&#x3D;&#x3D; option&quot;
+          [attr.aria-pressed]&#x3D;&quot;scale() &#x3D;&#x3D;&#x3D; option&quot;
+          (click)&#x3D;&quot;useScale(option)&quot;
+        &gt;
+          &lt;!-- The label is drawn at the size it selects, so the choice previews itself. --&gt;
+          &lt;span class&#x3D;&quot;font-sample font-sample-{{ option }}&quot;&gt;Aa&lt;/span&gt;
+          {{ scaleLabel(option) }}
+        &lt;/button&gt;
+      }
+    &lt;/div&gt;
+  &lt;/section&gt;
+&lt;/app-dialog&gt;
+</code></pre>
+    </div>
+
+    <div class="tab-pane fade " id="styleData">
+                <p class="comment">
+                    <code>./settings-dialog.css</code>
+                </p>
+                <pre class="line-numbers"><code class="language-scss">.settings-section + .settings-section {
+  margin-top: var(--s-5);
+  padding-top: var(--s-5);
+  border-top: 1px solid var(--c-line);
+}
+
+.settings-heading {
+  margin: 0 0 var(--s-3);
+  font-size: var(--t-base);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--c-ink-muted);
+}
+
+.settings-rows {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: var(--s-2) var(--s-4);
+  margin: 0;
+  font-size: var(--t-sm);
+}
+
+.settings-rows dt {
+  color: var(--c-ink-muted);
+}
+
+.settings-rows dd {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.settings-user {
+  font-family: var(--font-mono);
+}
+
+.settings-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2) var(--s-4);
+  margin-top: var(--s-3);
+  font-size: var(--t-sm);
+}
+
+.settings-links a {
+  color: var(--c-brand);
+  text-underline-offset: 2px;
+}
+
+/* --- Font scale ----------------------------------------------------------- */
+
+.font-switch {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-3);
+  margin-top: var(--s-3);
+}
+
+/* Full-height targets rather than a segmented strip: this is the control a user with poor eyesight
+   reaches for, and it should not be the smallest thing on the screen. */
+.font-switch button {
+  display: flex;
+  flex: 1 1 8rem;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s-2);
+  min-height: var(--tap);
+  padding: var(--s-2) var(--s-3);
+  border: 1px solid var(--c-line-strong);
+  border-radius: var(--r-sm);
+  background: var(--c-surface);
+  font: inherit;
+  font-size: var(--t-sm);
+  font-weight: 600;
+  color: var(--c-ink);
+  cursor: pointer;
+}
+
+.font-switch button.active {
+  background: var(--c-brand);
+  border-color: var(--c-brand);
+  color: var(--c-on-brand);
+}
+
+/* Each option is drawn at the size it selects, so the choice previews itself rather than describing
+   itself — the reader who needs the largest step can see which one it is. */
+.font-sample {
+  font-weight: 700;
+  line-height: 1;
+}
+
+.font-sample-normal {
+  font-size: 1rem;
+}
+
+.font-sample-lg {
+  font-size: 1.125rem;
+}
+
+.font-sample-xl {
+  font-size: 1.25rem;
+}
+
+.font-switch button:hover:not(.active) {
+  background: var(--c-hover);
+}
+
+.font-switch button:active:not(.active) {
+  background: var(--c-pressed);
+}
+</code></pre>
+    </div>
+
+    <div class="tab-pane fade " id="tree">
+        <div id="tree-container"></div>
+        <div class="tree-legend">
+            <div class="title">
+                <b>Legend</b>
+            </div>
+            <div>
+                <div class="color htmlelement"></div><span>Html element</span>
+            </div>
+            <div>
+                <div class="color component"></div><span>Component</span>
+            </div>
+            <div>
+                <div class="color directive"></div><span>Html element with directive</span>
+            </div>
+        </div>
+    </div>
+
+    
+</div>
+
+<script src="../js/libs/vis-network.min.js"></script>
+<script src="../js/libs/htmlparser.js"></script>
+<script src="../js/libs/deep-iterator.js"></script>
+<script>
+        var COMPONENT_TEMPLATE = '<div><app-dialog  [open]="open()"  [title]="t().settings.title"  testId="settings"  (closed)="closed.emit()">  <section class="settings-section">    <h3 class="settings-heading">{{ t().settings.aboutHeading }}</h3>    <dl class="settings-rows">      <dt>{{ t().settings.app }}</dt>      <dd>{{ t().appTitle }}</dd>      <dt>{{ t().settings.version }}</dt>      <!-- Read out of package.json at build time; a hand-maintained constant is a string that is           wrong from the first release nobody remembered to edit it for. -->      <dd class="num" data-testid="settings-version">{{ version }}</dd>    </dl>    <nav class="settings-links" [attr.aria-label]="t().settings.aboutHeading">      <!-- rel="noopener" on every outward link: a new tab must not get a handle on this one. -->      <a [href]="docsUrl" target="_blank" rel="noopener noreferrer" data-testid="settings-docs">{{        t().footer.docs      }}</a>      <a [href]="repoUrl" target="_blank" rel="noopener noreferrer" data-testid="settings-repo">{{        t().footer.repo      }}</a>    </nav>  </section>  @if (isAuthenticated()) {    <section class="settings-section" data-testid="settings-account">      <h3 class="settings-heading">{{ t().settings.accountHeading }}</h3>      <dl class="settings-rows">        <dt>{{ t().settings.user }}</dt>        <dd>          <span class="settings-user">{{ username() }}</span>          @if (roleLabel(); as role) {            <span class="role-badge" data-testid="settings-role">{{ role }}</span>          }        </dd>        <!-- Only when the token actually says so. A fabricated time here would look like a fact. -->        @if (signedInAt(); as since) {          <dt>{{ t().settings.signedInSince }}</dt>          <dd class="num" data-testid="settings-since">{{ since }}</dd>        }      </dl>    </section>  }  <section class="settings-section">    <h3 class="settings-heading" id="font-heading">{{ t().settings.fontHeading }}</h3>    <p class="field-hint">{{ t().settings.fontHint }}</p>    <div class="font-switch" role="group" aria-labelledby="font-heading" data-testid="font-switch">      @for (option of scales; track option) {        <button          type="button"          [attr.data-testid]="\'font-\' + option"          [class.active]="scale() === option"          [attr.aria-pressed]="scale() === option"          (click)="useScale(option)"        >          <!-- The label is drawn at the size it selects, so the choice previews itself. -->          <span class="font-sample font-sample-{{ option }}">Aa</span>          {{ scaleLabel(option) }}        </button>      }    </div>  </section></app-dialog></div>'
+    var COMPONENTS = [{'name': 'App', 'selector': 'app-root'},{'name': 'Dialog', 'selector': 'app-dialog'},{'name': 'HelpDialog', 'selector': 'app-help-dialog'},{'name': 'Landing', 'selector': 'app-landing'},{'name': 'ProtocolDialog', 'selector': 'app-protocol-dialog'},{'name': 'Search', 'selector': 'app-search'},{'name': 'SettingsDialog', 'selector': 'app-settings-dialog'},{'name': 'ThemeToggle', 'selector': 'app-theme-toggle'},{'name': 'Upload', 'selector': 'app-upload'}];
+    var DIRECTIVES = [];
+    var ACTUAL_COMPONENT = {'name': 'SettingsDialog'};
+</script>
+<script src="../js/tree.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                   </div><div class="search-results">
+    <div class="has-results">
+        <h1 class="search-results-title"><span class='search-results-count'></span> results matching "<span class='search-query'></span>"</h1>
+        <ul class="search-results-list"></ul>
+    </div>
+    <div class="no-results">
+        <h1 class="search-results-title">No results matching "<span class='search-query'></span>"</h1>
+    </div>
+</div>
+</div>
+               <!-- END CONTENT -->
+           </div>
+       </div>
+
+          <label class="dark-mode-switch">
+               <input type="checkbox">
+               <span class="slider">
+                    <svg class="slider-icon" viewBox="0 0 24 24" fill="none" height="20" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" width="20" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"></path>
+                    </svg>
+               </span>
+          </label>
+
+       <script>
+            var COMPODOC_CURRENT_PAGE_DEPTH = 1;
+            var COMPODOC_CURRENT_PAGE_CONTEXT = 'component';
+            var COMPODOC_CURRENT_PAGE_URL = 'SettingsDialog.html';
+            var MAX_SEARCH_RESULTS = 15;
+       </script>
+
+       <script>
+               $darkModeToggleSwitchers = document.querySelectorAll('.dark-mode-switch input');
+               var updateDarkModeSwitchOffset = function () {
+                    var content = document.querySelector('.content');
+                    var scrollbarWidth = 0;
+
+                    if (content) {
+                         scrollbarWidth = Math.max(0, content.offsetWidth - content.clientWidth);
+                    }
+
+                    document.documentElement.style.setProperty(
+                         '--content-scrollbar-width',
+                         scrollbarWidth + 'px'
+                    );
+               };
+
+               updateDarkModeSwitchOffset();
+               requestAnimationFrame(updateDarkModeSwitchOffset);
+               window.addEventListener('resize', updateDarkModeSwitchOffset);
+
+               checkToggle(darkModeState);
+               if ($darkModeToggleSwitchers.length > 0) {
+                    for (var i = 0; i < $darkModeToggleSwitchers.length; i++) {
+                         $darkModeToggleSwitchers[i].addEventListener('change', function (event) {
+                              darkModeState = !darkModeState;
+                              toggleDarkMode(darkModeState);
+                         });
+                    }
+               }
+          </script>
+
+       <script src="../js/libs/custom-elements.min.js"></script>
+       <script src="../js/libs/lit-html.js"></script>
+
+       <script src="../js/menu-wc.js" defer></script>
+
+       <script src="../js/libs/bootstrap-native.js"></script>
+
+       <script src="../js/libs/es6-shim.min.js"></script>
+       <script src="../js/libs/EventDispatcher.js"></script>
+       <script src="../js/libs/promise.min.js"></script>
+
+       <script src="../js/compodoc.js"></script>
+
+       <script src="../js/tabs.js"></script>
+       <script src="../js/menu.js"></script>
+       <script src="../js/libs/clipboard.min.js"></script>
+       <script src="../js/libs/prism.js"></script>
+       <script src="../js/sourceCode.js"></script>
+          <script src="../js/search/search.js"></script>
+          <script src="../js/search/lunr.min.js"></script>
+          <script src="../js/search/search-lunr.js"></script>
+          <script src="../js/search/search_index.js"></script>
+       <script src="../js/lazy-load-graphs.js"></script>
+
+
+    </body>
+</html>

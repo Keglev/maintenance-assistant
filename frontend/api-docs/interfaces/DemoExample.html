@@ -375,12 +375,27 @@ export interface Dictionary {
     readonly close: string;
     readonly cancel: string;
   };
-  /** The theme control. &#x60;system&#x60; is a state of its own, so it needs a name of its own. */
+  /** The theme control. Two states; the operating system is the silent default, not a button. */
   readonly theme: {
     readonly label: string;
-    readonly system: string;
     readonly light: string;
     readonly dark: string;
+  };
+  /** The gear dialog: what this is, who is signed in, and how large to draw it. */
+  readonly settings: {
+    readonly title: string;
+    readonly open: string;
+    readonly aboutHeading: string;
+    readonly app: string;
+    readonly version: string;
+    readonly accountHeading: string;
+    readonly user: string;
+    readonly signedInSince: string;
+    readonly fontHeading: string;
+    readonly fontHint: string;
+    readonly fontNormal: string;
+    readonly fontLarge: string;
+    readonly fontExtraLarge: string;
   };
   readonly nav: {
     readonly search: string;
@@ -426,6 +441,7 @@ export interface Dictionary {
     readonly demoPassword: string;
     /** &quot;Sign in as operator&quot; — the username is the argument, and it is never translated. */
     readonly signInAs: (username: string) &#x3D;&gt; string;
+    readonly tryDemo: string;
     readonly signIn: string;
     readonly signInHint: string;
     readonly plateModel: string;
@@ -512,7 +528,6 @@ export interface Dictionary {
     readonly typeMaintenance: string;
     readonly title: string;
     readonly errorCode: string;
-    readonly language: string;
     readonly submit: string;
     readonly submitting: string;
     readonly accepted: string;
@@ -528,6 +543,7 @@ export interface Dictionary {
     readonly statusIndexed: string;
     readonly statusFailed: string;
     readonly optional: string;
+    readonly required: string;
   };
 }
 
@@ -546,9 +562,24 @@ export const DE: Dictionary &#x3D; {
   },
   theme: {
     label: &#x27;Darstellung&#x27;,
-    system: &#x27;System&#x27;,
     light: &#x27;Hell&#x27;,
     dark: &#x27;Dunkel&#x27;,
+  },
+  settings: {
+    title: &#x27;System&#x27;,
+    open: &#x27;Systemeinstellungen&#x27;,
+    aboutHeading: &#x27;Anwendung&#x27;,
+    app: &#x27;Programm&#x27;,
+    version: &#x27;Version&#x27;,
+    accountHeading: &#x27;Angemeldet&#x27;,
+    user: &#x27;Benutzer&#x27;,
+    signedInSince: &#x27;Angemeldet seit&#x27;,
+    fontHeading: &#x27;Schriftgröße&#x27;,
+    fontHint:
+      &#x27;Gilt für die ganze Anwendung, auch für Schaltflächen und Abstände. Die Einstellung bleibt erhalten.&#x27;,
+    fontNormal: &#x27;Normal&#x27;,
+    fontLarge: &#x27;Groß&#x27;,
+    fontExtraLarge: &#x27;Sehr groß&#x27;,
   },
   nav: {
     search: &#x27;Suche&#x27;,
@@ -598,6 +629,7 @@ export const DE: Dictionary &#x3D; {
       &#x27;Bewusst öffentliche Demo-Umgebung: eigener, isolierter Realm, ausschließlich synthetische Daten, Anfragen begrenzt, Sitzung nach 15 Minuten beendet.&#x27;,
     demoPassword: &#x27;Passwort für alle&#x27;,
     signInAs: (username) &#x3D;&gt; &#x60;Als ${username} anmelden&#x60;,
+    tryDemo: &#x27;Demo ausprobieren&#x27;,
     signIn: &#x27;Anmelden&#x27;,
     signInHint:
       &#x27;Die Anmeldung läuft über Keycloak. Sie werden dorthin weitergeleitet und kommen anschließend hierher zurück.&#x27;,
@@ -714,7 +746,6 @@ export const DE: Dictionary &#x3D; {
     typeMaintenance: &#x27;Wartung&#x27;,
     title: &#x27;Titel&#x27;,
     errorCode: &#x27;Fehlercode&#x27;,
-    language: &#x27;Sprache des Dokuments&#x27;,
     submit: &#x27;Hochladen&#x27;,
     submitting: &#x27;Wird hochgeladen …&#x27;,
     accepted: &#x27;Protokoll angenommen.&#x27;,
@@ -731,6 +762,7 @@ export const DE: Dictionary &#x3D; {
     statusIndexed: &#x27;Durchsuchbar&#x27;,
     statusFailed: &#x27;Fehlgeschlagen&#x27;,
     optional: &#x27;optional&#x27;,
+    required: &#x27;Pflichtfeld&#x27;,
   },
 };
 
@@ -743,9 +775,24 @@ export const EN: Dictionary &#x3D; {
   },
   theme: {
     label: &#x27;Appearance&#x27;,
-    system: &#x27;System&#x27;,
     light: &#x27;Light&#x27;,
     dark: &#x27;Dark&#x27;,
+  },
+  settings: {
+    title: &#x27;System&#x27;,
+    open: &#x27;System settings&#x27;,
+    aboutHeading: &#x27;Application&#x27;,
+    app: &#x27;Program&#x27;,
+    version: &#x27;Version&#x27;,
+    accountHeading: &#x27;Signed in&#x27;,
+    user: &#x27;User&#x27;,
+    signedInSince: &#x27;Signed in since&#x27;,
+    fontHeading: &#x27;Text size&#x27;,
+    fontHint:
+      &#x27;Applies to the whole application, including buttons and spacing. The setting is remembered.&#x27;,
+    fontNormal: &#x27;Normal&#x27;,
+    fontLarge: &#x27;Large&#x27;,
+    fontExtraLarge: &#x27;Extra large&#x27;,
   },
   nav: {
     search: &#x27;Search&#x27;,
@@ -795,6 +842,7 @@ export const EN: Dictionary &#x3D; {
       &#x27;A deliberately public demo environment: its own isolated realm, synthetic data only, rate-limited requests, sessions ending after 15 minutes.&#x27;,
     demoPassword: &#x27;Password for all&#x27;,
     signInAs: (username) &#x3D;&gt; &#x60;Sign in as ${username}&#x60;,
+    tryDemo: &#x27;Try the demo&#x27;,
     signIn: &#x27;Sign in&#x27;,
     signInHint:
       &#x27;Sign-in is handled by Keycloak. You will be redirected there and returned here afterwards.&#x27;,
@@ -914,7 +962,6 @@ export const EN: Dictionary &#x3D; {
     typeMaintenance: &#x27;Maintenance&#x27;,
     title: &#x27;Title&#x27;,
     errorCode: &#x27;Fault code&#x27;,
-    language: &#x27;Document language&#x27;,
     submit: &#x27;Upload&#x27;,
     submitting: &#x27;Uploading …&#x27;,
     accepted: &#x27;Protocol accepted.&#x27;,
@@ -931,6 +978,7 @@ export const EN: Dictionary &#x3D; {
     statusIndexed: &#x27;Searchable&#x27;,
     statusFailed: &#x27;Failed&#x27;,
     optional: &#x27;optional&#x27;,
+    required: &#x27;required&#x27;,
   },
 };
 

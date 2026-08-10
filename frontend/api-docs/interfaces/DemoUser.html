@@ -232,7 +232,7 @@ visitor would otherwise type. Only the description comes from the dictionary.</p
 
                             <tr>
                                 <td class="col-md-4">
-                                    <div class="io-line">Defined in <a href="" data-line="20" class="link-to-prism">src/app/features/landing/landing.ts:20</a></div>
+                                    <div class="io-line">Defined in <a href="" data-line="21" class="link-to-prism">src/app/features/landing/landing.ts:21</a></div>
                                 </td>
                             </tr>
 
@@ -271,7 +271,7 @@ visitor would otherwise type. Only the description comes from the dictionary.</p
 
                             <tr>
                                 <td class="col-md-4">
-                                    <div class="io-line">Defined in <a href="" data-line="19" class="link-to-prism">src/app/features/landing/landing.ts:19</a></div>
+                                    <div class="io-line">Defined in <a href="" data-line="20" class="link-to-prism">src/app/features/landing/landing.ts:20</a></div>
                                 </td>
                             </tr>
 
@@ -282,7 +282,8 @@ visitor would otherwise type. Only the description comes from the dictionary.</p
 
 
     <div class="tab-pane fade  tab-source-code" id="source">
-        <pre class="line-numbers compodoc-sourcecode"><code class="language-typescript">import { Component, effect, inject, signal } from &#x27;@angular/core&#x27;;
+        <pre class="line-numbers compodoc-sourcecode"><code class="language-typescript">import { DOCUMENT } from &#x27;@angular/common&#x27;;
+import { Component, ElementRef, effect, inject, signal, viewChild } from &#x27;@angular/core&#x27;;
 import { Router } from &#x27;@angular/router&#x27;;
 
 import { AuthService } from &#x27;../../core/auth/auth.service&#x27;;
@@ -340,6 +341,9 @@ export class Landing {
   /** Set when this tab arrived here from a sign-out, so the landing page can confirm it happened. */
   protected readonly signedOut &#x3D; signal(false);
 
+  private readonly document &#x3D; inject(DOCUMENT);
+  private readonly demoBox &#x3D; viewChild&lt;ElementRef&lt;HTMLElement&gt;&gt;(&#x27;demoBox&#x27;);
+
   constructor() {
     // Read once, on arrival, and cleared as it is read: a &quot;you have been signed out&quot; that reappeared
     // on every later visit would stop meaning anything.
@@ -363,6 +367,29 @@ export class Landing {
    */
   protected signIn(username?: string): void {
     this.auth.login(username);
+  }
+
+  /**
+   * Takes the visitor to the demo accounts further down the page.
+   *
+   * **Focus moves with the scroll, not only the viewport.** A scroll that leaves the keyboard where
+   * it was sends the next Tab back to the top of the page, and a screen reader never learns that
+   * anything happened — the button would work for a mouse and silently fail for everyone else. The
+   * target carries &#x60;tabindex&#x3D;&quot;-1&quot;&#x60; so it can receive focus without joining the tab order.
+   *
+   * Smooth unless the operating system asked for less motion, in which case it jumps: a full-page
+   * scroll is exactly the kind of movement that setting exists to stop.
+   */
+  protected jumpToDemo(): void {
+    const target &#x3D; this.demoBox()?.nativeElement;
+    if (!target) {
+      return;
+    }
+    const reduced &#x3D; this.document.defaultView?.matchMedia?.(&#x27;(prefers-reduced-motion: reduce)&#x27;)
+      ?.matches;
+    target.scrollIntoView({ behavior: reduced ? &#x27;auto&#x27; : &#x27;smooth&#x27;, block: &#x27;start&#x27; });
+    // preventScroll: the scroll above is the one that should happen; focus must not fight it.
+    target.focus({ preventScroll: true });
   }
 }
 </code></pre>

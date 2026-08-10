@@ -155,13 +155,15 @@
         <h3>Description</h3>
     </p>
     <p class="comment">
-        <p>The three-state theme control: system, light, dark.</p>
-<p>Three buttons rather than a two-state switch, because &quot;follow the operating system&quot; is a real
-choice and not the absence of one — a two-state control silently turns every user into a manual
-one the first time they touch it, and then a tablet that used to go dark at dusk stops doing it.</p>
-<p>Modelled on the language switch next to it: a labelled group of buttons with <code>aria-pressed</code>,
-rather than a menu. With three options a menu costs a click to discover what three icons already
-show, and on a touchscreen a popover is the harder target.</p>
+        <p>The theme control: light and dark, with the operating system as the silent default.</p>
+<p>There is no &quot;system&quot; button. Until the user presses one of these two, the application follows
+<code>prefers-color-scheme</code> and says nothing about it — a first visit already does the right thing, and
+a third segment explaining that costs a third of the control to state the default. Pressing either
+button stores an explicit choice, which then wins over the operating system.</p>
+<p><strong>The pressed state follows what is PAINTED, not what was chosen.</strong> With no stored choice neither
+button would be pressed if it tracked the choice, and the control would look broken on a first
+visit. Tracking the resolved theme instead means it always answers the question the user is
+actually asking it: which one am I looking at.</p>
 
     </p>
 
@@ -268,15 +270,15 @@ show, and on a touchscreen a popover is the harder target.</p>
                         <ul class="index-list">
                             <li>
                                 <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
-                                    <span class="modifier">Protected</span>
-                                    <span class="modifier">Readonly</span>
-                                <a href="#choice" >choice</a>
-                            </li>
-                            <li>
-                                <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
                                     <span class="modifier">Private</span>
                                     <span class="modifier">Readonly</span>
                                 <a href="#i18n" >i18n</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
+                                    <span class="modifier">Protected</span>
+                                    <span class="modifier">Readonly</span>
+                                <a href="#resolved" >resolved</a>
                             </li>
                             <li>
                                 <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
@@ -353,8 +355,8 @@ show, and on a touchscreen a popover is the harder target.</p>
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="29"
-                                    class="link-to-prism">src/app/shared/theme/theme-toggle.ts:29</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="31"
+                                    class="link-to-prism">src/app/shared/theme/theme-toggle.ts:31</a></div>
                         </td>
                     </tr>
 
@@ -411,39 +413,6 @@ show, and on a touchscreen a popover is the harder target.</p>
         <tbody>
             <tr>
                 <td class="col-md-4">
-                    <a name="choice"></a>
-                    <span class="name">
-                            <span class="modifier">Protected</span>
-                            <span class="modifier">Readonly</span>
-                        <span ><b>choice</b></span>
-                        <a href="#choice"><span class="icon ion-ios-link"></span></a>
-                    </span>
-                </td>
-            </tr>
-                <tr>
-                    <td class="col-md-4">
-                        <i>Type : </i>    <code>unknown</code>
-
-                    </td>
-                </tr>
-                <tr>
-                    <td class="col-md-4">
-                        <i>Default value : </i><code>this.theme.choice</code>
-                    </td>
-                </tr>
-                    <tr>
-                        <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="27" class="link-to-prism">src/app/shared/theme/theme-toggle.ts:27</a></div>
-                        </td>
-                    </tr>
-
-
-        </tbody>
-    </table>
-    <table class="table table-sm table-bordered">
-        <tbody>
-            <tr>
-                <td class="col-md-4">
                     <a name="i18n"></a>
                     <span class="name">
                             <span class="modifier">Private</span>
@@ -466,7 +435,40 @@ show, and on a touchscreen a popover is the harder target.</p>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="23" class="link-to-prism">src/app/shared/theme/theme-toggle.ts:23</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="25" class="link-to-prism">src/app/shared/theme/theme-toggle.ts:25</a></div>
+                        </td>
+                    </tr>
+
+
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="resolved"></a>
+                    <span class="name">
+                            <span class="modifier">Protected</span>
+                            <span class="modifier">Readonly</span>
+                        <span ><b>resolved</b></span>
+                        <a href="#resolved"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>unknown</code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>this.theme.resolved</code>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="29" class="link-to-prism">src/app/shared/theme/theme-toggle.ts:29</a></div>
                         </td>
                     </tr>
 
@@ -499,7 +501,7 @@ show, and on a touchscreen a popover is the harder target.</p>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="26" class="link-to-prism">src/app/shared/theme/theme-toggle.ts:26</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="28" class="link-to-prism">src/app/shared/theme/theme-toggle.ts:28</a></div>
                         </td>
                     </tr>
 
@@ -532,7 +534,7 @@ show, and on a touchscreen a popover is the harder target.</p>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="24" class="link-to-prism">src/app/shared/theme/theme-toggle.ts:24</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="26" class="link-to-prism">src/app/shared/theme/theme-toggle.ts:26</a></div>
                         </td>
                     </tr>
 
@@ -551,15 +553,17 @@ import { I18nService } from &#x27;../../core/i18n/i18n.service&#x27;;
 import { ThemeChoice, ThemeService } from &#x27;../../core/theme/theme.service&#x27;;
 
 /**
- * The three-state theme control: system, light, dark.
+ * The theme control: light and dark, with the operating system as the silent default.
  *
- * Three buttons rather than a two-state switch, because &quot;follow the operating system&quot; is a real
- * choice and not the absence of one — a two-state control silently turns every user into a manual
- * one the first time they touch it, and then a tablet that used to go dark at dusk stops doing it.
+ * There is no &quot;system&quot; button. Until the user presses one of these two, the application follows
+ * &#x60;prefers-color-scheme&#x60; and says nothing about it — a first visit already does the right thing, and
+ * a third segment explaining that costs a third of the control to state the default. Pressing either
+ * button stores an explicit choice, which then wins over the operating system.
  *
- * Modelled on the language switch next to it: a labelled group of buttons with &#x60;aria-pressed&#x60;,
- * rather than a menu. With three options a menu costs a click to discover what three icons already
- * show, and on a touchscreen a popover is the harder target.
+ * **The pressed state follows what is PAINTED, not what was chosen.** With no stored choice neither
+ * button would be pressed if it tracked the choice, and the control would look broken on a first
+ * visit. Tracking the resolved theme instead means it always answers the question the user is
+ * actually asking it: which one am I looking at.
  */
 @Component({
   selector: &#x27;app-theme-toggle&#x27;,
@@ -571,7 +575,7 @@ export class ThemeToggle {
   private readonly theme &#x3D; inject(ThemeService);
 
   protected readonly t &#x3D; this.i18n.t;
-  protected readonly choice &#x3D; this.theme.choice;
+  protected readonly resolved &#x3D; this.theme.resolved;
 
   protected use(choice: ThemeChoice): void {
     this.theme.use(choice);
@@ -583,30 +587,18 @@ export class ThemeToggle {
     <div class="tab-pane fade " id="templateData">
         <pre class="line-numbers"><code class="language-html">&lt;!-- Icons only, and therefore aria-label and title on every button rather than as an afterthought:
      with the text gone they are the ONLY name this control has. The group carries its own label so a
-     screen reader says what the three are for before reading them out, and title gives a sighted
-     user the same wording on hover. The SVGs are inline and aria-hidden — no icon font, no
-     third-party set, nothing the CSP would have to allow. --&gt;
+     screen reader says what the two are for before reading them out, and title gives a sighted user
+     the same wording on hover. The SVGs are inline and aria-hidden — no icon font, no third-party
+     set, nothing the CSP would have to allow.
+
+     Pressed tracks the theme actually on screen, not the stored choice: with no choice stored the
+     operating system decides, and a control with neither half pressed would look broken. --&gt;
 &lt;div class&#x3D;&quot;theme-switch&quot; role&#x3D;&quot;group&quot; [attr.aria-label]&#x3D;&quot;t().theme.label&quot; data-testid&#x3D;&quot;theme-toggle&quot;&gt;
   &lt;button
     type&#x3D;&quot;button&quot;
-    data-testid&#x3D;&quot;theme-system&quot;
-    [class.active]&#x3D;&quot;choice() &#x3D;&#x3D;&#x3D; &#x27;system&#x27;&quot;
-    [attr.aria-pressed]&#x3D;&quot;choice() &#x3D;&#x3D;&#x3D; &#x27;system&#x27;&quot;
-    [attr.aria-label]&#x3D;&quot;t().theme.system&quot;
-    [title]&#x3D;&quot;t().theme.system&quot;
-    (click)&#x3D;&quot;use(&#x27;system&#x27;)&quot;
-  &gt;
-    &lt;!-- A monitor: &quot;whatever the machine is set to&quot;. --&gt;
-    &lt;svg class&#x3D;&quot;icon&quot; viewBox&#x3D;&quot;0 0 24 24&quot; aria-hidden&#x3D;&quot;true&quot; focusable&#x3D;&quot;false&quot;&gt;
-      &lt;rect x&#x3D;&quot;2.5&quot; y&#x3D;&quot;4&quot; width&#x3D;&quot;19&quot; height&#x3D;&quot;12.5&quot; rx&#x3D;&quot;2&quot; /&gt;
-      &lt;path d&#x3D;&quot;M8.5 20.5h7M12 16.5v4&quot; /&gt;
-    &lt;/svg&gt;
-  &lt;/button&gt;
-  &lt;button
-    type&#x3D;&quot;button&quot;
     data-testid&#x3D;&quot;theme-light&quot;
-    [class.active]&#x3D;&quot;choice() &#x3D;&#x3D;&#x3D; &#x27;light&#x27;&quot;
-    [attr.aria-pressed]&#x3D;&quot;choice() &#x3D;&#x3D;&#x3D; &#x27;light&#x27;&quot;
+    [class.active]&#x3D;&quot;resolved() &#x3D;&#x3D;&#x3D; &#x27;light&#x27;&quot;
+    [attr.aria-pressed]&#x3D;&quot;resolved() &#x3D;&#x3D;&#x3D; &#x27;light&#x27;&quot;
     [attr.aria-label]&#x3D;&quot;t().theme.light&quot;
     [title]&#x3D;&quot;t().theme.light&quot;
     (click)&#x3D;&quot;use(&#x27;light&#x27;)&quot;
@@ -621,8 +613,8 @@ export class ThemeToggle {
   &lt;button
     type&#x3D;&quot;button&quot;
     data-testid&#x3D;&quot;theme-dark&quot;
-    [class.active]&#x3D;&quot;choice() &#x3D;&#x3D;&#x3D; &#x27;dark&#x27;&quot;
-    [attr.aria-pressed]&#x3D;&quot;choice() &#x3D;&#x3D;&#x3D; &#x27;dark&#x27;&quot;
+    [class.active]&#x3D;&quot;resolved() &#x3D;&#x3D;&#x3D; &#x27;dark&#x27;&quot;
+    [attr.aria-pressed]&#x3D;&quot;resolved() &#x3D;&#x3D;&#x3D; &#x27;dark&#x27;&quot;
     [attr.aria-label]&#x3D;&quot;t().theme.dark&quot;
     [title]&#x3D;&quot;t().theme.dark&quot;
     (click)&#x3D;&quot;use(&#x27;dark&#x27;)&quot;
@@ -683,6 +675,15 @@ export class ThemeToggle {
   stroke-linecap: round;
   stroke-linejoin: round;
 }
+
+/* The unpressed half has to answer a pointer, or the control looks disabled in dark. */
+.theme-switch button:hover:not(.active) {
+  background: var(--c-hover);
+}
+
+.theme-switch button:active:not(.active) {
+  background: var(--c-pressed);
+}
 </code></pre>
     </div>
 
@@ -711,8 +712,8 @@ export class ThemeToggle {
 <script src="../js/libs/htmlparser.js"></script>
 <script src="../js/libs/deep-iterator.js"></script>
 <script>
-        var COMPONENT_TEMPLATE = '<div><!-- Icons only, and therefore aria-label and title on every button rather than as an afterthought:     with the text gone they are the ONLY name this control has. The group carries its own label so a     screen reader says what the three are for before reading them out, and title gives a sighted     user the same wording on hover. The SVGs are inline and aria-hidden — no icon font, no     third-party set, nothing the CSP would have to allow. --><div class="theme-switch" role="group" [attr.aria-label]="t().theme.label" data-testid="theme-toggle">  <button    type="button"    data-testid="theme-system"    [class.active]="choice() === \'system\'"    [attr.aria-pressed]="choice() === \'system\'"    [attr.aria-label]="t().theme.system"    [title]="t().theme.system"    (click)="use(\'system\')"  >    <!-- A monitor: "whatever the machine is set to". -->    <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">      <rect x="2.5" y="4" width="19" height="12.5" rx="2" />      <path d="M8.5 20.5h7M12 16.5v4" />    </svg>  </button>  <button    type="button"    data-testid="theme-light"    [class.active]="choice() === \'light\'"    [attr.aria-pressed]="choice() === \'light\'"    [attr.aria-label]="t().theme.light"    [title]="t().theme.light"    (click)="use(\'light\')"  >    <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">      <circle cx="12" cy="12" r="4.2" />      <path        d="M12 2.6v2.4M12 19v2.4M4.2 12H1.8M22.2 12h-2.4M6.3 6.3L4.6 4.6M19.4 19.4l-1.7-1.7M17.7 6.3l1.7-1.7M4.6 19.4l1.7-1.7"      />    </svg>  </button>  <button    type="button"    data-testid="theme-dark"    [class.active]="choice() === \'dark\'"    [attr.aria-pressed]="choice() === \'dark\'"    [attr.aria-label]="t().theme.dark"    [title]="t().theme.dark"    (click)="use(\'dark\')"  >    <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">      <path d="M20.5 14.6A8.6 8.6 0 0 1 9.4 3.5a8.6 8.6 0 1 0 11.1 11.1z" />    </svg>  </button></div></div>'
-    var COMPONENTS = [{'name': 'App', 'selector': 'app-root'},{'name': 'Dialog', 'selector': 'app-dialog'},{'name': 'HelpDialog', 'selector': 'app-help-dialog'},{'name': 'Landing', 'selector': 'app-landing'},{'name': 'ProtocolDialog', 'selector': 'app-protocol-dialog'},{'name': 'Search', 'selector': 'app-search'},{'name': 'ThemeToggle', 'selector': 'app-theme-toggle'},{'name': 'Upload', 'selector': 'app-upload'}];
+        var COMPONENT_TEMPLATE = '<div><!-- Icons only, and therefore aria-label and title on every button rather than as an afterthought:     with the text gone they are the ONLY name this control has. The group carries its own label so a     screen reader says what the two are for before reading them out, and title gives a sighted user     the same wording on hover. The SVGs are inline and aria-hidden — no icon font, no third-party     set, nothing the CSP would have to allow.     Pressed tracks the theme actually on screen, not the stored choice: with no choice stored the     operating system decides, and a control with neither half pressed would look broken. --><div class="theme-switch" role="group" [attr.aria-label]="t().theme.label" data-testid="theme-toggle">  <button    type="button"    data-testid="theme-light"    [class.active]="resolved() === \'light\'"    [attr.aria-pressed]="resolved() === \'light\'"    [attr.aria-label]="t().theme.light"    [title]="t().theme.light"    (click)="use(\'light\')"  >    <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">      <circle cx="12" cy="12" r="4.2" />      <path        d="M12 2.6v2.4M12 19v2.4M4.2 12H1.8M22.2 12h-2.4M6.3 6.3L4.6 4.6M19.4 19.4l-1.7-1.7M17.7 6.3l1.7-1.7M4.6 19.4l1.7-1.7"      />    </svg>  </button>  <button    type="button"    data-testid="theme-dark"    [class.active]="resolved() === \'dark\'"    [attr.aria-pressed]="resolved() === \'dark\'"    [attr.aria-label]="t().theme.dark"    [title]="t().theme.dark"    (click)="use(\'dark\')"  >    <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">      <path d="M20.5 14.6A8.6 8.6 0 0 1 9.4 3.5a8.6 8.6 0 1 0 11.1 11.1z" />    </svg>  </button></div></div>'
+    var COMPONENTS = [{'name': 'App', 'selector': 'app-root'},{'name': 'Dialog', 'selector': 'app-dialog'},{'name': 'HelpDialog', 'selector': 'app-help-dialog'},{'name': 'Landing', 'selector': 'app-landing'},{'name': 'ProtocolDialog', 'selector': 'app-protocol-dialog'},{'name': 'Search', 'selector': 'app-search'},{'name': 'SettingsDialog', 'selector': 'app-settings-dialog'},{'name': 'ThemeToggle', 'selector': 'app-theme-toggle'},{'name': 'Upload', 'selector': 'app-upload'}];
     var DIRECTIVES = [];
     var ACTUAL_COMPONENT = {'name': 'ThemeToggle'};
 </script>

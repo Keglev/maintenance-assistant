@@ -252,6 +252,9 @@ happened to be written first.</p>
                                 <li>
                                             <code><a href="../components/ProtocolDialog.html" target="_self" >ProtocolDialog</a></code>
                                 </li>
+                                <li>
+                                            <code><a href="../components/SettingsDialog.html" target="_self" >SettingsDialog</a></code>
+                                </li>
                         </ul>
                 </div>
 
@@ -1251,7 +1254,7 @@ export class Dialog {
 <script src="../js/libs/deep-iterator.js"></script>
 <script>
         var COMPONENT_TEMPLATE = '<div>@if (open()) {  <!-- The backdrop closes on click, like every modal a user has met before. The panel stops the       click from reaching it, so a click inside does not dismiss what it lands on. -->  <div    class="backdrop"    [attr.data-testid]="testId() + \'-backdrop\'"    (click)="close()"    (keydown)="onKeydown($event)"  >    <div      class="panel"      #panel      role="dialog"      aria-modal="true"      [attr.aria-labelledby]="titleId"      [attr.data-testid]="testId() + \'-dialog\'"      (click)="$event.stopPropagation()"    >      <div class="panel-head">        <div class="panel-heading">          <h2 class="panel-title" [id]="titleId">{{ title() }}</h2>          <!-- A second line for whatever identifies this particular dialog — the protocol viewer               names the machine here, so the reader knows which document they opened. -->          <ng-content select="[dialogSubtitle]" />        </div>        <div class="panel-actions">          <ng-content select="[dialogActions]" />          <button            type="button"            class="btn btn-secondary btn-sm"            [attr.data-testid]="testId() + \'-close\'"            [attr.aria-label]="t().common.close"            (click)="close()"          >            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">              <path d="M6 6l12 12M18 6L6 18" />            </svg>            {{ t().common.close }}          </button>        </div>      </div>      <div class="panel-body">        <ng-content />      </div>    </div>  </div>}</div>'
-    var COMPONENTS = [{'name': 'App', 'selector': 'app-root'},{'name': 'Dialog', 'selector': 'app-dialog'},{'name': 'HelpDialog', 'selector': 'app-help-dialog'},{'name': 'Landing', 'selector': 'app-landing'},{'name': 'ProtocolDialog', 'selector': 'app-protocol-dialog'},{'name': 'Search', 'selector': 'app-search'},{'name': 'ThemeToggle', 'selector': 'app-theme-toggle'},{'name': 'Upload', 'selector': 'app-upload'}];
+    var COMPONENTS = [{'name': 'App', 'selector': 'app-root'},{'name': 'Dialog', 'selector': 'app-dialog'},{'name': 'HelpDialog', 'selector': 'app-help-dialog'},{'name': 'Landing', 'selector': 'app-landing'},{'name': 'ProtocolDialog', 'selector': 'app-protocol-dialog'},{'name': 'Search', 'selector': 'app-search'},{'name': 'SettingsDialog', 'selector': 'app-settings-dialog'},{'name': 'ThemeToggle', 'selector': 'app-theme-toggle'},{'name': 'Upload', 'selector': 'app-upload'}];
     var DIRECTIVES = [];
     var ACTUAL_COMPONENT = {'name': 'Dialog'};
 </script>

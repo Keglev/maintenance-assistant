@@ -161,6 +161,9 @@
                             <a href="#DOCS_URL" title="src/app/app.ts" class="reference-link "><span class="reference-badge reference-badge--variable" aria-hidden="true">V</span><span class="reference-link-label"><b>DOCS_URL</b>&nbsp;&nbsp;&nbsp;(src/.../app.ts)</span></a>
                         </li>
                         <li>
+                            <a href="#DOCS_URL" title="src/app/shared/settings/settings-dialog.ts" class="reference-link "><span class="reference-badge reference-badge--variable" aria-hidden="true">V</span><span class="reference-link-label"><b>DOCS_URL</b>&nbsp;&nbsp;&nbsp;(src/.../settings-dialog.ts)</span></a>
+                        </li>
+                        <li>
                             <a href="#EN" title="src/app/core/i18n/dictionary.ts" class="reference-link "><span class="reference-badge reference-badge--variable" aria-hidden="true">V</span><span class="reference-link-label"><b>EN</b>&nbsp;&nbsp;&nbsp;(src/.../dictionary.ts)</span></a>
                         </li>
                         <li>
@@ -170,7 +173,13 @@
                             <a href="#environment" title="src/environments/environment.ts" class="reference-link "><span class="reference-badge reference-badge--variable" aria-hidden="true">V</span><span class="reference-link-label"><b>environment</b>&nbsp;&nbsp;&nbsp;(src/.../environment.ts)</span></a>
                         </li>
                         <li>
+                            <a href="#FONT_STORAGE_KEY" title="src/app/core/theme/font-scale.service.ts" class="reference-link "><span class="reference-badge reference-badge--variable" aria-hidden="true">V</span><span class="reference-link-label"><b>FONT_STORAGE_KEY</b>&nbsp;&nbsp;&nbsp;(src/.../font-scale.service.ts)</span></a>
+                        </li>
+                        <li>
                             <a href="#KNOWN_ROLES" title="src/app/app.ts" class="reference-link "><span class="reference-badge reference-badge--variable" aria-hidden="true">V</span><span class="reference-link-label"><b>KNOWN_ROLES</b>&nbsp;&nbsp;&nbsp;(src/.../app.ts)</span></a>
+                        </li>
+                        <li>
+                            <a href="#KNOWN_ROLES" title="src/app/shared/settings/settings-dialog.ts" class="reference-link "><span class="reference-badge reference-badge--variable" aria-hidden="true">V</span><span class="reference-link-label"><b>KNOWN_ROLES</b>&nbsp;&nbsp;&nbsp;(src/.../settings-dialog.ts)</span></a>
                         </li>
                         <li>
                             <a href="#META_LINE" title="src/app/shared/protocol/protocol-document.ts" class="reference-link "><span class="reference-badge reference-badge--variable" aria-hidden="true">V</span><span class="reference-link-label"><b>META_LINE</b>&nbsp;&nbsp;&nbsp;(src/.../protocol-document.ts)</span></a>
@@ -179,10 +188,16 @@
                             <a href="#REPO_URL" title="src/app/app.ts" class="reference-link "><span class="reference-badge reference-badge--variable" aria-hidden="true">V</span><span class="reference-link-label"><b>REPO_URL</b>&nbsp;&nbsp;&nbsp;(src/.../app.ts)</span></a>
                         </li>
                         <li>
+                            <a href="#REPO_URL" title="src/app/shared/settings/settings-dialog.ts" class="reference-link "><span class="reference-badge reference-badge--variable" aria-hidden="true">V</span><span class="reference-link-label"><b>REPO_URL</b>&nbsp;&nbsp;&nbsp;(src/.../settings-dialog.ts)</span></a>
+                        </li>
+                        <li>
                             <a href="#routes" title="src/app/app.routes.ts" class="reference-link "><span class="reference-badge reference-badge--variable" aria-hidden="true">V</span><span class="reference-link-label"><b>routes</b>&nbsp;&nbsp;&nbsp;(src/.../app.routes.ts)</span></a>
                         </li>
                         <li>
                             <a href="#RULE_LINE" title="src/app/shared/protocol/protocol-document.ts" class="reference-link "><span class="reference-badge reference-badge--variable" aria-hidden="true">V</span><span class="reference-link-label"><b>RULE_LINE</b>&nbsp;&nbsp;&nbsp;(src/.../protocol-document.ts)</span></a>
+                        </li>
+                        <li>
+                            <a href="#SCALES" title="src/app/core/theme/font-scale.service.ts" class="reference-link "><span class="reference-badge reference-badge--variable" aria-hidden="true">V</span><span class="reference-link-label"><b>SCALES</b>&nbsp;&nbsp;&nbsp;(src/.../font-scale.service.ts)</span></a>
                         </li>
                         <li>
                             <a href="#SECTION_LINE" title="src/app/shared/protocol/protocol-document.ts" class="reference-link "><span class="reference-badge reference-badge--variable" aria-hidden="true">V</span><span class="reference-link-label"><b>SECTION_LINE</b>&nbsp;&nbsp;&nbsp;(src/.../protocol-document.ts)</span></a>
@@ -363,6 +378,9 @@
     // paint; this takes ownership of it — without the eager injection nothing would construct the
     // service until a view happened to use the toggle.
     provideAppInitializer(() &#x3D;&gt; void inject(ThemeService)),
+    // Same reason as the theme: theme-init.js has already set data-font before the first paint, and
+    // this takes ownership of it so the settings dialog can change it.
+    provideAppInitializer(() &#x3D;&gt; void inject(FontScaleService)),
     // Discovery document and redirect handling must complete before the first route renders,
     // otherwise the guard would see &quot;not authenticated&quot; while a login is still in flight.
     provideAppInitializer(() &#x3D;&gt; inject(AuthService).init()),
@@ -467,9 +485,24 @@ before Angular exists — change one and the other stops agreeing.</p>
   },
   theme: {
     label: &#x27;Darstellung&#x27;,
-    system: &#x27;System&#x27;,
     light: &#x27;Hell&#x27;,
     dark: &#x27;Dunkel&#x27;,
+  },
+  settings: {
+    title: &#x27;System&#x27;,
+    open: &#x27;Systemeinstellungen&#x27;,
+    aboutHeading: &#x27;Anwendung&#x27;,
+    app: &#x27;Programm&#x27;,
+    version: &#x27;Version&#x27;,
+    accountHeading: &#x27;Angemeldet&#x27;,
+    user: &#x27;Benutzer&#x27;,
+    signedInSince: &#x27;Angemeldet seit&#x27;,
+    fontHeading: &#x27;Schriftgröße&#x27;,
+    fontHint:
+      &#x27;Gilt für die ganze Anwendung, auch für Schaltflächen und Abstände. Die Einstellung bleibt erhalten.&#x27;,
+    fontNormal: &#x27;Normal&#x27;,
+    fontLarge: &#x27;Groß&#x27;,
+    fontExtraLarge: &#x27;Sehr groß&#x27;,
   },
   nav: {
     search: &#x27;Suche&#x27;,
@@ -519,6 +552,7 @@ before Angular exists — change one and the other stops agreeing.</p>
       &#x27;Bewusst öffentliche Demo-Umgebung: eigener, isolierter Realm, ausschließlich synthetische Daten, Anfragen begrenzt, Sitzung nach 15 Minuten beendet.&#x27;,
     demoPassword: &#x27;Passwort für alle&#x27;,
     signInAs: (username) &#x3D;&gt; &#x60;Als ${username} anmelden&#x60;,
+    tryDemo: &#x27;Demo ausprobieren&#x27;,
     signIn: &#x27;Anmelden&#x27;,
     signInHint:
       &#x27;Die Anmeldung läuft über Keycloak. Sie werden dorthin weitergeleitet und kommen anschließend hierher zurück.&#x27;,
@@ -635,7 +669,6 @@ before Angular exists — change one and the other stops agreeing.</p>
     typeMaintenance: &#x27;Wartung&#x27;,
     title: &#x27;Titel&#x27;,
     errorCode: &#x27;Fehlercode&#x27;,
-    language: &#x27;Sprache des Dokuments&#x27;,
     submit: &#x27;Hochladen&#x27;,
     submitting: &#x27;Wird hochgeladen …&#x27;,
     accepted: &#x27;Protokoll angenommen.&#x27;,
@@ -652,6 +685,7 @@ before Angular exists — change one and the other stops agreeing.</p>
     statusIndexed: &#x27;Durchsuchbar&#x27;,
     statusFailed: &#x27;Fehlgeschlagen&#x27;,
     optional: &#x27;optional&#x27;,
+    required: &#x27;Pflichtfeld&#x27;,
   },
 }</code>
                     </td>
@@ -722,9 +756,24 @@ DECISIONS.txt, which is what the two modes are called throughout the project&#39
   },
   theme: {
     label: &#x27;Appearance&#x27;,
-    system: &#x27;System&#x27;,
     light: &#x27;Light&#x27;,
     dark: &#x27;Dark&#x27;,
+  },
+  settings: {
+    title: &#x27;System&#x27;,
+    open: &#x27;System settings&#x27;,
+    aboutHeading: &#x27;Application&#x27;,
+    app: &#x27;Program&#x27;,
+    version: &#x27;Version&#x27;,
+    accountHeading: &#x27;Signed in&#x27;,
+    user: &#x27;User&#x27;,
+    signedInSince: &#x27;Signed in since&#x27;,
+    fontHeading: &#x27;Text size&#x27;,
+    fontHint:
+      &#x27;Applies to the whole application, including buttons and spacing. The setting is remembered.&#x27;,
+    fontNormal: &#x27;Normal&#x27;,
+    fontLarge: &#x27;Large&#x27;,
+    fontExtraLarge: &#x27;Extra large&#x27;,
   },
   nav: {
     search: &#x27;Search&#x27;,
@@ -774,6 +823,7 @@ DECISIONS.txt, which is what the two modes are called throughout the project&#39
       &#x27;A deliberately public demo environment: its own isolated realm, synthetic data only, rate-limited requests, sessions ending after 15 minutes.&#x27;,
     demoPassword: &#x27;Password for all&#x27;,
     signInAs: (username) &#x3D;&gt; &#x60;Sign in as ${username}&#x60;,
+    tryDemo: &#x27;Try the demo&#x27;,
     signIn: &#x27;Sign in&#x27;,
     signInHint:
       &#x27;Sign-in is handled by Keycloak. You will be redirected there and returned here afterwards.&#x27;,
@@ -893,7 +943,6 @@ DECISIONS.txt, which is what the two modes are called throughout the project&#39
     typeMaintenance: &#x27;Maintenance&#x27;,
     title: &#x27;Title&#x27;,
     errorCode: &#x27;Fault code&#x27;,
-    language: &#x27;Document language&#x27;,
     submit: &#x27;Upload&#x27;,
     submitting: &#x27;Uploading …&#x27;,
     accepted: &#x27;Protocol accepted.&#x27;,
@@ -910,6 +959,7 @@ DECISIONS.txt, which is what the two modes are called throughout the project&#39
     statusIndexed: &#x27;Searchable&#x27;,
     statusFailed: &#x27;Failed&#x27;,
     optional: &#x27;optional&#x27;,
+    required: &#x27;required&#x27;,
   },
 }</code>
                     </td>
@@ -978,6 +1028,99 @@ DECISIONS.txt, which is what the two modes are called throughout the project&#39
   { username: &#x27;schichtleiter&#x27;, describe: (t) &#x3D;&gt; t.demo.schichtleiter },
   { username: &#x27;admin&#x27;, describe: (t) &#x3D;&gt; t.demo.admin },
 ]</code>
+                    </td>
+                </tr>
+
+
+        </tbody>
+    </table>
+</section>
+    <h3>src/app/shared/settings/settings-dialog.ts</h3>
+    <section data-compodoc="block-properties">
+    <h3></h3>    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="DOCS_URL"></a>
+                    <span class="name">
+                        <span ><b>DOCS_URL</b></span>
+                        <a href="#DOCS_URL"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>&#x27;https://keglev.github.io/maintenance-assistant/&#x27;</code>
+                    </td>
+                </tr>
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-description"><p>Where the settings dialog points. Same fixed URLs the footer uses.</p>
+</div>
+                </td>
+            </tr>
+
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="KNOWN_ROLES"></a>
+                    <span class="name">
+                        <span ><b>KNOWN_ROLES</b></span>
+                        <a href="#KNOWN_ROLES"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>unknown</code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>[&#x27;admin&#x27;, &#x27;schichtleiter&#x27;, &#x27;techniker&#x27;, &#x27;operator&#x27;] as const</code>
+                    </td>
+                </tr>
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-description"><p>The realm roles this interface knows how to name, most privileged first.</p>
+</div>
+                </td>
+            </tr>
+
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="REPO_URL"></a>
+                    <span class="name">
+                        <span ><b>REPO_URL</b></span>
+                        <a href="#REPO_URL"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>&#x27;https://github.com/Keglev/maintenance-assistant&#x27;</code>
                     </td>
                 </tr>
 
@@ -1074,6 +1217,68 @@ than a placeholder host.</p>
 </div>
                 </td>
             </tr>
+
+        </tbody>
+    </table>
+</section>
+    <h3>src/app/core/theme/font-scale.service.ts</h3>
+    <section data-compodoc="block-properties">
+    <h3></h3>    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="FONT_STORAGE_KEY"></a>
+                    <span class="name">
+                        <span ><b>FONT_STORAGE_KEY</b></span>
+                        <a href="#FONT_STORAGE_KEY"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>&#x27;ma-font&#x27;</code>
+                    </td>
+                </tr>
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-description"><p>Where the choice is remembered. Shared with <code>public/theme-init.js</code>, which reads the same key
+before Angular exists — change one and the other stops agreeing.</p>
+</div>
+                </td>
+            </tr>
+
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="SCALES"></a>
+                    <span class="name">
+                        <span ><b>SCALES</b></span>
+                        <a href="#SCALES"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>        <code><a href="../miscellaneous/typealiases.html#FontScale" target="_self" >readonly FontScale[]</a></code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>[&#x27;normal&#x27;, &#x27;lg&#x27;, &#x27;xl&#x27;]</code>
+                    </td>
+                </tr>
+
 
         </tbody>
     </table>

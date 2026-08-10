@@ -87,6 +87,9 @@ customElements.define('compodoc-menu', class extends HTMLElement {
                                 <a href="components/Search.html" data-type="entity-link" >Search</a>
                             </li>
                             <li class="link">
+                                <a href="components/SettingsDialog.html" data-type="entity-link" >SettingsDialog</a>
+                            </li>
+                            <li class="link">
                                 <a href="components/ThemeToggle.html" data-type="entity-link" >ThemeToggle</a>
                             </li>
                             <li class="link">
@@ -107,6 +110,9 @@ customElements.define('compodoc-menu', class extends HTMLElement {
                                 </li>
                                 <li class="link">
                                     <a href="injectables/ConfigService.html" data-type="entity-link" >ConfigService</a>
+                                </li>
+                                <li class="link">
+                                    <a href="injectables/FontScaleService.html" data-type="entity-link" >FontScaleService</a>
                                 </li>
                                 <li class="link">
                                     <a href="injectables/I18nService.html" data-type="entity-link" >I18nService</a>

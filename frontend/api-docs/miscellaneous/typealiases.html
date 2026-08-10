@@ -143,6 +143,9 @@
                             <a href="#ApiFailure" title="src/app/core/api/maintenance-api.service.ts" class="reference-link "><span class="reference-badge reference-badge--typealias" aria-hidden="true">T</span><span class="reference-link-label"><b>ApiFailure</b>&nbsp;&nbsp;&nbsp;(src/.../maintenance-api.service.ts)</span></a>
                         </li>
                         <li>
+                            <a href="#FontScale" title="src/app/core/theme/font-scale.service.ts" class="reference-link "><span class="reference-badge reference-badge--typealias" aria-hidden="true">T</span><span class="reference-link-label"><b>FontScale</b>&nbsp;&nbsp;&nbsp;(src/.../font-scale.service.ts)</span></a>
+                        </li>
+                        <li>
                             <a href="#InputMode" title="src/app/features/upload/upload.ts" class="reference-link "><span class="reference-badge reference-badge--typealias" aria-hidden="true">T</span><span class="reference-link-label"><b>InputMode</b>&nbsp;&nbsp;&nbsp;(src/.../upload.ts)</span></a>
                         </li>
                         <li>
@@ -220,6 +223,31 @@ can actually act on — wait a moment, come back tomorrow, or ask someone for a 
         </tbody>
     </table>
 </section>
+    <h3>src/app/core/theme/font-scale.service.ts</h3>
+    <section data-compodoc="block-typealias">
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="FontScale"></a>
+                    <span class="name "><b>FontScale</b><a href="#FontScale"><span class="icon ion-ios-link"></span></a></span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-description"><p>The three steps offered. <code>normal</code> is the absence of an attribute, not a value of it.</p>
+</div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                    <code>    <code>&quot;normal&quot; | &quot;lg&quot; | &quot;xl&quot;</code>
+</code>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</section>
     <h3>src/app/features/upload/upload.ts</h3>
     <section data-compodoc="block-typealias">
     <table class="table table-sm table-bordered">
@@ -257,7 +285,7 @@ can actually act on — wait a moment, come back tomorrow, or ask someone for a 
             </tr>
             <tr>
                 <td class="col-md-4">
-                    <code>        <code><a href="../miscellaneous/variables.html#KNOWN_ROLES" target="_self" >typeof KNOWN_ROLES[&#x27;number&#x27;]</a></code>
+                    <code>    <code>typeof KNOWN_ROLES[&#x27;number&#x27;]</code>
 </code>
                 </td>
             </tr>
@@ -328,9 +356,9 @@ the same style.</p>
             <tr>
                 <td class="col-md-4">
                     <div class="io-description"><p>What the user chose, which is not the same as what is painted.</p>
-<p><code>system</code> is a real third state and not the absence of a choice: someone who has deliberately gone
-back to following the operating system has expressed a preference, and it has to survive a reload
-the same way the other two do.</p>
+<p><code>system</code> is the absence of a choice rather than a third button. The control offers light and dark;
+until one of them is pressed the application silently follows the operating system, which is what
+a first visit should do without spending a third of a segmented control saying so.</p>
 </div>
                 </td>
             </tr>

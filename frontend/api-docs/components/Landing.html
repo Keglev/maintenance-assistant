@@ -278,6 +278,12 @@ retrieve something within reach — a demo whose visitor cannot think of a quest
                             </li>
                             <li>
                                 <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
+                                    <span class="modifier">Private</span>
+                                    <span class="modifier">Readonly</span>
+                                <a href="#demoBox" >demoBox</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
                                     <span class="modifier">Protected</span>
                                     <span class="modifier">Readonly</span>
                                 <a href="#demoPassword" >demoPassword</a>
@@ -287,6 +293,12 @@ retrieve something within reach — a demo whose visitor cannot think of a quest
                                     <span class="modifier">Protected</span>
                                     <span class="modifier">Readonly</span>
                                 <a href="#demoUsers" >demoUsers</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
+                                    <span class="modifier">Private</span>
+                                    <span class="modifier">Readonly</span>
+                                <a href="#document" >document</a>
                             </li>
                             <li>
                                 <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
@@ -329,6 +341,11 @@ retrieve something within reach — a demo whose visitor cannot think of a quest
                             <li>
                                 <span class="reference-badge reference-badge--method" aria-hidden="true">M</span>
                                     <span class="modifier">Protected</span>
+                                <a href="#jumpToDemo" >jumpToDemo</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--method" aria-hidden="true">M</span>
+                                    <span class="modifier">Protected</span>
                                 <a href="#signIn" >signIn</a>
                             </li>
                         </ul>
@@ -354,7 +371,7 @@ retrieve something within reach — a demo whose visitor cannot think of a quest
                 </tr>
                         <tr>
                             <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="57" class="link-to-prism">src/app/features/landing/landing.ts:57</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="61" class="link-to-prism">src/app/features/landing/landing.ts:61</a></div>
                             </td>
                         </tr>
 
@@ -371,6 +388,53 @@ retrieve something within reach — a demo whose visitor cannot think of a quest
     <h3 id="methods">
         Methods
     </h3>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="jumpToDemo"></a>
+                    <span class="name">
+                            <span class="modifier">Protected</span>
+                        <span ><b>jumpToDemo</b></span>
+                        <a href="#jumpToDemo"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                        <span class="modifier-icon icon ion-ios-reset"></span>
+                    <code>jumpToDemo()</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="99"
+                                    class="link-to-prism">src/app/features/landing/landing.ts:99</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                        <div class="io-description"><p>Takes the visitor to the demo accounts further down the page.</p>
+<p><strong>Focus moves with the scroll, not only the viewport.</strong> A scroll that leaves the keyboard where
+it was sends the next Tab back to the top of the page, and a screen reader never learns that
+anything happened — the button would work for a mouse and silently fail for everyone else. The
+target carries <code>tabindex=&quot;-1&quot;</code> so it can receive focus without joining the tab order.</p>
+<p>Smooth unless the operating system asked for less motion, in which case it jumps: a full-page
+scroll is exactly the kind of movement that setting exists to stop.</p>
+</div>
+
+                        <div class="io-description">
+                            <b>Returns : </b>        <code><a href="https://www.typescriptlang.org/docs/handbook/basic-types.html" target="_blank" >void</a></code>
+
+                        </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
     <table class="table table-sm table-bordered">
         <tbody>
             <tr>
@@ -393,8 +457,8 @@ retrieve something within reach — a demo whose visitor cannot think of a quest
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="80"
-                                    class="link-to-prism">src/app/features/landing/landing.ts:80</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="84"
+                                    class="link-to-prism">src/app/features/landing/landing.ts:84</a></div>
                         </td>
                     </tr>
 
@@ -479,7 +543,40 @@ DECISIONS.txt on why the password grant and a credential-filling login theme wer
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="48" class="link-to-prism">src/app/features/landing/landing.ts:48</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="49" class="link-to-prism">src/app/features/landing/landing.ts:49</a></div>
+                        </td>
+                    </tr>
+
+
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="demoBox"></a>
+                    <span class="name">
+                            <span class="modifier">Private</span>
+                            <span class="modifier">Readonly</span>
+                        <span ><b>demoBox</b></span>
+                        <a href="#demoBox"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>unknown</code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>viewChild&lt;ElementRef&lt;HTMLElement&gt;&gt;(&#x27;demoBox&#x27;)</code>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="61" class="link-to-prism">src/app/features/landing/landing.ts:61</a></div>
                         </td>
                     </tr>
 
@@ -512,7 +609,7 @@ DECISIONS.txt on why the password grant and a credential-filling login theme wer
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="53" class="link-to-prism">src/app/features/landing/landing.ts:53</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="54" class="link-to-prism">src/app/features/landing/landing.ts:54</a></div>
                         </td>
                     </tr>
 
@@ -545,7 +642,40 @@ DECISIONS.txt on why the password grant and a credential-filling login theme wer
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="54" class="link-to-prism">src/app/features/landing/landing.ts:54</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="55" class="link-to-prism">src/app/features/landing/landing.ts:55</a></div>
+                        </td>
+                    </tr>
+
+
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="document"></a>
+                    <span class="name">
+                            <span class="modifier">Private</span>
+                            <span class="modifier">Readonly</span>
+                        <span ><b>document</b></span>
+                        <a href="#document"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>unknown</code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>inject(DOCUMENT)</code>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="60" class="link-to-prism">src/app/features/landing/landing.ts:60</a></div>
                         </td>
                     </tr>
 
@@ -578,7 +708,7 @@ DECISIONS.txt on why the password grant and a credential-filling login theme wer
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="50" class="link-to-prism">src/app/features/landing/landing.ts:50</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="51" class="link-to-prism">src/app/features/landing/landing.ts:51</a></div>
                         </td>
                     </tr>
 
@@ -611,7 +741,7 @@ DECISIONS.txt on why the password grant and a credential-filling login theme wer
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="49" class="link-to-prism">src/app/features/landing/landing.ts:49</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="50" class="link-to-prism">src/app/features/landing/landing.ts:50</a></div>
                         </td>
                     </tr>
 
@@ -644,7 +774,7 @@ DECISIONS.txt on why the password grant and a credential-filling login theme wer
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="57" class="link-to-prism">src/app/features/landing/landing.ts:57</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="58" class="link-to-prism">src/app/features/landing/landing.ts:58</a></div>
                         </td>
                     </tr>
 
@@ -683,7 +813,7 @@ DECISIONS.txt on why the password grant and a credential-filling login theme wer
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="52" class="link-to-prism">src/app/features/landing/landing.ts:52</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="53" class="link-to-prism">src/app/features/landing/landing.ts:53</a></div>
                         </td>
                     </tr>
 
@@ -696,7 +826,8 @@ DECISIONS.txt on why the password grant and a credential-filling login theme wer
 
 
     <div class="tab-pane fade  tab-source-code" id="source">
-        <pre class="line-numbers compodoc-sourcecode"><code class="language-typescript">import { Component, effect, inject, signal } from &#x27;@angular/core&#x27;;
+        <pre class="line-numbers compodoc-sourcecode"><code class="language-typescript">import { DOCUMENT } from &#x27;@angular/common&#x27;;
+import { Component, ElementRef, effect, inject, signal, viewChild } from &#x27;@angular/core&#x27;;
 import { Router } from &#x27;@angular/router&#x27;;
 
 import { AuthService } from &#x27;../../core/auth/auth.service&#x27;;
@@ -754,6 +885,9 @@ export class Landing {
   /** Set when this tab arrived here from a sign-out, so the landing page can confirm it happened. */
   protected readonly signedOut &#x3D; signal(false);
 
+  private readonly document &#x3D; inject(DOCUMENT);
+  private readonly demoBox &#x3D; viewChild&lt;ElementRef&lt;HTMLElement&gt;&gt;(&#x27;demoBox&#x27;);
+
   constructor() {
     // Read once, on arrival, and cleared as it is read: a &quot;you have been signed out&quot; that reappeared
     // on every later visit would stop meaning anything.
@@ -777,6 +911,29 @@ export class Landing {
    */
   protected signIn(username?: string): void {
     this.auth.login(username);
+  }
+
+  /**
+   * Takes the visitor to the demo accounts further down the page.
+   *
+   * **Focus moves with the scroll, not only the viewport.** A scroll that leaves the keyboard where
+   * it was sends the next Tab back to the top of the page, and a screen reader never learns that
+   * anything happened — the button would work for a mouse and silently fail for everyone else. The
+   * target carries &#x60;tabindex&#x3D;&quot;-1&quot;&#x60; so it can receive focus without joining the tab order.
+   *
+   * Smooth unless the operating system asked for less motion, in which case it jumps: a full-page
+   * scroll is exactly the kind of movement that setting exists to stop.
+   */
+  protected jumpToDemo(): void {
+    const target &#x3D; this.demoBox()?.nativeElement;
+    if (!target) {
+      return;
+    }
+    const reduced &#x3D; this.document.defaultView?.matchMedia?.(&#x27;(prefers-reduced-motion: reduce)&#x27;)
+      ?.matches;
+    target.scrollIntoView({ behavior: reduced ? &#x27;auto&#x27; : &#x27;smooth&#x27;, block: &#x27;start&#x27; });
+    // preventScroll: the scroll above is the one that should happen; focus must not fight it.
+    target.focus({ preventScroll: true });
   }
 }
 </code></pre>
@@ -808,14 +965,26 @@ export class Landing {
       &lt;p class&#x3D;&quot;hero-problem&quot;&gt;{{ t().landing.problem }}&lt;/p&gt;
       &lt;p class&#x3D;&quot;hero-solution&quot;&gt;{{ t().landing.solution }}&lt;/p&gt;
 
-      &lt;button
-        type&#x3D;&quot;button&quot;
-        class&#x3D;&quot;btn btn-primary hero-cta&quot;
-        data-testid&#x3D;&quot;sign-in&quot;
-        (click)&#x3D;&quot;signIn()&quot;
-      &gt;
-        {{ t().landing.signIn }}
-      &lt;/button&gt;
+      &lt;div class&#x3D;&quot;hero-actions&quot;&gt;
+        &lt;button
+          type&#x3D;&quot;button&quot;
+          class&#x3D;&quot;btn btn-primary hero-cta&quot;
+          data-testid&#x3D;&quot;sign-in&quot;
+          (click)&#x3D;&quot;signIn()&quot;
+        &gt;
+          {{ t().landing.signIn }}
+        &lt;/button&gt;
+        &lt;!-- Quieter than the primary on purpose: a visitor with no account should be able to find
+             the demo credentials without being pushed towards a login they cannot complete. --&gt;
+        &lt;button
+          type&#x3D;&quot;button&quot;
+          class&#x3D;&quot;btn btn-secondary hero-cta&quot;
+          data-testid&#x3D;&quot;try-demo&quot;
+          (click)&#x3D;&quot;jumpToDemo()&quot;
+        &gt;
+          {{ t().landing.tryDemo }}
+        &lt;/button&gt;
+      &lt;/div&gt;
       &lt;p class&#x3D;&quot;caption hero-hint&quot;&gt;{{ t().landing.signInHint }}&lt;/p&gt;
     &lt;/div&gt;
 
@@ -857,7 +1026,16 @@ export class Landing {
     &lt;/ul&gt;
   &lt;/section&gt;
 
-  &lt;section class&#x3D;&quot;demo card&quot; aria-labelledby&#x3D;&quot;demo-heading&quot; data-testid&#x3D;&quot;demo-users&quot;&gt;
+  &lt;!-- tabindex&#x3D;&quot;-1&quot;: the jump moves focus here so the keyboard and a screen reader land where the
+       page scrolled, without the box itself joining the tab order. --&gt;
+  &lt;section
+    class&#x3D;&quot;demo card&quot;
+    id&#x3D;&quot;demo-accounts&quot;
+    #demoBox
+    tabindex&#x3D;&quot;-1&quot;
+    aria-labelledby&#x3D;&quot;demo-heading&quot;
+    data-testid&#x3D;&quot;demo-users&quot;
+  &gt;
     &lt;h2 class&#x3D;&quot;section-title&quot; id&#x3D;&quot;demo-heading&quot;&gt;{{ t().landing.demoHeading }}&lt;/h2&gt;
     &lt;p class&#x3D;&quot;caption&quot;&gt;{{ t().landing.demoIntro }}&lt;/p&gt;
 
@@ -1213,6 +1391,20 @@ export class Landing {
   letter-spacing: 0.06em;
   color: var(--c-ink-muted);
 }
+
+.hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-3);
+  margin-top: var(--s-2);
+}
+
+/* The jump lands here, and the focus ring on the card is the only signal a keyboard user gets that
+   they arrived — so it is kept rather than suppressed. */
+.demo:focus-visible {
+  outline: 3px solid var(--c-brand);
+  outline-offset: 3px;
+}
 </code></pre>
     </div>
 
@@ -1241,8 +1433,8 @@ export class Landing {
 <script src="../js/libs/htmlparser.js"></script>
 <script src="../js/libs/deep-iterator.js"></script>
 <script>
-        var COMPONENT_TEMPLATE = '<div><div class="page landing">  @if (signedOut()) {    <!-- Dismissible and not an error: signing out is something the user asked for, and the page         behind it already offers the way back in. -->    <div class="notice notice-info signed-out" role="status" data-testid="signed-out-notice">      <span>{{ t().signOut.notice }}</span>      <button        type="button"        class="link-button"        data-testid="signed-out-dismiss"        [attr.aria-label]="t().signOut.dismiss"        (click)="signedOut.set(false)"      >        {{ t().common.close }}      </button>    </div>  }  <section class="hero">    <div class="hero-copy">      <p class="eyebrow">{{ t().appTagline }}</p>      <h1 class="hero-headline">{{ t().landing.headline }}</h1>      <p class="hero-problem">{{ t().landing.problem }}</p>      <p class="hero-solution">{{ t().landing.solution }}</p>      <button        type="button"        class="btn btn-primary hero-cta"        data-testid="sign-in"        (click)="signIn()"      >        {{ t().landing.signIn }}      </button>      <p class="caption hero-hint">{{ t().landing.signInHint }}</p>    </div>    <!-- The one decorative element in the application: a Typenschild, the riveted rating plate         bolted to every machine on a German shop floor. It carries real facts rather than a         picture, which is the only kind of ornament this project has room for. -->    <aside class="plate" aria-hidden="true">      <span class="plate-rivet plate-rivet-tl"></span>      <span class="plate-rivet plate-rivet-tr"></span>      <span class="plate-rivet plate-rivet-bl"></span>      <span class="plate-rivet plate-rivet-br"></span>      <p class="plate-name">{{ t().appTitle }}</p>      <dl class="plate-rows">        <dt>{{ t().landing.plateModel }}</dt>        <dd>RAG · Retrieval Augmented Generation</dd>        <dt>{{ t().landing.plateStack }}</dt>        <dd>Angular 22 · Spring Boot 4.1 · pgvector</dd>        <dt>{{ t().landing.plateHosting }}</dt>        <dd>Hetzner Nürnberg · IONOS AI Berlin</dd>      </dl>    </aside>  </section>  <section class="trust" aria-labelledby="trust-heading">    <h2 class="section-title" id="trust-heading">{{ t().landing.trustHeading }}</h2>    <ul class="trust-grid">      <li class="card trust-item trust-item-a">        <h3 class="trust-title">{{ t().landing.trustSourced }}</h3>        <p class="trust-body">{{ t().landing.trustSourcedBody }}</p>      </li>      <li class="card trust-item">        <h3 class="trust-title">{{ t().landing.trustEu }}</h3>        <p class="trust-body">{{ t().landing.trustEuBody }}</p>      </li>      <li class="card trust-item">        <h3 class="trust-title">{{ t().landing.trustRoles }}</h3>        <p class="trust-body">{{ t().landing.trustRolesBody }}</p>      </li>    </ul>  </section>  <section class="demo card" aria-labelledby="demo-heading" data-testid="demo-users">    <h2 class="section-title" id="demo-heading">{{ t().landing.demoHeading }}</h2>    <p class="caption">{{ t().landing.demoIntro }}</p>    <!-- Says what kind of environment this is. A password printed on a public page has to read as a         designed boundary — isolated realm, synthetic data, rate limits, short sessions — rather         than as a credential somebody forgot to remove. -->    <p class="caption demo-boundary" data-testid="demo-boundary">{{ t().landing.demoBoundary }}</p>    <ul class="users">      <!-- The usernames are the realm\'s and are not translated: they are what Keycloak matches. -->      @for (user of demoUsers; track user.username) {        <li>          <!-- login_hint on the normal Auth Code + PKCE redirect: Keycloak prefills the username and               the visitor types only the password. The password never passes through this               application, which is exactly what the rejected alternatives would have changed. -->          <button            type="button"            class="btn btn-secondary btn-demo"            data-testid="sign-in-as"            [attr.data-user]="user.username"            (click)="signIn(user.username)"          >            {{ t().landing.signInAs(user.username) }}          </button>          <span>{{ user.describe(t()) }}</span>        </li>      }    </ul>    <p class="password">      {{ t().landing.demoPassword }}:      <code class="user" data-testid="demo-password">{{ demoPassword }}</code>    </p>    <!-- The generic button stays for anyone bringing their own account. -->    <button type="button" class="btn btn-primary" data-testid="sign-in-demo" (click)="signIn()">      {{ t().landing.signIn }}    </button>  </section>  <section class="examples-section" aria-labelledby="examples-heading">    <h2 class="section-title" id="examples-heading">{{ t().demo.examplesHeading }}</h2>    <p class="caption">{{ t().demo.examplesIntro }}</p>    <ul class="examples">      @for (example of t().demo.examples; track example.question) {        <li class="card example" data-testid="landing-example">          <p class="example-machine">            {{ t().demo.exampleMachine }}: <strong>{{ example.machine }}</strong>          </p>          <!-- lang="de": the questions stay German so they actually retrieve something, and the               attribute keeps a screen reader from pronouncing them as English. -->          <p class="example-question" lang="de">{{ example.question }}</p>          <p class="example-shows">{{ example.shows }}</p>        </li>      }    </ul>  </section>  <!-- The same control as in the header, at the foot of the page. The header does not stick, and by       the time a visitor has read the pitch it is several screens above them — on a tablet that is a       long scroll back for a setting they are looking at the result of right now. -->  <section class="appearance" aria-labelledby="appearance-heading">    <h2 class="appearance-title" id="appearance-heading">{{ t().theme.label }}</h2>    <app-theme-toggle />  </section></div></div>'
-    var COMPONENTS = [{'name': 'App', 'selector': 'app-root'},{'name': 'Dialog', 'selector': 'app-dialog'},{'name': 'HelpDialog', 'selector': 'app-help-dialog'},{'name': 'Landing', 'selector': 'app-landing'},{'name': 'ProtocolDialog', 'selector': 'app-protocol-dialog'},{'name': 'Search', 'selector': 'app-search'},{'name': 'ThemeToggle', 'selector': 'app-theme-toggle'},{'name': 'Upload', 'selector': 'app-upload'}];
+        var COMPONENT_TEMPLATE = '<div><div class="page landing">  @if (signedOut()) {    <!-- Dismissible and not an error: signing out is something the user asked for, and the page         behind it already offers the way back in. -->    <div class="notice notice-info signed-out" role="status" data-testid="signed-out-notice">      <span>{{ t().signOut.notice }}</span>      <button        type="button"        class="link-button"        data-testid="signed-out-dismiss"        [attr.aria-label]="t().signOut.dismiss"        (click)="signedOut.set(false)"      >        {{ t().common.close }}      </button>    </div>  }  <section class="hero">    <div class="hero-copy">      <p class="eyebrow">{{ t().appTagline }}</p>      <h1 class="hero-headline">{{ t().landing.headline }}</h1>      <p class="hero-problem">{{ t().landing.problem }}</p>      <p class="hero-solution">{{ t().landing.solution }}</p>      <div class="hero-actions">        <button          type="button"          class="btn btn-primary hero-cta"          data-testid="sign-in"          (click)="signIn()"        >          {{ t().landing.signIn }}        </button>        <!-- Quieter than the primary on purpose: a visitor with no account should be able to find             the demo credentials without being pushed towards a login they cannot complete. -->        <button          type="button"          class="btn btn-secondary hero-cta"          data-testid="try-demo"          (click)="jumpToDemo()"        >          {{ t().landing.tryDemo }}        </button>      </div>      <p class="caption hero-hint">{{ t().landing.signInHint }}</p>    </div>    <!-- The one decorative element in the application: a Typenschild, the riveted rating plate         bolted to every machine on a German shop floor. It carries real facts rather than a         picture, which is the only kind of ornament this project has room for. -->    <aside class="plate" aria-hidden="true">      <span class="plate-rivet plate-rivet-tl"></span>      <span class="plate-rivet plate-rivet-tr"></span>      <span class="plate-rivet plate-rivet-bl"></span>      <span class="plate-rivet plate-rivet-br"></span>      <p class="plate-name">{{ t().appTitle }}</p>      <dl class="plate-rows">        <dt>{{ t().landing.plateModel }}</dt>        <dd>RAG · Retrieval Augmented Generation</dd>        <dt>{{ t().landing.plateStack }}</dt>        <dd>Angular 22 · Spring Boot 4.1 · pgvector</dd>        <dt>{{ t().landing.plateHosting }}</dt>        <dd>Hetzner Nürnberg · IONOS AI Berlin</dd>      </dl>    </aside>  </section>  <section class="trust" aria-labelledby="trust-heading">    <h2 class="section-title" id="trust-heading">{{ t().landing.trustHeading }}</h2>    <ul class="trust-grid">      <li class="card trust-item trust-item-a">        <h3 class="trust-title">{{ t().landing.trustSourced }}</h3>        <p class="trust-body">{{ t().landing.trustSourcedBody }}</p>      </li>      <li class="card trust-item">        <h3 class="trust-title">{{ t().landing.trustEu }}</h3>        <p class="trust-body">{{ t().landing.trustEuBody }}</p>      </li>      <li class="card trust-item">        <h3 class="trust-title">{{ t().landing.trustRoles }}</h3>        <p class="trust-body">{{ t().landing.trustRolesBody }}</p>      </li>    </ul>  </section>  <!-- tabindex="-1": the jump moves focus here so the keyboard and a screen reader land where the       page scrolled, without the box itself joining the tab order. -->  <section    class="demo card"    id="demo-accounts"    #demoBox    tabindex="-1"    aria-labelledby="demo-heading"    data-testid="demo-users"  >    <h2 class="section-title" id="demo-heading">{{ t().landing.demoHeading }}</h2>    <p class="caption">{{ t().landing.demoIntro }}</p>    <!-- Says what kind of environment this is. A password printed on a public page has to read as a         designed boundary — isolated realm, synthetic data, rate limits, short sessions — rather         than as a credential somebody forgot to remove. -->    <p class="caption demo-boundary" data-testid="demo-boundary">{{ t().landing.demoBoundary }}</p>    <ul class="users">      <!-- The usernames are the realm\'s and are not translated: they are what Keycloak matches. -->      @for (user of demoUsers; track user.username) {        <li>          <!-- login_hint on the normal Auth Code + PKCE redirect: Keycloak prefills the username and               the visitor types only the password. The password never passes through this               application, which is exactly what the rejected alternatives would have changed. -->          <button            type="button"            class="btn btn-secondary btn-demo"            data-testid="sign-in-as"            [attr.data-user]="user.username"            (click)="signIn(user.username)"          >            {{ t().landing.signInAs(user.username) }}          </button>          <span>{{ user.describe(t()) }}</span>        </li>      }    </ul>    <p class="password">      {{ t().landing.demoPassword }}:      <code class="user" data-testid="demo-password">{{ demoPassword }}</code>    </p>    <!-- The generic button stays for anyone bringing their own account. -->    <button type="button" class="btn btn-primary" data-testid="sign-in-demo" (click)="signIn()">      {{ t().landing.signIn }}    </button>  </section>  <section class="examples-section" aria-labelledby="examples-heading">    <h2 class="section-title" id="examples-heading">{{ t().demo.examplesHeading }}</h2>    <p class="caption">{{ t().demo.examplesIntro }}</p>    <ul class="examples">      @for (example of t().demo.examples; track example.question) {        <li class="card example" data-testid="landing-example">          <p class="example-machine">            {{ t().demo.exampleMachine }}: <strong>{{ example.machine }}</strong>          </p>          <!-- lang="de": the questions stay German so they actually retrieve something, and the               attribute keeps a screen reader from pronouncing them as English. -->          <p class="example-question" lang="de">{{ example.question }}</p>          <p class="example-shows">{{ example.shows }}</p>        </li>      }    </ul>  </section>  <!-- The same control as in the header, at the foot of the page. The header does not stick, and by       the time a visitor has read the pitch it is several screens above them — on a tablet that is a       long scroll back for a setting they are looking at the result of right now. -->  <section class="appearance" aria-labelledby="appearance-heading">    <h2 class="appearance-title" id="appearance-heading">{{ t().theme.label }}</h2>    <app-theme-toggle />  </section></div></div>'
+    var COMPONENTS = [{'name': 'App', 'selector': 'app-root'},{'name': 'Dialog', 'selector': 'app-dialog'},{'name': 'HelpDialog', 'selector': 'app-help-dialog'},{'name': 'Landing', 'selector': 'app-landing'},{'name': 'ProtocolDialog', 'selector': 'app-protocol-dialog'},{'name': 'Search', 'selector': 'app-search'},{'name': 'SettingsDialog', 'selector': 'app-settings-dialog'},{'name': 'ThemeToggle', 'selector': 'app-theme-toggle'},{'name': 'Upload', 'selector': 'app-upload'}];
     var DIRECTIVES = [];
     var ACTUAL_COMPONENT = {'name': 'Landing'};
 </script>

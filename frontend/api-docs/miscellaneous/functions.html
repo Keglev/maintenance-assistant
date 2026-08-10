@@ -173,6 +173,9 @@
                             <a href="#storedChoice" title="src/app/core/theme/theme.service.ts" class="reference-link "><span class="reference-badge reference-badge--function" aria-hidden="true">F</span><span class="reference-link-label"><b>storedChoice</b>&nbsp;&nbsp;&nbsp;(src/.../theme.service.ts)</span></a>
                         </li>
                         <li>
+                            <a href="#storedScale" title="src/app/core/theme/font-scale.service.ts" class="reference-link "><span class="reference-badge reference-badge--function" aria-hidden="true">F</span><span class="reference-link-label"><b>storedScale</b>&nbsp;&nbsp;&nbsp;(src/.../font-scale.service.ts)</span></a>
+                        </li>
+                        <li>
                             <a href="#toSegments" title="src/app/features/search/search.ts" class="reference-link "><span class="reference-badge reference-badge--function" aria-hidden="true">F</span><span class="reference-link-label"><b>toSegments</b>&nbsp;&nbsp;&nbsp;(src/.../search.ts)</span></a>
                         </li>
                         <li>
@@ -933,11 +936,49 @@ form that produces a 403 after they have chosen a file.</p>
                         <div class="io-description"><p>The stored override, or <code>system</code> when there is none.</p>
 <p>Anything unrecognised counts as no override rather than as an error: the key is in localStorage
 where a user or an old build could have left anything, and the worst outcome of a bad value should
-be the default theme.</p>
+be the default theme. That covers the migration for free — the three-state control wrote the
+literal <code>&quot;system&quot;</code>, which is now simply an unrecognised value and therefore means &quot;no override&quot;,
+exactly what it meant before.</p>
 </div>
 
                         <div class="io-description">
                             <b>Returns : </b>        <code><a href="../miscellaneous/typealiases.html#ThemeChoice" target="_self" >ThemeChoice</a></code>
+
+                        </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</section>
+    <h3>src/app/core/theme/font-scale.service.ts</h3>
+    <section data-compodoc="block-methods">
+    <h3></h3>    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="storedScale"></a>
+                    <span class="name">
+                        <span ><b>storedScale</b></span>
+                        <a href="#storedScale"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+<code>storedScale()</code>
+                </td>
+            </tr>
+
+
+
+
+            <tr>
+                <td class="col-md-4">
+                        <div class="io-description"><p>Anything unrecognised is the default rather than an error — the key lives in localStorage.</p>
+</div>
+
+                        <div class="io-description">
+                            <b>Returns : </b>        <code><a href="../miscellaneous/typealiases.html#FontScale" target="_self" >FontScale</a></code>
 
                         </div>
                 </td>

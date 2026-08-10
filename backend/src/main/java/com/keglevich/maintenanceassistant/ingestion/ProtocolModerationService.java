@@ -449,7 +449,7 @@ public class ProtocolModerationService {
 
         private final String code;
 
-        InvalidModerationRequestException(String code, String message) {
+        public InvalidModerationRequestException(String code, String message) {
             super(message);
             this.code = code;
         }

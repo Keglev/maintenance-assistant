@@ -107,7 +107,7 @@ v1.1 BACKLOG AFTER THAT, in order:
   c. "Meine Uploads" pagination (last 5-10 + paging) and a visible
      accepted-format hint on the upload view ("Nur Textdateien:
      .txt") — small, can ride along with (a).
-  d. Footer server-health dot (public /api/health fetch, after login).
+  d. Footer server-health dot — DONE 2026-08-11 (feat/footer-health-dot).
   e. TAG v1.1.0 (remember: bump package.json version — the Settings
      dialog reads it). Then applications reference a release with the
      full insider-threat story: create -> detect -> trace -> remediate
@@ -249,6 +249,28 @@ Config:     Flyway auto-config was DEAD on Boot 4.1 (missing
             properties moved to spring.web.error.*.
 
 OPEN ITEMS carried forward (not blockers, do not lose):
+- FOOTER SERVER-HEALTH DOT 2026-08-11 (feat/footer-health-dot), the last code
+  PR before v1.1.0. GET /api/health (public, unchanged) every 60 s WHILE SIGNED
+  IN only, with a 5 s client-side timeout so a hanging backend reads as offline
+  rather than as forever-pending. Three states, and the dot ALWAYS carries its
+  own label — a status told only in colour is one some readers do not get, the
+  same rule NFR-2 follows.
+  IT IS A COMPONENT, NOT A SERVICE, and the reason is its lifetime: the footer
+  renders it only under @if (isAuthenticated()), so start-on-login and
+  stop-on-logout are just the component being created and destroyed. No second
+  subscription to the auth signal and no token check duplicated.
+  ONE FAILURE FLIPS IT. No hysteresis, no backoff, no reconnect banner: a
+  footer dot is a glance surface, and one that stayed green through a real
+  outage waiting for a second opinion would be worse than no dot. If flapping
+  ever becomes real the fix is two-strikes, not a state machine.
+  THE UP COLOUR IS THE MODE A GREEN — the only place that hue appears outside
+  an answer. Judged acceptable because the dot is chrome, never sits beside an
+  answer block, and always carries its label; flagged in the PR so it can be
+  overruled cheaply. WATCH IT during the walkthrough.
+  THE BACKEND VERSION IS IN THE RESPONSE AND DELIBERATELY UNUSED: the Settings
+  dialog shows the FRONTEND version from package.json, and two versions on
+  screen in one release is how a reader learns to distrust both. Available if
+  ever wanted.
 - KEYCLOAK LOGIN THEME 2026-08-11 (feat/keycloak-login-theme). The login page
   was the LAST surface still wearing stock Keycloak: the demo flow took a
   recruiter from a designed landing page to a foreign-looking one, mid-login.

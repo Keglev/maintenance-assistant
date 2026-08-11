@@ -1,0 +1,260 @@
+/*
+ * Wartungsassistent login theme — the app's surface, on Keycloak's markup.
+ *
+ * THE TOKEN VALUES BELOW ARE COPIES, and the duplication is deliberate rather than lazy.
+ * `frontend/src/styles.css` IS THE SOURCE OF TRUTH for every value here. It cannot be imported:
+ * Keycloak serves this file from its own origin and its own classpath, and reaching across to the
+ * app's bundle would mean a cross-origin stylesheet on the login page — a request the CSP at Caddy
+ * refuses and should keep refusing. Changing a colour in the app therefore means changing it here
+ * too; that cost is the price of the login page not being a second design language.
+ *
+ * Loaded AFTER the parent's css/styles.css (see theme.properties), so it wins on equal specificity
+ * without !important. Only what differs from PatternFly is written down — this is a skin over the
+ * parent's login card, not a re-implementation of it.
+ */
+
+:root {
+  /* --- Light palette — copied from frontend/src/styles.css :root ---------- */
+  --wa-canvas: #f3f5f7;
+  --wa-surface: #ffffff;
+  --wa-sunken: #eceff3;
+  --wa-field: #ffffff;
+  --wa-ink: #1b2430;
+  --wa-ink-muted: #55616f;
+  --wa-ink-hint: #5a6675;
+  --wa-line: #d6dbe1;
+  --wa-line-strong: #b6bfc9;
+  --wa-brand: #1f4b8f;
+  --wa-brand-strong: #163a70;
+  --wa-brand-pressed: #10285a;
+  --wa-on-brand: #ffffff;
+  --wa-danger: #7a1f1f;
+  --wa-danger-soft: #fbeaea;
+  --wa-danger-line: #e3bcbc;
+
+  /* --- Type, shape, space — same file, same values ------------------------ */
+  --wa-font-sans:
+    system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif;
+  --wa-font-mono: ui-monospace, 'Cascadia Mono', Consolas, 'Liberation Mono', monospace;
+  --wa-r-sm: 4px;
+  --wa-r-md: 8px;
+  --wa-shadow-md: 0 6px 20px rgb(27 36 48 / 12%);
+  /* The floor for a touch target on the shop-floor tablet, not an ideal. */
+  --wa-tap: 44px;
+}
+
+/*
+ * Dark, via the class the PARENT toggles from `prefers-color-scheme` (kcDarkModeClass in
+ * theme.properties, switched by a script in the parent's template.ftl). Hanging off its mechanism
+ * rather than writing a second media query means the page cannot end up half-dark when Keycloak
+ * changes how it detects the preference.
+ *
+ * THE LOGIN PAGE FOLLOWS THE OPERATING SYSTEM, AND ONLY THE OPERATING SYSTEM. The app's manual
+ * light/dark toggle stores its choice in the app's own origin, which this page cannot read and must
+ * not try to — an auth URL is not a transport for interface state, and smuggling a theme through
+ * the redirect would put UI preferences into a security-relevant parameter. So a user who forced
+ * light in the app on a dark OS gets a dark login page. Accepted, and it matches what the app
+ * itself does before anyone touches the toggle (#34: the OS preference is the silent default).
+ */
+.pf-v5-theme-dark {
+  --wa-canvas: #10161d;
+  --wa-surface: #243140;
+  --wa-sunken: #19222d;
+  --wa-field: #18212c;
+  --wa-ink: #e7ecf2;
+  --wa-ink-muted: #a6b3c1;
+  --wa-ink-hint: #9dabbb;
+  --wa-line: #3a4856;
+  --wa-line-strong: #5f6e7b;
+  /* Brand and its text swap roles in the dark palette: a light blue, with dark text on top. */
+  --wa-brand: #79aef0;
+  --wa-brand-strong: #96c2f7;
+  --wa-brand-pressed: #b0d3ff;
+  --wa-on-brand: #0f151c;
+  --wa-danger: #f3aeae;
+  --wa-danger-soft: #331a1a;
+  --wa-danger-line: #6b3a3a;
+  /* A drop shadow is black on nearly-black and does nothing here; the borders carry the depth. */
+  --wa-shadow-md: none;
+}
+
+/* --- Page ---------------------------------------------------------------- */
+
+body.login-pf,
+.pf-v5-c-login {
+  background: var(--wa-canvas);
+  color: var(--wa-ink);
+  font-family: var(--wa-font-sans);
+}
+
+/* PatternFly paints its own background image on the login backdrop. */
+body.login-pf {
+  background-image: none;
+}
+
+/* --- The card ------------------------------------------------------------ */
+
+.pf-v5-c-login__main {
+  background: var(--wa-surface);
+  border: 1px solid var(--wa-line);
+  border-radius: var(--wa-r-md);
+  box-shadow: var(--wa-shadow-md);
+  color: var(--wa-ink);
+}
+
+.pf-v5-c-login__main-header,
+.pf-v5-c-login__main-body,
+.pf-v5-c-login__main-footer {
+  background: transparent;
+}
+
+#kc-page-title,
+.pf-v5-c-title {
+  color: var(--wa-ink);
+  letter-spacing: -0.01em;
+}
+
+/* --- Fields -------------------------------------------------------------- */
+
+.pf-v5-c-form__label-text,
+.pf-v5-c-form__group-label {
+  color: var(--wa-ink);
+  font-weight: 600;
+}
+
+.pf-v5-c-form-control {
+  background: var(--wa-field);
+  border-radius: var(--wa-r-sm);
+  color: var(--wa-ink);
+}
+
+/* PatternFly draws its field border as a ::after underline rather than a box. Restyling that
+   pseudo-element is what makes an input look like the app's, rather than adding a second border
+   around the one already there. */
+.pf-v5-c-form-control::after {
+  border-block-end-color: var(--wa-line-strong);
+}
+
+.pf-v5-c-form-control:focus-within::after {
+  border-block-end-color: var(--wa-brand);
+}
+
+.pf-v5-c-form-control > input {
+  background: transparent;
+  color: var(--wa-ink);
+  /* A gloved hand on a tablet, the same floor the app uses. */
+  min-height: calc(var(--wa-tap) - 8px);
+}
+
+/* --- Buttons ------------------------------------------------------------- */
+
+.pf-v5-c-button {
+  border-radius: var(--wa-r-sm);
+  font-weight: 600;
+}
+
+.pf-v5-c-button.pf-m-primary {
+  background: var(--wa-brand);
+  color: var(--wa-on-brand);
+  min-height: var(--wa-tap);
+}
+
+.pf-v5-c-button.pf-m-primary:hover {
+  background: var(--wa-brand-strong);
+}
+
+.pf-v5-c-button.pf-m-primary:active {
+  background: var(--wa-brand-pressed);
+}
+
+.pf-v5-c-button.pf-m-link {
+  color: var(--wa-brand);
+}
+
+/* Visible focus, on the same accent the app uses. Keycloak's default outline disappears against
+   the dark palette, and a login form is exactly where keyboard users must not lose their place. */
+.pf-v5-c-button:focus-visible,
+.pf-v5-c-form-control:focus-within,
+.wa-back-link:focus-visible {
+  outline: 2px solid var(--wa-brand);
+  outline-offset: 2px;
+}
+
+/* --- Alerts -------------------------------------------------------------- */
+
+.pf-v5-c-alert.pf-m-danger,
+.pf-v5-c-alert.pf-m-error {
+  background: var(--wa-danger-soft);
+  border-color: var(--wa-danger-line);
+  color: var(--wa-danger);
+}
+
+/* --- The footer this theme adds ------------------------------------------ */
+
+.wa-footer {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  width: 100%;
+  margin-top: 0.5rem;
+}
+
+.wa-back-link {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-height: var(--wa-tap);
+  color: var(--wa-brand);
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.wa-back-link:hover {
+  text-decoration: underline;
+}
+
+/* A hint surface, not a card: the demo box exists to remove friction, and it must not read as
+   something the visitor has to deal with before signing in. */
+.wa-demo {
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--wa-line);
+  border-radius: var(--wa-r-sm);
+  background: var(--wa-sunken);
+  color: var(--wa-ink-hint);
+  font-size: 0.8125rem;
+  line-height: 1.55;
+}
+
+.wa-demo-heading {
+  margin: 0 0 0.25rem;
+  color: var(--wa-ink-muted);
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.wa-demo-intro {
+  margin: 0 0 0.5rem;
+}
+
+.wa-demo-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.wa-demo code {
+  padding: 0 0.25rem;
+  border-radius: 3px;
+  background: var(--wa-field);
+  border: 1px solid var(--wa-line);
+  color: var(--wa-ink);
+  font-family: var(--wa-font-mono);
+  font-size: 0.8125rem;
+}

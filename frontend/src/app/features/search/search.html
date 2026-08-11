@@ -1,6 +1,9 @@
 <div class="page">
 <h1 class="page-title">{{ t().search.heading }}</h1>
 
+<!-- The form and the help panel share the top of the page: on a wide screen the right half was
+     empty, and what belongs in it is the one thing a first-time user does not know. -->
+<div class="ask-row">
 <form class="ask" (ngSubmit)="ask()">
   <label class="field">
     <span class="field-label">{{ t().search.machine }}</span>
@@ -62,6 +65,9 @@
   }
 </form>
 
+<app-search-help />
+</div>
+
 @if (asking()) {
   <!-- Answers take 5-20 s. An indeterminate bar with an honest estimate beats a spinner that says
        nothing about whether waiting is normal. -->
@@ -121,12 +127,11 @@
               class="citation-marker"
               role="button"
               tabindex="0"
-              aria-haspopup="dialog"
               [title]="segment.citation.title"
               data-testid="citation-marker"
-              (click)="openSource(segment.citation, $event)"
-              (keydown.enter)="openSource(segment.citation, $event)"
-              (keydown.space)="openSource(segment.citation, $event)"
+              (click)="showSource(segment.citation)"
+              (keydown.enter)="showSource(segment.citation)"
+              (keydown.space)="showSource(segment.citation)"
               >[{{ segment.value }}]</a
             >
           } @else {
@@ -135,40 +140,12 @@
         }
       </p>
 
-      <h2 class="sources-heading">{{ t().modeA.sources }}</h2>
-      <ul class="sources" data-testid="sources">
-        @for (citation of result.citations; track citation.protocolId) {
-          <li class="source">
-            <span class="source-label">{{ citation.label }}</span>
-            <div class="source-body">
-              <!-- Same as the inline marker above, and for the same reason. -->
-              <a
-                class="source-title"
-                role="button"
-                tabindex="0"
-                aria-haspopup="dialog"
-                [attr.aria-label]="t().modeA.openSource + ': ' + citation.title"
-                data-testid="source-link"
-                (click)="openSource(citation, $event)"
-                (keydown.enter)="openSource(citation, $event)"
-                (keydown.space)="openSource(citation, $event)"
-                >{{ citation.title }}</a
-              >
-              <p class="source-meta">
-                @if (citation.errorCode) {
-                  <span>{{ t().modeA.errorCode }}: {{ citation.errorCode }}</span>
-                }
-                @if (citation.incidentDate) {
-                  <span>{{ t().modeA.incidentDate }}: {{ citation.incidentDate }}</span>
-                }
-                <span class="num"
-                  >{{ t().modeA.similarity }}: {{ similarityPercent(citation) }} %</span
-                >
-              </p>
-            </div>
-          </li>
-        }
-      </ul>
+      <app-search-sources
+        [citations]="result.citations"
+        [machine]="machineLabel()"
+        [focused]="focusedSource()"
+        (opened)="openSource($event)"
+      />
     </section>
   } @else {
     <!-- Mode B: ungrounded, and unmistakably so. No source area exists here, not even an empty one:

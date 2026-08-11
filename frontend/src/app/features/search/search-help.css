@@ -1,0 +1,133 @@
+/* Subordinate by construction: no card background, no shadow, a left rule and helper-grey text. It
+   has to be readable and it must not compete with the answer that appears below it. */
+:host {
+  display: block;
+  flex: 1 1 22rem;
+  max-width: 34rem;
+}
+
+.search-help {
+  padding-left: var(--s-4);
+  border-left: 2px solid var(--c-line);
+  font-size: var(--t-sm);
+  color: var(--c-ink-muted);
+}
+
+.search-help-toggle {
+  display: none;
+  align-items: center;
+  gap: var(--s-2);
+  width: 100%;
+  min-height: var(--tap);
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-weight: 600;
+  color: var(--c-ink);
+  cursor: pointer;
+}
+
+.chevron {
+  width: 1.1rem;
+  height: 1.1rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: transform 0.15s ease;
+}
+
+/* Pointing down when there is more to see, up when it is already open — the same convention the
+   source cards use one screen further down. */
+.search-help-toggle[aria-expanded='true'] .chevron {
+  transform: rotate(180deg);
+}
+
+.search-help-heading {
+  margin: 0 0 var(--s-2);
+  font-size: var(--t-sm);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--c-ink-muted);
+}
+
+.search-help-points {
+  margin: 0 0 var(--s-4);
+  padding-left: var(--s-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+  line-height: var(--lh-normal);
+}
+
+.search-help-examples {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+}
+
+.example {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--s-2);
+  margin: 0;
+}
+
+.example-tag {
+  flex: none;
+  padding: 0.05rem var(--s-2);
+  border-radius: var(--r-sm);
+  font-size: var(--t-xs);
+  font-weight: 700;
+}
+
+/* The same two colours the answer modes use, and for the same reason: the reader has already been
+   taught that green means grounded and amber means "be careful with this". */
+.example.good .example-tag {
+  background: var(--c-mode-a-chip);
+  color: var(--c-mode-a-ink);
+}
+
+.example.weak .example-tag {
+  background: var(--c-mode-b-chip);
+  color: var(--c-mode-b-ink);
+}
+
+.example q {
+  color: var(--c-ink);
+}
+
+/* Narrow: the panel sits below the form and hides behind its own toggle, so the field a user came
+   for is the first thing on the screen. */
+@media (max-width: 60rem) {
+  :host {
+    flex-basis: 100%;
+    max-width: var(--read-max);
+  }
+
+  .search-help {
+    padding-left: 0;
+    padding-top: var(--s-3);
+    border-left: 0;
+    border-top: 1px solid var(--c-line);
+  }
+
+  .search-help-toggle {
+    display: flex;
+  }
+
+  .search-help-body {
+    display: none;
+  }
+
+  .search-help-body.open {
+    display: block;
+    padding-top: var(--s-3);
+  }
+}

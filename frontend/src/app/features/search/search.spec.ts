@@ -128,6 +128,124 @@ describe('Search', () => {
     expect(element.querySelectorAll('[data-testid="citation-marker"]').length).toBe(2);
   });
 
+  describe('the source list', () => {
+    /** An answer with more sources than fit under it — the case the collapse exists for. */
+    function withSources(count: number): QueryAnswer {
+      return {
+        ...MODE_A,
+        citations: Array.from({ length: count }, (_, index) => ({
+          ...CITATION,
+          label: `P${index + 1}`,
+          protocolId: `protocol-${index + 1}`,
+          title: `Quelle ${index + 1}`,
+        })),
+      };
+    }
+
+    it('leaves two sources open — collapsing a short list buys a click and nothing else', async () => {
+      const fixture = await render();
+      const element = await ask(fixture, withSources(2));
+
+      expect(element.querySelector('[data-testid="toggle-all-sources"]')).toBeNull();
+      for (const card of element.querySelectorAll('[data-testid="source-card"]')) {
+        expect(card.getAttribute('data-expanded')).toBe('true');
+      }
+      expect(element.querySelector('[data-testid="source-toggle"]')).toBeNull();
+    });
+
+    it('collapses more than two, so the answer stays on screen', async () => {
+      const fixture = await render();
+      const element = await ask(fixture, withSources(5));
+
+      const cards = element.querySelectorAll('[data-testid="source-card"]');
+      expect(cards.length).toBe(5);
+      for (const card of cards) {
+        expect(card.getAttribute('data-expanded')).toBe('false');
+      }
+      // Every card still names itself while collapsed: title and match are what tell five apart.
+      expect(cards[0].textContent).toContain('Quelle 1');
+      expect(cards[0].textContent).toContain('69');
+    });
+
+    it('expands one card at a time, and all of them at once', async () => {
+      const fixture = await render();
+      const element = await ask(fixture, withSources(5));
+
+      (element.querySelectorAll('[data-testid="source-toggle"]')[1] as HTMLButtonElement).click();
+      await fixture.whenStable();
+
+      let cards = element.querySelectorAll('[data-testid="source-card"]');
+      expect(cards[1].getAttribute('data-expanded')).toBe('true');
+      expect(cards[0].getAttribute('data-expanded')).toBe('false');
+
+      (element.querySelector('[data-testid="toggle-all-sources"]') as HTMLButtonElement).click();
+      await fixture.whenStable();
+
+      cards = element.querySelectorAll('[data-testid="source-card"]');
+      for (const card of cards) {
+        expect(card.getAttribute('data-expanded')).toBe('true');
+      }
+    });
+
+    it('a citation marker expands and highlights the card it names', async () => {
+      const fixture = await render();
+      const answer = withSources(5);
+      const element = await ask(fixture, {
+        ...answer,
+        answer: 'Erst das eine. [P3] Dann das andere.',
+        claims: [{ text: 'Erst das eine.', source: 'P3' }],
+      });
+
+      const cards = element.querySelectorAll('[data-testid="source-card"]');
+      expect(cards[2].getAttribute('data-expanded')).toBe('false');
+
+      (element.querySelector('[data-testid="citation-marker"]') as HTMLElement).click();
+      await fixture.whenStable();
+
+      // A MARKER MUST NEVER DEAD-END (#26 is the bug class). Scrolling to a card that shows a title
+      // and no detail is a click that reads as "nothing happened", so it opens first.
+      const after = element.querySelectorAll('[data-testid="source-card"]');
+      expect(after[2].getAttribute('data-expanded')).toBe('true');
+      expect(after[2].classList.contains('highlighted')).toBe(true);
+      // And only that one: the click points at a source, it does not open the whole list.
+      expect(after[0].getAttribute('data-expanded')).toBe('false');
+    });
+
+    it('answers the same marker twice — the second click has to work as well as the first', async () => {
+      const fixture = await render();
+      const element = await ask(fixture, {
+        ...withSources(5),
+        answer: 'Eins. [P3]',
+        claims: [{ text: 'Eins.', source: 'P3' }],
+      });
+
+      const marker = element.querySelector('[data-testid="citation-marker"]') as HTMLElement;
+      marker.click();
+      await fixture.whenStable();
+      (element.querySelectorAll('[data-testid="source-toggle"]')[2] as HTMLButtonElement).click();
+      await fixture.whenStable();
+      marker.click();
+      await fixture.whenStable();
+
+      // A signal set to the value it already holds notifies nobody; a reader who collapsed the card
+      // and tapped the marker again would otherwise get nothing.
+      expect(
+        element.querySelectorAll('[data-testid="source-card"]')[2].getAttribute('data-expanded'),
+      ).toBe('true');
+    });
+
+    it('never collapses or pages the answer text itself', async () => {
+      const fixture = await render();
+      const element = await ask(fixture, withSources(5));
+
+      // NFR-2's Mode A guarantee is that every claim sits beside the source it came from. Splitting
+      // the prose would break it, so the collapse applies to the list and never to the answer.
+      expect(element.querySelector('[data-testid="answer-text"]')?.textContent).toContain(
+        'Ursache ist eine innere Leckage.',
+      );
+    });
+  });
+
   it('tags the answer with the language the backend pinned it to, not the UI language', async () => {
     TestBed.inject(I18nService).use('en');
     const fixture = await render();
@@ -228,19 +346,22 @@ describe('Search', () => {
       open.mockRestore();
     });
 
-    it('opens the viewer from an inline citation marker too', async () => {
+    it('an inline citation marker reveals its source card rather than opening the document', async () => {
       const fixture = await render();
       const element = await ask(fixture, MODE_A);
 
-      // Both places link a source, so both had the 401 defect and both are covered.
       (element.querySelector('[data-testid="citation-marker"]') as HTMLElement).click();
       await fixture.whenStable();
-      httpMock
-        .expectOne('/api/protocols/0f9c5b02-0000-4000-8000-000000000001/document')
-        .flush(new Blob([PROTOCOL], { type: 'text/plain' }));
-      await fixture.whenStable();
 
-      expect(element.querySelector('[data-testid="protocol-dialog"]')).not.toBeNull();
+      // CHANGED BEHAVIOUR, on purpose: a marker used to open the viewer straight away. It now takes
+      // the reader to the source it names, expanded and highlighted, and they decide whether to
+      // open it. The rule the marker must keep either way is that it never dead-ends — the card it
+      // points at has to be visible and open when the click lands (see #26 for the bug class).
+      const card = element.querySelector('[data-testid="source-card"]') as HTMLElement;
+      expect(card.getAttribute('data-expanded')).toBe('true');
+      expect(card.classList.contains('highlighted')).toBe(true);
+      // No document is fetched by the marker itself; the title is what opens the protocol.
+      httpMock.verify();
     });
 
     it('names the protocol and the machine in the viewer head', async () => {

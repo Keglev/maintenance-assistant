@@ -19,6 +19,18 @@ export type UiLanguage = 'de' | 'en';
  * showing: several sources for one fault, a German question answered from an English protocol, and
  * the deliberate gap that produces a Mode B answer.
  */
+/**
+ * A worked pair for the search help panel: a question that retrieves well, and the one people
+ * actually type first.
+ *
+ * The weak half is not a strawman — it is what a single word does to a semantic search, and showing
+ * it beside its fix teaches the rule faster than the rule does.
+ */
+export interface SearchExample {
+  readonly good: string;
+  readonly weak: string;
+}
+
 export interface DemoExample {
   /** The machine to pick before asking — the query is filtered by machine, so this is not decoration. */
   readonly machine: string;
@@ -144,6 +156,22 @@ export interface Dictionary {
     readonly machinesUnavailable: string;
     readonly questionRequired: string;
     readonly machineRequired: string;
+    /**
+     * The "how do I search" panel.
+     *
+     * It exists because there is no keyword search to fall back on: retrieval is semantic by
+     * architecture (ADR-004), so a one-word question is not a narrower search, it is a worse one.
+     * A user who does not know that writes "frei" and concludes the assistant is broken.
+     */
+    readonly helpHeading: string;
+    readonly helpToggle: string;
+    readonly helpMeaning: string;
+    readonly helpContext: string;
+    readonly helpSentences: string;
+    readonly helpExamplesHeading: string;
+    readonly helpGood: string;
+    readonly helpWeak: string;
+    readonly helpExamples: readonly SearchExample[];
   };
   readonly modeA: {
     readonly badge: string;
@@ -153,6 +181,11 @@ export interface Dictionary {
     readonly similarity: string;
     readonly errorCode: string;
     readonly incidentDate: string;
+    /** Collapsing the source list once it is long enough to bury the answer above it. */
+    readonly showAllSources: string;
+    readonly hideSources: string;
+    readonly expandSource: string;
+    readonly collapseSource: string;
   };
   readonly viewer: {
     readonly title: string;
@@ -208,8 +241,6 @@ export interface Dictionary {
     readonly alreadyGone: string;
     readonly confirmTitle: string;
     readonly confirmBody: string;
-    readonly previous: string;
-    readonly next: string;
     /** The two halves of the view: the live corpus and what was removed from it. */
     readonly tabCorpus: string;
     readonly tabArchive: string;
@@ -239,7 +270,20 @@ export interface Dictionary {
     readonly archiveNoComment: string;
     readonly identityLocked: string;
     readonly alreadyArchived: string;
-    /** "Seite 2 von 16 (151 Protokolle)" — three numbers, one sentence per language. */
+    /** Native date inputs follow the BROWSER locale, so the expected format is spelled out. */
+    readonly filterDateFormatHint: string;
+  };
+  /**
+   * The paging control, shared by the three tables that have one.
+   *
+   * Its own section rather than a copy under each view: the labels are the control's, not the
+   * table's, and three copies of "Nächste Seite" is three chances for them to drift apart.
+   */
+  readonly pager: {
+    readonly label: string;
+    readonly previous: string;
+    readonly next: string;
+    /** "Seite 2 von 16 (151 Einträge)" — three numbers, one sentence per language. */
     readonly pageOf: (page: number, pages: number, total: number) => string;
   };
   readonly upload: {
@@ -274,6 +318,8 @@ export interface Dictionary {
     readonly statusFailed: string;
     readonly optional: string;
     readonly required: string;
+    /** What the endpoint accepts, said before the file picker rather than by a 400 afterwards. */
+    readonly formatHint: string;
   };
 }
 
@@ -427,6 +473,22 @@ export const DE: Dictionary = {
     machinesUnavailable: 'Maschinenliste nicht verfügbar.',
     questionRequired: 'Bitte eine Frage eingeben.',
     machineRequired: 'Bitte eine Maschine wählen.',
+    helpHeading: 'Wie suche ich?',
+    helpToggle: 'Wie suche ich?',
+    helpMeaning:
+      'Der Assistent sucht nach der BEDEUTUNG Ihrer Fehlerbeschreibung — nicht nach Titeln und nicht nach exakten Wörtern. Ein Protokoll wird auch dann gefunden, wenn darin andere Wörter stehen als in Ihrer Frage.',
+    helpContext:
+      'Maschine, Fehlercode und Titel stehen in jedem indexierten Abschnitt. Nennen Sie den Fehlercode, wenn Sie ihn haben — das ist der stärkste einzelne Hinweis.',
+    helpSentences:
+      'Ganze kurze Sätze schlagen einzelne Wörter. Ein Wort beschreibt keinen Fehler, und die Suche hat nichts, womit sie vergleichen kann.',
+    helpExamplesHeading: 'Beispiele',
+    helpGood: 'Gut',
+    helpWeak: 'Schwach',
+    helpExamples: [
+      { good: 'Kompressor startet nicht, Fehlercode X-99', weak: 'frei' },
+      { good: 'Presse kommt nicht auf Druck, E-47 steht an', weak: 'Druck' },
+      { good: 'Band läuft schief nach dem Rollenwechsel', weak: 'Band' },
+    ],
   },
   modeA: {
     badge: 'Belegte Antwort',
@@ -436,6 +498,10 @@ export const DE: Dictionary = {
     similarity: 'Übereinstimmung',
     errorCode: 'Fehlercode',
     incidentDate: 'Datum',
+    showAllSources: 'Alle Quellen anzeigen',
+    hideSources: 'Quellen einklappen',
+    expandSource: 'Quelle aufklappen',
+    collapseSource: 'Quelle zuklappen',
   },
   viewer: {
     title: 'Originalprotokoll',
@@ -491,8 +557,6 @@ export const DE: Dictionary = {
     confirmTitle: 'Protokoll entfernen?',
     confirmBody:
       'Sofort aus Suche und Bestand entfernt, für alle Rollen. Es gibt kein Wiederherstellen. Das Protokoll bleibt für die Prüfung unter „Gelöschte Protokolle“ lesbar.',
-    previous: 'Zurück',
-    next: 'Weiter',
     tabCorpus: 'Bestand',
     tabArchive: 'Gelöschte Protokolle',
     edit: 'Bearbeiten',
@@ -525,7 +589,13 @@ export const DE: Dictionary = {
       'Maschine und Art lassen sich nicht ändern. Ist die Zuordnung falsch, ist das Protokoll an der Wurzel falsch: löschen und neu anlegen.',
     alreadyArchived:
       'Dieses Protokoll wurde entfernt und lässt sich nicht mehr bearbeiten. Entfernt ist endgültig.',
-    pageOf: (page, pages, total) => `Seite ${page} von ${pages} (${total} Protokolle)`,
+    filterDateFormatHint: 'Format: TT.MM.JJJJ',
+  },
+  pager: {
+    label: 'Seitenblättern',
+    previous: 'Vorherige Seite',
+    next: 'Nächste Seite',
+    pageOf: (page, pages, total) => `Seite ${page} von ${pages} (${total} Einträge)`,
   },
   upload: {
     heading: 'Protokoll hochladen',
@@ -562,6 +632,7 @@ export const DE: Dictionary = {
     statusFailed: 'Fehlgeschlagen',
     optional: 'optional',
     required: 'Pflichtfeld',
+    formatHint: 'Nur Textdateien: .txt, max. 256 KB',
   },
 };
 
@@ -712,6 +783,22 @@ export const EN: Dictionary = {
     machinesUnavailable: 'Machine list unavailable.',
     questionRequired: 'Please enter a question.',
     machineRequired: 'Please choose a machine.',
+    helpHeading: 'How do I search?',
+    helpToggle: 'How do I search?',
+    helpMeaning:
+      'The assistant searches by the MEANING of your fault description — not by title and not by exact words. A protocol is found even when it uses different words than your question does.',
+    helpContext:
+      'Machine, fault code and title are part of every indexed passage. Name the fault code when you have it: it is the single strongest hint you can give.',
+    helpSentences:
+      'Whole short sentences beat single words. One word does not describe a fault, and the search has nothing to compare it against.',
+    helpExamplesHeading: 'Examples',
+    helpGood: 'Good',
+    helpWeak: 'Weak',
+    helpExamples: [
+      { good: 'Compressor does not start, fault code X-99', weak: 'free' },
+      { good: 'Press does not build up pressure, E-47 showing', weak: 'pressure' },
+      { good: 'Belt mistracks after the roller change', weak: 'belt' },
+    ],
   },
   modeA: {
     badge: 'Sourced answer',
@@ -721,6 +808,10 @@ export const EN: Dictionary = {
     similarity: 'Match',
     errorCode: 'Fault code',
     incidentDate: 'Date',
+    showAllSources: 'Show all sources',
+    hideSources: 'Collapse sources',
+    expandSource: 'Expand source',
+    collapseSource: 'Collapse source',
   },
   viewer: {
     title: 'Original protocol',
@@ -774,8 +865,6 @@ export const EN: Dictionary = {
     confirmTitle: 'Remove this protocol?',
     confirmBody:
       'Removed from search and from the records immediately, for every role. There is no restore. The protocol stays readable for review under "Deleted protocols".',
-    previous: 'Back',
-    next: 'Next',
     tabCorpus: 'Records',
     tabArchive: 'Deleted protocols',
     edit: 'Edit',
@@ -808,7 +897,13 @@ export const EN: Dictionary = {
       'Machine and type cannot be changed. If the assignment is wrong, the protocol is wrong at its root: delete it and file a new one.',
     alreadyArchived:
       'This protocol was removed and can no longer be edited. Removed is final.',
-    pageOf: (page, pages, total) => `Page ${page} of ${pages} (${total} protocols)`,
+    filterDateFormatHint: 'Format: MM/DD/YYYY',
+  },
+  pager: {
+    label: 'Pagination',
+    previous: 'Previous page',
+    next: 'Next page',
+    pageOf: (page, pages, total) => `Page ${page} of ${pages} (${total} entries)`,
   },
   upload: {
     heading: 'Upload a protocol',
@@ -845,6 +940,7 @@ export const EN: Dictionary = {
     statusFailed: 'Failed',
     optional: 'optional',
     required: 'required',
+    formatHint: 'Text files only: .txt, max 256 KB',
   },
 };
 

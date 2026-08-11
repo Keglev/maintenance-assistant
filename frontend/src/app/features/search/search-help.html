@@ -1,0 +1,44 @@
+<aside class="search-help" data-testid="search-help">
+  <!-- The toggle is the heading on a narrow screen and hidden on a wide one, where the panel is
+       simply open: a control that collapses something already beside the form buys nothing there. -->
+  <button
+    type="button"
+    class="search-help-toggle"
+    data-testid="search-help-toggle"
+    [attr.aria-expanded]="open()"
+    aria-controls="search-help-body"
+    (click)="open.set(!open())"
+  >
+    <svg class="chevron" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <path d="M6 9l6 6 6-6" />
+    </svg>
+    {{ t().search.helpToggle }}
+  </button>
+
+  <div class="search-help-body" id="search-help-body" [class.open]="open()">
+    <h2 class="search-help-heading">{{ t().search.helpHeading }}</h2>
+    <ul class="search-help-points">
+      <li>{{ t().search.helpMeaning }}</li>
+      <li>{{ t().search.helpContext }}</li>
+      <li>{{ t().search.helpSentences }}</li>
+    </ul>
+
+    <h3 class="search-help-heading">{{ t().search.helpExamplesHeading }}</h3>
+    <ul class="search-help-examples" data-testid="search-help-examples">
+      @for (example of t().search.helpExamples; track example.good) {
+        <li>
+          <!-- Good and weak side by side. The weak half is what people actually type first, and
+               showing it next to its fix teaches the rule faster than the rule does. -->
+          <p class="example good">
+            <span class="example-tag">{{ t().search.helpGood }}</span>
+            <q>{{ example.good }}</q>
+          </p>
+          <p class="example weak">
+            <span class="example-tag">{{ t().search.helpWeak }}</span>
+            <q>{{ example.weak }}</q>
+          </p>
+        </li>
+      }
+    </ul>
+  </div>
+</aside>

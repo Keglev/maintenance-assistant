@@ -3,7 +3,7 @@
 <html lang="en">
 
 <head>
-    <title>Code coverage report for frontend/src/app/shared/dialog/dialog.html</title>
+    <title>Code coverage report for frontend/src/app/shared/pager/pager.ts</title>
     <meta charset="utf-8" />
     <link rel="stylesheet" href="../../../../../prettify.css" />
     <link rel="stylesheet" href="../../../../../base.css" />
@@ -19,34 +19,34 @@
 <body>
 <div class='wrapper'>
     <div class='pad1'>
-        <h1><a href="../../../../../index.html">All files</a> / <a href="index.html">frontend/src/app/shared/dialog</a> dialog.html</h1>
+        <h1><a href="../../../../../index.html">All files</a> / <a href="index.html">frontend/src/app/shared/pager</a> pager.ts</h1>
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">100% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>31/31</span>
+                <span class='fraction'>18/18</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">100% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>2/2</span>
+                <span class='fraction'>10/10</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">100% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>4/4</span>
+                <span class='fraction'>3/3</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">100% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>23/23</span>
+                <span class='fraction'>12/12</span>
             </div>
         
             
@@ -108,104 +108,95 @@
 <a name='L43'></a><a href='#L43'>43</a>
 <a name='L44'></a><a href='#L44'>44</a>
 <a name='L45'></a><a href='#L45'>45</a>
-<a name='L46'></a><a href='#L46'>46</a>
-<a name='L47'></a><a href='#L47'>47</a>
-<a name='L48'></a><a href='#L48'>48</a>
-<a name='L49'></a><a href='#L49'>49</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">316x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">43x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">43x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">43x</span>
+<a name='L46'></a><a href='#L46'>46</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">50x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">43x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">43x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">50x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">43x</span>
-<span class="cline-any cline-yes">43x</span>
-<span class="cline-any cline-yes">43x</span>
-<span class="cline-any cline-yes">43x</span>
-<span class="cline-any cline-yes">43x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">50x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">3x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">43x</span>
-<span class="cline-any cline-yes">43x</span>
-<span class="cline-any cline-yes">43x</span>
-<span class="cline-any cline-yes">50x</span>
-<span class="cline-any cline-yes">43x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">43x</span>
-<span class="cline-any cline-yes">43x</span>
-<span class="cline-any cline-yes">43x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">@if (open()) {
-  &lt;!-- The backdrop closes on click, like every modal a user has met before. The panel stops the
-       click from reaching it, so a click inside does not dismiss what it lands on. --&gt;
-  &lt;div
-    class="backdrop"
-    [attr.data-testid]="testId() + '-backdrop'"
-    (click)="close()"
-    (keydown)="onKeydown($event)"
-  &gt;
-    &lt;div
-      class="panel"
-      #panel
-      role="dialog"
-      aria-modal="true"
-      [attr.aria-labelledby]="titleId"
-      [attr.data-testid]="testId() + '-dialog'"
-      (click)="$event.stopPropagation()"
-    &gt;
-      &lt;div class="panel-head"&gt;
-        &lt;div class="panel-heading"&gt;
-          &lt;h2 class="panel-title" [id]="titleId"&gt;{{ title() }}&lt;/h2&gt;
-          &lt;!-- A second line for whatever identifies this particular dialog — the protocol viewer
-               names the machine here, so the reader knows which document they opened. --&gt;
-          &lt;ng-content select="[dialogSubtitle]" /&gt;
-        &lt;/div&gt;
-        &lt;div class="panel-actions"&gt;
-          &lt;ng-content select="[dialogActions]" /&gt;
-          &lt;button
-            type="button"
-            class="btn btn-secondary btn-sm"
-            [attr.data-testid]="testId() + '-close'"
-            [attr.aria-label]="t().common.close"
-            (click)="close()"
-          &gt;
-            &lt;svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"&gt;
-              &lt;path d="M6 6l12 12M18 6L6 18" /&gt;
-            &lt;/svg&gt;
-            {{ t().common.close }}
-          &lt;/button&gt;
-        &lt;/div&gt;
-      &lt;/div&gt;
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">135x</span>
+<span class="cline-any cline-yes">65x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">65x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">65x</span>
+<span class="cline-any cline-yes">65x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">65x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">65x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">65x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">65x</span>
+<span class="cline-any cline-yes">65x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">69x</span>
+<span class="cline-any cline-yes">70x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { Component, computed, inject, input, output } from '@angular/core';
 &nbsp;
-      &lt;div class="panel-body"&gt;
-        &lt;ng-content /&gt;
-      &lt;/div&gt;
-    &lt;/div&gt;
-  &lt;/div&gt;
+import { I18nService } from '../../core/i18n/i18n.service';
+&nbsp;
+/**
+ * The paging control the three tables share: a labelled arrow either side of "page X of Y".
+ *
+ * &lt;p&gt;&lt;b&gt;The buttons carry their text, not only a chevron.&lt;/b&gt; The primary device is a shop-floor
+ * tablet operated with work gloves, and a bare arrow is both a smaller target and a guess — "Zurück"
+ * next to a table could as easily mean leaving the view. Spelling out "Vorherige Seite" / "Nächste
+ * Seite" costs width the page has and removes the guess.
+ *
+ * &lt;p&gt;Extracted rather than copied into each table because there are three of them now (the corpus,
+ * the archive and "Meine Uploads") and the disabled-at-the-ends rule is the kind of thing that gets
+ * fixed in one of three places.
+ *
+ * &lt;p&gt;Zero-based {@link page} in, one-based on screen: the API pages from 0 and people count from 1,
+ * and the conversion belongs in one place rather than at every call site.
+ */
+@Component({
+  selector: 'app-pager',
+  templateUrl: './pager.html',
+  styleUrl: './pager.css',
+})
+export class Pager {
+  private readonly i18n = inject(I18nService);
+&nbsp;
+  protected readonly t = this.i18n.t;
+&nbsp;
+  /** Zero-based, as the API counts. */
+  readonly page = input.required&lt;number&gt;();
+  readonly pageCount = input.required&lt;number&gt;();
+  /** Rows in the whole result, so the control can say what it is paging through. */
+  readonly total = input.required&lt;number&gt;();
+  /** What the pager is called for a screen reader, when a view has more than one. */
+  readonly label = input('');
+  /** Suffix for the test ids, so two pagers on one screen are addressable apart. */
+  readonly testId = input('pager');
+&nbsp;
+  readonly previous = output&lt;void&gt;();
+  readonly next = output&lt;void&gt;();
+&nbsp;
+  protected readonly hasPrevious = computed(() =&gt; this.page() &gt; 0);
+  protected readonly hasNext = computed(() =&gt; this.page() + 1 &lt; this.pageCount());
 }
 &nbsp;</pre></td></tr></table></pre>
 

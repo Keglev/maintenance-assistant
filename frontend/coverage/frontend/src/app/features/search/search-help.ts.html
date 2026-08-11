@@ -3,7 +3,7 @@
 <html lang="en">
 
 <head>
-    <title>Code coverage report for frontend/src/app/shared/dialog/dialog.html</title>
+    <title>Code coverage report for frontend/src/app/features/search/search-help.ts</title>
     <meta charset="utf-8" />
     <link rel="stylesheet" href="../../../../../prettify.css" />
     <link rel="stylesheet" href="../../../../../base.css" />
@@ -19,34 +19,34 @@
 <body>
 <div class='wrapper'>
     <div class='pad1'>
-        <h1><a href="../../../../../index.html">All files</a> / <a href="index.html">frontend/src/app/shared/dialog</a> dialog.html</h1>
+        <h1><a href="../../../../../index.html">All files</a> / <a href="index.html">frontend/src/app/features/search</a> search-help.ts</h1>
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">100% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>31/31</span>
+                <span class='fraction'>8/8</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">100% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>2/2</span>
+                <span class='fraction'>10/10</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">100% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>4/4</span>
+                <span class='fraction'>1/1</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">100% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>23/23</span>
+                <span class='fraction'>4/4</span>
             </div>
         
             
@@ -103,109 +103,85 @@
 <a name='L38'></a><a href='#L38'>38</a>
 <a name='L39'></a><a href='#L39'>39</a>
 <a name='L40'></a><a href='#L40'>40</a>
-<a name='L41'></a><a href='#L41'>41</a>
-<a name='L42'></a><a href='#L42'>42</a>
-<a name='L43'></a><a href='#L43'>43</a>
-<a name='L44'></a><a href='#L44'>44</a>
-<a name='L45'></a><a href='#L45'>45</a>
-<a name='L46'></a><a href='#L46'>46</a>
-<a name='L47'></a><a href='#L47'>47</a>
-<a name='L48'></a><a href='#L48'>48</a>
-<a name='L49'></a><a href='#L49'>49</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">316x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">43x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">43x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">43x</span>
+<a name='L41'></a><a href='#L41'>41</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">50x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">43x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">43x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">50x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">43x</span>
-<span class="cline-any cline-yes">43x</span>
-<span class="cline-any cline-yes">43x</span>
-<span class="cline-any cline-yes">43x</span>
-<span class="cline-any cline-yes">43x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">50x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">3x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">43x</span>
-<span class="cline-any cline-yes">43x</span>
-<span class="cline-any cline-yes">43x</span>
-<span class="cline-any cline-yes">50x</span>
-<span class="cline-any cline-yes">43x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">43x</span>
-<span class="cline-any cline-yes">43x</span>
-<span class="cline-any cline-yes">43x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">@if (open()) {
-  &lt;!-- The backdrop closes on click, like every modal a user has met before. The panel stops the
-       click from reaching it, so a click inside does not dismiss what it lands on. --&gt;
-  &lt;div
-    class="backdrop"
-    [attr.data-testid]="testId() + '-backdrop'"
-    (click)="close()"
-    (keydown)="onKeydown($event)"
-  &gt;
-    &lt;div
-      class="panel"
-      #panel
-      role="dialog"
-      aria-modal="true"
-      [attr.aria-labelledby]="titleId"
-      [attr.data-testid]="testId() + '-dialog'"
-      (click)="$event.stopPropagation()"
-    &gt;
-      &lt;div class="panel-head"&gt;
-        &lt;div class="panel-heading"&gt;
-          &lt;h2 class="panel-title" [id]="titleId"&gt;{{ title() }}&lt;/h2&gt;
-          &lt;!-- A second line for whatever identifies this particular dialog — the protocol viewer
-               names the machine here, so the reader knows which document they opened. --&gt;
-          &lt;ng-content select="[dialogSubtitle]" /&gt;
-        &lt;/div&gt;
-        &lt;div class="panel-actions"&gt;
-          &lt;ng-content select="[dialogActions]" /&gt;
-          &lt;button
-            type="button"
-            class="btn btn-secondary btn-sm"
-            [attr.data-testid]="testId() + '-close'"
-            [attr.aria-label]="t().common.close"
-            (click)="close()"
-          &gt;
-            &lt;svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"&gt;
-              &lt;path d="M6 6l12 12M18 6L6 18" /&gt;
-            &lt;/svg&gt;
-            {{ t().common.close }}
-          &lt;/button&gt;
-        &lt;/div&gt;
-      &lt;/div&gt;
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">46x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { Component, inject, signal } from '@angular/core';
 &nbsp;
-      &lt;div class="panel-body"&gt;
-        &lt;ng-content /&gt;
-      &lt;/div&gt;
-    &lt;/div&gt;
-  &lt;/div&gt;
+import { I18nService } from '../../core/i18n/i18n.service';
+&nbsp;
+/**
+ * "Wie suche ich?" — the panel in the empty right half of the search view.
+ *
+ * &lt;p&gt;&lt;b&gt;It is the designed answer to the lazy-query problem, not decoration.&lt;/b&gt; Retrieval here is
+ * semantic only, by architecture (ADR-004): there is no keyword index to fall back on, so a
+ * one-word question is not a narrower search, it is a worse one — the embedding of "frei" is close
+ * to nothing in particular. A user who does not know that types one word, gets Mode B, and
+ * concludes the assistant is broken. Explaining the rule beside the field costs a paragraph; the
+ * alternative is building a keyword search that was deliberately not built.
+ *
+ * &lt;p&gt;Its own component because the styling is a third of the search view's stylesheet and none of
+ * it is about answers. That also keeps `search.css` inside the per-component budget, which the
+ * combined file had just exceeded.
+ *
+ * &lt;p&gt;&lt;b&gt;Subordinate by construction&lt;/b&gt;: no card, no shadow, helper-grey text behind a left rule.
+ * Once an answer arrives it must not compete with it — the answer is what the reader came for.
+ */
+@Component({
+  selector: 'app-search-help',
+  templateUrl: './search-help.html',
+  styleUrl: './search-help.css',
+})
+export class SearchHelp {
+  private readonly i18n = inject(I18nService);
+&nbsp;
+  protected readonly t = this.i18n.t;
+&nbsp;
+  /**
+   * Whether the panel is open.
+   *
+   * Only narrow viewports read this: on a wide screen the panel sits beside the form and the
+   * stylesheet keeps it open regardless, because collapsing something already next to the field it
+   * explains costs a click and buys nothing. Closed by default, so a phone shows the form first.
+   */
+  protected readonly open = signal(false);
 }
 &nbsp;</pre></td></tr></table></pre>
 

@@ -150,14 +150,27 @@
   mask-image: linear-gradient(to bottom, #000 calc(100% - 4rem), transparent 100%);
 }
 
+/* No bottom margin: the toggle is an inline-level box, so a margin here would NOT collapse with the
+   source list's own margin below and the two would add up to a hole. What follows owns the space —
+   the source list its `margin-top`, and in Mode B (where nothing follows) the section's padding. */
 .answer-toggle {
   width: 100%;
   min-height: var(--tap);
-  margin-bottom: var(--s-5);
 }
 
-/* The source list keeps its distance from whichever of the two is above it. */
-.answer-body + app-search-sources {
+/*
+ * The source list keeps its distance from WHATEVER is above it.
+ *
+ * This was `.answer-body + app-search-sources`, and that form had a defect that only appeared on
+ * long answers: the drawer toggle renders BETWEEN the body and the sources, so the adjacent-sibling
+ * combinator stopped matching in exactly the case that needed the spacing most — "Vollständige
+ * Antwort anzeigen" sat welded to QUELLEN. The margin belongs to the source list itself, not to a
+ * relationship it happens to have with its neighbour: a spacing rule that keys on what precedes an
+ * element is a rule that a third element, inserted there years from now, silently switches off.
+ * The selector now names only the element it spaces, so there is no sibling relationship left to
+ * break: whatever ends up above the source list, the distance is the same.
+ */
+app-search-sources {
   display: block;
   margin-top: var(--s-5);
 }

@@ -57,6 +57,15 @@ so **the page repaints live, with no reload and no navigation**, in both directi
 OS scheme with the login page open is enough — if a tester sees a half-changed page, that is a
 defect and not the mechanism working as designed.
 
+**Drill in a FRESH private window, with every other private window closed first** — or with
+DevTools' "Disable cache" ticked. Keycloak serves theme resources with
+`cache-control: max-age=2592000`, thirty days, so a browser that has seen the login page before is
+entitled to keep showing you the stylesheet from last time. Found in the #47 production drill, where
+the first pass verified the previous theme and looked like a failed deploy. Note that a private
+window is not a fresh one if another is already open: they share a session, and therefore its cache.
+This never bites locally — `start-dev` serves the same files as `no-cache`, which is exactly why the
+trap is invisible right up until a deploy.
+
 ## Known pitfalls
 
 **Repainting the canvas makes the parent's elements yours — including the ones you never named.**

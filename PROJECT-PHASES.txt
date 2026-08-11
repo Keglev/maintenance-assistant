@@ -106,9 +106,22 @@ v1.1 BACKLOG AFTER THAT, in order:
      full insider-threat story: create -> detect -> trace -> remediate
      (edit or archive) -> evidence preserved.
   Later/documented-not-built: PDF export (generation, not serving),
-  structured Symptom/Ursache/Massnahme fields, draft/approve workflow
-  (technician writes, Schichtleiter approves — ADR-006 evolution
-  path), .docx parsing (form entry made it non-core).
+  structured Symptom/Ursache/Massnahme fields, .docx parsing (form
+  entry made it non-core).
+  DEFERRED TO v1.2, decided 2026-08-10 and written up in the ADR-006
+  dated note — shape agreed, nothing built: (1) APPROVE WORKFLOW with a
+  three-role chain, Techniker writes and may never edit his own,
+  Schichtleiter edits and forwards, Admin approves (author and approver
+  are never the same person — four-eyes where it bites, at the moment a
+  protocol becomes citable); the approval state then gives search an
+  "approved protocols" facet for free. This SUPERSEDES the older
+  two-role draft/approve sketch, which left the Schichtleiter approving
+  his own corrections. (2) DUPLICATE DETECTION on approval: run the
+  existing pgvector similarity against the same machine's protocols and
+  WARN with links — never block. The E-47 seed is the proof case: same
+  code, four different root causes, all legitimate, and any threshold
+  useful enough to catch a real duplicate would flag them as copies of
+  each other. Admin decides join / keep / delete.
 
 WORKING PROCESS (settled this session, keep):
   Robot prompt template ends with: (1) FULL REPORT — what changed and

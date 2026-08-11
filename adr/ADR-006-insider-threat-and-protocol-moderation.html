@@ -536,6 +536,90 @@ ADR-006-insider-threat-and-protocol-moderation · maintenance-assistant Docs</ti
         only to remove from it. Four-eyes remains deferred and is now a
         larger gap than it was.</li>
         </ul>
+        <hr />
+        <h2
+        id="note-2026-08-10-approval-and-duplicate-detection-deferred-to-v1.2">Note
+        — 2026-08-10: approval and duplicate detection, deferred to
+        v1.2</h2>
+        <p><em>A dated note, not a revision: nothing above changes. This
+        records two decisions taken with the project owner about what
+        comes next and what shape it will have, so that v1.2 starts from
+        a position rather than from a blank page.</em></p>
+        <h3
+        id="approve-workflow-deferred-and-the-trust-chain-has-changed-shape">Approve
+        workflow — deferred, and the trust chain has changed shape</h3>
+        <p>The deferred-items table above sketches draft/approve as
+        “technician writes, Schichtleiter approves before indexing”.
+        That sketch is superseded here, because it put the author and
+        the approver one step apart and left the Schichtleiter approving
+        their own corrections. <strong>The chain for v1.2 is three roles
+        deep:</strong></p>
+        <table>
+        <thead>
+        <tr class="header">
+        <th>Role</th>
+        <th>May</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr class="odd">
+        <td><strong>Techniker</strong></td>
+        <td>Write a protocol. <strong>Never edit their
+        own.</strong></td>
+        </tr>
+        <tr class="even">
+        <td><strong>Schichtleiter</strong></td>
+        <td>Edit any protocol, and forward it for approval.</td>
+        </tr>
+        <tr class="odd">
+        <td><strong>Admin</strong></td>
+        <td>Approve — and may close a protocol after editing it.</td>
+        </tr>
+        </tbody>
+        </table>
+        <p><strong>The rule that makes it worth building: the author and
+        the approver are never the same person.</strong> That is the
+        four-eyes principle applied where it actually bites — not to
+        deletion (there is one administrator, and a quorum of one is
+        theatre) but to the moment a protocol becomes citable. It also
+        answers the objection the original ADR raised against
+        restricting writing further: this does not rename the role that
+        can carry the threat out, it puts a second pair of eyes between
+        the threat and the corpus.</p>
+        <p>A protocol’s approval state then becomes a <strong>search
+        facet</strong>: “approved protocols only” is a filter that
+        follows from the state existing, not a feature to design
+        separately.</p>
+        <p>What it costs, and why it is not in this PR: a second state
+        on every protocol, a review queue, a notification path, and a
+        role that has to be present for the corpus to grow at all. It is
+        a work package, and it wants the edit-with-re-index path this PR
+        just built underneath it.</p>
+        <h3
+        id="duplicate-detection-on-approval-deferred-and-it-must-warn-rather-than-block">Duplicate
+        detection on approval — deferred, and it must warn rather than
+        block</h3>
+        <p>On approval, run the <strong>existing</strong> pgvector
+        similarity of the new protocol against the protocols of the same
+        machine. High similarity raises a <strong>warning with links to
+        the neighbours it found</strong>. The administrator decides:
+        join them, keep both, or delete one.</p>
+        <p><strong>It must never block, and the corpus already contains
+        the proof.</strong> The E-47 demo seed is four protocols on
+        Presse 3 with the same fault code and <em>four different root
+        causes</em> — every one of them legitimate, and any similarity
+        threshold high enough to be useful would flag them as duplicates
+        of each other. A blocking check would refuse the single most
+        valuable case in the corpus. A warning costs a glance and
+        catches the case it is actually for: the same protocol filed
+        twice.</p>
+        <p>It reuses what exists — the embeddings are already stored,
+        the machine filter is already a column on <code>chunk</code>
+        (ADR-004) — so the cost is a query and a screen, not a new
+        mechanism. It is deferred with approval because that is the
+        moment it belongs to: a duplicate warning is only actionable
+        while someone is already deciding whether the protocol should
+        exist.</p>
       </article>
     </main>
 
@@ -589,6 +673,23 @@ ADR-006-insider-threat-and-protocol-moderation · maintenance-assistant Docs</ti
       <li><a href="#consequences-of-this-revision"
       id="toc-consequences-of-this-revision">Consequences of this
       revision</a></li>
+      </ul></li>
+      <li><a
+      href="#note-2026-08-10-approval-and-duplicate-detection-deferred-to-v1.2"
+      id="toc-note-2026-08-10-approval-and-duplicate-detection-deferred-to-v1.2">Note
+      — 2026-08-10: approval and duplicate detection, deferred to
+      v1.2</a>
+      <ul>
+      <li><a
+      href="#approve-workflow-deferred-and-the-trust-chain-has-changed-shape"
+      id="toc-approve-workflow-deferred-and-the-trust-chain-has-changed-shape">Approve
+      workflow — deferred, and the trust chain has changed
+      shape</a></li>
+      <li><a
+      href="#duplicate-detection-on-approval-deferred-and-it-must-warn-rather-than-block"
+      id="toc-duplicate-detection-on-approval-deferred-and-it-must-warn-rather-than-block">Duplicate
+      detection on approval — deferred, and it must warn rather than
+      block</a></li>
       </ul></li>
       </ul></li>
       </ul>

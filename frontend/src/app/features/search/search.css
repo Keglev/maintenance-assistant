@@ -114,6 +114,17 @@
        unbroken string in an answer would push the column wider than its share and squeeze the
        panel — the same class of bug as the wrap, arriving through the other door. */
     grid-template-columns: minmax(0, 1fr) 22rem;
+    /* The gutter, and only the gutter: --s-6 (2 rem) left the panel's rule sitting close enough to
+       the answer text to read as its right-hand edge rather than as a separate column. --s-7 (3 rem)
+       is the separation.
+
+       COLUMN-GAP, and one mechanism rather than two. The grid gap is where a gutter belongs — a
+       margin on the panel would say the same thing in a place that also affects the stacked layout,
+       and two rules describing one distance is how they drift apart. The panel KEEPS ITS 22 rem
+       track untouched: a column gap is taken out of the `1fr` column, so this buys separation and
+       not a narrower panel. Declared here rather than on the base rule so the stacked layout's
+       row gap stays --s-6. */
+    column-gap: var(--s-7);
   }
 }
 

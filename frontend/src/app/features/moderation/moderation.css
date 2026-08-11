@@ -121,7 +121,15 @@
   text-align: center;
 }
 
-/* A seven-column table does not fit a tablet held upright. The wrapper scrolls; the page does not. */
+/*
+ * A seven-column table does not fit a tablet held upright. The wrapper scrolls; the page does not.
+ *
+ * IT IS A FALLBACK NOW, NOT THE NORMAL CASE. The view is on `.page-wide`, so at desktop width the
+ * container is wide enough for every column and all three row buttons and this never engages — the
+ * defect was a horizontal scrollbar at 1920 px with hundreds of unused pixels in the margins, which
+ * cut off the Löschen button. Between roughly 1024 px and the point where the table fits, this is
+ * still the right answer and is deliberately kept.
+ */
 .table-scroll {
   overflow-x: auto;
 }
@@ -231,10 +239,15 @@
   max-width: var(--read-max);
 }
 
+/* THE GAP ABOVE IS THE POINT. The action row sat flush against the field above it — in the edit
+   dialog 'Korrektur speichern' touched the Grund textarea — which reads as part of the field
+   rather than as the decision about it. One step, from the same scale the dialogs already use, so
+   all three look alike. The gap BETWEEN the buttons is unchanged. */
 .confirm-actions {
   display: flex;
   flex-wrap: wrap;
   gap: var(--s-3);
+  margin-top: var(--s-5);
 }
 
 .hint {

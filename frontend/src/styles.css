@@ -98,6 +98,9 @@
   --t-xs: 0.75rem;
   --t-sm: 0.875rem;
   --t-base: 1rem;
+  /* Half a step above the body size. For text that is READ rather than skimmed — a stored
+     protocol in the viewer — where --t-lg would read as a heading. */
+  --t-md: 1.0625rem;
   --t-lg: 1.125rem;
   --t-xl: 1.375rem;
   --t-2xl: 1.75rem;
@@ -281,11 +284,44 @@ h3 {
 
 /* --- Layout ------------------------------------------------------------- */
 
+/*
+ * The default page: one centred column at a readable width.
+ *
+ * Right for every view that is mostly prose, and WRONG for a seven-column table — which is what
+ * the two modifiers below exist for. They widen the CONTAINER only; the reading surfaces inside
+ * keep their own measure (`.page-lead` and `.ask` at --read-max, `.answer` at 52rem, the upload
+ * form at 34rem), because a 1600 px line of German prose is a regression, not a feature.
+ */
 .page {
   width: 100%;
   max-width: var(--page-max);
   margin: 0 auto;
   padding: var(--s-5) var(--s-4) var(--s-7);
+}
+
+/*
+ * For the table views. At 1920 px the Protokollverwaltung table overflowed into a horizontal
+ * scrollbar — cutting off the Löschen button — while several hundred pixels sat unused in the
+ * margins on either side. The table did not need to be narrower; the container needed to stop
+ * being 68rem.
+ *
+ * `min(100rem, 94vw)`: 100rem is 1600 px at the default root size, which fits every column and all
+ * three row buttons; 94vw keeps a margin on anything narrower and hands the small screens back to
+ * the table's own horizontal scroll, which stays as the fallback it always was. In REM rather than
+ * px on purpose — the design system is rem-based so text scaling moves everything together, and a
+ * reader who scaled the type up wants the container to grow with it.
+ */
+.page-wide {
+  max-width: min(100rem, 94vw);
+}
+
+/*
+ * For a view that is two columns of its own: content on the left, a subordinate panel on the
+ * right. Narrower than `.page-wide` because the left column is still prose and still keeps its
+ * measure — this buys room for the panel beside it, not longer lines.
+ */
+.page-split {
+  max-width: min(84rem, 94vw);
 }
 
 .page-title {

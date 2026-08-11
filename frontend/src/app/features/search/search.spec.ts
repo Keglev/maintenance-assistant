@@ -5,7 +5,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { Citation, QueryAnswer } from '../../core/api/api.types';
 import { I18nService } from '../../core/i18n/i18n.service';
-import { Search, toSegments } from './search';
+import { toSegments } from './search-answer';
+import { Search } from './search';
 
 /**
  * The search view's job is to make the two answer modes impossible to confuse (NFR-2) and to say
@@ -126,6 +127,119 @@ describe('Search', () => {
     );
     expect(element.querySelector('[data-testid="source-link"]')).not.toBeNull();
     expect(element.querySelectorAll('[data-testid="citation-marker"]').length).toBe(2);
+  });
+
+  describe('the long-answer drawer', () => {
+    /**
+     * Makes the rendered answer taller than the clamp allows.
+     *
+     * jsdom has no layout engine, so every element measures zero and the component would never see
+     * an overflow. Defining `scrollHeight` is the smallest honest stand-in for a browser that
+     * actually laid the text out — the logic under test is the comparison and what it drives, not
+     * the arithmetic of line boxes.
+     */
+    function makeTall(element: HTMLElement, pixels: number) {
+      const body = element.querySelector('.answer-body') as HTMLElement;
+      Object.defineProperty(body, 'scrollHeight', { value: pixels, configurable: true });
+      return body;
+    }
+
+    /**
+     * Waits for the measurement the component schedules after a render.
+     *
+     * It measures in a macrotask on purpose — reading a height in the same tick that set the text
+     * measures the OLD text — so the test has to let one turn of the event loop pass before the
+     * answer knows how tall it is.
+     */
+    async function settle(fixture: Awaited<ReturnType<typeof render>>) {
+      await new Promise((resolve) => setTimeout(resolve));
+      fixture.detectChanges();
+    }
+
+    it('leaves a short answer exactly as it was — no clamp, no control', async () => {
+      const fixture = await render();
+      const element = await ask(fixture, MODE_A);
+      makeTall(element, 100);
+      await settle(fixture);
+
+      expect(element.querySelector('[data-testid="answer-toggle"]')).toBeNull();
+      expect(element.querySelector('.answer-body')?.classList.contains('clamped')).toBe(false);
+    });
+
+    it('clamps an answer taller than half the viewport and offers the drawer', async () => {
+      const fixture = await render();
+      const element = await ask(fixture, MODE_A);
+      makeTall(element, 5_000);
+      await settle(fixture);
+
+      expect(element.querySelector('.answer-body')?.classList.contains('clamped')).toBe(true);
+      const toggle = element.querySelector('[data-testid="answer-toggle"]') as HTMLButtonElement;
+      expect(toggle).not.toBeNull();
+      expect(toggle.textContent).toContain('Vollständige Antwort anzeigen');
+      expect(toggle.getAttribute('aria-expanded')).toBe('false');
+    });
+
+    it('never truncates the answer — the whole text is in the DOM while clamped', async () => {
+      const fixture = await render();
+      const element = await ask(fixture, MODE_A);
+      makeTall(element, 5_000);
+      await settle(fixture);
+
+      // The clamp is a max-height and nothing else. Cutting the text would separate a claim from
+      // the citation beside it, which is the one thing a Mode A answer must never do (NFR-2).
+      const text = element.querySelector('[data-testid="answer-text"]')?.textContent ?? '';
+      expect(text).toContain('Die Presse kommt nicht auf Druck.');
+      expect(text).toContain('Ursache ist eine innere Leckage.');
+      expect(element.querySelectorAll('[data-testid="citation-marker"]').length).toBe(2);
+    });
+
+    it('expands in place, and says so', async () => {
+      const fixture = await render();
+      const element = await ask(fixture, MODE_A);
+      makeTall(element, 5_000);
+      await settle(fixture);
+
+      (element.querySelector('[data-testid="answer-toggle"]') as HTMLButtonElement).click();
+      fixture.detectChanges();
+
+      expect(element.querySelector('.answer-body')?.classList.contains('clamped')).toBe(false);
+      const toggle = element.querySelector('[data-testid="answer-toggle"]') as HTMLButtonElement;
+      expect(toggle.getAttribute('aria-expanded')).toBe('true');
+      expect(toggle.textContent).toContain('Antwort einklappen');
+    });
+
+    it('a citation marker expands the answer first, then points at its card', async () => {
+      const fixture = await render();
+      const element = await ask(fixture, MODE_A);
+      makeTall(element, 5_000);
+      await settle(fixture);
+      expect(element.querySelector('.answer-body')?.classList.contains('clamped')).toBe(true);
+
+      (element.querySelector('[data-testid="citation-marker"]') as HTMLElement).click();
+      fixture.detectChanges();
+
+      // A marker that pointed at a source from behind a clamp would answer a click with nothing
+      // visible — the #26 bug class in a new costume. Expanding is part of following the marker.
+      expect(element.querySelector('.answer-body')?.classList.contains('clamped')).toBe(false);
+      const card = element.querySelector('[data-testid="source-card"]') as HTMLElement;
+      expect(card.classList.contains('highlighted')).toBe(true);
+    });
+
+    it('starts open again when a new answer arrives', async () => {
+      const fixture = await render();
+      const element = await ask(fixture, MODE_A);
+      makeTall(element, 5_000);
+      await settle(fixture);
+      (element.querySelector('[data-testid="answer-toggle"]') as HTMLButtonElement).click();
+      fixture.detectChanges();
+
+      await ask(fixture, MODE_B);
+      await settle(fixture);
+
+      // A second question is a second answer: carrying the previous expansion over would clamp or
+      // open it on a height nobody measured.
+      expect(element.querySelector('[data-testid="answer-toggle"]')).toBeNull();
+    });
   });
 
   describe('the source list', () => {
@@ -259,23 +373,23 @@ describe('Search', () => {
     );
   });
 
-  it('keeps the example questions on screen while the question is being typed', async () => {
+  it('keeps the examples in the help panel, not in a grey line above the field', async () => {
     const fixture = await render();
     const element = fixture.nativeElement as HTMLElement;
 
-    const hint = element.querySelector('[data-testid="question-hint"]');
-    expect(hint?.textContent).toContain('Sensorfehler');
+    // The inline hint duplicated the help panel at lower quality: the same advice, in helper grey,
+    // pushed between the label and the field it was about.
+    expect(element.querySelector('[data-testid="question-hint"]')).toBeNull();
 
-    // The point of a hint that is not a placeholder: it is still there at the first keystroke,
-    // which is when a first-time user is working out what kind of thing to ask for.
+    // It lives here now, worked out as good/weak pairs and beside the form rather than inside it.
+    const examples = element.querySelector('[data-testid="search-help-examples"]');
+    expect(examples?.textContent).toContain('Kompressor startet nicht');
+    expect(examples?.textContent).toContain('frei');
+
+    // The textarea keeps its placeholder, which is a different job: an example of the SHAPE of a
+    // question, in the field, gone at the first keystroke.
     const question = element.querySelector('[data-testid="question-input"]') as HTMLTextAreaElement;
-    question.value = 'Presse';
-    question.dispatchEvent(new Event('input'));
-    await fixture.whenStable();
-
-    expect(element.querySelector('[data-testid="question-hint"]')?.textContent).toContain(
-      'Sensorfehler',
-    );
+    expect(question.getAttribute('placeholder')).toContain('E-47');
   });
 
   it('shows the similarity as a percentage a reader can compare', async () => {

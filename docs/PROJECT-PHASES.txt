@@ -249,6 +249,35 @@ Config:     Flyway auto-config was DEAD on Boot 4.1 (missing
             properties moved to spring.web.error.*.
 
 OPEN ITEMS carried forward (not blockers, do not lose):
+- DESIGN FIXES ROUND 2, 2026-08-11 (feat/design-fixes-2), from Carlos's 1920px
+  drill of #41/#43. Frontend only.
+  PER-VIEW WIDTH: one centred 68rem column served every view, which starved the
+  Protokollverwaltung table — horizontal scrollbar at 1920px, Löschen cut off,
+  hundreds of unused pixels in the margins. Two page modifiers now: .page-wide
+  for the table views, .page-split for search. They widen the CONTAINER only;
+  prose keeps its measure, because a 1600px line is a regression.
+  THE SEARCH TWO-COLUMN LAYOUT WAS NEVER APPLIED AT DESKTOP WIDTH — and the
+  cause is worth carrying: .ask-row was in the template with ZERO rules in the
+  stylesheet. The flex container was deleted along with the help panel's styles
+  when that panel was extracted into its own component in #41; only the panel's
+  narrow-viewport block survived, which is why it looked right when narrow. NOT
+  a media-query bug. LESSON: extracting a component moves its styles, and the
+  LAYOUT rules that positioned it are not its styles — check the container after
+  every extraction. The replacement is a GRID with a declared template, because
+  a flex row wraps when things do not fit and that failure looks deliberate.
+  The answer now renders under the form that produced it, not under the help
+  panel; the grey inline example line is gone (it duplicated the panel).
+  LONG-ANSWER DRAWER: above ~50vh the answer is clamped behind a fade with a
+  full-width control. THE CLAMP IS A MAX-HEIGHT AND NOTHING ELSE — the whole
+  answer is in the DOM in both states, never truncated and never split, because
+  cutting it would separate a claim from its citation (NFR-2). A citation marker
+  EXPANDS FIRST and then points at its card: a marker answering a click with
+  nothing visible is the #26 bug class in a new costume.
+  DIALOGS: stored protocol text one step up (new --t-md token; monospace stays
+  on the raw view), and one spacing step between the last field and the action
+  row in all three confirmations.
+  STILL A TABLET-FIRST APP: everything above is desktop refinement and the
+  narrow behaviour is unchanged — that is the thing to re-check in any drill.
 - FOOTER SERVER-HEALTH DOT 2026-08-11 (feat/footer-health-dot), the last code
   PR before v1.1.0. GET /api/health (public, unchanged) every 60 s WHILE SIGNED
   IN only, with a 5 s client-side timeout so a hanging backend reads as offline

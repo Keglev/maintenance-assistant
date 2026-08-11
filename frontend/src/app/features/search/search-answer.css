@@ -1,0 +1,184 @@
+/* --- The answer ---------------------------------------------------------- */
+
+.answer {
+  max-width: 52rem;
+  padding: var(--s-5);
+  border-radius: var(--r-md);
+  box-shadow: var(--shadow-sm);
+  margin-bottom: var(--s-5);
+}
+
+.answer-badge {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  margin: 0;
+  font-weight: 700;
+  font-size: var(--t-lg);
+  letter-spacing: -0.005em;
+}
+
+.answer-explanation {
+  margin: var(--s-2) 0 var(--s-4);
+  font-size: var(--t-sm);
+}
+
+.answer-text {
+  margin: 0 0 var(--s-5);
+  line-height: var(--lh-relaxed);
+}
+
+/* Mode A — sourced. */
+.answer-a {
+  background: var(--c-mode-a-soft);
+  border: 1px solid var(--c-mode-a-line);
+  border-left: 6px solid var(--c-mode-a);
+}
+
+.answer-a .answer-badge {
+  color: var(--c-mode-a-ink);
+}
+
+.citation-marker {
+  display: inline-block;
+  padding: 0 var(--s-1);
+  border-radius: 3px;
+  background: var(--c-mode-a-chip);
+  color: var(--c-mode-a-ink);
+  font-size: 0.8em;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  text-decoration: none;
+  vertical-align: 0.1em;
+}
+
+.citation-marker:hover,
+.citation-marker:focus-visible {
+  background: var(--c-mode-a);
+  color: var(--c-on-mode-a);
+}
+
+/* These carry no href, so the pointer and the underline have to be stated: without them an
+   element that behaves like a link stops looking like one. */
+.citation-marker,
+.source-title {
+  cursor: pointer;
+}
+
+.source-title {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.steps-heading {
+  margin: 0 0 var(--s-3);
+  font-size: var(--t-sm);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--c-ink-muted);
+}
+
+/* Mode B — a general suggestion, and it must never be mistaken for the block above. */
+.answer-b {
+  background: var(--c-mode-b-soft);
+  border: 1px solid var(--c-mode-b-line);
+  border-left: 6px solid var(--c-mode-b);
+  /* A hatched top edge: a second, non-colour signal that this block is different in kind. */
+  background-image: repeating-linear-gradient(
+    135deg,
+    var(--c-mode-b-hatch) 0 8px,
+    transparent 8px 16px
+  );
+  background-size: 100% 6px;
+  background-repeat: no-repeat;
+  background-position: top left;
+  padding-top: var(--s-6);
+}
+
+.answer-b .answer-badge {
+  color: var(--c-mode-b-ink);
+}
+
+.answer-b .answer-explanation {
+  font-weight: 600;
+  color: var(--c-mode-b-ink);
+}
+
+.steps {
+  margin: 0;
+  padding-left: var(--s-5);
+  line-height: var(--lh-normal);
+}
+
+.steps li {
+  margin-bottom: var(--s-2);
+}
+
+.mode-icon {
+  flex: 0 0 auto;
+  width: 22px;
+  height: 22px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.mode-icon .dot {
+  fill: currentColor;
+  stroke: none;
+}
+
+/* --- The drawer ---------------------------------------------------------- */
+
+/*
+ * A VISUAL clamp. The whole answer is inside this element in both states — this rule hides part of
+ * it, it does not remove it. Truncating the text would separate a claim from the citation beside
+ * it, which is the one thing a Mode A answer must never do (NFR-2).
+ *
+ * 50vh: enough that most answers are never touched, little enough that a long one does not push
+ * its own sources off the bottom of the page. The component measures against the same number, so
+ * the control appears exactly when the clamp bites.
+ */
+.answer-body.clamped {
+  max-height: 50vh;
+  overflow: hidden;
+  /* Faded rather than cut: a hard edge mid-sentence reads as a rendering fault, a fade reads as
+     "there is more". mask rather than a gradient overlay, so it works on both palettes without
+     knowing which colour is behind it. */
+  mask-image: linear-gradient(to bottom, #000 calc(100% - 4rem), transparent 100%);
+}
+
+.answer-toggle {
+  width: 100%;
+  min-height: var(--tap);
+  margin-bottom: var(--s-5);
+}
+
+/* The source list keeps its distance from whichever of the two is above it. */
+.answer-body + app-search-sources {
+  display: block;
+  margin-top: var(--s-5);
+}
+
+@media (max-width: 40rem) {
+  .answer {
+    padding: var(--s-4);
+  }
+}
+
+/* A source entry is a link in everything but the href, so it answers a pointer like one. */
+.source-title:hover,
+.source-title:focus-visible {
+  background: var(--c-hover);
+}
+
+.source-title:active {
+  background: var(--c-pressed);
+}
+
+.source-title {
+  padding: 0 var(--s-1);
+  border-radius: var(--r-sm);
+}

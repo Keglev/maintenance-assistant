@@ -5,37 +5,24 @@ import { Citation, Machine, QueryAnswer } from '../../core/api/api.types';
 import { ApiFailure, MaintenanceApiService, classify } from '../../core/api/maintenance-api.service';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { ProtocolDialog } from '../../shared/protocol/protocol-dialog';
+import { SearchAnswer } from './search-answer';
 import { SearchHelp } from './search-help';
-import { SearchSources, SourceFocus } from './search-sources';
 
 /**
- * One piece of the answer text: either prose, or a citation marker that links to its source.
+ * The search view (US-1/US-2): the question form, and the two things that answer it.
  *
- * The answer arrives with its `[P1]` markers already in the text and its claims already validated
- * against what was retrieved. Splitting it here is presentation only — the markers become links.
- * Nothing is re-parsed, reordered or filtered: the backend decided what the answer says, and a
- * client that second-guessed it would be a second, weaker citation check in the place least able to
- * make one.
- */
-export interface AnswerSegment {
-  readonly kind: 'text' | 'marker';
-  readonly value: string;
-  /** For a marker: the citation it points at, when the label is one of the answer's sources. */
-  readonly citation?: Citation;
-}
-
-/**
- * The search view (US-1/US-2).
+ * <p>Two columns on a wide screen — the form and its answer on the left, the help panel on the
+ * right — and one column below 64rem. The answer belongs directly under the form that produced it:
+ * it rendered after the help panel before, which meant scrolling past an explanation to reach the
+ * thing being explained.
  *
- * The two answer modes are rendered as two visually distinct blocks, which is not styling: NFR-2
- * makes the distinction the anti-hallucination mechanism. A Mode B answer that looked like a Mode A
- * answer would be the failure this application is built to prevent — general advice read as
- * documented plant experience. So Mode B gets its own colour, its own banner and, deliberately, no
- * source area at all rather than an empty one.
+ * <p>The answer block itself is {@link SearchAnswer}. The two modes are visually distinct there,
+ * which is not styling but NFR-2: a Mode B answer that looked like a Mode A one would be the
+ * failure this application exists to prevent.
  */
 @Component({
   selector: 'app-search',
-  imports: [FormsModule, ProtocolDialog, SearchHelp, SearchSources],
+  imports: [FormsModule, ProtocolDialog, SearchAnswer, SearchHelp],
   templateUrl: './search.html',
   styleUrl: './search.css',
 })
@@ -62,29 +49,6 @@ export class Search {
   protected readonly machineLabel = computed(() => {
     const machine = this.machines().find((candidate) => candidate.id === this.machineId());
     return machine ? `${machine.machineNo} · ${machine.name}` : '';
-  });
-
-  /**
-   * The answer text split into prose and citation markers.
-   *
-   * Computed rather than done in the template so the regular expression runs once per answer
-   * instead of once per change detection pass.
-   */
-  protected readonly segments = computed<AnswerSegment[]>(() => {
-    const current = this.answer();
-    return current && current.mode === 'A' ? toSegments(current.answer, current.citations) : [];
-  });
-
-  /** Mode B's steps: the backend joins them with newlines, and they render as a numbered list. */
-  protected readonly steps = computed<string[]>(() => {
-    const current = this.answer();
-    if (!current || current.mode !== 'B') {
-      return [];
-    }
-    return current.answer
-      .split('\n')
-      .map((step) => step.trim())
-      .filter((step) => step.length > 0);
   });
 
   constructor() {
@@ -150,57 +114,4 @@ export class Search {
     event?.preventDefault();
     this.viewing.set(citation);
   }
-
-
-  /**
-   * The protocol a citation marker last pointed at.
-   *
-   * Handed to the source list as an input rather than reached into with a view query: the list
-   * owns its own expand state, and the marker only says which protocol it means.
-   */
-  protected readonly focusedSource = signal<SourceFocus | null>(null);
-
-  /**
-   * Follows a `[P1]` marker to its card.
-   *
-   * <p><b>A fresh object per click, and that is load-bearing.</b> Clicking the same marker twice —
-   * after collapsing the card, or after scrolling away — has to work as well as the first click,
-   * and a signal set to the value it already holds notifies nobody. Setting null in between does
-   * not help either: both writes land in one tick and the effect sees only the final value, which
-   * is the one it already had. A new identity every time is what makes each click an event.
-   */
-  protected showSource(citation: Citation): void {
-    this.focusedSource.set({ protocolId: citation.protocolId });
-  }
-}
-
-/**
- * Splits an answer into prose and `[Pn]` markers.
- *
- * A marker whose label is not among the citations is left as plain text rather than dropped or
- * linked: the backend already removed every claim citing a source it did not retrieve, so if one
- * still appears here it belongs to prose and inventing a link for it would be the client asserting
- * something the server did not.
- */
-export function toSegments(answer: string, citations: readonly Citation[]): AnswerSegment[] {
-  const byLabel = new Map(citations.map((citation) => [citation.label.toUpperCase(), citation]));
-  const segments: AnswerSegment[] = [];
-  const pattern = /\[([A-Za-z]\d+)\]/g;
-  let lastIndex = 0;
-
-  for (let match = pattern.exec(answer); match !== null; match = pattern.exec(answer)) {
-    if (match.index > lastIndex) {
-      segments.push({ kind: 'text', value: answer.slice(lastIndex, match.index) });
-    }
-    const citation = byLabel.get(match[1].toUpperCase());
-    segments.push(
-      citation ? { kind: 'marker', value: match[1], citation } : { kind: 'text', value: match[0] },
-    );
-    lastIndex = match.index + match[0].length;
-  }
-
-  if (lastIndex < answer.length) {
-    segments.push({ kind: 'text', value: answer.slice(lastIndex) });
-  }
-  return segments;
 }

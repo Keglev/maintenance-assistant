@@ -68,9 +68,13 @@
   color: var(--c-ink-muted);
 }
 
+/* One step up from the body size. A protocol is the evidence behind an answer and it is read,
+   not skimmed — and the dialog is a large box that was setting small type inside it. --t-md is
+   1.0625rem, so it scales with the reader's chosen text size like everything else. */
 .protocol-paragraph {
   margin: 0;
   max-width: var(--read-max);
+  font-size: var(--t-md);
   line-height: var(--lh-relaxed);
 }
 
@@ -86,9 +90,11 @@
   border: 1px solid var(--c-line);
   border-radius: var(--r-sm);
   background: var(--c-sunken);
+  /* Monospace stays — this is the stored text exactly as filed, and its alignment carries
+     meaning. Only the size goes up, to match the parsed view beside it. */
   font-family: var(--font-mono);
-  font-size: var(--t-sm);
-  line-height: var(--lh-normal);
+  font-size: var(--t-md);
+  line-height: var(--lh-relaxed);
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }

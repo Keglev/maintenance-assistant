@@ -255,10 +255,14 @@ app-health-dot {
 
 /* The destructive action first and the way out beside it, both at full tap height: on a touchscreen
    a confirmation whose buttons are toolbar-sized is a second chance to mis-tap. */
+/* Same step as the moderation dialogs: the three confirmations in this application separate their
+   action row from whatever is above it by one spacing token, so none of them looks like the odd
+   one out. */
 .confirm-actions {
   display: flex;
   flex-wrap: wrap;
   gap: var(--s-3);
+  margin-top: var(--s-5);
 }
 
 /* An icon-only header button: square, so it sits with the theme toggle rather than looking like a

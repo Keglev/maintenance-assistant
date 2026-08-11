@@ -1,0 +1,170 @@
+.sources-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-3);
+}
+
+.sources-heading {
+  margin: 0 0 var(--s-3);
+  font-size: var(--t-sm);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--c-ink-muted);
+}
+
+.sources {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+}
+
+/* Each source is a card of its own: a technician scans this list to decide which protocol to open,
+   and rows that touch are read as one paragraph. */
+.source {
+  display: flex;
+  gap: var(--s-3);
+  align-items: baseline;
+  padding: var(--s-3);
+  border: 1px solid var(--c-mode-a-line);
+  border-radius: var(--r-sm);
+  background: var(--c-surface);
+}
+
+.source-label {
+  flex: 0 0 auto;
+  padding: 0.1rem var(--s-2);
+  border-radius: var(--r-sm);
+  background: var(--c-mode-a);
+  color: var(--c-on-mode-a);
+  font-size: var(--t-xs);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Has to be able to shrink, or the ellipsis on a collapsed card never applies. */
+.source-body {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.source-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--s-2);
+}
+
+/* No href, so the pointer and the underline have to be stated: without them an element that behaves
+   like a link stops looking like one. */
+.source-title {
+  color: var(--c-mode-a-ink);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+
+.source-meta {
+  margin: var(--s-1) 0 0;
+  font-size: var(--t-xs);
+  font-variant-numeric: tabular-nums;
+  color: var(--c-ink-muted);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-1) var(--s-3);
+}
+
+.source-machine {
+  font-family: var(--font-mono);
+}
+
+/* A chevron alone rather than a labelled button like the pager: it sits beside a title that already
+   names what it opens, and its accessible name says the rest. */
+.source-toggle {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: var(--tap);
+  min-height: var(--tap);
+  margin: calc(var(--s-2) * -1) calc(var(--s-2) * -1) 0 0;
+  border: 0;
+  background: none;
+  color: var(--c-ink-muted);
+  cursor: pointer;
+}
+
+.chevron {
+  width: 1.1rem;
+  height: 1.1rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: transform 0.15s ease;
+}
+
+/* Down when there is more to see, up when it is open — the same convention the help panel uses. */
+[aria-expanded='true'] .chevron {
+  transform: rotate(180deg);
+}
+
+/* Collapsed: title and the compact meta on one line, ellipsed rather than wrapped, so five sources
+   stay a list a reader can scan instead of a page they scroll past the answer to leave. */
+.source.collapsed .source-body {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s-3);
+}
+
+.source.collapsed .source-head {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.source.collapsed .source-title {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.source.collapsed .source-meta {
+  margin: 0;
+  flex: 0 1 auto;
+  flex-wrap: nowrap;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+/* Where a citation marker just landed. A ring rather than a background change: the card keeps its
+   Mode A green, and the reader needs to see WHICH of five it is, not a second colour scheme. */
+.source.highlighted {
+  outline: 2px solid var(--c-mode-a);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chevron {
+    transition: none;
+  }
+}
+
+/* On a phone the one-line form would ellipse a title down to two words. The meta drops to its own
+   line and the card grows — collapsing is about the answer staying visible, and two lines per
+   source still does that. */
+@media (max-width: 40rem) {
+  .source.collapsed .source-body {
+    display: block;
+  }
+
+  .source.collapsed .source-meta {
+    margin-top: var(--s-1);
+  }
+}

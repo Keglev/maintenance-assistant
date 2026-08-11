@@ -5,6 +5,8 @@ import { Citation, Machine, QueryAnswer } from '../../core/api/api.types';
 import { ApiFailure, MaintenanceApiService, classify } from '../../core/api/maintenance-api.service';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { ProtocolDialog } from '../../shared/protocol/protocol-dialog';
+import { SearchHelp } from './search-help';
+import { SearchSources, SourceFocus } from './search-sources';
 
 /**
  * One piece of the answer text: either prose, or a citation marker that links to its source.
@@ -33,7 +35,7 @@ export interface AnswerSegment {
  */
 @Component({
   selector: 'app-search',
-  imports: [FormsModule, ProtocolDialog],
+  imports: [FormsModule, ProtocolDialog, SearchHelp, SearchSources],
   templateUrl: './search.html',
   styleUrl: './search.css',
 })
@@ -149,9 +151,26 @@ export class Search {
     this.viewing.set(citation);
   }
 
-  /** Percent, rounded — a reader compares 69 % with 56 %, not 0.6896 with 0.5566. */
-  protected similarityPercent(citation: Citation): number {
-    return Math.round(citation.similarity * 100);
+
+  /**
+   * The protocol a citation marker last pointed at.
+   *
+   * Handed to the source list as an input rather than reached into with a view query: the list
+   * owns its own expand state, and the marker only says which protocol it means.
+   */
+  protected readonly focusedSource = signal<SourceFocus | null>(null);
+
+  /**
+   * Follows a `[P1]` marker to its card.
+   *
+   * <p><b>A fresh object per click, and that is load-bearing.</b> Clicking the same marker twice —
+   * after collapsing the card, or after scrolling away — has to work as well as the first click,
+   * and a signal set to the value it already holds notifies nobody. Setting null in between does
+   * not help either: both writes land in one tick and the effect sees only the final value, which
+   * is the one it already had. A new identity every time is what makes each click an event.
+   */
+  protected showSource(citation: Citation): void {
+    this.focusedSource.set({ protocolId: citation.protocolId });
   }
 }
 

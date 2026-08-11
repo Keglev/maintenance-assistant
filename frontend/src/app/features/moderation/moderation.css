@@ -154,11 +154,40 @@
   white-space: nowrap;
 }
 
+/* Three buttons on one line at desktop width, and never spilling into the row above.
+   THE DEFECT THIS FIXES: the cell wrapped its buttons onto a second line while the row kept the
+   height of a single line, so "Löschen" was drawn over the neighbouring row — a delete button
+   sitting on the wrong protocol, which on this screen is the worst possible mis-click.
+   `nowrap` plus a min-width that actually fits the three labels is what holds the line; the cell
+   is what grows, not the row it overlaps. */
 .row-actions {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: var(--s-2);
   justify-content: flex-end;
+  align-items: center;
+  white-space: nowrap;
+}
+
+.moderation-table td.row-actions {
+  /* Wide enough for Öffnen + Bearbeiten + Löschen at the largest text scale. The table already
+     scrolls horizontally inside its wrapper, so claiming the width costs a scroll, not a collision. */
+  min-width: 19rem;
+  width: 1%;
+}
+
+/* Below the table's own scroll threshold the buttons may wrap — but inside their cell, with the row
+   growing to hold them. Wrapping was never the bug; wrapping without height was. */
+@media (max-width: 30rem) {
+  .row-actions {
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    row-gap: var(--s-2);
+  }
+
+  .moderation-table td.row-actions {
+    min-width: 0;
+  }
 }
 
 .status {
@@ -185,23 +214,6 @@
   color: var(--c-danger);
 }
 
-/* --- Paging --------------------------------------------------------------- */
-
-.pager {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--s-3);
-  margin-top: var(--s-4);
-  padding-top: var(--s-4);
-  border-top: 1px solid var(--c-line);
-}
-
-.pager-state {
-  font-size: var(--t-sm);
-  color: var(--c-ink-muted);
-}
 
 /* --- The delete confirmation ---------------------------------------------- */
 

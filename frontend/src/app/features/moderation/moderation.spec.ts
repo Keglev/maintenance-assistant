@@ -33,7 +33,7 @@ describe('Moderation', () => {
   }
 
   function page(items: ModeratedProtocol[], total = items.length, index = 0): ProtocolPage {
-    return { items, page: index, size: 10, total };
+    return { items, page: index, size: 5, total };
   }
 
   beforeEach(async () => {
@@ -93,7 +93,7 @@ describe('Moderation', () => {
 
     // Paged, not "everything": the corpus grows every time the feature it moderates is used.
     expect(request.request.params.get('page')).toBe('0');
-    expect(request.request.params.get('size')).toBe('10');
+    expect(request.request.params.get('size')).toBe('5');
     // An empty field is a field nobody filled in, so it is left off the query string rather than
     // sent as "" — the backend would have to interpret that instead of reading it.
     expect(request.request.params.has('machineNo')).toBe(false);
@@ -219,6 +219,34 @@ describe('Moderation', () => {
     );
     expect((element.querySelector('[data-testid="page-previous"]') as HTMLButtonElement).disabled)
       .toBe(false);
+  });
+
+  it('renders protocol dates in the interface language', async () => {
+    const fixture = await render();
+    const element = fixture.nativeElement as HTMLElement;
+
+    expect(element.querySelector('[data-testid="moderation-table"]')?.textContent).toContain(
+      '08.08.2026',
+    );
+
+    TestBed.inject(I18nService).use('en');
+    await fixture.whenStable();
+
+    // The same instant, in the format the chosen language uses — not the browser's.
+    expect(element.querySelector('[data-testid="moderation-table"]')?.textContent).toContain(
+      '08/08/2026',
+    );
+  });
+
+  it('names the expected date format, because the native inputs follow the browser', async () => {
+    const fixture = await render();
+
+    // The one place the interface language does not decide: a native date input is drawn by the
+    // browser in the browser's locale. Naming the format is cheaper than a custom picker.
+    expect(
+      (fixture.nativeElement as HTMLElement).querySelector('[data-testid="filter-date-format"]')
+        ?.textContent,
+    ).toContain('TT.MM.JJJJ');
   });
 
   it('keeps the title and date fields out of reach until a machine is chosen', async () => {
@@ -511,7 +539,7 @@ describe('Moderation', () => {
         ...overrides,
       })),
       page: 0,
-      size: 10,
+      size: 5,
       total: items.length,
       cap: 50,
     });
@@ -583,7 +611,7 @@ describe('Moderation', () => {
     const request = httpMock.expectOne((r) => r.url === '/api/moderation/protocols/deleted');
     expect(request.request.params.get('machineNo')).toBe('AB-02');
     expect(request.request.params.get('page')).toBe('0');
-    request.flush({ items: [], page: 0, size: 10, total: 0, cap: 50 });
+    request.flush({ items: [], page: 0, size: 5, total: 0, cap: 50 });
     await fixture.whenStable();
 
     expect(element.querySelector('[data-testid="archive-empty"]')).not.toBeNull();

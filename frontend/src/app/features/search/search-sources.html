@@ -1,0 +1,84 @@
+<div class="sources-header">
+  <h2 class="sources-heading">{{ t().modeA.sources }}</h2>
+  @if (collapsible()) {
+    <!-- Only once the list is long enough to bury the answer above it. Two cards need no control,
+         and one that appears for two rows is noise. -->
+    <button
+      type="button"
+      class="btn btn-secondary arrow-button"
+      data-testid="toggle-all-sources"
+      [attr.aria-expanded]="allExpanded()"
+      (click)="toggleAll()"
+    >
+      <svg class="chevron" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <path d="M6 9l6 6 6-6" />
+      </svg>
+      {{ allExpanded() ? t().modeA.hideSources : t().modeA.showAllSources }}
+    </button>
+  }
+</div>
+
+<ul class="sources" data-testid="sources">
+  @for (citation of citations(); track citation.protocolId) {
+    <li
+      class="source"
+      [id]="cardId(citation)"
+      [class.collapsed]="!isExpanded(citation)"
+      [class.highlighted]="highlighted() === citation.protocolId"
+      data-testid="source-card"
+      [attr.data-expanded]="isExpanded(citation)"
+    >
+      <span class="source-label">{{ citation.label }}</span>
+      <div class="source-body">
+        <div class="source-head">
+          <!-- No href, and that is the fix from #26: a browser-followed anchor is a fresh
+               navigation carrying no Bearer token, so the API answered 401 on every click. Kept an
+               <a> for its link semantics, operable from the keyboard exactly as a link would be. -->
+          <a
+            class="source-title"
+            role="button"
+            tabindex="0"
+            aria-haspopup="dialog"
+            [attr.aria-label]="t().modeA.openSource + ': ' + citation.title"
+            data-testid="source-link"
+            (click)="opened.emit(citation)"
+            (keydown.enter)="opened.emit(citation)"
+            (keydown.space)="opened.emit(citation)"
+            >{{ citation.title }}</a
+          >
+          @if (collapsible()) {
+            <button
+              type="button"
+              class="source-toggle"
+              data-testid="source-toggle"
+              [attr.aria-expanded]="isExpanded(citation)"
+              [attr.aria-label]="
+                (isExpanded(citation) ? t().modeA.collapseSource : t().modeA.expandSource) +
+                ': ' + citation.title
+              "
+              (click)="toggle(citation)"
+            >
+              <svg class="chevron" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                <path d="M6 9l6 6 6-6" />
+              </svg>
+            </button>
+          }
+        </div>
+
+        <!-- What a collapsed card keeps: enough to recognise which protocol this is without opening
+             it. The machine is the same for every source — the query is scoped to one — but a row
+             read on its own should still say which press it is about. -->
+        <p class="source-meta">
+          <span class="source-machine">{{ machine() }}</span>
+          @if (citation.errorCode) {
+            <span>{{ t().modeA.errorCode }}: {{ citation.errorCode }}</span>
+          }
+          @if (citation.incidentDate) {
+            <span>{{ t().modeA.incidentDate }}: {{ citation.incidentDate }}</span>
+          }
+          <span class="num">{{ t().modeA.similarity }}: {{ percent(citation) }} %</span>
+        </p>
+      </div>
+    </li>
+  }
+</ul>

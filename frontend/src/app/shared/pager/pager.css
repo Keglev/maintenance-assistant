@@ -1,0 +1,64 @@
+.pager {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-3);
+  margin-top: var(--s-4);
+  padding-top: var(--s-4);
+  border-top: 1px solid var(--c-line);
+}
+
+.pager-state {
+  font-size: var(--t-sm);
+  color: var(--c-ink-muted);
+  /* Between the two buttons on a wide row and on its own line when they wrap, rather than pinned to
+     one side where it reads as belonging to whichever button it touches. */
+  order: 0;
+  flex: 1 1 auto;
+  text-align: center;
+}
+
+/* Deliberately larger than .btn-sm: this is the control a gloved hand hits most often in a table,
+   and the 44 px tap target is the design system's floor rather than its target. */
+.arrow-button {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+  min-height: var(--tap);
+  padding-inline: var(--s-4);
+  font-weight: 600;
+}
+
+.arrow {
+  width: 1.25rem;
+  height: 1.25rem;
+  flex: none;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* At the ends the button stays visible rather than disappearing: a control that vanishes moves the
+   one next to it under the finger already travelling towards it. */
+.arrow-button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* Phone width: the label is what makes the arrows unambiguous, so the buttons keep their text and
+   share the row, and the state line drops below them. */
+@media (max-width: 30rem) {
+  .arrow-button {
+    flex: 1 1 auto;
+    justify-content: center;
+    padding-inline: var(--s-2);
+  }
+
+  .pager-state {
+    order: 1;
+    flex-basis: 100%;
+  }
+}

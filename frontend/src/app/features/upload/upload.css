@@ -2,6 +2,8 @@
   display: flex;
   flex-direction: column;
   gap: var(--s-4);
+  /* Narrow while it is a column of small fields; the text mode widens it below, because a protocol
+     typed into a 34rem box wraps every second word. */
   max-width: 34rem;
   margin-bottom: var(--s-6);
   padding: var(--s-5);
@@ -9,6 +11,54 @@
   border: 1px solid var(--c-line);
   border-radius: var(--r-md);
   box-shadow: var(--shadow-sm);
+}
+
+.upload-form.wide {
+  max-width: 72rem;
+}
+
+/* Stacked by default — which is the tablet-portrait and phone layout, and the primary device.
+   Small fields first, then the textarea, matching the file mode's order exactly. */
+.form-columns {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
+}
+
+.form-fields {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
+}
+
+.form-fields .btn {
+  align-self: flex-start;
+}
+
+/* Wide screens only: the small fields keep their readable column on the left and the textarea takes
+   the space that was empty to the right of them. Below this the rule above still applies. */
+@media (min-width: 60rem) {
+  .form-columns.with-text {
+    flex-direction: row;
+    align-items: flex-start;
+    gap: var(--s-6);
+  }
+
+  .form-columns.with-text .form-fields {
+    flex: 0 0 22rem;
+  }
+
+  .form-columns.with-text .form-text {
+    flex: 1 1 auto;
+    /* The textarea grows with the column instead of keeping its `rows` height, so the two sides end
+       up the same length rather than leaving a ragged gap under the shorter one. */
+    align-self: stretch;
+  }
+
+  .form-columns.with-text .form-text textarea {
+    height: 100%;
+    min-height: 22rem;
+  }
 }
 
 .notice {

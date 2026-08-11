@@ -525,8 +525,13 @@ export class SearchHelp {
   max-width: 34rem;
 }
 
+/* The inside of the gutter. --s-4 after a 2 px rule left the panel&#x27;s own text hugging the line, and
+   widening the gutter outside it only made that more obvious — a rule with air on one side and none
+   on the other reads as a border on the text rather than as a divider between two columns. --s-5
+   matches the space the answer block keeps inside its own edge. Overridden to 0 in the narrow block
+   below, where the rule is horizontal and there is no gutter to be inside of. */
 .search-help {
-  padding-left: var(--s-4);
+  padding-left: var(--s-5);
   border-left: 2px solid var(--c-line);
   font-size: var(--t-sm);
   color: var(--c-ink-muted);

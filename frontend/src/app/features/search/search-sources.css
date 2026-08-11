@@ -1,13 +1,29 @@
+/*
+ * THE SPACE UNDER THIS ROW BELONGS TO THE ROW.
+ *
+ * It used to live on `.sources-heading`, which is a flex ITEM inside this row — so it padded the
+ * row's interior instead of its underside, and with `align-items: center` the row's bottom edge was
+ * simply the taller item's edge. That taller item is the 44 px "Alle Quellen anzeigen" button, which
+ * only exists once a list is long enough to be collapsible: below three sources the heading WAS the
+ * tallest item and its margin did look like spacing, which is exactly why the defect hid until a
+ * real E-47 answer produced enough sources to show the button.
+ *
+ * --s-4 rather than the --s-3 the heading carried: the cards below are separated from each other by
+ * --s-2, and a header row that cleared the list by only one step more would read as the first entry
+ * in it. Double the card gap is the smallest distance that says "this row is above the list", and it
+ * still sits well inside the --s-5 that separates the whole source block from the answer.
+ */
 .sources-header {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: var(--s-3);
+  margin-bottom: var(--s-4);
 }
 
 .sources-heading {
-  margin: 0 0 var(--s-3);
+  margin: 0;
   font-size: var(--t-sm);
   text-transform: uppercase;
   letter-spacing: 0.06em;

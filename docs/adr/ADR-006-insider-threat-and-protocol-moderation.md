@@ -257,3 +257,55 @@ human-readable "what was it" survives next to the machine-readable "who removed 
   archive. The `moderation_event` ledger is what survives that, which is why it is not cascaded.
 - **Still one administrator.** Editing hands that single account the power to change what the corpus
   says, not only to remove from it. Four-eyes remains deferred and is now a larger gap than it was.
+
+---
+
+## Note — 2026-08-10: approval and duplicate detection, deferred to v1.2
+
+*A dated note, not a revision: nothing above changes. This records two decisions taken with the
+project owner about what comes next and what shape it will have, so that v1.2 starts from a position
+rather than from a blank page.*
+
+### Approve workflow — deferred, and the trust chain has changed shape
+
+The deferred-items table above sketches draft/approve as "technician writes, Schichtleiter approves
+before indexing". That sketch is superseded here, because it put the author and the approver one
+step apart and left the Schichtleiter approving their own corrections. **The chain for v1.2 is three
+roles deep:**
+
+| Role | May |
+|---|---|
+| **Techniker** | Write a protocol. **Never edit their own.** |
+| **Schichtleiter** | Edit any protocol, and forward it for approval. |
+| **Admin** | Approve — and may close a protocol after editing it. |
+
+**The rule that makes it worth building: the author and the approver are never the same person.**
+That is the four-eyes principle applied where it actually bites — not to deletion (there is one
+administrator, and a quorum of one is theatre) but to the moment a protocol becomes citable. It also
+answers the objection the original ADR raised against restricting writing further: this does not
+rename the role that can carry the threat out, it puts a second pair of eyes between the threat and
+the corpus.
+
+A protocol's approval state then becomes a **search facet**: "approved protocols only" is a filter
+that follows from the state existing, not a feature to design separately.
+
+What it costs, and why it is not in this PR: a second state on every protocol, a review queue, a
+notification path, and a role that has to be present for the corpus to grow at all. It is a work
+package, and it wants the edit-with-re-index path this PR just built underneath it.
+
+### Duplicate detection on approval — deferred, and it must warn rather than block
+
+On approval, run the **existing** pgvector similarity of the new protocol against the protocols of
+the same machine. High similarity raises a **warning with links to the neighbours it found**. The
+administrator decides: join them, keep both, or delete one.
+
+**It must never block, and the corpus already contains the proof.** The E-47 demo seed is four
+protocols on Presse 3 with the same fault code and *four different root causes* — every one of them
+legitimate, and any similarity threshold high enough to be useful would flag them as duplicates of
+each other. A blocking check would refuse the single most valuable case in the corpus. A warning
+costs a glance and catches the case it is actually for: the same protocol filed twice.
+
+It reuses what exists — the embeddings are already stored, the machine filter is already a column on
+`chunk` (ADR-004) — so the cost is a query and a screen, not a new mechanism. It is deferred with
+approval because that is the moment it belongs to: a duplicate warning is only actionable while
+someone is already deciding whether the protocol should exist.

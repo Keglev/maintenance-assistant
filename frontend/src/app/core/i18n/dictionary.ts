@@ -155,7 +155,6 @@ export interface Dictionary {
     readonly machine: string;
     readonly machinePlaceholder: string;
     readonly question: string;
-    readonly questionHint: string;
     readonly questionPlaceholder: string;
     readonly submit: string;
     readonly working: string;
@@ -193,6 +192,9 @@ export interface Dictionary {
     readonly hideSources: string;
     readonly expandSource: string;
     readonly collapseSource: string;
+    /** The drawer over a long answer. The text is clamped, never cut — see SearchAnswer. */
+    readonly expandAnswer: string;
+    readonly collapseAnswer: string;
   };
   readonly viewer: {
     readonly title: string;
@@ -474,8 +476,6 @@ export const DE: Dictionary = {
     machine: 'Maschine',
     machinePlaceholder: 'Maschine wählen …',
     question: 'Ihre Frage',
-    questionHint:
-      'z. B.: Sensorfehler, Maschine startet nicht, Programm lädt nicht, Druck baut sich langsam auf',
     questionPlaceholder: 'z. B. Presse kommt nicht auf Druck, Fehler E-47',
     submit: 'Frage stellen',
     working: 'Antwort wird erstellt …',
@@ -512,6 +512,8 @@ export const DE: Dictionary = {
     hideSources: 'Quellen einklappen',
     expandSource: 'Quelle aufklappen',
     collapseSource: 'Quelle zuklappen',
+    expandAnswer: 'Vollständige Antwort anzeigen',
+    collapseAnswer: 'Antwort einklappen',
   },
   viewer: {
     title: 'Originalprotokoll',
@@ -787,8 +789,6 @@ export const EN: Dictionary = {
     machine: 'Machine',
     machinePlaceholder: 'Choose a machine …',
     question: 'Your question',
-    questionHint:
-      'e.g.: sensor fault, machine will not start, program does not load, pressure builds up slowly',
     questionPlaceholder: 'e.g. press does not build up pressure, fault E-47',
     submit: 'Ask',
     working: 'Preparing the answer …',
@@ -825,6 +825,8 @@ export const EN: Dictionary = {
     hideSources: 'Collapse sources',
     expandSource: 'Expand source',
     collapseSource: 'Collapse source',
+    expandAnswer: 'Show full answer',
+    collapseAnswer: 'Collapse answer',
   },
   viewer: {
     title: 'Original protocol',

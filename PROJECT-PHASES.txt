@@ -5,12 +5,20 @@ Naming update overriding older docs: project = "maintenance-assistant",
 Keycloak realm = "maintenance". English repo name is intentional.)
 
 =====================================================================
-CURRENT STATUS — 2026-08-10, end of session (SESSION HANDOVER)
+CURRENT STATUS — 2026-08-11 (v1.1.0 TAGGED AND RELEASED)
 =====================================================================
-v1.0.0 IS TAGGED AND LIVE (tagged 2026-08-08 after the tablet
-walkthrough). Since the tag, the v1.1 wave shipped in SEVEN merged and
-deployed PRs, all verified (robot full-report -> Claude pre/post-merge
-verification -> Carlos merge -> live checks):
+v1.1.0 IS TAGGED AND LIVE, 2026-08-11. THE v1.1 WAVE IS CLOSED: every
+PR from #31 to #47 is merged and deployed, #48 is the release chore
+the tag sits on, and the RELEASE DRILL IS GREEN — the Settings dialog
+reports 1.1.0 in production, and the Keycloak login theme is verified
+on the live auth host.
+
+v1.0.0 was tagged 2026-08-08 after the tablet walkthrough. Everything
+below shipped after it, all of it verified the same way (robot
+full-report -> Claude pre/post-merge verification -> Carlos merge ->
+live checks).
+
+FIRST HALF OF THE WAVE — the lifecycle and moderation work:
 
   #31 fix(backend): HEAD permitted on public paths (uptime probes),
       ERROR dispatch 404s, Swagger entry verified live.
@@ -80,57 +88,128 @@ verification -> Carlos merge -> live checks):
       (a package-private ctor passed locally from the working tree and
       failed in CI).
 
-PENDING — CARLOS, before anything else next session:
-  1. LIVE DRILL for #38/#39 (spelled out in #39's PR body): as
-     schichtleiter upload a throwaway -> see it cited -> as admin EDIT
-     it (watch the answer change after re-index — step 4 is the whole
-     PR) -> DELETE with a comment -> gone from search + Meine Uploads
-     -> readable in Geloeschte Protokolle with the comment. Delete
-     ONLY the throwaway, never a seeded protocol.
-  2. Carlos has a PARKED LIST OF DESIGN ISSUES (his words, 2026-08-10,
-     not yet enumerated) -> he provides the list + screenshots, Claude
-     drafts ONE design-fix robot prompt.
+SECOND HALF OF THE WAVE — the polish that made it presentable, all
+merged and deployed 2026-08-11:
+  #41 feat/design-fixes: the first pass over Carlos's parked list from
+      the live-drill review.
+  #42 feat/keycloak-login-theme: the login page stops wearing stock
+      Keycloak (see the dated note in OPEN ITEMS). Hand-deployed, and
+      the theme selected once in the admin console.
+  #43 feat/footer-health-dot: GET /api/health every 60 s while signed
+      in, three states, the dot always carrying its own label.
+  #44 fix/design-fixes-2: per-view page widths (.page-wide, .page-
+      split), the search two-column grid that had never applied at
+      desktop width, the long-answer drawer.
+  #45 fix/design-fixes-3: source-list spacing that unmatched on long
+      answers, the upload two-column alignment, header nav affordance
+      and ONE shared pressed/hover layer in the design system.
+  #46 fix/design-fixes-4: the sources header row spacing, and a wider
+      gutter to the search help panel.
+  #47 fix/keycloak-theme-contrast: the realm heading measured 1.09:1
+      in the LIGHT scheme (white on near-white) and the login footer
+      sat outside the card's content column. ONE BUG CLASS behind
+      both — repainting the canvas makes every element the parent
+      coloured for the OLD canvas yours, including the ones the
+      stylesheet never names. Closed with a contrast sweep of a real
+      render: 86 measurements, 0 failures.
+  #48 chore/release-1.1.0: the version bump the Settings dialog reads,
+      and the drill note that a stale browser cache tests the OLD
+      theme. THE TAG SITS ON THIS COMMIT.
 
-v1.1 BACKLOG AFTER THAT, in order:
-  a. Design-fix PR (Carlos's parked list).
-  b. KEYCLOAK LOGIN THEME PR — CODE DONE 2026-08-11, see the dated
-     note in OPEN ITEMS. NOT YET DEPLOYED: it is the hand-deployed
-     artifact, so it is live only after Carlos runs the runbook AND
-     selects the theme once in the admin console. One item of the
-     original scope came out differently and deliberately: the login
-     page does NOT honour the app's manual theme choice — it follows
-     the OS, because reading another origin's storage is impossible
-     and smuggling the choice through the auth URL is not something
-     an auth URL should carry. Demo autofill was already there
-     (login_hint, #32) and still works; the demo-account box was
-     added beside it for visitors who land on the login page direct.
-  c. "Meine Uploads" pagination (last 5-10 + paging) and a visible
-     accepted-format hint on the upload view ("Nur Textdateien:
-     .txt") — small, can ride along with (a).
-  d. Footer server-health dot — DONE 2026-08-11 (feat/footer-health-dot).
-  e. TAG v1.1.0 (remember: bump package.json version — the Settings
-     dialog reads it). Then applications reference a release with the
-     full insider-threat story: create -> detect -> trace -> remediate
-     (edit or archive) -> evidence preserved.
-  Later/documented-not-built: PDF export (generation, not serving),
-  structured Symptom/Ursache/Massnahme fields, .docx parsing (form
-  entry made it non-core).
-  DEFERRED TO v1.2, decided 2026-08-10 and written up in the ADR-006
-  dated note — shape agreed, nothing built: (1) APPROVE WORKFLOW with a
-  three-role chain, Techniker writes and may never edit his own,
-  Schichtleiter edits and forwards, Admin approves (author and approver
-  are never the same person — four-eyes where it bites, at the moment a
-  protocol becomes citable); the approval state then gives search an
-  "approved protocols" facet for free. This SUPERSEDES the older
-  two-role draft/approve sketch, which left the Schichtleiter approving
-  his own corrections. (2) DUPLICATE DETECTION on approval: run the
-  existing pgvector similarity against the same machine's protocols and
-  WARN with links — never block. The E-47 seed is the proof case: same
-  code, four different root causes, all legitimate, and any threshold
-  useful enough to catch a real duplicate would flag them as copies of
-  each other. Admin decides join / keep / delete.
+=====================================================================
+ROADMAP AFTER v1.1.0 — decided by Carlos, 2026-08-11
+=====================================================================
+APPLICATIONS RUN AGAINST v1.1.0 THROUGHOUT. The roadmap is built in
+parallel and NEVER BLOCKS SENDING ONE — that is the whole point of
+having tagged a release that already tells the full insider-threat
+story: create -> detect -> trace -> remediate (edit or archive) ->
+evidence preserved.
 
-WORKING PROCESS (settled this session, keep):
+1. v1.2.0 — TRUST CHAIN
+   - APPROVE WORKFLOW, per ADR-006's dated note (2026-08-10): the
+     Techniker writes and never edits his own; the Schichtleiter edits
+     and forwards; the Admin approves, and may close after an edit.
+     AUTHOR AND APPROVER ARE NEVER THE SAME PERSON — four-eyes where
+     it bites, at the moment a protocol becomes citable. The approval
+     state then gives search a NEW FACET for approved protocols, for
+     free.
+   - DUPLICATE DETECTION ON APPROVAL: run the existing pgvector
+     similarity against the same machine's protocols; high similarity
+     raises a WARNING with links and NEVER BLOCKS. The E-47 seed is
+     the proof case — same code, four different root causes, all
+     legitimate, and any threshold useful enough to catch a real
+     duplicate would flag those four as copies of each other. The
+     admin decides join / keep / delete.
+   - ADR-006 gets a revision on implementation; migrations expected.
+
+2. PLAYWRIGHT E2E FOUNDATION — its own step, after v1.2
+   - A small rendered-test suite: the login flow, a Mode A citation
+     click-through, moderation edit/delete, and the new approve flow
+     as its first real case.
+   - THE RATIONALE IS ON RECORD AND IS NOT A PREFERENCE: the two
+     best-caught bugs of v1.0-v1.1 were both invisible to jsdom and to
+     API checks. #26's source links answered 401 on a real click while
+     curl with a token passed; K2's realm heading was white on
+     near-white while every token in the stylesheet was correct. Both
+     were found only in a rendered browser. New ADR for the E2E
+     strategy.
+
+3. v1.3.0 — RETRIEVAL QUALITY
+   - HYBRID KEYWORD + SEMANTIC SEARCH (deferred 2026-08-10; the
+     interim answer is the search help panel).
+   - RERANKER — Qwen3-VL-Reranker-8B, already served on IONOS.
+   - SIMILARITY-THRESHOLD REVALIDATION against the grown corpus: 0.55
+     is bge-m3-specific AND corpus-sensitive, and the cross-language
+     demo clears it by 0.0066 today.
+   - All three MEASURED, NOT GUESSED, in the ADR-002 tradition.
+
+4. REFACTOR PHASE — maintenance track, no release
+   - Structure, code and test review for BACKEND AND FRONTEND with
+     explicit metrics: file line counts, methods per class/component,
+     lines per method, comment coverage and quality (javadoc on the
+     backend, TSDoc on the frontend).
+   - Docs review: structure, navigation, size; a radical README
+     rework. The theme-README rewrite noted in #48's report belongs
+     here.
+   - ZERO BEHAVIOUR CHANGE. Real refactors found here become their own
+     small PRs rather than riding along with the review.
+
+5. PHASE 5 — EVOLUTION CANDIDATES (unchanged list, optional):
+   similar-machine search, OCR, downtime stats, PDF export (generation,
+   not serving), structured Symptom/Ursache/Massnahme fields, and
+   PDF/scan/.docx ingestion. The section at the bottom of this file is
+   the older version of this list; where the two disagree, THIS ONE
+   WINS (see the superseded note there).
+
+6. v2.0 — ARCHITECTURE EVOLUTION, GATE FIRST
+   - THE KAFKA EXTRACTION (the ADR-001 seam) AND THE SPRING MODULITH
+     BOUNDARY TESTS ARE NOT COMMITTED. The FIRST TASK of this step is
+     a written verification of whether the extraction is warranted at
+     all at this corpus size and this load — recorded as an ADR either
+     way.
+   - "DECIDED AGAINST, WITH REASONS" IS AN ACCEPTABLE OUTCOME, and a
+     portfolio-worthy one: an engineer who can show why they did not
+     build the distributed version is demonstrating the same judgement
+     as one who did.
+
+STANDING LIST — small, always visible, never a release of its own:
+  - v1.1.1 POLISH CANDIDATES, parked; they ride into v1.2 unless
+    something promotes them: (1) the 60-64rem dead band where the
+    search help panel renders in its desktop form inside a stacked
+    layout (found in #46); (2) a decision on the unused
+    .pf-v5-c-alert.pf-m-danger rule — Keycloak 26.7 renders a wrong
+    password as inline helper text, so the theme's alert rule styles
+    something the login flow does not produce (found in #47); (3) the
+    dark locale-select cosmetic, PatternFly's #36373a rather than the
+    theme's --wa-field (passes contrast at 9.02:1; cosmetic only).
+  - IONOS TOKEN ROTATION ~JULY 2027 — the production token expires
+    2027-08-07; the calendar entry is two weeks before. Details and
+    the paste procedure are under Keys.
+  - QUARTERLY IMAGE PULLS — base images do not refresh themselves.
+  - "TESTED BEFORE EVERY APPLICATION SENT OUT" — the demo must always
+    work; it is the artifact being applied with.
+
+WORKING PROCESS (settled 2026-08-10, keep):
   Robot prompt template ends with: (1) FULL REPORT — what changed and
   why, findings/defects caught, deviations, NOT-verified stated as
   such; (2) gh pr checks --watch table; (3) PR URL; then stop. Never
@@ -1011,6 +1090,14 @@ v1.0.0 tag remain]
 
 =====================================================================
 PHASE 5 — EVOLUTION (after applications are out, optional)
+SUPERSEDED 2026-08-11 by the ROADMAP at the top of this file. Kept as
+written, because it is the shape the plan had before the roadmap split
+it up, and three of its lines are now wrong in ways worth seeing:
+the Kafka extraction is NO LONGER COMMITTED (roadmap step 6 gates it
+behind a written verification, and "decided against" is an allowed
+outcome), the Modulith boundary tests moved with it, the reranker moved
+FORWARD into v1.3.0, and ADR-006 is long since taken — by the insider
+threat, in #37. Where the two disagree, the roadmap wins.
 =====================================================================
 - Extract ingestion service + Kafka (per ADR-001), document as ADR-006
   (ADR-005 is taken: Phase 4's token-handling decision claimed the number)

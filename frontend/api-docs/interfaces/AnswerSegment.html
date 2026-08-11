@@ -246,7 +246,7 @@ make one.</p>
 
                             <tr>
                                 <td class="col-md-4">
-                                    <div class="io-line">Defined in <a href="" data-line="22" class="link-to-prism">src/app/features/search/search.ts:22</a></div>
+                                    <div class="io-line">Defined in <a href="" data-line="24" class="link-to-prism">src/app/features/search/search.ts:24</a></div>
                                 </td>
                             </tr>
 
@@ -291,7 +291,7 @@ make one.</p>
 
                             <tr>
                                 <td class="col-md-4">
-                                    <div class="io-line">Defined in <a href="" data-line="19" class="link-to-prism">src/app/features/search/search.ts:19</a></div>
+                                    <div class="io-line">Defined in <a href="" data-line="21" class="link-to-prism">src/app/features/search/search.ts:21</a></div>
                                 </td>
                             </tr>
 
@@ -330,7 +330,7 @@ make one.</p>
 
                             <tr>
                                 <td class="col-md-4">
-                                    <div class="io-line">Defined in <a href="" data-line="20" class="link-to-prism">src/app/features/search/search.ts:20</a></div>
+                                    <div class="io-line">Defined in <a href="" data-line="22" class="link-to-prism">src/app/features/search/search.ts:22</a></div>
                                 </td>
                             </tr>
 
@@ -348,6 +348,8 @@ import { Citation, Machine, QueryAnswer } from &#x27;../../core/api/api.types&#x
 import { ApiFailure, MaintenanceApiService, classify } from &#x27;../../core/api/maintenance-api.service&#x27;;
 import { I18nService } from &#x27;../../core/i18n/i18n.service&#x27;;
 import { ProtocolDialog } from &#x27;../../shared/protocol/protocol-dialog&#x27;;
+import { SearchHelp } from &#x27;./search-help&#x27;;
+import { SearchSources, SourceFocus } from &#x27;./search-sources&#x27;;
 
 /**
  * One piece of the answer text: either prose, or a citation marker that links to its source.
@@ -376,7 +378,7 @@ export interface AnswerSegment {
  */
 @Component({
   selector: &#x27;app-search&#x27;,
-  imports: [FormsModule, ProtocolDialog],
+  imports: [FormsModule, ProtocolDialog, SearchHelp, SearchSources],
   templateUrl: &#x27;./search.html&#x27;,
   styleUrl: &#x27;./search.css&#x27;,
 })
@@ -492,9 +494,26 @@ export class Search {
     this.viewing.set(citation);
   }
 
-  /** Percent, rounded — a reader compares 69 % with 56 %, not 0.6896 with 0.5566. */
-  protected similarityPercent(citation: Citation): number {
-    return Math.round(citation.similarity * 100);
+
+  /**
+   * The protocol a citation marker last pointed at.
+   *
+   * Handed to the source list as an input rather than reached into with a view query: the list
+   * owns its own expand state, and the marker only says which protocol it means.
+   */
+  protected readonly focusedSource &#x3D; signal&lt;SourceFocus | null&gt;(null);
+
+  /**
+   * Follows a &#x60;[P1]&#x60; marker to its card.
+   *
+   * &lt;p&gt;&lt;b&gt;A fresh object per click, and that is load-bearing.&lt;/b&gt; Clicking the same marker twice —
+   * after collapsing the card, or after scrolling away — has to work as well as the first click,
+   * and a signal set to the value it already holds notifies nobody. Setting null in between does
+   * not help either: both writes land in one tick and the effect sees only the final value, which
+   * is the one it already had. A new identity every time is what makes each click an event.
+   */
+  protected showSource(citation: Citation): void {
+    this.focusedSource.set({ protocolId: citation.protocolId });
   }
 }
 

@@ -216,7 +216,11 @@ have been a second write path to keep in step with the first, for no gain the us
             <tr>
                 <td class="col-md-3">imports</td>
                 <td class="col-md-9">
+                        <div>        <code><a href="../components/App.html" target="_self" >AppDatePipe</a></code>
+</div>
                         <div>        <code><a href="https://angular.dev/api/forms/FormsModule" target="_blank" >FormsModule</a></code>
+</div>
+                        <div>        <code><a href="../components/Pager.html" target="_self" >Pager</a></code>
 </div>
                 </td>
             </tr>
@@ -262,7 +266,13 @@ have been a second write path to keep in step with the first, for no gain the us
                     <h4>Depends on</h4>
                         <ul class="list-unstyled relationships-list">
                                 <li>
+                                            <code><a href="../components/App.html" target="_self" >AppDatePipe</a></code>
+                                </li>
+                                <li>
                                             <code><a href="https://angular.dev/api/forms/FormsModule" target="_blank" >FormsModule</a></code>
+                                </li>
+                                <li>
+                                            <code><a href="../components/Pager.html" target="_self" >Pager</a></code>
                                 </li>
                         </ul>
                 </div>
@@ -332,6 +342,12 @@ have been a second write path to keep in step with the first, for no gain the us
                                 <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
                                     <span class="modifier">Protected</span>
                                     <span class="modifier">Readonly</span>
+                                <a href="#language" >language</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
+                                    <span class="modifier">Protected</span>
+                                    <span class="modifier">Readonly</span>
                                 <a href="#machineNo" >machineNo</a>
                             </li>
                             <li>
@@ -345,6 +361,24 @@ have been a second write path to keep in step with the first, for no gain the us
                                     <span class="modifier">Protected</span>
                                     <span class="modifier">Readonly</span>
                                 <a href="#mode" >mode</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
+                                    <span class="modifier">Protected</span>
+                                    <span class="modifier">Readonly</span>
+                                <a href="#page" >page</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
+                                    <span class="modifier">Protected</span>
+                                    <span class="modifier">Readonly</span>
+                                <a href="#pageCount" >pageCount</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
+                                    <span class="modifier">Protected</span>
+                                    <span class="modifier">Readonly</span>
+                                <a href="#pagedUploads" >pagedUploads</a>
                             </li>
                             <li>
                                 <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
@@ -415,17 +449,22 @@ have been a second write path to keep in step with the first, for no gain the us
                             <li>
                                 <span class="reference-badge reference-badge--method" aria-hidden="true">M</span>
                                     <span class="modifier">Protected</span>
+                                <a href="#nextPage" >nextPage</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--method" aria-hidden="true">M</span>
+                                    <span class="modifier">Protected</span>
                                 <a href="#pickFile" >pickFile</a>
                             </li>
                             <li>
                                 <span class="reference-badge reference-badge--method" aria-hidden="true">M</span>
                                     <span class="modifier">Protected</span>
-                                <a href="#refresh" >refresh</a>
+                                <a href="#previousPage" >previousPage</a>
                             </li>
                             <li>
                                 <span class="reference-badge reference-badge--method" aria-hidden="true">M</span>
                                     <span class="modifier">Protected</span>
-                                <a href="#shortDate" >shortDate</a>
+                                <a href="#refresh" >refresh</a>
                             </li>
                             <li>
                                 <span class="reference-badge reference-badge--method" aria-hidden="true">M</span>
@@ -470,7 +509,7 @@ have been a second write path to keep in step with the first, for no gain the us
                 </tr>
                         <tr>
                             <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="87" class="link-to-prism">src/app/features/upload/upload.ts:87</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="117" class="link-to-prism">src/app/features/upload/upload.ts:117</a></div>
                             </td>
                         </tr>
 
@@ -509,8 +548,8 @@ have been a second write path to keep in step with the first, for no gain the us
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="176"
-                                    class="link-to-prism">src/app/features/upload/upload.ts:176</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="206"
+                                    class="link-to-prism">src/app/features/upload/upload.ts:206</a></div>
                         </td>
                     </tr>
 
@@ -548,8 +587,8 @@ have been a second write path to keep in step with the first, for no gain the us
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="218"
-                                    class="link-to-prism">src/app/features/upload/upload.ts:218</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="251"
+                                    class="link-to-prism">src/app/features/upload/upload.ts:251</a></div>
                         </td>
                     </tr>
 
@@ -601,6 +640,45 @@ have been a second write path to keep in step with the first, for no gain the us
         <tbody>
             <tr>
                 <td class="col-md-4">
+                    <a name="nextPage"></a>
+                    <span class="name">
+                            <span class="modifier">Protected</span>
+                        <span ><b>nextPage</b></span>
+                        <a href="#nextPage"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                        <span class="modifier-icon icon ion-ios-reset"></span>
+                    <code>nextPage()</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="259"
+                                    class="link-to-prism">src/app/features/upload/upload.ts:259</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+
+                        <div class="io-description">
+                            <b>Returns : </b>        <code><a href="https://www.typescriptlang.org/docs/handbook/basic-types.html" target="_blank" >void</a></code>
+
+                        </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
                     <a name="pickFile"></a>
                     <span class="name">
                             <span class="modifier">Protected</span>
@@ -619,8 +697,8 @@ have been a second write path to keep in step with the first, for no gain the us
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="94"
-                                    class="link-to-prism">src/app/features/upload/upload.ts:94</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="124"
+                                    class="link-to-prism">src/app/features/upload/upload.ts:124</a></div>
                         </td>
                     </tr>
 
@@ -670,6 +748,45 @@ have been a second write path to keep in step with the first, for no gain the us
         <tbody>
             <tr>
                 <td class="col-md-4">
+                    <a name="previousPage"></a>
+                    <span class="name">
+                            <span class="modifier">Protected</span>
+                        <span ><b>previousPage</b></span>
+                        <a href="#previousPage"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                        <span class="modifier-icon icon ion-ios-reset"></span>
+                    <code>previousPage()</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="255"
+                                    class="link-to-prism">src/app/features/upload/upload.ts:255</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+
+                        <div class="io-description">
+                            <b>Returns : </b>        <code><a href="https://www.typescriptlang.org/docs/handbook/basic-types.html" target="_blank" >void</a></code>
+
+                        </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
                     <a name="refresh"></a>
                     <span class="name">
                             <span class="modifier">Protected</span>
@@ -688,8 +805,8 @@ have been a second write path to keep in step with the first, for no gain the us
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="191"
-                                    class="link-to-prism">src/app/features/upload/upload.ts:191</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="221"
+                                    class="link-to-prism">src/app/features/upload/upload.ts:221</a></div>
                         </td>
                     </tr>
 
@@ -707,77 +824,6 @@ than a timer somebody has to remember to clear.</p>
                             <b>Returns : </b>        <code><a href="https://www.typescriptlang.org/docs/handbook/basic-types.html" target="_blank" >void</a></code>
 
                         </div>
-                </td>
-            </tr>
-        </tbody>
-    </table>
-    <table class="table table-sm table-bordered">
-        <tbody>
-            <tr>
-                <td class="col-md-4">
-                    <a name="shortDate"></a>
-                    <span class="name">
-                            <span class="modifier">Protected</span>
-                        <span ><b>shortDate</b></span>
-                        <a href="#shortDate"><span class="icon ion-ios-link"></span></a>
-                    </span>
-                </td>
-            </tr>
-            <tr>
-                <td class="col-md-4">
-                        <span class="modifier-icon icon ion-ios-reset"></span>
-                    <code>shortDate(iso: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank">string</a>)</code>
-                </td>
-            </tr>
-
-
-                    <tr>
-                        <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="223"
-                                    class="link-to-prism">src/app/features/upload/upload.ts:223</a></div>
-                        </td>
-                    </tr>
-
-
-            <tr>
-                <td class="col-md-4">
-                        <div class="io-description"><p>Date only: the exact second an upload happened has never been the question.</p>
-</div>
-
-                            <div class="io-description">
-                                <b>Parameters :</b>
-                                
-                                <table class="params">
-                                    <thead>
-                                        <tr>
-                                            <td>Name</td>
-                                                <td>Type</td>
-                                            <td>Optional</td>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr>
-                                                <td>iso</td>
-                                            <td>
-                                                            <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
-                                            </td>
-
-                                            <td>
-                                                    No
-                                            </td>
-
-
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        <div class="io-description">
-                            <b>Returns : </b>        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
-
-                        </div>
-                            <div class="io-description">
-                                
-                            </div>
                 </td>
             </tr>
         </tbody>
@@ -804,8 +850,8 @@ than a timer somebody has to remember to clear.</p>
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="205"
-                                    class="link-to-prism">src/app/features/upload/upload.ts:205</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="238"
+                                    class="link-to-prism">src/app/features/upload/upload.ts:238</a></div>
                         </td>
                     </tr>
 
@@ -873,8 +919,8 @@ than a timer somebody has to remember to clear.</p>
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="116"
-                                    class="link-to-prism">src/app/features/upload/upload.ts:116</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="146"
+                                    class="link-to-prism">src/app/features/upload/upload.ts:146</a></div>
                         </td>
                     </tr>
 
@@ -912,8 +958,8 @@ than a timer somebody has to remember to clear.</p>
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="170"
-                                    class="link-to-prism">src/app/features/upload/upload.ts:170</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="200"
+                                    class="link-to-prism">src/app/features/upload/upload.ts:200</a></div>
                         </td>
                     </tr>
 
@@ -956,8 +1002,8 @@ difference, which is the whole design.</p>
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="106"
-                                    class="link-to-prism">src/app/features/upload/upload.ts:106</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="136"
+                                    class="link-to-prism">src/app/features/upload/upload.ts:136</a></div>
                         </td>
                     </tr>
 
@@ -1041,7 +1087,7 @@ attached. Cheaper to lose one input on an explicit mode switch than to submit a 
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="59" class="link-to-prism">src/app/features/upload/upload.ts:59</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="64" class="link-to-prism">src/app/features/upload/upload.ts:64</a></div>
                         </td>
                     </tr>
 
@@ -1074,7 +1120,7 @@ attached. Cheaper to lose one input on an explicit mode switch than to submit a 
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="41" class="link-to-prism">src/app/features/upload/upload.ts:41</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="46" class="link-to-prism">src/app/features/upload/upload.ts:46</a></div>
                         </td>
                     </tr>
 
@@ -1112,7 +1158,7 @@ attached. Cheaper to lose one input on an explicit mode switch than to submit a 
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="82" class="link-to-prism">src/app/features/upload/upload.ts:82</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="112" class="link-to-prism">src/app/features/upload/upload.ts:112</a></div>
                         </td>
                     </tr>
 
@@ -1158,7 +1204,7 @@ suggestion, and the place to make it a rule is the backend.</p>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="55" class="link-to-prism">src/app/features/upload/upload.ts:55</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="60" class="link-to-prism">src/app/features/upload/upload.ts:60</a></div>
                         </td>
                     </tr>
 
@@ -1191,7 +1237,7 @@ suggestion, and the place to make it a rule is the backend.</p>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="60" class="link-to-prism">src/app/features/upload/upload.ts:60</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="65" class="link-to-prism">src/app/features/upload/upload.ts:65</a></div>
                         </td>
                     </tr>
 
@@ -1224,7 +1270,7 @@ suggestion, and the place to make it a rule is the backend.</p>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="50" class="link-to-prism">src/app/features/upload/upload.ts:50</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="55" class="link-to-prism">src/app/features/upload/upload.ts:55</a></div>
                         </td>
                     </tr>
 
@@ -1257,7 +1303,7 @@ suggestion, and the place to make it a rule is the backend.</p>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="68" class="link-to-prism">src/app/features/upload/upload.ts:68</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="98" class="link-to-prism">src/app/features/upload/upload.ts:98</a></div>
                         </td>
                     </tr>
 
@@ -1298,10 +1344,49 @@ and the form would be telling the user one thing while holding another.</p>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="42" class="link-to-prism">src/app/features/upload/upload.ts:42</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="47" class="link-to-prism">src/app/features/upload/upload.ts:47</a></div>
                         </td>
                     </tr>
 
+
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="language"></a>
+                    <span class="name">
+                            <span class="modifier">Protected</span>
+                            <span class="modifier">Readonly</span>
+                        <span ><b>language</b></span>
+                        <a href="#language"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>unknown</code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>this.i18n.language</code>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="68" class="link-to-prism">src/app/features/upload/upload.ts:68</a></div>
+                        </td>
+                    </tr>
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-description"><p>Passed to the date pipe, which cannot see a signal it is not given.</p>
+</div>
+                </td>
+            </tr>
 
         </tbody>
     </table>
@@ -1331,7 +1416,7 @@ and the form would be telling the user one thing while holding another.</p>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="52" class="link-to-prism">src/app/features/upload/upload.ts:52</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="57" class="link-to-prism">src/app/features/upload/upload.ts:57</a></div>
                         </td>
                     </tr>
 
@@ -1364,7 +1449,7 @@ and the form would be telling the user one thing while holding another.</p>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="46" class="link-to-prism">src/app/features/upload/upload.ts:46</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="51" class="link-to-prism">src/app/features/upload/upload.ts:51</a></div>
                         </td>
                     </tr>
 
@@ -1397,10 +1482,132 @@ and the form would be telling the user one thing while holding another.</p>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="49" class="link-to-prism">src/app/features/upload/upload.ts:49</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="54" class="link-to-prism">src/app/features/upload/upload.ts:54</a></div>
                         </td>
                     </tr>
 
+
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="page"></a>
+                    <span class="name">
+                            <span class="modifier">Protected</span>
+                            <span class="modifier">Readonly</span>
+                        <span ><b>page</b></span>
+                        <a href="#page"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>unknown</code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>signal(0)</code>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="71" class="link-to-prism">src/app/features/upload/upload.ts:71</a></div>
+                        </td>
+                    </tr>
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-description"><p>Zero-based page of &quot;Meine Uploads&quot;.</p>
+</div>
+                </td>
+            </tr>
+
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="pageCount"></a>
+                    <span class="name">
+                            <span class="modifier">Protected</span>
+                            <span class="modifier">Readonly</span>
+                        <span ><b>pageCount</b></span>
+                        <a href="#pageCount"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>unknown</code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>computed(() &#x3D;&gt;
+    Math.max(1, Math.ceil(this.uploads().length / PAGE_SIZE)),
+  )</code>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="73" class="link-to-prism">src/app/features/upload/upload.ts:73</a></div>
+                        </td>
+                    </tr>
+
+
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="pagedUploads"></a>
+                    <span class="name">
+                            <span class="modifier">Protected</span>
+                            <span class="modifier">Readonly</span>
+                        <span ><b>pagedUploads</b></span>
+                        <a href="#pagedUploads"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>unknown</code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>computed(() &#x3D;&gt; {
+    const start &#x3D; this.page() * PAGE_SIZE;
+    return this.uploads().slice(start, start + PAGE_SIZE);
+  })</code>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="87" class="link-to-prism">src/app/features/upload/upload.ts:87</a></div>
+                        </td>
+                    </tr>
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-description"><p>The rows on screen.</p>
+<p><b>Paged in the browser, and that is a deliberate limit rather than the right answer.</b>
+{@code GET /api/protocols/mine} returns the caller's 50 most recent uploads in one response and
+has no paging of its own; adding some would be a backend change, and this PR does not touch the
+backend. Fifty rows is small enough that slicing them here costs nothing and reads the same to
+the user. If that endpoint ever grows past its cap, this has to become a server-side page —
+client-side paging of a truncated list would quietly page through the wrong fifty.
+</div>
+                </td>
+            </tr>
 
         </tbody>
     </table>
@@ -1430,7 +1637,7 @@ and the form would be telling the user one thing while holding another.</p>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="58" class="link-to-prism">src/app/features/upload/upload.ts:58</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="63" class="link-to-prism">src/app/features/upload/upload.ts:63</a></div>
                         </td>
                     </tr>
 
@@ -1463,7 +1670,7 @@ and the form would be telling the user one thing while holding another.</p>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="57" class="link-to-prism">src/app/features/upload/upload.ts:57</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="62" class="link-to-prism">src/app/features/upload/upload.ts:62</a></div>
                         </td>
                     </tr>
 
@@ -1496,7 +1703,7 @@ and the form would be telling the user one thing while holding another.</p>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="44" class="link-to-prism">src/app/features/upload/upload.ts:44</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="49" class="link-to-prism">src/app/features/upload/upload.ts:49</a></div>
                         </td>
                     </tr>
 
@@ -1529,7 +1736,7 @@ and the form would be telling the user one thing while holding another.</p>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="51" class="link-to-prism">src/app/features/upload/upload.ts:51</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="56" class="link-to-prism">src/app/features/upload/upload.ts:56</a></div>
                         </td>
                     </tr>
 
@@ -1562,7 +1769,7 @@ and the form would be telling the user one thing while holding another.</p>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="54" class="link-to-prism">src/app/features/upload/upload.ts:54</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="59" class="link-to-prism">src/app/features/upload/upload.ts:59</a></div>
                         </td>
                     </tr>
 
@@ -1595,7 +1802,7 @@ and the form would be telling the user one thing while holding another.</p>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="53" class="link-to-prism">src/app/features/upload/upload.ts:53</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="58" class="link-to-prism">src/app/features/upload/upload.ts:58</a></div>
                         </td>
                     </tr>
 
@@ -1628,7 +1835,7 @@ and the form would be telling the user one thing while holding another.</p>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="47" class="link-to-prism">src/app/features/upload/upload.ts:47</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="52" class="link-to-prism">src/app/features/upload/upload.ts:52</a></div>
                         </td>
                     </tr>
 
@@ -1646,10 +1853,15 @@ import { FormsModule } from &#x27;@angular/forms&#x27;;
 
 import { Machine, UploadStatus } from &#x27;../../core/api/api.types&#x27;;
 import { ApiFailure, MaintenanceApiService, classify } from &#x27;../../core/api/maintenance-api.service&#x27;;
+import { AppDatePipe } from &#x27;../../core/i18n/app-date.pipe&#x27;;
 import { I18nService } from &#x27;../../core/i18n/i18n.service&#x27;;
+import { Pager } from &#x27;../../shared/pager/pager&#x27;;
 
 /** How the protocol got into the form: picked as a file, or typed here. */
 export type InputMode &#x3D; &#x27;file&#x27; | &#x27;text&#x27;;
+
+/** Rows per page in &quot;Meine Uploads&quot; — the same five the two moderation tables use. */
+const PAGE_SIZE &#x3D; 5;
 
 /**
  * The Schichtleiter&#x27;s upload view.
@@ -1676,7 +1888,7 @@ export type InputMode &#x3D; &#x27;file&#x27; | &#x27;text&#x27;;
  */
 @Component({
   selector: &#x27;app-upload&#x27;,
-  imports: [FormsModule],
+  imports: [AppDatePipe, FormsModule, Pager],
   templateUrl: &#x27;./upload.html&#x27;,
   styleUrl: &#x27;./upload.css&#x27;,
 })
@@ -1701,6 +1913,31 @@ export class Upload {
   protected readonly refreshing &#x3D; signal(false);
   protected readonly accepted &#x3D; signal(false);
   protected readonly failure &#x3D; signal&lt;ApiFailure | null&gt;(null);
+
+  /** Passed to the date pipe, which cannot see a signal it is not given. */
+  protected readonly language &#x3D; this.i18n.language;
+
+  /** Zero-based page of &quot;Meine Uploads&quot;. */
+  protected readonly page &#x3D; signal(0);
+
+  protected readonly pageCount &#x3D; computed(() &#x3D;&gt;
+    Math.max(1, Math.ceil(this.uploads().length / PAGE_SIZE)),
+  );
+
+  /**
+   * The rows on screen.
+   *
+   * &lt;p&gt;&lt;b&gt;Paged in the browser, and that is a deliberate limit rather than the right answer.&lt;/b&gt;
+   * {@code GET /api/protocols/mine} returns the caller&#x27;s 50 most recent uploads in one response and
+   * has no paging of its own; adding some would be a backend change, and this PR does not touch the
+   * backend. Fifty rows is small enough that slicing them here costs nothing and reads the same to
+   * the user. If that endpoint ever grows past its cap, this has to become a server-side page —
+   * client-side paging of a truncated list would quietly page through the wrong fifty.
+   */
+  protected readonly pagedUploads &#x3D; computed(() &#x3D;&gt; {
+    const start &#x3D; this.page() * PAGE_SIZE;
+    return this.uploads().slice(start, start + PAGE_SIZE);
+  });
 
   /**
    * The native file input, so switching modes can actually clear it.
@@ -1836,6 +2073,9 @@ export class Upload {
     this.api.myUploads().subscribe({
       next: (uploads) &#x3D;&gt; {
         this.uploads.set(uploads);
+        // A refresh can shrink the list — a failed upload retried and removed, for instance — and
+        // page 3 of a two-page list renders empty with no way back except the pager.
+        this.page.update((current) &#x3D;&gt; Math.min(current, Math.max(0, Math.ceil(uploads.length / PAGE_SIZE) - 1)));
         this.refreshing.set(false);
       },
       error: (error: unknown) &#x3D;&gt; {
@@ -1862,16 +2102,12 @@ export class Upload {
     return this.mode() &#x3D;&#x3D;&#x3D; mode;
   }
 
-  /** Date only: the exact second an upload happened has never been the question. */
-  protected shortDate(iso: string): string {
-    const date &#x3D; new Date(iso);
-    return Number.isNaN(date.getTime())
-      ? iso
-      : date.toLocaleDateString(this.i18n.language(), {
-          year: &#x27;numeric&#x27;,
-          month: &#x27;2-digit&#x27;,
-          day: &#x27;2-digit&#x27;,
-        });
+  protected previousPage(): void {
+    this.page.update((current) &#x3D;&gt; Math.max(0, current - 1));
+  }
+
+  protected nextPage(): void {
+    this.page.update((current) &#x3D;&gt; Math.min(this.pageCount() - 1, current + 1));
   }
 }
 
@@ -1906,7 +2142,7 @@ export function typedProtocolFilename(machineNo: string, at: Date): string {
 &lt;h1 class&#x3D;&quot;page-title&quot;&gt;{{ t().upload.heading }}&lt;/h1&gt;
 &lt;p class&#x3D;&quot;page-lead&quot;&gt;{{ t().upload.intro }}&lt;/p&gt;
 
-&lt;form class&#x3D;&quot;upload-form&quot; (ngSubmit)&#x3D;&quot;submit()&quot;&gt;
+&lt;form class&#x3D;&quot;upload-form&quot; [class.wide]&#x3D;&quot;isMode(&#x27;text&#x27;)&quot; (ngSubmit)&#x3D;&quot;submit()&quot;&gt;
   &lt;!-- Two ways in, and typing is the one that matches the shift: the protocol gets written at the
        end of it, not saved as a .txt first. File stays the default so nothing changes for anyone
        already used to it. --&gt;
@@ -1934,97 +2170,112 @@ export function typedProtocolFilename(machineNo: string, at: Date): string {
     &lt;/div&gt;
   &lt;/div&gt;
 
-  @if (isMode(&#x27;file&#x27;)) {
-    &lt;label class&#x3D;&quot;field&quot;&gt;
-      &lt;span class&#x3D;&quot;field-label&quot;&gt;{{ t().upload.file }}&lt;/span&gt;
-      &lt;input
-        type&#x3D;&quot;file&quot;
-        accept&#x3D;&quot;.txt,text/plain&quot;
-        data-testid&#x3D;&quot;file-input&quot;
-        #fileInput
-        (change)&#x3D;&quot;pickFile($event)&quot;
-      /&gt;
-    &lt;/label&gt;
-  } @else {
-    &lt;label class&#x3D;&quot;field&quot;&gt;
-      &lt;span class&#x3D;&quot;field-label&quot;&gt;{{ t().upload.text }}&lt;/span&gt;
-      &lt;!-- Free text on purpose. Structured Symptom/Ursache/Massnahme fields are a later step, and
-           the corpus deliberately contains messy protocols — this form has to be able to produce
-           one, or it would only ever add the tidy half of reality. --&gt;
-      &lt;span class&#x3D;&quot;field-hint&quot; data-testid&#x3D;&quot;text-hint&quot;&gt;{{ t().upload.textHint }}&lt;/span&gt;
-      &lt;textarea
-        name&#x3D;&quot;protocolText&quot;
-        rows&#x3D;&quot;14&quot;
-        data-testid&#x3D;&quot;text-input&quot;
-        [placeholder]&#x3D;&quot;t().upload.textPlaceholder&quot;
-        [ngModel]&#x3D;&quot;text()&quot;
-        (ngModelChange)&#x3D;&quot;text.set($event)&quot;
-      &gt;&lt;/textarea&gt;
-    &lt;/label&gt;
-  }
+  &lt;!-- What the endpoint accepts, said here rather than by a 400 after the file was chosen. It sits
+       outside the mode branch on purpose: the limit applies to a typed protocol too, which is also
+       submitted as a .txt the browser builds. --&gt;
+  &lt;p class&#x3D;&quot;field-hint&quot; data-testid&#x3D;&quot;format-hint&quot;&gt;{{ t().upload.formatHint }}&lt;/p&gt;
 
-  &lt;label class&#x3D;&quot;field&quot;&gt;
-    &lt;span class&#x3D;&quot;field-label&quot;&gt;{{ t().upload.machine }}&lt;/span&gt;
-    &lt;select
-      name&#x3D;&quot;machine&quot;
-      data-testid&#x3D;&quot;upload-machine&quot;
-      [ngModel]&#x3D;&quot;machineNo()&quot;
-      (ngModelChange)&#x3D;&quot;machineNo.set($event)&quot;
-    &gt;
-      &lt;option value&#x3D;&quot;&quot;&gt;{{ t().search.machinePlaceholder }}&lt;/option&gt;
-      @for (machine of machines(); track machine.id) {
-        &lt;option [value]&#x3D;&quot;machine.machineNo&quot;&gt;{{ machine.machineNo }} · {{ machine.name }}&lt;/option&gt;
+  &lt;!-- THE ORDER IS THE FIX. In text mode the textarea used to come first and pushed machine, type
+       and title below the fold — the opposite of file mode, where the small fields lead. Now the
+       small fields are always first in the DOM, and on a wide screen the textarea sits beside them
+       in the space that was empty. Reading order and visual order agree in both modes. --&gt;
+  &lt;div class&#x3D;&quot;form-columns&quot; [class.with-text]&#x3D;&quot;isMode(&#x27;text&#x27;)&quot;&gt;
+    &lt;div class&#x3D;&quot;form-fields&quot;&gt;
+      &lt;label class&#x3D;&quot;field&quot;&gt;
+        &lt;span class&#x3D;&quot;field-label&quot;&gt;{{ t().upload.machine }}&lt;/span&gt;
+        &lt;select
+          name&#x3D;&quot;machine&quot;
+          data-testid&#x3D;&quot;upload-machine&quot;
+          [ngModel]&#x3D;&quot;machineNo()&quot;
+          (ngModelChange)&#x3D;&quot;machineNo.set($event)&quot;
+        &gt;
+          &lt;option value&#x3D;&quot;&quot;&gt;{{ t().search.machinePlaceholder }}&lt;/option&gt;
+          @for (machine of machines(); track machine.id) {
+            &lt;option [value]&#x3D;&quot;machine.machineNo&quot;&gt;{{ machine.machineNo }} · {{ machine.name }}&lt;/option&gt;
+          }
+        &lt;/select&gt;
+      &lt;/label&gt;
+
+      &lt;label class&#x3D;&quot;field&quot;&gt;
+        &lt;span class&#x3D;&quot;field-label&quot;&gt;{{ t().upload.type }}&lt;/span&gt;
+        &lt;select name&#x3D;&quot;type&quot; [ngModel]&#x3D;&quot;type()&quot; (ngModelChange)&#x3D;&quot;type.set($event)&quot;&gt;
+          &lt;option value&#x3D;&quot;STOERUNG&quot;&gt;{{ t().upload.typeFault }}&lt;/option&gt;
+          &lt;option value&#x3D;&quot;WARTUNG&quot;&gt;{{ t().upload.typeMaintenance }}&lt;/option&gt;
+        &lt;/select&gt;
+      &lt;/label&gt;
+
+      &lt;!-- Required in both modes: a protocol with no title reduces &quot;Meine Uploads&quot; to a machine
+           number and a date, and every row has to be opened to find out which one it is. --&gt;
+      &lt;label class&#x3D;&quot;field&quot;&gt;
+        &lt;span class&#x3D;&quot;field-label&quot;
+          &gt;{{ t().upload.title }} &lt;em class&#x3D;&quot;required&quot;&gt;({{ t().upload.required }})&lt;/em&gt;&lt;/span
+        &gt;
+        &lt;input
+          name&#x3D;&quot;title&quot;
+          type&#x3D;&quot;text&quot;
+          required
+          aria-required&#x3D;&quot;true&quot;
+          data-testid&#x3D;&quot;upload-title&quot;
+          [ngModel]&#x3D;&quot;title()&quot;
+          (ngModelChange)&#x3D;&quot;title.set($event)&quot;
+        /&gt;
+      &lt;/label&gt;
+
+      &lt;label class&#x3D;&quot;field&quot;&gt;
+        &lt;span class&#x3D;&quot;field-label&quot;
+          &gt;{{ t().upload.errorCode }} &lt;em class&#x3D;&quot;optional&quot;&gt;({{ t().upload.optional }})&lt;/em&gt;&lt;/span
+        &gt;
+        &lt;input
+          name&#x3D;&quot;errorCode&quot;
+          type&#x3D;&quot;text&quot;
+          data-testid&#x3D;&quot;upload-error-code&quot;
+          [ngModel]&#x3D;&quot;errorCode()&quot;
+          (ngModelChange)&#x3D;&quot;errorCode.set($event)&quot;
+        /&gt;
+      &lt;/label&gt;
+
+      @if (isMode(&#x27;file&#x27;)) {
+        &lt;label class&#x3D;&quot;field&quot;&gt;
+          &lt;span class&#x3D;&quot;field-label&quot;&gt;{{ t().upload.file }}&lt;/span&gt;
+          &lt;input
+            type&#x3D;&quot;file&quot;
+            accept&#x3D;&quot;.txt,text/plain&quot;
+            data-testid&#x3D;&quot;file-input&quot;
+            #fileInput
+            (change)&#x3D;&quot;pickFile($event)&quot;
+          /&gt;
+        &lt;/label&gt;
       }
-    &lt;/select&gt;
-  &lt;/label&gt;
 
-  &lt;label class&#x3D;&quot;field&quot;&gt;
-    &lt;span class&#x3D;&quot;field-label&quot;&gt;{{ t().upload.type }}&lt;/span&gt;
-    &lt;select name&#x3D;&quot;type&quot; [ngModel]&#x3D;&quot;type()&quot; (ngModelChange)&#x3D;&quot;type.set($event)&quot;&gt;
-      &lt;option value&#x3D;&quot;STOERUNG&quot;&gt;{{ t().upload.typeFault }}&lt;/option&gt;
-      &lt;option value&#x3D;&quot;WARTUNG&quot;&gt;{{ t().upload.typeMaintenance }}&lt;/option&gt;
-    &lt;/select&gt;
-  &lt;/label&gt;
+      &lt;button
+        type&#x3D;&quot;submit&quot;
+        class&#x3D;&quot;btn btn-primary&quot;
+        data-testid&#x3D;&quot;upload-button&quot;
+        [disabled]&#x3D;&quot;submitting() || !canSubmit()&quot;
+        [attr.aria-busy]&#x3D;&quot;submitting()&quot;
+      &gt;
+        {{ submitting() ? t().upload.submitting : t().upload.submit }}
+      &lt;/button&gt;
+    &lt;/div&gt;
 
-  &lt;!-- Required in both modes: a protocol with no title reduces &quot;Meine Uploads&quot; to a machine number
-       and a date, and every row has to be opened to find out which one it is. --&gt;
-  &lt;label class&#x3D;&quot;field&quot;&gt;
-    &lt;span class&#x3D;&quot;field-label&quot;
-      &gt;{{ t().upload.title }} &lt;em class&#x3D;&quot;required&quot;&gt;({{ t().upload.required }})&lt;/em&gt;&lt;/span
-    &gt;
-    &lt;input
-      name&#x3D;&quot;title&quot;
-      type&#x3D;&quot;text&quot;
-      required
-      aria-required&#x3D;&quot;true&quot;
-      data-testid&#x3D;&quot;upload-title&quot;
-      [ngModel]&#x3D;&quot;title()&quot;
-      (ngModelChange)&#x3D;&quot;title.set($event)&quot;
-    /&gt;
-  &lt;/label&gt;
-
-  &lt;label class&#x3D;&quot;field&quot;&gt;
-    &lt;span class&#x3D;&quot;field-label&quot;
-      &gt;{{ t().upload.errorCode }} &lt;em class&#x3D;&quot;optional&quot;&gt;({{ t().upload.optional }})&lt;/em&gt;&lt;/span
-    &gt;
-    &lt;input
-      name&#x3D;&quot;errorCode&quot;
-      type&#x3D;&quot;text&quot;
-      data-testid&#x3D;&quot;upload-error-code&quot;
-      [ngModel]&#x3D;&quot;errorCode()&quot;
-      (ngModelChange)&#x3D;&quot;errorCode.set($event)&quot;
-    /&gt;
-  &lt;/label&gt;
-
-  &lt;button
-    type&#x3D;&quot;submit&quot;
-    class&#x3D;&quot;btn btn-primary&quot;
-    data-testid&#x3D;&quot;upload-button&quot;
-    [disabled]&#x3D;&quot;submitting() || !canSubmit()&quot;
-    [attr.aria-busy]&#x3D;&quot;submitting()&quot;
-  &gt;
-    {{ submitting() ? t().upload.submitting : t().upload.submit }}
-  &lt;/button&gt;
+    @if (isMode(&#x27;text&#x27;)) {
+      &lt;label class&#x3D;&quot;field form-text&quot;&gt;
+        &lt;span class&#x3D;&quot;field-label&quot;&gt;{{ t().upload.text }}&lt;/span&gt;
+        &lt;!-- Free text on purpose. Structured Symptom/Ursache/Massnahme fields are a later step, and
+             the corpus deliberately contains messy protocols — this form has to be able to produce
+             one, or it would only ever add the tidy half of reality. --&gt;
+        &lt;span class&#x3D;&quot;field-hint&quot; data-testid&#x3D;&quot;text-hint&quot;&gt;{{ t().upload.textHint }}&lt;/span&gt;
+        &lt;textarea
+          name&#x3D;&quot;protocolText&quot;
+          rows&#x3D;&quot;14&quot;
+          data-testid&#x3D;&quot;text-input&quot;
+          [placeholder]&#x3D;&quot;t().upload.textPlaceholder&quot;
+          [ngModel]&#x3D;&quot;text()&quot;
+          (ngModelChange)&#x3D;&quot;text.set($event)&quot;
+        &gt;&lt;/textarea&gt;
+      &lt;/label&gt;
+    }
+  &lt;/div&gt;
 &lt;/form&gt;
 
 @if (accepted()) {
@@ -2084,7 +2335,7 @@ export function typedProtocolFilename(machineNo: string, at: Date): string {
         &lt;/tr&gt;
       &lt;/thead&gt;
       &lt;tbody&gt;
-        @for (upload of uploads(); track upload.id) {
+        @for (upload of pagedUploads(); track upload.id) {
           &lt;tr&gt;
             &lt;td&gt;
               &lt;span class&#x3D;&quot;upload-machine&quot;&gt;{{ upload.machineNo }}&lt;/span&gt;
@@ -2100,11 +2351,21 @@ export function typedProtocolFilename(machineNo: string, at: Date): string {
                 &lt;p class&#x3D;&quot;failure-reason&quot; data-testid&#x3D;&quot;failure-reason&quot;&gt;{{ upload.failureReason }}&lt;/p&gt;
               }
             &lt;/td&gt;
-            &lt;td class&#x3D;&quot;num&quot;&gt;{{ shortDate(upload.createdAt) }}&lt;/td&gt;
+            &lt;td class&#x3D;&quot;num&quot;&gt;{{ upload.createdAt | appDate: language() }}&lt;/td&gt;
           &lt;/tr&gt;
         }
       &lt;/tbody&gt;
     &lt;/table&gt;
+
+    &lt;app-pager
+      testId&#x3D;&quot;uploads&quot;
+      [page]&#x3D;&quot;page()&quot;
+      [pageCount]&#x3D;&quot;pageCount()&quot;
+      [total]&#x3D;&quot;uploads().length&quot;
+      [label]&#x3D;&quot;t().upload.myUploads&quot;
+      (previous)&#x3D;&quot;previousPage()&quot;
+      (next)&#x3D;&quot;nextPage()&quot;
+    /&gt;
   } @else {
     &lt;p class&#x3D;&quot;hint&quot; data-testid&#x3D;&quot;no-uploads&quot;&gt;{{ t().upload.none }}&lt;/p&gt;
   }
@@ -2121,6 +2382,8 @@ export function typedProtocolFilename(machineNo: string, at: Date): string {
   display: flex;
   flex-direction: column;
   gap: var(--s-4);
+  /* Narrow while it is a column of small fields; the text mode widens it below, because a protocol
+     typed into a 34rem box wraps every second word. */
   max-width: 34rem;
   margin-bottom: var(--s-6);
   padding: var(--s-5);
@@ -2128,6 +2391,54 @@ export function typedProtocolFilename(machineNo: string, at: Date): string {
   border: 1px solid var(--c-line);
   border-radius: var(--r-md);
   box-shadow: var(--shadow-sm);
+}
+
+.upload-form.wide {
+  max-width: 72rem;
+}
+
+/* Stacked by default — which is the tablet-portrait and phone layout, and the primary device.
+   Small fields first, then the textarea, matching the file mode&#x27;s order exactly. */
+.form-columns {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
+}
+
+.form-fields {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
+}
+
+.form-fields .btn {
+  align-self: flex-start;
+}
+
+/* Wide screens only: the small fields keep their readable column on the left and the textarea takes
+   the space that was empty to the right of them. Below this the rule above still applies. */
+@media (min-width: 60rem) {
+  .form-columns.with-text {
+    flex-direction: row;
+    align-items: flex-start;
+    gap: var(--s-6);
+  }
+
+  .form-columns.with-text .form-fields {
+    flex: 0 0 22rem;
+  }
+
+  .form-columns.with-text .form-text {
+    flex: 1 1 auto;
+    /* The textarea grows with the column instead of keeping its &#x60;rows&#x60; height, so the two sides end
+       up the same length rather than leaving a ragged gap under the shorter one. */
+    align-self: stretch;
+  }
+
+  .form-columns.with-text .form-text textarea {
+    height: 100%;
+    min-height: 22rem;
+  }
 }
 
 .notice {
@@ -2320,8 +2631,8 @@ export function typedProtocolFilename(machineNo: string, at: Date): string {
 <script src="../js/libs/htmlparser.js"></script>
 <script src="../js/libs/deep-iterator.js"></script>
 <script>
-        var COMPONENT_TEMPLATE = '<div><div class="page"><h1 class="page-title">{{ t().upload.heading }}</h1><p class="page-lead">{{ t().upload.intro }}</p><form class="upload-form" (ngSubmit)="submit()">  <!-- Two ways in, and typing is the one that matches the shift: the protocol gets written at the       end of it, not saved as a .txt first. File stays the default so nothing changes for anyone       already used to it. -->  <div class="field">    <span class="field-label" id="mode-label">{{ t().upload.inputMode }}</span>    <div class="mode-switch" role="group" aria-labelledby="mode-label" data-testid="mode-switch">      <button        type="button"        data-testid="mode-file"        [class.active]="isMode(\'file\')"        [attr.aria-pressed]="isMode(\'file\')"        (click)="useMode(\'file\')"      >        {{ t().upload.modeFile }}      </button>      <button        type="button"        data-testid="mode-text"        [class.active]="isMode(\'text\')"        [attr.aria-pressed]="isMode(\'text\')"        (click)="useMode(\'text\')"      >        {{ t().upload.modeText }}      </button>    </div>  </div>  @if (isMode(\'file\')) {    <label class="field">      <span class="field-label">{{ t().upload.file }}</span>      <input        type="file"        accept=".txt,text/plain"        data-testid="file-input"        #fileInput        (change)="pickFile($event)"      />    </label>  } @else {    <label class="field">      <span class="field-label">{{ t().upload.text }}</span>      <!-- Free text on purpose. Structured Symptom/Ursache/Massnahme fields are a later step, and           the corpus deliberately contains messy protocols — this form has to be able to produce           one, or it would only ever add the tidy half of reality. -->      <span class="field-hint" data-testid="text-hint">{{ t().upload.textHint }}</span>      <textarea        name="protocolText"        rows="14"        data-testid="text-input"        [placeholder]="t().upload.textPlaceholder"        [ngModel]="text()"        (ngModelChange)="text.set($event)"      ></textarea>    </label>  }  <label class="field">    <span class="field-label">{{ t().upload.machine }}</span>    <select      name="machine"      data-testid="upload-machine"      [ngModel]="machineNo()"      (ngModelChange)="machineNo.set($event)"    >      <option value="">{{ t().search.machinePlaceholder }}</option>      @for (machine of machines(); track machine.id) {        <option [value]="machine.machineNo">{{ machine.machineNo }} · {{ machine.name }}</option>      }    </select>  </label>  <label class="field">    <span class="field-label">{{ t().upload.type }}</span>    <select name="type" [ngModel]="type()" (ngModelChange)="type.set($event)">      <option value="STOERUNG">{{ t().upload.typeFault }}</option>      <option value="WARTUNG">{{ t().upload.typeMaintenance }}</option>    </select>  </label>  <!-- Required in both modes: a protocol with no title reduces "Meine Uploads" to a machine number       and a date, and every row has to be opened to find out which one it is. -->  <label class="field">    <span class="field-label"      >{{ t().upload.title }} <em class="required">({{ t().upload.required }})</em></span    >    <input      name="title"      type="text"      required      aria-required="true"      data-testid="upload-title"      [ngModel]="title()"      (ngModelChange)="title.set($event)"    />  </label>  <label class="field">    <span class="field-label"      >{{ t().upload.errorCode }} <em class="optional">({{ t().upload.optional }})</em></span    >    <input      name="errorCode"      type="text"      data-testid="upload-error-code"      [ngModel]="errorCode()"      (ngModelChange)="errorCode.set($event)"    />  </label>  <button    type="submit"    class="btn btn-primary"    data-testid="upload-button"    [disabled]="submitting() || !canSubmit()"    [attr.aria-busy]="submitting()"  >    {{ submitting() ? t().upload.submitting : t().upload.submit }}  </button></form>@if (accepted()) {  <!-- 202, said out loud. The protocol exists; it is not searchable yet. -->  <p class="notice notice-info" role="status" data-testid="accepted">    <strong>{{ t().upload.accepted }}</strong> {{ t().upload.acceptedHint }}  </p>}@if (failure(); as reason) {  <p class="notice notice-error" role="alert" data-testid="upload-failure">    @switch (reason) {      @case (\'forbidden\') {        {{ t().errors.forbidden }}      }      @case (\'unavailable\') {        {{ t().errors.unavailable }}      }      @case (\'tooLarge\') {        {{ t().errors.uploadTooLarge }}      }      @case (\'rejectedContent\') {        {{ t().errors.uploadRejected }}      }      @case (\'rateLimited\') {        {{ t().errors.uploadRateLimited }}      }      @default {        {{ t().errors.generic }}      }    }  </p>}<section class="uploads card">  <div class="uploads-header">    <h2 class="section-title">{{ t().upload.myUploads }}</h2>    <button      type="button"      class="btn btn-secondary btn-sm"      data-testid="refresh-button"      [disabled]="refreshing()"      (click)="refresh()"    >      {{ t().upload.refresh }}    </button>  </div>  <p class="hint">{{ t().upload.refreshHint }}</p>  @if (uploads().length) {    <table class="uploads-table" data-testid="uploads-table">      <thead>        <tr>          <th>{{ t().upload.columnProtocol }}</th>          <th>{{ t().upload.columnStatus }}</th>          <th>{{ t().upload.columnUploaded }}</th>        </tr>      </thead>      <tbody>        @for (upload of uploads(); track upload.id) {          <tr>            <td>              <span class="upload-machine">{{ upload.machineNo }}</span>              {{ upload.title }}            </td>            <td>              <span class="status status-{{ upload.status.toLowerCase() }}">{{                statusLabel(upload.status)              }}</span>              @if (upload.failureReason) {                <!-- The reason, not only the fact. "It failed" makes re-uploading the same broken                     file the obvious next move. -->                <p class="failure-reason" data-testid="failure-reason">{{ upload.failureReason }}</p>              }            </td>            <td class="num">{{ shortDate(upload.createdAt) }}</td>          </tr>        }      </tbody>    </table>  } @else {    <p class="hint" data-testid="no-uploads">{{ t().upload.none }}</p>  }</section></div></div>'
-    var COMPONENTS = [{'name': 'App', 'selector': 'app-root'},{'name': 'Dialog', 'selector': 'app-dialog'},{'name': 'HelpDialog', 'selector': 'app-help-dialog'},{'name': 'Landing', 'selector': 'app-landing'},{'name': 'Moderation', 'selector': 'app-moderation'},{'name': 'ProtocolDialog', 'selector': 'app-protocol-dialog'},{'name': 'Search', 'selector': 'app-search'},{'name': 'SettingsDialog', 'selector': 'app-settings-dialog'},{'name': 'ThemeToggle', 'selector': 'app-theme-toggle'},{'name': 'Upload', 'selector': 'app-upload'}];
+        var COMPONENT_TEMPLATE = '<div><div class="page"><h1 class="page-title">{{ t().upload.heading }}</h1><p class="page-lead">{{ t().upload.intro }}</p><form class="upload-form" [class.wide]="isMode(\'text\')" (ngSubmit)="submit()">  <!-- Two ways in, and typing is the one that matches the shift: the protocol gets written at the       end of it, not saved as a .txt first. File stays the default so nothing changes for anyone       already used to it. -->  <div class="field">    <span class="field-label" id="mode-label">{{ t().upload.inputMode }}</span>    <div class="mode-switch" role="group" aria-labelledby="mode-label" data-testid="mode-switch">      <button        type="button"        data-testid="mode-file"        [class.active]="isMode(\'file\')"        [attr.aria-pressed]="isMode(\'file\')"        (click)="useMode(\'file\')"      >        {{ t().upload.modeFile }}      </button>      <button        type="button"        data-testid="mode-text"        [class.active]="isMode(\'text\')"        [attr.aria-pressed]="isMode(\'text\')"        (click)="useMode(\'text\')"      >        {{ t().upload.modeText }}      </button>    </div>  </div>  <!-- What the endpoint accepts, said here rather than by a 400 after the file was chosen. It sits       outside the mode branch on purpose: the limit applies to a typed protocol too, which is also       submitted as a .txt the browser builds. -->  <p class="field-hint" data-testid="format-hint">{{ t().upload.formatHint }}</p>  <!-- THE ORDER IS THE FIX. In text mode the textarea used to come first and pushed machine, type       and title below the fold — the opposite of file mode, where the small fields lead. Now the       small fields are always first in the DOM, and on a wide screen the textarea sits beside them       in the space that was empty. Reading order and visual order agree in both modes. -->  <div class="form-columns" [class.with-text]="isMode(\'text\')">    <div class="form-fields">      <label class="field">        <span class="field-label">{{ t().upload.machine }}</span>        <select          name="machine"          data-testid="upload-machine"          [ngModel]="machineNo()"          (ngModelChange)="machineNo.set($event)"        >          <option value="">{{ t().search.machinePlaceholder }}</option>          @for (machine of machines(); track machine.id) {            <option [value]="machine.machineNo">{{ machine.machineNo }} · {{ machine.name }}</option>          }        </select>      </label>      <label class="field">        <span class="field-label">{{ t().upload.type }}</span>        <select name="type" [ngModel]="type()" (ngModelChange)="type.set($event)">          <option value="STOERUNG">{{ t().upload.typeFault }}</option>          <option value="WARTUNG">{{ t().upload.typeMaintenance }}</option>        </select>      </label>      <!-- Required in both modes: a protocol with no title reduces "Meine Uploads" to a machine           number and a date, and every row has to be opened to find out which one it is. -->      <label class="field">        <span class="field-label"          >{{ t().upload.title }} <em class="required">({{ t().upload.required }})</em></span        >        <input          name="title"          type="text"          required          aria-required="true"          data-testid="upload-title"          [ngModel]="title()"          (ngModelChange)="title.set($event)"        />      </label>      <label class="field">        <span class="field-label"          >{{ t().upload.errorCode }} <em class="optional">({{ t().upload.optional }})</em></span        >        <input          name="errorCode"          type="text"          data-testid="upload-error-code"          [ngModel]="errorCode()"          (ngModelChange)="errorCode.set($event)"        />      </label>      @if (isMode(\'file\')) {        <label class="field">          <span class="field-label">{{ t().upload.file }}</span>          <input            type="file"            accept=".txt,text/plain"            data-testid="file-input"            #fileInput            (change)="pickFile($event)"          />        </label>      }      <button        type="submit"        class="btn btn-primary"        data-testid="upload-button"        [disabled]="submitting() || !canSubmit()"        [attr.aria-busy]="submitting()"      >        {{ submitting() ? t().upload.submitting : t().upload.submit }}      </button>    </div>    @if (isMode(\'text\')) {      <label class="field form-text">        <span class="field-label">{{ t().upload.text }}</span>        <!-- Free text on purpose. Structured Symptom/Ursache/Massnahme fields are a later step, and             the corpus deliberately contains messy protocols — this form has to be able to produce             one, or it would only ever add the tidy half of reality. -->        <span class="field-hint" data-testid="text-hint">{{ t().upload.textHint }}</span>        <textarea          name="protocolText"          rows="14"          data-testid="text-input"          [placeholder]="t().upload.textPlaceholder"          [ngModel]="text()"          (ngModelChange)="text.set($event)"        ></textarea>      </label>    }  </div></form>@if (accepted()) {  <!-- 202, said out loud. The protocol exists; it is not searchable yet. -->  <p class="notice notice-info" role="status" data-testid="accepted">    <strong>{{ t().upload.accepted }}</strong> {{ t().upload.acceptedHint }}  </p>}@if (failure(); as reason) {  <p class="notice notice-error" role="alert" data-testid="upload-failure">    @switch (reason) {      @case (\'forbidden\') {        {{ t().errors.forbidden }}      }      @case (\'unavailable\') {        {{ t().errors.unavailable }}      }      @case (\'tooLarge\') {        {{ t().errors.uploadTooLarge }}      }      @case (\'rejectedContent\') {        {{ t().errors.uploadRejected }}      }      @case (\'rateLimited\') {        {{ t().errors.uploadRateLimited }}      }      @default {        {{ t().errors.generic }}      }    }  </p>}<section class="uploads card">  <div class="uploads-header">    <h2 class="section-title">{{ t().upload.myUploads }}</h2>    <button      type="button"      class="btn btn-secondary btn-sm"      data-testid="refresh-button"      [disabled]="refreshing()"      (click)="refresh()"    >      {{ t().upload.refresh }}    </button>  </div>  <p class="hint">{{ t().upload.refreshHint }}</p>  @if (uploads().length) {    <table class="uploads-table" data-testid="uploads-table">      <thead>        <tr>          <th>{{ t().upload.columnProtocol }}</th>          <th>{{ t().upload.columnStatus }}</th>          <th>{{ t().upload.columnUploaded }}</th>        </tr>      </thead>      <tbody>        @for (upload of pagedUploads(); track upload.id) {          <tr>            <td>              <span class="upload-machine">{{ upload.machineNo }}</span>              {{ upload.title }}            </td>            <td>              <span class="status status-{{ upload.status.toLowerCase() }}">{{                statusLabel(upload.status)              }}</span>              @if (upload.failureReason) {                <!-- The reason, not only the fact. "It failed" makes re-uploading the same broken                     file the obvious next move. -->                <p class="failure-reason" data-testid="failure-reason">{{ upload.failureReason }}</p>              }            </td>            <td class="num">{{ upload.createdAt | appDate: language() }}</td>          </tr>        }      </tbody>    </table>    <app-pager      testId="uploads"      [page]="page()"      [pageCount]="pageCount()"      [total]="uploads().length"      [label]="t().upload.myUploads"      (previous)="previousPage()"      (next)="nextPage()"    />  } @else {    <p class="hint" data-testid="no-uploads">{{ t().upload.none }}</p>  }</section></div></div>'
+    var COMPONENTS = [{'name': 'App', 'selector': 'app-root'},{'name': 'Dialog', 'selector': 'app-dialog'},{'name': 'HelpDialog', 'selector': 'app-help-dialog'},{'name': 'Landing', 'selector': 'app-landing'},{'name': 'Moderation', 'selector': 'app-moderation'},{'name': 'Pager', 'selector': 'app-pager'},{'name': 'ProtocolDialog', 'selector': 'app-protocol-dialog'},{'name': 'Search', 'selector': 'app-search'},{'name': 'SearchHelp', 'selector': 'app-search-help'},{'name': 'SearchSources', 'selector': 'app-search-sources'},{'name': 'SettingsDialog', 'selector': 'app-settings-dialog'},{'name': 'ThemeToggle', 'selector': 'app-theme-toggle'},{'name': 'Upload', 'selector': 'app-upload'}];
     var DIRECTIVES = [];
     var ACTUAL_COMPONENT = {'name': 'Upload'};
 </script>

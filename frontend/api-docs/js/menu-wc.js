@@ -84,10 +84,19 @@ customElements.define('compodoc-menu', class extends HTMLElement {
                                 <a href="components/Moderation.html" data-type="entity-link" >Moderation</a>
                             </li>
                             <li class="link">
+                                <a href="components/Pager.html" data-type="entity-link" >Pager</a>
+                            </li>
+                            <li class="link">
                                 <a href="components/ProtocolDialog.html" data-type="entity-link" >ProtocolDialog</a>
                             </li>
                             <li class="link">
                                 <a href="components/Search.html" data-type="entity-link" >Search</a>
+                            </li>
+                            <li class="link">
+                                <a href="components/SearchHelp.html" data-type="entity-link" >SearchHelp</a>
+                            </li>
+                            <li class="link">
+                                <a href="components/SearchSources.html" data-type="entity-link" >SearchSources</a>
                             </li>
                             <li class="link">
                                 <a href="components/SettingsDialog.html" data-type="entity-link" >SettingsDialog</a>
@@ -204,6 +213,12 @@ customElements.define('compodoc-menu', class extends HTMLElement {
                                 <a href="interfaces/RuntimeConfig.html" data-type="entity-link" >RuntimeConfig</a>
                             </li>
                             <li class="link">
+                                <a href="interfaces/SearchExample.html" data-type="entity-link" >SearchExample</a>
+                            </li>
+                            <li class="link">
+                                <a href="interfaces/SourceFocus.html" data-type="entity-link" >SourceFocus</a>
+                            </li>
+                            <li class="link">
                                 <a href="interfaces/UploadAccepted.html" data-type="entity-link" >UploadAccepted</a>
                             </li>
                             <li class="link">
@@ -211,6 +226,19 @@ customElements.define('compodoc-menu', class extends HTMLElement {
                             </li>
                         </ul>
                     </li>
+                        <li class="chapter">
+                            <div class="simple menu-toggler" data-bs-toggle="collapse" ${ isNormalMode ? 'data-bs-target="#pipes-links"' :
+                                'data-bs-target="#xs-pipes-links"' }>
+                                <span class="icon ion-md-funnel"></span>
+                                <span>Pipes</span>
+                                <span class="icon ion-ios-arrow-down"></span>
+                            </div>
+                            <ul class="links collapse " ${ isNormalMode ? 'id="pipes-links"' : 'id="xs-pipes-links"' }>
+                                <li class="link">
+                                    <a href="pipes/AppDatePipe.html" data-type="entity-link" >AppDatePipe</a>
+                                </li>
+                            </ul>
+                        </li>
                     <li class="chapter">
                         <div class="simple menu-toggler" data-bs-toggle="collapse" ${ isNormalMode ? 'data-bs-target="#miscellaneous-links"'
                             : 'data-bs-target="#xs-miscellaneous-links"' }>

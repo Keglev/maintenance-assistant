@@ -1,0 +1,1664 @@
+<!doctype html>
+<html class="no-js" lang="">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="x-ua-compatible" content="ie=edge">
+        <title>maintenance-assistant-frontend documentation</title>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <link rel="icon" type="image/x-icon" href="../images/favicon.ico">
+	   <link rel="stylesheet" href="../styles/style.css">
+        <link rel="stylesheet" href="../styles/dark.css">
+    </head>
+    <body>
+          <script>
+               // Blocking script to avoid flickering dark mode
+               // Dark mode toggle button
+               var useDark = window.matchMedia('(prefers-color-scheme: dark)');
+               var darkModeState = useDark.matches;
+               var $darkModeToggleSwitchers = document.querySelectorAll('.dark-mode-switch input');
+               var $darkModeToggles = document.querySelectorAll('.dark-mode-switch');
+               var darkModeStateLocal = localStorage.getItem('compodoc_darkmode-state');
+
+               function checkToggle(check) {
+                    for (var i = 0; i < $darkModeToggleSwitchers.length; i++) {
+                         $darkModeToggleSwitchers[i].checked = check;
+                    }
+               }
+
+               function toggleDarkMode(state) {
+                    if (window.localStorage) {
+                         localStorage.setItem('compodoc_darkmode-state', state);
+                    }
+
+                    checkToggle(state);
+
+                    const hasClass = document.body.classList.contains('dark');
+
+                    if (state) {
+                         for (var i = 0; i < $darkModeToggles.length; i++) {
+                              $darkModeToggles[i].classList.add('dark');
+                         }
+                         if (!hasClass) {
+                              document.body.classList.add('dark');
+                         }
+                    } else {
+                         for (var i = 0; i < $darkModeToggles.length; i++) {
+                              $darkModeToggles[i].classList.remove('dark');
+                         }
+                         if (hasClass) {
+                              document.body.classList.remove('dark');
+                         }
+                    }
+               }
+
+               useDark.addEventListener('change', function (evt) {
+                    toggleDarkMode(evt.matches);
+               });
+               if (darkModeStateLocal) {
+                    darkModeState = darkModeStateLocal === 'true';
+               }
+               toggleDarkMode(darkModeState);
+          </script>
+          <script>
+              // --- Iframe navigation tracking for Template Playground ---
+              function sendCurrentUrlToParent() {
+                  if (window.parent && window.parent !== window) {
+                      window.parent.postMessage({
+                          type: 'compodoc-iframe-navigate',
+                          url: window.location.pathname + window.location.hash
+                      }, '*');
+                  }
+              }
+              window.addEventListener('hashchange', sendCurrentUrlToParent, false);
+              window.addEventListener('popstate', sendCurrentUrlToParent, false);
+              window.addEventListener('DOMContentLoaded', sendCurrentUrlToParent, false);
+          </script>
+
+        <div class="navbar navbar-default navbar-fixed-top d-md-none p-0">
+               <div class="d-flex">
+                    <a href="../" class="navbar-brand">maintenance-assistant-frontend documentation</a>
+                    <button type="button" class="btn btn-default btn-menu ion-ios-menu" id="btn-menu"></button>
+               </div>
+        </div>
+
+        <div class="xs-menu menu" id="mobile-menu">
+                <div id="book-search-input" role="search">
+    <input type="text" placeholder="Type to search">
+    <button type="button"
+        class="search-input-clear"
+        aria-label="Clear search"
+        data-search-input-clear>&times;</button>
+</div>
+            <compodoc-menu></compodoc-menu>
+        </div>
+
+        <div class="container-fluid main">
+           <div class="row main">
+               <div class="d-none d-md-block menu">
+                   <compodoc-menu mode="normal"></compodoc-menu>
+               </div>
+               <!-- START CONTENT -->
+               <div class="content component">
+                   <div class="content-data">
+
+
+
+
+
+
+
+
+<ol class="breadcrumb">
+  <li class="breadcrumb-item">Components</li>
+  <li class="breadcrumb-item"
+  >
+  SearchSources</li>
+</ol>
+
+<div class="io-file io-file-path" data-compodoc="entity-file-path">
+    <span class="icon ion-ios-document" aria-hidden="true"></span>
+    <code>src/app/features/search/search-sources.ts</code>
+</div>
+
+<ul class="nav nav-tabs" role="tablist">
+        <li class="nav-item">
+            <a href="#info" class="nav-link active"
+                role="tab" id="info-tab" data-bs-toggle="tab" data-link="info">Info</a>
+        </li>
+        <li class="nav-item">
+            <a href="#api" class="nav-link"
+                role="tab" id="api-tab" data-bs-toggle="tab" data-link="api">API</a>
+        </li>
+        <li class="nav-item">
+            <a href="#source" class="nav-link"
+                role="tab" id="source-tab" data-bs-toggle="tab" data-link="source">Source</a>
+        </li>
+        <li class="nav-item">
+            <a href="#templateData" class="nav-link"
+                role="tab" id="templateData-tab" data-bs-toggle="tab" data-link="template">Template</a>
+        </li>
+        <li class="nav-item">
+            <a href="#styleData" class="nav-link"
+                role="tab" id="styleData-tab" data-bs-toggle="tab" data-link="style">Styles</a>
+        </li>
+        <li class="nav-item">
+            <a href="#tree" class="nav-link"
+                role="tab" id="tree-tab" data-bs-toggle="tab" data-link="dom-tree">DOM Tree</a>
+        </li>
+</ul>
+
+<div class="tab-content">
+    <div class="tab-pane fade active in" id="info">
+    <p class="comment">
+        <h3>Description</h3>
+    </p>
+    <p class="comment">
+        <p>The Mode A source list.</p>
+<p><b>The answer above it is never collapsed or paged, and that is the rule this component exists
+to protect.</b> Citation markers flow through the prose; splitting the text would separate a claim
+from the source it names, which is exactly the Mode A guarantee (NFR-2). What can be collapsed is
+the list underneath — and above two sources it has to be, because five expanded cards push the
+answer off a tablet screen.<p>Its own component because the search view was carrying the markup, the expand state and a third
+of its own stylesheet for something that is not about asking questions. Extracting it also put
+`search.css` back inside the per-component style budget.
+
+    </p>
+
+
+
+    <p class="comment">
+        <h3>Example</h3>
+    </p>
+    <div class="io-description">
+    </div>
+
+<section data-compodoc="block-metadata">
+    <h3>Metadata</h3>
+    <table class="table table-sm table-hover metadata">
+        <tbody>
+
+            <tr>
+                <td class="col-md-3">changeDetection</td>
+                <td class="col-md-9"><code>ChangeDetectionStrategy.OnPush</code></td>
+            </tr>
+
+
+
+
+
+
+
+
+
+
+
+            <tr>
+                <td class="col-md-3">selector</td>
+                <td class="col-md-9"><code>app-search-sources</code></td>
+            </tr>
+
+            <tr>
+                <td class="col-md-3">standalone</td>
+                <td class="col-md-9"><code>true</code></td>
+            </tr>
+
+
+            <tr>
+                <td class="col-md-3">styleUrls</td>
+                <td class="col-md-9"><code>./search-sources.css</code></td>
+            </tr>
+
+
+
+
+            <tr>
+                <td class="col-md-3">templateUrl</td>
+                <td class="col-md-9"><code>./search-sources.html</code></td>
+            </tr>
+
+
+
+            <tr>
+                <td class="col-md-3">styleUrl</td>
+                <td class="col-md-9"><code>./search-sources.css</code></td>
+            </tr>
+
+
+
+
+
+        </tbody>
+    </table>
+</section>
+
+        <section data-compodoc="block-relationships">
+            <h3>Relationships</h3>
+
+            <div class="row pt-3">
+                <div class="col-sm-6">
+                    <h4>Used by</h4>
+                        <ul class="list-unstyled relationships-list">
+                                <li>
+                                            <code><a href="../components/Search.html" target="_self" >Search</a></code>
+                                </li>
+                        </ul>
+                </div>
+
+                <div class="col-sm-6">
+                    <h4>Depends on</h4>
+                        <p class="comment"><i>No results matching.</i></p>
+                </div>
+            </div>
+        </section>
+</div>
+
+    <div class="tab-pane fade " id="api">    <section data-compodoc="block-index">
+    <h3 id="index">Index</h3>
+        <table class="table table-sm table-bordered index-table">
+            <tbody>
+                <tr>
+                    <td class="col-md-3">
+                        <h6><b>Properties</b></h6>
+                    </td>
+                    <td class="col-md-9">
+                        <ul class="index-list">
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
+                                    <span class="modifier">Protected</span>
+                                    <span class="modifier">Readonly</span>
+                                <a href="#allExpanded" >allExpanded</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
+                                    <span class="modifier">Protected</span>
+                                    <span class="modifier">Readonly</span>
+                                <a href="#collapsible" >collapsible</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
+                                    <span class="modifier">Private</span>
+                                    <span class="modifier">Readonly</span>
+                                <a href="#document" >document</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
+                                    <span class="modifier">Private</span>
+                                    <span class="modifier">Readonly</span>
+                                <a href="#expanded" >expanded</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
+                                    <span class="modifier">Protected</span>
+                                    <span class="modifier">Readonly</span>
+                                <a href="#highlighted" >highlighted</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
+                                    <span class="modifier">Private</span>
+                                    <span class="modifier">Readonly</span>
+                                <a href="#i18n" >i18n</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
+                                    <span class="modifier">Protected</span>
+                                    <span class="modifier">Readonly</span>
+                                <a href="#t" >t</a>
+                            </li>
+                        </ul>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <table class="table table-sm table-bordered index-table">
+            <tbody>
+                <tr>
+                    <td class="col-md-3">
+                        <h6><b>Methods</b></h6>
+                    </td>
+                    <td class="col-md-9">
+                        <ul class="index-list">
+                            <li>
+                                <span class="reference-badge reference-badge--method" aria-hidden="true">M</span>
+                                    <span class="modifier">Protected</span>
+                                <a href="#cardId" >cardId</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--method" aria-hidden="true">M</span>
+                                    <span class="modifier">Protected</span>
+                                <a href="#isExpanded" >isExpanded</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--method" aria-hidden="true">M</span>
+                                    <span class="modifier">Protected</span>
+                                <a href="#percent" >percent</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--method" aria-hidden="true">M</span>
+                                    <span class="modifier">Protected</span>
+                                <a href="#toggle" >toggle</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--method" aria-hidden="true">M</span>
+                                    <span class="modifier">Protected</span>
+                                <a href="#toggleAll" >toggleAll</a>
+                            </li>
+                        </ul>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <table class="table table-sm table-bordered index-table">
+            <tbody>
+                <tr>
+                    <td class="col-md-3">
+                        <h6><b>Inputs</b></h6>
+                    </td>
+                    <td class="col-md-9">
+                        <ul class="index-list">
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">I</span><a href="#citations" >citations</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">I</span><a href="#focused" >focused</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">I</span><a href="#machine" >machine</a>
+                            </li>
+                        </ul>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <table class="table table-sm table-bordered index-table">
+            <tbody>
+                <tr>
+                    <td class="col-md-3">
+                        <h6><b>Outputs</b></h6>
+                    </td>
+                    <td class="col-md-9">
+                        <ul class="index-list">
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">O</span><a href="#opened" >opened</a>
+                            </li>
+                        </ul>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+
+
+</section>
+
+    <section data-compodoc="block-constructor">
+    <h3 id="constructor">Constructor</h3>
+        <table class="table table-sm table-bordered">
+            <tbody>
+                <tr>
+                    <td class="col-md-4">
+<code>constructor()</code>
+                    </td>
+                </tr>
+                        <tr>
+                            <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="82" class="link-to-prism">src/app/features/search/search-sources.ts:82</a></div>
+                            </td>
+                        </tr>
+
+            </tbody>
+        </table>
+</section>
+
+    <section data-compodoc="block-inputs">
+    <h3 id="inputs">Inputs</h3>
+        <table class="table table-sm table-bordered">
+            <tbody>
+                <tr>
+                    <td class="col-md-4">
+                        <a name="citations"></a>
+                        <b>citations</b>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>        <code><a href="../interfaces/Citation.html" target="_self" >readonly Citation[]</a></code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Required : </i>&nbsp;<b>true</b>
+                    </td>
+                </tr>
+                        <tr>
+                            <td class="col-md-2" colspan="2">
+                                    <div class="io-line">Defined in <a href="" data-line="56" class="link-to-prism">src/app/features/search/search-sources.ts:56</a></div>
+                            </td>
+                        </tr>
+            </tbody>
+        </table>
+        <table class="table table-sm table-bordered">
+            <tbody>
+                <tr>
+                    <td class="col-md-4">
+                        <a name="focused"></a>
+                        <b>focused</b>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>        <code><a href="../interfaces/SourceFocus.html" target="_self" >SourceFocus | null</a></code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>null</code>
+                    </td>
+                </tr>
+                        <tr>
+                            <td class="col-md-2" colspan="2">
+                                    <div class="io-line">Defined in <a href="" data-line="67" class="link-to-prism">src/app/features/search/search-sources.ts:67</a></div>
+                            </td>
+                        </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <div class="io-description"><p>The protocol a citation marker was last clicked for.</p>
+<p>An input rather than a method the parent calls, so the parent needs no handle on this
+component: it sets a signal, and the effect below opens and reveals the card. A wrapper object
+rather than a bare id because clicking the same marker twice has to be two events — see
+<a href="../interfaces/SourceFocus.html">SourceFocus</a>.</p>
+</div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        <table class="table table-sm table-bordered">
+            <tbody>
+                <tr>
+                    <td class="col-md-4">
+                        <a name="machine"></a>
+                        <b>machine</b>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>&#x27;&#x27;</code>
+                    </td>
+                </tr>
+                        <tr>
+                            <td class="col-md-2" colspan="2">
+                                    <div class="io-line">Defined in <a href="" data-line="58" class="link-to-prism">src/app/features/search/search-sources.ts:58</a></div>
+                            </td>
+                        </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <div class="io-description"><p>What to call the machine on a card read on its own. Every source shares it — the query is scoped.</p>
+</div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+</section>
+
+    <section data-compodoc="block-outputs">
+    <h3 id="outputs">Outputs</h3>
+        <table class="table table-sm table-bordered">
+            <tbody>
+                <tr>
+                    <td class="col-md-4">
+                        <a name="opened"></a>
+                        <b>opened</b>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>        <code><a href="../interfaces/Citation.html" target="_self" >Citation</a></code>
+
+                    </td>
+                </tr>
+                        <tr>
+                            <td class="col-md-2" colspan="2">
+                                    <div class="io-line">Defined in <a href="" data-line="70" class="link-to-prism">src/app/features/search/search-sources.ts:70</a></div>
+                            </td>
+                        </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <div class="io-description"><p>A card&#39;s title was activated — the parent owns the viewer dialog.</p>
+</div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+</section>
+
+
+
+    <section data-compodoc="block-methods">
+    
+    <h3 id="methods">
+        Methods
+    </h3>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="cardId"></a>
+                    <span class="name">
+                            <span class="modifier">Protected</span>
+                        <span ><b>cardId</b></span>
+                        <a href="#cardId"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                        <span class="modifier-icon icon ion-ios-reset"></span>
+                    <code>cardId(citation: <a href="../interfaces/Citation.html" target="_self">Citation</a>)</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="104"
+                                    class="link-to-prism">src/app/features/search/search-sources.ts:104</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                                <td>Type</td>
+                                            <td>Optional</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>citation</td>
+                                            <td>
+                                                            <code><a href="../interfaces/Citation.html" target="_self" >Citation</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+
+                        </div>
+                            <div class="io-description">
+                                
+                            </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="isExpanded"></a>
+                    <span class="name">
+                            <span class="modifier">Protected</span>
+                        <span ><b>isExpanded</b></span>
+                        <a href="#isExpanded"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                        <span class="modifier-icon icon ion-ios-reset"></span>
+                    <code>isExpanded(citation: <a href="../interfaces/Citation.html" target="_self">Citation</a>)</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="108"
+                                    class="link-to-prism">src/app/features/search/search-sources.ts:108</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                                <td>Type</td>
+                                            <td>Optional</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>citation</td>
+                                            <td>
+                                                            <code><a href="../interfaces/Citation.html" target="_self" >Citation</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/boolean" target="_blank" >boolean</a></code>
+
+                        </div>
+                            <div class="io-description">
+                                
+                            </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="percent"></a>
+                    <span class="name">
+                            <span class="modifier">Protected</span>
+                        <span ><b>percent</b></span>
+                        <a href="#percent"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                        <span class="modifier-icon icon ion-ios-reset"></span>
+                    <code>percent(citation: <a href="../interfaces/Citation.html" target="_self">Citation</a>)</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="129"
+                                    class="link-to-prism">src/app/features/search/search-sources.ts:129</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                        <div class="io-description"><p>Percent, rounded — a reader compares 69 % with 56 %, not 0.6896 with 0.5566.</p>
+</div>
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                                <td>Type</td>
+                                            <td>Optional</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>citation</td>
+                                            <td>
+                                                            <code><a href="../interfaces/Citation.html" target="_self" >Citation</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/number" target="_blank" >number</a></code>
+
+                        </div>
+                            <div class="io-description">
+                                
+                            </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="toggle"></a>
+                    <span class="name">
+                            <span class="modifier">Protected</span>
+                        <span ><b>toggle</b></span>
+                        <a href="#toggle"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                        <span class="modifier-icon icon ion-ios-reset"></span>
+                    <code>toggle(citation: <a href="../interfaces/Citation.html" target="_self">Citation</a>)</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="112"
+                                    class="link-to-prism">src/app/features/search/search-sources.ts:112</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                                <td>Type</td>
+                                            <td>Optional</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>citation</td>
+                                            <td>
+                                                            <code><a href="../interfaces/Citation.html" target="_self" >Citation</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>        <code><a href="https://www.typescriptlang.org/docs/handbook/basic-types.html" target="_blank" >void</a></code>
+
+                        </div>
+                            <div class="io-description">
+                                
+                            </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="toggleAll"></a>
+                    <span class="name">
+                            <span class="modifier">Protected</span>
+                        <span ><b>toggleAll</b></span>
+                        <a href="#toggleAll"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                        <span class="modifier-icon icon ion-ios-reset"></span>
+                    <code>toggleAll()</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="122"
+                                    class="link-to-prism">src/app/features/search/search-sources.ts:122</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+
+                        <div class="io-description">
+                            <b>Returns : </b>        <code><a href="https://www.typescriptlang.org/docs/handbook/basic-types.html" target="_blank" >void</a></code>
+
+                        </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</section>
+
+    <section data-compodoc="block-properties">
+    
+    <h3 id="inputs">
+        Properties
+    </h3>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="allExpanded"></a>
+                    <span class="name">
+                            <span class="modifier">Protected</span>
+                            <span class="modifier">Readonly</span>
+                        <span ><b>allExpanded</b></span>
+                        <a href="#allExpanded"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>unknown</code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>computed(() &#x3D;&gt; {
+    const citations &#x3D; this.citations();
+    return citations.length &gt; 0 &amp;&amp; citations.every((c) &#x3D;&gt; this.expanded().has(c.protocolId));
+  })</code>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="79" class="link-to-prism">src/app/features/search/search-sources.ts:79</a></div>
+                        </td>
+                    </tr>
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-description"><p>Whether every card is open, so the control can say which way it goes.</p>
+</div>
+                </td>
+            </tr>
+
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="collapsible"></a>
+                    <span class="name">
+                            <span class="modifier">Protected</span>
+                            <span class="modifier">Readonly</span>
+                        <span ><b>collapsible</b></span>
+                        <a href="#collapsible"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>unknown</code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>computed(() &#x3D;&gt; this.citations().length &gt; COLLAPSE_ABOVE)</code>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="76" class="link-to-prism">src/app/features/search/search-sources.ts:76</a></div>
+                        </td>
+                    </tr>
+
+
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="document"></a>
+                    <span class="name">
+                            <span class="modifier">Private</span>
+                            <span class="modifier">Readonly</span>
+                        <span ><b>document</b></span>
+                        <a href="#document"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>unknown</code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>inject(DOCUMENT)</code>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="52" class="link-to-prism">src/app/features/search/search-sources.ts:52</a></div>
+                        </td>
+                    </tr>
+
+
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="expanded"></a>
+                    <span class="name">
+                            <span class="modifier">Private</span>
+                            <span class="modifier">Readonly</span>
+                        <span ><b>expanded</b></span>
+                        <a href="#expanded"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>unknown</code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>signal&lt;ReadonlySet&lt;string&gt;&gt;(new Set())</code>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="72" class="link-to-prism">src/app/features/search/search-sources.ts:72</a></div>
+                        </td>
+                    </tr>
+
+
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="highlighted"></a>
+                    <span class="name">
+                            <span class="modifier">Protected</span>
+                            <span class="modifier">Readonly</span>
+                        <span ><b>highlighted</b></span>
+                        <a href="#highlighted"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>unknown</code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>signal&lt;string | null&gt;(null)</code>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="74" class="link-to-prism">src/app/features/search/search-sources.ts:74</a></div>
+                        </td>
+                    </tr>
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-description"><p>Which card the last marker click pointed at, so it can be picked out of a list of five.</p>
+</div>
+                </td>
+            </tr>
+
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="i18n"></a>
+                    <span class="name">
+                            <span class="modifier">Private</span>
+                            <span class="modifier">Readonly</span>
+                        <span ><b>i18n</b></span>
+                        <a href="#i18n"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>unknown</code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>inject(I18nService)</code>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="49" class="link-to-prism">src/app/features/search/search-sources.ts:49</a></div>
+                        </td>
+                    </tr>
+
+
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="t"></a>
+                    <span class="name">
+                            <span class="modifier">Protected</span>
+                            <span class="modifier">Readonly</span>
+                        <span ><b>t</b></span>
+                        <a href="#t"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>unknown</code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>this.i18n.t</code>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="54" class="link-to-prism">src/app/features/search/search-sources.ts:54</a></div>
+                        </td>
+                    </tr>
+
+
+        </tbody>
+    </table>
+</section>
+
+</div>
+
+
+    <div class="tab-pane fade  tab-source-code" id="source">
+        <pre class="line-numbers compodoc-sourcecode"><code class="language-typescript">import { DOCUMENT } from &#x27;@angular/common&#x27;;
+import { Component, computed, effect, inject, input, output, signal } from &#x27;@angular/core&#x27;;
+
+import { Citation } from &#x27;../../core/api/api.types&#x27;;
+import { I18nService } from &#x27;../../core/i18n/i18n.service&#x27;;
+
+/**
+ * How many sources fit under an answer before the list starts hiding it.
+ *
+ * Three or more is where the answer stops being the first thing on screen after a scroll on a
+ * tablet. Two is a pair of cards and no reason for a control.
+ */
+const COLLAPSE_ABOVE &#x3D; 2;
+
+/**
+ * One request to reveal a source, as an object rather than an id.
+ *
+ * The identity is the point: two clicks on the same marker are two events, and a signal holding a
+ * bare string would only notify on the first.
+ */
+export interface SourceFocus {
+  readonly protocolId: string;
+}
+
+/** Stable per protocol, so a citation marker can find its card without an index that shifts. */
+export function sourceCardId(citation: Citation): string {
+  return &#x60;source-${citation.protocolId}&#x60;;
+}
+
+/**
+ * The Mode A source list.
+ *
+ * &lt;p&gt;&lt;b&gt;The answer above it is never collapsed or paged, and that is the rule this component exists
+ * to protect.&lt;/b&gt; Citation markers flow through the prose; splitting the text would separate a claim
+ * from the source it names, which is exactly the Mode A guarantee (NFR-2). What can be collapsed is
+ * the list underneath — and above two sources it has to be, because five expanded cards push the
+ * answer off a tablet screen.
+ *
+ * &lt;p&gt;Its own component because the search view was carrying the markup, the expand state and a third
+ * of its own stylesheet for something that is not about asking questions. Extracting it also put
+ * &#x60;search.css&#x60; back inside the per-component style budget.
+ */
+@Component({
+  selector: &#x27;app-search-sources&#x27;,
+  templateUrl: &#x27;./search-sources.html&#x27;,
+  styleUrl: &#x27;./search-sources.css&#x27;,
+})
+export class SearchSources {
+  private readonly i18n &#x3D; inject(I18nService);
+  // Injected rather than reached for as a global: scrolling to a card is a DOM act, and a test
+  // should be able to see it happen without a browser.
+  private readonly document &#x3D; inject(DOCUMENT);
+
+  protected readonly t &#x3D; this.i18n.t;
+
+  readonly citations &#x3D; input.required&lt;readonly Citation[]&gt;();
+  /** What to call the machine on a card read on its own. Every source shares it — the query is scoped. */
+  readonly machine &#x3D; input(&#x27;&#x27;);
+  /**
+   * The protocol a citation marker was last clicked for.
+   *
+   * An input rather than a method the parent calls, so the parent needs no handle on this
+   * component: it sets a signal, and the effect below opens and reveals the card. A wrapper object
+   * rather than a bare id because clicking the same marker twice has to be two events — see
+   * {@link SourceFocus}.
+   */
+  readonly focused &#x3D; input&lt;SourceFocus | null&gt;(null);
+
+  /** A card&#x27;s title was activated — the parent owns the viewer dialog. */
+  readonly opened &#x3D; output&lt;Citation&gt;();
+
+  private readonly expanded &#x3D; signal&lt;ReadonlySet&lt;string&gt;&gt;(new Set());
+  /** Which card the last marker click pointed at, so it can be picked out of a list of five. */
+  protected readonly highlighted &#x3D; signal&lt;string | null&gt;(null);
+
+  protected readonly collapsible &#x3D; computed(() &#x3D;&gt; this.citations().length &gt; COLLAPSE_ABOVE);
+
+  /** Whether every card is open, so the control can say which way it goes. */
+  protected readonly allExpanded &#x3D; computed(() &#x3D;&gt; {
+    const citations &#x3D; this.citations();
+    return citations.length &gt; 0 &amp;&amp; citations.every((c) &#x3D;&gt; this.expanded().has(c.protocolId));
+  });
+
+  constructor() {
+    effect(() &#x3D;&gt; {
+      const protocolId &#x3D; this.focused()?.protocolId;
+      if (!protocolId) {
+        return;
+      }
+      // A MARKER MUST NEVER DEAD-END. That is the bug class this project already caught once (#26:
+      // a citation link that answered 401 and did nothing visible), and a collapsed card is a fresh
+      // way to reproduce it — a click that scrolled to a title with no detail reads as &quot;nothing
+      // happened&quot;. So the card opens first, then the page moves to it.
+      this.expanded.update((current) &#x3D;&gt; new Set(current).add(protocolId));
+      this.highlighted.set(protocolId);
+      const card &#x3D; this.document.getElementById(&#x60;source-${protocolId}&#x60;);
+      // Guarded because jsdom, where the tests run, does not implement scrollIntoView. What is worth
+      // asserting is that the right card ends up open; a missing DOM API must not take the handler
+      // down with it.
+      card?.scrollIntoView?.({ behavior: &#x27;smooth&#x27;, block: &#x27;center&#x27; });
+    });
+  }
+
+  protected cardId(citation: Citation): string {
+    return sourceCardId(citation);
+  }
+
+  protected isExpanded(citation: Citation): boolean {
+    return !this.collapsible() || this.expanded().has(citation.protocolId);
+  }
+
+  protected toggle(citation: Citation): void {
+    this.expanded.update((current) &#x3D;&gt; {
+      const next &#x3D; new Set(current);
+      if (!next.delete(citation.protocolId)) {
+        next.add(citation.protocolId);
+      }
+      return next;
+    });
+  }
+
+  protected toggleAll(): void {
+    this.expanded.set(
+      this.allExpanded() ? new Set() : new Set(this.citations().map((c) &#x3D;&gt; c.protocolId)),
+    );
+  }
+
+  /** Percent, rounded — a reader compares 69 % with 56 %, not 0.6896 with 0.5566. */
+  protected percent(citation: Citation): number {
+    return Math.round(citation.similarity * 100);
+  }
+}
+</code></pre>
+    </div>
+
+    <div class="tab-pane fade " id="templateData">
+        <pre class="line-numbers"><code class="language-html">&lt;div class&#x3D;&quot;sources-header&quot;&gt;
+  &lt;h2 class&#x3D;&quot;sources-heading&quot;&gt;{{ t().modeA.sources }}&lt;/h2&gt;
+  @if (collapsible()) {
+    &lt;!-- Only once the list is long enough to bury the answer above it. Two cards need no control,
+         and one that appears for two rows is noise. --&gt;
+    &lt;button
+      type&#x3D;&quot;button&quot;
+      class&#x3D;&quot;btn btn-secondary arrow-button&quot;
+      data-testid&#x3D;&quot;toggle-all-sources&quot;
+      [attr.aria-expanded]&#x3D;&quot;allExpanded()&quot;
+      (click)&#x3D;&quot;toggleAll()&quot;
+    &gt;
+      &lt;svg class&#x3D;&quot;chevron&quot; viewBox&#x3D;&quot;0 0 24 24&quot; aria-hidden&#x3D;&quot;true&quot; focusable&#x3D;&quot;false&quot;&gt;
+        &lt;path d&#x3D;&quot;M6 9l6 6 6-6&quot; /&gt;
+      &lt;/svg&gt;
+      {{ allExpanded() ? t().modeA.hideSources : t().modeA.showAllSources }}
+    &lt;/button&gt;
+  }
+&lt;/div&gt;
+
+&lt;ul class&#x3D;&quot;sources&quot; data-testid&#x3D;&quot;sources&quot;&gt;
+  @for (citation of citations(); track citation.protocolId) {
+    &lt;li
+      class&#x3D;&quot;source&quot;
+      [id]&#x3D;&quot;cardId(citation)&quot;
+      [class.collapsed]&#x3D;&quot;!isExpanded(citation)&quot;
+      [class.highlighted]&#x3D;&quot;highlighted() &#x3D;&#x3D;&#x3D; citation.protocolId&quot;
+      data-testid&#x3D;&quot;source-card&quot;
+      [attr.data-expanded]&#x3D;&quot;isExpanded(citation)&quot;
+    &gt;
+      &lt;span class&#x3D;&quot;source-label&quot;&gt;{{ citation.label }}&lt;/span&gt;
+      &lt;div class&#x3D;&quot;source-body&quot;&gt;
+        &lt;div class&#x3D;&quot;source-head&quot;&gt;
+          &lt;!-- No href, and that is the fix from #26: a browser-followed anchor is a fresh
+               navigation carrying no Bearer token, so the API answered 401 on every click. Kept an
+               &lt;a&gt; for its link semantics, operable from the keyboard exactly as a link would be. --&gt;
+          &lt;a
+            class&#x3D;&quot;source-title&quot;
+            role&#x3D;&quot;button&quot;
+            tabindex&#x3D;&quot;0&quot;
+            aria-haspopup&#x3D;&quot;dialog&quot;
+            [attr.aria-label]&#x3D;&quot;t().modeA.openSource + &#x27;: &#x27; + citation.title&quot;
+            data-testid&#x3D;&quot;source-link&quot;
+            (click)&#x3D;&quot;opened.emit(citation)&quot;
+            (keydown.enter)&#x3D;&quot;opened.emit(citation)&quot;
+            (keydown.space)&#x3D;&quot;opened.emit(citation)&quot;
+            &gt;{{ citation.title }}&lt;/a
+          &gt;
+          @if (collapsible()) {
+            &lt;button
+              type&#x3D;&quot;button&quot;
+              class&#x3D;&quot;source-toggle&quot;
+              data-testid&#x3D;&quot;source-toggle&quot;
+              [attr.aria-expanded]&#x3D;&quot;isExpanded(citation)&quot;
+              [attr.aria-label]&#x3D;&quot;
+                (isExpanded(citation) ? t().modeA.collapseSource : t().modeA.expandSource) +
+                &#x27;: &#x27; + citation.title
+              &quot;
+              (click)&#x3D;&quot;toggle(citation)&quot;
+            &gt;
+              &lt;svg class&#x3D;&quot;chevron&quot; viewBox&#x3D;&quot;0 0 24 24&quot; aria-hidden&#x3D;&quot;true&quot; focusable&#x3D;&quot;false&quot;&gt;
+                &lt;path d&#x3D;&quot;M6 9l6 6 6-6&quot; /&gt;
+              &lt;/svg&gt;
+            &lt;/button&gt;
+          }
+        &lt;/div&gt;
+
+        &lt;!-- What a collapsed card keeps: enough to recognise which protocol this is without opening
+             it. The machine is the same for every source — the query is scoped to one — but a row
+             read on its own should still say which press it is about. --&gt;
+        &lt;p class&#x3D;&quot;source-meta&quot;&gt;
+          &lt;span class&#x3D;&quot;source-machine&quot;&gt;{{ machine() }}&lt;/span&gt;
+          @if (citation.errorCode) {
+            &lt;span&gt;{{ t().modeA.errorCode }}: {{ citation.errorCode }}&lt;/span&gt;
+          }
+          @if (citation.incidentDate) {
+            &lt;span&gt;{{ t().modeA.incidentDate }}: {{ citation.incidentDate }}&lt;/span&gt;
+          }
+          &lt;span class&#x3D;&quot;num&quot;&gt;{{ t().modeA.similarity }}: {{ percent(citation) }} %&lt;/span&gt;
+        &lt;/p&gt;
+      &lt;/div&gt;
+    &lt;/li&gt;
+  }
+&lt;/ul&gt;
+</code></pre>
+    </div>
+
+    <div class="tab-pane fade " id="styleData">
+                <p class="comment">
+                    <code>./search-sources.css</code>
+                </p>
+                <pre class="line-numbers"><code class="language-scss">.sources-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-3);
+}
+
+.sources-heading {
+  margin: 0 0 var(--s-3);
+  font-size: var(--t-sm);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--c-ink-muted);
+}
+
+.sources {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+}
+
+/* Each source is a card of its own: a technician scans this list to decide which protocol to open,
+   and rows that touch are read as one paragraph. */
+.source {
+  display: flex;
+  gap: var(--s-3);
+  align-items: baseline;
+  padding: var(--s-3);
+  border: 1px solid var(--c-mode-a-line);
+  border-radius: var(--r-sm);
+  background: var(--c-surface);
+}
+
+.source-label {
+  flex: 0 0 auto;
+  padding: 0.1rem var(--s-2);
+  border-radius: var(--r-sm);
+  background: var(--c-mode-a);
+  color: var(--c-on-mode-a);
+  font-size: var(--t-xs);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Has to be able to shrink, or the ellipsis on a collapsed card never applies. */
+.source-body {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.source-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--s-2);
+}
+
+/* No href, so the pointer and the underline have to be stated: without them an element that behaves
+   like a link stops looking like one. */
+.source-title {
+  color: var(--c-mode-a-ink);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+
+.source-meta {
+  margin: var(--s-1) 0 0;
+  font-size: var(--t-xs);
+  font-variant-numeric: tabular-nums;
+  color: var(--c-ink-muted);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-1) var(--s-3);
+}
+
+.source-machine {
+  font-family: var(--font-mono);
+}
+
+/* A chevron alone rather than a labelled button like the pager: it sits beside a title that already
+   names what it opens, and its accessible name says the rest. */
+.source-toggle {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: var(--tap);
+  min-height: var(--tap);
+  margin: calc(var(--s-2) * -1) calc(var(--s-2) * -1) 0 0;
+  border: 0;
+  background: none;
+  color: var(--c-ink-muted);
+  cursor: pointer;
+}
+
+.chevron {
+  width: 1.1rem;
+  height: 1.1rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: transform 0.15s ease;
+}
+
+/* Down when there is more to see, up when it is open — the same convention the help panel uses. */
+[aria-expanded&#x3D;&#x27;true&#x27;] .chevron {
+  transform: rotate(180deg);
+}
+
+/* Collapsed: title and the compact meta on one line, ellipsed rather than wrapped, so five sources
+   stay a list a reader can scan instead of a page they scroll past the answer to leave. */
+.source.collapsed .source-body {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s-3);
+}
+
+.source.collapsed .source-head {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.source.collapsed .source-title {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.source.collapsed .source-meta {
+  margin: 0;
+  flex: 0 1 auto;
+  flex-wrap: nowrap;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+/* Where a citation marker just landed. A ring rather than a background change: the card keeps its
+   Mode A green, and the reader needs to see WHICH of five it is, not a second colour scheme. */
+.source.highlighted {
+  outline: 2px solid var(--c-mode-a);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chevron {
+    transition: none;
+  }
+}
+
+/* On a phone the one-line form would ellipse a title down to two words. The meta drops to its own
+   line and the card grows — collapsing is about the answer staying visible, and two lines per
+   source still does that. */
+@media (max-width: 40rem) {
+  .source.collapsed .source-body {
+    display: block;
+  }
+
+  .source.collapsed .source-meta {
+    margin-top: var(--s-1);
+  }
+}
+</code></pre>
+    </div>
+
+    <div class="tab-pane fade " id="tree">
+        <div id="tree-container"></div>
+        <div class="tree-legend">
+            <div class="title">
+                <b>Legend</b>
+            </div>
+            <div>
+                <div class="color htmlelement"></div><span>Html element</span>
+            </div>
+            <div>
+                <div class="color component"></div><span>Component</span>
+            </div>
+            <div>
+                <div class="color directive"></div><span>Html element with directive</span>
+            </div>
+        </div>
+    </div>
+
+    
+</div>
+
+<script src="../js/libs/vis-network.min.js"></script>
+<script src="../js/libs/htmlparser.js"></script>
+<script src="../js/libs/deep-iterator.js"></script>
+<script>
+        var COMPONENT_TEMPLATE = '<div><div class="sources-header">  <h2 class="sources-heading">{{ t().modeA.sources }}</h2>  @if (collapsible()) {    <!-- Only once the list is long enough to bury the answer above it. Two cards need no control,         and one that appears for two rows is noise. -->    <button      type="button"      class="btn btn-secondary arrow-button"      data-testid="toggle-all-sources"      [attr.aria-expanded]="allExpanded()"      (click)="toggleAll()"    >      <svg class="chevron" viewBox="0 0 24 24" aria-hidden="true" focusable="false">        <path d="M6 9l6 6 6-6" />      </svg>      {{ allExpanded() ? t().modeA.hideSources : t().modeA.showAllSources }}    </button>  }</div><ul class="sources" data-testid="sources">  @for (citation of citations(); track citation.protocolId) {    <li      class="source"      [id]="cardId(citation)"      [class.collapsed]="!isExpanded(citation)"      [class.highlighted]="highlighted() === citation.protocolId"      data-testid="source-card"      [attr.data-expanded]="isExpanded(citation)"    >      <span class="source-label">{{ citation.label }}</span>      <div class="source-body">        <div class="source-head">          <!-- No href, and that is the fix from #26: a browser-followed anchor is a fresh               navigation carrying no Bearer token, so the API answered 401 on every click. Kept an               <a> for its link semantics, operable from the keyboard exactly as a link would be. -->          <a            class="source-title"            role="button"            tabindex="0"            aria-haspopup="dialog"            [attr.aria-label]="t().modeA.openSource + \': \' + citation.title"            data-testid="source-link"            (click)="opened.emit(citation)"            (keydown.enter)="opened.emit(citation)"            (keydown.space)="opened.emit(citation)"            >{{ citation.title }}</a          >          @if (collapsible()) {            <button              type="button"              class="source-toggle"              data-testid="source-toggle"              [attr.aria-expanded]="isExpanded(citation)"              [attr.aria-label]="                (isExpanded(citation) ? t().modeA.collapseSource : t().modeA.expandSource) +                \': \' + citation.title              "              (click)="toggle(citation)"            >              <svg class="chevron" viewBox="0 0 24 24" aria-hidden="true" focusable="false">                <path d="M6 9l6 6 6-6" />              </svg>            </button>          }        </div>        <!-- What a collapsed card keeps: enough to recognise which protocol this is without opening             it. The machine is the same for every source — the query is scoped to one — but a row             read on its own should still say which press it is about. -->        <p class="source-meta">          <span class="source-machine">{{ machine() }}</span>          @if (citation.errorCode) {            <span>{{ t().modeA.errorCode }}: {{ citation.errorCode }}</span>          }          @if (citation.incidentDate) {            <span>{{ t().modeA.incidentDate }}: {{ citation.incidentDate }}</span>          }          <span class="num">{{ t().modeA.similarity }}: {{ percent(citation) }} %</span>        </p>      </div>    </li>  }</ul></div>'
+    var COMPONENTS = [{'name': 'App', 'selector': 'app-root'},{'name': 'Dialog', 'selector': 'app-dialog'},{'name': 'HelpDialog', 'selector': 'app-help-dialog'},{'name': 'Landing', 'selector': 'app-landing'},{'name': 'Moderation', 'selector': 'app-moderation'},{'name': 'Pager', 'selector': 'app-pager'},{'name': 'ProtocolDialog', 'selector': 'app-protocol-dialog'},{'name': 'Search', 'selector': 'app-search'},{'name': 'SearchHelp', 'selector': 'app-search-help'},{'name': 'SearchSources', 'selector': 'app-search-sources'},{'name': 'SettingsDialog', 'selector': 'app-settings-dialog'},{'name': 'ThemeToggle', 'selector': 'app-theme-toggle'},{'name': 'Upload', 'selector': 'app-upload'}];
+    var DIRECTIVES = [];
+    var ACTUAL_COMPONENT = {'name': 'SearchSources'};
+</script>
+<script src="../js/tree.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                   </div><div class="search-results">
+    <div class="has-results">
+        <h1 class="search-results-title"><span class='search-results-count'></span> results matching "<span class='search-query'></span>"</h1>
+        <ul class="search-results-list"></ul>
+    </div>
+    <div class="no-results">
+        <h1 class="search-results-title">No results matching "<span class='search-query'></span>"</h1>
+    </div>
+</div>
+</div>
+               <!-- END CONTENT -->
+           </div>
+       </div>
+
+          <label class="dark-mode-switch">
+               <input type="checkbox">
+               <span class="slider">
+                    <svg class="slider-icon" viewBox="0 0 24 24" fill="none" height="20" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" width="20" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"></path>
+                    </svg>
+               </span>
+          </label>
+
+       <script>
+            var COMPODOC_CURRENT_PAGE_DEPTH = 1;
+            var COMPODOC_CURRENT_PAGE_CONTEXT = 'component';
+            var COMPODOC_CURRENT_PAGE_URL = 'SearchSources.html';
+            var MAX_SEARCH_RESULTS = 15;
+       </script>
+
+       <script>
+               $darkModeToggleSwitchers = document.querySelectorAll('.dark-mode-switch input');
+               var updateDarkModeSwitchOffset = function () {
+                    var content = document.querySelector('.content');
+                    var scrollbarWidth = 0;
+
+                    if (content) {
+                         scrollbarWidth = Math.max(0, content.offsetWidth - content.clientWidth);
+                    }
+
+                    document.documentElement.style.setProperty(
+                         '--content-scrollbar-width',
+                         scrollbarWidth + 'px'
+                    );
+               };
+
+               updateDarkModeSwitchOffset();
+               requestAnimationFrame(updateDarkModeSwitchOffset);
+               window.addEventListener('resize', updateDarkModeSwitchOffset);
+
+               checkToggle(darkModeState);
+               if ($darkModeToggleSwitchers.length > 0) {
+                    for (var i = 0; i < $darkModeToggleSwitchers.length; i++) {
+                         $darkModeToggleSwitchers[i].addEventListener('change', function (event) {
+                              darkModeState = !darkModeState;
+                              toggleDarkMode(darkModeState);
+                         });
+                    }
+               }
+          </script>
+
+       <script src="../js/libs/custom-elements.min.js"></script>
+       <script src="../js/libs/lit-html.js"></script>
+
+       <script src="../js/menu-wc.js" defer></script>
+
+       <script src="../js/libs/bootstrap-native.js"></script>
+
+       <script src="../js/libs/es6-shim.min.js"></script>
+       <script src="../js/libs/EventDispatcher.js"></script>
+       <script src="../js/libs/promise.min.js"></script>
+
+       <script src="../js/compodoc.js"></script>
+
+       <script src="../js/tabs.js"></script>
+       <script src="../js/menu.js"></script>
+       <script src="../js/libs/clipboard.min.js"></script>
+       <script src="../js/libs/prism.js"></script>
+       <script src="../js/sourceCode.js"></script>
+          <script src="../js/search/search.js"></script>
+          <script src="../js/search/lunr.min.js"></script>
+          <script src="../js/search/search-lunr.js"></script>
+          <script src="../js/search/search_index.js"></script>
+       <script src="../js/lazy-load-graphs.js"></script>
+
+
+    </body>
+</html>

@@ -162,6 +162,13 @@ describe('Upload', () => {
     const textarea = element.querySelector('[data-testid="text-input"]')!;
     expect(machine.compareDocumentPosition(textarea) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     expect(title.compareDocumentPosition(textarea) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+
+    // The format hint moved INTO the left column so that the two columns start on the same line at
+    // desktop width — as a full-width banner it pushed only the left one down and left a dead band
+    // above the textarea. Stacked, it still reads first, exactly where it always did.
+    const hint = element.querySelector('[data-testid="format-hint"]')!;
+    expect(hint.parentElement?.classList.contains('form-fields')).toBe(true);
+    expect(hint.compareDocumentPosition(machine) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
   it('shows why an upload failed, not only that it did', async () => {

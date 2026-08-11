@@ -43,11 +43,22 @@ services:
       KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
       # Exposes /health/* on the management port (9000) for the healthcheck below.
       KC_HEALTH_ENABLED: "true"
+      # Read by the login theme's theme.properties. Local Angular, not the live site: a back-link
+      # compiled into the theme would send a developer to production.
+      WA_HOME_URL: ${WA_HOME_URL:-http://localhost:4200}
+      # The demo-account box. On here because a local realm is seeded with exactly those four
+      # published demo users; a deployment that is not a demo leaves it off.
+      WA_SHOW_DEMO_ACCOUNTS: "true"
     ports:
       - "${KEYCLOAK_PORT:-8081}:8080"
     volumes:
       # Imported on every start, so the realm is reproducible and drift is visible.
       - ./keycloak/realm-export.json:/opt/keycloak/data/import/realm-export.json:ro
+      # The login theme. A DIRECTORY mount, so adding a file to it needs no compose change — and
+      # unlike the single-file mounts in this stack it does not carry the inode trap from OPS RULE 3.
+      # No theme-cache flag is needed here: `start-dev` disables theme caching already (the image's
+      # own themes/README.md says so), so an edit is visible on reload.
+      - ./keycloak/themes/wartungsassistent:/opt/keycloak/themes/wartungsassistent:ro
     healthcheck:
       # The image ships no curl or wget, so the check speaks HTTP over bash's /dev/tcp.
       test:

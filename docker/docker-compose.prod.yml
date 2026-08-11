@@ -143,10 +143,28 @@ services:
       KC_HEALTH_ENABLED: "true"
       KC_BOOTSTRAP_ADMIN_USERNAME: ${KEYCLOAK_ADMIN}
       KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
+      # Read by the login theme's theme.properties: where "Zurück zur Startseite" goes. The public
+      # app host, which is the one thing about this link that differs between environments.
+      WA_HOME_URL: https://${APP_DOMAIN}
+      # The demo-account box on the login page. On because this deployment IS the public demo and
+      # the credentials are published by decision — a working demo login is the point of the site.
+      # Any deployment that is not a demo leaves this off and the box does not render.
+      WA_SHOW_DEMO_ACCOUNTS: "true"
     volumes:
       # Imported only when the realm does not already exist, so an admin-console
       # change is not silently reverted on the next restart.
+      #
+      # NOTE, and it is why the runbook has a step 4: because the realm already exists here, the
+      # `loginTheme` now set in this file will NOT be applied on import. It has to be selected once
+      # in the admin console. The export carries it so a rebuilt realm is correct from the start.
       - ./keycloak/realm-export.json:/opt/keycloak/data/import/realm-export.json:ro
+      # The login theme. A DIRECTORY mount, so a new file inside it needs no compose change, and it
+      # does not carry OPS RULE 3's inode trap the way the single-file mounts in this stack do.
+      #
+      # Theme caching stays ON here — this is `start`, not `start-dev`. That is correct for
+      # production (templates and CSS are read once instead of per request) and it is exactly why a
+      # theme change is not live until `up -d --force-recreate keycloak`.
+      - ./keycloak/themes/wartungsassistent:/opt/keycloak/themes/wartungsassistent:ro
     depends_on:
       postgres:
         condition: service_healthy

@@ -9,8 +9,10 @@
  * too; that cost is the price of the login page not being a second design language.
  *
  * Loaded AFTER the parent's css/styles.css (see theme.properties), so it wins on equal specificity
- * without !important. Only what differs from PatternFly is written down — this is a skin over the
- * parent's login card, not a re-implementation of it.
+ * without !important — with EXACTLY ONE documented exception, the realm heading, where the parent
+ * itself declares !important and nothing but a second !important can reach it. Only what differs
+ * from PatternFly is written down: this is a skin over the parent's login card, not a
+ * re-implementation of it.
  */
 
 :root {
@@ -90,6 +92,44 @@ body.login-pf,
 /* PatternFly paints its own background image on the login backdrop. */
 body.login-pf {
   background-image: none;
+}
+
+/* --- The realm heading, above the card ----------------------------------- */
+
+/*
+ * THE DEFECT THIS FIXES, AND THE BUG CLASS BEHIND IT.
+ *
+ * Measured on the rendered page: `#kc-header-wrapper` resolved to #ffffff on the #f3f5f7 canvas —
+ * a contrast ratio of 1.09:1. "MAINTENANCE ASSISTANT" was not faint, it was very nearly not there.
+ *
+ * The cause is not a wrong token, which is why a code-level check of THIS file could never have
+ * found it: it is an element this theme never mentioned. The region above the login card was
+ * designed to sit on the dark photographic backdrop keycloak.v2 ships. This theme removed that
+ * backdrop (`background-image: none`) and lit the canvas, and the heading's white stayed behind on
+ * near-white. The dark scheme read correctly BY ACCIDENT, which is the other half of the lesson: an
+ * accident that looks right is not a rule, and it protects nothing.
+ *
+ * AND THE COLOUR IS NOT MERELY INHERITED — the parent theme's own `css/styles.css` declares
+ *
+ *     #kc-header-wrapper { color: var(--pf-v5-global--Color--light-100) !important; }
+ *
+ * so this is the one place in this stylesheet where loading last is not enough. Nothing overrides an
+ * `!important` declaration except another one, and matching it is the whole reason it is here; the
+ * alternative — redefining `--pf-v5-global--Color--light-100` — would repaint every other element
+ * that legitimately wants a light colour on a dark fill. Scoped to the two ids, and to nothing else.
+ *
+ * THE RULE THE THEME NEEDS: repainting a canvas makes every element the parent coloured FOR the old
+ * canvas this theme's responsibility, whether or not it is named in this file. See the pitfalls
+ * section of themes/README.md, and `.wa-footer` below for the same class arriving as a layout bug.
+ *
+ * WEIGHT: muted, not loud. The realm name duplicates what the card and the page already say, so it
+ * belongs in the same helper grey as secondary text — legible, and quiet enough that "Anmelden" and
+ * the card title stay the two things a visitor reads first. Both schemes now state their colour
+ * deliberately rather than one of them inheriting a value that happened to work.
+ */
+#kc-header,
+#kc-header-wrapper {
+  color: var(--wa-ink-muted) !important;
 }
 
 /* --- The card ------------------------------------------------------------ */

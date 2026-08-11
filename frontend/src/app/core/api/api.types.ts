@@ -176,3 +176,19 @@ export interface DeletedProtocolPage {
   readonly total: number;
   readonly cap: number;
 }
+
+/**
+ * What `GET /api/health` answers.
+ *
+ * Public by design (see `HealthController`): it is what a load balancer, the compose healthcheck
+ * and a recruiter clicking the demo URL hit first, and none of them hold a token.
+ *
+ * `version` is the BACKEND's version, and nothing reads it yet — the footer indicator uses only
+ * `status`. It is typed here because it is part of the response, not because this PR shows it: the
+ * Settings dialog shows the FRONTEND version from package.json, and putting two different versions
+ * on screen in one release is how a reader learns to distrust both.
+ */
+export interface HealthStatus {
+  readonly status: string;
+  readonly version: string;
+}

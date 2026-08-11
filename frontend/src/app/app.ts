@@ -5,6 +5,7 @@ import { AuthService } from './core/auth/auth.service';
 import { I18nService } from './core/i18n/i18n.service';
 import { UiLanguage } from './core/i18n/dictionary';
 import { Dialog } from './shared/dialog/dialog';
+import { HealthDot } from './shared/health/health-dot';
 import { HelpDialog } from './shared/help/help-dialog';
 import { SettingsDialog } from './shared/settings/settings-dialog';
 import { ThemeToggle } from './shared/theme/theme-toggle';
@@ -27,6 +28,7 @@ type KnownRole = (typeof KNOWN_ROLES)[number];
     RouterLink,
     RouterLinkActive,
     Dialog,
+    HealthDot,
     HelpDialog,
     SettingsDialog,
     ThemeToggle,
@@ -51,6 +53,11 @@ export class App {
   protected readonly signOutOpen = signal(false);
   protected readonly settingsOpen = signal(false);
 
+  /** The one role whose navigation differs in kind rather than in degree. */
+  private readonly isAdmin = computed(() =>
+    this.auth.realmRoles().some((role) => role.toLowerCase() === 'admin'),
+  );
+
   /**
    * The role to show next to the name.
    *
@@ -58,11 +65,6 @@ export class App {
    * a permission model the application does not have. The highest-privilege match wins so that a
    * Schichtleiter who also carries `operator` is not labelled the lesser of the two.
    */
-  /** The one role whose navigation differs in kind rather than in degree. */
-  private readonly isAdmin = computed(() =>
-    this.auth.realmRoles().some((role) => role.toLowerCase() === 'admin'),
-  );
-
   protected readonly roleLabel = computed(() => {
     const held = new Set(this.auth.realmRoles().map((role) => role.toLowerCase()));
     const role = KNOWN_ROLES.find((candidate) => held.has(candidate));

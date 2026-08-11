@@ -5,6 +5,7 @@ import { Observable } from 'rxjs';
 import { ConfigService } from '../config/config.service';
 import {
   DeletedProtocolPage,
+  HealthStatus,
   Machine,
   NO_FILTER,
   ProtocolCorrection,
@@ -16,7 +17,7 @@ import {
 } from './api.types';
 
 /**
- * The five calls this application makes to its own backend.
+ * The handful of calls this application makes to its own backend.
  *
  * One service rather than one per feature: the API is small, and splitting it would mean three
  * files that each inject the same base URL to make one request. The access token is attached by
@@ -27,6 +28,18 @@ import {
 export class MaintenanceApiService {
   private readonly http = inject(HttpClient);
   private readonly apiBaseUrl = inject(ConfigService).config.apiBaseUrl;
+
+  /**
+   * Whether the backend is answering.
+   *
+   * Public server-side — no token is required — but the request still goes through the same
+   * HttpClient and therefore still carries the Bearer token the interceptor attaches. That is
+   * harmless on a public endpoint, and a bypass built to avoid it would be a second HTTP path to
+   * keep in step with the first for no gain.
+   */
+  health(): Observable<HealthStatus> {
+    return this.http.get<HealthStatus>(`${this.apiBaseUrl}/health`);
+  }
 
   /** The machines a question can be asked about. */
   machines(): Observable<Machine[]> {

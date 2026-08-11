@@ -89,6 +89,13 @@ export interface Dictionary {
     readonly repo: string;
     readonly aiUsage: string;
     readonly note: string;
+    /**
+     * The server-status indicator. Three states, and every one of them says so in words — a
+     * status carried only by a colour is a status some readers do not get.
+     */
+    readonly serverUp: string;
+    readonly serverDown: string;
+    readonly serverUnknown: string;
   };
   readonly signOut: {
     readonly title: string;
@@ -377,6 +384,9 @@ export const DE: Dictionary = {
     repo: 'Quellcode auf GitHub',
     aiUsage: 'KI-Einsatz im Projekt',
     note: 'Demo-System mit synthetischen Protokollen. Keine echten Anlagendaten.',
+    serverUp: 'Server: online',
+    serverDown: 'Server: offline',
+    serverUnknown: 'Server: wird geprüft …',
   },
   signOut: {
     title: 'Wirklich abmelden?',
@@ -684,6 +694,9 @@ export const EN: Dictionary = {
     repo: 'Source code on GitHub',
     aiUsage: 'AI use in this project',
     note: 'Demo system with synthetic protocols. No real plant data.',
+    serverUp: 'Server: online',
+    serverDown: 'Server: offline',
+    serverUnknown: 'Server: checking …',
   },
   signOut: {
     title: 'Sign out?',

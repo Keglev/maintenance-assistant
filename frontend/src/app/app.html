@@ -159,6 +159,13 @@
       >
     </nav>
     <p class="footer-note">{{ t().footer.note }}</p>
+
+    <!-- Only while signed in. An anonymous landing page has no business polling anything, and the
+         status is meaningless to a reader who cannot reach the backend yet anyway. The @if is also
+         what starts and stops the polling: the component owns it for exactly as long as it exists. -->
+    @if (isAuthenticated()) {
+      <app-health-dot />
+    }
   </div>
 </footer>
 

@@ -35,6 +35,14 @@
   align-self: flex-start;
 }
 
+/* The format hint is a <p>, and a <p> arrives with a 1em margin the browser gave it. Inside a flex
+   column that margin does not collapse — it simply adds to the gap, and at desktop width it would
+   also push the left column one rem below the label it is supposed to line up with. The column's
+   own `gap` is the spacing rule here; the UA margin is noise. */
+.form-fields > .field-hint {
+  margin: 0;
+}
+
 /* Wide screens only: the small fields keep their readable column on the left and the textarea takes
    the space that was empty to the right of them. Below this the rule above still applies. */
 @media (min-width: 60rem) {
@@ -46,6 +54,14 @@
 
   .form-columns.with-text .form-fields {
     flex: 0 0 22rem;
+  }
+
+  /* The two columns now start on the same line — "Nur Textdateien" on the left, "Protokolltext" on
+     the right — and this keeps their SECOND rows level too, so the textarea's top edge lands on the
+     machine picker rather than a row below it. The label is separated from its hint by the column
+     gap instead of the field gap; token arithmetic, so a change to either step moves both sides. */
+  .form-columns.with-text .form-text > .field-label {
+    margin-bottom: calc(var(--s-4) - var(--s-1));
   }
 
   .form-columns.with-text .form-text {
@@ -216,10 +232,5 @@
   }
 }
 
-.mode-switch button:hover:not(.active) {
-  background: var(--c-hover);
-}
-
-.mode-switch button:active:not(.active) {
-  background: var(--c-pressed);
-}
+/* The mode switch's hover and pressed feedback lives in styles.css with every other control
+   family — see the note there on why the two states cannot be split across layers. */

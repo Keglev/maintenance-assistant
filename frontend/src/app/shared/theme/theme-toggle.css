@@ -43,11 +43,6 @@
   stroke-linejoin: round;
 }
 
-/* The unpressed half has to answer a pointer, or the control looks disabled in dark. */
-.theme-switch button:hover:not(.active) {
-  background: var(--c-hover);
-}
-
-.theme-switch button:active:not(.active) {
-  background: var(--c-pressed);
-}
+/* The unpressed half has to answer a pointer, or the control looks disabled in dark. That hover and
+   its pressed counterpart now live in styles.css with every other control family — see the note
+   there on why the two states cannot be split across layers. */

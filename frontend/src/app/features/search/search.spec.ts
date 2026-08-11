@@ -179,6 +179,48 @@ describe('Search', () => {
       expect(toggle.getAttribute('aria-expanded')).toBe('false');
     });
 
+    /**
+     * The regression the second design drill found, and the reason it could exist at all.
+     *
+     * The source list's distance from the answer was written as `.answer-body + app-search-sources`.
+     * On a LONG answer the drawer toggle renders between those two, the adjacent-sibling combinator
+     * stops matching, and "Vollständige Antwort anzeigen" ends up welded to QUELLEN — the one case
+     * where the spacing matters most is the one case where the rule switched itself off.
+     *
+     * WHAT THIS TEST CAN AND CANNOT SEE: jsdom has no layout engine and no cascade worth trusting,
+     * so it cannot assert a margin in pixels. What it CAN assert is the structural fact the old rule
+     * depended on and the new one does not — that with the toggle present, the element in front of
+     * the source list is the toggle and not `.answer-body`. That is precisely the condition that
+     * broke the sibling selector, so a rule reintroduced in that shape would be provably wrong here
+     * even though the gap itself is measured in a browser, by eye.
+     */
+    it('spaces the source list off whatever precedes it, toggle or answer body', async () => {
+      // Short answer: the source list follows the answer body directly, which is the only case the
+      // old sibling rule ever covered.
+      const shortFixture = await render();
+      const shortAnswer = await ask(shortFixture, MODE_A);
+      makeTall(shortAnswer, 100);
+      await settle(shortFixture);
+
+      const shortSources = shortAnswer.querySelector('app-search-sources') as HTMLElement;
+      expect(shortSources).not.toBeNull();
+      expect(shortAnswer.querySelector('[data-testid="answer-toggle"]')).toBeNull();
+      expect(shortSources.previousElementSibling?.classList.contains('answer-body')).toBe(true);
+
+      // Long answer: the toggle is now in between, and `.answer-body + app-search-sources` no
+      // longer matches anything at all.
+      const longFixture = await render();
+      const longAnswer = await ask(longFixture, MODE_A);
+      makeTall(longAnswer, 5_000);
+      await settle(longFixture);
+
+      const toggle = longAnswer.querySelector('[data-testid="answer-toggle"]');
+      expect(toggle).not.toBeNull();
+      const longSources = longAnswer.querySelector('app-search-sources') as HTMLElement;
+      expect(longSources).not.toBeNull();
+      expect(longSources.previousElementSibling).toBe(toggle);
+    });
+
     it('never truncates the answer — the whole text is in the DOM while clamped', async () => {
       const fixture = await render();
       const element = await ask(fixture, MODE_A);

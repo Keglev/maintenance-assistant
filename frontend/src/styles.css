@@ -423,28 +423,101 @@ h3 {
 }
 
 /*
- * Pressed feedback, everywhere something is pressable.
+ * --- The interaction layer ------------------------------------------------
+ *
+ * Hover and pressed feedback for every control family in the application, stated ONCE.
  *
  * A touchscreen gives no cursor and no hover, so on the device this application is actually used on
  * the ONLY confirmation that a tap landed is what happens when it lands. One pixel of travel plus a
  * colour step is enough; anything more reads as a bouncing interface.
+ *
+ * WHY THE HOVER RULES MOVED HERE TOO, and this is the part worth remembering. Angular's emulated
+ * encapsulation rewrites a component rule `.mode-switch button:hover` into
+ * `.mode-switch button:hover[_ngcontent-x]` — one attribute selector more specific than the same
+ * selector written globally. A pressed rule in this file would therefore have LOST to a hover rule
+ * left behind in a component stylesheet, and a mouse press is always also a hover: the pressed
+ * colour would simply never have appeared on a desktop. The two states have to live in the same
+ * layer, or source order decides nothing. There are no per-component copies left.
+ *
+ * THE SAME ARITHMETIC IS WHY EVERY SURFACE SELECTOR BELOW CARRIES A `:not(...)`. A component's own
+ * resting rule — `.app-nav a`, `.source-toggle` — already sets a background, and once encapsulation
+ * has added its attribute that rule TIES with a plain `.app-nav a:hover` written here. Component
+ * styles are injected after this file, so a tie is a loss and the hover would silently do nothing.
+ * The guards are not decoration: they buy the one step of specificity that makes these rules apply,
+ * and each of them also says something true (the selected half of a switch keeps its brand fill, a
+ * disabled control does not light up).
+ *
+ * WHAT IS DELIBERATELY NOT HERE: links inside prose. `.footer-links a`, `.link-button` and the
+ * citation markers in an answer are text a reader follows, not surfaces they push, and text that
+ * sinks a pixel when clicked reads as a rendering fault. They keep their own colour-only feedback.
  */
+
+/* The travel. Nothing in any component sets `transform`, so these need no guard beyond the one that
+   keeps a disabled button still. */
 .btn:active:not([disabled]),
+.app-nav a:active,
 .lang-switch button:active,
 .theme-switch button:active,
 .mode-switch button:active,
-.font-switch button:active {
+.font-switch button:active,
+.source-toggle:active,
+.search-help-toggle:active {
   transform: translateY(1px);
+}
+
+/* The surface step, for the families whose resting state is a neutral surface. The filled variants
+   (.btn-primary, .btn-danger) and a segmented control's selected half keep the pressed colour of
+   their own palette above — a brand-blue button that turned grey under a finger would read as
+   being disabled by the press. */
+.lang-switch button:hover:not(.active),
+.theme-switch button:hover:not(.active),
+.mode-switch button:hover:not(.active),
+.font-switch button:hover:not(.active),
+.source-toggle:hover:not([disabled]),
+.search-help-toggle:hover:not([disabled]) {
+  background: var(--c-hover);
+}
+
+.lang-switch button:active:not(.active),
+.theme-switch button:active:not(.active),
+.mode-switch button:active:not(.active),
+.font-switch button:active:not(.active),
+.source-toggle:active:not([disabled]),
+.search-help-toggle:active:not([disabled]) {
+  background: var(--c-pressed);
+}
+
+/* The nav, whose active entry keeps the brand fill it earns by being the current page — hence the
+   guard, which here is a design statement as much as a specificity one. Its label is muted at rest,
+   so the pointer also brings it to full ink: on a dark ground a surface step alone under an
+   already-light label is close to invisible. */
+.app-nav a:hover:not(.active) {
+  background: var(--c-hover);
+  color: var(--c-ink);
+}
+
+.app-nav a:active:not(.active) {
+  background: var(--c-pressed);
+}
+
+/* The chevron buttons have no background of their own, so the pressed wash needs a shape to sit in
+   rather than bleeding into the card behind them. */
+.source-toggle,
+.search-help-toggle {
+  border-radius: var(--r-sm);
 }
 
 /* A reader who asked the operating system for less motion keeps the colour step and loses the
    travel — the feedback survives, the movement does not. */
 @media (prefers-reduced-motion: reduce) {
   .btn:active:not([disabled]),
+  .app-nav a:active,
   .lang-switch button:active,
   .theme-switch button:active,
   .mode-switch button:active,
-  .font-switch button:active {
+  .font-switch button:active,
+  .source-toggle:active,
+  .search-help-toggle:active {
     transform: none;
   }
 }

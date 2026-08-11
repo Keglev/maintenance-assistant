@@ -209,6 +209,9 @@
                             <a href="#PATTERNS" title="src/app/core/i18n/app-date.pipe.ts" class="reference-link "><span class="reference-badge reference-badge--variable" aria-hidden="true">V</span><span class="reference-link-label"><b>PATTERNS</b>&nbsp;&nbsp;&nbsp;(src/.../app-date.pipe.ts)</span></a>
                         </li>
                         <li>
+                            <a href="#POLL_INTERVAL_MS" title="src/app/shared/health/health-dot.ts" class="reference-link "><span class="reference-badge reference-badge--variable" aria-hidden="true">V</span><span class="reference-link-label"><b>POLL_INTERVAL_MS</b>&nbsp;&nbsp;&nbsp;(src/.../health-dot.ts)</span></a>
+                        </li>
+                        <li>
                             <a href="#REJECTION_CODES" title="src/app/core/api/maintenance-api.service.ts" class="reference-link "><span class="reference-badge reference-badge--variable" aria-hidden="true">V</span><span class="reference-link-label"><b>REJECTION_CODES</b>&nbsp;&nbsp;&nbsp;(src/.../maintenance-api.service.ts)</span></a>
                         </li>
                         <li>
@@ -216,6 +219,9 @@
                         </li>
                         <li>
                             <a href="#REPO_URL" title="src/app/shared/settings/settings-dialog.ts" class="reference-link "><span class="reference-badge reference-badge--variable" aria-hidden="true">V</span><span class="reference-link-label"><b>REPO_URL</b>&nbsp;&nbsp;&nbsp;(src/.../settings-dialog.ts)</span></a>
+                        </li>
+                        <li>
+                            <a href="#REQUEST_TIMEOUT_MS" title="src/app/shared/health/health-dot.ts" class="reference-link "><span class="reference-badge reference-badge--variable" aria-hidden="true">V</span><span class="reference-link-label"><b>REQUEST_TIMEOUT_MS</b>&nbsp;&nbsp;&nbsp;(src/.../health-dot.ts)</span></a>
                         </li>
                         <li>
                             <a href="#routes" title="src/app/app.routes.ts" class="reference-link "><span class="reference-badge reference-badge--variable" aria-hidden="true">V</span><span class="reference-link-label"><b>routes</b>&nbsp;&nbsp;&nbsp;(src/.../app.routes.ts)</span></a>
@@ -694,6 +700,9 @@ neither side reads naturally.</p>
     repo: &#x27;Quellcode auf GitHub&#x27;,
     aiUsage: &#x27;KI-Einsatz im Projekt&#x27;,
     note: &#x27;Demo-System mit synthetischen Protokollen. Keine echten Anlagendaten.&#x27;,
+    serverUp: &#x27;Server: online&#x27;,
+    serverDown: &#x27;Server: offline&#x27;,
+    serverUnknown: &#x27;Server: wird geprüft …&#x27;,
   },
   signOut: {
     title: &#x27;Wirklich abmelden?&#x27;,
@@ -1059,6 +1068,9 @@ DECISIONS.txt, which is what the two modes are called throughout the project&#39
     repo: &#x27;Source code on GitHub&#x27;,
     aiUsage: &#x27;AI use in this project&#x27;,
     note: &#x27;Demo system with synthetic protocols. No real plant data.&#x27;,
+    serverUp: &#x27;Server: online&#x27;,
+    serverDown: &#x27;Server: offline&#x27;,
+    serverUnknown: &#x27;Server: checking …&#x27;,
   },
   signOut: {
     title: &#x27;Sign out?&#x27;,
@@ -1883,6 +1895,77 @@ and a pager both fit.</p>
             <tr>
                 <td class="col-md-4">
                     <div class="io-description"><p>Rows per page in &quot;Meine Uploads&quot; — the same five the two moderation tables use.</p>
+</div>
+                </td>
+            </tr>
+
+        </tbody>
+    </table>
+</section>
+    <h3>src/app/shared/health/health-dot.ts</h3>
+    <section data-compodoc="block-properties">
+    <h3></h3>    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="POLL_INTERVAL_MS"></a>
+                    <span class="name">
+                        <span ><b>POLL_INTERVAL_MS</b></span>
+                        <a href="#POLL_INTERVAL_MS"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/number" target="_blank" >number</a></code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>60_000</code>
+                    </td>
+                </tr>
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-description"><p>How often the footer asks again, while it is on screen.</p>
+</div>
+                </td>
+            </tr>
+
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="REQUEST_TIMEOUT_MS"></a>
+                    <span class="name">
+                        <span ><b>REQUEST_TIMEOUT_MS</b></span>
+                        <a href="#REQUEST_TIMEOUT_MS"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/number" target="_blank" >number</a></code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>5_000</code>
+                    </td>
+                </tr>
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-description"><p>How long a health request may hang before it counts as down.</p>
+<p>Without it a backend that accepts the connection and never answers leaves the dot on &quot;checking&quot;
+forever, which is the one state that tells the reader nothing. Five seconds is far above the
+endpoint&#39;s real cost — it builds no response, it returns a constant — so a slower answer than
+this already means something is wrong.</p>
 </div>
                 </td>
             </tr>

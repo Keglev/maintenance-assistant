@@ -583,6 +583,22 @@ export interface DeletedProtocolPage {
   readonly total: number;
   readonly cap: number;
 }
+
+/**
+ * What &#x60;GET /api/health&#x60; answers.
+ *
+ * Public by design (see &#x60;HealthController&#x60;): it is what a load balancer, the compose healthcheck
+ * and a recruiter clicking the demo URL hit first, and none of them hold a token.
+ *
+ * &#x60;version&#x60; is the BACKEND&#x27;s version, and nothing reads it yet — the footer indicator uses only
+ * &#x60;status&#x60;. It is typed here because it is part of the response, not because this PR shows it: the
+ * Settings dialog shows the FRONTEND version from package.json, and putting two different versions
+ * on screen in one release is how a reader learns to distrust both.
+ */
+export interface HealthStatus {
+  readonly status: string;
+  readonly version: string;
+}
 </code></pre>
     </div>
 </div>

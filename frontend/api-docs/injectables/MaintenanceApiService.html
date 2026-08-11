@@ -152,7 +152,7 @@
                 <h3>Description</h3>
             </p>
             <p class="comment">
-                <p>The five calls this application makes to its own backend.</p>
+                <p>The handful of calls this application makes to its own backend.</p>
 <p>One service rather than one per feature: the API is small, and splitting it would mean three
 files that each inject the same base URL to make one request. The access token is attached by
 <code>angular-oauth2-oidc</code>&#39;s resource-server interceptor, configured once in <code>app.config.ts</code>, so
@@ -243,6 +243,10 @@ nothing here touches a header.</p>
                             </li>
                             <li>
                                 <span class="reference-badge reference-badge--method" aria-hidden="true">M</span>
+                                <a href="#health" >health</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--method" aria-hidden="true">M</span>
                                 <a href="#machines" >machines</a>
                             </li>
                             <li>
@@ -295,8 +299,8 @@ nothing here touches a header.</p>
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="43"
-                                    class="link-to-prism">src/app/core/api/maintenance-api.service.ts:43</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="56"
+                                    class="link-to-prism">src/app/core/api/maintenance-api.service.ts:56</a></div>
                         </td>
                     </tr>
 
@@ -379,8 +383,8 @@ a better feature and be a worse answer.</p>
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="134"
-                                    class="link-to-prism">src/app/core/api/maintenance-api.service.ts:134</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="147"
+                                    class="link-to-prism">src/app/core/api/maintenance-api.service.ts:147</a></div>
                         </td>
                     </tr>
 
@@ -472,8 +476,8 @@ a better feature and be a worse answer.</p>
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="113"
-                                    class="link-to-prism">src/app/core/api/maintenance-api.service.ts:113</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="126"
+                                    class="link-to-prism">src/app/core/api/maintenance-api.service.ts:126</a></div>
                         </td>
                     </tr>
 
@@ -556,8 +560,8 @@ history — three places nobody audited for it.</p>
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="126"
-                                    class="link-to-prism">src/app/core/api/maintenance-api.service.ts:126</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="139"
+                                    class="link-to-prism">src/app/core/api/maintenance-api.service.ts:139</a></div>
                         </td>
                     </tr>
 
@@ -640,8 +644,8 @@ document no longer contains (ADR-006 revision).</p>
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="152"
-                                    class="link-to-prism">src/app/core/api/maintenance-api.service.ts:152</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="165"
+                                    class="link-to-prism">src/app/core/api/maintenance-api.service.ts:165</a></div>
                         </td>
                     </tr>
 
@@ -712,8 +716,8 @@ protocol&#39;s content, and it is what makes the archive evidence rather than a 
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="61"
-                                    class="link-to-prism">src/app/core/api/maintenance-api.service.ts:61</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="74"
+                                    class="link-to-prism">src/app/core/api/maintenance-api.service.ts:74</a></div>
                         </td>
                     </tr>
 
@@ -790,8 +794,8 @@ half: <code>Content-Type</code> decides whether the browser renders the document
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="99"
-                                    class="link-to-prism">src/app/core/api/maintenance-api.service.ts:99</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="112"
+                                    class="link-to-prism">src/app/core/api/maintenance-api.service.ts:112</a></div>
                         </td>
                     </tr>
 
@@ -847,6 +851,49 @@ kind of difference that should be visible at the call site.</p>
         <tbody>
             <tr>
                 <td class="col-md-4">
+                    <a name="health"></a>
+                    <span class="name">
+                        <span ><b>health</b></span>
+                        <a href="#health"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+<code>health()</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="40"
+                                    class="link-to-prism">src/app/core/api/maintenance-api.service.ts:40</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                        <div class="io-description"><p>Whether the backend is answering.</p>
+<p>Public server-side — no token is required — but the request still goes through the same
+HttpClient and therefore still carries the Bearer token the interceptor attaches. That is
+harmless on a public endpoint, and a bypass built to avoid it would be a second HTTP path to
+keep in step with the first for no gain.</p>
+</div>
+
+                        <div class="io-description">
+                            <b>Returns : </b>        <code><a href="../interfaces/HealthStatus.html" target="_self" >Observable&lt;HealthStatus&gt;</a></code>
+
+                        </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
                     <a name="machines"></a>
                     <span class="name">
                         <span ><b>machines</b></span>
@@ -863,8 +910,8 @@ kind of difference that should be visible at the call site.</p>
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="32"
-                                    class="link-to-prism">src/app/core/api/maintenance-api.service.ts:32</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="45"
+                                    class="link-to-prism">src/app/core/api/maintenance-api.service.ts:45</a></div>
                         </td>
                     </tr>
 
@@ -902,8 +949,8 @@ kind of difference that should be visible at the call site.</p>
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="74"
-                                    class="link-to-prism">src/app/core/api/maintenance-api.service.ts:74</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="87"
+                                    class="link-to-prism">src/app/core/api/maintenance-api.service.ts:87</a></div>
                         </td>
                     </tr>
 
@@ -1005,8 +1052,8 @@ uploaded, and a review screen that loads all of them gets slower every month.</p
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="160"
-                                    class="link-to-prism">src/app/core/api/maintenance-api.service.ts:160</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="173"
+                                    class="link-to-prism">src/app/core/api/maintenance-api.service.ts:173</a></div>
                         </td>
                     </tr>
 
@@ -1044,8 +1091,8 @@ uploaded, and a review screen that loads all of them gets slower every month.</p
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="165"
-                                    class="link-to-prism">src/app/core/api/maintenance-api.service.ts:165</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="178"
+                                    class="link-to-prism">src/app/core/api/maintenance-api.service.ts:178</a></div>
                         </td>
                     </tr>
 
@@ -1126,7 +1173,7 @@ uploaded, and a review screen that loads all of them gets slower every month.</p
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="29" class="link-to-prism">src/app/core/api/maintenance-api.service.ts:29</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="30" class="link-to-prism">src/app/core/api/maintenance-api.service.ts:30</a></div>
                         </td>
                     </tr>
 
@@ -1159,7 +1206,7 @@ uploaded, and a review screen that loads all of them gets slower every month.</p
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="28" class="link-to-prism">src/app/core/api/maintenance-api.service.ts:28</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="29" class="link-to-prism">src/app/core/api/maintenance-api.service.ts:29</a></div>
                         </td>
                     </tr>
 
@@ -1179,6 +1226,7 @@ import { Observable } from &#x27;rxjs&#x27;;
 import { ConfigService } from &#x27;../config/config.service&#x27;;
 import {
   DeletedProtocolPage,
+  HealthStatus,
   Machine,
   NO_FILTER,
   ProtocolCorrection,
@@ -1190,7 +1238,7 @@ import {
 } from &#x27;./api.types&#x27;;
 
 /**
- * The five calls this application makes to its own backend.
+ * The handful of calls this application makes to its own backend.
  *
  * One service rather than one per feature: the API is small, and splitting it would mean three
  * files that each inject the same base URL to make one request. The access token is attached by
@@ -1201,6 +1249,18 @@ import {
 export class MaintenanceApiService {
   private readonly http &#x3D; inject(HttpClient);
   private readonly apiBaseUrl &#x3D; inject(ConfigService).config.apiBaseUrl;
+
+  /**
+   * Whether the backend is answering.
+   *
+   * Public server-side — no token is required — but the request still goes through the same
+   * HttpClient and therefore still carries the Bearer token the interceptor attaches. That is
+   * harmless on a public endpoint, and a bypass built to avoid it would be a second HTTP path to
+   * keep in step with the first for no gain.
+   */
+  health(): Observable&lt;HealthStatus&gt; {
+    return this.http.get&lt;HealthStatus&gt;(&#x60;${this.apiBaseUrl}/health&#x60;);
+  }
 
   /** The machines a question can be asked about. */
   machines(): Observable&lt;Machine[]&gt; {

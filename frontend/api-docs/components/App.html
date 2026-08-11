@@ -1591,29 +1591,48 @@ export class App {
   }
 }
 
+/* Tighter than it was, and for a reason: the entries below now carry their own border, so the space
+   between them no longer has to do the separating. Keeping the old gap AND adding the padding would
+   have widened the header by more than a tablet has to spare. */
 .app-nav {
   display: flex;
-  gap: var(--s-4);
+  gap: var(--s-2);
 }
 
+/*
+ * The nav entries are CONTROLS, and they have to look like ones.
+ *
+ * They were bare labels distinguished only by the active underline, so on the two views where a
+ * user is not — &quot;Protokoll hochladen&quot; while searching — nothing said they could be pressed. They
+ * now carry the same three ingredients every other pressable surface in this application carries:
+ * the line token as a border, the standard radius, and a surface. Lighter than .btn-secondary on
+ * purpose (the softer --c-line rather than --c-line-strong, no shadow), because a header full of
+ * buttons as loud as the primary action is its own kind of noise.
+ *
+ * THE ACTIVE ENTRY STILL READS STRONGEST, and it now says so three ways rather than one: the brand
+ * fill, the brand text, and the thick bottom edge the old design used alone. The bottom border is
+ * 3px in BOTH states — transparent-bottom-plus-1px-elsewhere would make the resting shape 2px
+ * shorter than the active one and the whole row would twitch as the route changed.
+ */
 .app-nav a {
   display: inline-flex;
   align-items: center;
   min-height: var(--tap);
-  padding: 0 var(--s-1);
+  padding: 0 var(--s-3);
+  border: 1px solid var(--c-line);
+  border-bottom: 3px solid var(--c-line);
+  border-radius: var(--r-sm);
+  background: var(--c-surface);
   color: var(--c-ink-muted);
   font-weight: 600;
   text-decoration: none;
-  border-bottom: 3px solid transparent;
-}
-
-.app-nav a:hover {
-  color: var(--c-ink);
 }
 
 .app-nav a.active {
-  color: var(--c-brand);
+  border-color: var(--c-brand-line);
   border-bottom-color: var(--c-brand);
+  background: var(--c-brand-soft);
+  color: var(--c-brand);
 }
 
 /* Pushed to the far end, so the switch and the identity sit together away from navigation. */
@@ -1757,7 +1776,8 @@ app-health-dot {
   .app-nav {
     order: 3;
     width: 100%;
-    gap: var(--s-5);
+    gap: var(--s-3);
+    padding-top: var(--s-2);
     border-top: 1px solid var(--c-line);
   }
 }
@@ -1793,23 +1813,9 @@ app-health-dot {
   height: 17px;
 }
 
-/* The nav gains a surface step as well as a colour change: on a dark ground a colour-only hover on
-   an already-light label is close to invisible. */
-.app-nav a:hover {
-  background: var(--c-hover);
-}
-
-.app-nav a:active {
-  background: var(--c-pressed);
-}
-
-.lang-switch button:hover:not(.active) {
-  background: var(--c-hover);
-}
-
-.lang-switch button:active:not(.active) {
-  background: var(--c-pressed);
-}
+/* The hover and pressed feedback for .app-nav and .lang-switch used to be repeated here. It lives
+   in styles.css now, with every other control family — see the note there on why the pair had to
+   move together. */
 </code></pre>
     </div>
 

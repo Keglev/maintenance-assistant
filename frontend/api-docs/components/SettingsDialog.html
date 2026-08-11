@@ -1361,13 +1361,8 @@ export class SettingsDialog {
   font-size: 1.25rem;
 }
 
-.font-switch button:hover:not(.active) {
-  background: var(--c-hover);
-}
-
-.font-switch button:active:not(.active) {
-  background: var(--c-pressed);
-}
+/* The font switch&#x27;s hover and pressed feedback lives in styles.css with every other control
+   family — see the note there on why the two states cannot be split across layers. */
 </code></pre>
     </div>
 

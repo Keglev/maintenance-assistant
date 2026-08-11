@@ -1626,9 +1626,13 @@ export class ProtocolDialog implements OnDestroy {
   color: var(--c-ink-muted);
 }
 
+/* One step up from the body size. A protocol is the evidence behind an answer and it is read,
+   not skimmed — and the dialog is a large box that was setting small type inside it. --t-md is
+   1.0625rem, so it scales with the reader&#x27;s chosen text size like everything else. */
 .protocol-paragraph {
   margin: 0;
   max-width: var(--read-max);
+  font-size: var(--t-md);
   line-height: var(--lh-relaxed);
 }
 
@@ -1644,9 +1648,11 @@ export class ProtocolDialog implements OnDestroy {
   border: 1px solid var(--c-line);
   border-radius: var(--r-sm);
   background: var(--c-sunken);
+  /* Monospace stays — this is the stored text exactly as filed, and its alignment carries
+     meaning. Only the size goes up, to match the parsed view beside it. */
   font-family: var(--font-mono);
-  font-size: var(--t-sm);
-  line-height: var(--lh-normal);
+  font-size: var(--t-md);
+  line-height: var(--lh-relaxed);
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
@@ -1679,7 +1685,7 @@ export class ProtocolDialog implements OnDestroy {
 <script src="../js/libs/deep-iterator.js"></script>
 <script>
         var COMPONENT_TEMPLATE = '<div><app-dialog  [open]="protocolId() !== null"  [title]="protocolTitle() || t().viewer.title"  testId="protocol"  (closed)="close()">  <!-- The machine belongs in the head next to the title: on a shop floor "which machine is this       about" is the first question asked of any document. -->  @if (machine()) {    <p class="viewer-machine" dialogSubtitle data-testid="protocol-machine">{{ machine() }}</p>  }  <button    type="button"    class="btn btn-secondary btn-sm"    dialogActions    data-testid="protocol-download"    [disabled]="!canDownload()"    (click)="download()"  >    <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">      <path d="M12 4v11" />      <path d="M7.5 10.5L12 15l4.5-4.5" />      <path d="M5 19h14" />    </svg>    {{ t().viewer.download }}  </button>  @if (loading()) {    <p class="viewer-loading" role="status" aria-live="polite" data-testid="protocol-loading">      {{ t().viewer.loading }}    </p>  }  @if (failure(); as reason) {    <!-- A source that will not open is worth saying out loud: the claim in the answer still rests         on this protocol, and the reader is entitled to know the evidence is unreachable rather         than to stare at an empty dialog. -->    <p class="notice notice-error" role="alert" data-testid="protocol-failure">      @switch (reason) {        @case (\'notFound\') {          {{ t().errors.documentMissing }}        }        @case (\'forbidden\') {          {{ t().errors.forbidden }}        }        @case (\'unavailable\') {          {{ t().errors.unavailable }}        }        @default {          {{ t().errors.generic }}        }      }    </p>  }  @if (parsed(); as document) {    <!-- lang="de" is wrong for the English protocols in the corpus and right for the 108 German         ones, so neither is asserted here: the document carries no lang and inherits the         interface\'s, which is what the shell already set. -->    <article class="protocol" data-testid="protocol-body">      @if (document.kind === \'raw\') {        <!-- The parser did not recognise the structure. The file itself is still the evidence, so             it is shown as it stands rather than replaced by an apology. Preformatted, because the             line breaks are the only structure left. -->        <p class="caption viewer-fallback-note" data-testid="protocol-fallback-note">          {{ t().viewer.fallbackNote }}        </p>        <pre class="protocol-raw" data-testid="protocol-raw">{{ document.raw }}</pre>      } @else {        @for (segment of document.segments; track $index) {          @switch (segment.kind) {            @case (\'meta\') {              <dl class="protocol-meta" data-testid="protocol-meta">                @for (row of segment.rows; track row.label) {                  <dt>{{ row.label }}</dt>                  <dd>{{ row.value }}</dd>                }              </dl>            }            @case (\'title\') {              <h3 class="protocol-title" data-testid="protocol-doc-title">{{ segment.text }}</h3>            }            @case (\'section\') {              <section class="protocol-section" data-testid="protocol-section">                @if (segment.heading) {                  <h4 class="protocol-heading">{{ segment.heading }}</h4>                }                @for (paragraph of segment.paragraphs; track $index) {                  <p class="protocol-paragraph">{{ paragraph }}</p>                }              </section>            }          }        }      }    </article>  }</app-dialog></div>'
-    var COMPONENTS = [{'name': 'App', 'selector': 'app-root'},{'name': 'Dialog', 'selector': 'app-dialog'},{'name': 'HealthDot', 'selector': 'app-health-dot'},{'name': 'HelpDialog', 'selector': 'app-help-dialog'},{'name': 'Landing', 'selector': 'app-landing'},{'name': 'Moderation', 'selector': 'app-moderation'},{'name': 'Pager', 'selector': 'app-pager'},{'name': 'ProtocolDialog', 'selector': 'app-protocol-dialog'},{'name': 'Search', 'selector': 'app-search'},{'name': 'SearchHelp', 'selector': 'app-search-help'},{'name': 'SearchSources', 'selector': 'app-search-sources'},{'name': 'SettingsDialog', 'selector': 'app-settings-dialog'},{'name': 'ThemeToggle', 'selector': 'app-theme-toggle'},{'name': 'Upload', 'selector': 'app-upload'}];
+    var COMPONENTS = [{'name': 'App', 'selector': 'app-root'},{'name': 'Dialog', 'selector': 'app-dialog'},{'name': 'HealthDot', 'selector': 'app-health-dot'},{'name': 'HelpDialog', 'selector': 'app-help-dialog'},{'name': 'Landing', 'selector': 'app-landing'},{'name': 'Moderation', 'selector': 'app-moderation'},{'name': 'Pager', 'selector': 'app-pager'},{'name': 'ProtocolDialog', 'selector': 'app-protocol-dialog'},{'name': 'Search', 'selector': 'app-search'},{'name': 'SearchAnswer', 'selector': 'app-search-answer'},{'name': 'SearchHelp', 'selector': 'app-search-help'},{'name': 'SearchSources', 'selector': 'app-search-sources'},{'name': 'SettingsDialog', 'selector': 'app-settings-dialog'},{'name': 'ThemeToggle', 'selector': 'app-theme-toggle'},{'name': 'Upload', 'selector': 'app-upload'}];
     var DIRECTIVES = [];
     var ACTUAL_COMPONENT = {'name': 'ProtocolDialog'};
 </script>

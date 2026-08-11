@@ -96,6 +96,9 @@ customElements.define('compodoc-menu', class extends HTMLElement {
                                 <a href="components/Search.html" data-type="entity-link" >Search</a>
                             </li>
                             <li class="link">
+                                <a href="components/SearchAnswer.html" data-type="entity-link" >SearchAnswer</a>
+                            </li>
+                            <li class="link">
                                 <a href="components/SearchHelp.html" data-type="entity-link" >SearchHelp</a>
                             </li>
                             <li class="link">

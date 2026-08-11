@@ -485,7 +485,6 @@ export interface Dictionary {
     readonly machine: string;
     readonly machinePlaceholder: string;
     readonly question: string;
-    readonly questionHint: string;
     readonly questionPlaceholder: string;
     readonly submit: string;
     readonly working: string;
@@ -523,6 +522,9 @@ export interface Dictionary {
     readonly hideSources: string;
     readonly expandSource: string;
     readonly collapseSource: string;
+    /** The drawer over a long answer. The text is clamped, never cut — see SearchAnswer. */
+    readonly expandAnswer: string;
+    readonly collapseAnswer: string;
   };
   readonly viewer: {
     readonly title: string;
@@ -804,8 +806,6 @@ export const DE: Dictionary &#x3D; {
     machine: &#x27;Maschine&#x27;,
     machinePlaceholder: &#x27;Maschine wählen …&#x27;,
     question: &#x27;Ihre Frage&#x27;,
-    questionHint:
-      &#x27;z. B.: Sensorfehler, Maschine startet nicht, Programm lädt nicht, Druck baut sich langsam auf&#x27;,
     questionPlaceholder: &#x27;z. B. Presse kommt nicht auf Druck, Fehler E-47&#x27;,
     submit: &#x27;Frage stellen&#x27;,
     working: &#x27;Antwort wird erstellt …&#x27;,
@@ -842,6 +842,8 @@ export const DE: Dictionary &#x3D; {
     hideSources: &#x27;Quellen einklappen&#x27;,
     expandSource: &#x27;Quelle aufklappen&#x27;,
     collapseSource: &#x27;Quelle zuklappen&#x27;,
+    expandAnswer: &#x27;Vollständige Antwort anzeigen&#x27;,
+    collapseAnswer: &#x27;Antwort einklappen&#x27;,
   },
   viewer: {
     title: &#x27;Originalprotokoll&#x27;,
@@ -1117,8 +1119,6 @@ export const EN: Dictionary &#x3D; {
     machine: &#x27;Machine&#x27;,
     machinePlaceholder: &#x27;Choose a machine …&#x27;,
     question: &#x27;Your question&#x27;,
-    questionHint:
-      &#x27;e.g.: sensor fault, machine will not start, program does not load, pressure builds up slowly&#x27;,
     questionPlaceholder: &#x27;e.g. press does not build up pressure, fault E-47&#x27;,
     submit: &#x27;Ask&#x27;,
     working: &#x27;Preparing the answer …&#x27;,
@@ -1155,6 +1155,8 @@ export const EN: Dictionary &#x3D; {
     hideSources: &#x27;Collapse sources&#x27;,
     expandSource: &#x27;Expand source&#x27;,
     collapseSource: &#x27;Collapse source&#x27;,
+    expandAnswer: &#x27;Show full answer&#x27;,
+    collapseAnswer: &#x27;Collapse answer&#x27;,
   },
   viewer: {
     title: &#x27;Original protocol&#x27;,

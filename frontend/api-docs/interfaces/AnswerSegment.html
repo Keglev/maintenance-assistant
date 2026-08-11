@@ -128,7 +128,7 @@
 
 <div class="io-file io-file-path" data-compodoc="entity-file-path">
     <span class="icon ion-ios-document" aria-hidden="true"></span>
-    <code>src/app/features/search/search.ts</code>
+    <code>src/app/features/search/search-answer.ts</code>
 </div>
 
 <ul class="nav nav-tabs" role="tablist">
@@ -246,7 +246,7 @@ make one.</p>
 
                             <tr>
                                 <td class="col-md-4">
-                                    <div class="io-line">Defined in <a href="" data-line="24" class="link-to-prism">src/app/features/search/search.ts:24</a></div>
+                                    <div class="io-line">Defined in <a href="" data-line="31" class="link-to-prism">src/app/features/search/search-answer.ts:31</a></div>
                                 </td>
                             </tr>
 
@@ -291,7 +291,7 @@ make one.</p>
 
                             <tr>
                                 <td class="col-md-4">
-                                    <div class="io-line">Defined in <a href="" data-line="21" class="link-to-prism">src/app/features/search/search.ts:21</a></div>
+                                    <div class="io-line">Defined in <a href="" data-line="28" class="link-to-prism">src/app/features/search/search-answer.ts:28</a></div>
                                 </td>
                             </tr>
 
@@ -330,7 +330,7 @@ make one.</p>
 
                             <tr>
                                 <td class="col-md-4">
-                                    <div class="io-line">Defined in <a href="" data-line="22" class="link-to-prism">src/app/features/search/search.ts:22</a></div>
+                                    <div class="io-line">Defined in <a href="" data-line="29" class="link-to-prism">src/app/features/search/search-answer.ts:29</a></div>
                                 </td>
                             </tr>
 
@@ -341,14 +341,21 @@ make one.</p>
 
 
     <div class="tab-pane fade  tab-source-code" id="source">
-        <pre class="line-numbers compodoc-sourcecode"><code class="language-typescript">import { Component, computed, inject, signal } from &#x27;@angular/core&#x27;;
-import { FormsModule } from &#x27;@angular/forms&#x27;;
+        <pre class="line-numbers compodoc-sourcecode"><code class="language-typescript">import { DOCUMENT } from &#x27;@angular/common&#x27;;
+import {
+  Component,
+  ElementRef,
+  computed,
+  effect,
+  inject,
+  input,
+  output,
+  signal,
+  viewChild,
+} from &#x27;@angular/core&#x27;;
 
-import { Citation, Machine, QueryAnswer } from &#x27;../../core/api/api.types&#x27;;
-import { ApiFailure, MaintenanceApiService, classify } from &#x27;../../core/api/maintenance-api.service&#x27;;
+import { Citation, QueryAnswer } from &#x27;../../core/api/api.types&#x27;;
 import { I18nService } from &#x27;../../core/i18n/i18n.service&#x27;;
-import { ProtocolDialog } from &#x27;../../shared/protocol/protocol-dialog&#x27;;
-import { SearchHelp } from &#x27;./search-help&#x27;;
 import { SearchSources, SourceFocus } from &#x27;./search-sources&#x27;;
 
 /**
@@ -368,60 +375,69 @@ export interface AnswerSegment {
 }
 
 /**
- * The search view (US-1/US-2).
+ * How tall an answer may be before it is clamped, as a share of the viewport.
  *
- * The two answer modes are rendered as two visually distinct blocks, which is not styling: NFR-2
- * makes the distinction the anti-hallucination mechanism. A Mode B answer that looked like a Mode A
- * answer would be the failure this application is built to prevent — general advice read as
- * documented plant experience. So Mode B gets its own colour, its own banner and, deliberately, no
- * source area at all rather than an empty one.
+ * Half the screen: enough that most answers are never touched, little enough that a long one does
+ * not push its own sources — and everything after them — off the bottom of the page.
+ */
+const CLAMP_VIEWPORT_SHARE &#x3D; 0.5;
+
+/** Below this the extra pixels are not worth a control; a two-line drawer is noise. */
+const CLAMP_TOLERANCE_PX &#x3D; 24;
+
+/**
+ * The answer block: the two modes, the citation markers, and the source list under them.
+ *
+ * &lt;p&gt;Its own component for two reasons. It is where the clamp below has to live — the drawer and
+ * the citation markers must be able to talk to each other without the search view brokering it —
+ * and the search view was otherwise carrying the markup and the stylesheet for something that is
+ * not about asking a question.
+ *
+ * &lt;p&gt;&lt;b&gt;The clamp is visual and nothing else.&lt;/b&gt; The full answer is in the DOM at all times: it is
+ * never truncated, never paginated and never split. A Mode A answer&#x27;s claims each name the source
+ * they came from, and cutting the text would separate a claim from its citation — the exact
+ * guarantee NFR-2 rests on. &#x60;max-height&#x60; and &#x60;overflow: hidden&#x60; are the whole mechanism, so
+ * expanding reveals text that was already there rather than fetching or rebuilding anything.
  */
 @Component({
-  selector: &#x27;app-search&#x27;,
-  imports: [FormsModule, ProtocolDialog, SearchHelp, SearchSources],
-  templateUrl: &#x27;./search.html&#x27;,
-  styleUrl: &#x27;./search.css&#x27;,
+  selector: &#x27;app-search-answer&#x27;,
+  imports: [SearchSources],
+  templateUrl: &#x27;./search-answer.html&#x27;,
+  styleUrl: &#x27;./search-answer.css&#x27;,
 })
-export class Search {
-  private readonly api &#x3D; inject(MaintenanceApiService);
+export class SearchAnswer {
   private readonly i18n &#x3D; inject(I18nService);
+  private readonly document &#x3D; inject(DOCUMENT);
 
   protected readonly t &#x3D; this.i18n.t;
 
-  protected readonly machines &#x3D; signal&lt;Machine[]&gt;([]);
-  protected readonly machinesFailed &#x3D; signal(false);
-  protected readonly machineId &#x3D; signal(&#x27;&#x27;);
-  protected readonly question &#x3D; signal(&#x27;&#x27;);
+  readonly answer &#x3D; input.required&lt;QueryAnswer&gt;();
+  /** What to call the machine on a source card read on its own. */
+  readonly machine &#x3D; input(&#x27;&#x27;);
 
-  protected readonly answer &#x3D; signal&lt;QueryAnswer | null&gt;(null);
-  protected readonly asking &#x3D; signal(false);
-  protected readonly failure &#x3D; signal&lt;ApiFailure | null&gt;(null);
-  protected readonly validation &#x3D; signal&lt;&#x27;question&#x27; | &#x27;machine&#x27; | null&gt;(null);
+  /** A source&#x27;s title was activated — the search view owns the viewer dialog. */
+  readonly opened &#x3D; output&lt;Citation&gt;();
 
-  /** The citation whose protocol the viewer is showing, or null when the viewer is closed. */
-  protected readonly viewing &#x3D; signal&lt;Citation | null&gt;(null);
+  private readonly body &#x3D; viewChild&lt;ElementRef&lt;HTMLElement&gt;&gt;(&#x27;answerBody&#x27;);
 
-  /** What to call the machine in the viewer&#x27;s head: the picker&#x27;s own label, not an id. */
-  protected readonly machineLabel &#x3D; computed(() &#x3D;&gt; {
-    const machine &#x3D; this.machines().find((candidate) &#x3D;&gt; candidate.id &#x3D;&#x3D;&#x3D; this.machineId());
-    return machine ? &#x60;${machine.machineNo} · ${machine.name}&#x60; : &#x27;&#x27;;
-  });
+  /** Whether the answer is long enough to be worth a drawer. Measured, not guessed. */
+  protected readonly overflowing &#x3D; signal(false);
+  protected readonly expanded &#x3D; signal(false);
 
-  /**
-   * The answer text split into prose and citation markers.
-   *
-   * Computed rather than done in the template so the regular expression runs once per answer
-   * instead of once per change detection pass.
-   */
+  protected readonly clamped &#x3D; computed(() &#x3D;&gt; this.overflowing() &amp;&amp; !this.expanded());
+
+  /** The source a citation marker last pointed at; handed to the list, which reveals it. */
+  protected readonly focusedSource &#x3D; signal&lt;SourceFocus | null&gt;(null);
+
   protected readonly segments &#x3D; computed&lt;AnswerSegment[]&gt;(() &#x3D;&gt; {
     const current &#x3D; this.answer();
-    return current &amp;&amp; current.mode &#x3D;&#x3D;&#x3D; &#x27;A&#x27; ? toSegments(current.answer, current.citations) : [];
+    return current.mode &#x3D;&#x3D;&#x3D; &#x27;A&#x27; ? toSegments(current.answer, current.citations) : [];
   });
 
   /** Mode B&#x27;s steps: the backend joins them with newlines, and they render as a numbered list. */
   protected readonly steps &#x3D; computed&lt;string[]&gt;(() &#x3D;&gt; {
     const current &#x3D; this.answer();
-    if (!current || current.mode !&#x3D;&#x3D; &#x27;B&#x27;) {
+    if (current.mode !&#x3D;&#x3D; &#x27;B&#x27;) {
       return [];
     }
     return current.answer
@@ -431,89 +447,65 @@ export class Search {
   });
 
   constructor() {
-    this.api.machines().subscribe({
-      next: (machines) &#x3D;&gt; this.machines.set(machines),
-      // The view still renders and says the list is missing, rather than showing an empty picker
-      // that looks like a plant with no machines in it.
-      error: () &#x3D;&gt; this.machinesFailed.set(true),
-    });
-  }
-
-  protected ask(): void {
-    if (this.asking()) {
-      return;
-    }
-    const question &#x3D; this.question().trim();
-    if (!this.machineId()) {
-      this.validation.set(&#x27;machine&#x27;);
-      return;
-    }
-    if (!question) {
-      this.validation.set(&#x27;question&#x27;);
-      return;
-    }
-
-    this.validation.set(null);
-    this.failure.set(null);
-    // The previous answer is cleared before the new one is requested. Leaving it on screen for the
-    // 5-20 seconds this takes would show one machine&#x27;s answer under another machine&#x27;s name.
-    this.answer.set(null);
-    this.asking.set(true);
-
-    this.api.ask(question, this.machineId()).subscribe({
-      next: (answer) &#x3D;&gt; {
-        this.answer.set(answer);
-        this.asking.set(false);
-      },
-      error: (error: unknown) &#x3D;&gt; {
-        this.failure.set(classify(error));
-        this.asking.set(false);
-      },
+    effect(() &#x3D;&gt; {
+      // A new answer is a new height, and it starts open until measured: an answer that clamped
+      // itself before anyone knew how tall it was would flash a drawer onto a two-line reply.
+      this.answer();
+      this.expanded.set(false);
+      this.overflowing.set(false);
+      // After the browser has laid the new text out. Reading a height in the same tick that set the
+      // text measures the old one.
+      setTimeout(() &#x3D;&gt; this.measure());
     });
   }
 
   /**
-   * Opens the protocol behind a citation, in a dialog, inside the application.
+   * Decides whether the drawer is needed, by measuring the rendered answer.
    *
-   * **Why this is a handler and not an &#x60;href&#x60;.** It was an &#x60;href&#x60;, and it did not work: a
-   * browser-followed anchor is a fresh navigation that never passes through Angular&#x27;s interceptor
-   * chain, so it carries no &#x60;Authorization&#x60; header, and the backend is a stateless JWT resource
-   * server with no cookie fallback — every click answered 401.
-   *
-   * The first fix (#26) fetched the document through HttpClient and opened it in a new tab as an
-   * object URL. That was right about the token and wrong about the destination: it dropped the
-   * reader into the browser&#x27;s raw text viewer, out of the application, which on a shop-floor tablet
-   * is somewhere hard to come back from. The viewer dialog keeps the document here, and the whole
-   * question of what a navigation carries stops applying.
-   *
-   * All this method does now is name the citation — the dialog owns the fetch, the parsing and the
-   * download.
+   * &lt;p&gt;Measured rather than counted in characters: how tall an answer is depends on the viewport,
+   * the text scale the reader chose (the design system is rem-based, so &quot;large&quot; genuinely means
+   * taller) and where the lines break. A character threshold would clamp a short answer on a phone
+   * and miss a long one on a desktop.
    */
-  protected openSource(citation: Citation, event?: Event): void {
-    event?.preventDefault();
-    this.viewing.set(citation);
+  protected measure(): void {
+    const element &#x3D; this.body()?.nativeElement;
+    if (!element) {
+      return;
+    }
+    const limit &#x3D; this.limitPx();
+    this.overflowing.set(element.scrollHeight &gt; limit + CLAMP_TOLERANCE_PX);
   }
 
+  /** Half the viewport, from the same window the element is rendered in. */
+  private limitPx(): number {
+    const view &#x3D; this.document.defaultView;
+    return (view?.innerHeight ?? 0) * CLAMP_VIEWPORT_SHARE;
+  }
+
+  protected toggle(): void {
+    this.expanded.update((open) &#x3D;&gt; !open);
+  }
 
   /**
-   * The protocol a citation marker last pointed at.
+   * Follows a &#x60;[P1]&#x60; marker to the card it names.
    *
-   * Handed to the source list as an input rather than reached into with a view query: the list
-   * owns its own expand state, and the marker only says which protocol it means.
-   */
-  protected readonly focusedSource &#x3D; signal&lt;SourceFocus | null&gt;(null);
-
-  /**
-   * Follows a &#x60;[P1]&#x60; marker to its card.
+   * &lt;p&gt;&lt;b&gt;Expands first, then points.&lt;/b&gt; A marker that scrolled to a source while the answer above
+   * it was still clamped — or worse, did nothing visible because the clamp swallowed the movement —
+   * is the #26 bug class returning in a new costume: a citation control that answers a click with
+   * nothing. Opening the drawer is therefore part of following the marker, not a separate step the
+   * reader has to think of.
    *
-   * &lt;p&gt;&lt;b&gt;A fresh object per click, and that is load-bearing.&lt;/b&gt; Clicking the same marker twice —
-   * after collapsing the card, or after scrolling away — has to work as well as the first click,
-   * and a signal set to the value it already holds notifies nobody. Setting null in between does
-   * not help either: both writes land in one tick and the effect sees only the final value, which
-   * is the one it already had. A new identity every time is what makes each click an event.
+   * &lt;p&gt;A fresh object every time, because a signal set to the value it already holds notifies
+   * nobody and the second click on the same marker has to work as well as the first.
    */
   protected showSource(citation: Citation): void {
+    this.expanded.set(true);
     this.focusedSource.set({ protocolId: citation.protocolId });
+  }
+
+  /** Percent, rounded — a reader compares 69 % with 56 %, not 0.6896 with 0.5566. */
+  protected similarityPercent(citation: Citation): number {
+    return Math.round(citation.similarity * 100);
   }
 }
 
@@ -528,17 +520,19 @@ export class Search {
 export function toSegments(answer: string, citations: readonly Citation[]): AnswerSegment[] {
   const byLabel &#x3D; new Map(citations.map((citation) &#x3D;&gt; [citation.label.toUpperCase(), citation]));
   const segments: AnswerSegment[] &#x3D; [];
-  const pattern &#x3D; /\[([A-Za-z]\d+)\]/g;
+  const pattern &#x3D; /\[(P\d+)\]/gi;
   let lastIndex &#x3D; 0;
+  let match: RegExpExecArray | null;
 
-  for (let match &#x3D; pattern.exec(answer); match !&#x3D;&#x3D; null; match &#x3D; pattern.exec(answer)) {
+  while ((match &#x3D; pattern.exec(answer)) !&#x3D;&#x3D; null) {
+    const citation &#x3D; byLabel.get(match[1].toUpperCase());
+    if (!citation) {
+      continue;
+    }
     if (match.index &gt; lastIndex) {
       segments.push({ kind: &#x27;text&#x27;, value: answer.slice(lastIndex, match.index) });
     }
-    const citation &#x3D; byLabel.get(match[1].toUpperCase());
-    segments.push(
-      citation ? { kind: &#x27;marker&#x27;, value: match[1], citation } : { kind: &#x27;text&#x27;, value: match[0] },
-    );
+    segments.push({ kind: &#x27;marker&#x27;, value: match[1], citation });
     lastIndex &#x3D; match.index + match[0].length;
   }
 

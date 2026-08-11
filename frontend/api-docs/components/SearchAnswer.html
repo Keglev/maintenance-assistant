@@ -1,0 +1,1829 @@
+<!doctype html>
+<html class="no-js" lang="">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="x-ua-compatible" content="ie=edge">
+        <title>maintenance-assistant-frontend documentation</title>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <link rel="icon" type="image/x-icon" href="../images/favicon.ico">
+	   <link rel="stylesheet" href="../styles/style.css">
+        <link rel="stylesheet" href="../styles/dark.css">
+    </head>
+    <body>
+          <script>
+               // Blocking script to avoid flickering dark mode
+               // Dark mode toggle button
+               var useDark = window.matchMedia('(prefers-color-scheme: dark)');
+               var darkModeState = useDark.matches;
+               var $darkModeToggleSwitchers = document.querySelectorAll('.dark-mode-switch input');
+               var $darkModeToggles = document.querySelectorAll('.dark-mode-switch');
+               var darkModeStateLocal = localStorage.getItem('compodoc_darkmode-state');
+
+               function checkToggle(check) {
+                    for (var i = 0; i < $darkModeToggleSwitchers.length; i++) {
+                         $darkModeToggleSwitchers[i].checked = check;
+                    }
+               }
+
+               function toggleDarkMode(state) {
+                    if (window.localStorage) {
+                         localStorage.setItem('compodoc_darkmode-state', state);
+                    }
+
+                    checkToggle(state);
+
+                    const hasClass = document.body.classList.contains('dark');
+
+                    if (state) {
+                         for (var i = 0; i < $darkModeToggles.length; i++) {
+                              $darkModeToggles[i].classList.add('dark');
+                         }
+                         if (!hasClass) {
+                              document.body.classList.add('dark');
+                         }
+                    } else {
+                         for (var i = 0; i < $darkModeToggles.length; i++) {
+                              $darkModeToggles[i].classList.remove('dark');
+                         }
+                         if (hasClass) {
+                              document.body.classList.remove('dark');
+                         }
+                    }
+               }
+
+               useDark.addEventListener('change', function (evt) {
+                    toggleDarkMode(evt.matches);
+               });
+               if (darkModeStateLocal) {
+                    darkModeState = darkModeStateLocal === 'true';
+               }
+               toggleDarkMode(darkModeState);
+          </script>
+          <script>
+              // --- Iframe navigation tracking for Template Playground ---
+              function sendCurrentUrlToParent() {
+                  if (window.parent && window.parent !== window) {
+                      window.parent.postMessage({
+                          type: 'compodoc-iframe-navigate',
+                          url: window.location.pathname + window.location.hash
+                      }, '*');
+                  }
+              }
+              window.addEventListener('hashchange', sendCurrentUrlToParent, false);
+              window.addEventListener('popstate', sendCurrentUrlToParent, false);
+              window.addEventListener('DOMContentLoaded', sendCurrentUrlToParent, false);
+          </script>
+
+        <div class="navbar navbar-default navbar-fixed-top d-md-none p-0">
+               <div class="d-flex">
+                    <a href="../" class="navbar-brand">maintenance-assistant-frontend documentation</a>
+                    <button type="button" class="btn btn-default btn-menu ion-ios-menu" id="btn-menu"></button>
+               </div>
+        </div>
+
+        <div class="xs-menu menu" id="mobile-menu">
+                <div id="book-search-input" role="search">
+    <input type="text" placeholder="Type to search">
+    <button type="button"
+        class="search-input-clear"
+        aria-label="Clear search"
+        data-search-input-clear>&times;</button>
+</div>
+            <compodoc-menu></compodoc-menu>
+        </div>
+
+        <div class="container-fluid main">
+           <div class="row main">
+               <div class="d-none d-md-block menu">
+                   <compodoc-menu mode="normal"></compodoc-menu>
+               </div>
+               <!-- START CONTENT -->
+               <div class="content component">
+                   <div class="content-data">
+
+
+
+
+
+
+
+
+<ol class="breadcrumb">
+  <li class="breadcrumb-item">Components</li>
+  <li class="breadcrumb-item"
+  >
+  SearchAnswer</li>
+</ol>
+
+<div class="io-file io-file-path" data-compodoc="entity-file-path">
+    <span class="icon ion-ios-document" aria-hidden="true"></span>
+    <code>src/app/features/search/search-answer.ts</code>
+</div>
+
+<ul class="nav nav-tabs" role="tablist">
+        <li class="nav-item">
+            <a href="#info" class="nav-link active"
+                role="tab" id="info-tab" data-bs-toggle="tab" data-link="info">Info</a>
+        </li>
+        <li class="nav-item">
+            <a href="#api" class="nav-link"
+                role="tab" id="api-tab" data-bs-toggle="tab" data-link="api">API</a>
+        </li>
+        <li class="nav-item">
+            <a href="#source" class="nav-link"
+                role="tab" id="source-tab" data-bs-toggle="tab" data-link="source">Source</a>
+        </li>
+        <li class="nav-item">
+            <a href="#templateData" class="nav-link"
+                role="tab" id="templateData-tab" data-bs-toggle="tab" data-link="template">Template</a>
+        </li>
+        <li class="nav-item">
+            <a href="#styleData" class="nav-link"
+                role="tab" id="styleData-tab" data-bs-toggle="tab" data-link="style">Styles</a>
+        </li>
+        <li class="nav-item">
+            <a href="#tree" class="nav-link"
+                role="tab" id="tree-tab" data-bs-toggle="tab" data-link="dom-tree">DOM Tree</a>
+        </li>
+</ul>
+
+<div class="tab-content">
+    <div class="tab-pane fade active in" id="info">
+    <p class="comment">
+        <h3>Description</h3>
+    </p>
+    <p class="comment">
+        <p>The answer block: the two modes, the citation markers, and the source list under them.</p>
+<p>Its own component for two reasons. It is where the clamp below has to live — the drawer and
+the citation markers must be able to talk to each other without the search view brokering it —
+and the search view was otherwise carrying the markup and the stylesheet for something that is
+not about asking a question.<p><b>The clamp is visual and nothing else.</b> The full answer is in the DOM at all times: it is
+never truncated, never paginated and never split. A Mode A answer's claims each name the source
+they came from, and cutting the text would separate a claim from its citation — the exact
+guarantee NFR-2 rests on. `max-height` and `overflow: hidden` are the whole mechanism, so
+expanding reveals text that was already there rather than fetching or rebuilding anything.
+
+    </p>
+
+
+
+    <p class="comment">
+        <h3>Example</h3>
+    </p>
+    <div class="io-description">
+    </div>
+
+<section data-compodoc="block-metadata">
+    <h3>Metadata</h3>
+    <table class="table table-sm table-hover metadata">
+        <tbody>
+
+            <tr>
+                <td class="col-md-3">changeDetection</td>
+                <td class="col-md-9"><code>ChangeDetectionStrategy.OnPush</code></td>
+            </tr>
+
+
+
+
+
+
+
+
+
+
+
+            <tr>
+                <td class="col-md-3">selector</td>
+                <td class="col-md-9"><code>app-search-answer</code></td>
+            </tr>
+
+            <tr>
+                <td class="col-md-3">standalone</td>
+                <td class="col-md-9"><code>true</code></td>
+            </tr>
+
+            <tr>
+                <td class="col-md-3">imports</td>
+                <td class="col-md-9">
+                        <div>        <code><a href="../components/SearchSources.html" target="_self" >SearchSources</a></code>
+</div>
+                </td>
+            </tr>
+
+            <tr>
+                <td class="col-md-3">styleUrls</td>
+                <td class="col-md-9"><code>./search-answer.css</code></td>
+            </tr>
+
+
+
+
+            <tr>
+                <td class="col-md-3">templateUrl</td>
+                <td class="col-md-9"><code>./search-answer.html</code></td>
+            </tr>
+
+
+
+            <tr>
+                <td class="col-md-3">styleUrl</td>
+                <td class="col-md-9"><code>./search-answer.css</code></td>
+            </tr>
+
+
+
+
+
+        </tbody>
+    </table>
+</section>
+
+        <section data-compodoc="block-relationships">
+            <h3>Relationships</h3>
+
+            <div class="row pt-3">
+                <div class="col-sm-6">
+                    <h4>Used by</h4>
+                        <ul class="list-unstyled relationships-list">
+                                <li>
+                                            <code><a href="../components/Search.html" target="_self" >Search</a></code>
+                                </li>
+                        </ul>
+                </div>
+
+                <div class="col-sm-6">
+                    <h4>Depends on</h4>
+                        <ul class="list-unstyled relationships-list">
+                                <li>
+                                            <code><a href="../components/SearchSources.html" target="_self" >SearchSources</a></code>
+                                </li>
+                        </ul>
+                </div>
+            </div>
+        </section>
+</div>
+
+    <div class="tab-pane fade " id="api">    <section data-compodoc="block-index">
+    <h3 id="index">Index</h3>
+        <table class="table table-sm table-bordered index-table">
+            <tbody>
+                <tr>
+                    <td class="col-md-3">
+                        <h6><b>Properties</b></h6>
+                    </td>
+                    <td class="col-md-9">
+                        <ul class="index-list">
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
+                                    <span class="modifier">Private</span>
+                                    <span class="modifier">Readonly</span>
+                                <a href="#body" >body</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
+                                    <span class="modifier">Protected</span>
+                                    <span class="modifier">Readonly</span>
+                                <a href="#clamped" >clamped</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
+                                    <span class="modifier">Private</span>
+                                    <span class="modifier">Readonly</span>
+                                <a href="#document" >document</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
+                                    <span class="modifier">Protected</span>
+                                    <span class="modifier">Readonly</span>
+                                <a href="#expanded" >expanded</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
+                                    <span class="modifier">Protected</span>
+                                    <span class="modifier">Readonly</span>
+                                <a href="#focusedSource" >focusedSource</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
+                                    <span class="modifier">Private</span>
+                                    <span class="modifier">Readonly</span>
+                                <a href="#i18n" >i18n</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
+                                    <span class="modifier">Protected</span>
+                                    <span class="modifier">Readonly</span>
+                                <a href="#overflowing" >overflowing</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
+                                    <span class="modifier">Protected</span>
+                                    <span class="modifier">Readonly</span>
+                                <a href="#segments" >segments</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
+                                    <span class="modifier">Protected</span>
+                                    <span class="modifier">Readonly</span>
+                                <a href="#steps" >steps</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
+                                    <span class="modifier">Protected</span>
+                                    <span class="modifier">Readonly</span>
+                                <a href="#t" >t</a>
+                            </li>
+                        </ul>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <table class="table table-sm table-bordered index-table">
+            <tbody>
+                <tr>
+                    <td class="col-md-3">
+                        <h6><b>Methods</b></h6>
+                    </td>
+                    <td class="col-md-9">
+                        <ul class="index-list">
+                            <li>
+                                <span class="reference-badge reference-badge--method" aria-hidden="true">M</span>
+                                    <span class="modifier">Private</span>
+                                <a href="#limitPx" >limitPx</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--method" aria-hidden="true">M</span>
+                                    <span class="modifier">Protected</span>
+                                <a href="#measure" >measure</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--method" aria-hidden="true">M</span>
+                                    <span class="modifier">Protected</span>
+                                <a href="#showSource" >showSource</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--method" aria-hidden="true">M</span>
+                                    <span class="modifier">Protected</span>
+                                <a href="#similarityPercent" >similarityPercent</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--method" aria-hidden="true">M</span>
+                                    <span class="modifier">Protected</span>
+                                <a href="#toggle" >toggle</a>
+                            </li>
+                        </ul>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <table class="table table-sm table-bordered index-table">
+            <tbody>
+                <tr>
+                    <td class="col-md-3">
+                        <h6><b>Inputs</b></h6>
+                    </td>
+                    <td class="col-md-9">
+                        <ul class="index-list">
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">I</span><a href="#answer" >answer</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">I</span><a href="#machine" >machine</a>
+                            </li>
+                        </ul>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <table class="table table-sm table-bordered index-table">
+            <tbody>
+                <tr>
+                    <td class="col-md-3">
+                        <h6><b>Outputs</b></h6>
+                    </td>
+                    <td class="col-md-9">
+                        <ul class="index-list">
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">O</span><a href="#opened" >opened</a>
+                            </li>
+                        </ul>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+
+
+</section>
+
+    <section data-compodoc="block-constructor">
+    <h3 id="constructor">Constructor</h3>
+        <table class="table table-sm table-bordered">
+            <tbody>
+                <tr>
+                    <td class="col-md-4">
+<code>constructor()</code>
+                    </td>
+                </tr>
+                        <tr>
+                            <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="104" class="link-to-prism">src/app/features/search/search-answer.ts:104</a></div>
+                            </td>
+                        </tr>
+
+            </tbody>
+        </table>
+</section>
+
+    <section data-compodoc="block-inputs">
+    <h3 id="inputs">Inputs</h3>
+        <table class="table table-sm table-bordered">
+            <tbody>
+                <tr>
+                    <td class="col-md-4">
+                        <a name="answer"></a>
+                        <b>answer</b>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>        <code><a href="../interfaces/QueryAnswer.html" target="_self" >QueryAnswer</a></code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Required : </i>&nbsp;<b>true</b>
+                    </td>
+                </tr>
+                        <tr>
+                            <td class="col-md-2" colspan="2">
+                                    <div class="io-line">Defined in <a href="" data-line="71" class="link-to-prism">src/app/features/search/search-answer.ts:71</a></div>
+                            </td>
+                        </tr>
+            </tbody>
+        </table>
+        <table class="table table-sm table-bordered">
+            <tbody>
+                <tr>
+                    <td class="col-md-4">
+                        <a name="machine"></a>
+                        <b>machine</b>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>&#x27;&#x27;</code>
+                    </td>
+                </tr>
+                        <tr>
+                            <td class="col-md-2" colspan="2">
+                                    <div class="io-line">Defined in <a href="" data-line="73" class="link-to-prism">src/app/features/search/search-answer.ts:73</a></div>
+                            </td>
+                        </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <div class="io-description"><p>What to call the machine on a source card read on its own.</p>
+</div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+</section>
+
+    <section data-compodoc="block-outputs">
+    <h3 id="outputs">Outputs</h3>
+        <table class="table table-sm table-bordered">
+            <tbody>
+                <tr>
+                    <td class="col-md-4">
+                        <a name="opened"></a>
+                        <b>opened</b>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>        <code><a href="../interfaces/Citation.html" target="_self" >Citation</a></code>
+
+                    </td>
+                </tr>
+                        <tr>
+                            <td class="col-md-2" colspan="2">
+                                    <div class="io-line">Defined in <a href="" data-line="76" class="link-to-prism">src/app/features/search/search-answer.ts:76</a></div>
+                            </td>
+                        </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <div class="io-description"><p>A source&#39;s title was activated — the search view owns the viewer dialog.</p>
+</div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+</section>
+
+
+
+    <section data-compodoc="block-methods">
+    
+    <h3 id="methods">
+        Methods
+    </h3>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="limitPx"></a>
+                    <span class="name">
+                            <span class="modifier">Private</span>
+                        <span ><b>limitPx</b></span>
+                        <a href="#limitPx"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                        <span class="modifier-icon icon ion-ios-reset"></span>
+                    <code>limitPx()</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="137"
+                                    class="link-to-prism">src/app/features/search/search-answer.ts:137</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                        <div class="io-description"><p>Half the viewport, from the same window the element is rendered in.</p>
+</div>
+
+                        <div class="io-description">
+                            <b>Returns : </b>        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/number" target="_blank" >number</a></code>
+
+                        </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="measure"></a>
+                    <span class="name">
+                            <span class="modifier">Protected</span>
+                        <span ><b>measure</b></span>
+                        <a href="#measure"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                        <span class="modifier-icon icon ion-ios-reset"></span>
+                    <code>measure()</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="127"
+                                    class="link-to-prism">src/app/features/search/search-answer.ts:127</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                        <div class="io-description"><p>Decides whether the drawer is needed, by measuring the rendered answer.</p>
+<p>Measured rather than counted in characters: how tall an answer is depends on the viewport,
+the text scale the reader chose (the design system is rem-based, so "large" genuinely means
+taller) and where the lines break. A character threshold would clamp a short answer on a phone
+and miss a long one on a desktop.
+</div>
+
+                        <div class="io-description">
+                            <b>Returns : </b>        <code><a href="https://www.typescriptlang.org/docs/handbook/basic-types.html" target="_blank" >void</a></code>
+
+                        </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="showSource"></a>
+                    <span class="name">
+                            <span class="modifier">Protected</span>
+                        <span ><b>showSource</b></span>
+                        <a href="#showSource"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                        <span class="modifier-icon icon ion-ios-reset"></span>
+                    <code>showSource(citation: <a href="../interfaces/Citation.html" target="_self">Citation</a>)</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="158"
+                                    class="link-to-prism">src/app/features/search/search-answer.ts:158</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                        <div class="io-description"><p>Follows a <code>[P1]</code> marker to the card it names.</p>
+<p><b>Expands first, then points.</b> A marker that scrolled to a source while the answer above
+it was still clamped — or worse, did nothing visible because the clamp swallowed the movement —
+is the #26 bug class returning in a new costume: a citation control that answers a click with
+nothing. Opening the drawer is therefore part of following the marker, not a separate step the
+reader has to think of.<p>A fresh object every time, because a signal set to the value it already holds notifies
+nobody and the second click on the same marker has to work as well as the first.
+</div>
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                                <td>Type</td>
+                                            <td>Optional</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>citation</td>
+                                            <td>
+                                                            <code><a href="../interfaces/Citation.html" target="_self" >Citation</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>        <code><a href="https://www.typescriptlang.org/docs/handbook/basic-types.html" target="_blank" >void</a></code>
+
+                        </div>
+                            <div class="io-description">
+                                
+                            </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="similarityPercent"></a>
+                    <span class="name">
+                            <span class="modifier">Protected</span>
+                        <span ><b>similarityPercent</b></span>
+                        <a href="#similarityPercent"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                        <span class="modifier-icon icon ion-ios-reset"></span>
+                    <code>similarityPercent(citation: <a href="../interfaces/Citation.html" target="_self">Citation</a>)</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="164"
+                                    class="link-to-prism">src/app/features/search/search-answer.ts:164</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                        <div class="io-description"><p>Percent, rounded — a reader compares 69 % with 56 %, not 0.6896 with 0.5566.</p>
+</div>
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                                <td>Type</td>
+                                            <td>Optional</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>citation</td>
+                                            <td>
+                                                            <code><a href="../interfaces/Citation.html" target="_self" >Citation</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/number" target="_blank" >number</a></code>
+
+                        </div>
+                            <div class="io-description">
+                                
+                            </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="toggle"></a>
+                    <span class="name">
+                            <span class="modifier">Protected</span>
+                        <span ><b>toggle</b></span>
+                        <a href="#toggle"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                        <span class="modifier-icon icon ion-ios-reset"></span>
+                    <code>toggle()</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="142"
+                                    class="link-to-prism">src/app/features/search/search-answer.ts:142</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+
+                        <div class="io-description">
+                            <b>Returns : </b>        <code><a href="https://www.typescriptlang.org/docs/handbook/basic-types.html" target="_blank" >void</a></code>
+
+                        </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</section>
+
+    <section data-compodoc="block-properties">
+    
+    <h3 id="inputs">
+        Properties
+    </h3>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="body"></a>
+                    <span class="name">
+                            <span class="modifier">Private</span>
+                            <span class="modifier">Readonly</span>
+                        <span ><b>body</b></span>
+                        <a href="#body"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>unknown</code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>viewChild&lt;ElementRef&lt;HTMLElement&gt;&gt;(&#x27;answerBody&#x27;)</code>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="78" class="link-to-prism">src/app/features/search/search-answer.ts:78</a></div>
+                        </td>
+                    </tr>
+
+
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="clamped"></a>
+                    <span class="name">
+                            <span class="modifier">Protected</span>
+                            <span class="modifier">Readonly</span>
+                        <span ><b>clamped</b></span>
+                        <a href="#clamped"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>unknown</code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>computed(() &#x3D;&gt; this.overflowing() &amp;&amp; !this.expanded())</code>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="84" class="link-to-prism">src/app/features/search/search-answer.ts:84</a></div>
+                        </td>
+                    </tr>
+
+
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="document"></a>
+                    <span class="name">
+                            <span class="modifier">Private</span>
+                            <span class="modifier">Readonly</span>
+                        <span ><b>document</b></span>
+                        <a href="#document"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>unknown</code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>inject(DOCUMENT)</code>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="67" class="link-to-prism">src/app/features/search/search-answer.ts:67</a></div>
+                        </td>
+                    </tr>
+
+
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="expanded"></a>
+                    <span class="name">
+                            <span class="modifier">Protected</span>
+                            <span class="modifier">Readonly</span>
+                        <span ><b>expanded</b></span>
+                        <a href="#expanded"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>unknown</code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>signal(false)</code>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="82" class="link-to-prism">src/app/features/search/search-answer.ts:82</a></div>
+                        </td>
+                    </tr>
+
+
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="focusedSource"></a>
+                    <span class="name">
+                            <span class="modifier">Protected</span>
+                            <span class="modifier">Readonly</span>
+                        <span ><b>focusedSource</b></span>
+                        <a href="#focusedSource"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>unknown</code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>signal&lt;SourceFocus | null&gt;(null)</code>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="87" class="link-to-prism">src/app/features/search/search-answer.ts:87</a></div>
+                        </td>
+                    </tr>
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-description"><p>The source a citation marker last pointed at; handed to the list, which reveals it.</p>
+</div>
+                </td>
+            </tr>
+
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="i18n"></a>
+                    <span class="name">
+                            <span class="modifier">Private</span>
+                            <span class="modifier">Readonly</span>
+                        <span ><b>i18n</b></span>
+                        <a href="#i18n"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>unknown</code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>inject(I18nService)</code>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="66" class="link-to-prism">src/app/features/search/search-answer.ts:66</a></div>
+                        </td>
+                    </tr>
+
+
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="overflowing"></a>
+                    <span class="name">
+                            <span class="modifier">Protected</span>
+                            <span class="modifier">Readonly</span>
+                        <span ><b>overflowing</b></span>
+                        <a href="#overflowing"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>unknown</code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>signal(false)</code>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="81" class="link-to-prism">src/app/features/search/search-answer.ts:81</a></div>
+                        </td>
+                    </tr>
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-description"><p>Whether the answer is long enough to be worth a drawer. Measured, not guessed.</p>
+</div>
+                </td>
+            </tr>
+
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="segments"></a>
+                    <span class="name">
+                            <span class="modifier">Protected</span>
+                            <span class="modifier">Readonly</span>
+                        <span ><b>segments</b></span>
+                        <a href="#segments"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>unknown</code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>computed&lt;AnswerSegment[]&gt;(() &#x3D;&gt; {
+    const current &#x3D; this.answer();
+    return current.mode &#x3D;&#x3D;&#x3D; &#x27;A&#x27; ? toSegments(current.answer, current.citations) : [];
+  })</code>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="89" class="link-to-prism">src/app/features/search/search-answer.ts:89</a></div>
+                        </td>
+                    </tr>
+
+
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="steps"></a>
+                    <span class="name">
+                            <span class="modifier">Protected</span>
+                            <span class="modifier">Readonly</span>
+                        <span ><b>steps</b></span>
+                        <a href="#steps"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>unknown</code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>computed&lt;string[]&gt;(() &#x3D;&gt; {
+    const current &#x3D; this.answer();
+    if (current.mode !&#x3D;&#x3D; &#x27;B&#x27;) {
+      return [];
+    }
+    return current.answer
+      .split(&#x27;\n&#x27;)
+      .map((step) &#x3D;&gt; step.trim())
+      .filter((step) &#x3D;&gt; step.length &gt; 0);
+  })</code>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="95" class="link-to-prism">src/app/features/search/search-answer.ts:95</a></div>
+                        </td>
+                    </tr>
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-description"><p>Mode B&#39;s steps: the backend joins them with newlines, and they render as a numbered list.</p>
+</div>
+                </td>
+            </tr>
+
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="t"></a>
+                    <span class="name">
+                            <span class="modifier">Protected</span>
+                            <span class="modifier">Readonly</span>
+                        <span ><b>t</b></span>
+                        <a href="#t"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>unknown</code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>this.i18n.t</code>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="69" class="link-to-prism">src/app/features/search/search-answer.ts:69</a></div>
+                        </td>
+                    </tr>
+
+
+        </tbody>
+    </table>
+</section>
+
+</div>
+
+
+    <div class="tab-pane fade  tab-source-code" id="source">
+        <pre class="line-numbers compodoc-sourcecode"><code class="language-typescript">import { DOCUMENT } from &#x27;@angular/common&#x27;;
+import {
+  Component,
+  ElementRef,
+  computed,
+  effect,
+  inject,
+  input,
+  output,
+  signal,
+  viewChild,
+} from &#x27;@angular/core&#x27;;
+
+import { Citation, QueryAnswer } from &#x27;../../core/api/api.types&#x27;;
+import { I18nService } from &#x27;../../core/i18n/i18n.service&#x27;;
+import { SearchSources, SourceFocus } from &#x27;./search-sources&#x27;;
+
+/**
+ * One piece of the answer text: either prose, or a citation marker that links to its source.
+ *
+ * The answer arrives with its &#x60;[P1]&#x60; markers already in the text and its claims already validated
+ * against what was retrieved. Splitting it here is presentation only — the markers become links.
+ * Nothing is re-parsed, reordered or filtered: the backend decided what the answer says, and a
+ * client that second-guessed it would be a second, weaker citation check in the place least able to
+ * make one.
+ */
+export interface AnswerSegment {
+  readonly kind: &#x27;text&#x27; | &#x27;marker&#x27;;
+  readonly value: string;
+  /** For a marker: the citation it points at, when the label is one of the answer&#x27;s sources. */
+  readonly citation?: Citation;
+}
+
+/**
+ * How tall an answer may be before it is clamped, as a share of the viewport.
+ *
+ * Half the screen: enough that most answers are never touched, little enough that a long one does
+ * not push its own sources — and everything after them — off the bottom of the page.
+ */
+const CLAMP_VIEWPORT_SHARE &#x3D; 0.5;
+
+/** Below this the extra pixels are not worth a control; a two-line drawer is noise. */
+const CLAMP_TOLERANCE_PX &#x3D; 24;
+
+/**
+ * The answer block: the two modes, the citation markers, and the source list under them.
+ *
+ * &lt;p&gt;Its own component for two reasons. It is where the clamp below has to live — the drawer and
+ * the citation markers must be able to talk to each other without the search view brokering it —
+ * and the search view was otherwise carrying the markup and the stylesheet for something that is
+ * not about asking a question.
+ *
+ * &lt;p&gt;&lt;b&gt;The clamp is visual and nothing else.&lt;/b&gt; The full answer is in the DOM at all times: it is
+ * never truncated, never paginated and never split. A Mode A answer&#x27;s claims each name the source
+ * they came from, and cutting the text would separate a claim from its citation — the exact
+ * guarantee NFR-2 rests on. &#x60;max-height&#x60; and &#x60;overflow: hidden&#x60; are the whole mechanism, so
+ * expanding reveals text that was already there rather than fetching or rebuilding anything.
+ */
+@Component({
+  selector: &#x27;app-search-answer&#x27;,
+  imports: [SearchSources],
+  templateUrl: &#x27;./search-answer.html&#x27;,
+  styleUrl: &#x27;./search-answer.css&#x27;,
+})
+export class SearchAnswer {
+  private readonly i18n &#x3D; inject(I18nService);
+  private readonly document &#x3D; inject(DOCUMENT);
+
+  protected readonly t &#x3D; this.i18n.t;
+
+  readonly answer &#x3D; input.required&lt;QueryAnswer&gt;();
+  /** What to call the machine on a source card read on its own. */
+  readonly machine &#x3D; input(&#x27;&#x27;);
+
+  /** A source&#x27;s title was activated — the search view owns the viewer dialog. */
+  readonly opened &#x3D; output&lt;Citation&gt;();
+
+  private readonly body &#x3D; viewChild&lt;ElementRef&lt;HTMLElement&gt;&gt;(&#x27;answerBody&#x27;);
+
+  /** Whether the answer is long enough to be worth a drawer. Measured, not guessed. */
+  protected readonly overflowing &#x3D; signal(false);
+  protected readonly expanded &#x3D; signal(false);
+
+  protected readonly clamped &#x3D; computed(() &#x3D;&gt; this.overflowing() &amp;&amp; !this.expanded());
+
+  /** The source a citation marker last pointed at; handed to the list, which reveals it. */
+  protected readonly focusedSource &#x3D; signal&lt;SourceFocus | null&gt;(null);
+
+  protected readonly segments &#x3D; computed&lt;AnswerSegment[]&gt;(() &#x3D;&gt; {
+    const current &#x3D; this.answer();
+    return current.mode &#x3D;&#x3D;&#x3D; &#x27;A&#x27; ? toSegments(current.answer, current.citations) : [];
+  });
+
+  /** Mode B&#x27;s steps: the backend joins them with newlines, and they render as a numbered list. */
+  protected readonly steps &#x3D; computed&lt;string[]&gt;(() &#x3D;&gt; {
+    const current &#x3D; this.answer();
+    if (current.mode !&#x3D;&#x3D; &#x27;B&#x27;) {
+      return [];
+    }
+    return current.answer
+      .split(&#x27;\n&#x27;)
+      .map((step) &#x3D;&gt; step.trim())
+      .filter((step) &#x3D;&gt; step.length &gt; 0);
+  });
+
+  constructor() {
+    effect(() &#x3D;&gt; {
+      // A new answer is a new height, and it starts open until measured: an answer that clamped
+      // itself before anyone knew how tall it was would flash a drawer onto a two-line reply.
+      this.answer();
+      this.expanded.set(false);
+      this.overflowing.set(false);
+      // After the browser has laid the new text out. Reading a height in the same tick that set the
+      // text measures the old one.
+      setTimeout(() &#x3D;&gt; this.measure());
+    });
+  }
+
+  /**
+   * Decides whether the drawer is needed, by measuring the rendered answer.
+   *
+   * &lt;p&gt;Measured rather than counted in characters: how tall an answer is depends on the viewport,
+   * the text scale the reader chose (the design system is rem-based, so &quot;large&quot; genuinely means
+   * taller) and where the lines break. A character threshold would clamp a short answer on a phone
+   * and miss a long one on a desktop.
+   */
+  protected measure(): void {
+    const element &#x3D; this.body()?.nativeElement;
+    if (!element) {
+      return;
+    }
+    const limit &#x3D; this.limitPx();
+    this.overflowing.set(element.scrollHeight &gt; limit + CLAMP_TOLERANCE_PX);
+  }
+
+  /** Half the viewport, from the same window the element is rendered in. */
+  private limitPx(): number {
+    const view &#x3D; this.document.defaultView;
+    return (view?.innerHeight ?? 0) * CLAMP_VIEWPORT_SHARE;
+  }
+
+  protected toggle(): void {
+    this.expanded.update((open) &#x3D;&gt; !open);
+  }
+
+  /**
+   * Follows a &#x60;[P1]&#x60; marker to the card it names.
+   *
+   * &lt;p&gt;&lt;b&gt;Expands first, then points.&lt;/b&gt; A marker that scrolled to a source while the answer above
+   * it was still clamped — or worse, did nothing visible because the clamp swallowed the movement —
+   * is the #26 bug class returning in a new costume: a citation control that answers a click with
+   * nothing. Opening the drawer is therefore part of following the marker, not a separate step the
+   * reader has to think of.
+   *
+   * &lt;p&gt;A fresh object every time, because a signal set to the value it already holds notifies
+   * nobody and the second click on the same marker has to work as well as the first.
+   */
+  protected showSource(citation: Citation): void {
+    this.expanded.set(true);
+    this.focusedSource.set({ protocolId: citation.protocolId });
+  }
+
+  /** Percent, rounded — a reader compares 69 % with 56 %, not 0.6896 with 0.5566. */
+  protected similarityPercent(citation: Citation): number {
+    return Math.round(citation.similarity * 100);
+  }
+}
+
+/**
+ * Splits an answer into prose and &#x60;[Pn]&#x60; markers.
+ *
+ * A marker whose label is not among the citations is left as plain text rather than dropped or
+ * linked: the backend already removed every claim citing a source it did not retrieve, so if one
+ * still appears here it belongs to prose and inventing a link for it would be the client asserting
+ * something the server did not.
+ */
+export function toSegments(answer: string, citations: readonly Citation[]): AnswerSegment[] {
+  const byLabel &#x3D; new Map(citations.map((citation) &#x3D;&gt; [citation.label.toUpperCase(), citation]));
+  const segments: AnswerSegment[] &#x3D; [];
+  const pattern &#x3D; /\[(P\d+)\]/gi;
+  let lastIndex &#x3D; 0;
+  let match: RegExpExecArray | null;
+
+  while ((match &#x3D; pattern.exec(answer)) !&#x3D;&#x3D; null) {
+    const citation &#x3D; byLabel.get(match[1].toUpperCase());
+    if (!citation) {
+      continue;
+    }
+    if (match.index &gt; lastIndex) {
+      segments.push({ kind: &#x27;text&#x27;, value: answer.slice(lastIndex, match.index) });
+    }
+    segments.push({ kind: &#x27;marker&#x27;, value: match[1], citation });
+    lastIndex &#x3D; match.index + match[0].length;
+  }
+
+  if (lastIndex &lt; answer.length) {
+    segments.push({ kind: &#x27;text&#x27;, value: answer.slice(lastIndex) });
+  }
+  return segments;
+}
+</code></pre>
+    </div>
+
+    <div class="tab-pane fade " id="templateData">
+        <pre class="line-numbers"><code class="language-html">@if (answer(); as result) {
+  @if (result.mode &#x3D;&#x3D;&#x3D; &#x27;A&#x27;) {
+    &lt;!-- Mode A: grounded. Every claim carries the source it came from, and the markers in the text
+         are links into the source list below. --&gt;
+    &lt;section class&#x3D;&quot;answer answer-a&quot; data-testid&#x3D;&quot;answer-mode-a&quot;&gt;
+      &lt;p class&#x3D;&quot;answer-badge&quot; data-testid&#x3D;&quot;mode-badge&quot;&gt;
+        &lt;svg class&#x3D;&quot;mode-icon&quot; viewBox&#x3D;&quot;0 0 24 24&quot; aria-hidden&#x3D;&quot;true&quot; focusable&#x3D;&quot;false&quot;&gt;
+          &lt;circle cx&#x3D;&quot;12&quot; cy&#x3D;&quot;12&quot; r&#x3D;&quot;9&quot; /&gt;
+          &lt;path d&#x3D;&quot;M8 12.4l2.6 2.6L16 9.6&quot; /&gt;
+        &lt;/svg&gt;
+        {{ t().modeA.badge }}
+      &lt;/p&gt;
+      &lt;p class&#x3D;&quot;answer-explanation&quot;&gt;{{ t().modeA.explanation }}&lt;/p&gt;
+
+      &lt;!-- THE CLAMP IS A MAX-HEIGHT ON THIS WRAPPER AND NOTHING ELSE. The whole answer is inside it
+           whether it is open or shut — never truncated, never paginated, never split. A Mode A
+           claim names the source it came from, and cutting the text would separate the two, which
+           is the guarantee NFR-2 rests on. --&gt;
+      &lt;div class&#x3D;&quot;answer-body&quot; [class.clamped]&#x3D;&quot;clamped()&quot; #answerBody&gt;
+        &lt;!-- lang is the language the BACKEND pinned the answer to, which is the question&#x27;s language
+             and not the interface&#x27;s. It drives hyphenation and screen-reader pronunciation. --&gt;
+        &lt;p class&#x3D;&quot;answer-text&quot; [attr.lang]&#x3D;&quot;result.language&quot; data-testid&#x3D;&quot;answer-text&quot;&gt;
+          @for (segment of segments(); track $index) {
+            @if (segment.kind &#x3D;&#x3D;&#x3D; &#x27;marker&#x27; &amp;&amp; segment.citation) {
+              &lt;!-- No href: a browser-followed anchor carries no Bearer token and the API answers
+                   401. The document is fetched through HttpClient by the viewer dialog instead.
+                   Kept an &lt;a&gt; for its link semantics, with role/tabindex/keydown so it is reachable
+                   and operable from the keyboard exactly as a link would be. --&gt;
+              &lt;a
+                class&#x3D;&quot;citation-marker&quot;
+                role&#x3D;&quot;button&quot;
+                tabindex&#x3D;&quot;0&quot;
+                [title]&#x3D;&quot;segment.citation.title&quot;
+                data-testid&#x3D;&quot;citation-marker&quot;
+                (click)&#x3D;&quot;showSource(segment.citation)&quot;
+                (keydown.enter)&#x3D;&quot;showSource(segment.citation)&quot;
+                (keydown.space)&#x3D;&quot;showSource(segment.citation)&quot;
+                &gt;[{{ segment.value }}]&lt;/a
+              &gt;
+            } @else {
+              &lt;span&gt;{{ segment.value }}&lt;/span&gt;
+            }
+          }
+        &lt;/p&gt;
+      &lt;/div&gt;
+
+      @if (overflowing()) {
+        &lt;!-- Full width, because it is the whole bottom edge of a clamped block and a small link
+             floating under a fade is a control people miss. --&gt;
+        &lt;button
+          type&#x3D;&quot;button&quot;
+          class&#x3D;&quot;btn btn-secondary answer-toggle&quot;
+          data-testid&#x3D;&quot;answer-toggle&quot;
+          [attr.aria-expanded]&#x3D;&quot;expanded()&quot;
+          (click)&#x3D;&quot;toggle()&quot;
+        &gt;
+          {{ expanded() ? t().modeA.collapseAnswer : t().modeA.expandAnswer }}
+        &lt;/button&gt;
+      }
+
+      &lt;app-search-sources
+        [citations]&#x3D;&quot;result.citations&quot;
+        [machine]&#x3D;&quot;machine()&quot;
+        [focused]&#x3D;&quot;focusedSource()&quot;
+        (opened)&#x3D;&quot;opened.emit($event)&quot;
+      /&gt;
+    &lt;/section&gt;
+  } @else {
+    &lt;!-- Mode B: ungrounded, and unmistakably so. No source area exists here, not even an empty one:
+         an empty &quot;Sources&quot; heading invites the reader to assume the sources are merely missing. --&gt;
+    &lt;section class&#x3D;&quot;answer answer-b&quot; data-testid&#x3D;&quot;answer-mode-b&quot;&gt;
+      &lt;p class&#x3D;&quot;answer-badge&quot; data-testid&#x3D;&quot;mode-badge&quot;&gt;
+        &lt;svg class&#x3D;&quot;mode-icon&quot; viewBox&#x3D;&quot;0 0 24 24&quot; aria-hidden&#x3D;&quot;true&quot; focusable&#x3D;&quot;false&quot;&gt;
+          &lt;path d&#x3D;&quot;M12 3.6L1.8 20.4h20.4z&quot; /&gt;
+          &lt;path d&#x3D;&quot;M12 9.6v4.6&quot; /&gt;
+          &lt;circle class&#x3D;&quot;dot&quot; cx&#x3D;&quot;12&quot; cy&#x3D;&quot;17.4&quot; r&#x3D;&quot;1&quot; /&gt;
+        &lt;/svg&gt;
+        {{ t().modeB.badge }}
+      &lt;/p&gt;
+      &lt;p class&#x3D;&quot;answer-explanation&quot;&gt;{{ t().modeB.explanation }}&lt;/p&gt;
+
+      &lt;!-- Mode B is clamped by the same wrapper: a long list of general steps buries the page just
+           as effectively, and the reader is owed the same escape. --&gt;
+      &lt;div class&#x3D;&quot;answer-body&quot; [class.clamped]&#x3D;&quot;clamped()&quot; #answerBody&gt;
+        &lt;h2 class&#x3D;&quot;steps-heading&quot;&gt;{{ t().modeB.steps }}&lt;/h2&gt;
+        &lt;ol class&#x3D;&quot;steps&quot; [attr.lang]&#x3D;&quot;result.language&quot; data-testid&#x3D;&quot;answer-text&quot;&gt;
+          @for (step of steps(); track $index) {
+            &lt;li&gt;{{ step }}&lt;/li&gt;
+          }
+        &lt;/ol&gt;
+      &lt;/div&gt;
+
+      @if (overflowing()) {
+        &lt;button
+          type&#x3D;&quot;button&quot;
+          class&#x3D;&quot;btn btn-secondary answer-toggle&quot;
+          data-testid&#x3D;&quot;answer-toggle&quot;
+          [attr.aria-expanded]&#x3D;&quot;expanded()&quot;
+          (click)&#x3D;&quot;toggle()&quot;
+        &gt;
+          {{ expanded() ? t().modeA.collapseAnswer : t().modeA.expandAnswer }}
+        &lt;/button&gt;
+      }
+    &lt;/section&gt;
+  }
+}
+</code></pre>
+    </div>
+
+    <div class="tab-pane fade " id="styleData">
+                <p class="comment">
+                    <code>./search-answer.css</code>
+                </p>
+                <pre class="line-numbers"><code class="language-scss">/* --- The answer ---------------------------------------------------------- */
+
+.answer {
+  max-width: 52rem;
+  padding: var(--s-5);
+  border-radius: var(--r-md);
+  box-shadow: var(--shadow-sm);
+  margin-bottom: var(--s-5);
+}
+
+.answer-badge {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  margin: 0;
+  font-weight: 700;
+  font-size: var(--t-lg);
+  letter-spacing: -0.005em;
+}
+
+.answer-explanation {
+  margin: var(--s-2) 0 var(--s-4);
+  font-size: var(--t-sm);
+}
+
+.answer-text {
+  margin: 0 0 var(--s-5);
+  line-height: var(--lh-relaxed);
+}
+
+/* Mode A — sourced. */
+.answer-a {
+  background: var(--c-mode-a-soft);
+  border: 1px solid var(--c-mode-a-line);
+  border-left: 6px solid var(--c-mode-a);
+}
+
+.answer-a .answer-badge {
+  color: var(--c-mode-a-ink);
+}
+
+.citation-marker {
+  display: inline-block;
+  padding: 0 var(--s-1);
+  border-radius: 3px;
+  background: var(--c-mode-a-chip);
+  color: var(--c-mode-a-ink);
+  font-size: 0.8em;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  text-decoration: none;
+  vertical-align: 0.1em;
+}
+
+.citation-marker:hover,
+.citation-marker:focus-visible {
+  background: var(--c-mode-a);
+  color: var(--c-on-mode-a);
+}
+
+/* These carry no href, so the pointer and the underline have to be stated: without them an
+   element that behaves like a link stops looking like one. */
+.citation-marker,
+.source-title {
+  cursor: pointer;
+}
+
+.source-title {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.steps-heading {
+  margin: 0 0 var(--s-3);
+  font-size: var(--t-sm);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--c-ink-muted);
+}
+
+/* Mode B — a general suggestion, and it must never be mistaken for the block above. */
+.answer-b {
+  background: var(--c-mode-b-soft);
+  border: 1px solid var(--c-mode-b-line);
+  border-left: 6px solid var(--c-mode-b);
+  /* A hatched top edge: a second, non-colour signal that this block is different in kind. */
+  background-image: repeating-linear-gradient(
+    135deg,
+    var(--c-mode-b-hatch) 0 8px,
+    transparent 8px 16px
+  );
+  background-size: 100% 6px;
+  background-repeat: no-repeat;
+  background-position: top left;
+  padding-top: var(--s-6);
+}
+
+.answer-b .answer-badge {
+  color: var(--c-mode-b-ink);
+}
+
+.answer-b .answer-explanation {
+  font-weight: 600;
+  color: var(--c-mode-b-ink);
+}
+
+.steps {
+  margin: 0;
+  padding-left: var(--s-5);
+  line-height: var(--lh-normal);
+}
+
+.steps li {
+  margin-bottom: var(--s-2);
+}
+
+.mode-icon {
+  flex: 0 0 auto;
+  width: 22px;
+  height: 22px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.mode-icon .dot {
+  fill: currentColor;
+  stroke: none;
+}
+
+/* --- The drawer ---------------------------------------------------------- */
+
+/*
+ * A VISUAL clamp. The whole answer is inside this element in both states — this rule hides part of
+ * it, it does not remove it. Truncating the text would separate a claim from the citation beside
+ * it, which is the one thing a Mode A answer must never do (NFR-2).
+ *
+ * 50vh: enough that most answers are never touched, little enough that a long one does not push
+ * its own sources off the bottom of the page. The component measures against the same number, so
+ * the control appears exactly when the clamp bites.
+ */
+.answer-body.clamped {
+  max-height: 50vh;
+  overflow: hidden;
+  /* Faded rather than cut: a hard edge mid-sentence reads as a rendering fault, a fade reads as
+     &quot;there is more&quot;. mask rather than a gradient overlay, so it works on both palettes without
+     knowing which colour is behind it. */
+  mask-image: linear-gradient(to bottom, #000 calc(100% - 4rem), transparent 100%);
+}
+
+.answer-toggle {
+  width: 100%;
+  min-height: var(--tap);
+  margin-bottom: var(--s-5);
+}
+
+/* The source list keeps its distance from whichever of the two is above it. */
+.answer-body + app-search-sources {
+  display: block;
+  margin-top: var(--s-5);
+}
+
+@media (max-width: 40rem) {
+  .answer {
+    padding: var(--s-4);
+  }
+}
+
+/* A source entry is a link in everything but the href, so it answers a pointer like one. */
+.source-title:hover,
+.source-title:focus-visible {
+  background: var(--c-hover);
+}
+
+.source-title:active {
+  background: var(--c-pressed);
+}
+
+.source-title {
+  padding: 0 var(--s-1);
+  border-radius: var(--r-sm);
+}
+</code></pre>
+    </div>
+
+    <div class="tab-pane fade " id="tree">
+        <div id="tree-container"></div>
+        <div class="tree-legend">
+            <div class="title">
+                <b>Legend</b>
+            </div>
+            <div>
+                <div class="color htmlelement"></div><span>Html element</span>
+            </div>
+            <div>
+                <div class="color component"></div><span>Component</span>
+            </div>
+            <div>
+                <div class="color directive"></div><span>Html element with directive</span>
+            </div>
+        </div>
+    </div>
+
+    
+</div>
+
+<script src="../js/libs/vis-network.min.js"></script>
+<script src="../js/libs/htmlparser.js"></script>
+<script src="../js/libs/deep-iterator.js"></script>
+<script>
+        var COMPONENT_TEMPLATE = '<div>@if (answer(); as result) {  @if (result.mode === \'A\') {    <!-- Mode A: grounded. Every claim carries the source it came from, and the markers in the text         are links into the source list below. -->    <section class="answer answer-a" data-testid="answer-mode-a">      <p class="answer-badge" data-testid="mode-badge">        <svg class="mode-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">          <circle cx="12" cy="12" r="9" />          <path d="M8 12.4l2.6 2.6L16 9.6" />        </svg>        {{ t().modeA.badge }}      </p>      <p class="answer-explanation">{{ t().modeA.explanation }}</p>      <!-- THE CLAMP IS A MAX-HEIGHT ON THIS WRAPPER AND NOTHING ELSE. The whole answer is inside it           whether it is open or shut — never truncated, never paginated, never split. A Mode A           claim names the source it came from, and cutting the text would separate the two, which           is the guarantee NFR-2 rests on. -->      <div class="answer-body" [class.clamped]="clamped()" #answerBody>        <!-- lang is the language the BACKEND pinned the answer to, which is the question\'s language             and not the interface\'s. It drives hyphenation and screen-reader pronunciation. -->        <p class="answer-text" [attr.lang]="result.language" data-testid="answer-text">          @for (segment of segments(); track $index) {            @if (segment.kind === \'marker\' && segment.citation) {              <!-- No href: a browser-followed anchor carries no Bearer token and the API answers                   401. The document is fetched through HttpClient by the viewer dialog instead.                   Kept an <a> for its link semantics, with role/tabindex/keydown so it is reachable                   and operable from the keyboard exactly as a link would be. -->              <a                class="citation-marker"                role="button"                tabindex="0"                [title]="segment.citation.title"                data-testid="citation-marker"                (click)="showSource(segment.citation)"                (keydown.enter)="showSource(segment.citation)"                (keydown.space)="showSource(segment.citation)"                >[{{ segment.value }}]</a              >            } @else {              <span>{{ segment.value }}</span>            }          }        </p>      </div>      @if (overflowing()) {        <!-- Full width, because it is the whole bottom edge of a clamped block and a small link             floating under a fade is a control people miss. -->        <button          type="button"          class="btn btn-secondary answer-toggle"          data-testid="answer-toggle"          [attr.aria-expanded]="expanded()"          (click)="toggle()"        >          {{ expanded() ? t().modeA.collapseAnswer : t().modeA.expandAnswer }}        </button>      }      <app-search-sources        [citations]="result.citations"        [machine]="machine()"        [focused]="focusedSource()"        (opened)="opened.emit($event)"      />    </section>  } @else {    <!-- Mode B: ungrounded, and unmistakably so. No source area exists here, not even an empty one:         an empty "Sources" heading invites the reader to assume the sources are merely missing. -->    <section class="answer answer-b" data-testid="answer-mode-b">      <p class="answer-badge" data-testid="mode-badge">        <svg class="mode-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">          <path d="M12 3.6L1.8 20.4h20.4z" />          <path d="M12 9.6v4.6" />          <circle class="dot" cx="12" cy="17.4" r="1" />        </svg>        {{ t().modeB.badge }}      </p>      <p class="answer-explanation">{{ t().modeB.explanation }}</p>      <!-- Mode B is clamped by the same wrapper: a long list of general steps buries the page just           as effectively, and the reader is owed the same escape. -->      <div class="answer-body" [class.clamped]="clamped()" #answerBody>        <h2 class="steps-heading">{{ t().modeB.steps }}</h2>        <ol class="steps" [attr.lang]="result.language" data-testid="answer-text">          @for (step of steps(); track $index) {            <li>{{ step }}</li>          }        </ol>      </div>      @if (overflowing()) {        <button          type="button"          class="btn btn-secondary answer-toggle"          data-testid="answer-toggle"          [attr.aria-expanded]="expanded()"          (click)="toggle()"        >          {{ expanded() ? t().modeA.collapseAnswer : t().modeA.expandAnswer }}        </button>      }    </section>  }}</div>'
+    var COMPONENTS = [{'name': 'App', 'selector': 'app-root'},{'name': 'Dialog', 'selector': 'app-dialog'},{'name': 'HealthDot', 'selector': 'app-health-dot'},{'name': 'HelpDialog', 'selector': 'app-help-dialog'},{'name': 'Landing', 'selector': 'app-landing'},{'name': 'Moderation', 'selector': 'app-moderation'},{'name': 'Pager', 'selector': 'app-pager'},{'name': 'ProtocolDialog', 'selector': 'app-protocol-dialog'},{'name': 'Search', 'selector': 'app-search'},{'name': 'SearchAnswer', 'selector': 'app-search-answer'},{'name': 'SearchHelp', 'selector': 'app-search-help'},{'name': 'SearchSources', 'selector': 'app-search-sources'},{'name': 'SettingsDialog', 'selector': 'app-settings-dialog'},{'name': 'ThemeToggle', 'selector': 'app-theme-toggle'},{'name': 'Upload', 'selector': 'app-upload'}];
+    var DIRECTIVES = [];
+    var ACTUAL_COMPONENT = {'name': 'SearchAnswer'};
+</script>
+<script src="../js/tree.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                   </div><div class="search-results">
+    <div class="has-results">
+        <h1 class="search-results-title"><span class='search-results-count'></span> results matching "<span class='search-query'></span>"</h1>
+        <ul class="search-results-list"></ul>
+    </div>
+    <div class="no-results">
+        <h1 class="search-results-title">No results matching "<span class='search-query'></span>"</h1>
+    </div>
+</div>
+</div>
+               <!-- END CONTENT -->
+           </div>
+       </div>
+
+          <label class="dark-mode-switch">
+               <input type="checkbox">
+               <span class="slider">
+                    <svg class="slider-icon" viewBox="0 0 24 24" fill="none" height="20" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" width="20" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"></path>
+                    </svg>
+               </span>
+          </label>
+
+       <script>
+            var COMPODOC_CURRENT_PAGE_DEPTH = 1;
+            var COMPODOC_CURRENT_PAGE_CONTEXT = 'component';
+            var COMPODOC_CURRENT_PAGE_URL = 'SearchAnswer.html';
+            var MAX_SEARCH_RESULTS = 15;
+       </script>
+
+       <script>
+               $darkModeToggleSwitchers = document.querySelectorAll('.dark-mode-switch input');
+               var updateDarkModeSwitchOffset = function () {
+                    var content = document.querySelector('.content');
+                    var scrollbarWidth = 0;
+
+                    if (content) {
+                         scrollbarWidth = Math.max(0, content.offsetWidth - content.clientWidth);
+                    }
+
+                    document.documentElement.style.setProperty(
+                         '--content-scrollbar-width',
+                         scrollbarWidth + 'px'
+                    );
+               };
+
+               updateDarkModeSwitchOffset();
+               requestAnimationFrame(updateDarkModeSwitchOffset);
+               window.addEventListener('resize', updateDarkModeSwitchOffset);
+
+               checkToggle(darkModeState);
+               if ($darkModeToggleSwitchers.length > 0) {
+                    for (var i = 0; i < $darkModeToggleSwitchers.length; i++) {
+                         $darkModeToggleSwitchers[i].addEventListener('change', function (event) {
+                              darkModeState = !darkModeState;
+                              toggleDarkMode(darkModeState);
+                         });
+                    }
+               }
+          </script>
+
+       <script src="../js/libs/custom-elements.min.js"></script>
+       <script src="../js/libs/lit-html.js"></script>
+
+       <script src="../js/menu-wc.js" defer></script>
+
+       <script src="../js/libs/bootstrap-native.js"></script>
+
+       <script src="../js/libs/es6-shim.min.js"></script>
+       <script src="../js/libs/EventDispatcher.js"></script>
+       <script src="../js/libs/promise.min.js"></script>
+
+       <script src="../js/compodoc.js"></script>
+
+       <script src="../js/tabs.js"></script>
+       <script src="../js/menu.js"></script>
+       <script src="../js/libs/clipboard.min.js"></script>
+       <script src="../js/libs/prism.js"></script>
+       <script src="../js/sourceCode.js"></script>
+          <script src="../js/search/search.js"></script>
+          <script src="../js/search/lunr.min.js"></script>
+          <script src="../js/search/search-lunr.js"></script>
+          <script src="../js/search/search_index.js"></script>
+       <script src="../js/lazy-load-graphs.js"></script>
+
+
+    </body>
+</html>

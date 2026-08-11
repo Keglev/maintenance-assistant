@@ -155,12 +155,13 @@
         <h3>Description</h3>
     </p>
     <p class="comment">
-        <p>The search view (US-1/US-2).</p>
-<p>The two answer modes are rendered as two visually distinct blocks, which is not styling: NFR-2
-makes the distinction the anti-hallucination mechanism. A Mode B answer that looked like a Mode A
-answer would be the failure this application is built to prevent — general advice read as
-documented plant experience. So Mode B gets its own colour, its own banner and, deliberately, no
-source area at all rather than an empty one.</p>
+        <p>The search view (US-1/US-2): the question form, and the two things that answer it.</p>
+<p>Two columns on a wide screen — the form and its answer on the left, the help panel on the
+right — and one column below 64rem. The answer belongs directly under the form that produced it:
+it rendered after the help panel before, which meant scrolling past an explanation to reach the
+thing being explained.<p>The answer block itself is <a href="../components/SearchAnswer.html">SearchAnswer</a>. The two modes are visually distinct there,
+which is not styling but NFR-2: a Mode B answer that looked like a Mode A one would be the
+failure this application exists to prevent.
 
     </p>
 
@@ -209,9 +210,9 @@ source area at all rather than an empty one.</p>
 </div>
                         <div>        <code><a href="../components/ProtocolDialog.html" target="_self" >ProtocolDialog</a></code>
 </div>
-                        <div>        <code><a href="../components/SearchHelp.html" target="_self" >SearchHelp</a></code>
+                        <div>        <code><a href="../components/SearchAnswer.html" target="_self" >SearchAnswer</a></code>
 </div>
-                        <div>        <code><a href="../components/SearchSources.html" target="_self" >SearchSources</a></code>
+                        <div>        <code><a href="../components/SearchHelp.html" target="_self" >SearchHelp</a></code>
 </div>
                 </td>
             </tr>
@@ -263,10 +264,10 @@ source area at all rather than an empty one.</p>
                                             <code><a href="../components/ProtocolDialog.html" target="_self" >ProtocolDialog</a></code>
                                 </li>
                                 <li>
-                                            <code><a href="../components/SearchHelp.html" target="_self" >SearchHelp</a></code>
+                                            <code><a href="../components/SearchAnswer.html" target="_self" >SearchAnswer</a></code>
                                 </li>
                                 <li>
-                                            <code><a href="../components/SearchSources.html" target="_self" >SearchSources</a></code>
+                                            <code><a href="../components/SearchHelp.html" target="_self" >SearchHelp</a></code>
                                 </li>
                         </ul>
                 </div>
@@ -310,12 +311,6 @@ source area at all rather than an empty one.</p>
                             </li>
                             <li>
                                 <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
-                                    <span class="modifier">Protected</span>
-                                    <span class="modifier">Readonly</span>
-                                <a href="#focusedSource" >focusedSource</a>
-                            </li>
-                            <li>
-                                <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
                                     <span class="modifier">Private</span>
                                     <span class="modifier">Readonly</span>
                                 <a href="#i18n" >i18n</a>
@@ -349,18 +344,6 @@ source area at all rather than an empty one.</p>
                                     <span class="modifier">Protected</span>
                                     <span class="modifier">Readonly</span>
                                 <a href="#question" >question</a>
-                            </li>
-                            <li>
-                                <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
-                                    <span class="modifier">Protected</span>
-                                    <span class="modifier">Readonly</span>
-                                <a href="#segments" >segments</a>
-                            </li>
-                            <li>
-                                <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
-                                    <span class="modifier">Protected</span>
-                                    <span class="modifier">Readonly</span>
-                                <a href="#steps" >steps</a>
                             </li>
                             <li>
                                 <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
@@ -404,11 +387,6 @@ source area at all rather than an empty one.</p>
                                     <span class="modifier">Protected</span>
                                 <a href="#openSource" >openSource</a>
                             </li>
-                            <li>
-                                <span class="reference-badge reference-badge--method" aria-hidden="true">M</span>
-                                    <span class="modifier">Protected</span>
-                                <a href="#showSource" >showSource</a>
-                            </li>
                         </ul>
                     </td>
                 </tr>
@@ -432,7 +410,7 @@ source area at all rather than an empty one.</p>
                 </tr>
                         <tr>
                             <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="88" class="link-to-prism">src/app/features/search/search.ts:88</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="52" class="link-to-prism">src/app/features/search/search.ts:52</a></div>
                             </td>
                         </tr>
 
@@ -471,8 +449,8 @@ source area at all rather than an empty one.</p>
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="99"
-                                    class="link-to-prism">src/app/features/search/search.ts:99</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="63"
+                                    class="link-to-prism">src/app/features/search/search.ts:63</a></div>
                         </td>
                     </tr>
 
@@ -510,8 +488,8 @@ source area at all rather than an empty one.</p>
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="149"
-                                    class="link-to-prism">src/app/features/search/search.ts:149</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="113"
+                                    class="link-to-prism">src/app/features/search/search.ts:113</a></div>
                         </td>
                     </tr>
 
@@ -582,82 +560,6 @@ download.</p>
             </tr>
         </tbody>
     </table>
-    <table class="table table-sm table-bordered">
-        <tbody>
-            <tr>
-                <td class="col-md-4">
-                    <a name="showSource"></a>
-                    <span class="name">
-                            <span class="modifier">Protected</span>
-                        <span ><b>showSource</b></span>
-                        <a href="#showSource"><span class="icon ion-ios-link"></span></a>
-                    </span>
-                </td>
-            </tr>
-            <tr>
-                <td class="col-md-4">
-                        <span class="modifier-icon icon ion-ios-reset"></span>
-                    <code>showSource(citation: <a href="../interfaces/Citation.html" target="_self">Citation</a>)</code>
-                </td>
-            </tr>
-
-
-                    <tr>
-                        <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="172"
-                                    class="link-to-prism">src/app/features/search/search.ts:172</a></div>
-                        </td>
-                    </tr>
-
-
-            <tr>
-                <td class="col-md-4">
-                        <div class="io-description"><p>Follows a <code>[P1]</code> marker to its card.</p>
-<p><b>A fresh object per click, and that is load-bearing.</b> Clicking the same marker twice —
-after collapsing the card, or after scrolling away — has to work as well as the first click,
-and a signal set to the value it already holds notifies nobody. Setting null in between does
-not help either: both writes land in one tick and the effect sees only the final value, which
-is the one it already had. A new identity every time is what makes each click an event.
-</div>
-
-                            <div class="io-description">
-                                <b>Parameters :</b>
-                                
-                                <table class="params">
-                                    <thead>
-                                        <tr>
-                                            <td>Name</td>
-                                                <td>Type</td>
-                                            <td>Optional</td>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr>
-                                                <td>citation</td>
-                                            <td>
-                                                            <code><a href="../interfaces/Citation.html" target="_self" >Citation</a></code>
-                                            </td>
-
-                                            <td>
-                                                    No
-                                            </td>
-
-
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        <div class="io-description">
-                            <b>Returns : </b>        <code><a href="https://www.typescriptlang.org/docs/handbook/basic-types.html" target="_blank" >void</a></code>
-
-                        </div>
-                            <div class="io-description">
-                                
-                            </div>
-                </td>
-            </tr>
-        </tbody>
-    </table>
 </section>
 
     <section data-compodoc="block-properties">
@@ -691,7 +593,7 @@ is the one it already had. A new identity every time is what makes each click an
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="53" class="link-to-prism">src/app/features/search/search.ts:53</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="40" class="link-to-prism">src/app/features/search/search.ts:40</a></div>
                         </td>
                     </tr>
 
@@ -724,7 +626,7 @@ is the one it already had. A new identity every time is what makes each click an
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="43" class="link-to-prism">src/app/features/search/search.ts:43</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="30" class="link-to-prism">src/app/features/search/search.ts:30</a></div>
                         </td>
                     </tr>
 
@@ -757,7 +659,7 @@ is the one it already had. A new identity every time is what makes each click an
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="54" class="link-to-prism">src/app/features/search/search.ts:54</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="41" class="link-to-prism">src/app/features/search/search.ts:41</a></div>
                         </td>
                     </tr>
 
@@ -790,51 +692,10 @@ is the one it already had. A new identity every time is what makes each click an
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="55" class="link-to-prism">src/app/features/search/search.ts:55</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="42" class="link-to-prism">src/app/features/search/search.ts:42</a></div>
                         </td>
                     </tr>
 
-
-        </tbody>
-    </table>
-    <table class="table table-sm table-bordered">
-        <tbody>
-            <tr>
-                <td class="col-md-4">
-                    <a name="focusedSource"></a>
-                    <span class="name">
-                            <span class="modifier">Protected</span>
-                            <span class="modifier">Readonly</span>
-                        <span ><b>focusedSource</b></span>
-                        <a href="#focusedSource"><span class="icon ion-ios-link"></span></a>
-                    </span>
-                </td>
-            </tr>
-                <tr>
-                    <td class="col-md-4">
-                        <i>Type : </i>    <code>unknown</code>
-
-                    </td>
-                </tr>
-                <tr>
-                    <td class="col-md-4">
-                        <i>Default value : </i><code>signal&lt;SourceFocus | null&gt;(null)</code>
-                    </td>
-                </tr>
-                    <tr>
-                        <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="161" class="link-to-prism">src/app/features/search/search.ts:161</a></div>
-                        </td>
-                    </tr>
-
-            <tr>
-                <td class="col-md-4">
-                    <div class="io-description"><p>The protocol a citation marker last pointed at.</p>
-<p>Handed to the source list as an input rather than reached into with a view query: the list
-owns its own expand state, and the marker only says which protocol it means.</p>
-</div>
-                </td>
-            </tr>
 
         </tbody>
     </table>
@@ -864,7 +725,7 @@ owns its own expand state, and the marker only says which protocol it means.</p>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="44" class="link-to-prism">src/app/features/search/search.ts:44</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="31" class="link-to-prism">src/app/features/search/search.ts:31</a></div>
                         </td>
                     </tr>
 
@@ -897,7 +758,7 @@ owns its own expand state, and the marker only says which protocol it means.</p>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="50" class="link-to-prism">src/app/features/search/search.ts:50</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="37" class="link-to-prism">src/app/features/search/search.ts:37</a></div>
                         </td>
                     </tr>
 
@@ -933,7 +794,7 @@ owns its own expand state, and the marker only says which protocol it means.</p>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="62" class="link-to-prism">src/app/features/search/search.ts:62</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="49" class="link-to-prism">src/app/features/search/search.ts:49</a></div>
                         </td>
                     </tr>
 
@@ -972,7 +833,7 @@ owns its own expand state, and the marker only says which protocol it means.</p>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="48" class="link-to-prism">src/app/features/search/search.ts:48</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="35" class="link-to-prism">src/app/features/search/search.ts:35</a></div>
                         </td>
                     </tr>
 
@@ -1005,7 +866,7 @@ owns its own expand state, and the marker only says which protocol it means.</p>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="49" class="link-to-prism">src/app/features/search/search.ts:49</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="36" class="link-to-prism">src/app/features/search/search.ts:36</a></div>
                         </td>
                     </tr>
 
@@ -1038,102 +899,10 @@ owns its own expand state, and the marker only says which protocol it means.</p>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="51" class="link-to-prism">src/app/features/search/search.ts:51</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="38" class="link-to-prism">src/app/features/search/search.ts:38</a></div>
                         </td>
                     </tr>
 
-
-        </tbody>
-    </table>
-    <table class="table table-sm table-bordered">
-        <tbody>
-            <tr>
-                <td class="col-md-4">
-                    <a name="segments"></a>
-                    <span class="name">
-                            <span class="modifier">Protected</span>
-                            <span class="modifier">Readonly</span>
-                        <span ><b>segments</b></span>
-                        <a href="#segments"><span class="icon ion-ios-link"></span></a>
-                    </span>
-                </td>
-            </tr>
-                <tr>
-                    <td class="col-md-4">
-                        <i>Type : </i>    <code>unknown</code>
-
-                    </td>
-                </tr>
-                <tr>
-                    <td class="col-md-4">
-                        <i>Default value : </i><code>computed&lt;AnswerSegment[]&gt;(() &#x3D;&gt; {
-    const current &#x3D; this.answer();
-    return current &amp;&amp; current.mode &#x3D;&#x3D;&#x3D; &#x27;A&#x27; ? toSegments(current.answer, current.citations) : [];
-  })</code>
-                    </td>
-                </tr>
-                    <tr>
-                        <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="73" class="link-to-prism">src/app/features/search/search.ts:73</a></div>
-                        </td>
-                    </tr>
-
-            <tr>
-                <td class="col-md-4">
-                    <div class="io-description"><p>The answer text split into prose and citation markers.</p>
-<p>Computed rather than done in the template so the regular expression runs once per answer
-instead of once per change detection pass.</p>
-</div>
-                </td>
-            </tr>
-
-        </tbody>
-    </table>
-    <table class="table table-sm table-bordered">
-        <tbody>
-            <tr>
-                <td class="col-md-4">
-                    <a name="steps"></a>
-                    <span class="name">
-                            <span class="modifier">Protected</span>
-                            <span class="modifier">Readonly</span>
-                        <span ><b>steps</b></span>
-                        <a href="#steps"><span class="icon ion-ios-link"></span></a>
-                    </span>
-                </td>
-            </tr>
-                <tr>
-                    <td class="col-md-4">
-                        <i>Type : </i>    <code>unknown</code>
-
-                    </td>
-                </tr>
-                <tr>
-                    <td class="col-md-4">
-                        <i>Default value : </i><code>computed&lt;string[]&gt;(() &#x3D;&gt; {
-    const current &#x3D; this.answer();
-    if (!current || current.mode !&#x3D;&#x3D; &#x27;B&#x27;) {
-      return [];
-    }
-    return current.answer
-      .split(&#x27;\n&#x27;)
-      .map((step) &#x3D;&gt; step.trim())
-      .filter((step) &#x3D;&gt; step.length &gt; 0);
-  })</code>
-                    </td>
-                </tr>
-                    <tr>
-                        <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="79" class="link-to-prism">src/app/features/search/search.ts:79</a></div>
-                        </td>
-                    </tr>
-
-            <tr>
-                <td class="col-md-4">
-                    <div class="io-description"><p>Mode B&#39;s steps: the backend joins them with newlines, and they render as a numbered list.</p>
-</div>
-                </td>
-            </tr>
 
         </tbody>
     </table>
@@ -1163,7 +932,7 @@ instead of once per change detection pass.</p>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="46" class="link-to-prism">src/app/features/search/search.ts:46</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="33" class="link-to-prism">src/app/features/search/search.ts:33</a></div>
                         </td>
                     </tr>
 
@@ -1196,7 +965,7 @@ instead of once per change detection pass.</p>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="56" class="link-to-prism">src/app/features/search/search.ts:56</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="43" class="link-to-prism">src/app/features/search/search.ts:43</a></div>
                         </td>
                     </tr>
 
@@ -1229,7 +998,7 @@ instead of once per change detection pass.</p>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="59" class="link-to-prism">src/app/features/search/search.ts:59</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="46" class="link-to-prism">src/app/features/search/search.ts:46</a></div>
                         </td>
                     </tr>
 
@@ -1255,37 +1024,24 @@ import { Citation, Machine, QueryAnswer } from &#x27;../../core/api/api.types&#x
 import { ApiFailure, MaintenanceApiService, classify } from &#x27;../../core/api/maintenance-api.service&#x27;;
 import { I18nService } from &#x27;../../core/i18n/i18n.service&#x27;;
 import { ProtocolDialog } from &#x27;../../shared/protocol/protocol-dialog&#x27;;
+import { SearchAnswer } from &#x27;./search-answer&#x27;;
 import { SearchHelp } from &#x27;./search-help&#x27;;
-import { SearchSources, SourceFocus } from &#x27;./search-sources&#x27;;
 
 /**
- * One piece of the answer text: either prose, or a citation marker that links to its source.
+ * The search view (US-1/US-2): the question form, and the two things that answer it.
  *
- * The answer arrives with its &#x60;[P1]&#x60; markers already in the text and its claims already validated
- * against what was retrieved. Splitting it here is presentation only — the markers become links.
- * Nothing is re-parsed, reordered or filtered: the backend decided what the answer says, and a
- * client that second-guessed it would be a second, weaker citation check in the place least able to
- * make one.
- */
-export interface AnswerSegment {
-  readonly kind: &#x27;text&#x27; | &#x27;marker&#x27;;
-  readonly value: string;
-  /** For a marker: the citation it points at, when the label is one of the answer&#x27;s sources. */
-  readonly citation?: Citation;
-}
-
-/**
- * The search view (US-1/US-2).
+ * &lt;p&gt;Two columns on a wide screen — the form and its answer on the left, the help panel on the
+ * right — and one column below 64rem. The answer belongs directly under the form that produced it:
+ * it rendered after the help panel before, which meant scrolling past an explanation to reach the
+ * thing being explained.
  *
- * The two answer modes are rendered as two visually distinct blocks, which is not styling: NFR-2
- * makes the distinction the anti-hallucination mechanism. A Mode B answer that looked like a Mode A
- * answer would be the failure this application is built to prevent — general advice read as
- * documented plant experience. So Mode B gets its own colour, its own banner and, deliberately, no
- * source area at all rather than an empty one.
+ * &lt;p&gt;The answer block itself is {@link SearchAnswer}. The two modes are visually distinct there,
+ * which is not styling but NFR-2: a Mode B answer that looked like a Mode A one would be the
+ * failure this application exists to prevent.
  */
 @Component({
   selector: &#x27;app-search&#x27;,
-  imports: [FormsModule, ProtocolDialog, SearchHelp, SearchSources],
+  imports: [FormsModule, ProtocolDialog, SearchAnswer, SearchHelp],
   templateUrl: &#x27;./search.html&#x27;,
   styleUrl: &#x27;./search.css&#x27;,
 })
@@ -1312,29 +1068,6 @@ export class Search {
   protected readonly machineLabel &#x3D; computed(() &#x3D;&gt; {
     const machine &#x3D; this.machines().find((candidate) &#x3D;&gt; candidate.id &#x3D;&#x3D;&#x3D; this.machineId());
     return machine ? &#x60;${machine.machineNo} · ${machine.name}&#x60; : &#x27;&#x27;;
-  });
-
-  /**
-   * The answer text split into prose and citation markers.
-   *
-   * Computed rather than done in the template so the regular expression runs once per answer
-   * instead of once per change detection pass.
-   */
-  protected readonly segments &#x3D; computed&lt;AnswerSegment[]&gt;(() &#x3D;&gt; {
-    const current &#x3D; this.answer();
-    return current &amp;&amp; current.mode &#x3D;&#x3D;&#x3D; &#x27;A&#x27; ? toSegments(current.answer, current.citations) : [];
-  });
-
-  /** Mode B&#x27;s steps: the backend joins them with newlines, and they render as a numbered list. */
-  protected readonly steps &#x3D; computed&lt;string[]&gt;(() &#x3D;&gt; {
-    const current &#x3D; this.answer();
-    if (!current || current.mode !&#x3D;&#x3D; &#x27;B&#x27;) {
-      return [];
-    }
-    return current.answer
-      .split(&#x27;\n&#x27;)
-      .map((step) &#x3D;&gt; step.trim())
-      .filter((step) &#x3D;&gt; step.length &gt; 0);
   });
 
   constructor() {
@@ -1400,70 +1133,19 @@ export class Search {
     event?.preventDefault();
     this.viewing.set(citation);
   }
-
-
-  /**
-   * The protocol a citation marker last pointed at.
-   *
-   * Handed to the source list as an input rather than reached into with a view query: the list
-   * owns its own expand state, and the marker only says which protocol it means.
-   */
-  protected readonly focusedSource &#x3D; signal&lt;SourceFocus | null&gt;(null);
-
-  /**
-   * Follows a &#x60;[P1]&#x60; marker to its card.
-   *
-   * &lt;p&gt;&lt;b&gt;A fresh object per click, and that is load-bearing.&lt;/b&gt; Clicking the same marker twice —
-   * after collapsing the card, or after scrolling away — has to work as well as the first click,
-   * and a signal set to the value it already holds notifies nobody. Setting null in between does
-   * not help either: both writes land in one tick and the effect sees only the final value, which
-   * is the one it already had. A new identity every time is what makes each click an event.
-   */
-  protected showSource(citation: Citation): void {
-    this.focusedSource.set({ protocolId: citation.protocolId });
-  }
-}
-
-/**
- * Splits an answer into prose and &#x60;[Pn]&#x60; markers.
- *
- * A marker whose label is not among the citations is left as plain text rather than dropped or
- * linked: the backend already removed every claim citing a source it did not retrieve, so if one
- * still appears here it belongs to prose and inventing a link for it would be the client asserting
- * something the server did not.
- */
-export function toSegments(answer: string, citations: readonly Citation[]): AnswerSegment[] {
-  const byLabel &#x3D; new Map(citations.map((citation) &#x3D;&gt; [citation.label.toUpperCase(), citation]));
-  const segments: AnswerSegment[] &#x3D; [];
-  const pattern &#x3D; /\[([A-Za-z]\d+)\]/g;
-  let lastIndex &#x3D; 0;
-
-  for (let match &#x3D; pattern.exec(answer); match !&#x3D;&#x3D; null; match &#x3D; pattern.exec(answer)) {
-    if (match.index &gt; lastIndex) {
-      segments.push({ kind: &#x27;text&#x27;, value: answer.slice(lastIndex, match.index) });
-    }
-    const citation &#x3D; byLabel.get(match[1].toUpperCase());
-    segments.push(
-      citation ? { kind: &#x27;marker&#x27;, value: match[1], citation } : { kind: &#x27;text&#x27;, value: match[0] },
-    );
-    lastIndex &#x3D; match.index + match[0].length;
-  }
-
-  if (lastIndex &lt; answer.length) {
-    segments.push({ kind: &#x27;text&#x27;, value: answer.slice(lastIndex) });
-  }
-  return segments;
 }
 </code></pre>
     </div>
 
     <div class="tab-pane fade " id="templateData">
-        <pre class="line-numbers"><code class="language-html">&lt;div class&#x3D;&quot;page&quot;&gt;
+        <pre class="line-numbers"><code class="language-html">&lt;div class&#x3D;&quot;page page-split&quot;&gt;
 &lt;h1 class&#x3D;&quot;page-title&quot;&gt;{{ t().search.heading }}&lt;/h1&gt;
 
-&lt;!-- The form and the help panel share the top of the page: on a wide screen the right half was
-     empty, and what belongs in it is the one thing a first-time user does not know. --&gt;
-&lt;div class&#x3D;&quot;ask-row&quot;&gt;
+&lt;!-- Two columns on a wide screen: the form and its answer on the left, the help panel on the
+     right. A grid rather than a flex row, because a flex row wraps when the contents do not fit
+     and that is exactly how the panel ended up under the form. --&gt;
+&lt;div class&#x3D;&quot;search-layout&quot;&gt;
+&lt;div class&#x3D;&quot;search-main&quot;&gt;
 &lt;form class&#x3D;&quot;ask&quot; (ngSubmit)&#x3D;&quot;ask()&quot;&gt;
   &lt;label class&#x3D;&quot;field&quot;&gt;
     &lt;span class&#x3D;&quot;field-label&quot;&gt;{{ t().search.machine }}&lt;/span&gt;
@@ -1489,10 +1171,6 @@ export function toSegments(answer: string, citations: readonly Citation[]): Answ
 
   &lt;label class&#x3D;&quot;field&quot;&gt;
     &lt;span class&#x3D;&quot;field-label&quot;&gt;{{ t().search.question }}&lt;/span&gt;
-    &lt;!-- Under the label and staying there, not only in the placeholder: a placeholder disappears at
-         the first keystroke, which is exactly when a first-time user is still working out what kind
-         of thing to ask for. --&gt;
-    &lt;span class&#x3D;&quot;field-hint&quot; data-testid&#x3D;&quot;question-hint&quot;&gt;{{ t().search.questionHint }}&lt;/span&gt;
     &lt;textarea
       name&#x3D;&quot;question&quot;
       rows&#x3D;&quot;3&quot;
@@ -1524,9 +1202,6 @@ export function toSegments(answer: string, citations: readonly Citation[]): Answ
     &lt;p class&#x3D;&quot;notice notice-error&quot; data-testid&#x3D;&quot;validation&quot;&gt;{{ t().search.questionRequired }}&lt;/p&gt;
   }
 &lt;/form&gt;
-
-&lt;app-search-help /&gt;
-&lt;/div&gt;
 
 @if (asking()) {
   &lt;!-- Answers take 5-20 s. An indeterminate bar with an honest estimate beats a spinner that says
@@ -1561,75 +1236,15 @@ export function toSegments(answer: string, citations: readonly Citation[]): Answ
 }
 
 @if (answer(); as result) {
-  @if (result.mode &#x3D;&#x3D;&#x3D; &#x27;A&#x27;) {
-    &lt;!-- Mode A: grounded. Every claim carries the source it came from, and the markers in the text
-         are links into the source list below. --&gt;
-    &lt;section class&#x3D;&quot;answer answer-a&quot; data-testid&#x3D;&quot;answer-mode-a&quot;&gt;
-      &lt;p class&#x3D;&quot;answer-badge&quot; data-testid&#x3D;&quot;mode-badge&quot;&gt;
-        &lt;svg class&#x3D;&quot;mode-icon&quot; viewBox&#x3D;&quot;0 0 24 24&quot; aria-hidden&#x3D;&quot;true&quot; focusable&#x3D;&quot;false&quot;&gt;
-          &lt;circle cx&#x3D;&quot;12&quot; cy&#x3D;&quot;12&quot; r&#x3D;&quot;9&quot; /&gt;
-          &lt;path d&#x3D;&quot;M8 12.4l2.6 2.6L16 9.6&quot; /&gt;
-        &lt;/svg&gt;
-        {{ t().modeA.badge }}
-      &lt;/p&gt;
-      &lt;p class&#x3D;&quot;answer-explanation&quot;&gt;{{ t().modeA.explanation }}&lt;/p&gt;
-
-      &lt;!-- lang is the language the BACKEND pinned the answer to, which is the question&#x27;s language
-           and not the interface&#x27;s. It drives hyphenation and screen-reader pronunciation. --&gt;
-      &lt;p class&#x3D;&quot;answer-text&quot; [attr.lang]&#x3D;&quot;result.language&quot; data-testid&#x3D;&quot;answer-text&quot;&gt;
-        @for (segment of segments(); track $index) {
-          @if (segment.kind &#x3D;&#x3D;&#x3D; &#x27;marker&#x27; &amp;&amp; segment.citation) {
-            &lt;!-- No href: a browser-followed anchor carries no Bearer token and the API answers 401.
-                 The document is fetched through HttpClient by the viewer dialog instead. Kept an &lt;a&gt;
-                 for its link semantics, with role/tabindex/keydown so it is reachable and operable
-                 from the keyboard exactly as a link would be. --&gt;
-            &lt;a
-              class&#x3D;&quot;citation-marker&quot;
-              role&#x3D;&quot;button&quot;
-              tabindex&#x3D;&quot;0&quot;
-              [title]&#x3D;&quot;segment.citation.title&quot;
-              data-testid&#x3D;&quot;citation-marker&quot;
-              (click)&#x3D;&quot;showSource(segment.citation)&quot;
-              (keydown.enter)&#x3D;&quot;showSource(segment.citation)&quot;
-              (keydown.space)&#x3D;&quot;showSource(segment.citation)&quot;
-              &gt;[{{ segment.value }}]&lt;/a
-            &gt;
-          } @else {
-            &lt;span&gt;{{ segment.value }}&lt;/span&gt;
-          }
-        }
-      &lt;/p&gt;
-
-      &lt;app-search-sources
-        [citations]&#x3D;&quot;result.citations&quot;
-        [machine]&#x3D;&quot;machineLabel()&quot;
-        [focused]&#x3D;&quot;focusedSource()&quot;
-        (opened)&#x3D;&quot;openSource($event)&quot;
-      /&gt;
-    &lt;/section&gt;
-  } @else {
-    &lt;!-- Mode B: ungrounded, and unmistakably so. No source area exists here, not even an empty one:
-         an empty &quot;Sources&quot; heading invites the reader to assume the sources are merely missing. --&gt;
-    &lt;section class&#x3D;&quot;answer answer-b&quot; data-testid&#x3D;&quot;answer-mode-b&quot;&gt;
-      &lt;p class&#x3D;&quot;answer-badge&quot; data-testid&#x3D;&quot;mode-badge&quot;&gt;
-        &lt;svg class&#x3D;&quot;mode-icon&quot; viewBox&#x3D;&quot;0 0 24 24&quot; aria-hidden&#x3D;&quot;true&quot; focusable&#x3D;&quot;false&quot;&gt;
-          &lt;path d&#x3D;&quot;M12 3.6L1.8 20.4h20.4z&quot; /&gt;
-          &lt;path d&#x3D;&quot;M12 9.6v4.6&quot; /&gt;
-          &lt;circle class&#x3D;&quot;dot&quot; cx&#x3D;&quot;12&quot; cy&#x3D;&quot;17.4&quot; r&#x3D;&quot;1&quot; /&gt;
-        &lt;/svg&gt;
-        {{ t().modeB.badge }}
-      &lt;/p&gt;
-      &lt;p class&#x3D;&quot;answer-explanation&quot;&gt;{{ t().modeB.explanation }}&lt;/p&gt;
-
-      &lt;h2 class&#x3D;&quot;steps-heading&quot;&gt;{{ t().modeB.steps }}&lt;/h2&gt;
-      &lt;ol class&#x3D;&quot;steps&quot; [attr.lang]&#x3D;&quot;result.language&quot; data-testid&#x3D;&quot;answer-text&quot;&gt;
-        @for (step of steps(); track $index) {
-          &lt;li&gt;{{ step }}&lt;/li&gt;
-        }
-      &lt;/ol&gt;
-    &lt;/section&gt;
-  }
+  &lt;!-- The answer sits directly under the form that produced it. It used to render after the help
+       panel, which on a wide screen meant scrolling past an explanation to reach the thing being
+       explained. --&gt;
+  &lt;app-search-answer [answer]&#x3D;&quot;result&quot; [machine]&#x3D;&quot;machineLabel()&quot; (opened)&#x3D;&quot;openSource($event)&quot; /&gt;
 }
+&lt;/div&gt;
+
+&lt;app-search-help /&gt;
+&lt;/div&gt;
 
 &lt;!-- The protocol behind a citation opens HERE, not in a new tab: the reader stays in the answer they
      clicked from, which on a tablet on the shop floor is the difference between reading the evidence
@@ -1727,143 +1342,7 @@ export function toSegments(answer: string, citations: readonly Citation[]): Answ
   color: var(--c-ink-muted);
 }
 
-/* --- The answer ---------------------------------------------------------- */
-
-.answer {
-  max-width: 52rem;
-  padding: var(--s-5);
-  border-radius: var(--r-md);
-  box-shadow: var(--shadow-sm);
-  margin-bottom: var(--s-5);
-}
-
-.answer-badge {
-  display: flex;
-  align-items: center;
-  gap: var(--s-2);
-  margin: 0;
-  font-weight: 700;
-  font-size: var(--t-lg);
-  letter-spacing: -0.005em;
-}
-
-.answer-explanation {
-  margin: var(--s-2) 0 var(--s-4);
-  font-size: var(--t-sm);
-}
-
-.answer-text {
-  margin: 0 0 var(--s-5);
-  line-height: var(--lh-relaxed);
-}
-
-/* Mode A — sourced. */
-.answer-a {
-  background: var(--c-mode-a-soft);
-  border: 1px solid var(--c-mode-a-line);
-  border-left: 6px solid var(--c-mode-a);
-}
-
-.answer-a .answer-badge {
-  color: var(--c-mode-a-ink);
-}
-
-.citation-marker {
-  display: inline-block;
-  padding: 0 var(--s-1);
-  border-radius: 3px;
-  background: var(--c-mode-a-chip);
-  color: var(--c-mode-a-ink);
-  font-size: 0.8em;
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-  text-decoration: none;
-  vertical-align: 0.1em;
-}
-
-.citation-marker:hover,
-.citation-marker:focus-visible {
-  background: var(--c-mode-a);
-  color: var(--c-on-mode-a);
-}
-
-/* These carry no href, so the pointer and the underline have to be stated: without them an
-   element that behaves like a link stops looking like one. */
-.citation-marker,
-.source-title {
-  cursor: pointer;
-}
-
-.source-title {
-  text-decoration: underline;
-  text-underline-offset: 2px;
-}
-
-.steps-heading {
-  margin: 0 0 var(--s-3);
-  font-size: var(--t-sm);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--c-ink-muted);
-}
-
-/* Mode B — a general suggestion, and it must never be mistaken for the block above. */
-.answer-b {
-  background: var(--c-mode-b-soft);
-  border: 1px solid var(--c-mode-b-line);
-  border-left: 6px solid var(--c-mode-b);
-  /* A hatched top edge: a second, non-colour signal that this block is different in kind. */
-  background-image: repeating-linear-gradient(
-    135deg,
-    var(--c-mode-b-hatch) 0 8px,
-    transparent 8px 16px
-  );
-  background-size: 100% 6px;
-  background-repeat: no-repeat;
-  background-position: top left;
-  padding-top: var(--s-6);
-}
-
-.answer-b .answer-badge {
-  color: var(--c-mode-b-ink);
-}
-
-.answer-b .answer-explanation {
-  font-weight: 600;
-  color: var(--c-mode-b-ink);
-}
-
-.steps {
-  margin: 0;
-  padding-left: var(--s-5);
-  line-height: var(--lh-normal);
-}
-
-.steps li {
-  margin-bottom: var(--s-2);
-}
-
-.mode-icon {
-  flex: 0 0 auto;
-  width: 22px;
-  height: 22px;
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 2;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-
-.mode-icon .dot {
-  fill: currentColor;
-  stroke: none;
-}
-
 @media (max-width: 40rem) {
-  .answer {
-    padding: var(--s-4);
-  }
-
   .ask-actions .btn {
     width: 100%;
   }
@@ -1874,19 +1353,42 @@ export function toSegments(answer: string, citations: readonly Citation[]): Answ
   }
 }
 
-/* A source entry is a link in everything but the href, so it answers a pointer like one. */
-.source-title:hover,
-.source-title:focus-visible {
-  background: var(--c-hover);
+/* --- The two columns ------------------------------------------------------ */
+
+/*
+ * GRID, NOT FLEX, AND THAT IS THE FIX RATHER THAN A PREFERENCE.
+ *
+ * The previous attempt was a flex row whose items carried &#x60;flex-basis&#x60; values; a flex row wraps
+ * when its items do not fit, so the panel silently dropped below the form and the &quot;two-column&quot;
+ * layout became a stack that looked deliberate. A grid with a declared template cannot wrap: at
+ * this width there are two columns, below it there is one, and there is no third outcome that
+ * depends on how wide the contents happen to be.
+ *
+ * (The rules that produced the wrap were then lost entirely when the panel was extracted into its
+ * own component — see the PR. Either way, this is the shape that cannot come back.)
+ */
+.search-layout {
+  display: grid;
+  gap: var(--s-6);
+  align-items: start;
 }
 
-.source-title:active {
-  background: var(--c-pressed);
+@media (min-width: 64rem) {
+  .search-layout {
+    /* &#x60;minmax(0, 1fr)&#x60; and not &#x60;1fr&#x60;: a grid track&#x27;s default minimum is its content, so a long
+       unbroken string in an answer would push the column wider than its share and squeeze the
+       panel — the same class of bug as the wrap, arriving through the other door. */
+    grid-template-columns: minmax(0, 1fr) 22rem;
+  }
 }
 
-.source-title {
-  padding: 0 var(--s-1);
-  border-radius: var(--r-sm);
+/*
+ * The left column holds the form AND the answer, in that order, so an answer appears directly
+ * under the question that produced it. It sat below the help panel before, which on a wide screen
+ * meant scrolling past an explanation to reach the thing being explained.
+ */
+.search-main {
+  min-width: 0;
 }
 </code></pre>
     </div>
@@ -1916,8 +1418,8 @@ export function toSegments(answer: string, citations: readonly Citation[]): Answ
 <script src="../js/libs/htmlparser.js"></script>
 <script src="../js/libs/deep-iterator.js"></script>
 <script>
-        var COMPONENT_TEMPLATE = '<div><div class="page"><h1 class="page-title">{{ t().search.heading }}</h1><!-- The form and the help panel share the top of the page: on a wide screen the right half was     empty, and what belongs in it is the one thing a first-time user does not know. --><div class="ask-row"><form class="ask" (ngSubmit)="ask()">  <label class="field">    <span class="field-label">{{ t().search.machine }}</span>    <select      name="machine"      data-testid="machine-picker"      [ngModel]="machineId()"      (ngModelChange)="machineId.set($event)"      [disabled]="asking()"    >      <option value="">{{ t().search.machinePlaceholder }}</option>      @for (machine of machines(); track machine.id) {        <option [value]="machine.id">{{ machine.machineNo }} · {{ machine.name }}</option>      }    </select>  </label>  @if (machinesFailed()) {    <p class="notice notice-error" data-testid="machines-error">      {{ t().search.machinesUnavailable }}    </p>  }  <label class="field">    <span class="field-label">{{ t().search.question }}</span>    <!-- Under the label and staying there, not only in the placeholder: a placeholder disappears at         the first keystroke, which is exactly when a first-time user is still working out what kind         of thing to ask for. -->    <span class="field-hint" data-testid="question-hint">{{ t().search.questionHint }}</span>    <textarea      name="question"      rows="3"      data-testid="question-input"      [placeholder]="t().search.questionPlaceholder"      [ngModel]="question()"      (ngModelChange)="question.set($event)"      [disabled]="asking()"    ></textarea>  </label>  <div class="ask-actions">    <!-- Disabled while a request is in flight: the answer costs a provider call and counts against         a per-user rate limit, so a second click is money and a 429 rather than a faster answer. -->    <button      type="submit"      class="btn btn-primary"      data-testid="ask-button"      [disabled]="asking()"      [attr.aria-busy]="asking()"    >      {{ asking() ? t().search.working : t().search.submit }}    </button>  </div>  @if (validation() === \'machine\') {    <p class="notice notice-error" data-testid="validation">{{ t().search.machineRequired }}</p>  } @else if (validation() === \'question\') {    <p class="notice notice-error" data-testid="validation">{{ t().search.questionRequired }}</p>  }</form><app-search-help /></div>@if (asking()) {  <!-- Answers take 5-20 s. An indeterminate bar with an honest estimate beats a spinner that says       nothing about whether waiting is normal. -->  <div class="working" role="status" aria-live="polite" data-testid="working">    <div class="working-bar"><span></span></div>    <p class="working-text">{{ t().search.working }}</p>    <p class="working-hint">{{ t().search.workingHint }}</p>  </div>}@if (failure(); as reason) {  <p class="notice notice-error" role="alert" data-testid="failure">    @switch (reason) {      @case (\'rateLimited\') {        {{ t().errors.rateLimited }}      }      @case (\'budgetExhausted\') {        {{ t().errors.budgetExhausted }}      }      @case (\'unavailable\') {        {{ t().errors.unavailable }}      }      @case (\'forbidden\') {        {{ t().errors.forbidden }}      }      @default {        {{ t().errors.generic }}      }    }  </p>}@if (answer(); as result) {  @if (result.mode === \'A\') {    <!-- Mode A: grounded. Every claim carries the source it came from, and the markers in the text         are links into the source list below. -->    <section class="answer answer-a" data-testid="answer-mode-a">      <p class="answer-badge" data-testid="mode-badge">        <svg class="mode-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">          <circle cx="12" cy="12" r="9" />          <path d="M8 12.4l2.6 2.6L16 9.6" />        </svg>        {{ t().modeA.badge }}      </p>      <p class="answer-explanation">{{ t().modeA.explanation }}</p>      <!-- lang is the language the BACKEND pinned the answer to, which is the question\'s language           and not the interface\'s. It drives hyphenation and screen-reader pronunciation. -->      <p class="answer-text" [attr.lang]="result.language" data-testid="answer-text">        @for (segment of segments(); track $index) {          @if (segment.kind === \'marker\' && segment.citation) {            <!-- No href: a browser-followed anchor carries no Bearer token and the API answers 401.                 The document is fetched through HttpClient by the viewer dialog instead. Kept an <a>                 for its link semantics, with role/tabindex/keydown so it is reachable and operable                 from the keyboard exactly as a link would be. -->            <a              class="citation-marker"              role="button"              tabindex="0"              [title]="segment.citation.title"              data-testid="citation-marker"              (click)="showSource(segment.citation)"              (keydown.enter)="showSource(segment.citation)"              (keydown.space)="showSource(segment.citation)"              >[{{ segment.value }}]</a            >          } @else {            <span>{{ segment.value }}</span>          }        }      </p>      <app-search-sources        [citations]="result.citations"        [machine]="machineLabel()"        [focused]="focusedSource()"        (opened)="openSource($event)"      />    </section>  } @else {    <!-- Mode B: ungrounded, and unmistakably so. No source area exists here, not even an empty one:         an empty "Sources" heading invites the reader to assume the sources are merely missing. -->    <section class="answer answer-b" data-testid="answer-mode-b">      <p class="answer-badge" data-testid="mode-badge">        <svg class="mode-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">          <path d="M12 3.6L1.8 20.4h20.4z" />          <path d="M12 9.6v4.6" />          <circle class="dot" cx="12" cy="17.4" r="1" />        </svg>        {{ t().modeB.badge }}      </p>      <p class="answer-explanation">{{ t().modeB.explanation }}</p>      <h2 class="steps-heading">{{ t().modeB.steps }}</h2>      <ol class="steps" [attr.lang]="result.language" data-testid="answer-text">        @for (step of steps(); track $index) {          <li>{{ step }}</li>        }      </ol>    </section>  }}<!-- The protocol behind a citation opens HERE, not in a new tab: the reader stays in the answer they     clicked from, which on a tablet on the shop floor is the difference between reading the evidence     and losing the answer. --><app-protocol-dialog  [protocolId]="viewing()?.protocolId ?? null"  [protocolTitle]="viewing()?.title ?? \'\'"  [machine]="machineLabel()"  (closed)="viewing.set(null)"/></div></div>'
-    var COMPONENTS = [{'name': 'App', 'selector': 'app-root'},{'name': 'Dialog', 'selector': 'app-dialog'},{'name': 'HealthDot', 'selector': 'app-health-dot'},{'name': 'HelpDialog', 'selector': 'app-help-dialog'},{'name': 'Landing', 'selector': 'app-landing'},{'name': 'Moderation', 'selector': 'app-moderation'},{'name': 'Pager', 'selector': 'app-pager'},{'name': 'ProtocolDialog', 'selector': 'app-protocol-dialog'},{'name': 'Search', 'selector': 'app-search'},{'name': 'SearchHelp', 'selector': 'app-search-help'},{'name': 'SearchSources', 'selector': 'app-search-sources'},{'name': 'SettingsDialog', 'selector': 'app-settings-dialog'},{'name': 'ThemeToggle', 'selector': 'app-theme-toggle'},{'name': 'Upload', 'selector': 'app-upload'}];
+        var COMPONENT_TEMPLATE = '<div><div class="page page-split"><h1 class="page-title">{{ t().search.heading }}</h1><!-- Two columns on a wide screen: the form and its answer on the left, the help panel on the     right. A grid rather than a flex row, because a flex row wraps when the contents do not fit     and that is exactly how the panel ended up under the form. --><div class="search-layout"><div class="search-main"><form class="ask" (ngSubmit)="ask()">  <label class="field">    <span class="field-label">{{ t().search.machine }}</span>    <select      name="machine"      data-testid="machine-picker"      [ngModel]="machineId()"      (ngModelChange)="machineId.set($event)"      [disabled]="asking()"    >      <option value="">{{ t().search.machinePlaceholder }}</option>      @for (machine of machines(); track machine.id) {        <option [value]="machine.id">{{ machine.machineNo }} · {{ machine.name }}</option>      }    </select>  </label>  @if (machinesFailed()) {    <p class="notice notice-error" data-testid="machines-error">      {{ t().search.machinesUnavailable }}    </p>  }  <label class="field">    <span class="field-label">{{ t().search.question }}</span>    <textarea      name="question"      rows="3"      data-testid="question-input"      [placeholder]="t().search.questionPlaceholder"      [ngModel]="question()"      (ngModelChange)="question.set($event)"      [disabled]="asking()"    ></textarea>  </label>  <div class="ask-actions">    <!-- Disabled while a request is in flight: the answer costs a provider call and counts against         a per-user rate limit, so a second click is money and a 429 rather than a faster answer. -->    <button      type="submit"      class="btn btn-primary"      data-testid="ask-button"      [disabled]="asking()"      [attr.aria-busy]="asking()"    >      {{ asking() ? t().search.working : t().search.submit }}    </button>  </div>  @if (validation() === \'machine\') {    <p class="notice notice-error" data-testid="validation">{{ t().search.machineRequired }}</p>  } @else if (validation() === \'question\') {    <p class="notice notice-error" data-testid="validation">{{ t().search.questionRequired }}</p>  }</form>@if (asking()) {  <!-- Answers take 5-20 s. An indeterminate bar with an honest estimate beats a spinner that says       nothing about whether waiting is normal. -->  <div class="working" role="status" aria-live="polite" data-testid="working">    <div class="working-bar"><span></span></div>    <p class="working-text">{{ t().search.working }}</p>    <p class="working-hint">{{ t().search.workingHint }}</p>  </div>}@if (failure(); as reason) {  <p class="notice notice-error" role="alert" data-testid="failure">    @switch (reason) {      @case (\'rateLimited\') {        {{ t().errors.rateLimited }}      }      @case (\'budgetExhausted\') {        {{ t().errors.budgetExhausted }}      }      @case (\'unavailable\') {        {{ t().errors.unavailable }}      }      @case (\'forbidden\') {        {{ t().errors.forbidden }}      }      @default {        {{ t().errors.generic }}      }    }  </p>}@if (answer(); as result) {  <!-- The answer sits directly under the form that produced it. It used to render after the help       panel, which on a wide screen meant scrolling past an explanation to reach the thing being       explained. -->  <app-search-answer [answer]="result" [machine]="machineLabel()" (opened)="openSource($event)" />}</div><app-search-help /></div><!-- The protocol behind a citation opens HERE, not in a new tab: the reader stays in the answer they     clicked from, which on a tablet on the shop floor is the difference between reading the evidence     and losing the answer. --><app-protocol-dialog  [protocolId]="viewing()?.protocolId ?? null"  [protocolTitle]="viewing()?.title ?? \'\'"  [machine]="machineLabel()"  (closed)="viewing.set(null)"/></div></div>'
+    var COMPONENTS = [{'name': 'App', 'selector': 'app-root'},{'name': 'Dialog', 'selector': 'app-dialog'},{'name': 'HealthDot', 'selector': 'app-health-dot'},{'name': 'HelpDialog', 'selector': 'app-help-dialog'},{'name': 'Landing', 'selector': 'app-landing'},{'name': 'Moderation', 'selector': 'app-moderation'},{'name': 'Pager', 'selector': 'app-pager'},{'name': 'ProtocolDialog', 'selector': 'app-protocol-dialog'},{'name': 'Search', 'selector': 'app-search'},{'name': 'SearchAnswer', 'selector': 'app-search-answer'},{'name': 'SearchHelp', 'selector': 'app-search-help'},{'name': 'SearchSources', 'selector': 'app-search-sources'},{'name': 'SettingsDialog', 'selector': 'app-settings-dialog'},{'name': 'ThemeToggle', 'selector': 'app-theme-toggle'},{'name': 'Upload', 'selector': 'app-upload'}];
     var DIRECTIVES = [];
     var ACTUAL_COMPONENT = {'name': 'Search'};
 </script>

@@ -93,10 +93,17 @@ PENDING — CARLOS, before anything else next session:
 
 v1.1 BACKLOG AFTER THAT, in order:
   a. Design-fix PR (Carlos's parked list).
-  b. KEYCLOAK LOGIN THEME PR (hand-deployed artifact, the only
-     remaining one): dark mode matching the app palette, back-to-
-     landing link, honors/coexists with the app theme choice;
-     optional demo autofill lands here for free if still wanted.
+  b. KEYCLOAK LOGIN THEME PR — CODE DONE 2026-08-11, see the dated
+     note in OPEN ITEMS. NOT YET DEPLOYED: it is the hand-deployed
+     artifact, so it is live only after Carlos runs the runbook AND
+     selects the theme once in the admin console. One item of the
+     original scope came out differently and deliberately: the login
+     page does NOT honour the app's manual theme choice — it follows
+     the OS, because reading another origin's storage is impossible
+     and smuggling the choice through the auth URL is not something
+     an auth URL should carry. Demo autofill was already there
+     (login_hint, #32) and still works; the demo-account box was
+     added beside it for visitors who land on the login page direct.
   c. "Meine Uploads" pagination (last 5-10 + paging) and a visible
      accepted-format hint on the upload view ("Nur Textdateien:
      .txt") — small, can ride along with (a).
@@ -242,6 +249,47 @@ Config:     Flyway auto-config was DEAD on Boot 4.1 (missing
             properties moved to spring.web.error.*.
 
 OPEN ITEMS carried forward (not blockers, do not lose):
+- KEYCLOAK LOGIN THEME 2026-08-11 (feat/keycloak-login-theme). The login page
+  was the LAST surface still wearing stock Keycloak: the demo flow took a
+  recruiter from a designed landing page to a foreign-looking one, mid-login.
+  Theme "wartungsassistent" lives in docker/keycloak/themes/, extends
+  keycloak.v2 (the default login theme of KC 26.7) and overrides FOUR files:
+  theme.properties, one CSS, the two message bundles, and ONE template.
+  THE ONE TEMPLATE IS footer.ftl, which Keycloak ships as an empty macro whose
+  own comment names it the extension point for a custom footer — so nothing
+  upstream is copied and there is nothing to re-check on the next KC upgrade.
+  login.ftl was NOT copied. footer.ftl carries the back-to-home link
+  (bilingual, from the message bundle) and the demo-account box, and because
+  template.ftl renders it on EVERY login page the link is also on the OTP page
+  and the error page.
+  COLOUR SCHEME FOLLOWS THE OS ONLY, by design. The page cannot read the app's
+  manual light/dark choice (different origin) and deliberately does not try:
+  an auth URL is not a transport for UI state. A user who forced light in the
+  app on a dark OS gets a dark login page — accepted, and it matches what the
+  app itself does before anyone presses the toggle. It hangs off the dark-mode
+  switch keycloak.v2 already implements (kcDarkModeClass, toggled from
+  prefers-color-scheme by the parent) rather than a second mechanism of ours
+  that would have to be kept in step with it.
+  THE TOKEN VALUES ARE COPIES of frontend/src/styles.css, which stays the
+  source of truth: Keycloak serves the theme from its own origin and classpath,
+  and a cross-origin stylesheet on the login page is what the CSP refuses. A
+  colour changed in the app has to be changed in the theme too.
+  TWO ENV VARS drive it, read by theme.properties via ${env.X} (verified
+  working locally): WA_HOME_URL — empty renders NO link, because a back-link to
+  the wrong environment is worse than none — and WA_SHOW_DEMO_ACCOUNTS.
+  DEPLOY IS BY HAND, like the Caddyfile: git pull on the server, .bak the
+  compose file, cp over it (never mv), "up -d --force-recreate keycloak", and
+  THEN SELECT THE THEME ONCE in the admin console — the realm already exists,
+  so --import-realm does not apply the loginTheme now set in realm-export.json.
+  Runbook at the top of docker/keycloak/themes/README.md.
+  NOTE FOR WHOEVER EDITS THE THEME: dev runs start-dev, which disables theme
+  caching, so an edit is live on reload. Prod runs "start" with caching ON,
+  which is correct and is exactly why prod needs the force-recreate.
+  VERIFIED LOCALLY, not in production: theme active (its name in the resource
+  path, both stylesheets 200), footer + demo box in DE and EN, login_hint still
+  prefills, a real schichtleiter login through the themed page returned an auth
+  code, and the Keycloak log carries no theme or FreeMarker error — which had
+  to be checked, because a broken theme falls back to stock SILENTLY.
 - EDIT + ARCHIVE 2026-08-10 (feat/edit-and-delete-archive). TWO DECISIONS FROM
   ADR-006 WERE REVERSED, and the revision is APPENDED to the ADR rather than
   rewritten into it — the original text stands, the way the ARM entry in

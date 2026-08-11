@@ -40,6 +40,12 @@
   --wa-font-mono: ui-monospace, 'Cascadia Mono', Consolas, 'Liberation Mono', monospace;
   --wa-r-sm: 4px;
   --wa-r-md: 8px;
+  /* The card's content inset. NOT a value of ours: it is PatternFly's own padding on
+     `.pf-v5-c-login__main-header` and `__main-body`, measured on the rendered page (48 px at the
+     default root size). It is written down here because the footer this theme adds has to line up
+     with a column the parent draws, and a number that has to agree with something has to be
+     named — see `.wa-footer`. */
+  --wa-card-inset: 3rem;
   --wa-shadow-md: 0 6px 20px rgb(27 36 48 / 12%);
   /* The floor for a touch target on the shop-floor tablet, not an ideal. */
   --wa-tap: 44px;
@@ -231,24 +237,65 @@ body.login-pf {
 
 /* --- The footer this theme adds ------------------------------------------ */
 
+/*
+ * THE FOOTER JOINS THE CARD'S CONTENT COLUMN, and until now it did not.
+ *
+ * Measured: every control in this card starts at x = 417 — the labels, both fields, "Anmelden" —
+ * because PatternFly insets `.pf-v5-c-login__main-header` and `__main-body` by 48 px. The element
+ * that carries this footer is a THIRD region, `.pf-v5-c-login__main-footer` rendered by
+ * template.ftl as a direct child of `<main>`, and the parent gives that one NO padding at all. So
+ * the back-link and the demo box began at x = 369, the card's outer edge, outdented 48 px past
+ * everything above them and reading as glued to the border.
+ *
+ * SAME BUG CLASS AS THE HEADING ABOVE — a parent element this theme never styled, doing something
+ * reasonable for a context that no longer applies — arriving as layout rather than as colour.
+ *
+ * LEFT-ALIGNED WITH THE COLUMN, not centred, and the card's own grid is the argument: this card has
+ * exactly one content column and every single thing in it starts on that line, so the footer joins
+ * it; a centred link under a left-aligned form would introduce a second alignment axis and make the
+ * page look like two designs meeting. The demo box lands on the same column and balances it, which
+ * is what gives the link its breathing room without pushing it anywhere.
+ *
+ * The bottom padding is not decoration: once the box is inset it no longer covers the card's
+ * corners, and a full-bleed panel sitting on an 8 px radius is what it used to hide.
+ */
 .wa-footer {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
   width: 100%;
   margin-top: 0.5rem;
+  padding: 0 var(--wa-card-inset) 2rem;
 }
 
+/*
+ * One step up in size, and no further. This is the way out of a login page — worth finding on a
+ * tablet at arm's length, and never the thing a visitor does instead of signing in. So it goes to
+ * the body size (0.875rem -> 1rem) and keeps its weight and its link colour, while "Anmelden"
+ * stays a filled, full-width, primary button: bigger, still subordinate.
+ *
+ * The arrow is scaled ABOVE the text (1.25em) rather than with it. At 14 px the glyph was the part
+ * of the control people actually missed — it reads as punctuation at that size — and a leading icon
+ * carrying the "back" meaning has to be seen before the words are read.
+ *
+ * `min-height` is the tap target and it was already right: 44 px measured, on a page that is opened
+ * from the shop-floor tablet as well as from a desktop.
+ */
 .wa-back-link {
   align-self: flex-start;
   display: inline-flex;
   align-items: center;
-  gap: 0.35rem;
+  gap: 0.5rem;
   min-height: var(--wa-tap);
   color: var(--wa-brand);
-  font-size: 0.875rem;
+  font-size: 1rem;
   font-weight: 600;
   text-decoration: none;
+}
+
+.wa-back-link-arrow {
+  font-size: 1.25em;
+  line-height: 1;
 }
 
 .wa-back-link:hover {

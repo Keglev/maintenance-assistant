@@ -232,10 +232,5 @@
   }
 }
 
-.mode-switch button:hover:not(.active) {
-  background: var(--c-hover);
-}
-
-.mode-switch button:active:not(.active) {
-  background: var(--c-pressed);
-}
+/* The mode switch's hover and pressed feedback lives in styles.css with every other control
+   family — see the note there on why the two states cannot be split across layers. */

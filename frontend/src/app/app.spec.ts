@@ -130,6 +130,20 @@ describe('App', () => {
     );
   });
 
+  it('shows the server status only after sign-in', async () => {
+    const anonymous = await render([], false);
+    // An anonymous landing page has no business polling anything, and the status is meaningless to
+    // a reader who cannot reach the backend yet. The @if is also what starts and stops the poll.
+    expect(
+      (anonymous.nativeElement as HTMLElement).querySelector('[data-testid="health-dot"]'),
+    ).toBeNull();
+
+    const signedIn = await render(['operator']);
+    expect(
+      (signedIn.nativeElement as HTMLElement).querySelector('[data-testid="health-dot"]'),
+    ).not.toBeNull();
+  });
+
   it('shows no navigation at all before sign-in', async () => {
     const fixture = await render([], false);
 

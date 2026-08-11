@@ -204,6 +204,18 @@
   gap: var(--s-2) var(--s-4);
 }
 
+/* Last in the row on a wide footer, and on its own line when the footer wraps. A status a reader
+   glances at belongs at the end of the chrome, not between the links and the demo notice. */
+app-health-dot {
+  margin-left: auto;
+}
+
+@media (max-width: 48rem) {
+  app-health-dot {
+    margin-left: 0;
+  }
+}
+
 .footer-links a {
   color: var(--c-ink-muted);
   font-size: var(--t-sm);

@@ -1,0 +1,37 @@
+.health {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+  margin: 0;
+  font-size: var(--t-sm);
+  color: var(--c-ink-muted);
+}
+
+.health-dot {
+  flex: none;
+  width: 0.6rem;
+  height: 0.6rem;
+  border-radius: var(--r-pill);
+  /* A ring as well as a fill: on the dark palette a 10 px dot on a dim footer needs an edge to
+     read as a deliberate mark rather than a rendering artefact. */
+  box-shadow: 0 0 0 1px var(--c-line-strong);
+}
+
+/* Neutral while nothing is known. A guess in either direction would be a lie, and grey is the one
+   colour that claims nothing. */
+.health-unknown {
+  background: var(--c-ink-faint);
+}
+
+/* The Mode A green. It is the only place in the application this hue appears outside an answer,
+   and the borrowing is deliberate rather than careless: "up" is the one other thing in this UI
+   that means "good", the dot is chrome that never sits beside an answer block, and it always
+   carries its own label — so the distinction NFR-2 rests on is not being carried by colour here in
+   the first place. Flagged in the PR so it can be overruled cheaply if it ever reads wrong. */
+.health-up {
+  background: var(--c-mode-a);
+}
+
+.health-down {
+  background: var(--c-danger);
+}

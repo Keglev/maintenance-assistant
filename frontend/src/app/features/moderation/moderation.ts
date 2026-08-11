@@ -10,11 +10,19 @@ import {
 } from '../../core/api/api.types';
 import { ApiFailure, MaintenanceApiService, classify } from '../../core/api/maintenance-api.service';
 import { I18nService } from '../../core/i18n/i18n.service';
+import { AppDatePipe } from '../../core/i18n/app-date.pipe';
 import { Dialog } from '../../shared/dialog/dialog';
+import { Pager } from '../../shared/pager/pager';
 import { ProtocolDialog } from '../../shared/protocol/protocol-dialog';
 
-/** Rows per page. Ten fits a tablet without scrolling the header off. */
-const PAGE_SIZE = 10;
+/**
+ * Rows per page.
+ *
+ * Five, not ten: on a tablet held upright ten rows push the pager below the fold, so the control
+ * that says there is more is only reachable by scrolling past everything it is offering. Five rows
+ * and a pager both fit.
+ */
+const PAGE_SIZE = 5;
 
 /**
  * The administrator's view of the corpus: everything that is in it, and the power to remove any of
@@ -33,7 +41,7 @@ const PAGE_SIZE = 10;
  */
 @Component({
   selector: 'app-moderation',
-  imports: [Dialog, FormsModule, ProtocolDialog],
+  imports: [AppDatePipe, Dialog, FormsModule, Pager, ProtocolDialog],
   templateUrl: './moderation.html',
   styleUrl: './moderation.css',
 })
@@ -42,6 +50,8 @@ export class Moderation {
   private readonly i18n = inject(I18nService);
 
   protected readonly t = this.i18n.t;
+  /** Passed to the date pipe, which cannot see a signal it is not given. */
+  protected readonly language = this.i18n.language;
 
   protected readonly protocols = signal<readonly ModeratedProtocol[]>([]);
   protected readonly page = signal(0);
@@ -367,18 +377,6 @@ export class Moderation {
     if (this.hasNextArchive()) {
       this.loadArchive(this.archivePage() + 1);
     }
-  }
-
-  /** Date only: which day a protocol was filed is the question, not which second. */
-  protected shortDate(iso: string): string {
-    const date = new Date(iso);
-    return Number.isNaN(date.getTime())
-      ? iso
-      : date.toLocaleDateString(this.i18n.language(), {
-          year: 'numeric',
-          month: '2-digit',
-          day: '2-digit',
-        });
   }
 
   protected statusLabel(status: ModeratedProtocol['status']): string {

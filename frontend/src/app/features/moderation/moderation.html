@@ -141,6 +141,14 @@
 
     <!-- A disabled field with no explanation reads as broken rather than as not-yet-applicable. -->
     <p class="field-hint" data-testid="filter-hint">{{ t().moderation.filterHint }}</p>
+    <!-- The one place the interface language does NOT decide the format: a native date input is
+         drawn by the browser in the BROWSER's locale, so an English interface on a German machine
+         still shows TT.MM.JJJJ. Replacing it with a custom picker would cost a keyboard-accessible,
+         touch-friendly control the platform already gives; naming the expected format costs a line.
+         The value sent to the API is ISO either way. -->
+    <p class="field-hint" data-testid="filter-date-format">
+      {{ t().moderation.filterDateFormatHint }}
+    </p>
 
     @if (machinesFailed()) {
       <p class="notice notice-error" data-testid="filter-machines-error">
@@ -213,7 +221,7 @@
                 <!-- The author, on screen. A reviewer who can see a bad protocol but not who filed
                      it can remove the text and learn nothing (ADR-006). -->
                 <td class="uploader" data-testid="row-uploader">{{ protocol.uploadedBy }}</td>
-                <td class="num">{{ shortDate(protocol.uploadedAt) }}</td>
+                <td class="num">{{ protocol.uploadedAt | appDate: language() }}</td>
                 <td>
                   <span class="status status-{{ protocol.status.toLowerCase() }}">{{
                     statusLabel(protocol.status)
@@ -259,29 +267,15 @@
         </table>
       </div>
 
-      <div class="pager">
-        <button
-          type="button"
-          class="btn btn-secondary btn-sm"
-          data-testid="page-previous"
-          [disabled]="!hasPrevious()"
-          (click)="previous()"
-        >
-          {{ t().moderation.previous }}
-        </button>
-        <span class="pager-state num" data-testid="page-state">{{
-          t().moderation.pageOf(page() + 1, pageCount(), total())
-        }}</span>
-        <button
-          type="button"
-          class="btn btn-secondary btn-sm"
-          data-testid="page-next"
-          [disabled]="!hasNext()"
-          (click)="next()"
-        >
-          {{ t().moderation.next }}
-        </button>
-      </div>
+      <app-pager
+        testId="page"
+        [page]="page()"
+        [pageCount]="pageCount()"
+        [total]="total()"
+        [label]="t().moderation.tabCorpus"
+        (previous)="previous()"
+        (next)="next()"
+      />
     }
   </section>
   }
@@ -334,7 +328,7 @@
                 <tr data-testid="archive-row">
                   <td>{{ protocol.title }}</td>
                   <td class="machine">{{ protocol.machineNo }}</td>
-                  <td class="num">{{ shortDate(protocol.deletedAt) }}</td>
+                  <td class="num">{{ protocol.deletedAt | appDate: language() }}</td>
                   <td class="uploader" data-testid="archive-actor">{{ protocol.deletedBy }}</td>
                   <!-- The reason is the field the whole archive exists to carry. -->
                   <td class="reason" data-testid="archive-comment">
@@ -360,29 +354,15 @@
           </table>
         </div>
 
-        <div class="pager">
-          <button
-            type="button"
-            class="btn btn-secondary btn-sm"
-            data-testid="archive-previous"
-            [disabled]="!hasPreviousArchive()"
-            (click)="previousArchive()"
-          >
-            {{ t().moderation.previous }}
-          </button>
-          <span class="pager-state num" data-testid="archive-page-state">{{
-            t().moderation.pageOf(archivePage() + 1, archivePageCount(), archiveTotal())
-          }}</span>
-          <button
-            type="button"
-            class="btn btn-secondary btn-sm"
-            data-testid="archive-next"
-            [disabled]="!hasNextArchive()"
-            (click)="nextArchive()"
-          >
-            {{ t().moderation.next }}
-          </button>
-        </div>
+        <app-pager
+          testId="archive"
+          [page]="archivePage()"
+          [pageCount]="archivePageCount()"
+          [total]="archiveTotal()"
+          [label]="t().moderation.tabArchive"
+          (previous)="previousArchive()"
+          (next)="nextArchive()"
+        />
       }
     </section>
   }

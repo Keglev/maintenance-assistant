@@ -3,10 +3,15 @@ import { FormsModule } from '@angular/forms';
 
 import { Machine, UploadStatus } from '../../core/api/api.types';
 import { ApiFailure, MaintenanceApiService, classify } from '../../core/api/maintenance-api.service';
+import { AppDatePipe } from '../../core/i18n/app-date.pipe';
 import { I18nService } from '../../core/i18n/i18n.service';
+import { Pager } from '../../shared/pager/pager';
 
 /** How the protocol got into the form: picked as a file, or typed here. */
 export type InputMode = 'file' | 'text';
+
+/** Rows per page in "Meine Uploads" — the same five the two moderation tables use. */
+const PAGE_SIZE = 5;
 
 /**
  * The Schichtleiter's upload view.
@@ -33,7 +38,7 @@ export type InputMode = 'file' | 'text';
  */
 @Component({
   selector: 'app-upload',
-  imports: [FormsModule],
+  imports: [AppDatePipe, FormsModule, Pager],
   templateUrl: './upload.html',
   styleUrl: './upload.css',
 })
@@ -58,6 +63,31 @@ export class Upload {
   protected readonly refreshing = signal(false);
   protected readonly accepted = signal(false);
   protected readonly failure = signal<ApiFailure | null>(null);
+
+  /** Passed to the date pipe, which cannot see a signal it is not given. */
+  protected readonly language = this.i18n.language;
+
+  /** Zero-based page of "Meine Uploads". */
+  protected readonly page = signal(0);
+
+  protected readonly pageCount = computed(() =>
+    Math.max(1, Math.ceil(this.uploads().length / PAGE_SIZE)),
+  );
+
+  /**
+   * The rows on screen.
+   *
+   * <p><b>Paged in the browser, and that is a deliberate limit rather than the right answer.</b>
+   * {@code GET /api/protocols/mine} returns the caller's 50 most recent uploads in one response and
+   * has no paging of its own; adding some would be a backend change, and this PR does not touch the
+   * backend. Fifty rows is small enough that slicing them here costs nothing and reads the same to
+   * the user. If that endpoint ever grows past its cap, this has to become a server-side page —
+   * client-side paging of a truncated list would quietly page through the wrong fifty.
+   */
+  protected readonly pagedUploads = computed(() => {
+    const start = this.page() * PAGE_SIZE;
+    return this.uploads().slice(start, start + PAGE_SIZE);
+  });
 
   /**
    * The native file input, so switching modes can actually clear it.
@@ -193,6 +223,9 @@ export class Upload {
     this.api.myUploads().subscribe({
       next: (uploads) => {
         this.uploads.set(uploads);
+        // A refresh can shrink the list — a failed upload retried and removed, for instance — and
+        // page 3 of a two-page list renders empty with no way back except the pager.
+        this.page.update((current) => Math.min(current, Math.max(0, Math.ceil(uploads.length / PAGE_SIZE) - 1)));
         this.refreshing.set(false);
       },
       error: (error: unknown) => {
@@ -219,16 +252,12 @@ export class Upload {
     return this.mode() === mode;
   }
 
-  /** Date only: the exact second an upload happened has never been the question. */
-  protected shortDate(iso: string): string {
-    const date = new Date(iso);
-    return Number.isNaN(date.getTime())
-      ? iso
-      : date.toLocaleDateString(this.i18n.language(), {
-          year: 'numeric',
-          month: '2-digit',
-          day: '2-digit',
-        });
+  protected previousPage(): void {
+    this.page.update((current) => Math.max(0, current - 1));
+  }
+
+  protected nextPage(): void {
+    this.page.update((current) => Math.min(this.pageCount() - 1, current + 1));
   }
 }
 

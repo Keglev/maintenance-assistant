@@ -72,6 +72,98 @@ describe('Upload', () => {
     );
   });
 
+  it('shows five uploads per page and pages through the rest', async () => {
+    const many = Array.from({ length: 7 }, (_, index) => ({
+      ...UPLOADS[1],
+      id: `p-${index}`,
+      title: `Protokoll ${index}`,
+    }));
+    const fixture = await render(many);
+    const element = fixture.nativeElement as HTMLElement;
+
+    expect(element.querySelectorAll('[data-testid="uploads-table"] tbody tr').length).toBe(5);
+    // The endpoint returns the 50 most recent in one response and has no paging of its own, so the
+    // slicing is done here — stated as a limit rather than hidden, because a list that ever grows
+    // past that cap would need a server-side page instead.
+    expect(element.querySelector('[data-testid="uploads-state"]')?.textContent).toContain('7');
+    expect(
+      (element.querySelector('[data-testid="uploads-previous"]') as HTMLButtonElement).disabled,
+    ).toBe(true);
+
+    (element.querySelector('[data-testid="uploads-next"]') as HTMLButtonElement).click();
+    await fixture.whenStable();
+
+    expect(element.querySelectorAll('[data-testid="uploads-table"] tbody tr').length).toBe(2);
+    expect(
+      (element.querySelector('[data-testid="uploads-next"]') as HTMLButtonElement).disabled,
+    ).toBe(true);
+  });
+
+  it('does not strand the reader on a page a refresh removed', async () => {
+    const many = Array.from({ length: 7 }, (_, index) => ({ ...UPLOADS[1], id: `p-${index}` }));
+    const fixture = await render(many);
+    const element = fixture.nativeElement as HTMLElement;
+
+    (element.querySelector('[data-testid="uploads-next"]') as HTMLButtonElement).click();
+    await fixture.whenStable();
+
+    // A shorter list after a refresh would otherwise leave page 2 of a one-page list on screen,
+    // rendering empty with no way back except the pager.
+    (element.querySelector('[data-testid="refresh-button"]') as HTMLButtonElement).click();
+    httpMock.expectOne('/api/protocols/mine').flush(UPLOADS);
+    await fixture.whenStable();
+
+    expect(element.querySelectorAll('[data-testid="uploads-table"] tbody tr').length).toBe(2);
+  });
+
+  it('renders upload dates in the interface language', async () => {
+    const fixture = await render();
+    const element = fixture.nativeElement as HTMLElement;
+
+    // 2026-08-07 in German is 07.08.2026 and in English 08/07/2026 — the format follows the app's
+    // language switch, not the browser's locale.
+    expect(element.querySelector('[data-testid="uploads-table"]')?.textContent).toContain(
+      '07.08.2026',
+    );
+
+    TestBed.inject(I18nService).use('en');
+    await fixture.whenStable();
+
+    expect(element.querySelector('[data-testid="uploads-table"]')?.textContent).toContain(
+      '08/07/2026',
+    );
+  });
+
+  it('names the accepted format before a file is chosen, in both input modes', async () => {
+    const fixture = await render();
+    const element = fixture.nativeElement as HTMLElement;
+
+    expect(element.querySelector('[data-testid="format-hint"]')?.textContent).toContain('.txt');
+
+    (element.querySelector('[data-testid="mode-text"]') as HTMLButtonElement).click();
+    await fixture.whenStable();
+
+    // The cap applies to a typed protocol too: it is submitted as a .txt the browser builds.
+    expect(element.querySelector('[data-testid="format-hint"]')?.textContent).toContain('256 KB');
+  });
+
+  it('puts the small fields before the textarea in both modes', async () => {
+    const fixture = await render();
+    const element = fixture.nativeElement as HTMLElement;
+
+    (element.querySelector('[data-testid="mode-text"]') as HTMLButtonElement).click();
+    await fixture.whenStable();
+
+    // THE DEFECT THIS GUARDS: in text mode the textarea came first and pushed machine, type and
+    // title below the fold — the opposite of file mode. Document order is what a narrow viewport
+    // renders and what a screen reader follows, so it is the thing worth asserting.
+    const machine = element.querySelector('[data-testid="upload-machine"]')!;
+    const title = element.querySelector('[data-testid="upload-title"]')!;
+    const textarea = element.querySelector('[data-testid="text-input"]')!;
+    expect(machine.compareDocumentPosition(textarea) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(title.compareDocumentPosition(textarea) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
   it('shows why an upload failed, not only that it did', async () => {
     const fixture = await render();
 

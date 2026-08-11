@@ -13,6 +13,11 @@
     5. Verify in a PRIVATE window: the login page, both OS colour schemes, DE and EN.
        A broken theme falls back to stock SILENTLY, so also check the log:
          docker compose -f docker-compose.prod.yml logs keycloak | grep -i -e freemarker -e theme
+
+  A THEME-ONLY CHANGE (no compose edit) is steps 1 + 3 + 5. The theme directory is a DIRECTORY
+  mount, so new and changed files arrive with the pull and need no compose change — but production
+  runs `start` with theme caching ON, so the files are not live until the container is recreated.
+  Step 4 is one-time and does not repeat: the realm already points at the theme.
 -->
 
 # Keycloak themes
@@ -43,6 +48,42 @@ dark-mode switch the parent already implements (`kcDarkModeClass`, toggled from
 light/dark choice — that lives in the app's own origin — and it deliberately does not try: an auth
 URL is not a transport for interface state. A user who forced light in the app on a dark OS sees a
 dark login page. Accepted, and it matches what the app itself does before anyone presses the toggle.
+
+### Verification, exactly
+
+Measured locally on Keycloak 26.7, so a production drill has an expectation rather than a guess:
+the parent's script registers a `change` listener on `matchMedia("(prefers-color-scheme: dark)")`,
+so **the page repaints live, with no reload and no navigation**, in both directions. Switching the
+OS scheme with the login page open is enough — if a tester sees a half-changed page, that is a
+defect and not the mechanism working as designed.
+
+## Known pitfalls
+
+**Repainting the canvas makes the parent's elements yours — including the ones you never named.**
+This theme sets `background-image: none` on the login backdrop and lights the canvas. Everything
+`keycloak.v2` coloured *for* its dark photographic backdrop is then sitting on the wrong ground, and
+nothing announces it. It has cost two defects so far, both found only by a human looking at the
+rendered page:
+
+| Symptom | What it actually was |
+|---|---|
+| The realm heading was invisible in the light scheme (measured **1.09:1**, white on `#f3f5f7`) | `#kc-header-wrapper`, an element this stylesheet never mentioned. The parent's own `styles.css` pins it with `color: … !important` |
+| The back-link and demo box hugged the card's outer edge | `.pf-v5-c-login__main-footer` rendered outside `__main-body`, which is the one region PatternFly gives **no** padding |
+
+Two rules follow from that, and neither is optional:
+
+1. **A code-level check of this file cannot find this bug class.** The defect is an element that is
+   absent from the stylesheet, so reading the stylesheet shows nothing wrong. Only a rendered page
+   does.
+2. **Re-run the contrast sweep after any theme edit**, in *both* schemes, over everything visible —
+   above the card, inside it, in the footer, and on the error paths (a wrong password and a
+   standalone error page render different markup). One scheme reading correctly proves nothing about
+   the other: the heading was fine in dark purely by accident, for as long as the defect existed.
+
+`!important` is used exactly once, on the realm heading, because the parent used it first and
+nothing else overrides an `!important` declaration. Redefining the PatternFly variable behind it
+(`--pf-v5-global--Color--light-100`) was rejected: it would repaint every element that legitimately
+wants a light colour on a dark fill.
 
 ## The token values are copies
 

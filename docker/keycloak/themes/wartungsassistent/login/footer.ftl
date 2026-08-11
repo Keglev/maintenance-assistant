@@ -18,8 +18,11 @@
     <#-- Rendered only when the deployment supplied a URL. A "back to home" that goes nowhere, or
          worse, to the wrong environment, is worse than no link — see theme.properties. -->
     <#if properties.waHomeUrl?has_content>
+      <#-- The arrow carries a class so the stylesheet can size it above the label: at the old size
+           it read as punctuation and was the part of the control people missed. aria-hidden because
+           the label already says where the link goes. -->
       <a class="wa-back-link" href="${properties.waHomeUrl}">
-        <span aria-hidden="true">&#8592;</span> ${msg("waBackToHome")}
+        <span class="wa-back-link-arrow" aria-hidden="true">&#8592;</span> ${msg("waBackToHome")}
       </a>
     </#if>
 

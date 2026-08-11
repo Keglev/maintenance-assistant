@@ -300,6 +300,21 @@ OPEN ITEMS carried forward (not blockers, do not lose):
   dialog shows the FRONTEND version from package.json, and two versions on
   screen in one release is how a reader learns to distrust both. Available if
   ever wanted.
+- KEYCLOAK THEME CONTRAST 2026-08-11 (fix/keycloak-theme-contrast), from Carlos's
+  production drill of #42. Theme files only. TWO DEFECTS, ONE BUG CLASS: repainting
+  the canvas made every element keycloak.v2 had coloured FOR its dark backdrop this
+  theme's problem, including the ones the stylesheet never named. The realm heading
+  measured 1.09:1 in LIGHT (white on #f3f5f7) and was readable in dark BY ACCIDENT —
+  and it is pinned by the PARENT with !important, so this is the theme's one
+  documented !important. The back-link and demo box hugged the card's outer edge
+  because their footer region is the one PatternFly gives no padding; they now sit on
+  the card's own 48px content column, and the link is one size up with a scaled arrow.
+  A CONTRAST SWEEP of 18 elements x 3 pages x 2 schemes was run against a real render
+  (getComputedStyle, WCAG ratios): 1 failure before, 0 after. LESSON, in the theme
+  README: a code-level check of the stylesheet CANNOT find this class, because the
+  defect is an element that is absent from it — re-run the sweep after any theme edit.
+  Also measured for the drill: the parent's dark-mode script listens for `change`, so
+  the page repaints LIVE with no reload.
 - KEYCLOAK LOGIN THEME 2026-08-11 (feat/keycloak-login-theme). The login page
   was the LAST surface still wearing stock Keycloak: the demo flow took a
   recruiter from a designed landing page to a foreign-looking one, mid-login.

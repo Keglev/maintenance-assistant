@@ -23,9 +23,9 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">93.18% </span>
+                <span class="strong">93.33% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>41/44</span>
+                <span class='fraction'>42/45</span>
             </div>
         
             
@@ -39,14 +39,14 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">100% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>13/13</span>
+                <span class='fraction'>14/14</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">92.68% </span>
+                <span class="strong">92.85% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>38/41</span>
+                <span class='fraction'>39/42</span>
             </div>
         
             
@@ -333,7 +333,20 @@
 <a name='L268'></a><a href='#L268'>268</a>
 <a name='L269'></a><a href='#L269'>269</a>
 <a name='L270'></a><a href='#L270'>270</a>
-<a name='L271'></a><a href='#L271'>271</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L271'></a><a href='#L271'>271</a>
+<a name='L272'></a><a href='#L272'>272</a>
+<a name='L273'></a><a href='#L273'>273</a>
+<a name='L274'></a><a href='#L274'>274</a>
+<a name='L275'></a><a href='#L275'>275</a>
+<a name='L276'></a><a href='#L276'>276</a>
+<a name='L277'></a><a href='#L277'>277</a>
+<a name='L278'></a><a href='#L278'>278</a>
+<a name='L279'></a><a href='#L279'>279</a>
+<a name='L280'></a><a href='#L280'>280</a>
+<a name='L281'></a><a href='#L281'>281</a>
+<a name='L282'></a><a href='#L282'>282</a>
+<a name='L283'></a><a href='#L283'>283</a>
+<a name='L284'></a><a href='#L284'>284</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -359,9 +372,22 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">93x</span>
-<span class="cline-any cline-yes">93x</span>
-<span class="cline-any cline-yes">93x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">132x</span>
+<span class="cline-any cline-yes">132x</span>
+<span class="cline-any cline-yes">132x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">44x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -610,6 +636,7 @@ import { Observable } from 'rxjs';
 import { ConfigService } from '../config/config.service';
 import {
   DeletedProtocolPage,
+  HealthStatus,
   Machine,
   NO_FILTER,
   ProtocolCorrection,
@@ -621,7 +648,7 @@ import {
 } from './api.types';
 &nbsp;
 /**
- * The five calls this application makes to its own backend.
+ * The handful of calls this application makes to its own backend.
  *
  * One service rather than one per feature: the API is small, and splitting it would mean three
  * files that each inject the same base URL to make one request. The access token is attached by
@@ -632,6 +659,18 @@ import {
 export class MaintenanceApiService {
   private readonly http = inject(HttpClient);
   private readonly apiBaseUrl = inject(ConfigService).config.apiBaseUrl;
+&nbsp;
+  /**
+   * Whether the backend is answering.
+   *
+   * Public server-side — no token is required — but the request still goes through the same
+   * HttpClient and therefore still carries the Bearer token the interceptor attaches. That is
+   * harmless on a public endpoint, and a bypass built to avoid it would be a second HTTP path to
+   * keep in step with the first for no gain.
+   */
+  health(): Observable&lt;HealthStatus&gt; {
+    return this.http.get&lt;HealthStatus&gt;(`${this.apiBaseUrl}/health`);
+  }
 &nbsp;
   /** The machines a question can be asked about. */
   machines(): Observable&lt;Machine[]&gt; {
@@ -880,7 +919,7 @@ function reasonOf(error: HttpErrorResponse): string | null {
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-08-11T09:52:43.791Z
+                at 2026-08-11T11:32:39.808Z
             </div>
         <script src="../../../../../prettify.js"></script>
         <script>

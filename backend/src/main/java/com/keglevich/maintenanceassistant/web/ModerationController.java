@@ -314,7 +314,21 @@ class ModerationController {
      * which is a 409: the protocol exists, the same administrator can read it in the archive, and
      * answering "no such protocol" would be a lie their own screen contradicts. What is wrong is
      * the state, not the address.
+     *
+     * <p><b>AND IT HAS TO OPT OUT OF THIS CONTROLLER'S CLASS-LEVEL RULE.</b> A class-level
+     * {@code @PreAuthorize} covers <em>every</em> method of the class, including this one — so
+     * rendering an error for a caller who is not an administrator was itself refused, the resolver
+     * treated the handler as unusable, and the original exception escaped as a 500. That made every
+     * refused correction by a Schichtleiter — no comment, identity lock, archived, bad content —
+     * answer with an empty 500 instead of the documented status and its stable {@code reason} code,
+     * which is exactly what the frontend matches on. Found by this branch and fixed here; it has
+     * been latent since the Schichtleiter gained the edit in #53.
+     *
+     * <p>{@code isAuthenticated()} rather than {@code permitAll()}: the caller has already passed
+     * the endpoint's own rule to reach the exception, and an error renderer is not an act that
+     * needs authorising a second time — but nothing here should be reachable without a token.
      */
+    @PreAuthorize("isAuthenticated()")
     @ExceptionHandler(ProtocolModerationService.InvalidModerationRequestException.class)
     ResponseEntity<Map<String, String>> onInvalidRequest(
             ProtocolModerationService.InvalidModerationRequestException e) {
@@ -330,7 +344,11 @@ class ModerationController {
      * <p>Reused from the intake path rather than given a moderation-specific exception: it is the
      * same validation, on the same property, for the same reason, and a second exception type would
      * be a second place for the two to drift apart.
+     *
+     * <p>Opted out of the class-level rule for the reason spelled out on the handler above: a
+     * handler an unauthorised-for-the-class caller may not invoke is a handler that does not run.
      */
+    @PreAuthorize("isAuthenticated()")
     @ExceptionHandler(ProtocolIntakeService.InvalidProtocolException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     Map<String, String> onInvalidContent(ProtocolIntakeService.InvalidProtocolException e) {

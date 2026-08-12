@@ -483,10 +483,10 @@ export const DE: Dictionary = {
   },
   demo: {
     operator: 'Fragen stellen, bedienerseitige Antworten.',
-    techniker: 'Fragen stellen, vollständige technische Antworten.',
-    schichtleiter: 'Wie Techniker, zusätzlich Protokolle hochladen.',
+    techniker: 'Fragen stellen, vollständige technische Antworten, Protokolle schreiben.',
+    schichtleiter: 'Wie Techniker, zusätzlich Protokolle korrigieren.',
     admin:
-      'Prüft und entfernt Protokolle in der Protokollverwaltung. Stellt keine Fragen und lädt nichts hoch.',
+      'Gibt Protokolle frei, prüft und entfernt sie in der Protokollverwaltung. Stellt keine Fragen und schreibt nichts.',
     examplesHeading: 'Zum Ausprobieren',
     examplesIntro: 'Erst die Maschine wählen, dann die Frage stellen — gesucht wird je Maschine.',
     exampleMachine: 'Maschine',
@@ -523,8 +523,10 @@ export const DE: Dictionary = {
     rolesHeading: 'Wer darf was',
     roleOperator:
       'Bediener: Fragen stellen. Antworten enthalten nur Schritte für unterwiesene Personen, keine Elektro- oder Mechanikarbeiten.',
-    roleTechniker: 'Techniker: Fragen stellen, vollständige technische Antworten ohne Einschränkung.',
-    roleSchichtleiter: 'Schichtleiter: wie Techniker, zusätzlich neue Protokolle hochladen.',
+    roleTechniker:
+      'Techniker: Fragen stellen, vollständige technische Antworten ohne Einschränkung, Protokolle schreiben — korrigieren nie, auch nicht die eigenen.',
+    roleSchichtleiter:
+      'Schichtleiter: wie Techniker, zusätzlich neue Protokolle korrigieren — mit Begründung und sofortiger Neuindexierung.',
   },
   search: {
     heading: 'Frage zu einer Maschine',
@@ -823,10 +825,10 @@ export const EN: Dictionary = {
   },
   demo: {
     operator: 'Ask questions, operator-safe answers.',
-    techniker: 'Ask questions, full technical answers.',
-    schichtleiter: 'Like the technician, and may upload protocols.',
+    techniker: 'Ask questions, full technical answers, file protocols.',
+    schichtleiter: 'Like the technician, and may correct protocols.',
     admin:
-      'Reviews and removes protocols in Protocol management. Does not ask questions and does not upload.',
+      'Approves protocols, reviews and removes them in Protocol management. Does not ask questions and does not write.',
     examplesHeading: 'Try these',
     examplesIntro: 'Choose the machine first, then ask — retrieval is filtered per machine.',
     exampleMachine: 'Machine',
@@ -866,8 +868,10 @@ export const EN: Dictionary = {
     rolesHeading: 'Who may do what',
     roleOperator:
       'Operator: ask questions. Answers contain only steps for instructed persons, no electrical or mechanical repair work.',
-    roleTechniker: 'Technician: ask questions, full technical answers with no restriction.',
-    roleSchichtleiter: 'Shift lead: like the technician, and may upload new protocols.',
+    roleTechniker:
+      'Technician: ask questions, full technical answers with no restriction, and file protocols — never corrects one, not even their own.',
+    roleSchichtleiter:
+      'Shift lead: like the technician, and may correct protocols — with a reason and an immediate re-index.',
   },
   search: {
     heading: 'Ask about a machine',

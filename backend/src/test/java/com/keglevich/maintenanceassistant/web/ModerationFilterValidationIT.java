@@ -150,6 +150,14 @@ class ModerationFilterValidationIT {
 
     // ---------------------------------------------------------------------------------------
     // How a refused moderation act reaches the client
+    //
+    // ALL FOUR RUN AS THE SCHICHTLEITER, and that is the whole reason they now catch something.
+    // They ran as an administrator until 2026-08-13, which is when the edit endpoint stopped being
+    // theirs — and moving them uncovered a defect that had been latent since #53 gave the
+    // Schichtleiter the edit: the class-level @PreAuthorize covered the @ExceptionHandler methods
+    // too, so rendering an error for a non-admin was itself refused and the original exception
+    // escaped as an empty 500. Every refusal below answered with no `reason` code at all for the
+    // one role that can actually reach them. See ModerationController's handler javadoc.
     // ---------------------------------------------------------------------------------------
 
     @Test
@@ -162,7 +170,7 @@ class ModerationFilterValidationIT {
         mockMvc.perform(put("/api/moderation/protocols/{id}", PROTOCOL)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"title\":\"T\",\"content\":\"C\"}")
-                        .with(admin()))
+                        .with(corrector()))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.reason").value("MODERATION_COMMENT_REQUIRED"));
     }
@@ -177,7 +185,7 @@ class ModerationFilterValidationIT {
         mockMvc.perform(put("/api/moderation/protocols/{id}", PROTOCOL)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"machineNo\":\"AB-02\",\"title\":\"T\",\"content\":\"C\",\"comment\":\"x\"}")
-                        .with(admin()))
+                        .with(corrector()))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.reason").value("PROTOCOL_IDENTITY_LOCKED"));
     }
@@ -195,7 +203,7 @@ class ModerationFilterValidationIT {
         mockMvc.perform(put("/api/moderation/protocols/{id}", PROTOCOL)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"title\":\"T\",\"content\":\"C\",\"comment\":\"x\"}")
-                        .with(admin()))
+                        .with(corrector()))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.reason").value("PROTOCOL_ARCHIVED"));
     }
@@ -209,7 +217,7 @@ class ModerationFilterValidationIT {
         mockMvc.perform(put("/api/moderation/protocols/{id}", PROTOCOL)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"title\":\"T\",\"content\":\"\",\"comment\":\"x\"}")
-                        .with(admin()))
+                        .with(corrector()))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.reason").value("INVALID_CONTENT"));
     }
@@ -228,18 +236,34 @@ class ModerationFilterValidationIT {
     }
 
     private org.springframework.test.web.servlet.request.RequestPostProcessor admin() {
-        return authentication(jwtAuthenticationConverter.convert(keycloakToken()));
+        return as("admin");
     }
 
-    private static Jwt keycloakToken() {
+    /**
+     * The corrector.
+     *
+     * <p>The four refusal tests below reach the EDIT endpoint, and since 2026-08-13 that endpoint is
+     * the Schichtleiter's alone — the approver does not also correct. Sending them as an
+     * administrator would answer 403 before the refusal under test was ever produced, which is a
+     * test of the permission wearing the name of a test of the error shape.
+     */
+    private org.springframework.test.web.servlet.request.RequestPostProcessor corrector() {
+        return as("schichtleiter");
+    }
+
+    private org.springframework.test.web.servlet.request.RequestPostProcessor as(String role) {
+        return authentication(jwtAuthenticationConverter.convert(keycloakToken(role)));
+    }
+
+    private static Jwt keycloakToken(String role) {
         return Jwt.withTokenValue("test-token")
                 .header("alg", "RS256")
                 .claim("iss", "http://localhost:8081/realms/maintenance")
                 .claim("aud", List.of("backend"))
                 .claim("azp", "frontend")
                 .claim("sub", "00000000-0000-0000-0000-000000000005")
-                .claim("preferred_username", "admin")
-                .claim("realm_access", Map.of("roles", List.of("admin")))
+                .claim("preferred_username", role)
+                .claim("realm_access", Map.of("roles", List.of(role)))
                 .build();
     }
 }

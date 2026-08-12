@@ -1,0 +1,123 @@
+# End-to-end tests
+
+Playwright, in Chromium, against a **real application, a real Keycloak and a real backend**.
+
+This is the rendered half of the test stack. The other half — 218 vitest specs in jsdom — is faster,
+cheaper and covers far more; see
+[ADR-007](../../docs/adr/ADR-007-end-to-end-testing-strategy.md) for what
+belongs where and why this exists at all.
+
+```bash
+npm run e2e          # headless
+npm run e2e:headed   # watch it happen
+npm run e2e:report   # the HTML report of the last run
+```
+
+## What it needs running
+
+The suite starts **only the Angular dev server** (Playwright's `webServer`, reusing one you already
+have). Everything below it is the stack a developer already runs:
+
+| Piece | How | Port |
+|---|---|---|
+| PostgreSQL + pgvector | `docker compose -f docker/docker-compose.yml up -d postgres` | 5433 (`docker/.env`) |
+| Keycloak, realm `maintenance`, themed | `docker compose -f docker/docker-compose.yml up -d keycloak` | 8081 |
+| Backend | `cd backend && mvn spring-boot:run` | 8080 |
+| Frontend | started by Playwright | 4200 |
+
+If any of it is missing the run stops on the **first** test with a sentence naming what is
+unreachable, rather than thirty seconds of timeouts per test — that is what the `stack` fixture in
+`support.ts` is for.
+
+**No LLM key is required.** Only `reindex.e2e.ts` needs one, and it is skipped unless `E2E_LLM=1`.
+
+## The environment decision
+
+**The local dev stack, not a disposable one brought up per run.** Both were on the table; this is
+why the dev stack won.
+
+- **The compose file has no application service.** It is commented out and has been since Phase 1 —
+  a developer runs the backend from an IDE or Maven. A "disposable stack" would therefore not be a
+  flag on an existing file, it would be a **second deployment topology** invented for the tests,
+  which then has to be kept in step with the real one forever. Two stacks that drift is a worse
+  failure than a slow test: the suite would go green against a system nobody ships.
+- **The seeded realm and the seeded corpus already exist here.** The E-47 demo case, the four demo
+  users, the themed login page — the fixtures this suite needs are the fixtures the project already
+  maintains, and they are maintained because the demo depends on them.
+- **It is the stack the developer is already looking at.** A test that fails in the same environment
+  someone can immediately open in a browser is a test that gets fixed.
+
+What we give up, stated plainly: **the database is not pristine between runs.** That is why cleanup
+is a rule rather than a convenience — see below — and why nothing in the suite asserts a global
+count of anything.
+
+## Rules this suite obeys
+
+**1. Loopback only, enforced before anything starts.** `guard.ts` is imported at the top of
+`playwright.config.ts`, so a non-loopback `E2E_BASE_URL` or `E2E_KEYCLOAK_URL` throws while the
+config is being read — before a browser is launched. It is an allow-list of three loopback names,
+not a deny-list of production hosts: a deny-list fails open on every host nobody thought of, and the
+one it fails open on is the one someone typed by mistake. **There is deliberately no override flag.**
+
+```
+$ E2E_BASE_URL=https://maintenance.smartsupply.com.de npm run e2e
+ProductionGuardError: REFUSING TO RUN: E2E_BASE_URL points at
+"maintenance.smartsupply.com.de", which is not loopback.
+```
+
+**2. Anything created is removed through the application, with a reason.** Never SQL. The moderation
+round trip archives its own protocol as its final assertion, and a stray artifact from a crashed run
+is swept by the next run's `afterEach` — by the same audited path. A cleanup that reached into the
+database would bypass exactly the ledger the test exists to prove, and would still pass if that
+ledger were broken.
+
+What that leaves behind is real and is accepted: an archived row and a `moderation_event` per run.
+ADR-006 has no restore, by design. They are capped at 50 per machine with the oldest purged, the
+machine used is `VP-01` rather than the E-47 demo machine on `PR-03`, and every artifact is titled
+`E2E-THROWAWAY <timestamp>`.
+
+**3. No sleeps. Wait on state, not on time.** Every wait in this suite is a condition: an element
+becoming visible, a button becoming enabled, a status reaching `INDEXIERT`. Indexing is asynchronous
+*by design* (the upload answers 202 and a pipeline runs), so `reindex.e2e.ts` polls with
+`expect.poll`-style retries and a stated ceiling instead of guessing a duration. A fixed sleep is a
+guess about a machine's speed, and the flake it produces lands on whoever runs the suite next.
+
+**4. Known defects are `test.fail()`, never `test.skip()`.** Two tests here document real defects in
+existing code (see the PR and the v1.1.1 list in PROJECT-PHASES). They **run** on every CI run, they
+measure the real value, and they turn the build **red the day someone fixes the underlying issue** —
+which is the signal to delete them. A skip would rot silently.
+
+## Why the query is stubbed and the document is not
+
+`citation.e2e.ts` intercepts `POST /api/query` and returns a canned Mode A answer. Everything the
+#26 defect actually lived in stays real: the real app, the real token, the real interceptor, the
+real backend, the real file on disk. Only the model's prose is canned.
+
+That is not a shortcut, it is the point. A real query is a paid call to a shared-capacity provider
+with a measured 38.9 s worst case (ADR-002) whose output is non-deterministic text. Putting it in
+the critical path of a regression test would add cost and flakiness and would prove nothing extra
+about a defect that was never about the answer.
+
+## Files
+
+| File | Covers |
+|---|---|
+| `login.e2e.ts` | the themed Keycloak page (asserted by theme-owned elements, because a broken theme falls back to stock **silently**), demo sign-in, a refused password, sign-out |
+| `citation.e2e.ts` | **#26**: a citation click fetches its document with a token and does not 401, asserted on the status the browser received |
+| `role-gating.e2e.ts` | **#38**: the admin lands in Protokollverwaltung; shop-floor roles cannot reach `/moderation` by URL either |
+| `moderation.e2e.ts` | **the release drill**: file → correct with a reason → archive with a reason → still on the record |
+| `contrast.e2e.ts` | **#47**: computed colour against computed background, both palettes, AA |
+| `reindex.e2e.ts` | the answer changing after a re-index. **Needs a real LLM key; `E2E_LLM=1`** |
+
+## How the three test kinds stay apart
+
+| Runner | Directory | Suffix | Config |
+|---|---|---|---|
+| Angular build | `src/` | — | `tsconfig.app.json` |
+| vitest (`npm test`) | `src/` | `.spec.ts` | `tsconfig.spec.json` |
+| Playwright (`npm run e2e`) | `e2e/` | `.e2e.ts` | `tsconfig.e2e.json` |
+
+Enforced twice on purpose — the directories do not overlap and neither do the suffixes, with
+Playwright's `testMatch` naming `.e2e.ts` explicitly. vitest could not collect an e2e file even if
+one were moved into `src/`, and Playwright could not collect a unit spec moved into `e2e/`. The
+`types` differ too, because `expect` means something different in each.

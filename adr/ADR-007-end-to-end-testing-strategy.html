@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Decisions ·
+ADR-007-end-to-end-testing-strategy · maintenance-assistant Docs</title>
+
+  <!-- Set the theme before the stylesheet paints, otherwise the page flashes
+       the default theme for one frame before the saved choice applies. -->
+  <script>
+    (function () {
+      try {
+        var t = localStorage.getItem("maintenance-assistant-theme") ||
+          (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+        document.documentElement.setAttribute("data-theme", t);
+      } catch (e) {
+        document.documentElement.setAttribute("data-theme", "light");
+      }
+    })();
+  </script>
+
+  <link rel="stylesheet" href="/maintenance-assistant/assets/docs.css" />
+</head>
+
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <header class="topbar">
+    <div class="topbar-inner">
+      <button class="menu-btn" aria-label="Toggle navigation">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="18" x2="21" y2="18" />
+        </svg>
+      </button>
+
+      <a href="/maintenance-assistant/" class="brand">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <path d="M14.7 6.3a5 5 0 0 0-6.6 6.6l-5 5a2 2 0 1 0 2.8 2.8l5-5a5 5 0 0 0 6.6-6.6l-2.9 2.9-2.1-2.1 2.2-3.6z" />
+        </svg>
+        maintenance-assistant Docs
+      </a>
+
+      <div class="topbar-tools">
+        <span class="lang-switch">
+          <a href="/maintenance-assistant/" aria-current="true">EN</a>
+          <a href="/maintenance-assistant/index-de.html">DE</a>
+        </span>
+        <button class="theme-toggle" aria-label="Toggle light or dark theme">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <circle cx="12" cy="12" r="9" /><path d="M12 3a9 9 0 0 0 0 18z" fill="currentColor" stroke="none" />
+          </svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <div class="layout">
+    <!-- Sidebar navigation, included by app-docs.html as a Pandoc partial. One
+         sidebar serves the whole site: this repository has a single arc42 tree and a
+         single decision log, so the per-tier sidebars the sibling repositories need
+         would be three copies of the same list here. The active link is marked at
+         runtime by docs.js. Do not put template syntax in this comment - a partial
+         is itself a template. -->
+    <aside class="sidebar">
+      <p class="nav-title">Docs</p>
+      <ul>
+        <li><a href="/maintenance-assistant/">Docs home</a></li>
+        <li><a href="/maintenance-assistant/overview.html">Overview</a></li>
+        <li><a href="/maintenance-assistant/overview-de.html">&Uuml;berblick (DE)</a></li>
+        <li><a href="/maintenance-assistant/llm-approach.html">AI &amp; LLM approach</a></li>
+      </ul>
+
+      <p class="nav-title">Requirements</p>
+      <ul>
+        <li><a href="/maintenance-assistant/REQUIREMENTS.html">Requirements &amp; NFRs</a></li>
+        <li><a href="/maintenance-assistant/DOMAIN-MODEL.html">Domain model</a></li>
+      </ul>
+
+      <details class="nav-group">
+        <summary>Architecture (arc42)</summary>
+        <ul>
+          <li><a href="/maintenance-assistant/architecture/index.html">Architecture index</a></li>
+          <li><a href="/maintenance-assistant/architecture/01-introduction-and-goals.html">1 &middot; Introduction &amp; Goals</a></li>
+          <li><a href="/maintenance-assistant/architecture/02-architecture-constraints.html">2 &middot; Constraints</a></li>
+          <li><a href="/maintenance-assistant/architecture/03-context-and-scope.html">3 &middot; Context &amp; Scope</a></li>
+          <li><a href="/maintenance-assistant/architecture/04-solution-strategy.html">4 &middot; Solution Strategy</a></li>
+          <li><a href="/maintenance-assistant/architecture/05-building-block-view.html">5 &middot; Building Blocks</a></li>
+          <li><a href="/maintenance-assistant/architecture/06-runtime-view.html">6 &middot; Runtime View</a></li>
+          <li><a href="/maintenance-assistant/architecture/07-deployment-view.html">7 &middot; Deployment</a></li>
+          <li><a href="/maintenance-assistant/architecture/08-crosscutting-concepts.html">8 &middot; Concepts</a></li>
+          <li><a href="/maintenance-assistant/architecture/09-architecture-decisions.html">9 &middot; Decisions</a></li>
+          <li><a href="/maintenance-assistant/architecture/10-quality-requirements.html">10 &middot; Quality Requirements</a></li>
+          <li><a href="/maintenance-assistant/architecture/11-risks-and-technical-debt.html">11 &middot; Risks &amp; Debt</a></li>
+          <li><a href="/maintenance-assistant/architecture/12-glossary.html">12 &middot; Glossary</a></li>
+        </ul>
+      </details>
+
+      <details class="nav-group">
+        <summary>Decisions (ADRs)</summary>
+        <ul>
+          <li><a href="/maintenance-assistant/adr/index.html">Decision index</a></li>
+          <li><a href="/maintenance-assistant/adr/ADR-001-modular-monolith-first.html">ADR-001 Modular monolith</a></li>
+          <li><a href="/maintenance-assistant/adr/ADR-002-eu-hosted-llm-provider.html">ADR-002 EU LLM provider</a></li>
+          <li><a href="/maintenance-assistant/adr/ADR-003-keycloak-for-iam.html">ADR-003 Keycloak as IdP</a></li>
+          <li><a href="/maintenance-assistant/adr/ADR-004-pgvector-for-vector-search.html">ADR-004 pgvector</a></li>
+        </ul>
+      </details>
+
+      <p class="nav-title">Frontend</p>
+      <ul>
+        <li><a href="/maintenance-assistant/frontend-architecture.html">Frontend architecture</a></li>
+      </ul>
+
+      <p class="nav-title">Quality</p>
+      <ul>
+        <li><a href="/maintenance-assistant/backend/api-docs/index.html">Backend API</a></li>
+        <li><a href="/maintenance-assistant/frontend/api-docs/index.html">Frontend API</a></li>
+        <li><a href="/maintenance-assistant/backend/coverage/index.html">Backend coverage</a></li>
+        <li><a href="/maintenance-assistant/frontend/coverage/index.html">Frontend coverage</a></li>
+      </ul>
+    </aside>
+    <main class="content" id="main">
+      <article class="doc-body">
+        <h1
+        id="adr-007-test-the-rendered-application-in-a-browser">ADR-007:
+        Test the rendered application in a browser</h1>
+        <table>
+        <colgroup>
+        <col style="width: 50%" />
+        <col style="width: 50%" />
+        </colgroup>
+        <tbody>
+        <tr class="odd">
+        <td><strong>Status</strong></td>
+        <td>Accepted</td>
+        </tr>
+        <tr class="even">
+        <td><strong>Date</strong></td>
+        <td>2026-08-11</td>
+        </tr>
+        <tr class="odd">
+        <td><strong>Deciders</strong></td>
+        <td>Carlos Keglevich</td>
+        </tr>
+        <tr class="even">
+        <td><strong>Related</strong></td>
+        <td>ADR-001 (modular monolith), ADR-002 (LLM provider, latency),
+        ADR-006 (insider threat, moderation), NFR-2 (grounded answers),
+        NFR-4 (latency), PR #26, PR #47</td>
+        </tr>
+        </tbody>
+        </table>
+        <h2 id="context">Context</h2>
+        <p>Every robot report in this project ends with the same line:
+        <em>“NOT verified: no browser was opened.”</em> That line is not
+        a formality. It marks the exact gap through which the two most
+        expensive defects of v1.0–v1.1 reached production, and both were
+        found by a person looking at a screen — the only instrument the
+        project had.</p>
+        <p><strong>#26 — the citation links that answered 401.</strong>
+        Source links were rendered as
+        <code>&lt;a href="/api/protocols/{id}/document"&gt;</code>. A
+        browser-followed href is a fresh navigation: it never reaches
+        Angular’s HTTP interceptor, so it carries no Bearer token, and
+        the backend is a stateless JWT resource server with no cookie
+        fallback. Every click on a citation failed in production. The
+        verification that had been run was <code>curl</code> with a
+        token, which answered 200 — a true statement about a request
+        nobody makes. <strong>An API call is not a click.</strong></p>
+        <p><strong>#47 — the login heading nobody could see.</strong>
+        The realm heading above the login card rendered white on a
+        near-white canvas: measured 1.09:1, which is not “low contrast”,
+        it is invisible. Every code-level check passed honestly, because
+        the element was <strong>absent from the theme’s
+        stylesheet</strong>. It inherited a colour the parent theme had
+        chosen for a dark photographic backdrop that our theme removes.
+        Reading a stylesheet cannot find a rule that is not in it.
+        Worse, the dark scheme was correct <em>by accident</em>, so the
+        one palette anyone happened to check looked fine.</p>
+        <p>The existing stack cannot see either. vitest runs in
+        <strong>jsdom</strong>: no layout engine, no cascade worth
+        trusting, no navigation, no notion of what is painted behind
+        what. It is excellent at what it does — 218 specs in seconds —
+        and it is structurally incapable of answering “does a click
+        work” or “can a human read this”.</p>
+        <p>The v1.2 approve workflow makes the gap worse. It adds a
+        multi-role chain in which the author, the corrector and the
+        approver are three different people, and its correctness is
+        <em>a sequence of navigations by different roles</em>. Building
+        that on top of a test stack that cannot navigate would be
+        building the most state-dependent feature in the project blind.
+        Carlos reordered the roadmap on 2026-08-11 for exactly this
+        reason: <strong>the safety net comes before the feature it
+        catches.</strong></p>
+        <h2 id="decision">Decision</h2>
+        <p><strong>Adopt Playwright as a second, small, rendered test
+        suite, and give it a job description narrow enough that it stays
+        small.</strong></p>
+        <p><strong>What E2E covers — flows and rendering:</strong></p>
+        <ul>
+        <li>Whether a <strong>flow completes</strong>: sign in, ask,
+        click a citation, correct a protocol, archive it.</li>
+        <li>Whether the result is <strong>visible and legible</strong>:
+        computed colour against computed background, in both
+        palettes.</li>
+        <li>Whether <strong>routing and role gating</strong> behave for
+        a real navigation, including a typed URL.</li>
+        <li>Whether a request the <strong>browser performs
+        itself</strong> carries what it needs.</li>
+        </ul>
+        <p><strong>What stays in vitest — logic:</strong> mode routing,
+        role filtering, citation segment parsing, the clamp arithmetic,
+        dictionary lookups, guards as functions. These run in seconds
+        against no stack. <strong>A test that can be written in jsdom
+        must be written in jsdom.</strong> E2E is expensive — it wants a
+        database, a Keycloak and a backend — and a suite that grows into
+        a full regression net becomes the thing people disable.</p>
+        <p><strong>Environment: the local development stack.</strong>
+        Postgres and Keycloak from
+        <code>docker/docker-compose.yml</code>, the backend from Maven,
+        and the Angular dev server started by Playwright itself.</p>
+        <p><strong>Never production, enforced structurally.</strong> The
+        base URL and the Keycloak URL are validated against an
+        allow-list of loopback hostnames, in a module imported at the
+        top of the Playwright config — so a misconfigured run throws
+        while the config is being read, before a browser exists. An
+        allow-list, not a deny-list of known production hosts: a
+        deny-list fails open for every host nobody thought of. There is
+        no override flag.</p>
+        <p><strong>Anything created is removed through the application,
+        with a reason — never SQL.</strong> The moderation round trip
+        archives its own protocol as its final assertion, and a stray
+        artifact from a crashed run is swept by the next run through the
+        same audited path.</p>
+        <p><strong>No LLM in the critical path.</strong>
+        <code>POST /api/query</code> is stubbed at the network layer
+        with a canned Mode A answer; everything else in that test stays
+        real. The one assertion that genuinely needs a model — “the
+        answer changes after a re-index” — lives in its own file and is
+        skipped unless <code>E2E_LLM=1</code>.</p>
+        <p><strong>Chromium only.</strong> The users are on shop-floor
+        tablets and desktop Chrome and Edge; all three are Chromium.</p>
+        <p><strong>No sleeps.</strong> Every wait is a condition. Where
+        a wait cannot be expressed as one, that is stated rather than
+        padded with a timeout.</p>
+        <h2 id="consequences">Consequences</h2>
+        <p><strong>Positive</strong></p>
+        <ul>
+        <li>The two defect classes that reached production are now
+        <strong>assertions that run</strong>, one of them checking the
+        status the browser actually received rather than the status curl
+        receives.</li>
+        <li>The release drill Carlos performs by hand — file, correct,
+        archive, verify the ledger — runs in about ten seconds and is no
+        longer dependent on someone remembering all six steps.</li>
+        <li>The suite found <strong>two real defects in existing code on
+        its first complete run</strong> (see below), which is the
+        argument for it, made by itself.</li>
+        <li>v1.2’s approve workflow gets a net before it is built, in
+        the one dimension it is most likely to break: a multi-role
+        sequence of navigations.</li>
+        </ul>
+        <p><strong>Negative</strong></p>
+        <ul>
+        <li><strong>A green E2E run is still not a production check, and
+        must never be read as one.</strong> It runs against a dev-mode
+        Keycloak, a dev server rather than the built bundle behind
+        nginx, no Caddy, no CSP headers, no TLS, and a corpus seeded
+        locally. Production has broken while every local check passed —
+        that is the whole history above. Carlos’s browser drill is not
+        replaced by this and is not scheduled to be.</li>
+        <li><strong>It needs a stack</strong>, so it cannot run on a
+        bare CI runner without one being provisioned. Today it therefore
+        does not gate merges (see below).</li>
+        <li><strong>The local database is not pristine between
+        runs.</strong> Archived rows and moderation events accumulate by
+        design; the suite is written to depend on nothing global.</li>
+        <li><strong>A second test vocabulary</strong> for contributors
+        to learn, and a second place where a change to a
+        <code>data-testid</code> can break something.</li>
+        <li><strong>It will be slower than it looks today.</strong>
+        Twenty tests in 45 s is comfortable; the discipline about what
+        belongs here exists so that it stays that way.</li>
+        </ul>
+        <p><strong>Defects found on the first complete run</strong> —
+        reported, not fixed, and parked on the v1.1.1 list:</p>
+        <ol type="1">
+        <li><code>.footer-note</code> measures <strong>3.65:1</strong>
+        in the light palette (<code>--c-ink-faint</code> on the light
+        surface), below AA. The dark palette is fine — the #47 shape
+        exactly.</li>
+        <li>The protocol viewer <strong>never moves focus into
+        itself</strong>. Focus stays on the link that opened it, so the
+        backdrop never receives the Escape keydown and Tab is not
+        trapped: a keyboard user cannot dismiss the dialog with the key
+        every modal has taught them to press. <code>dialog.ts</code> is
+        written to do all three things and has <strong>no unit spec at
+        all</strong> — the clearest possible illustration of this ADR’s
+        argument.</li>
+        </ol>
+        <p>Both are recorded as <code>test.fail()</code> rather than
+        skipped, so they are measured on every run and turn the build
+        red the day they are fixed.</p>
+        <h2 id="alternatives-considered">Alternatives considered</h2>
+        <ul>
+        <li><strong>Keep verifying by hand.</strong> It is what found
+        both defects, and it does not scale to a release cadence or to a
+        multi-role approval chain. It also does not run on a pull
+        request. Kept as a complement, rejected as the only instrument.
+        <em>Rejected as sufficient.</em></li>
+        <li><strong>Cypress instead of Playwright.</strong> Comparable
+        for this job. Playwright wins on three specifics this project
+        needs: first-class <code>colorScheme</code> emulation (the
+        contrast tests are a matrix over light and dark), real
+        cross-origin navigation without ceremony (the Keycloak round
+        trip is a different origin, historically Cypress’s weak point),
+        and network interception that leaves the rest of the request
+        path real. <em>Rejected.</em></li>
+        <li><strong>A disposable compose stack brought up per
+        run.</strong> Repeatable and isolated, and it would require
+        inventing a <strong>second deployment topology</strong>: the
+        compose file’s application service has been commented out since
+        Phase 1, so this is not a flag but a new artifact to keep in
+        step with the real one forever. Two stacks that drift is a worse
+        failure than a dirty database, because the suite would go green
+        against a system nobody ships. <em>Rejected.</em></li>
+        <li><strong>Run the real LLM in the citation test.</strong> More
+        end-to-end in the literal sense, and it buys nothing for the
+        defect under test while adding cost, a 38.9 s measured worst
+        case and non-deterministic prose to every run. <em>Rejected,
+        except behind <code>E2E_LLM=1</code> where the model’s output is
+        genuinely the thing being asserted.</em></li>
+        <li><strong>Seed a token into <code>sessionStorage</code> and
+        skip the login page.</strong> Faster on every test, and it would
+        skip the one flow that has already broken in production.
+        <em>Rejected.</em></li>
+        <li><strong>Make E2E a required check now.</strong> It cannot
+        pass without a provisioned stack, so making it required today
+        would block every merge. Revisited below. <em>Rejected for
+        now.</em></li>
+        </ul>
+        <h2 id="ci-status-stated-rather-than-implied">CI status, stated
+        rather than implied</h2>
+        <p>The E2E job runs on pull requests touching the frontend,
+        <strong>as a separate job under its own name</strong>, and it is
+        <strong>not</strong> part of the required
+        <code>build-and-test</code> check. A failing E2E run does
+        <strong>not</strong> block a merge today.</p>
+        <p>That is a deliberate, temporary position and it is written
+        here so nobody has to infer it from a workflow file. It is
+        honest for exactly one reason: the job provisions Postgres,
+        Keycloak and the backend inside CI, and until that has proven
+        stable over a number of real pull requests, a flaky
+        infrastructure step would train people to ignore a red check —
+        which is worse than not having one.</p>
+        <p><strong>Recommendation: make it required once it has run
+        green on ten consecutive pull requests without an
+        infrastructure-caused failure.</strong> The tests it contains
+        are exactly the ones whose absence cost production defects;
+        leaving them advisory permanently would repeat the mistake in a
+        new form.</p>
+      </article>
+    </main>
+
+        <nav class="toc" aria-label="On this page">
+      <p class="toc-title">On this page</p>
+      <ul>
+      <li><a href="#adr-007-test-the-rendered-application-in-a-browser"
+      id="toc-adr-007-test-the-rendered-application-in-a-browser">ADR-007:
+      Test the rendered application in a browser</a>
+      <ul>
+      <li><a href="#context" id="toc-context">Context</a></li>
+      <li><a href="#decision" id="toc-decision">Decision</a></li>
+      <li><a href="#consequences"
+      id="toc-consequences">Consequences</a></li>
+      <li><a href="#alternatives-considered"
+      id="toc-alternatives-considered">Alternatives considered</a></li>
+      <li><a href="#ci-status-stated-rather-than-implied"
+      id="toc-ci-status-stated-rather-than-implied">CI status, stated
+      rather than implied</a></li>
+      </ul></li>
+      </ul>
+    </nav>
+      </div>
+
+  <footer class="footer">
+    maintenance-assistant · Generated by the docs pipeline
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <script src="/maintenance-assistant/assets/docs.js"></script>
+</body>
+</html>

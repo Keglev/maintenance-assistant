@@ -162,3 +162,104 @@ infrastructure step would train people to ignore a red check — which is worse 
 **Recommendation: make it required once it has run green on ten consecutive pull requests without an
 infrastructure-caused failure.** The tests it contains are exactly the ones whose absence cost
 production defects; leaving them advisory permanently would repeat the mistake in a new form.
+
+---
+
+## Dated note — 2026-08-12: the gaps from #50, closed
+
+#50 shipped this suite with an honest list of what it had not proven. This is what happened when
+those were worked through, and none of it changes the decision above.
+
+### 1. The re-index test ran, and it had four defects of its own
+
+`reindex.e2e.ts` asserts the one behaviour Carlos hand-drills before every release: an edited
+protocol changes the answer that cites it. It had **never executed** — it is skipped without a model
+— and running it once, against a real IONOS key, produced a passing test only after four fixes:
+
+| What was wrong | Why nobody knew |
+|---|---|
+| It waited for the status text `INDEXIERT`. The interface renders **"Durchsuchbar"** | The string never existed; the test could not have passed in any state of the application |
+| Its inner ceilings (120 s, 240 s) exceeded the **60 s test timeout** | The polls they guarded were unreachable |
+| It selected the search machine picker **by value**; that picker's values are UUIDs | Inside a `toPass` retry loop the failure is invisible — the poll never gets past its first line |
+| It had **no cleanup sweep**, so a run that failed part-way left an INDEXED protocol behind | Seven accumulated, and the eighth run then failed because a previous run's corrected protocol was being retrieved as corpus |
+
+Then it passed, in 33 s. **The evidence, same question and same machine:**
+
+> **Before** — *"Die Linie stoppt nach dem Etikettierer. [P1] Ursache ist eine verschmutzte
+> Lichtschranke. [P1]"*
+>
+> **After** — *"Die Linie stoppt nach dem Etikettierer. [P1] Ursache war ein gerissener Zahnriemen
+> am Etikettierer. [P1]"*
+
+**The lesson generalises past this file.** A skipped test is not a neutral placeholder — it is
+untested code with a green tick beside it, and it decays exactly like any other unexecuted code. Two
+of those four defects were introduced by the same hand that wrote the passing tests around them, on
+the same day. The suite's own rule follows: **a test that cannot run in CI is a test that will be
+wrong when it finally does.**
+
+### 2. The provider is stubbed, so the test runs everywhere
+
+`frontend/e2e/provider-stub/` is an OpenAI-compatible server of about 200 lines and no dependencies.
+The backend is pointed at it with `LLM_BASE_URL` — a configuration value the application already
+supports **because ADR-002 requires the provider to be swappable**. No production code changed.
+
+**Faked:** the two paid HTTP calls. **Real:** the upload, the chunker, the pgvector write, the status
+transition, retrieval, the threshold, citation validation, the re-index's delete-then-write, and
+every byte of the rendered answer. The chat stub is a **parrot** — it answers by quoting the sources
+out of the prompt the backend built — so the answer changes when, and only when, the retrieved text
+changes. That is the property under test; a stub returning a fixed string would pass whether or not
+re-indexing worked.
+
+One honest consequence: **the similarity threshold is a property of the embedding model**, and
+`application.yml` already says so ("bge-m3-specific: any embedding-model change invalidates it").
+The stub is a different embedding model, so the stubbed deployment gets its own value. Measured on
+the stub's vectors: **0.42–0.45** for a question against the protocol it is about, **0.10–0.13**
+against an unrelated one. `0.30` sits in that gap with margin on both sides, so the Mode A / Mode B
+distinction survives intact rather than being switched off.
+
+### 3. CI gets a database per run; a laptop does not
+
+The local dirt accepted above is still accepted, and for the reasons given. **CI is different in one
+way that matters: a reused database there makes a green run depend on the order the runs happened
+in.** That is not hypothetical — it is exactly what the seven leftovers did locally. The CI job now
+creates its own Postgres, migrates it, seeds and indexes the corpus, and destroys it with the
+runner. Cost: about **35 s** of the run, for a database no second run can ever see.
+
+The seed also revealed that CI had been running with an **unindexed corpus**:
+`INGESTION_BACKLOG_ON_STARTUP` defaults to false, so 150 protocols were being seeded as `RECEIVED`
+with zero chunks. Nothing had needed a chunk until `reindex.e2e.ts`. Armed now, and free, because
+the provider is a stub.
+
+### 4. The suite's first caught-and-closed defect — the argument, demonstrated
+
+#50 reported that the protocol viewer never took focus, so Escape could not close it and Tab was not
+trapped. The cause, found here: `focusables()` matched `button` **without excluding disabled ones**,
+and the viewer's first projected control is a Download button that is disabled until the document
+arrives. `focus()` on a disabled element does nothing and reports nothing.
+
+Fixed — disabled controls excluded, the panel itself (`tabindex="-1"`) as the fallback target — with
+the **unit spec the component had never had**. `src/app/shared/dialog/` had a template, a stylesheet
+and a class, and no test at all, while its own comments promised "Esc closes, Tab cycles inside, the
+first control takes focus on open". None of the three was true for one of its four callers.
+
+**Both halves of the stack were needed, and neither would have done.** jsdom reproduces the defect
+exactly — it refuses focus to disabled elements as a browser does — so the eight new unit tests run
+in two seconds on every commit and go red for the right reason. But nothing in jsdom would ever have
+*pointed* at the viewer: the defect only appears when a real dialog opens with a real disabled
+button, which is a rendered condition. The browser found it; the unit spec now holds it.
+
+The `test.fail()` marker in `citation.e2e.ts` is deleted and that assertion is a plain passing test —
+which is what such a marker is for. **The contrast marker stays**: `--c-ink-faint` is shared with the
+tagline, the eyebrow, `.optional` and disabled text, so it is a design pass with its own drill and it
+remains on the v1.1.1 list.
+
+### 5. Still advisory, and the count so far
+
+**4 consecutive green runs** of the e2e job (three on #50, one on main after merge). The bar in this
+ADR is ten.
+
+**It stays advisory, and this PR does not move it — for a reason stronger than the count.** The job
+those four runs exercised is not the job that runs now: it has gained a throwaway database, a
+provider stub, an armed indexing backlog and the re-index test it had always skipped. **A streak
+counts runs of the same thing.** The count restarts here, and the running total is kept in
+`frontend/e2e/README.md`, where someone deciding whether to promote the check will actually look.

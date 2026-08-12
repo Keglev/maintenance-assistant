@@ -29,7 +29,31 @@ If any of it is missing the run stops on the **first** test with a sentence nami
 unreachable, rather than thirty seconds of timeouts per test — that is what the `stack` fixture in
 `support.ts` is for.
 
-**No LLM key is required.** Only `reindex.e2e.ts` needs one, and it is skipped unless `E2E_LLM=1`.
+**No LLM key is required — for anything, including `reindex.e2e.ts`.** That test needs an embedding
+and an answer, not necessarily a *paid* one: point the backend at the stub in
+[`provider-stub/`](provider-stub/server.mjs) and run the whole suite for free.
+
+```bash
+# one terminal
+node e2e/provider-stub/server.mjs --port 8099
+
+# the backend, against the stub — see the stub's header for what is and is not faked
+LLM_BASE_URL=http://127.0.0.1:8099/v1 LLM_API_KEY=stub \
+INGESTION_BACKLOG_ON_STARTUP=true CORPUS_SEED_ENABLED=true \
+QUERY_SIMILARITY_THRESHOLD=0.30 mvn spring-boot:run
+
+# and the suite, with the re-index test switched on
+E2E_LLM=1 npm run e2e
+```
+
+Against a **real** provider instead, set `LLM_API_KEY` and leave `LLM_BASE_URL` alone. Both were
+exercised; the re-index test passes in ~33 s against IONOS and ~11 s against the stub.
+
+> **The threshold override is not a cheat.** `application.yml` records that 0.55 is *bge-m3-specific*
+> and that any embedding-model change invalidates it. The stub is a different embedding model, so it
+> gets its own calibration — measured at 0.42–0.45 for a relevant question and 0.10–0.13 for an
+> irrelevant one, which leaves 0.30 comfortably inside the gap. The Mode A / Mode B distinction is
+> preserved, not disabled.
 
 ## The environment decision
 
@@ -50,6 +74,29 @@ why the dev stack won.
 What we give up, stated plainly: **the database is not pristine between runs.** That is why cleanup
 is a rule rather than a convenience — see below — and why nothing in the suite asserts a global
 count of anything.
+
+## Is the CI check blocking yet?
+
+**No. It is advisory: a red `e2e` job does not stop a merge.** ADR-007 sets the bar for promoting it
+to a required check at **ten consecutive green runs with no infrastructure-caused failure**.
+
+| | |
+|---|---|
+| **Consecutive green runs of the CURRENT job** | **0** — the count restarted on 2026-08-12 |
+| Green runs of the previous job shape | 4 (three on #50, one on main after merge) |
+| Why the count restarted | That job had no throwaway database, no provider stub, an unindexed corpus and skipped the re-index test. A streak counts runs of the same thing. |
+
+**Update this table when the job changes shape or the streak advances.** It lives here rather than
+only in the ADR because this is the file someone opens when they wonder why a red check did not stop
+them.
+
+## CI differs from a laptop in exactly one way
+
+**CI gets a throwaway database per run**; a laptop keeps its own. That is not an inconsistency, it is
+the one place where the trade-off flips: a developer's stack is long-lived and the suite cleans up
+after itself, while on a build server a reused database would make a green run depend on the order
+the runs happened in. See ADR-007 for the full argument, and the sweep rule below for what keeps the
+local case honest.
 
 ## Rules this suite obeys
 

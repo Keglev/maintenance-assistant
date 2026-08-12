@@ -36,6 +36,99 @@ export async function signIn(page: Page, user: DemoUser): Promise<void> {
   await expect(page.getByTestId('header-username')).toContainText(user, { timeout: 30_000 });
 }
 
+/**
+ * Chooses a machine in the SEARCH view's picker, by the label a person reads.
+ *
+ * <p>SHARED, because writing it twice is what went wrong. The search picker's option VALUES are
+ * machine UUIDs while the upload form's are machine numbers — the two views genuinely differ — so
+ * `selectOption('VP-01')` matches nothing here and throws. `citation.e2e.ts` had that bug and it was
+ * fixed there; `reindex.e2e.ts` had the same bug and nobody found out, because it is skipped without
+ * an LLM key and had therefore never run. Inside a `toPass` retry loop the failure is invisible: the
+ * poll simply never gets past its first line until the timeout.
+ *
+ * <p>One helper, one place to be right.
+ */
+export async function selectSearchMachine(page: Page, machineNo: string): Promise<void> {
+  const picker = page.getByTestId('machine-picker');
+  // Asserted first, and with a short ceiling, so being on the wrong view fails in seconds with a
+  // sentence rather than hanging until the test timeout — which is exactly what it did when this
+  // helper was called from the upload view, where the picker is a different control entirely.
+  await expect(picker, 'the search machine picker is not on this page — wrong view?').toBeVisible({
+    timeout: 10_000,
+  });
+  const value = await picker
+    .locator('option')
+    .filter({ hasText: machineNo })
+    .first()
+    .getAttribute('value');
+  if (!value) {
+    throw new Error(
+      `no option for machine ${machineNo} in the search picker — either the machine list did not ` +
+        `load, or the corpus no longer contains that machine (fixture drift, not an app defect)`,
+    );
+  }
+  await picker.selectOption(value);
+}
+
+/**
+ * Archives every protocol this suite has ever left on a machine, through the UI, with a reason.
+ *
+ * <p>SHARED AND CALLED FROM EVERY TEST THAT WRITES, because the alternative was measured rather
+ * than imagined: `moderation.e2e.ts` had this as a private `afterEach` and `reindex.e2e.ts` had
+ * nothing at all, so each failed reindex run left an INDEXED protocol in the corpus. Seven of them
+ * accumulated locally, and the eighth run then failed for a new reason — the answer already
+ * contained the correction marker before the correction, because a previous run's corrected
+ * protocol was still being retrieved. A test that poisons the next run is worse than no test.
+ *
+ * <p>Through the UI with a reason, never SQL: a cleanup that reached around the moderation ledger
+ * would still pass if that ledger were broken, and the ledger is the thing these tests exist to
+ * prove.
+ *
+ * <p>The caller must already be signed in as an admin and on the moderation view.
+ */
+export async function sweepThrowaways(page: Page, machineNo: string): Promise<number> {
+  /**
+   * Waits for the list to actually reflect the filter before anything is counted.
+   *
+   * <p>THIS LINE IS THE WHOLE FIX. `locator.count()` is one of the few Playwright APIs that does
+   * NOT auto-wait: it reports what is on the page at the instant it is called. Called straight after
+   * "Filter", that instant is before the request has come back, so it answered 0, the loop below
+   * exited immediately, and the sweep reported success having archived nothing. It had never
+   * removed a single protocol in either file that used it — a cleanup that silently does nothing is
+   * indistinguishable from a cleanup that works, right up until a later run reads the leftovers as
+   * data. Waiting for a settled list is the difference between counting rows and counting nothing.
+   */
+  const settled = () =>
+    expect(
+      page.getByTestId('moderation-table').or(page.getByTestId('moderation-empty')),
+    ).toBeVisible();
+
+  await page.getByTestId('tab-corpus').click();
+  await page.getByTestId('filter-machine').selectOption(machineNo);
+  await page.getByTestId('filter-title').fill(E2E_TITLE_PREFIX);
+  await page.getByTestId('filter-apply').click();
+  await settled();
+
+  let removed = 0;
+  // One at a time: the list re-renders after each archive, so a collected handle would go stale.
+  // The ceiling is a guard against a loop that cannot make progress, not an expected count.
+  for (let guard = 0; guard < 60; guard++) {
+    const rows = page.getByTestId('moderation-row').filter({ hasText: E2E_TITLE_PREFIX });
+    if ((await rows.count()) === 0) {
+      return removed;
+    }
+
+    await rows.first().getByTestId('row-delete').click();
+    await page.getByTestId('delete-comment').fill('e2e cleanup: leftover throwaway protocol');
+    await page.getByTestId('delete-confirm-button').click();
+    await expect(page.getByTestId('removed-notice')).toBeVisible();
+    await page.getByTestId('removed-dismiss').click();
+    await settled();
+    removed += 1;
+  }
+  return removed;
+}
+
 /** Signs out through the confirmation dialog, so a test leaves no session behind. */
 export async function signOut(page: Page): Promise<void> {
   await page.getByTestId('sign-out').click();

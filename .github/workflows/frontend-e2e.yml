@@ -67,6 +67,17 @@ jobs:
       # created before any step runs and therefore cannot be given a value a step generated. Keycloak
       # needed a plain `docker run` anyway: it mounts the realm export and the theme directory, which
       # a service container cannot do.
+      # A DATABASE PER RUN, and this is where CI differs from a laptop on purpose.
+      #
+      # ADR-007 accepts a dirty local database: a developer's stack is long-lived, the suite cleans
+      # up after itself through the application, and the alternative was inventing a second
+      # deployment topology. CI has neither of those constraints and one extra hazard — a reused
+      # database there would make a green run depend on the order the runs happened in, which is the
+      # one failure mode a build server must not have. It was not hypothetical: seven leftover
+      # protocols accumulated locally while this suite was being made to work, and the eighth run
+      # then failed because a previous run's data was being retrieved as if it were corpus.
+      #
+      # The container is created here, destroyed with the runner, and never sees a second run.
       - name: Start Postgres and Keycloak
         run: |
           PG_SECRET="$(openssl rand -hex 24)"
@@ -106,16 +117,44 @@ jobs:
           docker exec postgres pg_isready -U maintenance -d maintenance || {
             echo "::error::Postgres never became ready"; docker logs postgres | tail -50; exit 1; }
 
+      # The provider stub — see frontend/e2e/provider-stub/server.mjs for what it does and does not
+      # fake. It exists so `reindex.e2e.ts` can run at all: that test needs an embedding and an
+      # answer, and making CI depend on a funded key would mean the most valuable test in the suite
+      # never runs. Zero dependencies, so there is nothing to install.
+      - name: Start the LLM provider stub
+        working-directory: frontend
+        run: |
+          nohup node e2e/provider-stub/server.mjs --port 8099 > "$RUNNER_TEMP/stub.log" 2>&1 &
+          for i in $(seq 1 20); do
+            curl -fsS http://127.0.0.1:8099/health >/dev/null 2>&1 && break
+            sleep 1
+          done
+          curl -fsS http://127.0.0.1:8099/health || {
+            echo "::error::the provider stub never came up"; cat "$RUNNER_TEMP/stub.log"; exit 1; }
+
       - name: Start the backend
         env:
           SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/maintenance
           SPRING_DATASOURCE_USERNAME: maintenance
           KEYCLOAK_ISSUER_URI: http://localhost:8081/realms/maintenance
-          # Seeds the 150-protocol corpus. NOTE: the seed EMBEDS, so without a key the protocols
-          # land as FAILED — which is fine for every test in the suite except reindex.e2e.ts, and
-          # that one is skipped unless E2E_LLM=1. Flyway still runs, the machines still exist, and
-          # the flows under test are the flows under test.
+          # Seeds the 150-protocol corpus...
           CORPUS_SEED_ENABLED: 'true'
+          # ...and INDEXES it. Without this the seed lands 150 protocols as RECEIVED with zero
+          # chunks and retrieval has nothing to retrieve — which is how CI ran until now, and it
+          # went green because no test until `reindex.e2e.ts` needed a chunk to exist. The flag is
+          # off by default for a good reason (indexing costs money and a restart must not start
+          # spending); here the provider is a stub two lines up, so it costs nothing.
+          INGESTION_BACKLOG_ON_STARTUP: 'true'
+          # Everything the model does is faked; everything the application does is not.
+          LLM_BASE_URL: http://127.0.0.1:8099/v1
+          LLM_API_KEY: stub-no-key-needed
+          # THE THRESHOLD IS A PROPERTY OF THE EMBEDDING MODEL, not a constant of the application —
+          # application.yml says so in as many words ("bge-m3-specific: any embedding-model change
+          # invalidates it"). The stub is a different embedding model, so it gets its own value.
+          # Measured against the stub's vectors: a question scores 0.42-0.45 against the protocol it
+          # is about and 0.10-0.13 against an unrelated one, so 0.30 sits in that gap with margin on
+          # both sides and the Mode A / Mode B distinction survives intact.
+          QUERY_SIMILARITY_THRESHOLD: '0.30'
         working-directory: backend
         run: |
           # Exported here rather than declared above, so this file contains no line that pairs a
@@ -143,6 +182,23 @@ jobs:
           curl -fsS http://localhost:8080/api/health || {
             echo "::error::the backend never became ready"; tail -80 "$RUNNER_TEMP/backend.log"; exit 1; }
 
+      - name: Wait for the corpus to finish indexing
+        run: |
+          # Retrieval has nothing to retrieve until this finishes, and it is asynchronous by design
+          # (the seed writes rows, a pipeline embeds them). Against the stub it takes seconds; the
+          # ceiling is a guard, not an expectation. Waiting here rather than inside a test keeps the
+          # suite's timings honest — a test should measure the flow, not the fixture.
+          for i in $(seq 1 60); do
+            pending=$(docker exec postgres psql -U maintenance -d maintenance -t -A \
+              -c "select count(*) from protocol where status = 'RECEIVED';" 2>/dev/null || echo "?")
+            [ "$pending" = "0" ] && break
+            sleep 5
+          done
+          docker exec postgres psql -U maintenance -d maintenance -t -A \
+            -c "select status, count(*) from protocol group by status;"
+          docker exec postgres psql -U maintenance -d maintenance -t -A \
+            -c "select count(*) as chunks from chunk;"
+
       - name: Install dependencies
         working-directory: frontend
         run: npm ci
@@ -153,6 +209,10 @@ jobs:
 
       - name: Run the e2e suite
         working-directory: frontend
+        env:
+          # The whole suite, INCLUDING the re-index test — it is only gated on a model being
+          # available, and there is one listening on 8099. It was skipped in every CI run until now.
+          E2E_LLM: '1'
         run: npm run e2e
 
       # The trace of a failed test is what makes a red run diagnosable without reproducing it.

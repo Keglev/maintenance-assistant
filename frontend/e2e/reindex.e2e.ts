@@ -1,5 +1,7 @@
 import {
+  E2E_MACHINE,
   E2E_TITLE_PREFIX,
+  correctAsSchichtleiter,
   expect,
   selectSearchMachine,
   signIn,
@@ -32,7 +34,7 @@ import {
 
 const RUN = process.env['E2E_LLM'] === '1';
 
-const MACHINE = 'VP-01';
+const MACHINE = E2E_MACHINE;
 const QUESTION = 'Warum stoppt die Verpackungslinie nach dem Etikettierer?';
 
 /** A word that appears only in the corrected text, so its presence proves the re-index. */
@@ -137,25 +139,28 @@ test.describe('re-index after an edit', () => {
     await signOut(page);
 
     // Correct it: a different root cause, carrying a word the original never contained.
-    await signIn(page, 'admin');
-    await page.getByTestId('filter-machine').selectOption(MACHINE);
-    await page.getByTestId('filter-title').fill(title);
-    await page.getByTestId('filter-apply').click();
-    await page
-      .getByTestId('moderation-row')
-      .filter({ hasText: title })
-      .getByTestId('row-edit')
-      .click();
-    await page
-      .getByTestId('edit-content')
-      .fill(
-        'Symptom: Linie stoppt nach dem Etikettierer.\n' +
-          `Ursache: ${CORRECTION_MARKER} am Etikettierer gerissen.\n` +
-          `Massnahme: ${CORRECTION_MARKER} getauscht.`,
-      );
-    await page.getByTestId('edit-comment').fill('e2e: corrected root cause for the re-index check');
-    await page.getByTestId('edit-save').click();
-    await expect(page.getByTestId('corrected-notice')).toBeVisible();
+    //
+    // AS THE SCHICHTLEITER, AND NOT BY CLICKING. This was three admin clicks until 2026-08-13, when
+    // correcting became the Schichtleiter's alone — and `/moderation`, the only screen with a
+    // Bearbeiten button, is guarded by `roleGuard('admin')`, so the role that owns the act cannot
+    // reach the screen that performs it. That routing gap is reported for Carlos to decide and was
+    // not widened inside a UI pull request; see `correctAsSchichtleiter`, which is written to be
+    // deleted the day it is.
+    //
+    // IT COSTS THIS TEST NOTHING, and that is worth saying plainly: what this file exists to prove
+    // is that the ANSWER moves after a re-index, and that assertion is a real question asked in a
+    // real browser a few lines below. The correction was only ever the setup.
+    await signIn(page, 'schichtleiter');
+    const corrected = await correctAsSchichtleiter(
+      page,
+      title,
+      'Symptom: Linie stoppt nach dem Etikettierer.\n' +
+        `Ursache: ${CORRECTION_MARKER} am Etikettierer gerissen.\n` +
+        `Massnahme: ${CORRECTION_MARKER} getauscht.`,
+    );
+    expect(corrected.status, 'the correction has to be accepted before anything is re-indexed').toBe(
+      202,
+    );
     await signOut(page);
 
     // Ask, and keep asking until the corpus answers with the corrected text. Re-indexing is

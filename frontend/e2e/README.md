@@ -139,6 +139,13 @@ from anywhere. The CI job does the same (see `frontend-e2e-visual.yml`).
    - *You did change the design* → **intended**. Regenerate: `npm run e2e:visual:update`, look at
      the new PNGs before staging them, and commit them.
 
+> **Check the dev server actually rebuilt before you regenerate.** `e2e:visual:update` photographs
+> whatever the dev server is serving, and after a failed rebuild that is the *last good bundle* —
+> Vite keeps serving it rather than nothing, and the container has no way to tell. Baselines taken
+> then record the layout you have already replaced, and the local compare run afterwards passes,
+> because it compares that bundle against baselines made from it. It took a red CI job to notice.
+> Look for `Application bundle generation complete` in the dev server's output first.
+
 **Regeneration belongs in the SAME pull request as the change that caused it.** A separate "fix the
 baselines" commit is the one workflow this suite must never acquire: it turns a record of what the
 application looks like into a rubber stamp applied after the fact, and it means the reviewer of the

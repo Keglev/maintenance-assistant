@@ -1,6 +1,15 @@
 import type { Page } from '@playwright/test';
 
-import { E2E_TITLE_PREFIX, expect, signIn, signOut, sweepThrowaways, test } from './support';
+import {
+  E2E_MACHINE,
+  E2E_TITLE_PREFIX,
+  correctAsSchichtleiter,
+  expect,
+  signIn,
+  signOut,
+  sweepThrowaways,
+  test,
+} from './support';
 
 /**
  * THE RELEASE DRILL, automated.
@@ -24,7 +33,7 @@ import { E2E_TITLE_PREFIX, expect, signIn, signOut, sweepThrowaways, test } from
  */
 
 /** Not PR-03: the E-47 demo case lives there and no test should be near it. */
-const MACHINE = 'VP-01';
+const MACHINE = E2E_MACHINE;
 
 /** A title nobody would type by accident, so an artifact is identifiable and sweepable. */
 function throwawayTitle(): string {
@@ -100,47 +109,55 @@ test.describe('moderation round trip', () => {
     await expect(page.getByTestId('uploads-table')).toContainText(title);
     await signOut(page);
 
-    // --- 2. The admin sees it in the corpus --------------------------------------------------
+    // --- 2. The admin sees it in the corpus, unapproved ---------------------------------------
     await signIn(page, 'admin');
-    const row = await findInCorpus(page, title);
+    let row = await findInCorpus(page, title);
     await expect(row.getByTestId('row-uploader')).toContainText('schichtleiter');
 
+    // A newly filed protocol is UNAPPROVED and searchable, which is the whole of decision 1: the
+    // admin may not review at a weekend and the factory does not stop.
+    await expect(row.getByTestId('approval-state')).toHaveAttribute('data-approval', 'UNAPPROVED');
+
+    // The administrator has no correction button since 2026-08-13. Asserted here rather than in a
+    // test of its own, because "the admin cannot correct" and "the admin approves" are one decision
+    // and this is the drill that walks through it.
+    await expect(row.getByTestId('row-edit')).toHaveCount(0);
+
     // --- 3. Correction, with a mandatory reason ----------------------------------------------
-    await row.getByTestId('row-edit').click();
-    await expect(page.getByTestId('edit-title')).toHaveValue(title);
-
-    // Machine and type are provenance, not properties: the API refuses a change with 400
-    // PROTOCOL_IDENTITY_LOCKED. "Words can be fixed, identity cannot."
     //
-    // They are not DISABLED FIELDS — they are not fields at all. The dialog renders them as text,
-    // which is a stronger guarantee than a disabled input (nothing to re-enable in a devtools
-    // panel) and is what this asserts: the element exists, shows the machine, and is not something
-    // that can be typed into.
-    await expect(page.getByTestId('edit-machine')).toContainText(MACHINE);
-    for (const locked of ['edit-machine', 'edit-type']) {
-      const tag = await page.getByTestId(locked).evaluate((node) => node.tagName);
-      expect(tag, `${locked} should be static text, not an input`).toBe('P');
-      await expect(page.getByTestId(locked).locator('input, select, textarea')).toHaveCount(0);
-    }
-    await expect(page.getByTestId('edit-locked-hint')).toBeVisible();
+    // PERFORMED AS THE SCHICHTLEITER, AND NOT BY CLICKING, and both halves of that need saying.
+    //
+    // Since 2026-08-13 correcting is the Schichtleiter's and the administrator has no Bearbeiten
+    // button — the endpoint answers 403 for them. But `/moderation` is guarded by
+    // `roleGuard('admin')`, so the role that OWNS this act cannot reach the screen it lives on:
+    // the correction path currently has no interface for anybody. That is a routing decision for
+    // Carlos, reported rather than fixed here, and it is why this step is an authenticated PUT
+    // instead of the clicks it used to be.
+    //
+    // It is still the real backend, the real token and the real role. What it is not is a click,
+    // and this suite's own rule says an API call is not one — so it is ARRANGEMENT, and every
+    // assertion around it stays in the browser. The day the route opens, this helper is deleted
+    // and the clicks come back.
+    await signOut(page);
+    await signIn(page, 'schichtleiter');
 
-    await page.getByTestId('edit-content').fill(CORRECTED_BODY);
+    // The identity lock is exercised on the way past, because it is the one rule of the correction
+    // that cannot be checked from a screen nobody can open: machine and type are provenance, not
+    // properties, and an attempt to change them is refused 400 PROTOCOL_IDENTITY_LOCKED rather than
+    // silently ignored. "Words can be fixed, identity cannot."
+    const refused = await correctAsSchichtleiter(page, title, CORRECTED_BODY, { machineNo: 'PR-03' });
+    expect(refused.status, 'moving a protocol to another machine must be refused').toBe(400);
+    expect(refused.reason).toBe('PROTOCOL_IDENTITY_LOCKED');
 
-    // The reason is required, and the UI enforces it BEFORE the click rather than after: the save
-    // button is disabled while the comment is empty, with a hint saying why. Asserted in that shape
-    // because it is the stronger one — there is no state in which an unexplained correction can be
-    // submitted and then refused.
-    await expect(page.getByTestId('edit-reason-required')).toBeVisible();
-    await expect(page.getByTestId('edit-save')).toBeDisabled();
+    const accepted = await correctAsSchichtleiter(page, title, CORRECTED_BODY);
+    expect(accepted.status, 'the Schichtleiter is the corrector in the chain').toBe(202);
 
-    await page.getByTestId('edit-comment').fill('e2e: corrected the root cause');
-    await expect(page.getByTestId('edit-save')).toBeEnabled();
-    await page.getByTestId('edit-save').click();
-    await expect(page.getByTestId('corrected-notice')).toBeVisible();
+    await signOut(page);
+    await signIn(page, 'admin');
+    row = await findInCorpus(page, title);
 
     // --- 4. The correction is what the corpus now holds ---------------------------------------
-    const corrected = await findInCorpus(page, title);
-    await corrected.getByTestId('row-open').click();
+    await row.getByTestId('row-open').click();
     // `protocol-body` is the wrapper the viewer always renders — the parsed
     // Symptom/Ursache/Massnahme view AND the raw fallback both live inside it, so this assertion
     // does not depend on which of the two the parser chose for this document.

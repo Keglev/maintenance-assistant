@@ -24,9 +24,10 @@ import { expect, selectSearchMachine, signIn, test } from './support';
  * causes it (see e2e/README.md), and why a "fix the baselines" commit afterwards is the one
  * workflow this suite must never acquire.
  *
- * <p><b>Chosen for churn, not for coverage.</b> Five surfaces, both palettes. Every one of them is a
- * place this project has already shipped a visual defect. Adding a baseline per view would make a
- * suite nobody dares change.
+ * <p><b>Chosen for churn, not for coverage.</b> Six surfaces, both palettes. Five of them are places
+ * this project has already shipped a visual defect; the sixth (v1.2's unapproved source) is the one
+ * case where being seen IS the feature — see {@link UNAPPROVED_ANSWER}. Adding a baseline per view
+ * would make a suite nobody dares change.
  */
 
 /** The seeded E-47 demo case — the same fixture citation.e2e.ts uses. */
@@ -62,6 +63,9 @@ const SHORT_ANSWER = {
       errorCode: 'E-47',
       incidentDate: '2026-03-14',
       similarity: 0.69,
+      // The seeded corpus is born approved, so this is the ORDINARY case and the one the two
+      // long-standing search baselines should keep recording.
+      approved: true,
     },
     {
       label: 'P2',
@@ -70,7 +74,28 @@ const SHORT_ANSWER = {
       errorCode: 'E-47',
       incidentDate: '2026-04-02',
       similarity: 0.61,
+      approved: true,
     },
+  ],
+};
+
+/**
+ * The same answer with one source nobody has approved.
+ *
+ * <p>A SIXTH SURFACE, ADDED DELIBERATELY, and the reason is the one this suite was built on: the
+ * unapproved marker is the only thing in v1.2 whose whole job is to be SEEN. It introduces a token
+ * pair (`--c-review-*`) that appears nowhere else, an amber chip inside a green Mode A block, and a
+ * line above the answer text — three things a functional test can assert the existence of and none
+ * of which it can notice going pale, colliding or vanishing behind a fade.
+ *
+ * <p>Scoped to the answer block rather than the page, because that is where all three live: a
+ * full-page shot would spend its pixels on chrome the other five baselines already cover.
+ */
+const UNAPPROVED_ANSWER = {
+  ...SHORT_ANSWER,
+  citations: [
+    SHORT_ANSWER.citations[0],
+    { ...SHORT_ANSWER.citations[1], approved: false },
   ],
 };
 
@@ -158,6 +183,24 @@ for (const scheme of SCHEMES) {
         fullPage: true,
         mask: nonDeterministic(page),
       });
+    });
+
+    test(`an answer with an unapproved source @visual`, async ({ page }) => {
+      // v1.2: the marker on the card, the amber chip inside a green block, and the one-line note
+      // above the answer text. See UNAPPROVED_ANSWER for why this earned a baseline of its own.
+      await signIn(page, 'techniker');
+      await page.route('**/api/query', (route) => route.fulfill({ json: UNAPPROVED_ANSWER }));
+
+      await selectSearchMachine(page, SEED.machineNo);
+      await page.getByTestId('question-input').fill('Warum fällt der Druck im Presshub ab?');
+      await page.getByTestId('ask-button').click();
+      await expect(page.getByTestId('answer-unapproved')).toBeVisible();
+      await expect(page.getByTestId('source-card')).toHaveCount(2);
+
+      await expect(page.getByTestId('answer-mode-a')).toHaveScreenshot(
+        `search-unapproved-${scheme}.png`,
+        { mask: nonDeterministic(page) },
+      );
     });
 
     test(`a clamped long answer @visual`, async ({ page }) => {

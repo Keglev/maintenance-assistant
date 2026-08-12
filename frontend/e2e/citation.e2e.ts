@@ -57,6 +57,10 @@ const STUBBED_ANSWER = {
       errorCode: 'E-47',
       incidentDate: '2026-03-14',
       similarity: 0.69,
+      // The seeded 150 are born approved (`system:corpus-seed`), so this is what the backend really
+      // sends for them. A stub missing the field would render an unapproved marker on a source the
+      // application would never mark, and this file's job is to be the shape of a real answer.
+      approved: true,
     },
     {
       label: 'P2',
@@ -65,6 +69,7 @@ const STUBBED_ANSWER = {
       errorCode: 'E-47',
       incidentDate: '2026-04-02',
       similarity: 0.61,
+      approved: true,
     },
   ],
 };
@@ -108,6 +113,15 @@ test.describe('Mode A citation click-through', () => {
     // Mode A, with its sources.
     await expect(page.getByTestId('answer-mode-a')).toBeVisible();
     await expect(page.getByTestId('source-card')).toHaveCount(2);
+
+    // v1.2: every source card says whether the protocol behind it was reviewed. On a REAL rendered
+    // card, because that is where a marker can be present in the DOM and invisible on the screen —
+    // clipped by the collapsed layout, or drawn behind the card's own edge.
+    await expect(page.getByTestId('approval-state').first()).toBeVisible();
+    await expect(page.getByTestId('approval-state').first()).toHaveAttribute(
+      'data-approval',
+      'APPROVED',
+    );
 
     // The regression guard the unit suite also keeps, asserted here on the real DOM: a rendered
     // source link must not carry a raw API href, because an href is the bug.

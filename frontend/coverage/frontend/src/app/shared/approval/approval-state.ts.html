@@ -3,7 +3,7 @@
 <html lang="en">
 
 <head>
-    <title>Code coverage report for frontend/src/app/core/auth/role.guard.ts</title>
+    <title>Code coverage report for frontend/src/app/shared/approval/approval-state.ts</title>
     <meta charset="utf-8" />
     <link rel="stylesheet" href="../../../../../prettify.css" />
     <link rel="stylesheet" href="../../../../../base.css" />
@@ -19,34 +19,34 @@
 <body>
 <div class='wrapper'>
     <div class='pad1'>
-        <h1><a href="../../../../../index.html">All files</a> / <a href="index.html">frontend/src/app/core/auth</a> role.guard.ts</h1>
+        <h1><a href="../../../../../index.html">All files</a> / <a href="index.html">frontend/src/app/shared/approval</a> approval-state.ts</h1>
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">100% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>15/15</span>
+                <span class='fraction'>12/12</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">100% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>8/8</span>
+                <span class='fraction'>10/10</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">100% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>6/6</span>
+                <span class='fraction'>2/2</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">100% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>12/12</span>
+                <span class='fraction'>7/7</span>
             </div>
         
             
@@ -119,7 +119,11 @@
 <a name='L54'></a><a href='#L54'>54</a>
 <a name='L55'></a><a href='#L55'>55</a>
 <a name='L56'></a><a href='#L56'>56</a>
-<a name='L57'></a><a href='#L57'>57</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L57'></a><a href='#L57'>57</a>
+<a name='L58'></a><a href='#L58'>58</a>
+<a name='L59'></a><a href='#L59'>59</a>
+<a name='L60'></a><a href='#L60'>60</a>
+<a name='L61'></a><a href='#L61'>61</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -135,7 +139,6 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">6x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -152,84 +155,93 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">6x</span>
-<span class="cline-any cline-yes">6x</span>
-<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">259x</span>
+<span class="cline-any cline-yes">111x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">111x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">111x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">6x</span>
-<span class="cline-any cline-yes">6x</span>
-<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">5x</span>
-<span class="cline-any cline-yes">9x</span>
-<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">111x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { inject } from '@angular/core';
-import { CanActivateFn, Router } from '@angular/router';
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">111x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">150x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { Component, computed, input } from '@angular/core';
 &nbsp;
-import { authGuard } from './auth.guard';
-import { AuthService } from './auth.service';
-&nbsp;
-/**
- * Where a role belongs when it has nowhere else to be: after login, and after being turned away
- * from a route it may not have.
- *
- * The admin's home is moderation, and that is a defect fix rather than a preference. Their home was
- * `/search`, the search view's first call is `GET /api/machines`, and until this PR that endpoint
- * refused a role with no shop-floor function — so an administrator's first screen was an error
- * message. Search is not a view an admin can use at all: they may not ask questions, by decision.
- */
-export function homePath(realmRoles: readonly string[]): string {
-  return realmRoles.some((role) =&gt; role.toLowerCase() === 'admin') ? '/moderation' : '/search';
-}
+import { Approval } from '../../core/api/api.types';
+import { AppDatePipe } from '../../core/i18n/app-date.pipe';
+import { UiLanguage } from '../../core/i18n/dictionary';
+import { I18nService } from '../../core/i18n/i18n.service';
+import { inject } from '@angular/core';
 &nbsp;
 /**
- * Keeps a route out of the hands of roles that have no business on it.
+ * Whether a protocol has been vouched for, said in one place so it is said the same way everywhere.
  *
- * Like {@link authGuard}, this is convenience and not security: the upload endpoint refuses anyone
- * but a Schichtleiter server-side, which is the only place the decision counts (NFR-3). What this
- * buys is that an operator following a bookmarked `/upload` link gets their own view rather than a
- * form that produces a 403 after they have chosen a file — and that an admin who types `/search`
- * gets the view they can use rather than a machine picker that cannot be filled.
+ * &lt;p&gt;&lt;b&gt;Why this is a component and not three copies of a span.&lt;/b&gt; Decision 1 of 2026-08-11 makes
+ * an unapproved protocol searchable and citable, and accepts the cost — it is less reliable to
+ * troubleshoot from. What makes that trade honest is that the state is never hidden: it appears on
+ * a source card under an answer, on a row in the Verwaltung table and in the viewer dialog. Three
+ * hand-written markers would eventually disagree about the wording, and the one that quietly
+ * dropped the "not approved" case is the one that turns the decision into a defect.
  *
- * Turned-away callers land on {@link homePath} rather than on a hard-coded `/search`, which is what
- * makes one guard serve both directions: `/upload` is refused to an admin and `/search` is refused
- * to an admin, and both send them to moderation.
+ * &lt;p&gt;&lt;b&gt;Colour is never the only signal.&lt;/b&gt; Each state carries an icon AND a word, in both
+ * palettes, which is the same rule the footer health dot and the two answer modes follow. A reader
+ * with a colour vision deficiency, or one glancing at a tablet in plant lighting, gets the same
+ * information as everyone else.
+ *
+ * &lt;p&gt;&lt;b&gt;Approved is deliberately quiet, unapproved is deliberately not.&lt;/b&gt; Most of the corpus is
+ * approved, so a loud green badge on every row would be noise the eye learns to skip — and the
+ * moment it does, the marker that matters stops being noticed too.
  */
-export function roleGuard(...allowed: string[]): CanActivateFn {
-  return (route, state) =&gt; {
-    const auth = inject(AuthService);
-    const router = inject(Router);
+@Component({
+  selector: 'app-approval-state',
+  imports: [AppDatePipe],
+  templateUrl: './approval-state.html',
+  styleUrl: './approval-state.css',
+})
+export class ApprovalStateBadge {
+  private readonly i18n = inject(I18nService);
 &nbsp;
-    // Delegated rather than repeated: "no token means /login" is one rule, and a second copy of it
-    // here is a second place for it to drift.
-    const authenticated = authGuard(route, state);
-    if (authenticated !== true) {
-      return authenticated;
-    }
-    // Keycloak realm roles are lower-case in the token; the comparison is normalised so a realm
-    // export that capitalises one does not silently lock everybody out of a view.
-    const roles = auth.realmRoles().map((role) =&gt; role.toLowerCase());
-    if (allowed.some((role) =&gt; roles.includes(role.toLowerCase()))) {
-      return true;
-    }
-    const home = homePath(roles);
-    // A caller holding no role this application knows would otherwise be redirected to the very
-    // route that just refused them, which the router follows until it gives up. Sending them to the
-    // landing page instead costs one line and cannot loop.
-    return router.createUrlTree([home === state.url.split('?')[0] ? '/' : home]);
-  };
+  protected readonly t = this.i18n.t;
+&nbsp;
+  readonly approval = input.required&lt;Approval&gt;();
+&nbsp;
+  /**
+   * The language the date is formatted in.
+   *
+   * An input rather than something read from the service, because {@link AppDatePipe} is pure: a
+   * language change alters no input on a table cell, so a pipe that read the signal itself would go
+   * stale until something else happened to redraw the row.
+   */
+  readonly language = input.required&lt;UiLanguage&gt;();
+&nbsp;
+  /**
+   * Whether to name the approver and the day.
+   *
+   * Off on a source card under an answer — a technician reading an answer needs to know whether the
+   * source was reviewed, not by whom — and on in the Verwaltung table and the viewer, where the
+   * reader is an administrator auditing exactly that.
+   */
+  readonly showActor = input(false);
+&nbsp;
+  protected readonly approved = computed(() =&gt; this.approval().state === 'APPROVED');
 }
 &nbsp;</pre></td></tr></table></pre>
 

@@ -246,20 +246,31 @@ STANDING LIST — small, always visible, never a release of its own:
     something the login flow does not produce (found in #47); (3) the
     dark locale-select cosmetic, PatternFly's #36373a rather than the
     theme's --wa-field (passes contrast at 9.02:1; cosmetic only).
-    ADDED 2026-08-11 by the new e2e suite, both found on its FIRST
-    complete run and both recorded as failing tests rather than as
-    notes, so they turn the build red the day they are fixed:
+    ADDED 2026-08-11 by the new e2e suite, found on its FIRST complete
+    run and recorded as a failing test rather than as a note, so it
+    turns the build red the day it is fixed:
     (4) .footer-note measures 3.65:1 in the LIGHT palette
     (--c-ink-faint on the light surface), below AA. Dark is fine —
-    the #47 shape exactly. Not fixed in the e2e PR because the token
-    is shared with the tagline, the eyebrow, .optional and disabled
-    button text, so it is a design pass with its own drill.
-    (5) THE PROTOCOL VIEWER NEVER TAKES FOCUS. Focus stays on the link
-    that opened it, so the backdrop never receives the Escape keydown
-    and Tab is not trapped: a keyboard user cannot dismiss the dialog
-    with the key every modal has taught them to press. dialog.ts is
-    written to do all three and has NO unit spec at all — the clearest
-    illustration of ADR-007's argument that the project has produced.
+    the #47 shape exactly. STILL PARKED after the e2e hardening PR,
+    deliberately: the token is shared with the tagline, the eyebrow,
+    .optional and disabled button text, so it is a design pass with
+    its own drill and not a one-line change.
+    CLOSED 2026-08-12 (was item 5): THE PROTOCOL VIEWER NEVER TOOK
+    FOCUS, so Escape could not close it and Tab was not trapped. Cause:
+    focusables() matched `button` without excluding DISABLED ones, and
+    the viewer's first projected control is a Download button that is
+    disabled until the document arrives — focus() on a disabled element
+    does nothing and says nothing. Fixed with the unit spec the
+    component had never had (shared/dialog/ had no .spec.ts at all).
+    THE SUITE'S FIRST CAUGHT-AND-CLOSED DEFECT: found in a browser,
+    held by 8 jsdom tests, and the e2e test.fail() marker is gone.
+  - E2E CHECK STATUS — ADVISORY, does not block a merge. ADR-007's bar
+    for making it required is TEN consecutive green runs. The count
+    RESTARTED 2026-08-12 at 0: the previous shape had 4 green runs but
+    no throwaway database, no provider stub, an unindexed corpus and a
+    skipped re-index test, and a streak counts runs of the same thing.
+    The running total lives in frontend/e2e/README.md, which is where
+    someone deciding to promote the check will look.
   - IONOS TOKEN ROTATION ~JULY 2027 — the production token expires
     2027-08-07; the calendar entry is two weeks before. Details and
     the paste procedure are under Keys.

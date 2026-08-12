@@ -360,6 +360,175 @@ ADR-007-end-to-end-testing-strategy · maintenance-assistant Docs</title>
         are exactly the ones whose absence cost production defects;
         leaving them advisory permanently would repeat the mistake in a
         new form.</p>
+        <hr />
+        <h2 id="dated-note-2026-08-12-the-gaps-from-50-closed">Dated
+        note — 2026-08-12: the gaps from #50, closed</h2>
+        <p>#50 shipped this suite with an honest list of what it had not
+        proven. This is what happened when those were worked through,
+        and none of it changes the decision above.</p>
+        <h3
+        id="the-re-index-test-ran-and-it-had-four-defects-of-its-own">1.
+        The re-index test ran, and it had four defects of its own</h3>
+        <p><code>reindex.e2e.ts</code> asserts the one behaviour Carlos
+        hand-drills before every release: an edited protocol changes the
+        answer that cites it. It had <strong>never executed</strong> —
+        it is skipped without a model — and running it once, against a
+        real IONOS key, produced a passing test only after four
+        fixes:</p>
+        <table>
+        <colgroup>
+        <col style="width: 50%" />
+        <col style="width: 50%" />
+        </colgroup>
+        <thead>
+        <tr class="header">
+        <th>What was wrong</th>
+        <th>Why nobody knew</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr class="odd">
+        <td>It waited for the status text <code>INDEXIERT</code>. The
+        interface renders <strong>“Durchsuchbar”</strong></td>
+        <td>The string never existed; the test could not have passed in
+        any state of the application</td>
+        </tr>
+        <tr class="even">
+        <td>Its inner ceilings (120 s, 240 s) exceeded the <strong>60 s
+        test timeout</strong></td>
+        <td>The polls they guarded were unreachable</td>
+        </tr>
+        <tr class="odd">
+        <td>It selected the search machine picker <strong>by
+        value</strong>; that picker’s values are UUIDs</td>
+        <td>Inside a <code>toPass</code> retry loop the failure is
+        invisible — the poll never gets past its first line</td>
+        </tr>
+        <tr class="even">
+        <td>It had <strong>no cleanup sweep</strong>, so a run that
+        failed part-way left an INDEXED protocol behind</td>
+        <td>Seven accumulated, and the eighth run then failed because a
+        previous run’s corrected protocol was being retrieved as
+        corpus</td>
+        </tr>
+        </tbody>
+        </table>
+        <p>Then it passed, in 33 s. <strong>The evidence, same question
+        and same machine:</strong></p>
+        <blockquote>
+        <p><strong>Before</strong> — <em>“Die Linie stoppt nach dem
+        Etikettierer. [P1] Ursache ist eine verschmutzte Lichtschranke.
+        [P1]”</em></p>
+        <p><strong>After</strong> — <em>“Die Linie stoppt nach dem
+        Etikettierer. [P1] Ursache war ein gerissener Zahnriemen am
+        Etikettierer. [P1]”</em></p>
+        </blockquote>
+        <p><strong>The lesson generalises past this file.</strong> A
+        skipped test is not a neutral placeholder — it is untested code
+        with a green tick beside it, and it decays exactly like any
+        other unexecuted code. Two of those four defects were introduced
+        by the same hand that wrote the passing tests around them, on
+        the same day. The suite’s own rule follows: <strong>a test that
+        cannot run in CI is a test that will be wrong when it finally
+        does.</strong></p>
+        <h3 id="the-provider-is-stubbed-so-the-test-runs-everywhere">2.
+        The provider is stubbed, so the test runs everywhere</h3>
+        <p><code>frontend/e2e/provider-stub/</code> is an
+        OpenAI-compatible server of about 200 lines and no dependencies.
+        The backend is pointed at it with <code>LLM_BASE_URL</code> — a
+        configuration value the application already supports
+        <strong>because ADR-002 requires the provider to be
+        swappable</strong>. No production code changed.</p>
+        <p><strong>Faked:</strong> the two paid HTTP calls.
+        <strong>Real:</strong> the upload, the chunker, the pgvector
+        write, the status transition, retrieval, the threshold, citation
+        validation, the re-index’s delete-then-write, and every byte of
+        the rendered answer. The chat stub is a <strong>parrot</strong>
+        — it answers by quoting the sources out of the prompt the
+        backend built — so the answer changes when, and only when, the
+        retrieved text changes. That is the property under test; a stub
+        returning a fixed string would pass whether or not re-indexing
+        worked.</p>
+        <p>One honest consequence: <strong>the similarity threshold is a
+        property of the embedding model</strong>, and
+        <code>application.yml</code> already says so (“bge-m3-specific:
+        any embedding-model change invalidates it”). The stub is a
+        different embedding model, so the stubbed deployment gets its
+        own value. Measured on the stub’s vectors:
+        <strong>0.42–0.45</strong> for a question against the protocol
+        it is about, <strong>0.10–0.13</strong> against an unrelated
+        one. <code>0.30</code> sits in that gap with margin on both
+        sides, so the Mode A / Mode B distinction survives intact rather
+        than being switched off.</p>
+        <h3 id="ci-gets-a-database-per-run-a-laptop-does-not">3. CI gets
+        a database per run; a laptop does not</h3>
+        <p>The local dirt accepted above is still accepted, and for the
+        reasons given. <strong>CI is different in one way that matters:
+        a reused database there makes a green run depend on the order
+        the runs happened in.</strong> That is not hypothetical — it is
+        exactly what the seven leftovers did locally. The CI job now
+        creates its own Postgres, migrates it, seeds and indexes the
+        corpus, and destroys it with the runner. Cost: about <strong>35
+        s</strong> of the run, for a database no second run can ever
+        see.</p>
+        <p>The seed also revealed that CI had been running with an
+        <strong>unindexed corpus</strong>:
+        <code>INGESTION_BACKLOG_ON_STARTUP</code> defaults to false, so
+        150 protocols were being seeded as <code>RECEIVED</code> with
+        zero chunks. Nothing had needed a chunk until
+        <code>reindex.e2e.ts</code>. Armed now, and free, because the
+        provider is a stub.</p>
+        <h3
+        id="the-suites-first-caught-and-closed-defect-the-argument-demonstrated">4.
+        The suite’s first caught-and-closed defect — the argument,
+        demonstrated</h3>
+        <p>#50 reported that the protocol viewer never took focus, so
+        Escape could not close it and Tab was not trapped. The cause,
+        found here: <code>focusables()</code> matched
+        <code>button</code> <strong>without excluding disabled
+        ones</strong>, and the viewer’s first projected control is a
+        Download button that is disabled until the document arrives.
+        <code>focus()</code> on a disabled element does nothing and
+        reports nothing.</p>
+        <p>Fixed — disabled controls excluded, the panel itself
+        (<code>tabindex="-1"</code>) as the fallback target — with the
+        <strong>unit spec the component had never had</strong>.
+        <code>src/app/shared/dialog/</code> had a template, a stylesheet
+        and a class, and no test at all, while its own comments promised
+        “Esc closes, Tab cycles inside, the first control takes focus on
+        open”. None of the three was true for one of its four
+        callers.</p>
+        <p><strong>Both halves of the stack were needed, and neither
+        would have done.</strong> jsdom reproduces the defect exactly —
+        it refuses focus to disabled elements as a browser does — so the
+        eight new unit tests run in two seconds on every commit and go
+        red for the right reason. But nothing in jsdom would ever have
+        <em>pointed</em> at the viewer: the defect only appears when a
+        real dialog opens with a real disabled button, which is a
+        rendered condition. The browser found it; the unit spec now
+        holds it.</p>
+        <p>The <code>test.fail()</code> marker in
+        <code>citation.e2e.ts</code> is deleted and that assertion is a
+        plain passing test — which is what such a marker is for.
+        <strong>The contrast marker stays</strong>:
+        <code>--c-ink-faint</code> is shared with the tagline, the
+        eyebrow, <code>.optional</code> and disabled text, so it is a
+        design pass with its own drill and it remains on the v1.1.1
+        list.</p>
+        <h3 id="still-advisory-and-the-count-so-far">5. Still advisory,
+        and the count so far</h3>
+        <p><strong>4 consecutive green runs</strong> of the e2e job
+        (three on #50, one on main after merge). The bar in this ADR is
+        ten.</p>
+        <p><strong>It stays advisory, and this PR does not move it — for
+        a reason stronger than the count.</strong> The job those four
+        runs exercised is not the job that runs now: it has gained a
+        throwaway database, a provider stub, an armed indexing backlog
+        and the re-index test it had always skipped. <strong>A streak
+        counts runs of the same thing.</strong> The count restarts here,
+        and the running total is kept in
+        <code>frontend/e2e/README.md</code>, where someone deciding
+        whether to promote the check will actually look.</p>
       </article>
     </main>
 
@@ -379,6 +548,29 @@ ADR-007-end-to-end-testing-strategy · maintenance-assistant Docs</title>
       <li><a href="#ci-status-stated-rather-than-implied"
       id="toc-ci-status-stated-rather-than-implied">CI status, stated
       rather than implied</a></li>
+      <li><a href="#dated-note-2026-08-12-the-gaps-from-50-closed"
+      id="toc-dated-note-2026-08-12-the-gaps-from-50-closed">Dated note
+      — 2026-08-12: the gaps from #50, closed</a>
+      <ul>
+      <li><a
+      href="#the-re-index-test-ran-and-it-had-four-defects-of-its-own"
+      id="toc-the-re-index-test-ran-and-it-had-four-defects-of-its-own">1.
+      The re-index test ran, and it had four defects of its own</a></li>
+      <li><a href="#the-provider-is-stubbed-so-the-test-runs-everywhere"
+      id="toc-the-provider-is-stubbed-so-the-test-runs-everywhere">2.
+      The provider is stubbed, so the test runs everywhere</a></li>
+      <li><a href="#ci-gets-a-database-per-run-a-laptop-does-not"
+      id="toc-ci-gets-a-database-per-run-a-laptop-does-not">3. CI gets a
+      database per run; a laptop does not</a></li>
+      <li><a
+      href="#the-suites-first-caught-and-closed-defect-the-argument-demonstrated"
+      id="toc-the-suites-first-caught-and-closed-defect-the-argument-demonstrated">4.
+      The suite’s first caught-and-closed defect — the argument,
+      demonstrated</a></li>
+      <li><a href="#still-advisory-and-the-count-so-far"
+      id="toc-still-advisory-and-the-count-so-far">5. Still advisory,
+      and the count so far</a></li>
+      </ul></li>
       </ul></li>
       </ul>
     </nav>

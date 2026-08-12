@@ -560,8 +560,8 @@ The three parts get <code>&lt;testId&gt;-backdrop</code>, <code>&lt;testId&gt;-d
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="64"
-                                    class="link-to-prism">src/app/shared/dialog/dialog.ts:64</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="73"
+                                    class="link-to-prism">src/app/shared/dialog/dialog.ts:73</a></div>
                         </td>
                     </tr>
 
@@ -599,14 +599,23 @@ The three parts get <code>&lt;testId&gt;-backdrop</code>, <code>&lt;testId&gt;-d
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="104"
-                                    class="link-to-prism">src/app/shared/dialog/dialog.ts:104</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="128"
+                                    class="link-to-prism">src/app/shared/dialog/dialog.ts:128</a></div>
                         </td>
                     </tr>
 
 
             <tr>
                 <td class="col-md-4">
+                        <div class="io-description"><p>The controls a user can actually reach inside the panel, in tab order.</p>
+<p>TWO EXCLUSIONS, AND BOTH ARE THERE BECAUSE THEIR ABSENCE BROKE SOMETHING.<p><b>`:not([disabled])`</b> — a disabled control cannot take focus, and asking it to is a
+no-op that reports no error. When such a control happened to be first in the panel (the
+viewer's Download button, disabled until the document loads) the dialog opened with focus still
+on the page behind it, and Esc and the tab trap both stopped working, because both are bound to
+the backdrop and neither can see a key pressed outside it.<p><b>`:not([tabindex="-1"])`</b> — `[tabindex]` on its own also matches the panel itself, which
+carries `tabindex="-1"` precisely so it can receive focus WITHOUT joining the tab ring. Without
+this exclusion the panel would become the first stop of a Tab cycle it is only the container of.
+</div>
 
                         <div class="io-description">
                             <b>Returns : </b>    <code>HTMLElement[]</code>
@@ -638,8 +647,8 @@ The three parts get <code>&lt;testId&gt;-backdrop</code>, <code>&lt;testId&gt;-d
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="69"
-                                    class="link-to-prism">src/app/shared/dialog/dialog.ts:69</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="78"
+                                    class="link-to-prism">src/app/shared/dialog/dialog.ts:78</a></div>
                         </td>
                     </tr>
 
@@ -709,8 +718,8 @@ The three parts get <code>&lt;testId&gt;-backdrop</code>, <code>&lt;testId&gt;-d
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="86"
-                                    class="link-to-prism">src/app/shared/dialog/dialog.ts:86</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="95"
+                                    class="link-to-prism">src/app/shared/dialog/dialog.ts:95</a></div>
                         </td>
                     </tr>
 
@@ -1031,7 +1040,16 @@ export class Dialog {
       if (this.open()) {
         this.opener &#x3D; this.document.activeElement as HTMLElement | null;
         // The panel is rendered in the same change-detection pass, so the focus move waits a tick.
-        setTimeout(() &#x3D;&gt; this.focusables()[0]?.focus());
+        //
+        // FALLING BACK TO THE PANEL IS NOT DEFENSIVE PROGRAMMING, it is the fix for a real defect
+        // (found by the e2e suite, PR #50). The protocol viewer&#x27;s first projected control is a
+        // Download button that is DISABLED until the document arrives, and &#x60;focus()&#x60; on a disabled
+        // element does nothing at all — silently. Focus therefore stayed on whatever opened the
+        // dialog, which is outside the backdrop, so the keydown handler below never received an
+        // Escape and the tab trap never ran. &#x60;focusables()&#x60; now refuses disabled controls, and when
+        // a dialog opens with none that are usable the PANEL takes focus instead: it is
+        // &#x60;tabindex&#x3D;&quot;-1&quot;&#x60;, so it is a focus target without joining the tab ring.
+        setTimeout(() &#x3D;&gt; (this.focusables()[0] ?? this.panel()?.nativeElement)?.focus());
       } else {
         this.opener?.focus();
         this.opener &#x3D; null;
@@ -1079,12 +1097,28 @@ export class Dialog {
     }
   }
 
+  /**
+   * The controls a user can actually reach inside the panel, in tab order.
+   *
+   * &lt;p&gt;TWO EXCLUSIONS, AND BOTH ARE THERE BECAUSE THEIR ABSENCE BROKE SOMETHING.
+   *
+   * &lt;p&gt;&lt;b&gt;&#x60;:not([disabled])&#x60;&lt;/b&gt; — a disabled control cannot take focus, and asking it to is a
+   * no-op that reports no error. When such a control happened to be first in the panel (the
+   * viewer&#x27;s Download button, disabled until the document loads) the dialog opened with focus still
+   * on the page behind it, and Esc and the tab trap both stopped working, because both are bound to
+   * the backdrop and neither can see a key pressed outside it.
+   *
+   * &lt;p&gt;&lt;b&gt;&#x60;:not([tabindex&#x3D;&quot;-1&quot;])&#x60;&lt;/b&gt; — &#x60;[tabindex]&#x60; on its own also matches the panel itself, which
+   * carries &#x60;tabindex&#x3D;&quot;-1&quot;&#x60; precisely so it can receive focus WITHOUT joining the tab ring. Without
+   * this exclusion the panel would become the first stop of a Tab cycle it is only the container of.
+   */
   private focusables(): HTMLElement[] {
     const host &#x3D; this.panel()?.nativeElement;
     return host
       ? [
           ...host.querySelectorAll&lt;HTMLElement&gt;(
-            &#x27;button, [href], input, select, textarea, [tabindex]&#x27;,
+            &#x27;button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), &#x27; +
+              &#x27;textarea:not([disabled]), [tabindex]:not([tabindex&#x3D;&quot;-1&quot;])&#x27;,
           ),
         ]
       : [];
@@ -1103,9 +1137,13 @@ export class Dialog {
     (click)&#x3D;&quot;close()&quot;
     (keydown)&#x3D;&quot;onKeydown($event)&quot;
   &gt;
+    &lt;!-- tabindex&#x3D;&quot;-1&quot; makes the panel a focus TARGET without making it a tab STOP. It is where
+         focus lands when a dialog opens with no usable control of its own — the case that broke
+         Esc in the protocol viewer, whose first button is disabled until its document arrives. --&gt;
     &lt;div
       class&#x3D;&quot;panel&quot;
       #panel
+      tabindex&#x3D;&quot;-1&quot;
       role&#x3D;&quot;dialog&quot;
       aria-modal&#x3D;&quot;true&quot;
       [attr.aria-labelledby]&#x3D;&quot;titleId&quot;
@@ -1256,7 +1294,7 @@ export class Dialog {
 <script src="../js/libs/htmlparser.js"></script>
 <script src="../js/libs/deep-iterator.js"></script>
 <script>
-        var COMPONENT_TEMPLATE = '<div>@if (open()) {  <!-- The backdrop closes on click, like every modal a user has met before. The panel stops the       click from reaching it, so a click inside does not dismiss what it lands on. -->  <div    class="backdrop"    [attr.data-testid]="testId() + \'-backdrop\'"    (click)="close()"    (keydown)="onKeydown($event)"  >    <div      class="panel"      #panel      role="dialog"      aria-modal="true"      [attr.aria-labelledby]="titleId"      [attr.data-testid]="testId() + \'-dialog\'"      (click)="$event.stopPropagation()"    >      <div class="panel-head">        <div class="panel-heading">          <h2 class="panel-title" [id]="titleId">{{ title() }}</h2>          <!-- A second line for whatever identifies this particular dialog — the protocol viewer               names the machine here, so the reader knows which document they opened. -->          <ng-content select="[dialogSubtitle]" />        </div>        <div class="panel-actions">          <ng-content select="[dialogActions]" />          <button            type="button"            class="btn btn-secondary btn-sm"            [attr.data-testid]="testId() + \'-close\'"            [attr.aria-label]="t().common.close"            (click)="close()"          >            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">              <path d="M6 6l12 12M18 6L6 18" />            </svg>            {{ t().common.close }}          </button>        </div>      </div>      <div class="panel-body">        <ng-content />      </div>    </div>  </div>}</div>'
+        var COMPONENT_TEMPLATE = '<div>@if (open()) {  <!-- The backdrop closes on click, like every modal a user has met before. The panel stops the       click from reaching it, so a click inside does not dismiss what it lands on. -->  <div    class="backdrop"    [attr.data-testid]="testId() + \'-backdrop\'"    (click)="close()"    (keydown)="onKeydown($event)"  >    <!-- tabindex="-1" makes the panel a focus TARGET without making it a tab STOP. It is where         focus lands when a dialog opens with no usable control of its own — the case that broke         Esc in the protocol viewer, whose first button is disabled until its document arrives. -->    <div      class="panel"      #panel      tabindex="-1"      role="dialog"      aria-modal="true"      [attr.aria-labelledby]="titleId"      [attr.data-testid]="testId() + \'-dialog\'"      (click)="$event.stopPropagation()"    >      <div class="panel-head">        <div class="panel-heading">          <h2 class="panel-title" [id]="titleId">{{ title() }}</h2>          <!-- A second line for whatever identifies this particular dialog — the protocol viewer               names the machine here, so the reader knows which document they opened. -->          <ng-content select="[dialogSubtitle]" />        </div>        <div class="panel-actions">          <ng-content select="[dialogActions]" />          <button            type="button"            class="btn btn-secondary btn-sm"            [attr.data-testid]="testId() + \'-close\'"            [attr.aria-label]="t().common.close"            (click)="close()"          >            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">              <path d="M6 6l12 12M18 6L6 18" />            </svg>            {{ t().common.close }}          </button>        </div>      </div>      <div class="panel-body">        <ng-content />      </div>    </div>  </div>}</div>'
     var COMPONENTS = [{'name': 'App', 'selector': 'app-root'},{'name': 'Dialog', 'selector': 'app-dialog'},{'name': 'HealthDot', 'selector': 'app-health-dot'},{'name': 'HelpDialog', 'selector': 'app-help-dialog'},{'name': 'Landing', 'selector': 'app-landing'},{'name': 'Moderation', 'selector': 'app-moderation'},{'name': 'Pager', 'selector': 'app-pager'},{'name': 'ProtocolDialog', 'selector': 'app-protocol-dialog'},{'name': 'Search', 'selector': 'app-search'},{'name': 'SearchAnswer', 'selector': 'app-search-answer'},{'name': 'SearchHelp', 'selector': 'app-search-help'},{'name': 'SearchSources', 'selector': 'app-search-sources'},{'name': 'SettingsDialog', 'selector': 'app-settings-dialog'},{'name': 'ThemeToggle', 'selector': 'app-theme-toggle'},{'name': 'Upload', 'selector': 'app-upload'}];
     var DIRECTIVES = [];
     var ACTUAL_COMPONENT = {'name': 'Dialog'};

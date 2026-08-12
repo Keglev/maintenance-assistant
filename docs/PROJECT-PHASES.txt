@@ -125,7 +125,33 @@ having tagged a release that already tells the full insider-threat
 story: create -> detect -> trace -> remediate (edit or archive) ->
 evidence preserved.
 
-1. v1.2.0 — TRUST CHAIN
+STEPS 1 AND 2 WERE SWAPPED 2026-08-11 (Carlos): VERIFY APPEARANCE
+BEFORE DEPLOYMENT — the approve workflow is the most navigation-heavy
+feature in the project, so it is built against a rendered safety net
+rather than given one afterwards.
+
+1. PLAYWRIGHT E2E FOUNDATION — DONE, feat/e2e-playwright, ADR-007
+   - A small rendered suite: the login flow, a Mode A citation
+     click-through, role gating, the moderation round trip, and a
+     contrast smoke over both palettes. The approve flow joins it as
+     its first NEW case in step 2.
+   - THE RATIONALE IS ON RECORD AND IS NOT A PREFERENCE: the two
+     best-caught bugs of v1.0-v1.1 were both invisible to jsdom and to
+     API checks. #26's source links answered 401 on a real click while
+     curl with a token passed; #47's realm heading was white on
+     near-white while every token in the stylesheet was correct. Both
+     were found only in a rendered browser.
+   - IT PAID FOR ITSELF ON ITS FIRST COMPLETE RUN, with two defects in
+     existing code — the footer note below AA in light, and a protocol
+     viewer that never takes focus so Escape cannot close it. Both are
+     on the v1.1.1 list below, both recorded as failing tests rather
+     than as notes.
+   - The E2E job is ADVISORY today and does not block a merge. The
+     condition for making it required is written into ADR-007: ten
+     consecutive green pull requests with no infrastructure-caused
+     failure.
+
+2. v1.2.0 — TRUST CHAIN
    - APPROVE WORKFLOW, per ADR-006's dated note (2026-08-10): the
      Techniker writes and never edits his own; the Schichtleiter edits
      and forwards; the Admin approves, and may close after an edit.
@@ -142,17 +168,35 @@ evidence preserved.
      admin decides join / keep / delete.
    - ADR-006 gets a revision on implementation; migrations expected.
 
-2. PLAYWRIGHT E2E FOUNDATION — its own step, after v1.2
-   - A small rendered-test suite: the login flow, a Mode A citation
-     click-through, moderation edit/delete, and the new approve flow
-     as its first real case.
-   - THE RATIONALE IS ON RECORD AND IS NOT A PREFERENCE: the two
-     best-caught bugs of v1.0-v1.1 were both invisible to jsdom and to
-     API checks. #26's source links answered 401 on a real click while
-     curl with a token passed; K2's realm heading was white on
-     near-white while every token in the stylesheet was correct. Both
-     were found only in a rendered browser. New ADR for the E2E
-     strategy.
+   THREE DESIGN DECISIONS, DECIDED BY CARLOS 2026-08-11, TO BE
+   IMPLEMENTED IN v1.2 — none of them is built yet. They are written
+   down here so v1.2's implementer inherits the reasoning and does not
+   re-open settled ground:
+
+   (1) APPROVAL IS A STATUS, AND UNAPPROVED PROTOCOLS STAY
+       SEARCHABLE. In Carlos's words: the admin may not review at a
+       weekend, and the factory does not stop. Hiding an unapproved
+       protocol until someone signs it off would mean the newest
+       knowledge — the protocol written about the fault happening
+       right now — is exactly the knowledge retrieval cannot see.
+       THE TRADE-OFF IS EXPLICIT AND ACCEPTED: an unapproved protocol
+       is less reliable to troubleshoot from. It follows that the UI
+       MUST MAKE APPROVAL STATE VISIBLE on the answer and on its
+       sources, and never silently — an unapproved source cited
+       without a mark would be the NFR-2 discipline working against
+       itself, making an unreviewed claim look as checked as a
+       reviewed one.
+   (2) THE 150 SEEDED PROTOCOLS ARE BORN APPROVED. A new Flyway
+       migration adds ~15 UNAPPROVED protocols on top, so the admin
+       has a real approval queue to demonstrate rather than an empty
+       one. The new protocols lean toward EASIER faults — machine does
+       not start, machine stops without warning — which also
+       broadens a corpus that is currently specialist-heavy.
+   (3) TECHNIKER MAY WRITE, NEVER EDIT — not even his own protocol.
+       A correction is REQUESTED from the Schichtleiter, who performs
+       it. Author is never the corrector; corrector is never the
+       approver. This is the four-eyes rule applied twice rather than
+       once, and it is what makes the chain a chain.
 
 3. v1.3.0 — RETRIEVAL QUALITY
    - HYBRID KEYWORD + SEMANTIC SEARCH (deferred 2026-08-10; the
@@ -202,6 +246,20 @@ STANDING LIST — small, always visible, never a release of its own:
     something the login flow does not produce (found in #47); (3) the
     dark locale-select cosmetic, PatternFly's #36373a rather than the
     theme's --wa-field (passes contrast at 9.02:1; cosmetic only).
+    ADDED 2026-08-11 by the new e2e suite, both found on its FIRST
+    complete run and both recorded as failing tests rather than as
+    notes, so they turn the build red the day they are fixed:
+    (4) .footer-note measures 3.65:1 in the LIGHT palette
+    (--c-ink-faint on the light surface), below AA. Dark is fine —
+    the #47 shape exactly. Not fixed in the e2e PR because the token
+    is shared with the tagline, the eyebrow, .optional and disabled
+    button text, so it is a design pass with its own drill.
+    (5) THE PROTOCOL VIEWER NEVER TAKES FOCUS. Focus stays on the link
+    that opened it, so the backdrop never receives the Escape keydown
+    and Tab is not trapped: a keyboard user cannot dismiss the dialog
+    with the key every modal has taught them to press. dialog.ts is
+    written to do all three and has NO unit spec at all — the clearest
+    illustration of ADR-007's argument that the project has produced.
   - IONOS TOKEN ROTATION ~JULY 2027 — the production token expires
     2027-08-07; the calendar entry is two weeks before. Details and
     the paste procedure are under Keys.

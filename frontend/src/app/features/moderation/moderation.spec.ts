@@ -543,6 +543,212 @@ describe('Moderation', () => {
   });
 
   // -------------------------------------------------------------------------------------------
+  // Approval (v1.2)
+  // -------------------------------------------------------------------------------------------
+
+  const UNAPPROVED = protocol({
+    approval: { state: 'UNAPPROVED', approvedBy: null, approvedAt: null },
+  });
+
+  it('shows the approval state of every row, with who approved it and when', async () => {
+    const fixture = await render();
+    const element = fixture.nativeElement as HTMLElement;
+
+    // On EVERY row, not only on the queue: this list is also where an administrator checks that
+    // something they approved is still approved, and after a correction it will not be.
+    const cell = element.querySelector('[data-testid="approval-state"]')?.textContent ?? '';
+    expect(cell).toContain('Freigegeben');
+    expect(cell).toContain('admin');
+    expect(cell).toContain('11.08.2026');
+  });
+
+  it('filters to the approval queue without a machine, and without a second button press', async () => {
+    const fixture = await render();
+    const element = fixture.nativeElement as HTMLElement;
+
+    type(element, 'filter-approval', 'UNAPPROVED');
+    await fixture.whenStable();
+
+    const request = httpMock.expectOne((r) => r.url === '/api/moderation/protocols');
+    // NOT subject to the machine-first rule the other three filters obey. That rule exists because
+    // a title fragment across ten machines answers with rows nobody was looking for; a review queue
+    // is the opposite, and is only useful whole.
+    expect(request.request.params.get('approvalState')).toBe('UNAPPROVED');
+    expect(request.request.params.has('machineNo')).toBe(false);
+    expect(request.request.params.get('page')).toBe('0');
+    request.flush(page([UNAPPROVED]));
+    await fixture.whenStable();
+  });
+
+  it('keeps the queue filter when the machine is cleared', async () => {
+    const fixture = await render();
+    const element = fixture.nativeElement as HTMLElement;
+
+    type(element, 'filter-approval', 'UNAPPROVED');
+    await fixture.whenStable();
+    httpMock.expectOne((r) => r.url === '/api/moderation/protocols').flush(page([UNAPPROVED]));
+    await fixture.whenStable();
+
+    type(element, 'filter-machine', 'PR-03');
+    await fixture.whenStable();
+    type(element, 'filter-machine', '');
+    await fixture.whenStable();
+
+    // Clearing the machine clears what DEPENDED on it. The approval filter never did — the backend
+    // applies it without one — so resetting it here would mean "all machines" silently emptying the
+    // reviewer's queue: a filter clearing a filter it has nothing to do with.
+    expect(
+      (element.querySelector('[data-testid="filter-approval"]') as HTMLSelectElement).value,
+    ).toBe('UNAPPROVED');
+  });
+
+  it('approves without a dialog, and reloads the page it changed', async () => {
+    const fixture = await render(page([UNAPPROVED]));
+    const element = fixture.nativeElement as HTMLElement;
+
+    (element.querySelector('[data-testid="row-approve"]') as HTMLButtonElement).click();
+    await fixture.whenStable();
+
+    const request = httpMock.expectOne('/api/moderation/protocols/p-1/approval');
+    expect(request.request.method).toBe('PUT');
+    // A state asserted rather than a verb performed, so a double click is harmless and writes no
+    // second audit row. No comment: approving affirms the text as it stands.
+    expect(request.request.body).toEqual({ approved: true, comment: '' });
+    request.flush({ state: 'APPROVED', approvedBy: 'admin', approvedAt: '2026-08-12T10:00:00Z' });
+
+    // Reloaded rather than patched in place: with the queue as the active filter the row no longer
+    // belongs on this page at all, and a row that stayed would describe a list it has just left.
+    httpMock.expectOne((r) => r.url === '/api/moderation/protocols').flush(page([protocol()]));
+    await fixture.whenStable();
+
+    expect(element.querySelector('[data-testid="approval-notice"]')?.textContent).toContain(
+      'E-47 Druckabfall',
+    );
+  });
+
+  it('explains the four-eyes refusal beside the row, instead of failing generically', async () => {
+    const fixture = await render(page([UNAPPROVED]));
+    const element = fixture.nativeElement as HTMLElement;
+
+    (element.querySelector('[data-testid="row-approve"]') as HTMLButtonElement).click();
+    await fixture.whenStable();
+    httpMock.expectOne('/api/moderation/protocols/p-1/approval').flush(
+      { reason: 'FOUR_EYES_REQUIRED', error: 'you corrected this protocol' },
+      { status: 400, statusText: 'Bad Request' },
+    );
+    await fixture.whenStable();
+
+    // THE SENTENCE IS THE POINT. A disabled button, or "the request failed", would leave an
+    // administrator staring at a control that does not work for a reason they cannot discover —
+    // which is a bug report waiting to happen rather than a rule being enforced.
+    const failure = element.querySelector('[data-testid="approval-failure"]')?.textContent ?? '';
+    expect(failure).toContain('zuletzt korrigiert');
+    expect(failure).toContain('andere');
+    // Beside the row it belongs to: the reader clicked one button among ten identical ones.
+    expect(element.querySelector('[data-testid="approval-failure-row"]')).not.toBeNull();
+  });
+
+  it('will not withdraw an approval without a stated reason', async () => {
+    const fixture = await render();
+    const element = fixture.nativeElement as HTMLElement;
+
+    (element.querySelector('[data-testid="row-withdraw"]') as HTMLButtonElement).click();
+    await fixture.whenStable();
+
+    // Required here as well as on the server, and enforced BEFORE the click rather than by a 400
+    // afterwards. Withdrawing takes back what a named person vouched for; the next reader is owed
+    // the reason.
+    expect(element.querySelector('[data-testid="withdraw-target"]')?.textContent).toContain(
+      'E-47 Druckabfall',
+    );
+    expect(element.querySelector('[data-testid="withdraw-reason-required"]')).not.toBeNull();
+    expect(
+      (element.querySelector('[data-testid="withdraw-confirm-button"]') as HTMLButtonElement)
+        .disabled,
+    ).toBe(true);
+    httpMock.verify();
+  });
+
+  it('withdraws with the reason in the body, and says what changed', async () => {
+    const fixture = await render();
+    const element = fixture.nativeElement as HTMLElement;
+
+    (element.querySelector('[data-testid="row-withdraw"]') as HTMLButtonElement).click();
+    await fixture.whenStable();
+    type(element, 'withdraw-comment', 'Massnahme passt nicht zur Ursache');
+    await fixture.whenStable();
+    (element.querySelector('[data-testid="withdraw-confirm-button"]') as HTMLButtonElement).click();
+
+    const request = httpMock.expectOne('/api/moderation/protocols/p-1/approval');
+    // In the body for the same reason the delete comment is: it can name a colleague's mistake,
+    // and a query string lands in access logs.
+    expect(request.request.body).toEqual({
+      approved: false,
+      comment: 'Massnahme passt nicht zur Ursache',
+    });
+    request.flush({ state: 'UNAPPROVED', approvedBy: null, approvedAt: null });
+    httpMock.expectOne((r) => r.url === '/api/moderation/protocols').flush(page([UNAPPROVED]));
+    await fixture.whenStable();
+
+    expect(element.querySelector('[data-testid="approval-notice"]')?.textContent).toContain(
+      'zurückgezogen',
+    );
+  });
+
+  it('offers the decision in the viewer, where the evidence is', async () => {
+    const fixture = await render(page([UNAPPROVED]));
+    const element = fixture.nativeElement as HTMLElement;
+
+    (element.querySelector('[data-testid="row-open"]') as HTMLButtonElement).click();
+    await fixture.whenStable();
+    httpMock
+      .expectOne('/api/moderation/protocols/p-1/document')
+      .flush(new Blob(['Symptom:\nKein Druck.\n'], { type: 'text/plain' }));
+    await fixture.whenStable();
+    await fixture.whenStable();
+
+    // A reviewer who has just read the protocol should not have to close the dialog and find the
+    // row again among ten — that is the step at which the wrong row gets approved. The state is in
+    // the head as well, so it is read before the text rather than looked up afterwards.
+    expect(element.querySelector('[data-testid="protocol-machine"]')?.textContent).toContain(
+      'Nicht freigegeben',
+    );
+    expect(element.querySelector('[data-testid="viewer-approve"]')).not.toBeNull();
+  });
+
+  // -------------------------------------------------------------------------------------------
+  // Who may do what — the role split of 2026-08-13
+  // -------------------------------------------------------------------------------------------
+
+  it('gives the administrator no correction button — the approver does not correct', async () => {
+    const fixture = await render();
+    const element = fixture.nativeElement as HTMLElement;
+
+    // The endpoint answers 403 for an admin since 2026-08-13. A button left on screen would offer
+    // an action that cannot succeed, and a control that fails reads as a broken application rather
+    // than as a job belonging to somebody else.
+    expect(element.querySelector('[data-testid="row-edit"]')).toBeNull();
+    expect(element.querySelector('[data-testid="row-withdraw"]')).not.toBeNull();
+  });
+
+  it('gives the Schichtleiter the correction button and no approval control', async () => {
+    // THE OTHER HALF OF THE SAME RULE. The corrector is never the approver, so this role sees
+    // Bearbeiten and neither Freigeben nor Freigabe zurückziehen.
+    //
+    // NOTE, AND IT IS A FINDING RATHER THAN A GAP IN THE TEST: /moderation is guarded by
+    // roleGuard('admin'), so no Schichtleiter can reach this view today and the correction path has
+    // no interface at all. Widening that route is a permission decision for Carlos and is
+    // deliberately not made here. This test is what makes the button correct the day it is.
+    roles.set(['schichtleiter']);
+    const fixture = await render();
+    const element = fixture.nativeElement as HTMLElement;
+
+    expect(element.querySelector('[data-testid="row-edit"]')).not.toBeNull();
+    expect(element.querySelector('[data-testid="row-approve"]')).toBeNull();
+    expect(element.querySelector('[data-testid="row-withdraw"]')).toBeNull();
+  });
+
+  // -------------------------------------------------------------------------------------------
   // The archive
   // -------------------------------------------------------------------------------------------
 

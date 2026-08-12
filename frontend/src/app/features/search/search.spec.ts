@@ -130,6 +130,202 @@ describe('Search', () => {
     expect(element.querySelectorAll('[data-testid="citation-marker"]').length).toBe(2);
   });
 
+  // -------------------------------------------------------------------------------------
+  // Approval (v1.2) — decision 1 of 2026-08-11 made visible
+  // -------------------------------------------------------------------------------------
+
+  describe('approval on an answer and its sources', () => {
+    const UNAPPROVED_CITATION: Citation = { ...CITATION, protocolId: 'p-2', label: 'P2', approved: false };
+
+    it('marks an unapproved source on its card, in words', async () => {
+      const fixture = await render();
+      const element = await ask(fixture, {
+        ...MODE_A,
+        citations: [CITATION, UNAPPROVED_CITATION],
+      });
+
+      const states = [...element.querySelectorAll('[data-testid="approval-state"]')].map(
+        (node) => node.getAttribute('data-approval'),
+      );
+      // One of each, in citation order: the mark belongs to the source, not to the answer as a
+      // whole, or a reader could not tell WHICH claim rests on unreviewed text.
+      expect(states).toEqual(['APPROVED', 'UNAPPROVED']);
+      expect(element.querySelector('[data-testid="sources"]')?.textContent).toContain(
+        'Nicht freigegeben',
+      );
+    });
+
+    it('says it once at the answer level too, so nobody has to audit the source list', async () => {
+      const fixture = await render();
+      const element = await ask(fixture, {
+        ...MODE_A,
+        citations: [CITATION, UNAPPROVED_CITATION],
+      });
+
+      // A technician acts on the ANSWER. On a tablet the sources may not be on screen at all, and
+      // having to work down five cards to discover that one of them is unreviewed is not being
+      // told — it is being given the chance to find out.
+      expect(element.querySelector('[data-testid="answer-unapproved"]')?.textContent).toContain(
+        'Eine der Quellen',
+      );
+    });
+
+    it('counts them, so "one of five" and "four of five" do not read the same', async () => {
+      const fixture = await render();
+      const element = await ask(fixture, {
+        ...MODE_A,
+        citations: [
+          UNAPPROVED_CITATION,
+          { ...UNAPPROVED_CITATION, protocolId: 'p-3', label: 'P3' },
+        ],
+      });
+
+      expect(element.querySelector('[data-testid="answer-unapproved"]')?.textContent).toContain(
+        '2 der Quellen',
+      );
+    });
+
+    it('says nothing at the answer level when every source is approved', async () => {
+      const fixture = await render();
+      const element = await ask(fixture, MODE_A);
+
+      // The ordinary case, and it stays silent. A line that appeared on every answer would be one
+      // readers learn to skip, and the day it says something they would skip that too.
+      expect(element.querySelector('[data-testid="answer-unapproved"]')).toBeNull();
+      expect(
+        element.querySelector('[data-testid="approval-state"]')?.getAttribute('data-approval'),
+      ).toBe('APPROVED');
+    });
+
+    it('carries the card state into the viewer rather than looking it up again', async () => {
+      const fixture = await render();
+      const element = await ask(fixture, { ...MODE_A, citations: [UNAPPROVED_CITATION] });
+
+      (element.querySelector('[data-testid="source-link"]') as HTMLElement).click();
+      await fixture.whenStable();
+      httpMock
+        .expectOne('/api/protocols/p-2/document')
+        .flush(new Blob([PROTOCOL], { type: 'text/plain' }));
+      await fixture.whenStable();
+      await fixture.whenStable();
+
+      // One fact, told once. A second fetch could also disagree with the card — an administrator
+      // may have approved it in between — and a source list contradicting the document it links to
+      // is worse than a slightly stale mark.
+      expect(element.querySelector('[data-testid="protocol-machine"]')?.textContent).toContain(
+        'Nicht freigegeben',
+      );
+    });
+  });
+
+  describe('the approved-only facet', () => {
+    it('searches the whole corpus by default, unreviewed protocols included', async () => {
+      const fixture = await render();
+      const element = fixture.nativeElement as HTMLElement;
+
+      const machine = element.querySelector('[data-testid="machine-picker"]') as HTMLSelectElement;
+      machine.value = MACHINE;
+      machine.dispatchEvent(new Event('change'));
+      const question = element.querySelector('[data-testid="question-input"]') as HTMLTextAreaElement;
+      question.value = 'Presse kommt nicht auf Druck';
+      question.dispatchEvent(new Event('input'));
+      await fixture.whenStable();
+
+      (element.querySelector('[data-testid="ask-button"]') as HTMLButtonElement).click();
+      const request = httpMock.expectOne('/api/query');
+
+      // OFF is the DECISION of 2026-08-11, not a convenience: the admin may not review at a
+      // weekend and the factory does not stop, so the protocol about the fault happening right now
+      // has to be findable before anyone signs it off. Defaulting this on would quietly reinstate
+      // the gate that decision refused.
+      expect(request.request.body.approvedOnly).toBe(false);
+      expect((element.querySelector('[data-testid="approved-only"]') as HTMLInputElement).checked)
+        .toBe(false);
+      request.flush(MODE_A);
+      await fixture.whenStable();
+    });
+
+    it('narrows the search when the reader asks it to', async () => {
+      const fixture = await render();
+      const element = fixture.nativeElement as HTMLElement;
+
+      const facet = element.querySelector('[data-testid="approved-only"]') as HTMLInputElement;
+      facet.checked = true;
+      facet.dispatchEvent(new Event('change'));
+      await fixture.whenStable();
+
+      const machine = element.querySelector('[data-testid="machine-picker"]') as HTMLSelectElement;
+      machine.value = MACHINE;
+      machine.dispatchEvent(new Event('change'));
+      const question = element.querySelector('[data-testid="question-input"]') as HTMLTextAreaElement;
+      question.value = 'Presse kommt nicht auf Druck';
+      question.dispatchEvent(new Event('input'));
+      await fixture.whenStable();
+
+      (element.querySelector('[data-testid="ask-button"]') as HTMLButtonElement).click();
+      const request = httpMock.expectOne('/api/query');
+      expect(request.request.body.approvedOnly).toBe(true);
+      request.flush(MODE_B);
+      await fixture.whenStable();
+
+      // THE EMPTY STATE, and it is a Mode B answer rather than an empty list: with retrieval
+      // narrowed, nothing clears the threshold and the backend answers exactly as it would for a
+      // genuine gap in the corpus. Without this line the reader concludes the plant has no protocol
+      // on the fault, when what happened is that theirs is not signed off yet.
+      expect(element.querySelector('[data-testid="approved-only-note"]')?.textContent).toContain(
+        'nur in freigegebenen',
+      );
+    });
+
+    it('re-asks against the whole corpus when the reader takes the way out', async () => {
+      const fixture = await render();
+      const element = fixture.nativeElement as HTMLElement;
+
+      const facet = element.querySelector('[data-testid="approved-only"]') as HTMLInputElement;
+      facet.checked = true;
+      facet.dispatchEvent(new Event('change'));
+      const machine = element.querySelector('[data-testid="machine-picker"]') as HTMLSelectElement;
+      machine.value = MACHINE;
+      machine.dispatchEvent(new Event('change'));
+      const question = element.querySelector('[data-testid="question-input"]') as HTMLTextAreaElement;
+      question.value = 'Presse kommt nicht auf Druck';
+      question.dispatchEvent(new Event('input'));
+      await fixture.whenStable();
+
+      (element.querySelector('[data-testid="ask-button"]') as HTMLButtonElement).click();
+      httpMock.expectOne('/api/query').flush(MODE_B);
+      await fixture.whenStable();
+
+      (element.querySelector('[data-testid="approved-only-widen"]') as HTMLButtonElement).click();
+      await fixture.whenStable();
+
+      // Re-asked rather than merely unchecked: the reader wants the answer, not the setting.
+      const widened = httpMock.expectOne('/api/query');
+      expect(widened.request.body.approvedOnly).toBe(false);
+      widened.flush(MODE_A);
+      await fixture.whenStable();
+
+      expect(element.querySelector('[data-testid="answer-mode-a"]')).not.toBeNull();
+      expect(element.querySelector('[data-testid="approved-only-note"]')).toBeNull();
+    });
+
+    it('describes the search that was run, not the state of the checkbox', async () => {
+      const fixture = await render();
+      const element = await ask(fixture, MODE_B);
+
+      // The answer on screen was asked WITHOUT the facet, so no note — and turning the facet on
+      // afterwards must not retroactively explain a search nobody ran.
+      expect(element.querySelector('[data-testid="approved-only-note"]')).toBeNull();
+
+      const facet = element.querySelector('[data-testid="approved-only"]') as HTMLInputElement;
+      facet.checked = true;
+      facet.dispatchEvent(new Event('change'));
+      await fixture.whenStable();
+
+      expect(element.querySelector('[data-testid="approved-only-note"]')).toBeNull();
+    });
+  });
+
   describe('the long-answer drawer', () => {
     /**
      * Makes the rendered answer taller than the clamp allows.

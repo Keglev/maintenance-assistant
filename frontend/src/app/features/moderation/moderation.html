@@ -489,31 +489,35 @@
   <!-- The decision belongs where the evidence is. A reviewer who has just read the protocol should
        not have to close the dialog, find the row again among ten and then decide — that is the step
        at which the wrong row gets approved. -->
-  @if (canApprove() && viewing(); as target) {
-    @if (target.approval.state === 'APPROVED') {
-      <button
-        type="button"
-        class="btn btn-secondary btn-sm"
-        protocolActions
-        data-testid="viewer-withdraw"
-        [attr.aria-haspopup]="'dialog'"
-        (click)="withdrawing.set(target); viewing.set(null)"
-      >
-        {{ t().approval.withdraw }}
-      </button>
-    } @else {
-      <button
-        type="button"
-        class="btn btn-primary btn-sm"
-        protocolActions
-        data-testid="viewer-approve"
-        [disabled]="approving() !== null"
-        (click)="approve(target); viewing.set(null)"
-      >
-        {{ t().approval.approve }}
-      </button>
+  <!-- ONE PROJECTED ELEMENT, with the conditions INSIDE it. A `select=` selector matches the root
+       nodes of the projected content, and a node inside an `@if` is not one of them — a button
+       wrapped in a condition here is simply never projected, silently. Found by the test below,
+       which is the only way this fails: it renders, it just renders nowhere. -->
+  <span protocolActions class="viewer-approval-actions">
+    @if (canApprove() && viewing(); as target) {
+      @if (target.approval.state === 'APPROVED') {
+        <button
+          type="button"
+          class="btn btn-secondary btn-sm"
+          data-testid="viewer-withdraw"
+          [attr.aria-haspopup]="'dialog'"
+          (click)="withdrawing.set(target); viewing.set(null)"
+        >
+          {{ t().approval.withdraw }}
+        </button>
+      } @else {
+        <button
+          type="button"
+          class="btn btn-primary btn-sm"
+          data-testid="viewer-approve"
+          [disabled]="approving() !== null"
+          (click)="approve(target); viewing.set(null)"
+        >
+          {{ t().approval.approve }}
+        </button>
+      }
     }
-  }
+  </span>
 </app-protocol-dialog>
 
 <!-- The archive's own viewer. Same component, third endpoint: the live paths answer 404 for a

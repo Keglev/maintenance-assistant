@@ -1,6 +1,6 @@
 import type { Page } from '@playwright/test';
 
-import { E2E_TITLE_PREFIX, expect, signIn, signOut, test } from './support';
+import { E2E_TITLE_PREFIX, expect, signIn, signOut, sweepThrowaways, test } from './support';
 
 /**
  * THE RELEASE DRILL, automated.
@@ -75,39 +75,16 @@ async function findInCorpus(page: Page, title: string) {
   return row;
 }
 
-/**
- * Archives every leftover this suite has ever created on this machine, through the UI.
- *
- * A run that dies between "created" and "archived" leaves a row behind; the next run removes it.
- * Self-healing, and by the same audited path the test itself uses.
- */
-async function sweepLeftovers(page: Page): Promise<void> {
-  await page.getByTestId('tab-corpus').click();
-  await page.getByTestId('filter-machine').selectOption(MACHINE);
-  await page.getByTestId('filter-title').fill(E2E_TITLE_PREFIX);
-  await page.getByTestId('filter-apply').click();
-
-  // One at a time: the list re-renders after each archive, so a collected handle would go stale.
-  for (let guard = 0; guard < 20; guard++) {
-    const rows = page.getByTestId('moderation-row').filter({ hasText: E2E_TITLE_PREFIX });
-    if ((await rows.count()) === 0) return;
-
-    await rows.first().getByTestId('row-delete').click();
-    await page.getByTestId('delete-comment').fill('e2e cleanup: leftover throwaway protocol');
-    await page.getByTestId('delete-confirm-button').click();
-    await expect(page.getByTestId('removed-notice')).toBeVisible();
-    await page.getByTestId('removed-dismiss').click();
-  }
-}
-
 test.describe('moderation round trip', () => {
-  // Runs whether the test passed or failed, so a red run does not poison the next one.
+  // Runs whether the test passed or failed, so a red run does not poison the next one. The sweep
+  // itself now lives in support.ts, because `reindex.e2e.ts` needed exactly the same thing and did
+  // not have it — see the note there.
   test.afterEach(async ({ browser }) => {
     const context = await browser.newContext();
     const page = await context.newPage();
     try {
       await signIn(page, 'admin');
-      await sweepLeftovers(page);
+      await sweepThrowaways(page, MACHINE);
     } finally {
       await context.close();
     }

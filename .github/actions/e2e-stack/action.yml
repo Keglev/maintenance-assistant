@@ -105,14 +105,20 @@ runs:
         SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/maintenance
         SPRING_DATASOURCE_USERNAME: maintenance
         KEYCLOAK_ISSUER_URI: http://localhost:8081/realms/maintenance
-        # Seeds the 150-protocol corpus...
+        # SEED NOW, INDEX ON THE SECOND START — and the two are separated because they RACE.
+        #
+        # Both flags act at startup: one inserts 150 protocols, the other scans for unindexed ones
+        # and enqueues them. Nothing orders them. When the scan wins, it finds an empty table,
+        # enqueues nothing, and never runs again — 150 protocols sit in RECEIVED forever with no
+        # chunks behind them. That is not a hypothesis: it is what this job did, intermittently,
+        # from the moment indexing was switched on in #51. It went green anyway, because the wait
+        # that should have caught it could not tell "finished" from "not started" and no test until
+        # the visual baselines cared whether a status pill said "Searchable" or "Accepted".
+        #
+        # Seeding alone here, indexing alone in the restart below. Two starts, about forty seconds,
+        # and no ordering left to chance.
         CORPUS_SEED_ENABLED: 'true'
-        # ...and INDEXES it. Without this the seed lands 150 protocols as RECEIVED with zero
-        # chunks and retrieval has nothing to retrieve — which is how CI ran until now, and it
-        # went green because no test until `reindex.e2e.ts` needed a chunk to exist. The flag is
-        # off by default for a good reason (indexing costs money and a restart must not start
-        # spending); here the provider is a stub two lines up, so it costs nothing.
-        INGESTION_BACKLOG_ON_STARTUP: 'true'
+        INGESTION_BACKLOG_ON_STARTUP: 'false'
         # Everything the model does is faked; everything the application does is not.
         LLM_BASE_URL: http://127.0.0.1:8099/v1
         LLM_API_KEY: stub-no-key-needed
@@ -151,6 +157,54 @@ runs:
         done
         curl -fsS http://localhost:8080/api/health || {
           echo "::error::the backend never became ready"; tail -80 "$RUNNER_TEMP/backend.log"; exit 1; }
+
+    - name: Restart the backend with indexing armed
+      env:
+        SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/maintenance
+        SPRING_DATASOURCE_USERNAME: maintenance
+        KEYCLOAK_ISSUER_URI: http://localhost:8081/realms/maintenance
+        # The rows exist now, so the backlog scan has something to find. Seeding is off: it is
+        # idempotent, but asking for it twice would only be asking for a second thing to go wrong.
+        CORPUS_SEED_ENABLED: 'false'
+        INGESTION_BACKLOG_ON_STARTUP: 'true'
+        LLM_BASE_URL: http://127.0.0.1:8099/v1
+        LLM_API_KEY: stub-no-key-needed
+        QUERY_SIMILARITY_THRESHOLD: '0.30'
+      working-directory: backend
+      shell: bash
+      run: |
+        # Wait for the seed to have finished INSERTING before restarting — otherwise the restart
+        # races the seed in the other direction and lands in exactly the same place.
+        for i in $(seq 1 60); do
+          rows=$(docker exec postgres psql -U maintenance -d maintenance -t -A \
+            -c "select count(*) from protocol;" 2>/dev/null || echo 0)
+          [ "$rows" = "150" ] && break
+          sleep 5
+        done
+        rows=$(docker exec postgres psql -U maintenance -d maintenance -t -A \
+          -c "select count(*) from protocol;" 2>/dev/null || echo 0)
+        if [ "$rows" != "150" ]; then
+          echo "::error::the corpus seed inserted $rows of 150 protocols"
+          tail -60 "$RUNNER_TEMP/backend.log" || true
+          exit 1
+        fi
+
+        pkill -f 'spring-boot:run' || true
+        for i in $(seq 1 30); do
+          curl -fsS http://localhost:8080/api/health >/dev/null 2>&1 || break
+          sleep 2
+        done
+
+        export SPRING_DATASOURCE_PASSWORD="$PG_SECRET"
+        nohup mvn -B -DskipTests spring-boot:run > "$RUNNER_TEMP/backend.log" 2>&1 &
+
+        for i in $(seq 1 60); do
+          curl -fsS http://localhost:8080/api/health >/dev/null 2>&1 && break
+          sleep 3
+        done
+        curl -fsS http://localhost:8080/api/health || {
+          echo "::error::the backend did not come back after the restart"
+          tail -80 "$RUNNER_TEMP/backend.log"; exit 1; }
 
     - name: Wait for the corpus to finish indexing
       shell: bash

@@ -49,7 +49,22 @@ class ProtocolUploadController {
     }
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    @PreAuthorize("hasRole('SCHICHTLEITER')")
+    /*
+     * THE TECHNIKER MAY WRITE NOW — decision 3 of 2026-08-11, and a widening of what this endpoint
+     * used to allow rather than a restatement of it.
+     *
+     * The technician is the person standing at the machine when it is fixed. Requiring them to
+     * dictate the protocol to a Schichtleiter is how a plant ends up with protocols written by
+     * someone who was not there, and it is exactly the friction that stops them being written at
+     * all. So writing moves to the person with the knowledge.
+     *
+     * What does NOT move is correcting. A Techniker may never edit any protocol, including their
+     * own: the value of a correction is that a second person looked. That refusal needs no code
+     * here — every edit path lives under /api/moderation, which no shop-floor role can reach — but
+     * it is stated here because "may write" and "may fix what they wrote" are the same permission
+     * in most systems, and in this one they are deliberately not.
+     */
+    @PreAuthorize("hasAnyRole('TECHNIKER', 'SCHICHTLEITER')")
     @Operation(summary = "Upload a protocol text file",
             description = "Stores the document on the volume, records it as RECEIVED and hands it "
                     + "to the indexer. Text files only — PDF and scan extraction is a later phase.")

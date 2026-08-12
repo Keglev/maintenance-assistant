@@ -1,0 +1,29 @@
+/*
+ * The e2e sources, compiled apart from everything else.
+ *
+ * THREE RUNNERS, THREE INCLUDE LISTS, NO OVERLAP — stated here because "tests" now means two very
+ * different things in this project and a file picked up by the wrong runner fails in a way that
+ * takes an afternoon to read:
+ *
+ *   tsconfig.app.json   src/**, minus specs      -> the application build
+ *   tsconfig.spec.json  src/**\/*.spec.ts        -> vitest, in jsdom, no browser  (`npm test`)
+ *   tsconfig.e2e.json   e2e/**\/*.ts             -> Playwright, in Chromium       (`npm run e2e`)
+ *
+ * The separation is enforced twice over, because one mechanism is a convention and two are a rule:
+ * the directories do not overlap (`src/` vs `e2e/`), and the suffixes do not either (`.spec.ts` vs
+ * `.e2e.ts`, with Playwright's `testMatch` naming the latter explicitly). vitest could not collect
+ * an e2e file even if it were moved into `src/`, and Playwright could not collect a unit spec even
+ * if it were moved into `e2e/`.
+ *
+ * `types` is Playwright's rather than vitest's: `expect` means something different in each, and a
+ * file that saw both sets of globals would type-check against whichever came first.
+ */
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "types": ["node"],
+    "module": "esnext",
+    "moduleResolution": "bundler"
+  },
+  "include": ["e2e/**/*.ts", "playwright.config.ts"]
+}

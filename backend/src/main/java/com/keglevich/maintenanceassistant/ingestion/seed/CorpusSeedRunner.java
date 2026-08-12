@@ -50,15 +50,32 @@ class CorpusSeedRunner implements ApplicationRunner {
 
     private static final Logger log = LoggerFactory.getLogger(CorpusSeedRunner.class);
 
+    /**
+     * The approval columns are written HERE as well as backfilled by V5, and both are needed.
+     *
+     * <p>V5 approves the 150 protocols it finds in a database that already has them — which is
+     * every environment that existed before v1.2, production included. It can do nothing for a
+     * database seeded afterwards, because Flyway runs at startup and the seed runs after it: on a
+     * fresh machine the migration sees an empty table. Without this the demo corpus would come up
+     * entirely unreviewed on any new environment, which is the opposite of decision 2.
+     *
+     * <p>The actor is a system name rather than a person for the same reason it is in V5: no human
+     * read these, and inventing a username for the record would be the exact unearned trust the
+     * approval state exists to expose.
+     */
     private static final String INSERT = """
             INSERT INTO protocol (
                 id, machine_id, incident_date, protocol_type, error_code, title,
                 symptom, cause, action, parts_used, downtime_minutes,
-                technician_initials, language, source_file, status, uploaded_by)
+                technician_initials, language, source_file, status, uploaded_by,
+                approval_state, approved_by, approved_at)
             VALUES (
                 :id, :machineId, :incidentDate, :protocolType, :errorCode, :title,
                 :symptom, :cause, :action, :partsUsed, :downtimeMinutes,
-                :technicianInitials, :language, :sourceFile, 'RECEIVED', :uploadedBy)
+                :technicianInitials, :language, :sourceFile, 'RECEIVED', :uploadedBy,
+                CASE WHEN :approved THEN 'APPROVED' ELSE 'UNAPPROVED' END,
+                CASE WHEN :approved THEN 'system:corpus-seed' END,
+                CASE WHEN :approved THEN now() END)
             ON CONFLICT (id) DO NOTHING
             """;
 
@@ -168,6 +185,7 @@ class CorpusSeedRunner implements ApplicationRunner {
                 // Stored with forward slashes so the value does not depend on the OS that seeded it.
                 .param("sourceFile", relativePath.toString().replace('\\', '/'))
                 .param("uploadedBy", p.uploadedBy())
+                .param("approved", p.approved())
                 .update();
     }
 

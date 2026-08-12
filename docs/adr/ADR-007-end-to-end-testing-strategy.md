@@ -348,3 +348,31 @@ More viewports (tablet portrait — the primary device — and 1920px, where #44
 browsers, and per-component baselines instead of full pages. Each multiplies the number of pictures a
 reviewer must judge and the ways a run can go red. One viewport and five surfaces is a size a person
 will actually look at, which is the property that matters most in a check whose output is a picture.
+
+### What the first visual run caught — a CI defect wearing a layout disguise
+
+The check paid for itself before its baselines were a day old, and not in the way expected.
+
+Its first CI run reported a regression on the Verwaltung table: 54,577 pixels, 7 px taller than the
+baseline. The diff artifact settled it in seconds — **the rows were identical**, and the only
+difference was the status column, reading "Accepted, indexing" where the baseline read "Searchable".
+Not a layout regression at all. The corpus had not finished indexing when the screenshot was taken.
+
+Underneath were **two real defects in the CI stack**, both shipped in #51 and both invisible until
+something cared about a pixel:
+
+1. **The indexing wait could not tell "finished" from "not started."** It waited for *no protocol in
+   RECEIVED*, which is equally true of an empty database, so it sailed through before the seeder had
+   inserted a row. It then ran out of iterations without failing, letting the job continue against a
+   half-built fixture. The condition is now positive — 150 INDEXED — and the step fails loudly.
+2. **The seed and the indexer race.** `CORPUS_SEED_ENABLED` and `INGESTION_BACKLOG_ON_STARTUP` both
+   act at startup and nothing orders them; when the backlog scan wins it finds an empty table,
+   enqueues nothing and never runs again. Every functional run since #51 had been a coin toss on
+   whether the corpus had chunks at all — and passed regardless, because no assertion until these
+   baselines depended on it. Seeding and indexing are now separate starts with the row count
+   asserted in between.
+
+**This is the argument for a visual check, made by the check itself, in its first hours.** A picture
+asserts everything in frame, including the things nobody thought to assert — and the value here was
+not that the layout was wrong, but that the *fixture* was, silently, in a way four other test suites
+had been tolerating.

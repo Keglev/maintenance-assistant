@@ -152,7 +152,7 @@ to a required check at **ten consecutive green runs with no infrastructure-cause
 | **Consecutive green runs of the CURRENT `e2e` job** | **2** — the count restarted on 2026-08-12 |
 | Green runs of the previous job shape | 4 (three on #50, one on main after merge) |
 | Why the count restarted | That job had no throwaway database, no provider stub, an unindexed corpus and skipped the re-index test. A streak counts runs of the same thing. |
-| **`visual` job** | Separate check, also advisory, **its own count starting at 0** |
+| **`visual` job** | Separate check, also advisory. **2 consecutive green runs** on the same baselines (2026-08-13) |
 
 The `visual` job is deliberately a **separate check**: a pixel diff and a broken flow are different
 news for different people, and a red `visual` beside a green `e2e` says exactly what it means — it

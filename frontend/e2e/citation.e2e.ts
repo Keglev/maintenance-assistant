@@ -1,6 +1,6 @@
 import type { Page } from '@playwright/test';
 
-import { expect, signIn, test } from './support';
+import { expect, selectSearchMachine, signIn, test } from './support';
 
 /**
  * THE #26 REGRESSION, in a browser.
@@ -69,24 +69,9 @@ const STUBBED_ANSWER = {
   ],
 };
 
-/**
- * Selects the demo machine by what a person reads, not by what the database stores.
- *
- * The search picker's option VALUES are machine UUIDs (the upload form uses machineNo instead — the
- * two views genuinely differ). Hard-coding a UUID here would bind the test to a primary key no user
- * ever sees; matching the visible label and reading the value back off the DOM binds it to the
- * thing the test is actually about.
- */
+/** Selects the demo machine by the label a person reads. Shared — see `selectSearchMachine`. */
 async function pickMachine(page: Page): Promise<void> {
-  const picker = page.getByTestId('machine-picker');
-  await expect(picker.locator('option')).not.toHaveCount(1); // the placeholder alone means no machines loaded
-  const value = await picker
-    .locator('option')
-    .filter({ hasText: SEED.machineNo })
-    .first()
-    .getAttribute('value');
-  expect(value, `no option for ${SEED.machineNo} in the machine picker`).toBeTruthy();
-  await picker.selectOption(value!);
+  await selectSearchMachine(page, SEED.machineNo);
 }
 
 /** What currently has focus, named the way the rest of this suite names things. */
@@ -146,11 +131,26 @@ test.describe('Mode A citation click-through', () => {
     // The assertion this whole file exists for.
     expect(documentResponses.length).toBeGreaterThan(0);
     for (const response of documentResponses) {
-      expect(
-        response.status,
-        `GET ${response.url} answered ${response.status}. 401 here is #26 returning: a document ` +
-          `fetched by the browser without the interceptor's Bearer token.`,
-      ).toBe(200);
+      // THE MESSAGE DISTINGUISHES THE TWO WAYS THIS GOES RED, because they demand opposite
+      // reactions and a bare "expected 200" would send the reader looking in the wrong place.
+      //
+      // 401 is the #26 defect returning — the application is broken and the fix is in the app.
+      // 404 is FIXTURE DRIFT — the application is fine and this file is out of date, because the
+      // seed ids below no longer exist in the corpus.
+      //
+      // Resolving the ids at run time was considered and rejected: a technician has no endpoint
+      // that lists a machine's protocols (by design — that view belongs to the admin), so a lookup
+      // would mean a second sign-in and a role switch inside a test about a technician clicking a
+      // citation. Naming the failure costs one sentence and misleads nobody.
+      const diagnosis =
+        response.status === 404
+          ? `FIXTURE DRIFT: the seed protocol ${SEED.protocolId} is not in this corpus. The ` +
+            `application is not broken — update SEED in this file from the seed data.`
+          : `401 here is #26 returning: a document fetched by the browser without the ` +
+            `interceptor's Bearer token.`;
+      expect(response.status, `GET ${response.url} answered ${response.status}. ${diagnosis}`).toBe(
+        200,
+      );
     }
   });
 
@@ -173,42 +173,24 @@ test.describe('Mode A citation click-through', () => {
   });
 
   /**
-   * A SECOND DEFECT THIS SUITE FOUND IN EXISTING CODE, and the cleanest possible illustration of
-   * why it exists at all.
+   * THE SUITE'S FIRST CAUGHT-AND-CLOSED DEFECT — and the reason it was written.
    *
-   * `dialog.ts` moves focus into the panel on open, traps Tab inside it, and hands focus back to
-   * the opener on close. It is written carefully and commented carefully — "Esc closes from
-   * anywhere inside the dialog, the shortcut every modal is expected to have". MEASURED IN A REAL
-   * BROWSER, focus never moves: it stays on the `source-link` that opened the viewer, both at the
-   * moment the dialog appears and after its content has loaded.
+   * This test arrived in #50 marked `test.fail()`, documenting something real: the viewer never
+   * took focus. It stayed on the `source-link` that opened it, so the Escape handler on the
+   * backdrop never saw a key and the tab trap never ran. A keyboard user could open a citation and
+   * not leave it with the key every modal has taught them to press.
    *
-   * The consequences follow from that one fact. The Escape handler is bound to the backdrop, so a
-   * keydown from an element OUTSIDE the dialog never reaches it, and Tab is not trapped because the
-   * trap lives on the same handler. A keyboard user opens a citation and cannot leave it with the
-   * key every modal has taught them to press.
+   * The cause, found in this PR: `focusables()` matched `button` without excluding DISABLED ones,
+   * and the viewer's first projected control is a Download button that is disabled until the
+   * document arrives. `focus()` on a disabled element does nothing and reports nothing, so the
+   * dialog opened with focus outside itself and stayed silent about it.
    *
-   * There is NO unit spec for this component — `src/app/shared/dialog/` contains a template, a
-   * stylesheet and a class, and no `.spec.ts`. So the behaviour was never asserted anywhere, and
-   * would not have been catchable in jsdom regardless: focus and modality are things a browser
-   * decides.
-   *
-   * NOT FIXED HERE. This PR builds the test foundation; the cause is in the dialog's effect
-   * timing and belongs to whoever fixes it, with a unit spec next to it. Recorded on the v1.1.1
-   * list in PROJECT-PHASES.
-   *
-   * `test.fail()` and not `skip`: the assertion RUNS on every CI run, and the day the dialog is
-   * fixed this test goes red and demands its own deletion.
+   * Fixed in `dialog.ts` (disabled controls excluded, the panel itself as the fallback focus
+   * target) with the unit spec the component had never had. THE MARKER IS GONE: this is a plain
+   * passing test now, which is what a `test.fail()` is for — it runs the strict assertion every
+   * time and demands its own retirement the day the defect closes.
    */
-  test('KNOWN DEFECT: the viewer does not take focus, so Escape cannot close it', async ({
-    page,
-  }) => {
-    test.fail(
-      true,
-      'the protocol viewer leaves focus on the element that opened it, so the backdrop never ' +
-        'receives the Escape keydown. Recorded as a v1.1.1 polish candidate; when it is fixed ' +
-        'this test starts passing and must be deleted.',
-    );
-
+  test('the viewer takes focus, and Escape closes it', async ({ page }) => {
     await signIn(page, 'techniker');
     await page.route('**/api/query', (route) => route.fulfill({ json: STUBBED_ANSWER }));
 

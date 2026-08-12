@@ -42,6 +42,13 @@ yarn-error.log
 testem.log
 /typings
 __screenshots__/
+# ...EXCEPT the visual-regression baselines, which are the opposite of build output: they are the
+# committed record a pull request is compared against, and a suite whose baselines are not in the
+# repository has nothing to compare to. This line comes from the Angular CLI's default template and
+# would silently have made the whole visual check a no-op — every run would have "generated missing
+# baselines" and passed. See frontend/e2e/README.md.
+!/e2e/__screenshots__/
+!/e2e/__screenshots__/**
 
 # System files
 .DS_Store

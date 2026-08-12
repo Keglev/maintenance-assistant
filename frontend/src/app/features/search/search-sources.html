@@ -78,6 +78,16 @@
           }
           <span class="num">{{ t().modeA.similarity }}: {{ percent(citation) }} %</span>
         </p>
+
+        <!-- OUTSIDE `.source-meta`, deliberately, and it is not a styling preference: that element
+             is MASKED in the visual baselines because it carries a float from a vector search. A
+             marker inside it would be invisible to the very check that is meant to notice when it
+             stops being drawn. It also survives the collapsed form, where the meta line is clipped
+             to one row — the state of a source is not something a reader should have to expand a
+             card to learn. -->
+        <p class="source-approval">
+          <app-approval-state [approval]="approvalOf(citation)" [language]="language()" />
+        </p>
       </div>
     </li>
   }

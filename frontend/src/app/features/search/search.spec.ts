@@ -25,6 +25,7 @@ describe('Search', () => {
     errorCode: 'E-47',
     incidentDate: '2024-10-08',
     similarity: 0.6896,
+    approved: true,
   };
 
   const MODE_A: QueryAnswer = {
@@ -660,6 +661,7 @@ describe('toSegments', () => {
     errorCode: null,
     incidentDate: null,
     similarity: 0.7,
+    approved: true,
   };
 
   it('turns a known marker into a linked segment and keeps the prose around it', () => {

@@ -4,6 +4,7 @@ import { Observable } from 'rxjs';
 
 import { ConfigService } from '../config/config.service';
 import {
+  Approval,
   DeletedProtocolPage,
   HealthStatus,
   Machine,
@@ -53,8 +54,16 @@ export class MaintenanceApiService {
    * optional-with-a-default: a question answered from another machine's protocols would look like
    * a better feature and be a worse answer.
    */
-  ask(question: string, machineId: string): Observable<QueryAnswer> {
-    return this.http.post<QueryAnswer>(`${this.apiBaseUrl}/query`, { question, machineId });
+  ask(question: string, machineId: string, approvedOnly = false): Observable<QueryAnswer> {
+    // `approvedOnly` defaults to false at every caller, and that default is the decision of
+    // 2026-08-11 rather than a convenience: an unapproved protocol stays searchable, because the
+    // admin may not review at a weekend and the factory does not stop. The facet narrows the
+    // search when a reader asks for it; it never narrows it silently.
+    return this.http.post<QueryAnswer>(`${this.apiBaseUrl}/query`, {
+      question,
+      machineId,
+      approvedOnly,
+    });
   }
 
   /**
@@ -143,6 +152,23 @@ export class MaintenanceApiService {
     );
   }
 
+  /**
+   * Approves a protocol, or withdraws approval. Admin only, server-side.
+   *
+   * A state is asserted rather than a verb performed — `PUT` of `{approved}` rather than two
+   * endpoints — so a double-clicked button is harmless and writes no second audit row.
+   *
+   * The comment is REQUIRED to withdraw and optional to grant, and travels in the body for the same
+   * reason the delete comment does: it can name a colleague's mistake, and a query string lands in
+   * access logs, proxy logs and browser history.
+   */
+  setApproval(protocolId: string, approved: boolean, comment = ''): Observable<Approval> {
+    return this.http.put<Approval>(
+      `${this.apiBaseUrl}/moderation/protocols/${protocolId}/approval`,
+      { approved, comment },
+    );
+  }
+
   /** One page of the archive: what was removed, by whom and why. Admin only, server-side. */
   deletedProtocols(machineNo: string, page: number, size: number): Observable<DeletedProtocolPage> {
     let params = new HttpParams().set('page', page).set('size', size);
@@ -197,6 +223,15 @@ export type ApiFailure =
   | 'rejectedContent'
   /** An edit tried to change the machine or the type — the identity lock (ADR-006 revision). */
   | 'identityLocked'
+  /**
+   * The approval was refused because the caller wrote or last corrected this protocol.
+   *
+   * Its own failure rather than a generic 400, because it is the only refusal in this API that the
+   * reader can act on by asking a specific person: another administrator has to approve it. A
+   * disabled button or a silent failure here is a bug report waiting to happen — the reader would
+   * have no way to learn that the rule exists, let alone that they tripped it.
+   */
+  | 'fourEyesRequired'
   /** The protocol is already in the archive, and archived is final. */
   | 'archived'
   | 'forbidden'
@@ -233,6 +268,12 @@ export function classify(error: unknown): ApiFailure {
     case 400:
       if (reasonOf(error) === 'PROTOCOL_IDENTITY_LOCKED') {
         return 'identityLocked';
+      }
+      // The four-eyes refusal. Matched on the code rather than on the status, because a 400 from
+      // this endpoint is also how a withdrawal without a reason comes back — and those two need
+      // opposite sentences: one names a rule, the other names a missing field.
+      if (reasonOf(error) === 'FOUR_EYES_REQUIRED') {
+        return 'fourEyesRequired';
       }
       return REJECTION_CODES.has(reasonOf(error) ?? '') ? 'rejectedContent' : 'generic';
     // Only one thing answers 409 in this API: an edit of a protocol that is already archived. The

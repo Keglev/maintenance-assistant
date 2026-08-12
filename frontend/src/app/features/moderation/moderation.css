@@ -104,6 +104,13 @@
   flex: 0 1 11rem;
 }
 
+/* The approval queue, outside `.filter-fields` because it obeys none of that group's rules: no
+   machine required, no Filter button, applied on change. Kept narrow so it does not read as a fifth
+   member of the row above. */
+.filter-approval {
+  max-width: 16rem;
+}
+
 .filter-actions {
   display: flex;
   flex-wrap: wrap;
@@ -137,8 +144,24 @@
 .moderation-table {
   border-collapse: collapse;
   width: 100%;
-  min-width: 44rem;
+  /* Up from 44rem: the approval column and the approve button are two more things that have to fit
+     before the wrapper starts scrolling, and a table that scrolls one column early is a Löschen
+     button people cannot reach. */
+  min-width: 54rem;
   font-size: var(--t-sm);
+}
+
+/* The approval state wraps rather than widening the column: "Freigegeben admin · 12.08.2026" is the
+   longest cell in the table, and letting it set the width would push the actions off a tablet. */
+.approval-cell {
+  max-width: 14rem;
+}
+
+/* A refusal belongs under the row it is about, sharing its full width, with no top border of its
+   own — the two are one unit, and a line between them would read as a row of its own. */
+.approval-failure-row td {
+  padding-top: 0;
+  border-bottom: 1px solid var(--c-line);
 }
 
 .moderation-table th,
@@ -178,9 +201,12 @@
 }
 
 .moderation-table td.row-actions {
-  /* Wide enough for Öffnen + Bearbeiten + Löschen at the largest text scale. The table already
-     scrolls horizontally inside its wrapper, so claiming the width costs a scroll, not a collision. */
-  min-width: 19rem;
+  /* Wide enough for the three buttons any ONE role sees at the largest text scale — Öffnen +
+     Freigeben/Freigabe zurückziehen + Löschen for an admin, Öffnen + Bearbeiten + Löschen for a
+     Schichtleiter. Nobody sees four, because nobody holds two jobs (2026-08-13); if that ever
+     changes, this number does too. The table already scrolls horizontally inside its wrapper, so
+     claiming the width costs a scroll, not a collision. */
+  min-width: 23rem;
   width: 1%;
 }
 

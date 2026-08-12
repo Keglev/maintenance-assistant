@@ -1,0 +1,67 @@
+/* Inline-flex, not block: this sits inside a table cell, inside a source card's meta line and
+   inside a dialog head, and in all three it is one item among others on a line. */
+.approval {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-1);
+  font-size: var(--t-xs);
+  white-space: nowrap;
+}
+
+.approval-icon {
+  flex: none;
+  width: 0.95rem;
+  height: 0.95rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* The one filled part of either icon: a 1px stroked dot renders as a smudge at this size. */
+.approval-icon .dot {
+  fill: currentColor;
+  stroke: none;
+}
+
+/*
+ * APPROVED IS QUIET. Most of the corpus is approved, so a coloured badge on every row is noise the
+ * eye learns to skip — and an eye that has learned to skip this spot skips the unapproved marker
+ * too. Muted ink, no chip, no border: present when looked for, invisible when scanned past.
+ */
+.approval-approved {
+  color: var(--c-ink-muted);
+}
+
+/*
+ * UNAPPROVED IS NOT QUIET, and it never relies on the colour. The word "Nicht freigegeben" and the
+ * triangle both carry the meaning on their own; the amber chip only makes them findable in a table
+ * of twenty rows. This is the same rule the two answer modes and the health dot follow.
+ */
+.approval-unapproved {
+  padding: 0.1rem var(--s-2);
+  border: 1px solid var(--c-review-line);
+  border-radius: var(--r-pill);
+  background: var(--c-review-soft);
+  color: var(--c-review-ink);
+  font-weight: 700;
+}
+
+/* Who signed it off and when. One step down from the label it follows: it is the evidence behind
+   the word, not a second claim of its own. */
+.approval-actor {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  color: var(--c-ink-muted);
+}
+
+/* In a narrow cell the actor drops under the label rather than forcing the column wider — the
+   Verwaltung table already scrolls horizontally below desktop width, and this is the cell most
+   likely to be the reason. */
+@media (max-width: 40rem) {
+  .approval {
+    flex-wrap: wrap;
+    white-space: normal;
+  }
+}

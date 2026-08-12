@@ -12,6 +12,22 @@
       </p>
       <p class="answer-explanation">{{ t().modeA.explanation }}</p>
 
+      @if (unapprovedCount(); as unapproved) {
+        <!-- ONE QUIET LINE, and the restraint is the design. An unapproved source is a decided,
+             ordinary state of this system (2026-08-11), not a fault — a red banner here would make
+             the feature look broken and would teach the reader to dismiss the one thing it says.
+             It sits directly under the "every statement is cited" sentence because that is the
+             sentence it qualifies: cited is not the same as reviewed. -->
+        <p class="answer-unapproved" role="note" data-testid="answer-unapproved">
+          <svg class="answer-unapproved-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path d="M12 3.6L1.8 20.4h20.4z" />
+            <path d="M12 9.6v4.6" />
+            <circle class="dot" cx="12" cy="17.4" r="1" />
+          </svg>
+          {{ t().modeA.unapprovedSources(unapproved) }}
+        </p>
+      }
+
       <!-- THE CLAMP IS A MAX-HEIGHT ON THIS WRAPPER AND NOTHING ELSE. The whole answer is inside it
            whether it is open or shut — never truncated, never paginated, never split. A Mode A
            claim names the source it came from, and cutting the text would separate the two, which
@@ -78,6 +94,25 @@
         {{ t().modeB.badge }}
       </p>
       <p class="answer-explanation">{{ t().modeB.explanation }}</p>
+
+      @if (approvedOnly()) {
+        <!-- THE "EMPTY STATE" OF THE FACET, and it is a Mode B answer rather than an empty list:
+             narrowing retrieval to approved protocols can leave nothing above the threshold, and the
+             backend then answers Mode B exactly as it would for a genuine gap in the corpus. Without
+             this line the two are indistinguishable, and the reader concludes the plant has no
+             protocol on the fault when what happened is that theirs is not signed off yet. -->
+        <p class="answer-approved-only" role="note" data-testid="approved-only-note">
+          <span>{{ t().search.approvedOnlyEmpty }}</span>
+          <button
+            type="button"
+            class="link-button"
+            data-testid="approved-only-widen"
+            (click)="widen.emit()"
+          >
+            {{ t().search.approvedOnlyEmptyAction }}
+          </button>
+        </p>
+      }
 
       <!-- Mode B is clamped by the same wrapper: a long list of general steps buries the page just
            as effectively, and the reader is owed the same escape. -->

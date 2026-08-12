@@ -72,8 +72,20 @@ export class SearchAnswer {
   /** What to call the machine on a source card read on its own. */
   readonly machine = input('');
 
+  /**
+   * Whether THIS answer was produced with the approved-only facet on.
+   *
+   * The state of the answer, not of the checkbox: a reader who toggles the facet after asking has
+   * not changed what they are looking at, and a note that flipped with the control would describe a
+   * search that was never run.
+   */
+  readonly approvedOnly = input(false);
+
   /** A source's title was activated — the search view owns the viewer dialog. */
   readonly opened = output<Citation>();
+
+  /** The reader asked to search the whole corpus after all — the search view re-runs the query. */
+  readonly widen = output<void>();
 
   private readonly body = viewChild<ElementRef<HTMLElement>>('answerBody');
 
@@ -90,6 +102,22 @@ export class SearchAnswer {
     const current = this.answer();
     return current.mode === 'A' ? toSegments(current.answer, current.citations) : [];
   });
+
+  /**
+   * How many of the cited sources nobody has approved.
+   *
+   * <p>Said ONCE at the answer level, in addition to the per-source markers below, and both are
+   * needed. Decision 1 of 2026-08-11 keeps unapproved protocols searchable and accepts that they are
+   * less reliable to troubleshoot from — the price of that trade is that the reader is told. A
+   * technician who has to read down a list of five source cards to discover that one of them is
+   * unreviewed has effectively not been told: the answer is what they act on, and on a tablet the
+   * sources may not even be on screen.
+   *
+   * <p>Zero when every source is approved, which is the ordinary case and renders nothing at all.
+   */
+  protected readonly unapprovedCount = computed(
+    () => this.answer().citations.filter((citation) => !citation.approved).length,
+  );
 
   /** Mode B's steps: the backend joins them with newlines, and they render as a numbered list. */
   protected readonly steps = computed<string[]>(() => {

@@ -1,0 +1,31 @@
+<!-- One element per state rather than one element with two classes: the icon differs, and a shared
+     node with a swapped path is harder to read than two small blocks that each say one thing. -->
+@if (approved()) {
+  <span class="approval approval-approved" data-testid="approval-state" data-approval="APPROVED">
+    <svg class="approval-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <circle cx="12" cy="12" r="9" />
+      <path d="M8 12.4l2.6 2.6L16 9.6" />
+    </svg>
+    <span class="approval-label">{{ t().approval.approved }}</span>
+    @if (showActor() && approval().approvedBy) {
+      <!-- WHO and WHEN, because an approval without an actor is not an audit record — the same rule
+           the database constraint states. The day, not the minute: a reviewer asks whether this was
+           signed off before or after last week's change, never at which second. -->
+      <span class="approval-actor" data-testid="approval-actor">
+        {{ approval().approvedBy }} · {{ approval().approvedAt | appDate: language() }}
+      </span>
+    }
+  </span>
+} @else {
+  <span class="approval approval-unapproved" data-testid="approval-state" data-approval="UNAPPROVED">
+    <!-- The word is what carries the meaning; the colour and the triangle only make it findable. An
+         unapproved protocol is not an error, so this is not the danger red — it is the caution the
+         reader is owed before they act on the text. -->
+    <svg class="approval-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <path d="M12 3.6L1.8 20.4h20.4z" />
+      <path d="M12 9.6v4.6" />
+      <circle class="dot" cx="12" cy="17.4" r="1" />
+    </svg>
+    <span class="approval-label">{{ t().approval.unapproved }}</span>
+  </span>
+}

@@ -6,9 +6,26 @@
 >
   <!-- The machine belongs in the head next to the title: on a shop floor "which machine is this
        about" is the first question asked of any document. -->
-  @if (machine()) {
-    <p class="viewer-machine" dialogSubtitle data-testid="protocol-machine">{{ machine() }}</p>
+  @if (machine() || approval()) {
+    <p class="viewer-machine" dialogSubtitle data-testid="protocol-machine">
+      <span>{{ machine() }}</span>
+      @if (approval(); as state) {
+        <!-- Beside the machine, in the head, so it is read BEFORE the text rather than looked up
+             afterwards. A reader who has already worked through a protocol and only then learns
+             that nobody has reviewed it has been told too late to act on it. -->
+        <app-approval-state
+          [approval]="state"
+          [language]="language()"
+          [showActor]="source() !== 'citation'"
+        />
+      }
+    </p>
   }
+
+  <!-- Re-projected into the dialog's own action row, so a caller that owns a verb for this protocol
+       — the Verwaltung view's approve and withdraw — can put it beside Download without this
+       component learning what the verb is. The citation viewer passes nothing and gets nothing. -->
+  <ng-content select="[protocolActions]" ngProjectAs="[dialogActions]" />
 
   <button
     type="button"

@@ -1,7 +1,7 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
-import { Citation, Machine, QueryAnswer } from '../../core/api/api.types';
+import { Approval, Citation, Machine, QueryAnswer } from '../../core/api/api.types';
 import { ApiFailure, MaintenanceApiService, classify } from '../../core/api/maintenance-api.service';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { ProtocolDialog } from '../../shared/protocol/protocol-dialog';
@@ -37,6 +37,18 @@ export class Search {
   protected readonly machineId = signal('');
   protected readonly question = signal('');
 
+  /**
+   * The approved-only facet, OFF by default.
+   *
+   * <p>The default is decision 1 of 2026-08-11, not a convenience: an unapproved protocol stays
+   * searchable because the administrator may not review at a weekend and the factory does not stop.
+   * Defaulting this ON would quietly reinstate the gate that decision refused, and would do it in
+   * the one place nobody would look for it.
+   */
+  protected readonly approvedOnly = signal(false);
+  /** What the answer on screen was actually asked with — see {@link SearchAnswer.approvedOnly}. */
+  protected readonly answeredApprovedOnly = signal(false);
+
   protected readonly answer = signal<QueryAnswer | null>(null);
   protected readonly asking = signal(false);
   protected readonly failure = signal<ApiFailure | null>(null);
@@ -44,6 +56,21 @@ export class Search {
 
   /** The citation whose protocol the viewer is showing, or null when the viewer is closed. */
   protected readonly viewing = signal<Citation | null>(null);
+
+  /**
+   * The open source's approval, for the viewer's head, or null when nothing is open.
+   *
+   * The state travels into the dialog rather than being looked up there, so the mark a reader saw
+   * on the source card is the same mark they see on the document — one fact, told once. A second
+   * fetch could also disagree with the card if an administrator approved it in the meantime, and a
+   * source list that contradicts the document it links to is worse than a slightly stale one.
+   */
+  protected readonly viewingApproval = computed<Approval | null>(() => {
+    const citation = this.viewing();
+    return citation
+      ? { state: citation.approved ? 'APPROVED' : 'UNAPPROVED', approvedBy: null, approvedAt: null }
+      : null;
+  });
 
   /** What to call the machine in the viewer's head: the picker's own label, not an id. */
   protected readonly machineLabel = computed(() => {
@@ -81,9 +108,14 @@ export class Search {
     this.answer.set(null);
     this.asking.set(true);
 
-    this.api.ask(question, this.machineId()).subscribe({
+    const approvedOnly = this.approvedOnly();
+    this.api.ask(question, this.machineId(), approvedOnly).subscribe({
       next: (answer) => {
         this.answer.set(answer);
+        // Recorded WITH the answer rather than read from the control later: a reader who flips the
+        // facet after asking has not changed what is on screen, and a note that flipped with the
+        // checkbox would describe a search nobody ran.
+        this.answeredApprovedOnly.set(approvedOnly);
         this.asking.set(false);
       },
       error: (error: unknown) => {
@@ -91,6 +123,18 @@ export class Search {
         this.asking.set(false);
       },
     });
+  }
+
+  /**
+   * Turns the facet off and asks the same question again.
+   *
+   * Offered from the Mode B note, because that is the moment the narrowing is felt: the reader has
+   * an unsourced answer and no way of telling whether the corpus is empty on this fault or merely
+   * unreviewed. Re-asking rather than merely unchecking, so the answer follows the decision.
+   */
+  protected widenToWholeCorpus(): void {
+    this.approvedOnly.set(false);
+    this.ask();
   }
 
   /**

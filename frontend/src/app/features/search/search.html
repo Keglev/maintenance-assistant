@@ -42,6 +42,25 @@
     ></textarea>
   </label>
 
+  <!-- The approved-only facet. OFF by default and stated as such in the hint, because "everything is
+       searched" is the decision (2026-08-11) and a reader has to be able to see that it is. Below
+       the question rather than beside the machine picker: it narrows the ANSWER, not the scope of
+       the question, and the machine row is where scope already lives. -->
+  <div class="ask-facet">
+    <label class="checkbox">
+      <input
+        type="checkbox"
+        name="approvedOnly"
+        data-testid="approved-only"
+        [ngModel]="approvedOnly()"
+        (ngModelChange)="approvedOnly.set($event)"
+        [disabled]="asking()"
+      />
+      <span>{{ t().search.approvedOnly }}</span>
+    </label>
+    <p class="field-hint" data-testid="approved-only-hint">{{ t().search.approvedOnlyHint }}</p>
+  </div>
+
   <div class="ask-actions">
     <!-- Disabled while a request is in flight: the answer costs a provider call and counts against
          a per-user rate limit, so a second click is money and a 429 rather than a faster answer. -->
@@ -99,7 +118,13 @@
   <!-- The answer sits directly under the form that produced it. It used to render after the help
        panel, which on a wide screen meant scrolling past an explanation to reach the thing being
        explained. -->
-  <app-search-answer [answer]="result" [machine]="machineLabel()" (opened)="openSource($event)" />
+  <app-search-answer
+    [answer]="result"
+    [machine]="machineLabel()"
+    [approvedOnly]="answeredApprovedOnly()"
+    (opened)="openSource($event)"
+    (widen)="widenToWholeCorpus()"
+  />
 }
 </div>
 
@@ -113,6 +138,7 @@
   [protocolId]="viewing()?.protocolId ?? null"
   [protocolTitle]="viewing()?.title ?? ''"
   [machine]="machineLabel()"
+  [approval]="viewingApproval()"
   (closed)="viewing.set(null)"
 />
 </div>

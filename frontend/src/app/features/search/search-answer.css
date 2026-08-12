@@ -23,6 +23,56 @@
   font-size: var(--t-sm);
 }
 
+/*
+ * "One of the sources is not approved" — a LINE, not a banner.
+ *
+ * No filled background, no border box, no alert role: an unapproved source is an ordinary decided
+ * state of this system (2026-08-11), and a warning panel would say the answer is defective. What it
+ * gets instead is the review ink and a small triangle, so it is findable without being alarming —
+ * and the triangle is there because colour alone is never a signal in this application.
+ *
+ * It sits between the explanation and the answer text, in the gap the explanation used to own, so
+ * the reader passes it on the way into the prose rather than after having read and believed it.
+ */
+.answer-unapproved {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--s-2);
+  margin: calc(var(--s-4) * -1) 0 var(--s-4);
+  padding-top: var(--s-2);
+  font-size: var(--t-sm);
+  color: var(--c-review-ink);
+}
+
+.answer-unapproved-icon {
+  flex: none;
+  width: 1.05rem;
+  height: 1.05rem;
+  margin-top: 0.15rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.answer-unapproved-icon .dot {
+  fill: currentColor;
+  stroke: none;
+}
+
+/* Why a Mode B answer may be a Mode B answer: the facet narrowed retrieval, and the reader can undo
+   that from here. The action is a text button rather than a second primary — it re-runs a query,
+   which is the same act the form above already offers. */
+.answer-approved-only {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--s-2);
+  margin: 0 0 var(--s-4);
+  font-size: var(--t-sm);
+}
+
 .answer-text {
   margin: 0 0 var(--s-5);
   line-height: var(--lh-relaxed);

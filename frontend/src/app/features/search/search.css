@@ -17,6 +17,15 @@
   margin-bottom: var(--s-5);
 }
 
+/* The facet and its hint stack tightly — they are one statement, and the `.ask` gap between form
+   rows would read as two. The hint stays visible while the box is being decided about, which a
+   tooltip would not: the thing it says (everything is searched by default) is the decision. */
+.ask-facet {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-1);
+}
+
 .ask-actions {
   display: flex;
   align-items: center;

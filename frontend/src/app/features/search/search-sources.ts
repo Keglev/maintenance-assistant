@@ -1,8 +1,9 @@
 import { DOCUMENT } from '@angular/common';
 import { Component, computed, effect, inject, input, output, signal } from '@angular/core';
 
-import { Citation } from '../../core/api/api.types';
+import { Approval, Citation } from '../../core/api/api.types';
 import { I18nService } from '../../core/i18n/i18n.service';
+import { ApprovalStateBadge } from '../../shared/approval/approval-state';
 
 /**
  * How many sources fit under an answer before the list starts hiding it.
@@ -42,6 +43,7 @@ export function sourceCardId(citation: Citation): string {
  */
 @Component({
   selector: 'app-search-sources',
+  imports: [ApprovalStateBadge],
   templateUrl: './search-sources.html',
   styleUrl: './search-sources.css',
 })
@@ -52,6 +54,8 @@ export class SearchSources {
   private readonly document = inject(DOCUMENT);
 
   protected readonly t = this.i18n.t;
+  /** Handed to the badge, which hands it to the date pipe — a pure pipe cannot read a signal. */
+  protected readonly language = this.i18n.language;
 
   readonly citations = input.required<readonly Citation[]>();
   /** What to call the machine on a card read on its own. Every source shares it — the query is scoped. */
@@ -128,5 +132,18 @@ export class SearchSources {
   /** Percent, rounded — a reader compares 69 % with 56 %, not 0.6896 with 0.5566. */
   protected percent(citation: Citation): number {
     return Math.round(citation.similarity * 100);
+  }
+
+  /**
+   * The citation's approval, in the shape the shared badge reads.
+   *
+   * A citation carries a boolean rather than an actor and a time, and that is the right wire shape:
+   * a technician reading an answer needs to know whether a source was reviewed, not by whom — and
+   * the approver's username on every source card would put a colleague's name under a claim they
+   * did not make. Widened here rather than in the badge so the badge stays one component with one
+   * input, used identically on all three surfaces.
+   */
+  protected approvalOf(citation: Citation): Approval {
+    return { state: citation.approved ? 'APPROVED' : 'UNAPPROVED', approvedBy: null, approvedAt: null };
   }
 }

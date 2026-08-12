@@ -1,9 +1,11 @@
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
+import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
 import { ArchivedProtocol, ModeratedProtocol, ProtocolPage } from '../../core/api/api.types';
+import { AuthService } from '../../core/auth/auth.service';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { Moderation } from './moderation';
 
@@ -28,6 +30,9 @@ describe('Moderation', () => {
       uploadedAt: '2026-08-08T10:15:00Z',
       status: 'INDEXED',
       chunkCount: 2,
+      // Approved by default, like 150 of the 165 seeded protocols: a fixture that defaulted to
+      // UNAPPROVED would make every existing test a test of the queue.
+      approval: { state: 'APPROVED', approvedBy: 'admin', approvedAt: '2026-08-11T09:00:00Z' },
       ...overrides,
     };
   }
@@ -36,10 +41,27 @@ describe('Moderation', () => {
     return { items, page: index, size: 5, total };
   }
 
+  /**
+   * The signed-in roles, as a signal the tests can flip.
+   *
+   * <p>The view's buttons depend on them since v1.2 — the admin approves and no longer corrects,
+   * the Schichtleiter corrects and does not approve — so a role is now an input to this component
+   * rather than a fact about the route it lives on. A stub of {@link AuthService} rather than one of
+   * `OAuthService`: what these tests are about is which buttons a role sees, and a fake token would
+   * put base64 in the way of saying so.
+   */
+  let roles: ReturnType<typeof signal<string[]>>;
+
   beforeEach(async () => {
+    roles = signal<string[]>(['admin']);
+
     await TestBed.configureTestingModule({
       imports: [Moderation],
-      providers: [provideHttpClient(), provideHttpClientTesting()],
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        { provide: AuthService, useValue: { realmRoles: roles } },
+      ],
     }).compileComponents();
 
     httpMock = TestBed.inject(HttpTestingController);
@@ -389,9 +411,18 @@ describe('Moderation', () => {
   // Correction
   // -------------------------------------------------------------------------------------------
 
-  /** Opens the edit dialog on the first row and answers the document fetch it makes. */
+  /**
+   * Opens the edit dialog on the first row and answers the document fetch it makes.
+   *
+   * AS THE SCHICHTLEITER, because since 2026-08-13 correcting is theirs and the administrator has
+   * no Bearbeiten button at all. The role is set here rather than in each test below so the tests
+   * keep saying what they were always about — what the correction dialog does — rather than
+   * repeating who is allowed to open it. That rule has its own test.
+   */
   async function openEdit(fixture: Awaited<ReturnType<typeof render>>, text = 'Anzugsmoment 90 Nm') {
     const element = fixture.nativeElement as HTMLElement;
+    roles.set(['schichtleiter']);
+    await fixture.whenStable();
     (element.querySelector('[data-testid="row-edit"]') as HTMLButtonElement).click();
     await fixture.whenStable();
     httpMock

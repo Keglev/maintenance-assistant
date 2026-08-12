@@ -30,7 +30,20 @@ record CorpusProtocol(
         Integer downtimeMinutes,
         String technicianInitials,
         String language,
-        String uploadedBy) {
+        String uploadedBy,
+        /*
+         * Whether this protocol is born reviewed (decision of 2026-08-11).
+         *
+         * The original 150 are: they are the demo's known-good corpus, and every answer in
+         * every walkthrough is grounded in them. The ~15 added in v1.2 are not, deliberately —
+         * they exist so the administrator has a real approval queue to work through rather
+         * than an empty one.
+         *
+         * IT LIVES IN THE SEED DATA rather than in the loader, because "is this protocol
+         * vouched for" is a property of the protocol, not of the mechanism that inserts it.
+         * Absent means false: a record that does not claim to have been reviewed has not been.
+         */
+        boolean approved) {
 
     static CorpusProtocol from(JsonNode node) {
         return new CorpusProtocol(
@@ -48,7 +61,8 @@ record CorpusProtocol(
                 integer(node, "downtime_minutes"),
                 text(node, "technician_initials"),
                 node.get("language").asText(),
-                node.get("uploaded_by").asText());
+                node.get("uploaded_by").asText(),
+                node.hasNonNull("approved") && node.get("approved").asBoolean());
     }
 
     /** Nullable string field: absent and JSON {@code null} both mean "not recorded". */

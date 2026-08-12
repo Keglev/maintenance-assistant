@@ -21,6 +21,7 @@ import java.util.Map;
 import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
@@ -72,11 +73,11 @@ class QueryControllerIT {
     @Test
     @DisplayName("an operator is answered, and the role comes from the token")
     void anOperatorIsAnswered() throws Exception {
-        when(queries.ask(any(), eq(MACHINE), eq(QueryRole.OPERATOR), any()))
+        when(queries.ask(any(), eq(MACHINE), eq(QueryRole.OPERATOR), any(), anyBoolean()))
                 .thenReturn(new QueryAnswer(QueryAnswer.AnswerMode.A, "Belegt. [P1]", "de",
                         List.of(new QueryAnswer.Claim("Belegt.", "P1")),
                         List.of(new QueryAnswer.Citation("P1", UUID.randomUUID(),
-                                "E-47 Druckabfall im Presshub", "E-47", LocalDate.of(2024, 10, 8), 0.695))));
+                                "E-47 Druckabfall im Presshub", "E-47", LocalDate.of(2024, 10, 8), 0.695, true))));
 
         mockMvc.perform(ask("operator", "operator"))
                 .andExpect(status().isOk())
@@ -89,7 +90,7 @@ class QueryControllerIT {
     @Test
     @DisplayName("a techniker is answered too")
     void aTechnikerIsAnswered() throws Exception {
-        when(queries.ask(any(), eq(MACHINE), eq(QueryRole.TECHNIKER), any()))
+        when(queries.ask(any(), eq(MACHINE), eq(QueryRole.TECHNIKER), any(), anyBoolean()))
                 .thenReturn(new QueryAnswer(QueryAnswer.AnswerMode.B,
                         "Kein Protokoll deckt diesen Fall ab.", "de", List.of(), List.of()));
 
@@ -102,7 +103,7 @@ class QueryControllerIT {
     @Test
     @DisplayName("the per-user rate limit answers 429 with Retry-After")
     void rateLimitIsReportedAsRetryable() throws Exception {
-        when(queries.ask(any(), any(), any(), any()))
+        when(queries.ask(any(), any(), any(), any(), anyBoolean()))
                 .thenThrow(new QueryServiceExceptions().rateLimited());
 
         mockMvc.perform(ask("operator", "operator"))
@@ -114,7 +115,7 @@ class QueryControllerIT {
     @Test
     @DisplayName("an exhausted daily budget answers 503, and says answering resumes tomorrow")
     void anExhaustedBudgetIsReportedGracefully() throws Exception {
-        when(queries.ask(any(), any(), any(), any()))
+        when(queries.ask(any(), any(), any(), any(), anyBoolean()))
                 .thenThrow(new QueryServiceExceptions().budgetExhausted());
 
         mockMvc.perform(ask("techniker", "techniker"))

@@ -173,18 +173,25 @@ runs:
       working-directory: backend
       shell: bash
       run: |
+        # COUNTED FROM THE CORPUS FILE, not written down here. The number was 150 until v1.2 added
+        # fifteen unapproved protocols for the approval queue, and a hard-coded 150 then failed
+        # this job — correctly, and for a reason that had nothing to do with the change under
+        # review. One record per line is the file's format, so the count is the file's own.
+        expected=$(grep -c . "${{ github.workspace }}/backend/src/main/resources/corpus/protocols.ndjson")
+        echo "corpus declares $expected protocols"
+
         # Wait for the seed to have finished INSERTING before restarting — otherwise the restart
         # races the seed in the other direction and lands in exactly the same place.
         for i in $(seq 1 60); do
           rows=$(docker exec postgres psql -U maintenance -d maintenance -t -A \
             -c "select count(*) from protocol;" 2>/dev/null || echo 0)
-          [ "$rows" = "150" ] && break
+          [ "$rows" = "$expected" ] && break
           sleep 5
         done
         rows=$(docker exec postgres psql -U maintenance -d maintenance -t -A \
           -c "select count(*) from protocol;" 2>/dev/null || echo 0)
-        if [ "$rows" != "150" ]; then
-          echo "::error::the corpus seed inserted $rows of 150 protocols"
+        if [ "$rows" != "$expected" ]; then
+          echo "::error::the corpus seed inserted $rows of $expected protocols"
           tail -60 "$RUNNER_TEMP/backend.log" || true
           exit 1
         fi
@@ -222,7 +229,8 @@ runs:
         # AND IT FAILS LOUDLY. The old loop simply ran out of iterations and let the job continue,
         # so a stack that was not ready produced a confusing failure two steps later instead of an
         # accurate one here.
-        expected=150
+        # The same count, from the same place, for the same reason as the step above.
+        expected=$(grep -c . "${{ github.workspace }}/backend/src/main/resources/corpus/protocols.ndjson")
         for i in $(seq 1 90); do
           indexed=$(docker exec postgres psql -U maintenance -d maintenance -t -A \
             -c "select count(*) from protocol where status = 'INDEXED';" 2>/dev/null || echo 0)

@@ -47,16 +47,16 @@ class QueryCache {
                 .build();
     }
 
-    Optional<QueryAnswer> get(String question, UUID machineId, QueryRole role) {
-        QueryAnswer hit = cache.getIfPresent(new Key(normalise(question), machineId, role));
+    Optional<QueryAnswer> get(String question, UUID machineId, QueryRole role, boolean approvedOnly) {
+        QueryAnswer hit = cache.getIfPresent(new Key(normalise(question), machineId, role, approvedOnly));
         if (hit != null) {
             log.debug("Query cache hit for machine {} as {}", machineId, role);
         }
         return Optional.ofNullable(hit);
     }
 
-    void put(String question, UUID machineId, QueryRole role, QueryAnswer answer) {
-        cache.put(new Key(normalise(question), machineId, role), answer);
+    void put(String question, UUID machineId, QueryRole role, boolean approvedOnly, QueryAnswer answer) {
+        cache.put(new Key(normalise(question), machineId, role, approvedOnly), answer);
     }
 
     /** Test seam and an operational one: a cache nobody can clear is a cache nobody can debug. */
@@ -72,6 +72,6 @@ class QueryCache {
         return question == null ? "" : question.strip().replaceAll("\\s+", " ").toLowerCase(Locale.ROOT);
     }
 
-    private record Key(String question, UUID machineId, QueryRole role) {
+    private record Key(String question, UUID machineId, QueryRole role, boolean approvedOnly) {
     }
 }

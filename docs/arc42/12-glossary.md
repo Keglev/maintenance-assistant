@@ -6,9 +6,9 @@ documentation is otherwise English.
 | Term | Meaning |
 |---|---|
 | **Operator** | Machine operator. Receives operator-safe instructions only — never electrical or mechanical repair steps. |
-| **Techniker** | Shop-floor technician (*Fachkraft*). Receives full technical answers including repair steps. |
-| **Schichtleiter** | Shift supervisor. Sole write access: creates and uploads protocols. |
-| **Admin** | System administrator, an IT role only. Manages users and roles in Keycloak. |
+| **Techniker** | Shop-floor technician (*Fachkraft*). Receives full technical answers including repair steps, and since v1.2 FILES protocols — but never corrects one, not even their own. |
+| **Schichtleiter** | Shift supervisor. Writes protocols and, since v1.2, CORRECTS them with a mandatory reason. May not approve — the corrector is never the approver. |
+| **Admin** | System administrator. Manages users and roles in Keycloak; since v1.1 reviews and archives protocols, and since v1.2 APPROVES them. |
 | **Protocol** (*Protokoll*) | A maintenance record for one incident or service: symptom, cause, action, parts used. The **citation unit** of an answer. |
 | **Störung / Wartung** | The two protocol types: fault (unplanned) and maintenance (planned). *Inspektion* was dropped — it lives in manufacturer manuals. |
 | **Chunk** | A slice of a protocol's text with its embedding. The **search unit**. |
@@ -16,6 +16,8 @@ documentation is otherwise English.
 | **Mode A — "Belegte Antwort"** | Grounded answer: every claim cited from an indexed protocol. The default. |
 | **Mode B — "Allgemeiner Vorschlag — keine Quelle im Bestand"** | Explicitly labelled ungrounded general troubleshooting, used only when no relevant protocol exists. Never presented as fact. |
 | **Operator-safe** | Actions an Operator may perform without a Fachkraft: cleaning a sensor, removing jammed material, loading a program. |
+| **Approval** | An administrator vouching for a protocol, with their name and the time. NOT a gate: an unapproved protocol stays searchable and citable, because the admin may not review at a weekend and the factory does not stop. An edit resets it. |
+| **Four eyes** | Author, corrector and approver are three different people. Enforced on the act: an approval is refused for a protocol the same person filed or last corrected. |
 | **Escalation chain** | The organisational path Operator → Techniker → Schichtleiter → management. Context for the problem, **not** a system feature. |
 | **RAG** | Retrieval-Augmented Generation: retrieve relevant chunks first, then let the model answer only from them. |
 | **Embedding** | A vector representation of text. Multilingual here, so a German query can retrieve an English protocol without translation. |

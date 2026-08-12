@@ -206,6 +206,8 @@ final class GroundedPrompt {
             String errorCode,
             LocalDate incidentDate,
             double similarity,
-            List<String> contents) {
+            List<String> contents,
+            /** Whether an administrator has vouched for this protocol. Travels to the citation. */
+            boolean approved) {
     }
 }

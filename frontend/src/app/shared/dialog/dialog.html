@@ -7,9 +7,13 @@
     (click)="close()"
     (keydown)="onKeydown($event)"
   >
+    <!-- tabindex="-1" makes the panel a focus TARGET without making it a tab STOP. It is where
+         focus lands when a dialog opens with no usable control of its own — the case that broke
+         Esc in the protocol viewer, whose first button is disabled until its document arrives. -->
     <div
       class="panel"
       #panel
+      tabindex="-1"
       role="dialog"
       aria-modal="true"
       [attr.aria-labelledby]="titleId"

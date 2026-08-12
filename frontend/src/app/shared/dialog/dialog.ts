@@ -53,7 +53,16 @@ export class Dialog {
       if (this.open()) {
         this.opener = this.document.activeElement as HTMLElement | null;
         // The panel is rendered in the same change-detection pass, so the focus move waits a tick.
-        setTimeout(() => this.focusables()[0]?.focus());
+        //
+        // FALLING BACK TO THE PANEL IS NOT DEFENSIVE PROGRAMMING, it is the fix for a real defect
+        // (found by the e2e suite, PR #50). The protocol viewer's first projected control is a
+        // Download button that is DISABLED until the document arrives, and `focus()` on a disabled
+        // element does nothing at all — silently. Focus therefore stayed on whatever opened the
+        // dialog, which is outside the backdrop, so the keydown handler below never received an
+        // Escape and the tab trap never ran. `focusables()` now refuses disabled controls, and when
+        // a dialog opens with none that are usable the PANEL takes focus instead: it is
+        // `tabindex="-1"`, so it is a focus target without joining the tab ring.
+        setTimeout(() => (this.focusables()[0] ?? this.panel()?.nativeElement)?.focus());
       } else {
         this.opener?.focus();
         this.opener = null;
@@ -101,12 +110,28 @@ export class Dialog {
     }
   }
 
+  /**
+   * The controls a user can actually reach inside the panel, in tab order.
+   *
+   * <p>TWO EXCLUSIONS, AND BOTH ARE THERE BECAUSE THEIR ABSENCE BROKE SOMETHING.
+   *
+   * <p><b>`:not([disabled])`</b> — a disabled control cannot take focus, and asking it to is a
+   * no-op that reports no error. When such a control happened to be first in the panel (the
+   * viewer's Download button, disabled until the document loads) the dialog opened with focus still
+   * on the page behind it, and Esc and the tab trap both stopped working, because both are bound to
+   * the backdrop and neither can see a key pressed outside it.
+   *
+   * <p><b>`:not([tabindex="-1"])`</b> — `[tabindex]` on its own also matches the panel itself, which
+   * carries `tabindex="-1"` precisely so it can receive focus WITHOUT joining the tab ring. Without
+   * this exclusion the panel would become the first stop of a Tab cycle it is only the container of.
+   */
   private focusables(): HTMLElement[] {
     const host = this.panel()?.nativeElement;
     return host
       ? [
           ...host.querySelectorAll<HTMLElement>(
-            'button, [href], input, select, textarea, [tabindex]',
+            'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), ' +
+              'textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
           ),
         ]
       : [];

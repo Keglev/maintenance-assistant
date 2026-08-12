@@ -54,6 +54,6 @@ web ─── IngestionBacklogService ┘   (async, own pool)      │   └ Emb
 
 - **`query`** — Phase 3.
 - **`web`** — `SecurityConfig` (resource server, realm roles → `ROLE_*`), `HealthController`,
-  `HelloController`, `ProtocolUploadController` (Schichtleiter only),
+  `HelloController`, `ProtocolUploadController` (Techniker and Schichtleiter since v1.2),
   `IngestionAdminController` (admin), `OpenApiConfig`.
 - **Angular client** — login redirect and guarded home; search and upload views in Phase 3.

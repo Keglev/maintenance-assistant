@@ -10,9 +10,9 @@
 | Partner | Direction | Exchanged | Notes |
 |---|---|---|---|
 | **Operator** | in / out | Natural-language question or error code → operator-safe answer with citations, or escalation advice | Never receives electrical or mechanical repair steps (NFR-3). |
-| **Techniker** | in / out | Question, optional machine filter → full technical answer with citations (document + date) | Machine filter keeps results relevant (US-3). |
-| **Schichtleiter** | in / out | New protocol (form) or uploaded PDF/text → processing status `RECEIVED → INDEXED / FAILED` | Sole write access. |
-| **Admin** | in / out | User and role administration | Happens **in Keycloak**, not in this system's UI (US-6). |
+| **Techniker** | in / out | Question → full technical answer with citations; new protocol → `RECEIVED → INDEXED / FAILED` | Writes since v1.2. **Never corrects**, not even their own protocol. |
+| **Schichtleiter** | in / out | New protocol (form or text) and **corrections** with a mandatory reason → re-indexed protocol | The corrector in the trust chain. May not approve. |
+| **Admin** | in / out | User administration (in Keycloak); corpus review, archive, and **approval** of protocols | Approval carries an actor and a time. Refused for a protocol the same person filed or last corrected. |
 | **Keycloak** | out / in | OIDC authorization requests → ID/access tokens (JWT) with realm roles | Realm `maintenance`. Also the login UI; the app has no login form. |
 | **PostgreSQL + pgvector** | out / in | SQL: protocol metadata, chunks, embeddings → filtered nearest-neighbour results | Single datastore, one backup. |
 | **EU-hosted LLM provider** | out / in | Embedding requests and chat/completion requests → embedding vectors, generated answers | OpenAI-compatible API; provider choice pending [ADR-002](../adr/ADR-002-eu-hosted-llm-provider.md). The only external network dependency at query time. |

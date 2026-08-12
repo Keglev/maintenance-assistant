@@ -289,3 +289,29 @@ corpus is an optimistic figure, because such a corpus is internally consistent i
 is not — and the security posture recorded in
 [ADR-005](docs/adr/ADR-005-spa-token-handling.md) is proportionate to a demo, which it says in as
 many words.
+
+### v1.2 — fifteen more protocols, deliberately easier and deliberately unreviewed
+
+`protocols.ndjson` grew from 150 to 165 in the approval PR. The fifteen new records were written the
+same way as the original corpus and are documented here for the same reason: **the corpus is
+generated data, and a reader is owed the ability to tell which parts were generated and why.**
+
+**Why they exist.** The trust chain needs a real approval queue — an administrator with nothing to
+review cannot demonstrate reviewing. They are seeded `approved: false` while the original 150 are
+`approved: true`, so a fresh environment comes up with 150 vouched-for protocols and 15 waiting.
+
+**Why they are EASIER faults.** The existing corpus leans specialist: pressure loss at a relief
+valve, servo drift, hydraulic leakage. An operator's actual first question is "the machine does not
+start" — and until now the corpus had little to answer it with. The fifteen cover exactly that
+register: machine does not start, stops without warning, no display, button does nothing, runs but
+produces nothing. Causes are the mundane ones that dominate a real shift log — a latched emergency
+stop, a blown fuse, a key switch left on Service, an empty hopper, a safety gate not reconnected
+after maintenance, a clogged cabinet filter.
+
+Spread over all ten machines, thirteen German and two English, matching the existing mix. **Three
+are deliberately messy** — lower case, no structure, "nix getauscht" — because the corpus is meant
+to contain the protocol somebody typed at the end of a long shift as well as the tidy ones, and a
+form that could only produce tidy records would add only the tidy half of reality.
+
+They are **retrievable, not filler**: asked "Maschine startet nicht, keine Reaktion beim
+Einschalten" against Presse 3, the top hit is one of them, well clear of the field.

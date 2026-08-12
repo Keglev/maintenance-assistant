@@ -309,3 +309,101 @@ It reuses what exists — the embeddings are already stored, the machine filter 
 `chunk` (ADR-004) — so the cost is a query and a screen, not a new mechanism. It is deferred with
 approval because that is the moment it belongs to: a duplicate warning is only actionable while
 someone is already deciding whether the protocol should exist.
+
+---
+
+## Revision — 2026-08-13: the trust chain, as implemented
+
+The 2026-08-10 note above described a plan. This describes what was built (v1.2, PR 1 of 2: backend
+and data; the interface follows in PR 2). Carlos's three decisions of 2026-08-11 are the input, and
+they are decisions rather than options.
+
+### Approval is a status, and an unapproved protocol stays searchable
+
+In Carlos's words: **the admin may not review at a weekend, and the factory does not stop.** Gating
+retrieval on approval would mean the newest knowledge in the plant — the protocol about the fault
+happening right now — is exactly the knowledge search cannot see. So approval changes what the
+system can SAY about a source, not whether the source can be found.
+
+**The trade-off is accepted, not hidden: an unapproved protocol is less reliable to troubleshoot
+from.** That is why the state is returned everywhere a protocol appears — the moderation list, the
+caller's own uploads, and the citations on an answer. It has to be on the CITATION in particular,
+because NFR-2's discipline (every claim names its source) is what makes a Mode A answer checkable,
+and it has the side effect of making any cited claim look verified. An unmarked unreviewed source
+would be the worst of both worlds. PR 2 renders the mark; this PR guarantees the data is there.
+
+`approvedOnly` exists as a query parameter for a caller who wants only the reviewed subset. It
+defaults to false at every caller, and a test asserts that unapproved protocols are still indexed
+and still retrievable — because this is the decision most likely to be "fixed" by accident later.
+
+### The schema: a state, not a boolean
+
+`protocol.approval_state` is a check-constrained `varchar` (`UNAPPROVED` | `APPROVED`) beside
+`approved_by` and `approved_at`. A boolean was the obvious first answer and lost on three counts:
+`approved = false` conflates "nobody has looked at this" with "somebody looked and withdrew"; the
+vocabulary is written down where a reader of the schema can see it; and it matches how this schema
+already spells a small closed set (`protocol.status`, `moderation_event.action`). The cost — a
+constraint to alter if the set ever grows — is only paid if it grows, and a boolean would have
+needed a second column in that case anyway.
+
+A constraint enforces that **an APPROVED row carries an approver and a time, and an UNAPPROVED row
+carries neither**. The first half is this ADR expressed as SQL: an approval without an actor is not
+an audit record. The second stops the columns describing a state the protocol is no longer in; the
+history lives in `moderation_event`, which gained `APPROVE` and `UNAPPROVE`.
+
+**Existing rows.** The 150 seeded protocols become APPROVED in the migration, identified by their
+deterministic id prefix, with the actor `system:corpus-seed` — a name that is not a Keycloak user
+and cannot be mistaken for one, because no human read them. **Everything else already in a live
+database stays UNAPPROVED**, which is the honest answer for production's test uploads: the migration
+cannot know whether anyone reviewed them, and approving them would fabricate the unearned trust the
+flag exists to expose. It costs nothing, because unapproved protocols remain searchable; they simply
+appear in the queue on the first login after deploy, which is where a handful of unreviewed test
+uploads belong.
+
+### Four eyes, enforced on the act
+
+Decision 3: the Techniker writes and never corrects, not even their own protocol; a correction is
+requested from the Schichtleiter, who performs it; the Admin approves. Three people.
+
+Two permissions moved to make that true, and both are widenings of what the code did before:
+
+- **The Techniker may now file a protocol.** They are the person standing at the machine. Requiring
+  them to dictate it to a Schichtleiter is how a plant ends up with protocols written by someone who
+  was not there — or with no protocol at all.
+- **The Schichtleiter may now correct one.** Until now correcting belonged to the administrator
+  alone, which made the corrector and the approver the same role and collapsed four eyes to two.
+
+**The administrator KEEPS the edit they have had since #39.** Removing a power silently while adding
+another would change the chain in a way nobody asked for. That leaves one hole — an admin could edit
+and then approve their own correction — and it is closed where it can actually be closed:
+`ProtocolApprovalService` refuses an approval by whoever **filed** the protocol or **last corrected**
+it, checked against `uploaded_by` and the newest `EDIT` event rather than against a role. Roles
+cannot express "the same human did both"; the ledger can.
+
+Approving is **idempotent**: it asserts a state rather than performing a transition, so a
+double-clicked button is not an error and writes no second audit row. A comment is **required to
+withdraw** approval and optional to grant it — approving affirms the text as it stands, while
+withdrawing takes back something a named person vouched for, and the next reader is owed the reason.
+
+### Editing an approved protocol resets it — the rule the chain rests on
+
+A correction after approval is text nobody has reviewed. Leaving the flag set would mean the
+approval vouches for words the approver never read, which is precisely the failure this ADR's
+original refusal of editing was worried about. So an edit sets the protocol back to UNAPPROVED,
+unconditionally.
+
+Unconditionally, because "only reset if the text really changed" makes the guarantee depend on a
+diff, and a whitespace or encoding difference deciding whether a review still counts is not a rule
+anyone can reason about. Every edit already forces a re-index for the same reason. The protocol
+stays searchable throughout; it simply stops claiming to be reviewed, and returns to the queue.
+
+The edit writes **two** ledger rows when it withdraws an approval — the `EDIT` and an `UNAPPROVE` —
+so a reader does not have to know the reset rule to see that the approval ended there. Both carry
+the same timestamp, because `now()` in Postgres is the transaction's: they are one atomic act, and
+presenting them as simultaneous is accurate rather than lossy.
+
+### What this revision does not do
+
+No interface (PR 2), no duplicate detection on approval (still deferred, unchanged from the note
+above), and no change to who may delete. The approval queue has no assignment, no due date and no
+reminder: it is a filter on a list, which is the smallest thing that makes the state actionable.

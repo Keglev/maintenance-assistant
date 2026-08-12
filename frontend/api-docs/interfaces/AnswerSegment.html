@@ -415,8 +415,20 @@ export class SearchAnswer {
   /** What to call the machine on a source card read on its own. */
   readonly machine &#x3D; input(&#x27;&#x27;);
 
+  /**
+   * Whether THIS answer was produced with the approved-only facet on.
+   *
+   * The state of the answer, not of the checkbox: a reader who toggles the facet after asking has
+   * not changed what they are looking at, and a note that flipped with the control would describe a
+   * search that was never run.
+   */
+  readonly approvedOnly &#x3D; input(false);
+
   /** A source&#x27;s title was activated — the search view owns the viewer dialog. */
   readonly opened &#x3D; output&lt;Citation&gt;();
+
+  /** The reader asked to search the whole corpus after all — the search view re-runs the query. */
+  readonly widen &#x3D; output&lt;void&gt;();
 
   private readonly body &#x3D; viewChild&lt;ElementRef&lt;HTMLElement&gt;&gt;(&#x27;answerBody&#x27;);
 
@@ -433,6 +445,22 @@ export class SearchAnswer {
     const current &#x3D; this.answer();
     return current.mode &#x3D;&#x3D;&#x3D; &#x27;A&#x27; ? toSegments(current.answer, current.citations) : [];
   });
+
+  /**
+   * How many of the cited sources nobody has approved.
+   *
+   * &lt;p&gt;Said ONCE at the answer level, in addition to the per-source markers below, and both are
+   * needed. Decision 1 of 2026-08-11 keeps unapproved protocols searchable and accepts that they are
+   * less reliable to troubleshoot from — the price of that trade is that the reader is told. A
+   * technician who has to read down a list of five source cards to discover that one of them is
+   * unreviewed has effectively not been told: the answer is what they act on, and on a tablet the
+   * sources may not even be on screen.
+   *
+   * &lt;p&gt;Zero when every source is approved, which is the ordinary case and renders nothing at all.
+   */
+  protected readonly unapprovedCount &#x3D; computed(
+    () &#x3D;&gt; this.answer().citations.filter((citation) &#x3D;&gt; !citation.approved).length,
+  );
 
   /** Mode B&#x27;s steps: the backend joins them with newlines, and they render as a numbered list. */
   protected readonly steps &#x3D; computed&lt;string[]&gt;(() &#x3D;&gt; {

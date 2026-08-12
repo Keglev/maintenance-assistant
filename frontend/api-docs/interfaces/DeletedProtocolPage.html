@@ -247,7 +247,7 @@ screen cannot drift away from the number the purge actually enforces.</p>
 
                             <tr>
                                 <td class="col-md-4">
-                                    <div class="io-line">Defined in <a href="" data-line="177" class="link-to-prism">src/app/core/api/api.types.ts:177</a></div>
+                                    <div class="io-line">Defined in <a href="" data-line="215" class="link-to-prism">src/app/core/api/api.types.ts:215</a></div>
                                 </td>
                             </tr>
 
@@ -286,7 +286,7 @@ screen cannot drift away from the number the purge actually enforces.</p>
 
                             <tr>
                                 <td class="col-md-4">
-                                    <div class="io-line">Defined in <a href="" data-line="173" class="link-to-prism">src/app/core/api/api.types.ts:173</a></div>
+                                    <div class="io-line">Defined in <a href="" data-line="211" class="link-to-prism">src/app/core/api/api.types.ts:211</a></div>
                                 </td>
                             </tr>
 
@@ -325,7 +325,7 @@ screen cannot drift away from the number the purge actually enforces.</p>
 
                             <tr>
                                 <td class="col-md-4">
-                                    <div class="io-line">Defined in <a href="" data-line="174" class="link-to-prism">src/app/core/api/api.types.ts:174</a></div>
+                                    <div class="io-line">Defined in <a href="" data-line="212" class="link-to-prism">src/app/core/api/api.types.ts:212</a></div>
                                 </td>
                             </tr>
 
@@ -364,7 +364,7 @@ screen cannot drift away from the number the purge actually enforces.</p>
 
                             <tr>
                                 <td class="col-md-4">
-                                    <div class="io-line">Defined in <a href="" data-line="175" class="link-to-prism">src/app/core/api/api.types.ts:175</a></div>
+                                    <div class="io-line">Defined in <a href="" data-line="213" class="link-to-prism">src/app/core/api/api.types.ts:213</a></div>
                                 </td>
                             </tr>
 
@@ -403,7 +403,7 @@ screen cannot drift away from the number the purge actually enforces.</p>
 
                             <tr>
                                 <td class="col-md-4">
-                                    <div class="io-line">Defined in <a href="" data-line="176" class="link-to-prism">src/app/core/api/api.types.ts:176</a></div>
+                                    <div class="io-line">Defined in <a href="" data-line="214" class="link-to-prism">src/app/core/api/api.types.ts:214</a></div>
                                 </td>
                             </tr>
 
@@ -442,6 +442,16 @@ export interface Citation {
   readonly incidentDate: string | null;
   /** Cosine similarity, 0..1. Shown so the demo can say why this is Mode A and the next is Mode B. */
   readonly similarity: number;
+  /**
+   * Whether an administrator has vouched for the protocol behind this citation.
+   *
+   * On the citation rather than fetched per source, because a client that had to ask a second
+   * endpoint for it would eventually forget to — and forgetting is the failure that matters here.
+   * Unapproved protocols stay searchable by decision (2026-08-11), so a Mode A answer can be
+   * grounded in text nobody has reviewed, and NFR-2&#x27;s citation discipline makes any cited claim
+   * LOOK checked. This flag is what keeps that impression honest.
+   */
+  readonly approved: boolean;
 }
 
 /**
@@ -496,6 +506,24 @@ export interface ModeratedProtocol {
   readonly status: &#x27;RECEIVED&#x27; | &#x27;INDEXED&#x27; | &#x27;FAILED&#x27;;
   /** Searchable pieces this protocol contributes; 0 means stored but not retrievable. */
   readonly chunkCount: number;
+  /** Who vouched for this protocol, and when. On every row, not only on the queue. */
+  readonly approval: Approval;
+}
+
+/** The two states approval can be in. A closed set on the wire, matching the schema&#x27;s constraint. */
+export type ApprovalState &#x3D; &#x27;APPROVED&#x27; | &#x27;UNAPPROVED&#x27;;
+
+/**
+ * One protocol&#x27;s approval, as &#x60;PUT …/approval&#x60; returns it and as every list row carries it.
+ *
+ * &#x60;approvedBy&#x60; and &#x60;approvedAt&#x60; are non-null exactly when the state is &#x60;APPROVED&#x60; — a database
+ * constraint says so, which is why this is a state plus its evidence rather than three independent
+ * fields the client has to reconcile.
+ */
+export interface Approval {
+  readonly state: ApprovalState;
+  readonly approvedBy: string | null;
+  readonly approvedAt: string | null;
 }
 
 /**
@@ -512,6 +540,15 @@ export interface ProtocolFilter {
   /** ISO &#x60;yyyy-MM-dd&#x60;, as an &#x60;&lt;input type&#x3D;&quot;date&quot;&gt;&#x60; produces it. */
   readonly from: string;
   readonly to: string;
+  /**
+   * The approval queue, and the one filter that is NOT subject to the machine-first rule.
+   *
+   * That rule exists because a title fragment across ten machines answers with rows the reviewer was
+   * not looking at. &quot;Everything still waiting for review&quot; is the opposite: a queue is only useful
+   * whole, and it is the first question an administrator asks after signing in. The backend agrees —
+   * it applies &#x60;approvalState&#x60; without requiring &#x60;machineNo&#x60;.
+   */
+  readonly approvalState: ApprovalState | &#x27;&#x27;;
 }
 
 /** The unfiltered corpus: what the view shows until someone narrows it. */
@@ -520,6 +557,7 @@ export const NO_FILTER: ProtocolFilter &#x3D; {
   titleContains: &#x27;&#x27;,
   from: &#x27;&#x27;,
   to: &#x27;&#x27;,
+  approvalState: &#x27;&#x27;,
 };
 
 /** One page of the corpus. &#x60;total&#x60; is what turns &quot;Weiter&quot; into &quot;page 3 of 16&quot;. */

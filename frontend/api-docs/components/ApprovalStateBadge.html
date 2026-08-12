@@ -114,12 +114,12 @@
   <li class="breadcrumb-item">Components</li>
   <li class="breadcrumb-item"
   >
-  HealthDot</li>
+  ApprovalStateBadge</li>
 </ol>
 
 <div class="io-file io-file-path" data-compodoc="entity-file-path">
     <span class="icon ion-ios-document" aria-hidden="true"></span>
-    <code>src/app/shared/health/health-dot.ts</code>
+    <code>src/app/shared/approval/approval-state.ts</code>
 </div>
 
 <ul class="nav nav-tabs" role="tablist">
@@ -155,17 +155,18 @@
         <h3>Description</h3>
     </p>
     <p class="comment">
-        <p>The server-status dot in the footer.</p>
-<p><b>A component rather than a service, and the reason is its lifetime.</b> The footer renders it
-only while someone is signed in, so "start polling on login" and "stop polling on logout" are just
-the component being created and destroyed — no second subscription to the auth signal, no token
-check duplicated from <a href="../injectables/AuthService.html">AuthService</a>, and nothing left running behind a logged-out landing
-page. A service would have had to reproduce that lifecycle by hand and get it right twice.<p><b>It is a glance surface, not a monitoring system.</b> One failed request flips it to down.
-There is deliberately no hysteresis, no retry with backoff and no reconnect banner: a footer dot
-that stayed green through a real outage because it was waiting for a second opinion would be
-worse than no dot, and one that grew a state machine would be a monitoring feature nobody asked
-for. See the PR for the flapping question.<p><b>Never colour alone.</b> The dot is always beside its own text, because a status carried only
-by hue is a status some readers do not get — the same rule the answer modes follow (NFR-2).
+        <p>Whether a protocol has been vouched for, said in one place so it is said the same way everywhere.</p>
+<p><b>Why this is a component and not three copies of a span.</b> Decision 1 of 2026-08-11 makes
+an unapproved protocol searchable and citable, and accepts the cost — it is less reliable to
+troubleshoot from. What makes that trade honest is that the state is never hidden: it appears on
+a source card under an answer, on a row in the Verwaltung table and in the viewer dialog. Three
+hand-written markers would eventually disagree about the wording, and the one that quietly
+dropped the "not approved" case is the one that turns the decision into a defect.<p><b>Colour is never the only signal.</b> Each state carries an icon AND a word, in both
+palettes, which is the same rule the footer health dot and the two answer modes follow. A reader
+with a colour vision deficiency, or one glancing at a tablet in plant lighting, gets the same
+information as everyone else.<p><b>Approved is deliberately quiet, unapproved is deliberately not.</b> Most of the corpus is
+approved, so a loud green badge on every row would be noise the eye learns to skip — and the
+moment it does, the marker that matters stops being noticed too.
 
     </p>
 
@@ -199,7 +200,7 @@ by hue is a status some readers do not get — the same rule the answer modes fo
 
             <tr>
                 <td class="col-md-3">selector</td>
-                <td class="col-md-9"><code>app-health-dot</code></td>
+                <td class="col-md-9"><code>app-approval-state</code></td>
             </tr>
 
             <tr>
@@ -207,10 +208,17 @@ by hue is a status some readers do not get — the same rule the answer modes fo
                 <td class="col-md-9"><code>true</code></td>
             </tr>
 
+            <tr>
+                <td class="col-md-3">imports</td>
+                <td class="col-md-9">
+                        <div>        <code><a href="../components/App.html" target="_self" >AppDatePipe</a></code>
+</div>
+                </td>
+            </tr>
 
             <tr>
                 <td class="col-md-3">styleUrls</td>
-                <td class="col-md-9"><code>./health-dot.css</code></td>
+                <td class="col-md-9"><code>./approval-state.css</code></td>
             </tr>
 
 
@@ -218,14 +226,14 @@ by hue is a status some readers do not get — the same rule the answer modes fo
 
             <tr>
                 <td class="col-md-3">templateUrl</td>
-                <td class="col-md-9"><code>./health-dot.html</code></td>
+                <td class="col-md-9"><code>./approval-state.html</code></td>
             </tr>
 
 
 
             <tr>
                 <td class="col-md-3">styleUrl</td>
-                <td class="col-md-9"><code>./health-dot.css</code></td>
+                <td class="col-md-9"><code>./approval-state.css</code></td>
             </tr>
 
 
@@ -244,14 +252,24 @@ by hue is a status some readers do not get — the same rule the answer modes fo
                     <h4>Used by</h4>
                         <ul class="list-unstyled relationships-list">
                                 <li>
-                                            <code><a href="../components/App.html" target="_self" >App</a></code>
+                                            <code><a href="../components/Moderation.html" target="_self" >Moderation</a></code>
+                                </li>
+                                <li>
+                                            <code><a href="../components/ProtocolDialog.html" target="_self" >ProtocolDialog</a></code>
+                                </li>
+                                <li>
+                                            <code><a href="../components/SearchSources.html" target="_self" >SearchSources</a></code>
                                 </li>
                         </ul>
                 </div>
 
                 <div class="col-sm-6">
                     <h4>Depends on</h4>
-                        <p class="comment"><i>No results matching.</i></p>
+                        <ul class="list-unstyled relationships-list">
+                                <li>
+                                            <code><a href="../components/App.html" target="_self" >AppDatePipe</a></code>
+                                </li>
+                        </ul>
                 </div>
             </div>
         </section>
@@ -269,27 +287,15 @@ by hue is a status some readers do not get — the same rule the answer modes fo
                         <ul class="index-list">
                             <li>
                                 <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
-                                    <span class="modifier">Private</span>
+                                    <span class="modifier">Protected</span>
                                     <span class="modifier">Readonly</span>
-                                <a href="#api" >api</a>
+                                <a href="#approved" >approved</a>
                             </li>
                             <li>
                                 <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
                                     <span class="modifier">Private</span>
                                     <span class="modifier">Readonly</span>
                                 <a href="#i18n" >i18n</a>
-                            </li>
-                            <li>
-                                <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
-                                    <span class="modifier">Protected</span>
-                                    <span class="modifier">Readonly</span>
-                                <a href="#label" >label</a>
-                            </li>
-                            <li>
-                                <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
-                                    <span class="modifier">Protected</span>
-                                    <span class="modifier">Readonly</span>
-                                <a href="#state" >state</a>
                             </li>
                             <li>
                                 <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
@@ -303,18 +309,23 @@ by hue is a status some readers do not get — the same rule the answer modes fo
             </tbody>
         </table>
 
+
         <table class="table table-sm table-bordered index-table">
             <tbody>
                 <tr>
                     <td class="col-md-3">
-                        <h6><b>Methods</b></h6>
+                        <h6><b>Inputs</b></h6>
                     </td>
                     <td class="col-md-9">
                         <ul class="index-list">
                             <li>
-                                <span class="reference-badge reference-badge--method" aria-hidden="true">M</span>
-                                    <span class="modifier">Private</span>
-                                <a href="#check" >check</a>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">I</span><a href="#approval" >approval</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">I</span><a href="#language" >language</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">I</span><a href="#showActor" >showActor</a>
                             </li>
                         </ul>
                     </td>
@@ -325,24 +336,105 @@ by hue is a status some readers do not get — the same rule the answer modes fo
 
 
 
-
 </section>
 
-    <section data-compodoc="block-constructor">
-    <h3 id="constructor">Constructor</h3>
+
+    <section data-compodoc="block-inputs">
+    <h3 id="inputs">Inputs</h3>
         <table class="table table-sm table-bordered">
             <tbody>
                 <tr>
                     <td class="col-md-4">
-<code>constructor()</code>
+                        <a name="approval"></a>
+                        <b>approval</b>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>        <code><a href="../interfaces/Approval.html" target="_self" >Approval</a></code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Required : </i>&nbsp;<b>true</b>
                     </td>
                 </tr>
                         <tr>
-                            <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="63" class="link-to-prism">src/app/shared/health/health-dot.ts:63</a></div>
+                            <td class="col-md-2" colspan="2">
+                                    <div class="io-line">Defined in <a href="" data-line="39" class="link-to-prism">src/app/shared/approval/approval-state.ts:39</a></div>
                             </td>
                         </tr>
+            </tbody>
+        </table>
+        <table class="table table-sm table-bordered">
+            <tbody>
+                <tr>
+                    <td class="col-md-4">
+                        <a name="language"></a>
+                        <b>language</b>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>        <code><a href="../miscellaneous/typealiases.html#UiLanguage" target="_self" >UiLanguage</a></code>
 
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Required : </i>&nbsp;<b>true</b>
+                    </td>
+                </tr>
+                        <tr>
+                            <td class="col-md-2" colspan="2">
+                                    <div class="io-line">Defined in <a href="" data-line="48" class="link-to-prism">src/app/shared/approval/approval-state.ts:48</a></div>
+                            </td>
+                        </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <div class="io-description"><p>The language the date is formatted in.</p>
+<p>An input rather than something read from the service, because <a href="../pipes/AppDatePipe.html">AppDatePipe</a> is pure: a
+language change alters no input on a table cell, so a pipe that read the signal itself would go
+stale until something else happened to redraw the row.</p>
+</div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        <table class="table table-sm table-bordered">
+            <tbody>
+                <tr>
+                    <td class="col-md-4">
+                        <a name="showActor"></a>
+                        <b>showActor</b>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/boolean" target="_blank" >boolean</a></code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>false</code>
+                    </td>
+                </tr>
+                        <tr>
+                            <td class="col-md-2" colspan="2">
+                                    <div class="io-line">Defined in <a href="" data-line="57" class="link-to-prism">src/app/shared/approval/approval-state.ts:57</a></div>
+                            </td>
+                        </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <div class="io-description"><p>Whether to name the approver and the day.</p>
+<p>Off on a source card under an answer — a technician reading an answer needs to know whether the
+source was reviewed, not by whom — and on in the Verwaltung table and the viewer, where the
+reader is an administrator auditing exactly that.</p>
+</div>
+                    </td>
+                </tr>
             </tbody>
         </table>
 </section>
@@ -350,52 +442,6 @@ by hue is a status some readers do not get — the same rule the answer modes fo
 
 
 
-
-    <section data-compodoc="block-methods">
-    
-    <h3 id="methods">
-        Methods
-    </h3>
-    <table class="table table-sm table-bordered">
-        <tbody>
-            <tr>
-                <td class="col-md-4">
-                    <a name="check"></a>
-                    <span class="name">
-                            <span class="modifier">Private</span>
-                        <span ><b>check</b></span>
-                        <a href="#check"><span class="icon ion-ios-link"></span></a>
-                    </span>
-                </td>
-            </tr>
-            <tr>
-                <td class="col-md-4">
-                        <span class="modifier-icon icon ion-ios-reset"></span>
-                    <code>check()</code>
-                </td>
-            </tr>
-
-
-                    <tr>
-                        <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="72"
-                                    class="link-to-prism">src/app/shared/health/health-dot.ts:72</a></div>
-                        </td>
-                    </tr>
-
-
-            <tr>
-                <td class="col-md-4">
-
-                        <div class="io-description">
-                            <b>Returns : </b>        <code><a href="https://www.typescriptlang.org/docs/handbook/basic-types.html" target="_blank" >void</a></code>
-
-                        </div>
-                </td>
-            </tr>
-        </tbody>
-    </table>
-</section>
 
     <section data-compodoc="block-properties">
     
@@ -406,12 +452,12 @@ by hue is a status some readers do not get — the same rule the answer modes fo
         <tbody>
             <tr>
                 <td class="col-md-4">
-                    <a name="api"></a>
+                    <a name="approved"></a>
                     <span class="name">
-                            <span class="modifier">Private</span>
+                            <span class="modifier">Protected</span>
                             <span class="modifier">Readonly</span>
-                        <span ><b>api</b></span>
-                        <a href="#api"><span class="icon ion-ios-link"></span></a>
+                        <span ><b>approved</b></span>
+                        <a href="#approved"><span class="icon ion-ios-link"></span></a>
                     </span>
                 </td>
             </tr>
@@ -423,12 +469,12 @@ by hue is a status some readers do not get — the same rule the answer modes fo
                 </tr>
                 <tr>
                     <td class="col-md-4">
-                        <i>Default value : </i><code>inject(MaintenanceApiService)</code>
+                        <i>Default value : </i><code>computed(() &#x3D;&gt; this.approval().state &#x3D;&#x3D;&#x3D; &#x27;APPROVED&#x27;)</code>
                     </td>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="47" class="link-to-prism">src/app/shared/health/health-dot.ts:47</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="59" class="link-to-prism">src/app/shared/approval/approval-state.ts:59</a></div>
                         </td>
                     </tr>
 
@@ -461,83 +507,7 @@ by hue is a status some readers do not get — the same rule the answer modes fo
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="48" class="link-to-prism">src/app/shared/health/health-dot.ts:48</a></div>
-                        </td>
-                    </tr>
-
-
-        </tbody>
-    </table>
-    <table class="table table-sm table-bordered">
-        <tbody>
-            <tr>
-                <td class="col-md-4">
-                    <a name="label"></a>
-                    <span class="name">
-                            <span class="modifier">Protected</span>
-                            <span class="modifier">Readonly</span>
-                        <span ><b>label</b></span>
-                        <a href="#label"><span class="icon ion-ios-link"></span></a>
-                    </span>
-                </td>
-            </tr>
-                <tr>
-                    <td class="col-md-4">
-                        <i>Type : </i>    <code>unknown</code>
-
-                    </td>
-                </tr>
-                <tr>
-                    <td class="col-md-4">
-                        <i>Default value : </i><code>computed(() &#x3D;&gt; {
-    const labels &#x3D; this.t().footer;
-    switch (this.state()) {
-      case &#x27;up&#x27;:
-        return labels.serverUp;
-      case &#x27;down&#x27;:
-        return labels.serverDown;
-      default:
-        return labels.serverUnknown;
-    }
-  })</code>
-                    </td>
-                </tr>
-                    <tr>
-                        <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="53" class="link-to-prism">src/app/shared/health/health-dot.ts:53</a></div>
-                        </td>
-                    </tr>
-
-
-        </tbody>
-    </table>
-    <table class="table table-sm table-bordered">
-        <tbody>
-            <tr>
-                <td class="col-md-4">
-                    <a name="state"></a>
-                    <span class="name">
-                            <span class="modifier">Protected</span>
-                            <span class="modifier">Readonly</span>
-                        <span ><b>state</b></span>
-                        <a href="#state"><span class="icon ion-ios-link"></span></a>
-                    </span>
-                </td>
-            </tr>
-                <tr>
-                    <td class="col-md-4">
-                        <i>Type : </i>    <code>unknown</code>
-
-                    </td>
-                </tr>
-                <tr>
-                    <td class="col-md-4">
-                        <i>Default value : </i><code>signal&lt;HealthState&gt;(&#x27;unknown&#x27;)</code>
-                    </td>
-                </tr>
-                    <tr>
-                        <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="51" class="link-to-prism">src/app/shared/health/health-dot.ts:51</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="35" class="link-to-prism">src/app/shared/approval/approval-state.ts:35</a></div>
                         </td>
                     </tr>
 
@@ -570,7 +540,7 @@ by hue is a status some readers do not get — the same rule the answer modes fo
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="50" class="link-to-prism">src/app/shared/health/health-dot.ts:50</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="37" class="link-to-prism">src/app/shared/approval/approval-state.ts:37</a></div>
                         </td>
                     </tr>
 
@@ -583,154 +553,174 @@ by hue is a status some readers do not get — the same rule the answer modes fo
 
 
     <div class="tab-pane fade  tab-source-code" id="source">
-        <pre class="line-numbers compodoc-sourcecode"><code class="language-typescript">import { Component, DestroyRef, computed, inject, signal } from &#x27;@angular/core&#x27;;
-import { timeout } from &#x27;rxjs&#x27;;
+        <pre class="line-numbers compodoc-sourcecode"><code class="language-typescript">import { Component, computed, input } from &#x27;@angular/core&#x27;;
 
-import { MaintenanceApiService } from &#x27;../../core/api/maintenance-api.service&#x27;;
+import { Approval } from &#x27;../../core/api/api.types&#x27;;
+import { AppDatePipe } from &#x27;../../core/i18n/app-date.pipe&#x27;;
+import { UiLanguage } from &#x27;../../core/i18n/dictionary&#x27;;
 import { I18nService } from &#x27;../../core/i18n/i18n.service&#x27;;
-
-/** How often the footer asks again, while it is on screen. */
-const POLL_INTERVAL_MS &#x3D; 60_000;
+import { inject } from &#x27;@angular/core&#x27;;
 
 /**
- * How long a health request may hang before it counts as down.
+ * Whether a protocol has been vouched for, said in one place so it is said the same way everywhere.
  *
- * Without it a backend that accepts the connection and never answers leaves the dot on &quot;checking&quot;
- * forever, which is the one state that tells the reader nothing. Five seconds is far above the
- * endpoint&#x27;s real cost — it builds no response, it returns a constant — so a slower answer than
- * this already means something is wrong.
- */
-const REQUEST_TIMEOUT_MS &#x3D; 5_000;
-
-/** Neutral until the first answer arrives; a guess before then would be a lie either way. */
-export type HealthState &#x3D; &#x27;unknown&#x27; | &#x27;up&#x27; | &#x27;down&#x27;;
-
-/**
- * The server-status dot in the footer.
+ * &lt;p&gt;&lt;b&gt;Why this is a component and not three copies of a span.&lt;/b&gt; Decision 1 of 2026-08-11 makes
+ * an unapproved protocol searchable and citable, and accepts the cost — it is less reliable to
+ * troubleshoot from. What makes that trade honest is that the state is never hidden: it appears on
+ * a source card under an answer, on a row in the Verwaltung table and in the viewer dialog. Three
+ * hand-written markers would eventually disagree about the wording, and the one that quietly
+ * dropped the &quot;not approved&quot; case is the one that turns the decision into a defect.
  *
- * &lt;p&gt;&lt;b&gt;A component rather than a service, and the reason is its lifetime.&lt;/b&gt; The footer renders it
- * only while someone is signed in, so &quot;start polling on login&quot; and &quot;stop polling on logout&quot; are just
- * the component being created and destroyed — no second subscription to the auth signal, no token
- * check duplicated from {@link AuthService}, and nothing left running behind a logged-out landing
- * page. A service would have had to reproduce that lifecycle by hand and get it right twice.
+ * &lt;p&gt;&lt;b&gt;Colour is never the only signal.&lt;/b&gt; Each state carries an icon AND a word, in both
+ * palettes, which is the same rule the footer health dot and the two answer modes follow. A reader
+ * with a colour vision deficiency, or one glancing at a tablet in plant lighting, gets the same
+ * information as everyone else.
  *
- * &lt;p&gt;&lt;b&gt;It is a glance surface, not a monitoring system.&lt;/b&gt; One failed request flips it to down.
- * There is deliberately no hysteresis, no retry with backoff and no reconnect banner: a footer dot
- * that stayed green through a real outage because it was waiting for a second opinion would be
- * worse than no dot, and one that grew a state machine would be a monitoring feature nobody asked
- * for. See the PR for the flapping question.
- *
- * &lt;p&gt;&lt;b&gt;Never colour alone.&lt;/b&gt; The dot is always beside its own text, because a status carried only
- * by hue is a status some readers do not get — the same rule the answer modes follow (NFR-2).
+ * &lt;p&gt;&lt;b&gt;Approved is deliberately quiet, unapproved is deliberately not.&lt;/b&gt; Most of the corpus is
+ * approved, so a loud green badge on every row would be noise the eye learns to skip — and the
+ * moment it does, the marker that matters stops being noticed too.
  */
 @Component({
-  selector: &#x27;app-health-dot&#x27;,
-  templateUrl: &#x27;./health-dot.html&#x27;,
-  styleUrl: &#x27;./health-dot.css&#x27;,
+  selector: &#x27;app-approval-state&#x27;,
+  imports: [AppDatePipe],
+  templateUrl: &#x27;./approval-state.html&#x27;,
+  styleUrl: &#x27;./approval-state.css&#x27;,
 })
-export class HealthDot {
-  private readonly api &#x3D; inject(MaintenanceApiService);
+export class ApprovalStateBadge {
   private readonly i18n &#x3D; inject(I18nService);
 
   protected readonly t &#x3D; this.i18n.t;
-  protected readonly state &#x3D; signal&lt;HealthState&gt;(&#x27;unknown&#x27;);
 
-  protected readonly label &#x3D; computed(() &#x3D;&gt; {
-    const labels &#x3D; this.t().footer;
-    switch (this.state()) {
-      case &#x27;up&#x27;:
-        return labels.serverUp;
-      case &#x27;down&#x27;:
-        return labels.serverDown;
-      default:
-        return labels.serverUnknown;
-    }
-  });
+  readonly approval &#x3D; input.required&lt;Approval&gt;();
 
-  constructor() {
-    this.check();
-    const poll &#x3D; setInterval(() &#x3D;&gt; this.check(), POLL_INTERVAL_MS);
-    // Cleared when the footer stops rendering this — which is what logging out does.
-    inject(DestroyRef).onDestroy(() &#x3D;&gt; clearInterval(poll));
-  }
+  /**
+   * The language the date is formatted in.
+   *
+   * An input rather than something read from the service, because {@link AppDatePipe} is pure: a
+   * language change alters no input on a table cell, so a pipe that read the signal itself would go
+   * stale until something else happened to redraw the row.
+   */
+  readonly language &#x3D; input.required&lt;UiLanguage&gt;();
 
-  private check(): void {
-    this.api
-      .health()
-      .pipe(timeout(REQUEST_TIMEOUT_MS))
-      .subscribe({
-        // The body is checked as well as the status code: a 200 carrying anything other than UP is
-        // the backend telling us something, and reading only the code would throw that away.
-        next: (health) &#x3D;&gt; this.state.set(health.status &#x3D;&#x3D;&#x3D; &#x27;UP&#x27; ? &#x27;up&#x27; : &#x27;down&#x27;),
-        // One arm for every way this can fail — non-2xx, a network error, and the timeout above.
-        // They differ to a developer and not to the person glancing at the footer, and inventing
-        // three shades of &quot;offline&quot; would be three things to explain for one thing to do.
-        error: () &#x3D;&gt; this.state.set(&#x27;down&#x27;),
-      });
-  }
+  /**
+   * Whether to name the approver and the day.
+   *
+   * Off on a source card under an answer — a technician reading an answer needs to know whether the
+   * source was reviewed, not by whom — and on in the Verwaltung table and the viewer, where the
+   * reader is an administrator auditing exactly that.
+   */
+  readonly showActor &#x3D; input(false);
+
+  protected readonly approved &#x3D; computed(() &#x3D;&gt; this.approval().state &#x3D;&#x3D;&#x3D; &#x27;APPROVED&#x27;);
 }
 </code></pre>
     </div>
 
     <div class="tab-pane fade " id="templateData">
-        <pre class="line-numbers"><code class="language-html">&lt;!-- ONE element, whose TEXT changes and whose node does not.
-     That is what makes &quot;announce on change only&quot; true: a polite live region speaks when its
-     content changes, so a poll that returns the same state re-renders the same string and says
-     nothing. Rebuilding the element per state — an @switch, or three elements behind @if — would
-     re-announce every sixty seconds, which is how a status line becomes something to turn off. --&gt;
-&lt;p
-  class&#x3D;&quot;health&quot;
-  role&#x3D;&quot;status&quot;
-  aria-live&#x3D;&quot;polite&quot;
-  data-testid&#x3D;&quot;health-dot&quot;
-  [attr.data-state]&#x3D;&quot;state()&quot;
-&gt;
-  &lt;span class&#x3D;&quot;health-dot health-{{ state() }}&quot; aria-hidden&#x3D;&quot;true&quot;&gt;&lt;/span&gt;
-  &lt;span class&#x3D;&quot;health-label&quot;&gt;{{ label() }}&lt;/span&gt;
-&lt;/p&gt;
+        <pre class="line-numbers"><code class="language-html">&lt;!-- One element per state rather than one element with two classes: the icon differs, and a shared
+     node with a swapped path is harder to read than two small blocks that each say one thing. --&gt;
+@if (approved()) {
+  &lt;span class&#x3D;&quot;approval approval-approved&quot; data-testid&#x3D;&quot;approval-state&quot; data-approval&#x3D;&quot;APPROVED&quot;&gt;
+    &lt;svg class&#x3D;&quot;approval-icon&quot; viewBox&#x3D;&quot;0 0 24 24&quot; aria-hidden&#x3D;&quot;true&quot; focusable&#x3D;&quot;false&quot;&gt;
+      &lt;circle cx&#x3D;&quot;12&quot; cy&#x3D;&quot;12&quot; r&#x3D;&quot;9&quot; /&gt;
+      &lt;path d&#x3D;&quot;M8 12.4l2.6 2.6L16 9.6&quot; /&gt;
+    &lt;/svg&gt;
+    &lt;span class&#x3D;&quot;approval-label&quot;&gt;{{ t().approval.approved }}&lt;/span&gt;
+    @if (showActor() &amp;&amp; approval().approvedBy) {
+      &lt;!-- WHO and WHEN, because an approval without an actor is not an audit record — the same rule
+           the database constraint states. The day, not the minute: a reviewer asks whether this was
+           signed off before or after last week&#x27;s change, never at which second. --&gt;
+      &lt;span class&#x3D;&quot;approval-actor&quot; data-testid&#x3D;&quot;approval-actor&quot;&gt;
+        {{ approval().approvedBy }} · {{ approval().approvedAt | appDate: language() }}
+      &lt;/span&gt;
+    }
+  &lt;/span&gt;
+} @else {
+  &lt;span class&#x3D;&quot;approval approval-unapproved&quot; data-testid&#x3D;&quot;approval-state&quot; data-approval&#x3D;&quot;UNAPPROVED&quot;&gt;
+    &lt;!-- The word is what carries the meaning; the colour and the triangle only make it findable. An
+         unapproved protocol is not an error, so this is not the danger red — it is the caution the
+         reader is owed before they act on the text. --&gt;
+    &lt;svg class&#x3D;&quot;approval-icon&quot; viewBox&#x3D;&quot;0 0 24 24&quot; aria-hidden&#x3D;&quot;true&quot; focusable&#x3D;&quot;false&quot;&gt;
+      &lt;path d&#x3D;&quot;M12 3.6L1.8 20.4h20.4z&quot; /&gt;
+      &lt;path d&#x3D;&quot;M12 9.6v4.6&quot; /&gt;
+      &lt;circle class&#x3D;&quot;dot&quot; cx&#x3D;&quot;12&quot; cy&#x3D;&quot;17.4&quot; r&#x3D;&quot;1&quot; /&gt;
+    &lt;/svg&gt;
+    &lt;span class&#x3D;&quot;approval-label&quot;&gt;{{ t().approval.unapproved }}&lt;/span&gt;
+  &lt;/span&gt;
+}
 </code></pre>
     </div>
 
     <div class="tab-pane fade " id="styleData">
                 <p class="comment">
-                    <code>./health-dot.css</code>
+                    <code>./approval-state.css</code>
                 </p>
-                <pre class="line-numbers"><code class="language-scss">.health {
+                <pre class="line-numbers"><code class="language-scss">/* Inline-flex, not block: this sits inside a table cell, inside a source card&#x27;s meta line and
+   inside a dialog head, and in all three it is one item among others on a line. */
+.approval {
   display: inline-flex;
   align-items: center;
-  gap: var(--s-2);
-  margin: 0;
-  font-size: var(--t-sm);
+  gap: var(--s-1);
+  font-size: var(--t-xs);
+  white-space: nowrap;
+}
+
+.approval-icon {
+  flex: none;
+  width: 0.95rem;
+  height: 0.95rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* The one filled part of either icon: a 1px stroked dot renders as a smudge at this size. */
+.approval-icon .dot {
+  fill: currentColor;
+  stroke: none;
+}
+
+/*
+ * APPROVED IS QUIET. Most of the corpus is approved, so a coloured badge on every row is noise the
+ * eye learns to skip — and an eye that has learned to skip this spot skips the unapproved marker
+ * too. Muted ink, no chip, no border: present when looked for, invisible when scanned past.
+ */
+.approval-approved {
   color: var(--c-ink-muted);
 }
 
-.health-dot {
-  flex: none;
-  width: 0.6rem;
-  height: 0.6rem;
+/*
+ * UNAPPROVED IS NOT QUIET, and it never relies on the colour. The word &quot;Nicht freigegeben&quot; and the
+ * triangle both carry the meaning on their own; the amber chip only makes them findable in a table
+ * of twenty rows. This is the same rule the two answer modes and the health dot follow.
+ */
+.approval-unapproved {
+  padding: 0.1rem var(--s-2);
+  border: 1px solid var(--c-review-line);
   border-radius: var(--r-pill);
-  /* A ring as well as a fill: on the dark palette a 10 px dot on a dim footer needs an edge to
-     read as a deliberate mark rather than a rendering artefact. */
-  box-shadow: 0 0 0 1px var(--c-line-strong);
+  background: var(--c-review-soft);
+  color: var(--c-review-ink);
+  font-weight: 700;
 }
 
-/* Neutral while nothing is known. A guess in either direction would be a lie, and grey is the one
-   colour that claims nothing. */
-.health-unknown {
-  background: var(--c-ink-faint);
+/* Who signed it off and when. One step down from the label it follows: it is the evidence behind
+   the word, not a second claim of its own. */
+.approval-actor {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  color: var(--c-ink-muted);
 }
 
-/* The Mode A green. It is the only place in the application this hue appears outside an answer,
-   and the borrowing is deliberate rather than careless: &quot;up&quot; is the one other thing in this UI
-   that means &quot;good&quot;, the dot is chrome that never sits beside an answer block, and it always
-   carries its own label — so the distinction NFR-2 rests on is not being carried by colour here in
-   the first place. Flagged in the PR so it can be overruled cheaply if it ever reads wrong. */
-.health-up {
-  background: var(--c-mode-a);
-}
-
-.health-down {
-  background: var(--c-danger);
+/* In a narrow cell the actor drops under the label rather than forcing the column wider — the
+   Verwaltung table already scrolls horizontally below desktop width, and this is the cell most
+   likely to be the reason. */
+@media (max-width: 40rem) {
+  .approval {
+    flex-wrap: wrap;
+    white-space: normal;
+  }
 }
 </code></pre>
     </div>
@@ -760,10 +750,10 @@ export class HealthDot {
 <script src="../js/libs/htmlparser.js"></script>
 <script src="../js/libs/deep-iterator.js"></script>
 <script>
-        var COMPONENT_TEMPLATE = '<div><!-- ONE element, whose TEXT changes and whose node does not.     That is what makes "announce on change only" true: a polite live region speaks when its     content changes, so a poll that returns the same state re-renders the same string and says     nothing. Rebuilding the element per state — an @switch, or three elements behind @if — would     re-announce every sixty seconds, which is how a status line becomes something to turn off. --><p  class="health"  role="status"  aria-live="polite"  data-testid="health-dot"  [attr.data-state]="state()">  <span class="health-dot health-{{ state() }}" aria-hidden="true"></span>  <span class="health-label">{{ label() }}</span></p></div>'
+        var COMPONENT_TEMPLATE = '<div><!-- One element per state rather than one element with two classes: the icon differs, and a shared     node with a swapped path is harder to read than two small blocks that each say one thing. -->@if (approved()) {  <span class="approval approval-approved" data-testid="approval-state" data-approval="APPROVED">    <svg class="approval-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">      <circle cx="12" cy="12" r="9" />      <path d="M8 12.4l2.6 2.6L16 9.6" />    </svg>    <span class="approval-label">{{ t().approval.approved }}</span>    @if (showActor() && approval().approvedBy) {      <!-- WHO and WHEN, because an approval without an actor is not an audit record — the same rule           the database constraint states. The day, not the minute: a reviewer asks whether this was           signed off before or after last week\'s change, never at which second. -->      <span class="approval-actor" data-testid="approval-actor">        {{ approval().approvedBy }} · {{ approval().approvedAt | appDate: language() }}      </span>    }  </span>} @else {  <span class="approval approval-unapproved" data-testid="approval-state" data-approval="UNAPPROVED">    <!-- The word is what carries the meaning; the colour and the triangle only make it findable. An         unapproved protocol is not an error, so this is not the danger red — it is the caution the         reader is owed before they act on the text. -->    <svg class="approval-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">      <path d="M12 3.6L1.8 20.4h20.4z" />      <path d="M12 9.6v4.6" />      <circle class="dot" cx="12" cy="17.4" r="1" />    </svg>    <span class="approval-label">{{ t().approval.unapproved }}</span>  </span>}</div>'
     var COMPONENTS = [{'name': 'App', 'selector': 'app-root'},{'name': 'ApprovalStateBadge', 'selector': 'app-approval-state'},{'name': 'Dialog', 'selector': 'app-dialog'},{'name': 'HealthDot', 'selector': 'app-health-dot'},{'name': 'HelpDialog', 'selector': 'app-help-dialog'},{'name': 'Landing', 'selector': 'app-landing'},{'name': 'Moderation', 'selector': 'app-moderation'},{'name': 'Pager', 'selector': 'app-pager'},{'name': 'ProtocolDialog', 'selector': 'app-protocol-dialog'},{'name': 'Search', 'selector': 'app-search'},{'name': 'SearchAnswer', 'selector': 'app-search-answer'},{'name': 'SearchHelp', 'selector': 'app-search-help'},{'name': 'SearchSources', 'selector': 'app-search-sources'},{'name': 'SettingsDialog', 'selector': 'app-settings-dialog'},{'name': 'ThemeToggle', 'selector': 'app-theme-toggle'},{'name': 'Upload', 'selector': 'app-upload'}];
     var DIRECTIVES = [];
-    var ACTUAL_COMPONENT = {'name': 'HealthDot'};
+    var ACTUAL_COMPONENT = {'name': 'ApprovalStateBadge'};
 </script>
 <script src="../js/tree.js"></script>
 
@@ -809,7 +799,7 @@ export class HealthDot {
        <script>
             var COMPODOC_CURRENT_PAGE_DEPTH = 1;
             var COMPODOC_CURRENT_PAGE_CONTEXT = 'component';
-            var COMPODOC_CURRENT_PAGE_URL = 'HealthDot.html';
+            var COMPODOC_CURRENT_PAGE_URL = 'ApprovalStateBadge.html';
             var MAX_SEARCH_RESULTS = 15;
        </script>
 

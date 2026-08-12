@@ -217,6 +217,8 @@ one: saving a file is exactly what an object URL is for.</p>
             <tr>
                 <td class="col-md-3">imports</td>
                 <td class="col-md-9">
+                        <div>        <code><a href="../components/ApprovalStateBadge.html" target="_self" >ApprovalStateBadge</a></code>
+</div>
                         <div>        <code><a href="../components/Dialog.html" target="_self" >Dialog</a></code>
 </div>
                 </td>
@@ -269,6 +271,9 @@ one: saving a file is exactly what an object URL is for.</p>
                 <div class="col-sm-6">
                     <h4>Depends on</h4>
                         <ul class="list-unstyled relationships-list">
+                                <li>
+                                            <code><a href="../components/ApprovalStateBadge.html" target="_self" >ApprovalStateBadge</a></code>
+                                </li>
                                 <li>
                                             <code><a href="../components/Dialog.html" target="_self" >Dialog</a></code>
                                 </li>
@@ -326,6 +331,12 @@ one: saving a file is exactly what an object URL is for.</p>
                                     <span class="modifier">Private</span>
                                     <span class="modifier">Readonly</span>
                                 <a href="#i18n" >i18n</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
+                                    <span class="modifier">Protected</span>
+                                    <span class="modifier">Readonly</span>
+                                <a href="#language" >language</a>
                             </li>
                             <li>
                                 <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
@@ -408,6 +419,9 @@ one: saving a file is exactly what an object URL is for.</p>
                     <td class="col-md-9">
                         <ul class="index-list">
                             <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">I</span><a href="#approval" >approval</a>
+                            </li>
+                            <li>
                                 <span class="reference-badge reference-badge--property" aria-hidden="true">I</span><a href="#machine" >machine</a>
                             </li>
                             <li>
@@ -457,7 +471,7 @@ one: saving a file is exactly what an object URL is for.</p>
                 </tr>
                         <tr>
                             <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="98" class="link-to-prism">src/app/shared/protocol/protocol-dialog.ts:98</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="110" class="link-to-prism">src/app/shared/protocol/protocol-dialog.ts:110</a></div>
                             </td>
                         </tr>
 
@@ -467,6 +481,41 @@ one: saving a file is exactly what an object URL is for.</p>
 
     <section data-compodoc="block-inputs">
     <h3 id="inputs">Inputs</h3>
+        <table class="table table-sm table-bordered">
+            <tbody>
+                <tr>
+                    <td class="col-md-4">
+                        <a name="approval"></a>
+                        <b>approval</b>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>        <code><a href="../interfaces/Approval.html" target="_self" >Approval | null</a></code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>null</code>
+                    </td>
+                </tr>
+                        <tr>
+                            <td class="col-md-2" colspan="2">
+                                    <div class="io-line">Defined in <a href="" data-line="97" class="link-to-prism">src/app/shared/protocol/protocol-dialog.ts:97</a></div>
+                            </td>
+                        </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <div class="io-description"><p>The protocol&#39;s approval, when the caller knows it. Null renders nothing.</p>
+<p>Optional because the three callers differ in what they hold: the Verwaltung row carries a full
+<a href="../interfaces/Approval.html">Approval</a>, a citation carries only a boolean widened into one, and the archive carries
+none — approving something withdrawn from the corpus means nothing, and the backend refuses it.</p>
+</div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
         <table class="table table-sm table-bordered">
             <tbody>
                 <tr>
@@ -488,7 +537,7 @@ one: saving a file is exactly what an object URL is for.</p>
                 </tr>
                         <tr>
                             <td class="col-md-2" colspan="2">
-                                    <div class="io-line">Defined in <a href="" data-line="85" class="link-to-prism">src/app/shared/protocol/protocol-dialog.ts:85</a></div>
+                                    <div class="io-line">Defined in <a href="" data-line="89" class="link-to-prism">src/app/shared/protocol/protocol-dialog.ts:89</a></div>
                             </td>
                         </tr>
                 <tr>
@@ -520,7 +569,7 @@ one: saving a file is exactly what an object URL is for.</p>
                 </tr>
                         <tr>
                             <td class="col-md-2" colspan="2">
-                                    <div class="io-line">Defined in <a href="" data-line="72" class="link-to-prism">src/app/shared/protocol/protocol-dialog.ts:72</a></div>
+                                    <div class="io-line">Defined in <a href="" data-line="76" class="link-to-prism">src/app/shared/protocol/protocol-dialog.ts:76</a></div>
                             </td>
                         </tr>
                 <tr>
@@ -552,7 +601,7 @@ one: saving a file is exactly what an object URL is for.</p>
                 </tr>
                         <tr>
                             <td class="col-md-2" colspan="2">
-                                    <div class="io-line">Defined in <a href="" data-line="83" class="link-to-prism">src/app/shared/protocol/protocol-dialog.ts:83</a></div>
+                                    <div class="io-line">Defined in <a href="" data-line="87" class="link-to-prism">src/app/shared/protocol/protocol-dialog.ts:87</a></div>
                             </td>
                         </tr>
                 <tr>
@@ -584,7 +633,7 @@ one: saving a file is exactly what an object URL is for.</p>
                 </tr>
                         <tr>
                             <td class="col-md-2" colspan="2">
-                                    <div class="io-line">Defined in <a href="" data-line="81" class="link-to-prism">src/app/shared/protocol/protocol-dialog.ts:81</a></div>
+                                    <div class="io-line">Defined in <a href="" data-line="85" class="link-to-prism">src/app/shared/protocol/protocol-dialog.ts:85</a></div>
                             </td>
                         </tr>
                 <tr>
@@ -619,7 +668,7 @@ person this dialog was reused for.</p>
                 </tr>
                         <tr>
                             <td class="col-md-2" colspan="2">
-                                    <div class="io-line">Defined in <a href="" data-line="86" class="link-to-prism">src/app/shared/protocol/protocol-dialog.ts:86</a></div>
+                                    <div class="io-line">Defined in <a href="" data-line="98" class="link-to-prism">src/app/shared/protocol/protocol-dialog.ts:98</a></div>
                             </td>
                         </tr>
             </tbody>
@@ -655,8 +704,8 @@ person this dialog was reused for.</p>
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="163"
-                                    class="link-to-prism">src/app/shared/protocol/protocol-dialog.ts:163</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="175"
+                                    class="link-to-prism">src/app/shared/protocol/protocol-dialog.ts:175</a></div>
                         </td>
                     </tr>
 
@@ -694,8 +743,8 @@ person this dialog was reused for.</p>
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="147"
-                                    class="link-to-prism">src/app/shared/protocol/protocol-dialog.ts:147</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="159"
+                                    class="link-to-prism">src/app/shared/protocol/protocol-dialog.ts:159</a></div>
                         </td>
                     </tr>
 
@@ -737,8 +786,8 @@ the browser performs from an <code>/api/</code> href is a fresh navigation with 
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="115"
-                                    class="link-to-prism">src/app/shared/protocol/protocol-dialog.ts:115</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="127"
+                                    class="link-to-prism">src/app/shared/protocol/protocol-dialog.ts:127</a></div>
                         </td>
                     </tr>
 
@@ -804,8 +853,8 @@ the browser performs from an <code>/api/</code> href is a fresh navigation with 
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="111"
-                                    class="link-to-prism">src/app/shared/protocol/protocol-dialog.ts:111</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="123"
+                                    class="link-to-prism">src/app/shared/protocol/protocol-dialog.ts:123</a></div>
                         </td>
                     </tr>
 
@@ -843,8 +892,8 @@ the browser performs from an <code>/api/</code> href is a fresh navigation with 
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="181"
-                                    class="link-to-prism">src/app/shared/protocol/protocol-dialog.ts:181</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="193"
+                                    class="link-to-prism">src/app/shared/protocol/protocol-dialog.ts:193</a></div>
                         </td>
                     </tr>
 
@@ -888,8 +937,8 @@ reading it.</p>
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="167"
-                                    class="link-to-prism">src/app/shared/protocol/protocol-dialog.ts:167</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="179"
+                                    class="link-to-prism">src/app/shared/protocol/protocol-dialog.ts:179</a></div>
                         </td>
                     </tr>
 
@@ -938,7 +987,7 @@ reading it.</p>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="63" class="link-to-prism">src/app/shared/protocol/protocol-dialog.ts:63</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="65" class="link-to-prism">src/app/shared/protocol/protocol-dialog.ts:65</a></div>
                         </td>
                     </tr>
 
@@ -971,7 +1020,7 @@ reading it.</p>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="96" class="link-to-prism">src/app/shared/protocol/protocol-dialog.ts:96</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="108" class="link-to-prism">src/app/shared/protocol/protocol-dialog.ts:108</a></div>
                         </td>
                     </tr>
 
@@ -1010,7 +1059,7 @@ reading it.</p>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="67" class="link-to-prism">src/app/shared/protocol/protocol-dialog.ts:67</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="69" class="link-to-prism">src/app/shared/protocol/protocol-dialog.ts:69</a></div>
                         </td>
                     </tr>
 
@@ -1043,7 +1092,7 @@ reading it.</p>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="89" class="link-to-prism">src/app/shared/protocol/protocol-dialog.ts:89</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="101" class="link-to-prism">src/app/shared/protocol/protocol-dialog.ts:101</a></div>
                         </td>
                     </tr>
 
@@ -1076,7 +1125,7 @@ reading it.</p>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="93" class="link-to-prism">src/app/shared/protocol/protocol-dialog.ts:93</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="105" class="link-to-prism">src/app/shared/protocol/protocol-dialog.ts:105</a></div>
                         </td>
                     </tr>
 
@@ -1115,10 +1164,49 @@ reading it.</p>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="64" class="link-to-prism">src/app/shared/protocol/protocol-dialog.ts:64</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="66" class="link-to-prism">src/app/shared/protocol/protocol-dialog.ts:66</a></div>
                         </td>
                     </tr>
 
+
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="language"></a>
+                    <span class="name">
+                            <span class="modifier">Protected</span>
+                            <span class="modifier">Readonly</span>
+                        <span ><b>language</b></span>
+                        <a href="#language"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>unknown</code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>this.i18n.language</code>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="73" class="link-to-prism">src/app/shared/protocol/protocol-dialog.ts:73</a></div>
+                        </td>
+                    </tr>
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-description"><p>Handed down to the date pipe inside the badge, which is pure and cannot read a signal.</p>
+</div>
+                </td>
+            </tr>
 
         </tbody>
     </table>
@@ -1148,7 +1236,7 @@ reading it.</p>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="88" class="link-to-prism">src/app/shared/protocol/protocol-dialog.ts:88</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="100" class="link-to-prism">src/app/shared/protocol/protocol-dialog.ts:100</a></div>
                         </td>
                     </tr>
 
@@ -1180,7 +1268,7 @@ reading it.</p>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="98" class="link-to-prism">src/app/shared/protocol/protocol-dialog.ts:98</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="110" class="link-to-prism">src/app/shared/protocol/protocol-dialog.ts:110</a></div>
                         </td>
                     </tr>
 
@@ -1213,7 +1301,7 @@ reading it.</p>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="90" class="link-to-prism">src/app/shared/protocol/protocol-dialog.ts:90</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="102" class="link-to-prism">src/app/shared/protocol/protocol-dialog.ts:102</a></div>
                         </td>
                     </tr>
 
@@ -1246,7 +1334,7 @@ reading it.</p>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="69" class="link-to-prism">src/app/shared/protocol/protocol-dialog.ts:69</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="71" class="link-to-prism">src/app/shared/protocol/protocol-dialog.ts:71</a></div>
                         </td>
                     </tr>
 
@@ -1271,8 +1359,10 @@ import {
   signal,
 } from &#x27;@angular/core&#x27;;
 
+import { Approval } from &#x27;../../core/api/api.types&#x27;;
 import { ApiFailure, MaintenanceApiService, classify } from &#x27;../../core/api/maintenance-api.service&#x27;;
 import { I18nService } from &#x27;../../core/i18n/i18n.service&#x27;;
+import { ApprovalStateBadge } from &#x27;../approval/approval-state&#x27;;
 import { Dialog } from &#x27;../dialog/dialog&#x27;;
 import { ProtocolDocument, filenameOf, parseProtocol } from &#x27;./protocol-document&#x27;;
 
@@ -1316,7 +1406,7 @@ const DOCUMENT_SOURCES: Record&lt;
  */
 @Component({
   selector: &#x27;app-protocol-dialog&#x27;,
-  imports: [Dialog],
+  imports: [ApprovalStateBadge, Dialog],
   templateUrl: &#x27;./protocol-dialog.html&#x27;,
   styleUrl: &#x27;./protocol-dialog.css&#x27;,
 })
@@ -1328,6 +1418,8 @@ export class ProtocolDialog implements OnDestroy {
   private readonly document &#x3D; inject(DOCUMENT);
 
   protected readonly t &#x3D; this.i18n.t;
+  /** Handed down to the date pipe inside the badge, which is pure and cannot read a signal. */
+  protected readonly language &#x3D; this.i18n.language;
 
   /** The protocol to show, or &#x60;null&#x60; when the viewer is closed. Setting it starts the fetch. */
   readonly protocolId &#x3D; input&lt;string | null&gt;(null);
@@ -1344,6 +1436,14 @@ export class ProtocolDialog implements OnDestroy {
   readonly protocolTitle &#x3D; input(&#x27;&#x27;);
   /** The machine the question was asked about — the second half of &quot;which document is this&quot;. */
   readonly machine &#x3D; input(&#x27;&#x27;);
+  /**
+   * The protocol&#x27;s approval, when the caller knows it. Null renders nothing.
+   *
+   * Optional because the three callers differ in what they hold: the Verwaltung row carries a full
+   * {@link Approval}, a citation carries only a boolean widened into one, and the archive carries
+   * none — approving something withdrawn from the corpus means nothing, and the backend refuses it.
+   */
+  readonly approval &#x3D; input&lt;Approval | null&gt;(null);
   readonly closed &#x3D; output&lt;void&gt;();
 
   protected readonly loading &#x3D; signal(false);
@@ -1458,9 +1558,26 @@ export class ProtocolDialog implements OnDestroy {
 &gt;
   &lt;!-- The machine belongs in the head next to the title: on a shop floor &quot;which machine is this
        about&quot; is the first question asked of any document. --&gt;
-  @if (machine()) {
-    &lt;p class&#x3D;&quot;viewer-machine&quot; dialogSubtitle data-testid&#x3D;&quot;protocol-machine&quot;&gt;{{ machine() }}&lt;/p&gt;
+  @if (machine() || approval()) {
+    &lt;p class&#x3D;&quot;viewer-machine&quot; dialogSubtitle data-testid&#x3D;&quot;protocol-machine&quot;&gt;
+      &lt;span&gt;{{ machine() }}&lt;/span&gt;
+      @if (approval(); as state) {
+        &lt;!-- Beside the machine, in the head, so it is read BEFORE the text rather than looked up
+             afterwards. A reader who has already worked through a protocol and only then learns
+             that nobody has reviewed it has been told too late to act on it. --&gt;
+        &lt;app-approval-state
+          [approval]&#x3D;&quot;state&quot;
+          [language]&#x3D;&quot;language()&quot;
+          [showActor]&#x3D;&quot;source() !&#x3D;&#x3D; &#x27;citation&#x27;&quot;
+        /&gt;
+      }
+    &lt;/p&gt;
   }
+
+  &lt;!-- Re-projected into the dialog&#x27;s own action row, so a caller that owns a verb for this protocol
+       — the Verwaltung view&#x27;s approve and withdraw — can put it beside Download without this
+       component learning what the verb is. The citation viewer passes nothing and gets nothing. --&gt;
+  &lt;ng-content select&#x3D;&quot;[protocolActions]&quot; ngProjectAs&#x3D;&quot;[dialogActions]&quot; /&gt;
 
   &lt;button
     type&#x3D;&quot;button&quot;
@@ -1684,8 +1801,8 @@ export class ProtocolDialog implements OnDestroy {
 <script src="../js/libs/htmlparser.js"></script>
 <script src="../js/libs/deep-iterator.js"></script>
 <script>
-        var COMPONENT_TEMPLATE = '<div><app-dialog  [open]="protocolId() !== null"  [title]="protocolTitle() || t().viewer.title"  testId="protocol"  (closed)="close()">  <!-- The machine belongs in the head next to the title: on a shop floor "which machine is this       about" is the first question asked of any document. -->  @if (machine()) {    <p class="viewer-machine" dialogSubtitle data-testid="protocol-machine">{{ machine() }}</p>  }  <button    type="button"    class="btn btn-secondary btn-sm"    dialogActions    data-testid="protocol-download"    [disabled]="!canDownload()"    (click)="download()"  >    <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">      <path d="M12 4v11" />      <path d="M7.5 10.5L12 15l4.5-4.5" />      <path d="M5 19h14" />    </svg>    {{ t().viewer.download }}  </button>  @if (loading()) {    <p class="viewer-loading" role="status" aria-live="polite" data-testid="protocol-loading">      {{ t().viewer.loading }}    </p>  }  @if (failure(); as reason) {    <!-- A source that will not open is worth saying out loud: the claim in the answer still rests         on this protocol, and the reader is entitled to know the evidence is unreachable rather         than to stare at an empty dialog. -->    <p class="notice notice-error" role="alert" data-testid="protocol-failure">      @switch (reason) {        @case (\'notFound\') {          {{ t().errors.documentMissing }}        }        @case (\'forbidden\') {          {{ t().errors.forbidden }}        }        @case (\'unavailable\') {          {{ t().errors.unavailable }}        }        @default {          {{ t().errors.generic }}        }      }    </p>  }  @if (parsed(); as document) {    <!-- lang="de" is wrong for the English protocols in the corpus and right for the 108 German         ones, so neither is asserted here: the document carries no lang and inherits the         interface\'s, which is what the shell already set. -->    <article class="protocol" data-testid="protocol-body">      @if (document.kind === \'raw\') {        <!-- The parser did not recognise the structure. The file itself is still the evidence, so             it is shown as it stands rather than replaced by an apology. Preformatted, because the             line breaks are the only structure left. -->        <p class="caption viewer-fallback-note" data-testid="protocol-fallback-note">          {{ t().viewer.fallbackNote }}        </p>        <pre class="protocol-raw" data-testid="protocol-raw">{{ document.raw }}</pre>      } @else {        @for (segment of document.segments; track $index) {          @switch (segment.kind) {            @case (\'meta\') {              <dl class="protocol-meta" data-testid="protocol-meta">                @for (row of segment.rows; track row.label) {                  <dt>{{ row.label }}</dt>                  <dd>{{ row.value }}</dd>                }              </dl>            }            @case (\'title\') {              <h3 class="protocol-title" data-testid="protocol-doc-title">{{ segment.text }}</h3>            }            @case (\'section\') {              <section class="protocol-section" data-testid="protocol-section">                @if (segment.heading) {                  <h4 class="protocol-heading">{{ segment.heading }}</h4>                }                @for (paragraph of segment.paragraphs; track $index) {                  <p class="protocol-paragraph">{{ paragraph }}</p>                }              </section>            }          }        }      }    </article>  }</app-dialog></div>'
-    var COMPONENTS = [{'name': 'App', 'selector': 'app-root'},{'name': 'Dialog', 'selector': 'app-dialog'},{'name': 'HealthDot', 'selector': 'app-health-dot'},{'name': 'HelpDialog', 'selector': 'app-help-dialog'},{'name': 'Landing', 'selector': 'app-landing'},{'name': 'Moderation', 'selector': 'app-moderation'},{'name': 'Pager', 'selector': 'app-pager'},{'name': 'ProtocolDialog', 'selector': 'app-protocol-dialog'},{'name': 'Search', 'selector': 'app-search'},{'name': 'SearchAnswer', 'selector': 'app-search-answer'},{'name': 'SearchHelp', 'selector': 'app-search-help'},{'name': 'SearchSources', 'selector': 'app-search-sources'},{'name': 'SettingsDialog', 'selector': 'app-settings-dialog'},{'name': 'ThemeToggle', 'selector': 'app-theme-toggle'},{'name': 'Upload', 'selector': 'app-upload'}];
+        var COMPONENT_TEMPLATE = '<div><app-dialog  [open]="protocolId() !== null"  [title]="protocolTitle() || t().viewer.title"  testId="protocol"  (closed)="close()">  <!-- The machine belongs in the head next to the title: on a shop floor "which machine is this       about" is the first question asked of any document. -->  @if (machine() || approval()) {    <p class="viewer-machine" dialogSubtitle data-testid="protocol-machine">      <span>{{ machine() }}</span>      @if (approval(); as state) {        <!-- Beside the machine, in the head, so it is read BEFORE the text rather than looked up             afterwards. A reader who has already worked through a protocol and only then learns             that nobody has reviewed it has been told too late to act on it. -->        <app-approval-state          [approval]="state"          [language]="language()"          [showActor]="source() !== \'citation\'"        />      }    </p>  }  <!-- Re-projected into the dialog\'s own action row, so a caller that owns a verb for this protocol       — the Verwaltung view\'s approve and withdraw — can put it beside Download without this       component learning what the verb is. The citation viewer passes nothing and gets nothing. -->  <ng-content select="[protocolActions]" ngProjectAs="[dialogActions]" />  <button    type="button"    class="btn btn-secondary btn-sm"    dialogActions    data-testid="protocol-download"    [disabled]="!canDownload()"    (click)="download()"  >    <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">      <path d="M12 4v11" />      <path d="M7.5 10.5L12 15l4.5-4.5" />      <path d="M5 19h14" />    </svg>    {{ t().viewer.download }}  </button>  @if (loading()) {    <p class="viewer-loading" role="status" aria-live="polite" data-testid="protocol-loading">      {{ t().viewer.loading }}    </p>  }  @if (failure(); as reason) {    <!-- A source that will not open is worth saying out loud: the claim in the answer still rests         on this protocol, and the reader is entitled to know the evidence is unreachable rather         than to stare at an empty dialog. -->    <p class="notice notice-error" role="alert" data-testid="protocol-failure">      @switch (reason) {        @case (\'notFound\') {          {{ t().errors.documentMissing }}        }        @case (\'forbidden\') {          {{ t().errors.forbidden }}        }        @case (\'unavailable\') {          {{ t().errors.unavailable }}        }        @default {          {{ t().errors.generic }}        }      }    </p>  }  @if (parsed(); as document) {    <!-- lang="de" is wrong for the English protocols in the corpus and right for the 108 German         ones, so neither is asserted here: the document carries no lang and inherits the         interface\'s, which is what the shell already set. -->    <article class="protocol" data-testid="protocol-body">      @if (document.kind === \'raw\') {        <!-- The parser did not recognise the structure. The file itself is still the evidence, so             it is shown as it stands rather than replaced by an apology. Preformatted, because the             line breaks are the only structure left. -->        <p class="caption viewer-fallback-note" data-testid="protocol-fallback-note">          {{ t().viewer.fallbackNote }}        </p>        <pre class="protocol-raw" data-testid="protocol-raw">{{ document.raw }}</pre>      } @else {        @for (segment of document.segments; track $index) {          @switch (segment.kind) {            @case (\'meta\') {              <dl class="protocol-meta" data-testid="protocol-meta">                @for (row of segment.rows; track row.label) {                  <dt>{{ row.label }}</dt>                  <dd>{{ row.value }}</dd>                }              </dl>            }            @case (\'title\') {              <h3 class="protocol-title" data-testid="protocol-doc-title">{{ segment.text }}</h3>            }            @case (\'section\') {              <section class="protocol-section" data-testid="protocol-section">                @if (segment.heading) {                  <h4 class="protocol-heading">{{ segment.heading }}</h4>                }                @for (paragraph of segment.paragraphs; track $index) {                  <p class="protocol-paragraph">{{ paragraph }}</p>                }              </section>            }          }        }      }    </article>  }</app-dialog></div>'
+    var COMPONENTS = [{'name': 'App', 'selector': 'app-root'},{'name': 'ApprovalStateBadge', 'selector': 'app-approval-state'},{'name': 'Dialog', 'selector': 'app-dialog'},{'name': 'HealthDot', 'selector': 'app-health-dot'},{'name': 'HelpDialog', 'selector': 'app-help-dialog'},{'name': 'Landing', 'selector': 'app-landing'},{'name': 'Moderation', 'selector': 'app-moderation'},{'name': 'Pager', 'selector': 'app-pager'},{'name': 'ProtocolDialog', 'selector': 'app-protocol-dialog'},{'name': 'Search', 'selector': 'app-search'},{'name': 'SearchAnswer', 'selector': 'app-search-answer'},{'name': 'SearchHelp', 'selector': 'app-search-help'},{'name': 'SearchSources', 'selector': 'app-search-sources'},{'name': 'SettingsDialog', 'selector': 'app-settings-dialog'},{'name': 'ThemeToggle', 'selector': 'app-theme-toggle'},{'name': 'Upload', 'selector': 'app-upload'}];
     var DIRECTIVES = [];
     var ACTUAL_COMPONENT = {'name': 'ProtocolDialog'};
 </script>

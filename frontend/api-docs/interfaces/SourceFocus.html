@@ -227,7 +227,7 @@ bare string would only notify on the first.</p>
 
                             <tr>
                                 <td class="col-md-4">
-                                    <div class="io-line">Defined in <a href="" data-line="22" class="link-to-prism">src/app/features/search/search-sources.ts:22</a></div>
+                                    <div class="io-line">Defined in <a href="" data-line="23" class="link-to-prism">src/app/features/search/search-sources.ts:23</a></div>
                                 </td>
                             </tr>
 
@@ -241,8 +241,9 @@ bare string would only notify on the first.</p>
         <pre class="line-numbers compodoc-sourcecode"><code class="language-typescript">import { DOCUMENT } from &#x27;@angular/common&#x27;;
 import { Component, computed, effect, inject, input, output, signal } from &#x27;@angular/core&#x27;;
 
-import { Citation } from &#x27;../../core/api/api.types&#x27;;
+import { Approval, Citation } from &#x27;../../core/api/api.types&#x27;;
 import { I18nService } from &#x27;../../core/i18n/i18n.service&#x27;;
+import { ApprovalStateBadge } from &#x27;../../shared/approval/approval-state&#x27;;
 
 /**
  * How many sources fit under an answer before the list starts hiding it.
@@ -282,6 +283,7 @@ export function sourceCardId(citation: Citation): string {
  */
 @Component({
   selector: &#x27;app-search-sources&#x27;,
+  imports: [ApprovalStateBadge],
   templateUrl: &#x27;./search-sources.html&#x27;,
   styleUrl: &#x27;./search-sources.css&#x27;,
 })
@@ -292,6 +294,8 @@ export class SearchSources {
   private readonly document &#x3D; inject(DOCUMENT);
 
   protected readonly t &#x3D; this.i18n.t;
+  /** Handed to the badge, which hands it to the date pipe — a pure pipe cannot read a signal. */
+  protected readonly language &#x3D; this.i18n.language;
 
   readonly citations &#x3D; input.required&lt;readonly Citation[]&gt;();
   /** What to call the machine on a card read on its own. Every source shares it — the query is scoped. */
@@ -368,6 +372,19 @@ export class SearchSources {
   /** Percent, rounded — a reader compares 69 % with 56 %, not 0.6896 with 0.5566. */
   protected percent(citation: Citation): number {
     return Math.round(citation.similarity * 100);
+  }
+
+  /**
+   * The citation&#x27;s approval, in the shape the shared badge reads.
+   *
+   * A citation carries a boolean rather than an actor and a time, and that is the right wire shape:
+   * a technician reading an answer needs to know whether a source was reviewed, not by whom — and
+   * the approver&#x27;s username on every source card would put a colleague&#x27;s name under a claim they
+   * did not make. Widened here rather than in the badge so the badge stays one component with one
+   * input, used identically on all three surfaces.
+   */
+  protected approvalOf(citation: Citation): Approval {
+    return { state: citation.approved ? &#x27;APPROVED&#x27; : &#x27;UNAPPROVED&#x27;, approvedBy: null, approvedAt: null };
   }
 }
 </code></pre>

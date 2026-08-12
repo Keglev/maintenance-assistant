@@ -293,9 +293,21 @@ failure this application exists to prevent.
                             </li>
                             <li>
                                 <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
+                                    <span class="modifier">Protected</span>
+                                    <span class="modifier">Readonly</span>
+                                <a href="#answeredApprovedOnly" >answeredApprovedOnly</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
                                     <span class="modifier">Private</span>
                                     <span class="modifier">Readonly</span>
                                 <a href="#api" >api</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
+                                    <span class="modifier">Protected</span>
+                                    <span class="modifier">Readonly</span>
+                                <a href="#approvedOnly" >approvedOnly</a>
                             </li>
                             <li>
                                 <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
@@ -363,6 +375,12 @@ failure this application exists to prevent.
                                     <span class="modifier">Readonly</span>
                                 <a href="#viewing" >viewing</a>
                             </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
+                                    <span class="modifier">Protected</span>
+                                    <span class="modifier">Readonly</span>
+                                <a href="#viewingApproval" >viewingApproval</a>
+                            </li>
                         </ul>
                     </td>
                 </tr>
@@ -387,6 +405,11 @@ failure this application exists to prevent.
                                     <span class="modifier">Protected</span>
                                 <a href="#openSource" >openSource</a>
                             </li>
+                            <li>
+                                <span class="reference-badge reference-badge--method" aria-hidden="true">M</span>
+                                    <span class="modifier">Protected</span>
+                                <a href="#widenToWholeCorpus" >widenToWholeCorpus</a>
+                            </li>
                         </ul>
                     </td>
                 </tr>
@@ -410,7 +433,7 @@ failure this application exists to prevent.
                 </tr>
                         <tr>
                             <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="52" class="link-to-prism">src/app/features/search/search.ts:52</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="79" class="link-to-prism">src/app/features/search/search.ts:79</a></div>
                             </td>
                         </tr>
 
@@ -449,8 +472,8 @@ failure this application exists to prevent.
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="63"
-                                    class="link-to-prism">src/app/features/search/search.ts:63</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="90"
+                                    class="link-to-prism">src/app/features/search/search.ts:90</a></div>
                         </td>
                     </tr>
 
@@ -488,8 +511,8 @@ failure this application exists to prevent.
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="113"
-                                    class="link-to-prism">src/app/features/search/search.ts:113</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="157"
+                                    class="link-to-prism">src/app/features/search/search.ts:157</a></div>
                         </td>
                     </tr>
 
@@ -560,6 +583,50 @@ download.</p>
             </tr>
         </tbody>
     </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="widenToWholeCorpus"></a>
+                    <span class="name">
+                            <span class="modifier">Protected</span>
+                        <span ><b>widenToWholeCorpus</b></span>
+                        <a href="#widenToWholeCorpus"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                        <span class="modifier-icon icon ion-ios-reset"></span>
+                    <code>widenToWholeCorpus()</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="135"
+                                    class="link-to-prism">src/app/features/search/search.ts:135</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                        <div class="io-description"><p>Turns the facet off and asks the same question again.</p>
+<p>Offered from the Mode B note, because that is the moment the narrowing is felt: the reader has
+an unsourced answer and no way of telling whether the corpus is empty on this fault or merely
+unreviewed. Re-asking rather than merely unchecking, so the answer follows the decision.</p>
+</div>
+
+                        <div class="io-description">
+                            <b>Returns : </b>        <code><a href="https://www.typescriptlang.org/docs/handbook/basic-types.html" target="_blank" >void</a></code>
+
+                        </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
 </section>
 
     <section data-compodoc="block-properties">
@@ -593,10 +660,49 @@ download.</p>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="40" class="link-to-prism">src/app/features/search/search.ts:40</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="52" class="link-to-prism">src/app/features/search/search.ts:52</a></div>
                         </td>
                     </tr>
 
+
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="answeredApprovedOnly"></a>
+                    <span class="name">
+                            <span class="modifier">Protected</span>
+                            <span class="modifier">Readonly</span>
+                        <span ><b>answeredApprovedOnly</b></span>
+                        <a href="#answeredApprovedOnly"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>unknown</code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>signal(false)</code>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="50" class="link-to-prism">src/app/features/search/search.ts:50</a></div>
+                        </td>
+                    </tr>
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-description"><p>What the answer on screen was actually asked with — see <a href="SearchAnswer.approvedOnly">SearchAnswer.approvedOnly</a>.</p>
+</div>
+                </td>
+            </tr>
 
         </tbody>
     </table>
@@ -637,6 +743,49 @@ download.</p>
         <tbody>
             <tr>
                 <td class="col-md-4">
+                    <a name="approvedOnly"></a>
+                    <span class="name">
+                            <span class="modifier">Protected</span>
+                            <span class="modifier">Readonly</span>
+                        <span ><b>approvedOnly</b></span>
+                        <a href="#approvedOnly"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>unknown</code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>signal(false)</code>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="48" class="link-to-prism">src/app/features/search/search.ts:48</a></div>
+                        </td>
+                    </tr>
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-description"><p>The approved-only facet, OFF by default.</p>
+<p>The default is decision 1 of 2026-08-11, not a convenience: an unapproved protocol stays
+searchable because the administrator may not review at a weekend and the factory does not stop.
+Defaulting this ON would quietly reinstate the gate that decision refused, and would do it in
+the one place nobody would look for it.
+</div>
+                </td>
+            </tr>
+
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
                     <a name="asking"></a>
                     <span class="name">
                             <span class="modifier">Protected</span>
@@ -659,7 +808,7 @@ download.</p>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="41" class="link-to-prism">src/app/features/search/search.ts:41</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="53" class="link-to-prism">src/app/features/search/search.ts:53</a></div>
                         </td>
                     </tr>
 
@@ -692,7 +841,7 @@ download.</p>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="42" class="link-to-prism">src/app/features/search/search.ts:42</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="54" class="link-to-prism">src/app/features/search/search.ts:54</a></div>
                         </td>
                     </tr>
 
@@ -794,7 +943,7 @@ download.</p>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="49" class="link-to-prism">src/app/features/search/search.ts:49</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="76" class="link-to-prism">src/app/features/search/search.ts:76</a></div>
                         </td>
                     </tr>
 
@@ -965,7 +1114,7 @@ download.</p>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="43" class="link-to-prism">src/app/features/search/search.ts:43</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="55" class="link-to-prism">src/app/features/search/search.ts:55</a></div>
                         </td>
                     </tr>
 
@@ -998,13 +1147,61 @@ download.</p>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="46" class="link-to-prism">src/app/features/search/search.ts:46</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="58" class="link-to-prism">src/app/features/search/search.ts:58</a></div>
                         </td>
                     </tr>
 
             <tr>
                 <td class="col-md-4">
                     <div class="io-description"><p>The citation whose protocol the viewer is showing, or null when the viewer is closed.</p>
+</div>
+                </td>
+            </tr>
+
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="viewingApproval"></a>
+                    <span class="name">
+                            <span class="modifier">Protected</span>
+                            <span class="modifier">Readonly</span>
+                        <span ><b>viewingApproval</b></span>
+                        <a href="#viewingApproval"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>unknown</code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>computed&lt;Approval | null&gt;(() &#x3D;&gt; {
+    const citation &#x3D; this.viewing();
+    return citation
+      ? { state: citation.approved ? &#x27;APPROVED&#x27; : &#x27;UNAPPROVED&#x27;, approvedBy: null, approvedAt: null }
+      : null;
+  })</code>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="68" class="link-to-prism">src/app/features/search/search.ts:68</a></div>
+                        </td>
+                    </tr>
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-description"><p>The open source&#39;s approval, for the viewer&#39;s head, or null when nothing is open.</p>
+<p>The state travels into the dialog rather than being looked up there, so the mark a reader saw
+on the source card is the same mark they see on the document — one fact, told once. A second
+fetch could also disagree with the card if an administrator approved it in the meantime, and a
+source list that contradicts the document it links to is worse than a slightly stale one.</p>
 </div>
                 </td>
             </tr>
@@ -1020,7 +1217,7 @@ download.</p>
         <pre class="line-numbers compodoc-sourcecode"><code class="language-typescript">import { Component, computed, inject, signal } from &#x27;@angular/core&#x27;;
 import { FormsModule } from &#x27;@angular/forms&#x27;;
 
-import { Citation, Machine, QueryAnswer } from &#x27;../../core/api/api.types&#x27;;
+import { Approval, Citation, Machine, QueryAnswer } from &#x27;../../core/api/api.types&#x27;;
 import { ApiFailure, MaintenanceApiService, classify } from &#x27;../../core/api/maintenance-api.service&#x27;;
 import { I18nService } from &#x27;../../core/i18n/i18n.service&#x27;;
 import { ProtocolDialog } from &#x27;../../shared/protocol/protocol-dialog&#x27;;
@@ -1056,6 +1253,18 @@ export class Search {
   protected readonly machineId &#x3D; signal(&#x27;&#x27;);
   protected readonly question &#x3D; signal(&#x27;&#x27;);
 
+  /**
+   * The approved-only facet, OFF by default.
+   *
+   * &lt;p&gt;The default is decision 1 of 2026-08-11, not a convenience: an unapproved protocol stays
+   * searchable because the administrator may not review at a weekend and the factory does not stop.
+   * Defaulting this ON would quietly reinstate the gate that decision refused, and would do it in
+   * the one place nobody would look for it.
+   */
+  protected readonly approvedOnly &#x3D; signal(false);
+  /** What the answer on screen was actually asked with — see {@link SearchAnswer.approvedOnly}. */
+  protected readonly answeredApprovedOnly &#x3D; signal(false);
+
   protected readonly answer &#x3D; signal&lt;QueryAnswer | null&gt;(null);
   protected readonly asking &#x3D; signal(false);
   protected readonly failure &#x3D; signal&lt;ApiFailure | null&gt;(null);
@@ -1063,6 +1272,21 @@ export class Search {
 
   /** The citation whose protocol the viewer is showing, or null when the viewer is closed. */
   protected readonly viewing &#x3D; signal&lt;Citation | null&gt;(null);
+
+  /**
+   * The open source&#x27;s approval, for the viewer&#x27;s head, or null when nothing is open.
+   *
+   * The state travels into the dialog rather than being looked up there, so the mark a reader saw
+   * on the source card is the same mark they see on the document — one fact, told once. A second
+   * fetch could also disagree with the card if an administrator approved it in the meantime, and a
+   * source list that contradicts the document it links to is worse than a slightly stale one.
+   */
+  protected readonly viewingApproval &#x3D; computed&lt;Approval | null&gt;(() &#x3D;&gt; {
+    const citation &#x3D; this.viewing();
+    return citation
+      ? { state: citation.approved ? &#x27;APPROVED&#x27; : &#x27;UNAPPROVED&#x27;, approvedBy: null, approvedAt: null }
+      : null;
+  });
 
   /** What to call the machine in the viewer&#x27;s head: the picker&#x27;s own label, not an id. */
   protected readonly machineLabel &#x3D; computed(() &#x3D;&gt; {
@@ -1100,9 +1324,14 @@ export class Search {
     this.answer.set(null);
     this.asking.set(true);
 
-    this.api.ask(question, this.machineId()).subscribe({
+    const approvedOnly &#x3D; this.approvedOnly();
+    this.api.ask(question, this.machineId(), approvedOnly).subscribe({
       next: (answer) &#x3D;&gt; {
         this.answer.set(answer);
+        // Recorded WITH the answer rather than read from the control later: a reader who flips the
+        // facet after asking has not changed what is on screen, and a note that flipped with the
+        // checkbox would describe a search nobody ran.
+        this.answeredApprovedOnly.set(approvedOnly);
         this.asking.set(false);
       },
       error: (error: unknown) &#x3D;&gt; {
@@ -1110,6 +1339,18 @@ export class Search {
         this.asking.set(false);
       },
     });
+  }
+
+  /**
+   * Turns the facet off and asks the same question again.
+   *
+   * Offered from the Mode B note, because that is the moment the narrowing is felt: the reader has
+   * an unsourced answer and no way of telling whether the corpus is empty on this fault or merely
+   * unreviewed. Re-asking rather than merely unchecking, so the answer follows the decision.
+   */
+  protected widenToWholeCorpus(): void {
+    this.approvedOnly.set(false);
+    this.ask();
   }
 
   /**
@@ -1182,6 +1423,25 @@ export class Search {
     &gt;&lt;/textarea&gt;
   &lt;/label&gt;
 
+  &lt;!-- The approved-only facet. OFF by default and stated as such in the hint, because &quot;everything is
+       searched&quot; is the decision (2026-08-11) and a reader has to be able to see that it is. Below
+       the question rather than beside the machine picker: it narrows the ANSWER, not the scope of
+       the question, and the machine row is where scope already lives. --&gt;
+  &lt;div class&#x3D;&quot;ask-facet&quot;&gt;
+    &lt;label class&#x3D;&quot;checkbox&quot;&gt;
+      &lt;input
+        type&#x3D;&quot;checkbox&quot;
+        name&#x3D;&quot;approvedOnly&quot;
+        data-testid&#x3D;&quot;approved-only&quot;
+        [ngModel]&#x3D;&quot;approvedOnly()&quot;
+        (ngModelChange)&#x3D;&quot;approvedOnly.set($event)&quot;
+        [disabled]&#x3D;&quot;asking()&quot;
+      /&gt;
+      &lt;span&gt;{{ t().search.approvedOnly }}&lt;/span&gt;
+    &lt;/label&gt;
+    &lt;p class&#x3D;&quot;field-hint&quot; data-testid&#x3D;&quot;approved-only-hint&quot;&gt;{{ t().search.approvedOnlyHint }}&lt;/p&gt;
+  &lt;/div&gt;
+
   &lt;div class&#x3D;&quot;ask-actions&quot;&gt;
     &lt;!-- Disabled while a request is in flight: the answer costs a provider call and counts against
          a per-user rate limit, so a second click is money and a 429 rather than a faster answer. --&gt;
@@ -1239,7 +1499,13 @@ export class Search {
   &lt;!-- The answer sits directly under the form that produced it. It used to render after the help
        panel, which on a wide screen meant scrolling past an explanation to reach the thing being
        explained. --&gt;
-  &lt;app-search-answer [answer]&#x3D;&quot;result&quot; [machine]&#x3D;&quot;machineLabel()&quot; (opened)&#x3D;&quot;openSource($event)&quot; /&gt;
+  &lt;app-search-answer
+    [answer]&#x3D;&quot;result&quot;
+    [machine]&#x3D;&quot;machineLabel()&quot;
+    [approvedOnly]&#x3D;&quot;answeredApprovedOnly()&quot;
+    (opened)&#x3D;&quot;openSource($event)&quot;
+    (widen)&#x3D;&quot;widenToWholeCorpus()&quot;
+  /&gt;
 }
 &lt;/div&gt;
 
@@ -1253,6 +1519,7 @@ export class Search {
   [protocolId]&#x3D;&quot;viewing()?.protocolId ?? null&quot;
   [protocolTitle]&#x3D;&quot;viewing()?.title ?? &#x27;&#x27;&quot;
   [machine]&#x3D;&quot;machineLabel()&quot;
+  [approval]&#x3D;&quot;viewingApproval()&quot;
   (closed)&#x3D;&quot;viewing.set(null)&quot;
 /&gt;
 &lt;/div&gt;
@@ -1280,6 +1547,15 @@ export class Search {
   gap: var(--s-4);
   max-width: var(--read-max);
   margin-bottom: var(--s-5);
+}
+
+/* The facet and its hint stack tightly — they are one statement, and the &#x60;.ask&#x60; gap between form
+   rows would read as two. The hint stays visible while the box is being decided about, which a
+   tooltip would not: the thing it says (everything is searched by default) is the decision. */
+.ask-facet {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-1);
 }
 
 .ask-actions {
@@ -1429,8 +1705,8 @@ export class Search {
 <script src="../js/libs/htmlparser.js"></script>
 <script src="../js/libs/deep-iterator.js"></script>
 <script>
-        var COMPONENT_TEMPLATE = '<div><div class="page page-split"><h1 class="page-title">{{ t().search.heading }}</h1><!-- Two columns on a wide screen: the form and its answer on the left, the help panel on the     right. A grid rather than a flex row, because a flex row wraps when the contents do not fit     and that is exactly how the panel ended up under the form. --><div class="search-layout"><div class="search-main"><form class="ask" (ngSubmit)="ask()">  <label class="field">    <span class="field-label">{{ t().search.machine }}</span>    <select      name="machine"      data-testid="machine-picker"      [ngModel]="machineId()"      (ngModelChange)="machineId.set($event)"      [disabled]="asking()"    >      <option value="">{{ t().search.machinePlaceholder }}</option>      @for (machine of machines(); track machine.id) {        <option [value]="machine.id">{{ machine.machineNo }} · {{ machine.name }}</option>      }    </select>  </label>  @if (machinesFailed()) {    <p class="notice notice-error" data-testid="machines-error">      {{ t().search.machinesUnavailable }}    </p>  }  <label class="field">    <span class="field-label">{{ t().search.question }}</span>    <textarea      name="question"      rows="3"      data-testid="question-input"      [placeholder]="t().search.questionPlaceholder"      [ngModel]="question()"      (ngModelChange)="question.set($event)"      [disabled]="asking()"    ></textarea>  </label>  <div class="ask-actions">    <!-- Disabled while a request is in flight: the answer costs a provider call and counts against         a per-user rate limit, so a second click is money and a 429 rather than a faster answer. -->    <button      type="submit"      class="btn btn-primary"      data-testid="ask-button"      [disabled]="asking()"      [attr.aria-busy]="asking()"    >      {{ asking() ? t().search.working : t().search.submit }}    </button>  </div>  @if (validation() === \'machine\') {    <p class="notice notice-error" data-testid="validation">{{ t().search.machineRequired }}</p>  } @else if (validation() === \'question\') {    <p class="notice notice-error" data-testid="validation">{{ t().search.questionRequired }}</p>  }</form>@if (asking()) {  <!-- Answers take 5-20 s. An indeterminate bar with an honest estimate beats a spinner that says       nothing about whether waiting is normal. -->  <div class="working" role="status" aria-live="polite" data-testid="working">    <div class="working-bar"><span></span></div>    <p class="working-text">{{ t().search.working }}</p>    <p class="working-hint">{{ t().search.workingHint }}</p>  </div>}@if (failure(); as reason) {  <p class="notice notice-error" role="alert" data-testid="failure">    @switch (reason) {      @case (\'rateLimited\') {        {{ t().errors.rateLimited }}      }      @case (\'budgetExhausted\') {        {{ t().errors.budgetExhausted }}      }      @case (\'unavailable\') {        {{ t().errors.unavailable }}      }      @case (\'forbidden\') {        {{ t().errors.forbidden }}      }      @default {        {{ t().errors.generic }}      }    }  </p>}@if (answer(); as result) {  <!-- The answer sits directly under the form that produced it. It used to render after the help       panel, which on a wide screen meant scrolling past an explanation to reach the thing being       explained. -->  <app-search-answer [answer]="result" [machine]="machineLabel()" (opened)="openSource($event)" />}</div><app-search-help /></div><!-- The protocol behind a citation opens HERE, not in a new tab: the reader stays in the answer they     clicked from, which on a tablet on the shop floor is the difference between reading the evidence     and losing the answer. --><app-protocol-dialog  [protocolId]="viewing()?.protocolId ?? null"  [protocolTitle]="viewing()?.title ?? \'\'"  [machine]="machineLabel()"  (closed)="viewing.set(null)"/></div></div>'
-    var COMPONENTS = [{'name': 'App', 'selector': 'app-root'},{'name': 'Dialog', 'selector': 'app-dialog'},{'name': 'HealthDot', 'selector': 'app-health-dot'},{'name': 'HelpDialog', 'selector': 'app-help-dialog'},{'name': 'Landing', 'selector': 'app-landing'},{'name': 'Moderation', 'selector': 'app-moderation'},{'name': 'Pager', 'selector': 'app-pager'},{'name': 'ProtocolDialog', 'selector': 'app-protocol-dialog'},{'name': 'Search', 'selector': 'app-search'},{'name': 'SearchAnswer', 'selector': 'app-search-answer'},{'name': 'SearchHelp', 'selector': 'app-search-help'},{'name': 'SearchSources', 'selector': 'app-search-sources'},{'name': 'SettingsDialog', 'selector': 'app-settings-dialog'},{'name': 'ThemeToggle', 'selector': 'app-theme-toggle'},{'name': 'Upload', 'selector': 'app-upload'}];
+        var COMPONENT_TEMPLATE = '<div><div class="page page-split"><h1 class="page-title">{{ t().search.heading }}</h1><!-- Two columns on a wide screen: the form and its answer on the left, the help panel on the     right. A grid rather than a flex row, because a flex row wraps when the contents do not fit     and that is exactly how the panel ended up under the form. --><div class="search-layout"><div class="search-main"><form class="ask" (ngSubmit)="ask()">  <label class="field">    <span class="field-label">{{ t().search.machine }}</span>    <select      name="machine"      data-testid="machine-picker"      [ngModel]="machineId()"      (ngModelChange)="machineId.set($event)"      [disabled]="asking()"    >      <option value="">{{ t().search.machinePlaceholder }}</option>      @for (machine of machines(); track machine.id) {        <option [value]="machine.id">{{ machine.machineNo }} · {{ machine.name }}</option>      }    </select>  </label>  @if (machinesFailed()) {    <p class="notice notice-error" data-testid="machines-error">      {{ t().search.machinesUnavailable }}    </p>  }  <label class="field">    <span class="field-label">{{ t().search.question }}</span>    <textarea      name="question"      rows="3"      data-testid="question-input"      [placeholder]="t().search.questionPlaceholder"      [ngModel]="question()"      (ngModelChange)="question.set($event)"      [disabled]="asking()"    ></textarea>  </label>  <!-- The approved-only facet. OFF by default and stated as such in the hint, because "everything is       searched" is the decision (2026-08-11) and a reader has to be able to see that it is. Below       the question rather than beside the machine picker: it narrows the ANSWER, not the scope of       the question, and the machine row is where scope already lives. -->  <div class="ask-facet">    <label class="checkbox">      <input        type="checkbox"        name="approvedOnly"        data-testid="approved-only"        [ngModel]="approvedOnly()"        (ngModelChange)="approvedOnly.set($event)"        [disabled]="asking()"      />      <span>{{ t().search.approvedOnly }}</span>    </label>    <p class="field-hint" data-testid="approved-only-hint">{{ t().search.approvedOnlyHint }}</p>  </div>  <div class="ask-actions">    <!-- Disabled while a request is in flight: the answer costs a provider call and counts against         a per-user rate limit, so a second click is money and a 429 rather than a faster answer. -->    <button      type="submit"      class="btn btn-primary"      data-testid="ask-button"      [disabled]="asking()"      [attr.aria-busy]="asking()"    >      {{ asking() ? t().search.working : t().search.submit }}    </button>  </div>  @if (validation() === \'machine\') {    <p class="notice notice-error" data-testid="validation">{{ t().search.machineRequired }}</p>  } @else if (validation() === \'question\') {    <p class="notice notice-error" data-testid="validation">{{ t().search.questionRequired }}</p>  }</form>@if (asking()) {  <!-- Answers take 5-20 s. An indeterminate bar with an honest estimate beats a spinner that says       nothing about whether waiting is normal. -->  <div class="working" role="status" aria-live="polite" data-testid="working">    <div class="working-bar"><span></span></div>    <p class="working-text">{{ t().search.working }}</p>    <p class="working-hint">{{ t().search.workingHint }}</p>  </div>}@if (failure(); as reason) {  <p class="notice notice-error" role="alert" data-testid="failure">    @switch (reason) {      @case (\'rateLimited\') {        {{ t().errors.rateLimited }}      }      @case (\'budgetExhausted\') {        {{ t().errors.budgetExhausted }}      }      @case (\'unavailable\') {        {{ t().errors.unavailable }}      }      @case (\'forbidden\') {        {{ t().errors.forbidden }}      }      @default {        {{ t().errors.generic }}      }    }  </p>}@if (answer(); as result) {  <!-- The answer sits directly under the form that produced it. It used to render after the help       panel, which on a wide screen meant scrolling past an explanation to reach the thing being       explained. -->  <app-search-answer    [answer]="result"    [machine]="machineLabel()"    [approvedOnly]="answeredApprovedOnly()"    (opened)="openSource($event)"    (widen)="widenToWholeCorpus()"  />}</div><app-search-help /></div><!-- The protocol behind a citation opens HERE, not in a new tab: the reader stays in the answer they     clicked from, which on a tablet on the shop floor is the difference between reading the evidence     and losing the answer. --><app-protocol-dialog  [protocolId]="viewing()?.protocolId ?? null"  [protocolTitle]="viewing()?.title ?? \'\'"  [machine]="machineLabel()"  [approval]="viewingApproval()"  (closed)="viewing.set(null)"/></div></div>'
+    var COMPONENTS = [{'name': 'App', 'selector': 'app-root'},{'name': 'ApprovalStateBadge', 'selector': 'app-approval-state'},{'name': 'Dialog', 'selector': 'app-dialog'},{'name': 'HealthDot', 'selector': 'app-health-dot'},{'name': 'HelpDialog', 'selector': 'app-help-dialog'},{'name': 'Landing', 'selector': 'app-landing'},{'name': 'Moderation', 'selector': 'app-moderation'},{'name': 'Pager', 'selector': 'app-pager'},{'name': 'ProtocolDialog', 'selector': 'app-protocol-dialog'},{'name': 'Search', 'selector': 'app-search'},{'name': 'SearchAnswer', 'selector': 'app-search-answer'},{'name': 'SearchHelp', 'selector': 'app-search-help'},{'name': 'SearchSources', 'selector': 'app-search-sources'},{'name': 'SettingsDialog', 'selector': 'app-settings-dialog'},{'name': 'ThemeToggle', 'selector': 'app-theme-toggle'},{'name': 'Upload', 'selector': 'app-upload'}];
     var DIRECTIVES = [];
     var ACTUAL_COMPONENT = {'name': 'Search'};
 </script>

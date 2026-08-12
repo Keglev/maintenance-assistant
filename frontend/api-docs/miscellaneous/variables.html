@@ -817,10 +817,10 @@ neither side reads naturally.</p>
   },
   demo: {
     operator: &#x27;Fragen stellen, bedienerseitige Antworten.&#x27;,
-    techniker: &#x27;Fragen stellen, vollständige technische Antworten.&#x27;,
-    schichtleiter: &#x27;Wie Techniker, zusätzlich Protokolle hochladen.&#x27;,
+    techniker: &#x27;Fragen stellen, vollständige technische Antworten, Protokolle schreiben.&#x27;,
+    schichtleiter: &#x27;Wie Techniker, zusätzlich Protokolle korrigieren.&#x27;,
     admin:
-      &#x27;Prüft und entfernt Protokolle in der Protokollverwaltung. Stellt keine Fragen und lädt nichts hoch.&#x27;,
+      &#x27;Gibt Protokolle frei, prüft und entfernt sie in der Protokollverwaltung. Stellt keine Fragen und schreibt nichts.&#x27;,
     examplesHeading: &#x27;Zum Ausprobieren&#x27;,
     examplesIntro: &#x27;Erst die Maschine wählen, dann die Frage stellen — gesucht wird je Maschine.&#x27;,
     exampleMachine: &#x27;Maschine&#x27;,
@@ -857,8 +857,10 @@ neither side reads naturally.</p>
     rolesHeading: &#x27;Wer darf was&#x27;,
     roleOperator:
       &#x27;Bediener: Fragen stellen. Antworten enthalten nur Schritte für unterwiesene Personen, keine Elektro- oder Mechanikarbeiten.&#x27;,
-    roleTechniker: &#x27;Techniker: Fragen stellen, vollständige technische Antworten ohne Einschränkung.&#x27;,
-    roleSchichtleiter: &#x27;Schichtleiter: wie Techniker, zusätzlich neue Protokolle hochladen.&#x27;,
+    roleTechniker:
+      &#x27;Techniker: Fragen stellen, vollständige technische Antworten ohne Einschränkung, Protokolle schreiben — korrigieren nie, auch nicht die eigenen.&#x27;,
+    roleSchichtleiter:
+      &#x27;Schichtleiter: wie Techniker, zusätzlich neue Protokolle korrigieren — mit Begründung und sofortiger Neuindexierung.&#x27;,
   },
   search: {
     heading: &#x27;Frage zu einer Maschine&#x27;,
@@ -888,6 +890,12 @@ neither side reads naturally.</p>
       { good: &#x27;Presse kommt nicht auf Druck, E-47 steht an&#x27;, weak: &#x27;Druck&#x27; },
       { good: &#x27;Band läuft schief nach dem Rollenwechsel&#x27;, weak: &#x27;Band&#x27; },
     ],
+    approvedOnly: &#x27;Nur freigegebene Protokolle&#x27;,
+    approvedOnlyHint:
+      &#x27;Standardmässig wird der ganze Bestand durchsucht — auch Protokolle, die noch niemand freigegeben hat.&#x27;,
+    approvedOnlyEmpty:
+      &#x27;Gesucht wurde nur in freigegebenen Protokollen. Möglicherweise gibt es ein passendes Protokoll, das noch nicht freigegeben ist.&#x27;,
+    approvedOnlyEmptyAction: &#x27;Im ganzen Bestand suchen&#x27;,
   },
   modeA: {
     badge: &#x27;Belegte Antwort&#x27;,
@@ -903,6 +911,10 @@ neither side reads naturally.</p>
     collapseSource: &#x27;Quelle zuklappen&#x27;,
     expandAnswer: &#x27;Vollständige Antwort anzeigen&#x27;,
     collapseAnswer: &#x27;Antwort einklappen&#x27;,
+    unapprovedSources: (count) &#x3D;&gt;
+      count &#x3D;&#x3D;&#x3D; 1
+        ? &#x27;Eine der Quellen ist noch nicht freigegeben — geprüft hat sie noch niemand.&#x27;
+        : &#x60;${count} der Quellen sind noch nicht freigegeben — geprüft hat sie noch niemand.&#x60;,
   },
   viewer: {
     title: &#x27;Originalprotokoll&#x27;,
@@ -991,6 +1003,27 @@ neither side reads naturally.</p>
     alreadyArchived:
       &#x27;Dieses Protokoll wurde entfernt und lässt sich nicht mehr bearbeiten. Entfernt ist endgültig.&#x27;,
     filterDateFormatHint: &#x27;Format: TT.MM.JJJJ&#x27;,
+    filterApproval: &#x27;Freigabe&#x27;,
+    filterApprovalAll: &#x27;Alle&#x27;,
+  },
+  approval: {
+    approved: &#x27;Freigegeben&#x27;,
+    unapproved: &#x27;Nicht freigegeben&#x27;,
+    column: &#x27;Freigabe&#x27;,
+    approve: &#x27;Freigeben&#x27;,
+    withdraw: &#x27;Freigabe zurückziehen&#x27;,
+    withdrawShort: &#x27;Zurückziehen&#x27;,
+    approving: &#x27;Wird gespeichert …&#x27;,
+    approvedNotice: &#x27;Protokoll freigegeben&#x27;,
+    withdrawnNotice: &#x27;Freigabe zurückgezogen&#x27;,
+    withdrawTitle: &#x27;Freigabe zurückziehen?&#x27;,
+    withdrawBody:
+      &#x27;Das Protokoll bleibt im Bestand und weiterhin durchsuchbar. Es gilt danach als ungeprüft und erscheint wieder in der Freigabeliste.&#x27;,
+    withdrawReasonPlaceholder: &#x27;z. B. Massnahme passt nicht zur beschriebenen Ursache.&#x27;,
+    fourEyes:
+      &#x27;Sie haben dieses Protokoll geschrieben oder zuletzt korrigiert. Freigeben muss es eine andere Administratorin oder ein anderer Administrator — eine Freigabe ist ein zweites Paar Augen.&#x27;,
+    archived:
+      &#x27;Dieses Protokoll wurde entfernt und lässt sich nicht mehr freigeben. Entfernt ist endgültig.&#x27;,
   },
   pager: {
     label: &#x27;Seitenblättern&#x27;,
@@ -1185,10 +1218,10 @@ DECISIONS.txt, which is what the two modes are called throughout the project&#39
   },
   demo: {
     operator: &#x27;Ask questions, operator-safe answers.&#x27;,
-    techniker: &#x27;Ask questions, full technical answers.&#x27;,
-    schichtleiter: &#x27;Like the technician, and may upload protocols.&#x27;,
+    techniker: &#x27;Ask questions, full technical answers, file protocols.&#x27;,
+    schichtleiter: &#x27;Like the technician, and may correct protocols.&#x27;,
     admin:
-      &#x27;Reviews and removes protocols in Protocol management. Does not ask questions and does not upload.&#x27;,
+      &#x27;Approves protocols, reviews and removes them in Protocol management. Does not ask questions and does not write.&#x27;,
     examplesHeading: &#x27;Try these&#x27;,
     examplesIntro: &#x27;Choose the machine first, then ask — retrieval is filtered per machine.&#x27;,
     exampleMachine: &#x27;Machine&#x27;,
@@ -1228,8 +1261,10 @@ DECISIONS.txt, which is what the two modes are called throughout the project&#39
     rolesHeading: &#x27;Who may do what&#x27;,
     roleOperator:
       &#x27;Operator: ask questions. Answers contain only steps for instructed persons, no electrical or mechanical repair work.&#x27;,
-    roleTechniker: &#x27;Technician: ask questions, full technical answers with no restriction.&#x27;,
-    roleSchichtleiter: &#x27;Shift lead: like the technician, and may upload new protocols.&#x27;,
+    roleTechniker:
+      &#x27;Technician: ask questions, full technical answers with no restriction, and file protocols — never corrects one, not even their own.&#x27;,
+    roleSchichtleiter:
+      &#x27;Shift lead: like the technician, and may correct protocols — with a reason and an immediate re-index.&#x27;,
   },
   search: {
     heading: &#x27;Ask about a machine&#x27;,
@@ -1259,6 +1294,12 @@ DECISIONS.txt, which is what the two modes are called throughout the project&#39
       { good: &#x27;Press does not build up pressure, E-47 showing&#x27;, weak: &#x27;pressure&#x27; },
       { good: &#x27;Belt mistracks after the roller change&#x27;, weak: &#x27;belt&#x27; },
     ],
+    approvedOnly: &#x27;Approved protocols only&#x27;,
+    approvedOnlyHint:
+      &#x27;By default the whole corpus is searched — including protocols nobody has approved yet.&#x27;,
+    approvedOnlyEmpty:
+      &#x27;Only approved protocols were searched. There may be a matching protocol that has not been approved yet.&#x27;,
+    approvedOnlyEmptyAction: &#x27;Search the whole corpus&#x27;,
   },
   modeA: {
     badge: &#x27;Sourced answer&#x27;,
@@ -1274,6 +1315,10 @@ DECISIONS.txt, which is what the two modes are called throughout the project&#39
     collapseSource: &#x27;Collapse source&#x27;,
     expandAnswer: &#x27;Show full answer&#x27;,
     collapseAnswer: &#x27;Collapse answer&#x27;,
+    unapprovedSources: (count) &#x3D;&gt;
+      count &#x3D;&#x3D;&#x3D; 1
+        ? &#x27;One of the sources has not been approved yet — nobody has reviewed it.&#x27;
+        : &#x60;${count} of the sources have not been approved yet — nobody has reviewed them.&#x60;,
   },
   viewer: {
     title: &#x27;Original protocol&#x27;,
@@ -1360,6 +1405,26 @@ DECISIONS.txt, which is what the two modes are called throughout the project&#39
     alreadyArchived:
       &#x27;This protocol was removed and can no longer be edited. Removed is final.&#x27;,
     filterDateFormatHint: &#x27;Format: MM/DD/YYYY&#x27;,
+    filterApproval: &#x27;Approval&#x27;,
+    filterApprovalAll: &#x27;All&#x27;,
+  },
+  approval: {
+    approved: &#x27;Approved&#x27;,
+    unapproved: &#x27;Not approved&#x27;,
+    column: &#x27;Approval&#x27;,
+    approve: &#x27;Approve&#x27;,
+    withdraw: &#x27;Withdraw approval&#x27;,
+    withdrawShort: &#x27;Withdraw&#x27;,
+    approving: &#x27;Saving …&#x27;,
+    approvedNotice: &#x27;Protocol approved&#x27;,
+    withdrawnNotice: &#x27;Approval withdrawn&#x27;,
+    withdrawTitle: &#x27;Withdraw approval?&#x27;,
+    withdrawBody:
+      &#x27;The protocol stays in the records and stays searchable. It counts as unreviewed afterwards and returns to the approval queue.&#x27;,
+    withdrawReasonPlaceholder: &#x27;e.g. The action taken does not match the stated cause.&#x27;,
+    fourEyes:
+      &#x27;You wrote or last corrected this protocol. Another administrator has to approve it — an approval is a second pair of eyes.&#x27;,
+    archived: &#x27;This protocol was removed and can no longer be approved. Removed is final.&#x27;,
   },
   pager: {
     label: &#x27;Pagination&#x27;,
@@ -1890,6 +1955,7 @@ before Angular exists — change one and the other stops agreeing.</p>
   titleContains: &#x27;&#x27;,
   from: &#x27;&#x27;,
   to: &#x27;&#x27;,
+  approvalState: &#x27;&#x27;,
 }</code>
                     </td>
                 </tr>

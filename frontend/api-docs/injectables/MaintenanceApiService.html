@@ -259,6 +259,10 @@ nothing here touches a header.</p>
                             </li>
                             <li>
                                 <span class="reference-badge reference-badge--method" aria-hidden="true">M</span>
+                                <a href="#setApproval" >setApproval</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--method" aria-hidden="true">M</span>
                                 <a href="#upload" >upload</a>
                             </li>
                         </ul>
@@ -292,15 +296,15 @@ nothing here touches a header.</p>
             </tr>
             <tr>
                 <td class="col-md-4">
-<code>ask(question: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank">string</a>, machineId: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank">string</a>)</code>
+<code>ask(question: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank">string</a>, machineId: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank">string</a>, approvedOnly: unknown)</code>
                 </td>
             </tr>
 
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="56"
-                                    class="link-to-prism">src/app/core/api/maintenance-api.service.ts:56</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="57"
+                                    class="link-to-prism">src/app/core/api/maintenance-api.service.ts:57</a></div>
                         </td>
                     </tr>
 
@@ -322,6 +326,7 @@ a better feature and be a worse answer.</p>
                                             <td>Name</td>
                                                 <td>Type</td>
                                             <td>Optional</td>
+                                                <td>Default value</td>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -335,6 +340,8 @@ a better feature and be a worse answer.</p>
                                                     No
                                             </td>
 
+                                            <td>
+                                            </td>
 
                                         </tr>
                                         <tr>
@@ -347,6 +354,23 @@ a better feature and be a worse answer.</p>
                                                     No
                                             </td>
 
+                                            <td>
+                                            </td>
+
+                                        </tr>
+                                        <tr>
+                                                <td>approvedOnly</td>
+                                            <td>
+                                                        <code>unknown</code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+                                            <td>
+                                                    <code>false</code>
+                                            </td>
 
                                         </tr>
                                     </tbody>
@@ -383,8 +407,8 @@ a better feature and be a worse answer.</p>
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="147"
-                                    class="link-to-prism">src/app/core/api/maintenance-api.service.ts:147</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="173"
+                                    class="link-to-prism">src/app/core/api/maintenance-api.service.ts:173</a></div>
                         </td>
                     </tr>
 
@@ -476,8 +500,8 @@ a better feature and be a worse answer.</p>
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="126"
-                                    class="link-to-prism">src/app/core/api/maintenance-api.service.ts:126</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="135"
+                                    class="link-to-prism">src/app/core/api/maintenance-api.service.ts:135</a></div>
                         </td>
                     </tr>
 
@@ -560,8 +584,8 @@ history — three places nobody audited for it.</p>
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="139"
-                                    class="link-to-prism">src/app/core/api/maintenance-api.service.ts:139</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="148"
+                                    class="link-to-prism">src/app/core/api/maintenance-api.service.ts:148</a></div>
                         </td>
                     </tr>
 
@@ -644,8 +668,8 @@ document no longer contains (ADR-006 revision).</p>
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="165"
-                                    class="link-to-prism">src/app/core/api/maintenance-api.service.ts:165</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="191"
+                                    class="link-to-prism">src/app/core/api/maintenance-api.service.ts:191</a></div>
                         </td>
                     </tr>
 
@@ -716,8 +740,8 @@ protocol&#39;s content, and it is what makes the archive evidence rather than a 
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="74"
-                                    class="link-to-prism">src/app/core/api/maintenance-api.service.ts:74</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="83"
+                                    class="link-to-prism">src/app/core/api/maintenance-api.service.ts:83</a></div>
                         </td>
                     </tr>
 
@@ -794,8 +818,8 @@ half: <code>Content-Type</code> decides whether the browser renders the document
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="112"
-                                    class="link-to-prism">src/app/core/api/maintenance-api.service.ts:112</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="121"
+                                    class="link-to-prism">src/app/core/api/maintenance-api.service.ts:121</a></div>
                         </td>
                     </tr>
 
@@ -867,8 +891,8 @@ kind of difference that should be visible at the call site.</p>
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="40"
-                                    class="link-to-prism">src/app/core/api/maintenance-api.service.ts:40</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="41"
+                                    class="link-to-prism">src/app/core/api/maintenance-api.service.ts:41</a></div>
                         </td>
                     </tr>
 
@@ -910,8 +934,8 @@ keep in step with the first for no gain.</p>
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="45"
-                                    class="link-to-prism">src/app/core/api/maintenance-api.service.ts:45</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="46"
+                                    class="link-to-prism">src/app/core/api/maintenance-api.service.ts:46</a></div>
                         </td>
                     </tr>
 
@@ -949,8 +973,8 @@ keep in step with the first for no gain.</p>
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="87"
-                                    class="link-to-prism">src/app/core/api/maintenance-api.service.ts:87</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="96"
+                                    class="link-to-prism">src/app/core/api/maintenance-api.service.ts:96</a></div>
                         </td>
                     </tr>
 
@@ -1052,8 +1076,8 @@ uploaded, and a review screen that loads all of them gets slower every month.</p
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="173"
-                                    class="link-to-prism">src/app/core/api/maintenance-api.service.ts:173</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="199"
+                                    class="link-to-prism">src/app/core/api/maintenance-api.service.ts:199</a></div>
                         </td>
                     </tr>
 
@@ -1067,6 +1091,112 @@ uploaded, and a review screen that loads all of them gets slower every month.</p
                             <b>Returns : </b>        <code><a href="../interfaces/UploadStatus.html" target="_self" >Observable&lt;UploadStatus[]&gt;</a></code>
 
                         </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="setApproval"></a>
+                    <span class="name">
+                        <span ><b>setApproval</b></span>
+                        <a href="#setApproval"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+<code>setApproval(protocolId: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank">string</a>, approved: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/boolean" target="_blank">boolean</a>, comment: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank">string</a>)</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="165"
+                                    class="link-to-prism">src/app/core/api/maintenance-api.service.ts:165</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                        <div class="io-description"><p>Approves a protocol, or withdraws approval. Admin only, server-side.</p>
+<p>A state is asserted rather than a verb performed — <code>PUT</code> of <code>{approved}</code> rather than two
+endpoints — so a double-clicked button is harmless and writes no second audit row.</p>
+<p>The comment is REQUIRED to withdraw and optional to grant, and travels in the body for the same
+reason the delete comment does: it can name a colleague&#39;s mistake, and a query string lands in
+access logs, proxy logs and browser history.</p>
+</div>
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                                <td>Type</td>
+                                            <td>Optional</td>
+                                                <td>Default value</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>protocolId</td>
+                                            <td>
+                                                            <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+                                            <td>
+                                            </td>
+
+                                        </tr>
+                                        <tr>
+                                                <td>approved</td>
+                                            <td>
+                                                            <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/boolean" target="_blank" >boolean</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+                                            <td>
+                                            </td>
+
+                                        </tr>
+                                        <tr>
+                                                <td>comment</td>
+                                            <td>
+                                                            <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+                                            <td>
+                                                    <code>&#x27;&#x27;</code>
+                                            </td>
+
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>        <code><a href="../interfaces/Approval.html" target="_self" >Observable&lt;Approval&gt;</a></code>
+
+                        </div>
+                            <div class="io-description">
+                                
+                            </div>
                 </td>
             </tr>
         </tbody>
@@ -1091,8 +1221,8 @@ uploaded, and a review screen that loads all of them gets slower every month.</p
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="178"
-                                    class="link-to-prism">src/app/core/api/maintenance-api.service.ts:178</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="204"
+                                    class="link-to-prism">src/app/core/api/maintenance-api.service.ts:204</a></div>
                         </td>
                     </tr>
 
@@ -1173,7 +1303,7 @@ uploaded, and a review screen that loads all of them gets slower every month.</p
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="30" class="link-to-prism">src/app/core/api/maintenance-api.service.ts:30</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="31" class="link-to-prism">src/app/core/api/maintenance-api.service.ts:31</a></div>
                         </td>
                     </tr>
 
@@ -1206,7 +1336,7 @@ uploaded, and a review screen that loads all of them gets slower every month.</p
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="29" class="link-to-prism">src/app/core/api/maintenance-api.service.ts:29</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="30" class="link-to-prism">src/app/core/api/maintenance-api.service.ts:30</a></div>
                         </td>
                     </tr>
 
@@ -1225,6 +1355,7 @@ import { Observable } from &#x27;rxjs&#x27;;
 
 import { ConfigService } from &#x27;../config/config.service&#x27;;
 import {
+  Approval,
   DeletedProtocolPage,
   HealthStatus,
   Machine,
@@ -1274,8 +1405,16 @@ export class MaintenanceApiService {
    * optional-with-a-default: a question answered from another machine&#x27;s protocols would look like
    * a better feature and be a worse answer.
    */
-  ask(question: string, machineId: string): Observable&lt;QueryAnswer&gt; {
-    return this.http.post&lt;QueryAnswer&gt;(&#x60;${this.apiBaseUrl}/query&#x60;, { question, machineId });
+  ask(question: string, machineId: string, approvedOnly &#x3D; false): Observable&lt;QueryAnswer&gt; {
+    // &#x60;approvedOnly&#x60; defaults to false at every caller, and that default is the decision of
+    // 2026-08-11 rather than a convenience: an unapproved protocol stays searchable, because the
+    // admin may not review at a weekend and the factory does not stop. The facet narrows the
+    // search when a reader asks for it; it never narrows it silently.
+    return this.http.post&lt;QueryAnswer&gt;(&#x60;${this.apiBaseUrl}/query&#x60;, {
+      question,
+      machineId,
+      approvedOnly,
+    });
   }
 
   /**
@@ -1364,6 +1503,23 @@ export class MaintenanceApiService {
     );
   }
 
+  /**
+   * Approves a protocol, or withdraws approval. Admin only, server-side.
+   *
+   * A state is asserted rather than a verb performed — &#x60;PUT&#x60; of &#x60;{approved}&#x60; rather than two
+   * endpoints — so a double-clicked button is harmless and writes no second audit row.
+   *
+   * The comment is REQUIRED to withdraw and optional to grant, and travels in the body for the same
+   * reason the delete comment does: it can name a colleague&#x27;s mistake, and a query string lands in
+   * access logs, proxy logs and browser history.
+   */
+  setApproval(protocolId: string, approved: boolean, comment &#x3D; &#x27;&#x27;): Observable&lt;Approval&gt; {
+    return this.http.put&lt;Approval&gt;(
+      &#x60;${this.apiBaseUrl}/moderation/protocols/${protocolId}/approval&#x60;,
+      { approved, comment },
+    );
+  }
+
   /** One page of the archive: what was removed, by whom and why. Admin only, server-side. */
   deletedProtocols(machineNo: string, page: number, size: number): Observable&lt;DeletedProtocolPage&gt; {
     let params &#x3D; new HttpParams().set(&#x27;page&#x27;, page).set(&#x27;size&#x27;, size);
@@ -1418,6 +1574,15 @@ export type ApiFailure &#x3D;
   | &#x27;rejectedContent&#x27;
   /** An edit tried to change the machine or the type — the identity lock (ADR-006 revision). */
   | &#x27;identityLocked&#x27;
+  /**
+   * The approval was refused because the caller wrote or last corrected this protocol.
+   *
+   * Its own failure rather than a generic 400, because it is the only refusal in this API that the
+   * reader can act on by asking a specific person: another administrator has to approve it. A
+   * disabled button or a silent failure here is a bug report waiting to happen — the reader would
+   * have no way to learn that the rule exists, let alone that they tripped it.
+   */
+  | &#x27;fourEyesRequired&#x27;
   /** The protocol is already in the archive, and archived is final. */
   | &#x27;archived&#x27;
   | &#x27;forbidden&#x27;
@@ -1454,6 +1619,12 @@ export function classify(error: unknown): ApiFailure {
     case 400:
       if (reasonOf(error) &#x3D;&#x3D;&#x3D; &#x27;PROTOCOL_IDENTITY_LOCKED&#x27;) {
         return &#x27;identityLocked&#x27;;
+      }
+      // The four-eyes refusal. Matched on the code rather than on the status, because a 400 from
+      // this endpoint is also how a withdrawal without a reason comes back — and those two need
+      // opposite sentences: one names a rule, the other names a missing field.
+      if (reasonOf(error) &#x3D;&#x3D;&#x3D; &#x27;FOUR_EYES_REQUIRED&#x27;) {
+        return &#x27;fourEyesRequired&#x27;;
       }
       return REJECTION_CODES.has(reasonOf(error) ?? &#x27;&#x27;) ? &#x27;rejectedContent&#x27; : &#x27;generic&#x27;;
     // Only one thing answers 409 in this API: an edit of a protocol that is already archived. The

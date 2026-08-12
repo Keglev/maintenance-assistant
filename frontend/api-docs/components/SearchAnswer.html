@@ -336,6 +336,12 @@ expanding reveals text that was already there rather than fetching or rebuilding
                                     <span class="modifier">Readonly</span>
                                 <a href="#t" >t</a>
                             </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
+                                    <span class="modifier">Protected</span>
+                                    <span class="modifier">Readonly</span>
+                                <a href="#unapprovedCount" >unapprovedCount</a>
+                            </li>
                         </ul>
                     </td>
                 </tr>
@@ -393,6 +399,9 @@ expanding reveals text that was already there rather than fetching or rebuilding
                                 <span class="reference-badge reference-badge--property" aria-hidden="true">I</span><a href="#answer" >answer</a>
                             </li>
                             <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">I</span><a href="#approvedOnly" >approvedOnly</a>
+                            </li>
+                            <li>
                                 <span class="reference-badge reference-badge--property" aria-hidden="true">I</span><a href="#machine" >machine</a>
                             </li>
                         </ul>
@@ -411,6 +420,9 @@ expanding reveals text that was already there rather than fetching or rebuilding
                         <ul class="index-list">
                             <li>
                                 <span class="reference-badge reference-badge--property" aria-hidden="true">O</span><a href="#opened" >opened</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">O</span><a href="#widen" >widen</a>
                             </li>
                         </ul>
                     </td>
@@ -433,7 +445,7 @@ expanding reveals text that was already there rather than fetching or rebuilding
                 </tr>
                         <tr>
                             <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="104" class="link-to-prism">src/app/features/search/search-answer.ts:104</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="132" class="link-to-prism">src/app/features/search/search-answer.ts:132</a></div>
                             </td>
                         </tr>
 
@@ -467,6 +479,41 @@ expanding reveals text that was already there rather than fetching or rebuilding
                                     <div class="io-line">Defined in <a href="" data-line="71" class="link-to-prism">src/app/features/search/search-answer.ts:71</a></div>
                             </td>
                         </tr>
+            </tbody>
+        </table>
+        <table class="table table-sm table-bordered">
+            <tbody>
+                <tr>
+                    <td class="col-md-4">
+                        <a name="approvedOnly"></a>
+                        <b>approvedOnly</b>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/boolean" target="_blank" >boolean</a></code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>false</code>
+                    </td>
+                </tr>
+                        <tr>
+                            <td class="col-md-2" colspan="2">
+                                    <div class="io-line">Defined in <a href="" data-line="82" class="link-to-prism">src/app/features/search/search-answer.ts:82</a></div>
+                            </td>
+                        </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <div class="io-description"><p>Whether THIS answer was produced with the approved-only facet on.</p>
+<p>The state of the answer, not of the checkbox: a reader who toggles the facet after asking has
+not changed what they are looking at, and a note that flipped with the control would describe a
+search that was never run.</p>
+</div>
+                    </td>
+                </tr>
             </tbody>
         </table>
         <table class="table table-sm table-bordered">
@@ -521,12 +568,39 @@ expanding reveals text that was already there rather than fetching or rebuilding
                 </tr>
                         <tr>
                             <td class="col-md-2" colspan="2">
-                                    <div class="io-line">Defined in <a href="" data-line="76" class="link-to-prism">src/app/features/search/search-answer.ts:76</a></div>
+                                    <div class="io-line">Defined in <a href="" data-line="85" class="link-to-prism">src/app/features/search/search-answer.ts:85</a></div>
                             </td>
                         </tr>
                 <tr>
                     <td class="col-md-4">
                         <div class="io-description"><p>A source&#39;s title was activated — the search view owns the viewer dialog.</p>
+</div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        <table class="table table-sm table-bordered">
+            <tbody>
+                <tr>
+                    <td class="col-md-4">
+                        <a name="widen"></a>
+                        <b>widen</b>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>        <code><a href="https://www.typescriptlang.org/docs/handbook/basic-types.html" target="_blank" >void</a></code>
+
+                    </td>
+                </tr>
+                        <tr>
+                            <td class="col-md-2" colspan="2">
+                                    <div class="io-line">Defined in <a href="" data-line="88" class="link-to-prism">src/app/features/search/search-answer.ts:88</a></div>
+                            </td>
+                        </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <div class="io-description"><p>The reader asked to search the whole corpus after all — the search view re-runs the query.</p>
 </div>
                     </td>
                 </tr>
@@ -563,8 +637,8 @@ expanding reveals text that was already there rather than fetching or rebuilding
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="137"
-                                    class="link-to-prism">src/app/features/search/search-answer.ts:137</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="165"
+                                    class="link-to-prism">src/app/features/search/search-answer.ts:165</a></div>
                         </td>
                     </tr>
 
@@ -604,8 +678,8 @@ expanding reveals text that was already there rather than fetching or rebuilding
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="127"
-                                    class="link-to-prism">src/app/features/search/search-answer.ts:127</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="155"
+                                    class="link-to-prism">src/app/features/search/search-answer.ts:155</a></div>
                         </td>
                     </tr>
 
@@ -649,8 +723,8 @@ and miss a long one on a desktop.
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="158"
-                                    class="link-to-prism">src/app/features/search/search-answer.ts:158</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="186"
+                                    class="link-to-prism">src/app/features/search/search-answer.ts:186</a></div>
                         </td>
                     </tr>
 
@@ -726,8 +800,8 @@ nobody and the second click on the same marker has to work as well as the first.
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="164"
-                                    class="link-to-prism">src/app/features/search/search-answer.ts:164</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="192"
+                                    class="link-to-prism">src/app/features/search/search-answer.ts:192</a></div>
                         </td>
                     </tr>
 
@@ -797,8 +871,8 @@ nobody and the second click on the same marker has to work as well as the first.
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="142"
-                                    class="link-to-prism">src/app/features/search/search-answer.ts:142</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="170"
+                                    class="link-to-prism">src/app/features/search/search-answer.ts:170</a></div>
                         </td>
                     </tr>
 
@@ -847,7 +921,7 @@ nobody and the second click on the same marker has to work as well as the first.
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="78" class="link-to-prism">src/app/features/search/search-answer.ts:78</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="90" class="link-to-prism">src/app/features/search/search-answer.ts:90</a></div>
                         </td>
                     </tr>
 
@@ -880,7 +954,7 @@ nobody and the second click on the same marker has to work as well as the first.
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="84" class="link-to-prism">src/app/features/search/search-answer.ts:84</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="96" class="link-to-prism">src/app/features/search/search-answer.ts:96</a></div>
                         </td>
                     </tr>
 
@@ -946,7 +1020,7 @@ nobody and the second click on the same marker has to work as well as the first.
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="82" class="link-to-prism">src/app/features/search/search-answer.ts:82</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="94" class="link-to-prism">src/app/features/search/search-answer.ts:94</a></div>
                         </td>
                     </tr>
 
@@ -979,7 +1053,7 @@ nobody and the second click on the same marker has to work as well as the first.
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="87" class="link-to-prism">src/app/features/search/search-answer.ts:87</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="99" class="link-to-prism">src/app/features/search/search-answer.ts:99</a></div>
                         </td>
                     </tr>
 
@@ -1051,7 +1125,7 @@ nobody and the second click on the same marker has to work as well as the first.
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="81" class="link-to-prism">src/app/features/search/search-answer.ts:81</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="93" class="link-to-prism">src/app/features/search/search-answer.ts:93</a></div>
                         </td>
                     </tr>
 
@@ -1093,7 +1167,7 @@ nobody and the second click on the same marker has to work as well as the first.
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="89" class="link-to-prism">src/app/features/search/search-answer.ts:89</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="101" class="link-to-prism">src/app/features/search/search-answer.ts:101</a></div>
                         </td>
                     </tr>
 
@@ -1135,7 +1209,7 @@ nobody and the second click on the same marker has to work as well as the first.
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="95" class="link-to-prism">src/app/features/search/search-answer.ts:95</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="123" class="link-to-prism">src/app/features/search/search-answer.ts:123</a></div>
                         </td>
                     </tr>
 
@@ -1178,6 +1252,53 @@ nobody and the second click on the same marker has to work as well as the first.
                         </td>
                     </tr>
 
+
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="unapprovedCount"></a>
+                    <span class="name">
+                            <span class="modifier">Protected</span>
+                            <span class="modifier">Readonly</span>
+                        <span ><b>unapprovedCount</b></span>
+                        <a href="#unapprovedCount"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>unknown</code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>computed(
+    () &#x3D;&gt; this.answer().citations.filter((citation) &#x3D;&gt; !citation.approved).length,
+  )</code>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="118" class="link-to-prism">src/app/features/search/search-answer.ts:118</a></div>
+                        </td>
+                    </tr>
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-description"><p>How many of the cited sources nobody has approved.</p>
+<p>Said ONCE at the answer level, in addition to the per-source markers below, and both are
+needed. Decision 1 of 2026-08-11 keeps unapproved protocols searchable and accepts that they are
+less reliable to troubleshoot from — the price of that trade is that the reader is told. A
+technician who has to read down a list of five source cards to discover that one of them is
+unreviewed has effectively not been told: the answer is what they act on, and on a tablet the
+sources may not even be on screen.<p>Zero when every source is approved, which is the ordinary case and renders nothing at all.
+</div>
+                </td>
+            </tr>
 
         </tbody>
     </table>
@@ -1261,8 +1382,20 @@ export class SearchAnswer {
   /** What to call the machine on a source card read on its own. */
   readonly machine &#x3D; input(&#x27;&#x27;);
 
+  /**
+   * Whether THIS answer was produced with the approved-only facet on.
+   *
+   * The state of the answer, not of the checkbox: a reader who toggles the facet after asking has
+   * not changed what they are looking at, and a note that flipped with the control would describe a
+   * search that was never run.
+   */
+  readonly approvedOnly &#x3D; input(false);
+
   /** A source&#x27;s title was activated — the search view owns the viewer dialog. */
   readonly opened &#x3D; output&lt;Citation&gt;();
+
+  /** The reader asked to search the whole corpus after all — the search view re-runs the query. */
+  readonly widen &#x3D; output&lt;void&gt;();
 
   private readonly body &#x3D; viewChild&lt;ElementRef&lt;HTMLElement&gt;&gt;(&#x27;answerBody&#x27;);
 
@@ -1279,6 +1412,22 @@ export class SearchAnswer {
     const current &#x3D; this.answer();
     return current.mode &#x3D;&#x3D;&#x3D; &#x27;A&#x27; ? toSegments(current.answer, current.citations) : [];
   });
+
+  /**
+   * How many of the cited sources nobody has approved.
+   *
+   * &lt;p&gt;Said ONCE at the answer level, in addition to the per-source markers below, and both are
+   * needed. Decision 1 of 2026-08-11 keeps unapproved protocols searchable and accepts that they are
+   * less reliable to troubleshoot from — the price of that trade is that the reader is told. A
+   * technician who has to read down a list of five source cards to discover that one of them is
+   * unreviewed has effectively not been told: the answer is what they act on, and on a tablet the
+   * sources may not even be on screen.
+   *
+   * &lt;p&gt;Zero when every source is approved, which is the ordinary case and renders nothing at all.
+   */
+  protected readonly unapprovedCount &#x3D; computed(
+    () &#x3D;&gt; this.answer().citations.filter((citation) &#x3D;&gt; !citation.approved).length,
+  );
 
   /** Mode B&#x27;s steps: the backend joins them with newlines, and they render as a numbered list. */
   protected readonly steps &#x3D; computed&lt;string[]&gt;(() &#x3D;&gt; {
@@ -1405,6 +1554,22 @@ export function toSegments(answer: string, citations: readonly Citation[]): Answ
       &lt;/p&gt;
       &lt;p class&#x3D;&quot;answer-explanation&quot;&gt;{{ t().modeA.explanation }}&lt;/p&gt;
 
+      @if (unapprovedCount(); as unapproved) {
+        &lt;!-- ONE QUIET LINE, and the restraint is the design. An unapproved source is a decided,
+             ordinary state of this system (2026-08-11), not a fault — a red banner here would make
+             the feature look broken and would teach the reader to dismiss the one thing it says.
+             It sits directly under the &quot;every statement is cited&quot; sentence because that is the
+             sentence it qualifies: cited is not the same as reviewed. --&gt;
+        &lt;p class&#x3D;&quot;answer-unapproved&quot; role&#x3D;&quot;note&quot; data-testid&#x3D;&quot;answer-unapproved&quot;&gt;
+          &lt;svg class&#x3D;&quot;answer-unapproved-icon&quot; viewBox&#x3D;&quot;0 0 24 24&quot; aria-hidden&#x3D;&quot;true&quot; focusable&#x3D;&quot;false&quot;&gt;
+            &lt;path d&#x3D;&quot;M12 3.6L1.8 20.4h20.4z&quot; /&gt;
+            &lt;path d&#x3D;&quot;M12 9.6v4.6&quot; /&gt;
+            &lt;circle class&#x3D;&quot;dot&quot; cx&#x3D;&quot;12&quot; cy&#x3D;&quot;17.4&quot; r&#x3D;&quot;1&quot; /&gt;
+          &lt;/svg&gt;
+          {{ t().modeA.unapprovedSources(unapproved) }}
+        &lt;/p&gt;
+      }
+
       &lt;!-- THE CLAMP IS A MAX-HEIGHT ON THIS WRAPPER AND NOTHING ELSE. The whole answer is inside it
            whether it is open or shut — never truncated, never paginated, never split. A Mode A
            claim names the source it came from, and cutting the text would separate the two, which
@@ -1472,6 +1637,25 @@ export function toSegments(answer: string, citations: readonly Citation[]): Answ
       &lt;/p&gt;
       &lt;p class&#x3D;&quot;answer-explanation&quot;&gt;{{ t().modeB.explanation }}&lt;/p&gt;
 
+      @if (approvedOnly()) {
+        &lt;!-- THE &quot;EMPTY STATE&quot; OF THE FACET, and it is a Mode B answer rather than an empty list:
+             narrowing retrieval to approved protocols can leave nothing above the threshold, and the
+             backend then answers Mode B exactly as it would for a genuine gap in the corpus. Without
+             this line the two are indistinguishable, and the reader concludes the plant has no
+             protocol on the fault when what happened is that theirs is not signed off yet. --&gt;
+        &lt;p class&#x3D;&quot;answer-approved-only&quot; role&#x3D;&quot;note&quot; data-testid&#x3D;&quot;approved-only-note&quot;&gt;
+          &lt;span&gt;{{ t().search.approvedOnlyEmpty }}&lt;/span&gt;
+          &lt;button
+            type&#x3D;&quot;button&quot;
+            class&#x3D;&quot;link-button&quot;
+            data-testid&#x3D;&quot;approved-only-widen&quot;
+            (click)&#x3D;&quot;widen.emit()&quot;
+          &gt;
+            {{ t().search.approvedOnlyEmptyAction }}
+          &lt;/button&gt;
+        &lt;/p&gt;
+      }
+
       &lt;!-- Mode B is clamped by the same wrapper: a long list of general steps buries the page just
            as effectively, and the reader is owed the same escape. --&gt;
       &lt;div class&#x3D;&quot;answer-body&quot; [class.clamped]&#x3D;&quot;clamped()&quot; #answerBody&gt;
@@ -1526,6 +1710,56 @@ export function toSegments(answer: string, citations: readonly Citation[]): Answ
 
 .answer-explanation {
   margin: var(--s-2) 0 var(--s-4);
+  font-size: var(--t-sm);
+}
+
+/*
+ * &quot;One of the sources is not approved&quot; — a LINE, not a banner.
+ *
+ * No filled background, no border box, no alert role: an unapproved source is an ordinary decided
+ * state of this system (2026-08-11), and a warning panel would say the answer is defective. What it
+ * gets instead is the review ink and a small triangle, so it is findable without being alarming —
+ * and the triangle is there because colour alone is never a signal in this application.
+ *
+ * It sits between the explanation and the answer text, in the gap the explanation used to own, so
+ * the reader passes it on the way into the prose rather than after having read and believed it.
+ */
+.answer-unapproved {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--s-2);
+  margin: calc(var(--s-4) * -1) 0 var(--s-4);
+  padding-top: var(--s-2);
+  font-size: var(--t-sm);
+  color: var(--c-review-ink);
+}
+
+.answer-unapproved-icon {
+  flex: none;
+  width: 1.05rem;
+  height: 1.05rem;
+  margin-top: 0.15rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.answer-unapproved-icon .dot {
+  fill: currentColor;
+  stroke: none;
+}
+
+/* Why a Mode B answer may be a Mode B answer: the facet narrowed retrieval, and the reader can undo
+   that from here. The action is a text button rather than a second primary — it re-runs a query,
+   which is the same act the form above already offers. */
+.answer-approved-only {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--s-2);
+  margin: 0 0 var(--s-4);
   font-size: var(--t-sm);
 }
 
@@ -1729,8 +1963,8 @@ app-search-sources {
 <script src="../js/libs/htmlparser.js"></script>
 <script src="../js/libs/deep-iterator.js"></script>
 <script>
-        var COMPONENT_TEMPLATE = '<div>@if (answer(); as result) {  @if (result.mode === \'A\') {    <!-- Mode A: grounded. Every claim carries the source it came from, and the markers in the text         are links into the source list below. -->    <section class="answer answer-a" data-testid="answer-mode-a">      <p class="answer-badge" data-testid="mode-badge">        <svg class="mode-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">          <circle cx="12" cy="12" r="9" />          <path d="M8 12.4l2.6 2.6L16 9.6" />        </svg>        {{ t().modeA.badge }}      </p>      <p class="answer-explanation">{{ t().modeA.explanation }}</p>      <!-- THE CLAMP IS A MAX-HEIGHT ON THIS WRAPPER AND NOTHING ELSE. The whole answer is inside it           whether it is open or shut — never truncated, never paginated, never split. A Mode A           claim names the source it came from, and cutting the text would separate the two, which           is the guarantee NFR-2 rests on. -->      <div class="answer-body" [class.clamped]="clamped()" #answerBody>        <!-- lang is the language the BACKEND pinned the answer to, which is the question\'s language             and not the interface\'s. It drives hyphenation and screen-reader pronunciation. -->        <p class="answer-text" [attr.lang]="result.language" data-testid="answer-text">          @for (segment of segments(); track $index) {            @if (segment.kind === \'marker\' && segment.citation) {              <!-- No href: a browser-followed anchor carries no Bearer token and the API answers                   401. The document is fetched through HttpClient by the viewer dialog instead.                   Kept an <a> for its link semantics, with role/tabindex/keydown so it is reachable                   and operable from the keyboard exactly as a link would be. -->              <a                class="citation-marker"                role="button"                tabindex="0"                [title]="segment.citation.title"                data-testid="citation-marker"                (click)="showSource(segment.citation)"                (keydown.enter)="showSource(segment.citation)"                (keydown.space)="showSource(segment.citation)"                >[{{ segment.value }}]</a              >            } @else {              <span>{{ segment.value }}</span>            }          }        </p>      </div>      @if (overflowing()) {        <!-- Full width, because it is the whole bottom edge of a clamped block and a small link             floating under a fade is a control people miss. -->        <button          type="button"          class="btn btn-secondary answer-toggle"          data-testid="answer-toggle"          [attr.aria-expanded]="expanded()"          (click)="toggle()"        >          {{ expanded() ? t().modeA.collapseAnswer : t().modeA.expandAnswer }}        </button>      }      <app-search-sources        [citations]="result.citations"        [machine]="machine()"        [focused]="focusedSource()"        (opened)="opened.emit($event)"      />    </section>  } @else {    <!-- Mode B: ungrounded, and unmistakably so. No source area exists here, not even an empty one:         an empty "Sources" heading invites the reader to assume the sources are merely missing. -->    <section class="answer answer-b" data-testid="answer-mode-b">      <p class="answer-badge" data-testid="mode-badge">        <svg class="mode-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">          <path d="M12 3.6L1.8 20.4h20.4z" />          <path d="M12 9.6v4.6" />          <circle class="dot" cx="12" cy="17.4" r="1" />        </svg>        {{ t().modeB.badge }}      </p>      <p class="answer-explanation">{{ t().modeB.explanation }}</p>      <!-- Mode B is clamped by the same wrapper: a long list of general steps buries the page just           as effectively, and the reader is owed the same escape. -->      <div class="answer-body" [class.clamped]="clamped()" #answerBody>        <h2 class="steps-heading">{{ t().modeB.steps }}</h2>        <ol class="steps" [attr.lang]="result.language" data-testid="answer-text">          @for (step of steps(); track $index) {            <li>{{ step }}</li>          }        </ol>      </div>      @if (overflowing()) {        <button          type="button"          class="btn btn-secondary answer-toggle"          data-testid="answer-toggle"          [attr.aria-expanded]="expanded()"          (click)="toggle()"        >          {{ expanded() ? t().modeA.collapseAnswer : t().modeA.expandAnswer }}        </button>      }    </section>  }}</div>'
-    var COMPONENTS = [{'name': 'App', 'selector': 'app-root'},{'name': 'Dialog', 'selector': 'app-dialog'},{'name': 'HealthDot', 'selector': 'app-health-dot'},{'name': 'HelpDialog', 'selector': 'app-help-dialog'},{'name': 'Landing', 'selector': 'app-landing'},{'name': 'Moderation', 'selector': 'app-moderation'},{'name': 'Pager', 'selector': 'app-pager'},{'name': 'ProtocolDialog', 'selector': 'app-protocol-dialog'},{'name': 'Search', 'selector': 'app-search'},{'name': 'SearchAnswer', 'selector': 'app-search-answer'},{'name': 'SearchHelp', 'selector': 'app-search-help'},{'name': 'SearchSources', 'selector': 'app-search-sources'},{'name': 'SettingsDialog', 'selector': 'app-settings-dialog'},{'name': 'ThemeToggle', 'selector': 'app-theme-toggle'},{'name': 'Upload', 'selector': 'app-upload'}];
+        var COMPONENT_TEMPLATE = '<div>@if (answer(); as result) {  @if (result.mode === \'A\') {    <!-- Mode A: grounded. Every claim carries the source it came from, and the markers in the text         are links into the source list below. -->    <section class="answer answer-a" data-testid="answer-mode-a">      <p class="answer-badge" data-testid="mode-badge">        <svg class="mode-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">          <circle cx="12" cy="12" r="9" />          <path d="M8 12.4l2.6 2.6L16 9.6" />        </svg>        {{ t().modeA.badge }}      </p>      <p class="answer-explanation">{{ t().modeA.explanation }}</p>      @if (unapprovedCount(); as unapproved) {        <!-- ONE QUIET LINE, and the restraint is the design. An unapproved source is a decided,             ordinary state of this system (2026-08-11), not a fault — a red banner here would make             the feature look broken and would teach the reader to dismiss the one thing it says.             It sits directly under the "every statement is cited" sentence because that is the             sentence it qualifies: cited is not the same as reviewed. -->        <p class="answer-unapproved" role="note" data-testid="answer-unapproved">          <svg class="answer-unapproved-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">            <path d="M12 3.6L1.8 20.4h20.4z" />            <path d="M12 9.6v4.6" />            <circle class="dot" cx="12" cy="17.4" r="1" />          </svg>          {{ t().modeA.unapprovedSources(unapproved) }}        </p>      }      <!-- THE CLAMP IS A MAX-HEIGHT ON THIS WRAPPER AND NOTHING ELSE. The whole answer is inside it           whether it is open or shut — never truncated, never paginated, never split. A Mode A           claim names the source it came from, and cutting the text would separate the two, which           is the guarantee NFR-2 rests on. -->      <div class="answer-body" [class.clamped]="clamped()" #answerBody>        <!-- lang is the language the BACKEND pinned the answer to, which is the question\'s language             and not the interface\'s. It drives hyphenation and screen-reader pronunciation. -->        <p class="answer-text" [attr.lang]="result.language" data-testid="answer-text">          @for (segment of segments(); track $index) {            @if (segment.kind === \'marker\' && segment.citation) {              <!-- No href: a browser-followed anchor carries no Bearer token and the API answers                   401. The document is fetched through HttpClient by the viewer dialog instead.                   Kept an <a> for its link semantics, with role/tabindex/keydown so it is reachable                   and operable from the keyboard exactly as a link would be. -->              <a                class="citation-marker"                role="button"                tabindex="0"                [title]="segment.citation.title"                data-testid="citation-marker"                (click)="showSource(segment.citation)"                (keydown.enter)="showSource(segment.citation)"                (keydown.space)="showSource(segment.citation)"                >[{{ segment.value }}]</a              >            } @else {              <span>{{ segment.value }}</span>            }          }        </p>      </div>      @if (overflowing()) {        <!-- Full width, because it is the whole bottom edge of a clamped block and a small link             floating under a fade is a control people miss. -->        <button          type="button"          class="btn btn-secondary answer-toggle"          data-testid="answer-toggle"          [attr.aria-expanded]="expanded()"          (click)="toggle()"        >          {{ expanded() ? t().modeA.collapseAnswer : t().modeA.expandAnswer }}        </button>      }      <app-search-sources        [citations]="result.citations"        [machine]="machine()"        [focused]="focusedSource()"        (opened)="opened.emit($event)"      />    </section>  } @else {    <!-- Mode B: ungrounded, and unmistakably so. No source area exists here, not even an empty one:         an empty "Sources" heading invites the reader to assume the sources are merely missing. -->    <section class="answer answer-b" data-testid="answer-mode-b">      <p class="answer-badge" data-testid="mode-badge">        <svg class="mode-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">          <path d="M12 3.6L1.8 20.4h20.4z" />          <path d="M12 9.6v4.6" />          <circle class="dot" cx="12" cy="17.4" r="1" />        </svg>        {{ t().modeB.badge }}      </p>      <p class="answer-explanation">{{ t().modeB.explanation }}</p>      @if (approvedOnly()) {        <!-- THE "EMPTY STATE" OF THE FACET, and it is a Mode B answer rather than an empty list:             narrowing retrieval to approved protocols can leave nothing above the threshold, and the             backend then answers Mode B exactly as it would for a genuine gap in the corpus. Without             this line the two are indistinguishable, and the reader concludes the plant has no             protocol on the fault when what happened is that theirs is not signed off yet. -->        <p class="answer-approved-only" role="note" data-testid="approved-only-note">          <span>{{ t().search.approvedOnlyEmpty }}</span>          <button            type="button"            class="link-button"            data-testid="approved-only-widen"            (click)="widen.emit()"          >            {{ t().search.approvedOnlyEmptyAction }}          </button>        </p>      }      <!-- Mode B is clamped by the same wrapper: a long list of general steps buries the page just           as effectively, and the reader is owed the same escape. -->      <div class="answer-body" [class.clamped]="clamped()" #answerBody>        <h2 class="steps-heading">{{ t().modeB.steps }}</h2>        <ol class="steps" [attr.lang]="result.language" data-testid="answer-text">          @for (step of steps(); track $index) {            <li>{{ step }}</li>          }        </ol>      </div>      @if (overflowing()) {        <button          type="button"          class="btn btn-secondary answer-toggle"          data-testid="answer-toggle"          [attr.aria-expanded]="expanded()"          (click)="toggle()"        >          {{ expanded() ? t().modeA.collapseAnswer : t().modeA.expandAnswer }}        </button>      }    </section>  }}</div>'
+    var COMPONENTS = [{'name': 'App', 'selector': 'app-root'},{'name': 'ApprovalStateBadge', 'selector': 'app-approval-state'},{'name': 'Dialog', 'selector': 'app-dialog'},{'name': 'HealthDot', 'selector': 'app-health-dot'},{'name': 'HelpDialog', 'selector': 'app-help-dialog'},{'name': 'Landing', 'selector': 'app-landing'},{'name': 'Moderation', 'selector': 'app-moderation'},{'name': 'Pager', 'selector': 'app-pager'},{'name': 'ProtocolDialog', 'selector': 'app-protocol-dialog'},{'name': 'Search', 'selector': 'app-search'},{'name': 'SearchAnswer', 'selector': 'app-search-answer'},{'name': 'SearchHelp', 'selector': 'app-search-help'},{'name': 'SearchSources', 'selector': 'app-search-sources'},{'name': 'SettingsDialog', 'selector': 'app-settings-dialog'},{'name': 'ThemeToggle', 'selector': 'app-theme-toggle'},{'name': 'Upload', 'selector': 'app-upload'}];
     var DIRECTIVES = [];
     var ACTUAL_COMPONENT = {'name': 'SearchAnswer'};
 </script>

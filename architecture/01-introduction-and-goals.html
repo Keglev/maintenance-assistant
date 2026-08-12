@@ -253,16 +253,20 @@
         <td><strong>Schichtleiter</strong> (shift supervisor)</td>
         <td>All of the above, plus writing and
         <strong>correcting</strong> protocols (v1.2) with a mandatory
-        reason and a forced re-index. May not approve: the corrector is
-        never the approver.</td>
+        reason and a forced re-index — since 2026-08-13 the
+        <em>only</em> role that may correct. May not approve: the
+        corrector is never the approver.</td>
         </tr>
         <tr class="even">
         <td><strong>Admin</strong> (IT role only, plus moderation since
         v1.1)</td>
         <td>Manages users and roles in Keycloak; reviews the corpus,
         archives protocols, and since v1.2 <strong>approves</strong>
-        them. May not approve a protocol they filed or last corrected —
-        four eyes, enforced on the act rather than by the role.</td>
+        them. <strong>Does not correct</strong> (2026-08-13): the
+        approver is never the corrector, so nobody holds two jobs in the
+        chain. A ledger check additionally refuses an approval by
+        whoever filed or last corrected the protocol — the role split is
+        the rule, that check is the belt.</td>
         </tr>
         <tr class="odd">
         <td><strong>Project owner / developer</strong></td>

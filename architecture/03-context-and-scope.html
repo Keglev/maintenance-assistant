@@ -169,15 +169,17 @@
         <td>in / out</td>
         <td>New protocol (form or text) and <strong>corrections</strong>
         with a mandatory reason → re-indexed protocol</td>
-        <td>The corrector in the trust chain. May not approve.</td>
+        <td>The corrector in the trust chain, and since 2026-08-13 the
+        only one. May not approve.</td>
         </tr>
         <tr class="even">
         <td><strong>Admin</strong></td>
         <td>in / out</td>
         <td>User administration (in Keycloak); corpus review, archive,
         and <strong>approval</strong> of protocols</td>
-        <td>Approval carries an actor and a time. Refused for a protocol
-        the same person filed or last corrected.</td>
+        <td>Approval carries an actor and a time. Does not correct
+        (2026-08-13). Additionally refused for a protocol the same
+        person filed or last corrected.</td>
         </tr>
         <tr class="odd">
         <td><strong>Keycloak</strong></td>

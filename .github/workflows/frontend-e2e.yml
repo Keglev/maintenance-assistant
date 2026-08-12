@@ -1,0 +1,176 @@
+name: frontend-e2e
+
+# The rendered half of the test stack (ADR-007). Runs on pull requests that touch the frontend, the
+# backend or the Keycloak theme, because all three can break a flow this suite asserts.
+#
+# THIS JOB IS DELIBERATELY NOT NAMED `build-and-test`. That name is the one required status check in
+# branch protection, and every workflow that uses it is promising "if this is red, the PR is not
+# mergeable". This job cannot make that promise yet: it provisions Postgres, Keycloak and a Spring
+# Boot backend inside the runner, and an infrastructure flake here would block merges for a reason
+# that has nothing to do with the change under review.
+#
+# So it reports under its own name, `e2e`, and a failure is ADVISORY TODAY. That is stated out loud
+# in ADR-007 rather than left to be discovered from this file, together with the condition for
+# changing it: make it required once it has run green on ten consecutive pull requests without an
+# infrastructure-caused failure. Leaving it advisory forever would repeat, in a new form, exactly the
+# mistake that produced the defects it exists to catch.
+#
+# NO CREDENTIALS ARE WRITTEN DOWN IN THIS FILE. The database and the Keycloak admin get a random
+# value generated at run time, masked in the log and passed through the environment. The containers
+# live for one job and are reachable from nothing else, so any value would have been harmless — but
+# a literal password in a versioned file is a pattern a reader cannot distinguish from a real leak at
+# a glance, and neither can a secret scanner. This costs one `openssl rand` and removes the question.
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'frontend/**'
+      - 'backend/**'
+      - 'docker/keycloak/**'
+      - '.github/workflows/frontend-e2e.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'frontend/**'
+      - 'backend/**'
+      - 'docker/keycloak/**'
+      - '.github/workflows/frontend-e2e.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: frontend-e2e-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: maven
+
+      # Both containers are started here rather than as `services:`, because a service container is
+      # created before any step runs and therefore cannot be given a value a step generated. Keycloak
+      # needed a plain `docker run` anyway: it mounts the realm export and the theme directory, which
+      # a service container cannot do.
+      - name: Start Postgres and Keycloak
+        run: |
+          PG_SECRET="$(openssl rand -hex 24)"
+          KC_SECRET="$(openssl rand -hex 24)"
+          echo "::add-mask::$PG_SECRET"
+          echo "::add-mask::$KC_SECRET"
+          echo "PG_SECRET=$PG_SECRET" >> "$GITHUB_ENV"
+
+          docker run -d --name postgres \
+            -p 5432:5432 \
+            -e POSTGRES_DB=maintenance \
+            -e POSTGRES_USER=maintenance \
+            -e POSTGRES_PASSWORD="$PG_SECRET" \
+            -e POSTGRES_INITDB_ARGS="--locale=C --encoding=UTF8" \
+            pgvector/pgvector:0.8.6-pg17
+
+          # The same image and the same realm export the developer stack uses, so the users, roles
+          # and the login theme under test are the ones that ship.
+          docker run -d --name keycloak \
+            -p 8081:8080 \
+            -e KC_BOOTSTRAP_ADMIN_USERNAME=admin \
+            -e KC_BOOTSTRAP_ADMIN_PASSWORD="$KC_SECRET" \
+            -e KC_HEALTH_ENABLED=true \
+            -e WA_HOME_URL=http://localhost:4200 \
+            -e WA_SHOW_DEMO_ACCOUNTS=true \
+            -v "${{ github.workspace }}/docker/keycloak/realm-export.json:/opt/keycloak/data/import/realm-export.json:ro" \
+            -v "${{ github.workspace }}/docker/keycloak/themes/wartungsassistent:/opt/keycloak/themes/wartungsassistent:ro" \
+            quay.io/keycloak/keycloak:26.7 start-dev --import-realm
+
+      - name: Wait for Postgres
+        run: |
+          # Conditions, not sleeps — the same discipline the suite itself follows.
+          for i in $(seq 1 40); do
+            docker exec postgres pg_isready -U maintenance -d maintenance >/dev/null 2>&1 && break
+            sleep 3
+          done
+          docker exec postgres pg_isready -U maintenance -d maintenance || {
+            echo "::error::Postgres never became ready"; docker logs postgres | tail -50; exit 1; }
+
+      - name: Start the backend
+        env:
+          SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/maintenance
+          SPRING_DATASOURCE_USERNAME: maintenance
+          KEYCLOAK_ISSUER_URI: http://localhost:8081/realms/maintenance
+          # Seeds the 150-protocol corpus. NOTE: the seed EMBEDS, so without a key the protocols
+          # land as FAILED — which is fine for every test in the suite except reindex.e2e.ts, and
+          # that one is skipped unless E2E_LLM=1. Flyway still runs, the machines still exist, and
+          # the flows under test are the flows under test.
+          CORPUS_SEED_ENABLED: 'true'
+        working-directory: backend
+        run: |
+          # Exported here rather than declared above, so this file contains no line that pairs a
+          # password key with a value.
+          export SPRING_DATASOURCE_PASSWORD="$PG_SECRET"
+          # `spring-boot:run` rather than package-then-java-jar: the repackage step produces more
+          # than one artefact in target/ and a glob that picks the wrong one fails in a way that
+          # reads like an application error. This is also exactly how the stack is started locally.
+          nohup mvn -B -DskipTests spring-boot:run > "$RUNNER_TEMP/backend.log" 2>&1 &
+          echo "backend starting"
+
+      - name: Wait for Keycloak and the backend
+        run: |
+          for i in $(seq 1 60); do
+            curl -fsS http://localhost:8081/realms/maintenance >/dev/null 2>&1 && break
+            sleep 3
+          done
+          curl -fsS http://localhost:8081/realms/maintenance >/dev/null || {
+            echo "::error::Keycloak never became ready"; docker logs keycloak | tail -50; exit 1; }
+
+          for i in $(seq 1 60); do
+            curl -fsS http://localhost:8080/api/health >/dev/null 2>&1 && break
+            sleep 3
+          done
+          curl -fsS http://localhost:8080/api/health || {
+            echo "::error::the backend never became ready"; tail -80 "$RUNNER_TEMP/backend.log"; exit 1; }
+
+      - name: Install dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Install Chromium
+        working-directory: frontend
+        run: npx playwright install --with-deps chromium
+
+      - name: Run the e2e suite
+        working-directory: frontend
+        run: npm run e2e
+
+      # The trace of a failed test is what makes a red run diagnosable without reproducing it.
+      - name: Upload the Playwright report
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: playwright-report
+          path: |
+            frontend/playwright-report
+            frontend/test-results
+          retention-days: 7
+          if-no-files-found: ignore
+
+      - name: Backend log on failure
+        if: failure()
+        run: tail -200 "$RUNNER_TEMP/backend.log" || true
+
+      - name: Keycloak theme errors on failure
+        if: failure()
+        run: docker logs keycloak 2>&1 | grep -i -e freemarker -e theme || echo "no theme errors"

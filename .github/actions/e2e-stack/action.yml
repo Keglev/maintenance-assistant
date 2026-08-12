@@ -156,17 +156,38 @@ runs:
       shell: bash
       run: |
         # Retrieval has nothing to retrieve until this finishes, and it is asynchronous by design
-        # (the seed writes rows, a pipeline embeds them). Against the stub it takes seconds; the
-        # ceiling is a guard, not an expectation. Waiting here rather than inside a test keeps the
-        # suite's timings honest — a test should measure the flow, not the fixture.
-        for i in $(seq 1 60); do
-          pending=$(docker exec postgres psql -U maintenance -d maintenance -t -A \
-            -c "select count(*) from protocol where status = 'RECEIVED';" 2>/dev/null || echo "?")
-          [ "$pending" = "0" ] && break
+        # (the seed writes rows, a pipeline embeds them). Against the stub it takes seconds.
+        #
+        # THE CONDITION IS POSITIVE, AND THAT IS A CORRECTION. This waited for
+        # "no protocol is in RECEIVED" — which is also true of an EMPTY database, so the wait
+        # sailed straight through before the seed had inserted anything and reported success. The
+        # first visual run caught it: the moderation table was screenshotted while its rows still
+        # read "Accepted, indexing" instead of "Searchable", and the failure arrived dressed as a
+        # layout regression. A guard that cannot tell "finished" from "not started" is not a guard.
+        #
+        # AND IT FAILS LOUDLY. The old loop simply ran out of iterations and let the job continue,
+        # so a stack that was not ready produced a confusing failure two steps later instead of an
+        # accurate one here.
+        expected=150
+        for i in $(seq 1 90); do
+          indexed=$(docker exec postgres psql -U maintenance -d maintenance -t -A \
+            -c "select count(*) from protocol where status = 'INDEXED';" 2>/dev/null || echo 0)
+          [ "$indexed" = "$expected" ] && break
           sleep 5
         done
+
         docker exec postgres psql -U maintenance -d maintenance -t -A \
           -c "select status, count(*) from protocol group by status;"
         docker exec postgres psql -U maintenance -d maintenance -t -A \
           -c "select count(*) as chunks from chunk;"
+
+        indexed=$(docker exec postgres psql -U maintenance -d maintenance -t -A \
+          -c "select count(*) from protocol where status = 'INDEXED';" 2>/dev/null || echo 0)
+        if [ "$indexed" != "$expected" ]; then
+          echo "::error::the corpus never finished indexing ($indexed of $expected). Every test" \
+               "below would be measuring a half-built fixture."
+          tail -60 "$RUNNER_TEMP/backend.log" || true
+          tail -20 "$RUNNER_TEMP/stub.log" || true
+          exit 1
+        fi
 

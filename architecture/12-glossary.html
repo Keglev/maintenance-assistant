@@ -145,17 +145,20 @@
         <tr class="even">
         <td><strong>Techniker</strong></td>
         <td>Shop-floor technician (<em>Fachkraft</em>). Receives full
-        technical answers including repair steps.</td>
+        technical answers including repair steps, and since v1.2 FILES
+        protocols — but never corrects one, not even their own.</td>
         </tr>
         <tr class="odd">
         <td><strong>Schichtleiter</strong></td>
-        <td>Shift supervisor. Sole write access: creates and uploads
-        protocols.</td>
+        <td>Shift supervisor. Writes protocols and, since v1.2, CORRECTS
+        them with a mandatory reason. May not approve — the corrector is
+        never the approver.</td>
         </tr>
         <tr class="even">
         <td><strong>Admin</strong></td>
-        <td>System administrator, an IT role only. Manages users and
-        roles in Keycloak.</td>
+        <td>System administrator. Manages users and roles in Keycloak;
+        since v1.1 reviews and archives protocols, and since v1.2
+        APPROVES them.</td>
         </tr>
         <tr class="odd">
         <td><strong>Protocol</strong> (<em>Protokoll</em>)</td>
@@ -196,6 +199,19 @@
         <td>Actions an Operator may perform without a Fachkraft:
         cleaning a sensor, removing jammed material, loading a
         program.</td>
+        </tr>
+        <tr class="even">
+        <td><strong>Approval</strong></td>
+        <td>An administrator vouching for a protocol, with their name
+        and the time. NOT a gate: an unapproved protocol stays
+        searchable and citable, because the admin may not review at a
+        weekend and the factory does not stop. An edit resets it.</td>
+        </tr>
+        <tr class="odd">
+        <td><strong>Four eyes</strong></td>
+        <td>Author, corrector and approver are three different people.
+        Enforced on the act: an approval is refused for a protocol the
+        same person filed or last corrected.</td>
         </tr>
         <tr class="even">
         <td><strong>Escalation chain</strong></td>

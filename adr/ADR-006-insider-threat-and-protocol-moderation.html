@@ -620,6 +620,141 @@ ADR-006-insider-threat-and-protocol-moderation · maintenance-assistant Docs</ti
         moment it belongs to: a duplicate warning is only actionable
         while someone is already deciding whether the protocol should
         exist.</p>
+        <hr />
+        <h2
+        id="revision-2026-08-13-the-trust-chain-as-implemented">Revision
+        — 2026-08-13: the trust chain, as implemented</h2>
+        <p>The 2026-08-10 note above described a plan. This describes
+        what was built (v1.2, PR 1 of 2: backend and data; the interface
+        follows in PR 2). Carlos’s three decisions of 2026-08-11 are the
+        input, and they are decisions rather than options.</p>
+        <h3
+        id="approval-is-a-status-and-an-unapproved-protocol-stays-searchable">Approval
+        is a status, and an unapproved protocol stays searchable</h3>
+        <p>In Carlos’s words: <strong>the admin may not review at a
+        weekend, and the factory does not stop.</strong> Gating
+        retrieval on approval would mean the newest knowledge in the
+        plant — the protocol about the fault happening right now — is
+        exactly the knowledge search cannot see. So approval changes
+        what the system can SAY about a source, not whether the source
+        can be found.</p>
+        <p><strong>The trade-off is accepted, not hidden: an unapproved
+        protocol is less reliable to troubleshoot from.</strong> That is
+        why the state is returned everywhere a protocol appears — the
+        moderation list, the caller’s own uploads, and the citations on
+        an answer. It has to be on the CITATION in particular, because
+        NFR-2’s discipline (every claim names its source) is what makes
+        a Mode A answer checkable, and it has the side effect of making
+        any cited claim look verified. An unmarked unreviewed source
+        would be the worst of both worlds. PR 2 renders the mark; this
+        PR guarantees the data is there.</p>
+        <p><code>approvedOnly</code> exists as a query parameter for a
+        caller who wants only the reviewed subset. It defaults to false
+        at every caller, and a test asserts that unapproved protocols
+        are still indexed and still retrievable — because this is the
+        decision most likely to be “fixed” by accident later.</p>
+        <h3 id="the-schema-a-state-not-a-boolean">The schema: a state,
+        not a boolean</h3>
+        <p><code>protocol.approval_state</code> is a check-constrained
+        <code>varchar</code> (<code>UNAPPROVED</code> |
+        <code>APPROVED</code>) beside <code>approved_by</code> and
+        <code>approved_at</code>. A boolean was the obvious first answer
+        and lost on three counts: <code>approved = false</code>
+        conflates “nobody has looked at this” with “somebody looked and
+        withdrew”; the vocabulary is written down where a reader of the
+        schema can see it; and it matches how this schema already spells
+        a small closed set (<code>protocol.status</code>,
+        <code>moderation_event.action</code>). The cost — a constraint
+        to alter if the set ever grows — is only paid if it grows, and a
+        boolean would have needed a second column in that case
+        anyway.</p>
+        <p>A constraint enforces that <strong>an APPROVED row carries an
+        approver and a time, and an UNAPPROVED row carries
+        neither</strong>. The first half is this ADR expressed as SQL:
+        an approval without an actor is not an audit record. The second
+        stops the columns describing a state the protocol is no longer
+        in; the history lives in <code>moderation_event</code>, which
+        gained <code>APPROVE</code> and <code>UNAPPROVE</code>.</p>
+        <p><strong>Existing rows.</strong> The 150 seeded protocols
+        become APPROVED in the migration, identified by their
+        deterministic id prefix, with the actor
+        <code>system:corpus-seed</code> — a name that is not a Keycloak
+        user and cannot be mistaken for one, because no human read them.
+        <strong>Everything else already in a live database stays
+        UNAPPROVED</strong>, which is the honest answer for production’s
+        test uploads: the migration cannot know whether anyone reviewed
+        them, and approving them would fabricate the unearned trust the
+        flag exists to expose. It costs nothing, because unapproved
+        protocols remain searchable; they simply appear in the queue on
+        the first login after deploy, which is where a handful of
+        unreviewed test uploads belong.</p>
+        <h3 id="four-eyes-enforced-on-the-act">Four eyes, enforced on
+        the act</h3>
+        <p>Decision 3: the Techniker writes and never corrects, not even
+        their own protocol; a correction is requested from the
+        Schichtleiter, who performs it; the Admin approves. Three
+        people.</p>
+        <p>Two permissions moved to make that true, and both are
+        widenings of what the code did before:</p>
+        <ul>
+        <li><strong>The Techniker may now file a protocol.</strong> They
+        are the person standing at the machine. Requiring them to
+        dictate it to a Schichtleiter is how a plant ends up with
+        protocols written by someone who was not there — or with no
+        protocol at all.</li>
+        <li><strong>The Schichtleiter may now correct one.</strong>
+        Until now correcting belonged to the administrator alone, which
+        made the corrector and the approver the same role and collapsed
+        four eyes to two.</li>
+        </ul>
+        <p><strong>The administrator KEEPS the edit they have had since
+        #39.</strong> Removing a power silently while adding another
+        would change the chain in a way nobody asked for. That leaves
+        one hole — an admin could edit and then approve their own
+        correction — and it is closed where it can actually be closed:
+        <code>ProtocolApprovalService</code> refuses an approval by
+        whoever <strong>filed</strong> the protocol or <strong>last
+        corrected</strong> it, checked against <code>uploaded_by</code>
+        and the newest <code>EDIT</code> event rather than against a
+        role. Roles cannot express “the same human did both”; the ledger
+        can.</p>
+        <p>Approving is <strong>idempotent</strong>: it asserts a state
+        rather than performing a transition, so a double-clicked button
+        is not an error and writes no second audit row. A comment is
+        <strong>required to withdraw</strong> approval and optional to
+        grant it — approving affirms the text as it stands, while
+        withdrawing takes back something a named person vouched for, and
+        the next reader is owed the reason.</p>
+        <h3
+        id="editing-an-approved-protocol-resets-it-the-rule-the-chain-rests-on">Editing
+        an approved protocol resets it — the rule the chain rests
+        on</h3>
+        <p>A correction after approval is text nobody has reviewed.
+        Leaving the flag set would mean the approval vouches for words
+        the approver never read, which is precisely the failure this
+        ADR’s original refusal of editing was worried about. So an edit
+        sets the protocol back to UNAPPROVED, unconditionally.</p>
+        <p>Unconditionally, because “only reset if the text really
+        changed” makes the guarantee depend on a diff, and a whitespace
+        or encoding difference deciding whether a review still counts is
+        not a rule anyone can reason about. Every edit already forces a
+        re-index for the same reason. The protocol stays searchable
+        throughout; it simply stops claiming to be reviewed, and returns
+        to the queue.</p>
+        <p>The edit writes <strong>two</strong> ledger rows when it
+        withdraws an approval — the <code>EDIT</code> and an
+        <code>UNAPPROVE</code> — so a reader does not have to know the
+        reset rule to see that the approval ended there. Both carry the
+        same timestamp, because <code>now()</code> in Postgres is the
+        transaction’s: they are one atomic act, and presenting them as
+        simultaneous is accurate rather than lossy.</p>
+        <h3 id="what-this-revision-does-not-do">What this revision does
+        not do</h3>
+        <p>No interface (PR 2), no duplicate detection on approval
+        (still deferred, unchanged from the note above), and no change
+        to who may delete. The approval queue has no assignment, no due
+        date and no reminder: it is a filter on a list, which is the
+        smallest thing that makes the state actionable.</p>
       </article>
     </main>
 
@@ -690,6 +825,29 @@ ADR-006-insider-threat-and-protocol-moderation · maintenance-assistant Docs</ti
       id="toc-duplicate-detection-on-approval-deferred-and-it-must-warn-rather-than-block">Duplicate
       detection on approval — deferred, and it must warn rather than
       block</a></li>
+      </ul></li>
+      <li><a href="#revision-2026-08-13-the-trust-chain-as-implemented"
+      id="toc-revision-2026-08-13-the-trust-chain-as-implemented">Revision
+      — 2026-08-13: the trust chain, as implemented</a>
+      <ul>
+      <li><a
+      href="#approval-is-a-status-and-an-unapproved-protocol-stays-searchable"
+      id="toc-approval-is-a-status-and-an-unapproved-protocol-stays-searchable">Approval
+      is a status, and an unapproved protocol stays searchable</a></li>
+      <li><a href="#the-schema-a-state-not-a-boolean"
+      id="toc-the-schema-a-state-not-a-boolean">The schema: a state, not
+      a boolean</a></li>
+      <li><a href="#four-eyes-enforced-on-the-act"
+      id="toc-four-eyes-enforced-on-the-act">Four eyes, enforced on the
+      act</a></li>
+      <li><a
+      href="#editing-an-approved-protocol-resets-it-the-rule-the-chain-rests-on"
+      id="toc-editing-an-approved-protocol-resets-it-the-rule-the-chain-rests-on">Editing
+      an approved protocol resets it — the rule the chain rests
+      on</a></li>
+      <li><a href="#what-this-revision-does-not-do"
+      id="toc-what-this-revision-does-not-do">What this revision does
+      not do</a></li>
       </ul></li>
       </ul></li>
       </ul>

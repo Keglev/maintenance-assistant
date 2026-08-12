@@ -244,19 +244,25 @@
         <td><strong>Techniker</strong> (shop-floor technician)</td>
         <td>Search; receives full technical answers including repair
         steps, with citations to verify against, and machine filtering
-        to keep results relevant.</td>
+        to keep results relevant. <strong>Files protocols</strong>
+        (v1.2) — they are the person at the machine when it is fixed —
+        and <strong>may never correct one, not even their own</strong>:
+        a correction is requested from the Schichtleiter.</td>
         </tr>
         <tr class="odd">
         <td><strong>Schichtleiter</strong> (shift supervisor)</td>
-        <td>All of the above, plus sole write access: creates and
-        uploads protocols and sees their processing status. Write access
-        is restricted here deliberately, to protect knowledge-base
-        quality.</td>
+        <td>All of the above, plus writing and
+        <strong>correcting</strong> protocols (v1.2) with a mandatory
+        reason and a forced re-index. May not approve: the corrector is
+        never the approver.</td>
         </tr>
         <tr class="even">
-        <td><strong>Admin</strong> (IT role only)</td>
-        <td>Manages users and role assignments in Keycloak without code
-        changes.</td>
+        <td><strong>Admin</strong> (IT role only, plus moderation since
+        v1.1)</td>
+        <td>Manages users and roles in Keycloak; reviews the corpus,
+        archives protocols, and since v1.2 <strong>approves</strong>
+        them. May not approve a protocol they filed or last corrected —
+        four eyes, enforced on the act rather than by the role.</td>
         </tr>
         <tr class="odd">
         <td><strong>Project owner / developer</strong></td>

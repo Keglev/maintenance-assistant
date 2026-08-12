@@ -159,23 +159,25 @@
         <tr class="even">
         <td><strong>Techniker</strong></td>
         <td>in / out</td>
-        <td>Question, optional machine filter → full technical answer
-        with citations (document + date)</td>
-        <td>Machine filter keeps results relevant (US-3).</td>
+        <td>Question → full technical answer with citations; new
+        protocol → <code>RECEIVED → INDEXED / FAILED</code></td>
+        <td>Writes since v1.2. <strong>Never corrects</strong>, not even
+        their own protocol.</td>
         </tr>
         <tr class="odd">
         <td><strong>Schichtleiter</strong></td>
         <td>in / out</td>
-        <td>New protocol (form) or uploaded PDF/text → processing status
-        <code>RECEIVED → INDEXED / FAILED</code></td>
-        <td>Sole write access.</td>
+        <td>New protocol (form or text) and <strong>corrections</strong>
+        with a mandatory reason → re-indexed protocol</td>
+        <td>The corrector in the trust chain. May not approve.</td>
         </tr>
         <tr class="even">
         <td><strong>Admin</strong></td>
         <td>in / out</td>
-        <td>User and role administration</td>
-        <td>Happens <strong>in Keycloak</strong>, not in this system’s
-        UI (US-6).</td>
+        <td>User administration (in Keycloak); corpus review, archive,
+        and <strong>approval</strong> of protocols</td>
+        <td>Approval carries an actor and a time. Refused for a protocol
+        the same person filed or last corrected.</td>
         </tr>
         <tr class="odd">
         <td><strong>Keycloak</strong></td>

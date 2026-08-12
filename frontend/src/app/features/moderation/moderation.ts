@@ -9,8 +9,10 @@ import {
   ProtocolFilter,
 } from '../../core/api/api.types';
 import { ApiFailure, MaintenanceApiService, classify } from '../../core/api/maintenance-api.service';
+import { AuthService } from '../../core/auth/auth.service';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { AppDatePipe } from '../../core/i18n/app-date.pipe';
+import { ApprovalStateBadge } from '../../shared/approval/approval-state';
 import { Dialog } from '../../shared/dialog/dialog';
 import { Pager } from '../../shared/pager/pager';
 import { ProtocolDialog } from '../../shared/protocol/protocol-dialog';
@@ -38,16 +40,22 @@ const PAGE_SIZE = 5;
  * query — and a deletion no longer destroys the protocol, it archives it. Both require a stated
  * reason, and neither can be undone: there is no restore, and the edit dialog will not let anyone
  * move a protocol to another machine, because machine identity is provenance rather than content.
+ *
+ * <p><b>v1.2 splits the jobs.</b> Approval is the administrator's, correction is the Schichtleiter's,
+ * and nobody holds both — so the row's buttons now depend on the reader's role rather than on the
+ * view they are standing in. See {@link canCorrect} and {@link canApprove} for what that means here
+ * and for the routing question it exposes.
  */
 @Component({
   selector: 'app-moderation',
-  imports: [AppDatePipe, Dialog, FormsModule, Pager, ProtocolDialog],
+  imports: [AppDatePipe, ApprovalStateBadge, Dialog, FormsModule, Pager, ProtocolDialog],
   templateUrl: './moderation.html',
   styleUrl: './moderation.css',
 })
 export class Moderation {
   private readonly api = inject(MaintenanceApiService);
   private readonly i18n = inject(I18nService);
+  private readonly auth = inject(AuthService);
 
   protected readonly t = this.i18n.t;
   /** Passed to the date pipe, which cannot see a signal it is not given. */
@@ -74,6 +82,41 @@ export class Moderation {
 
   /** Which half of the view is on screen. */
   protected readonly tab = signal<'corpus' | 'archive'>('corpus');
+
+  /**
+   * Who may CORRECT a protocol: the Schichtleiter, and since 2026-08-13 nobody else.
+   *
+   * <p><b>The administrator lost this button, deliberately.</b> Carlos's decision after reviewing
+   * #53: Techniker writes, Schichtleiter corrects, Admin approves, and nobody does two jobs. The
+   * backend refuses an admin's `PUT` with a 403, so leaving the button on screen would offer an
+   * action that cannot succeed — and a button that 403s is worse than an absent one, because the
+   * reader concludes the system is broken rather than that the job is not theirs.
+   *
+   * <p><b>A FINDING TRAVELS WITH THIS, and it is not fixed here.</b> `/moderation` is guarded by
+   * `roleGuard('admin')`, so a Schichtleiter cannot reach this view at all — which means the
+   * correction path now has no interface, for anyone. Widening the route is a permission decision
+   * that belongs to Carlos, not to this pull request, so the rule is written correctly here and the
+   * gap is reported. The day the route opens, this button is already right.
+   */
+  protected readonly canCorrect = computed(() => this.auth.realmRoles().includes('schichtleiter'));
+
+  /** Who may approve. Admin only, here and — decisively — on the endpoint. */
+  protected readonly canApprove = computed(() => this.auth.realmRoles().includes('admin'));
+
+  /** The protocol whose approval is being changed, while the request is in flight. */
+  protected readonly approving = signal<string | null>(null);
+  /** The protocol whose approval is being withdrawn, or null. Withdrawal needs a reason. */
+  protected readonly withdrawing = signal<ModeratedProtocol | null>(null);
+  protected readonly withdrawComment = signal('');
+  /** What was just approved or un-approved, so the notice can name it. */
+  protected readonly approvalNotice = signal<{ title: string; approved: boolean } | null>(null);
+  /**
+   * Why an approval was refused, and for which protocol.
+   *
+   * Held per row rather than as one page-level error: the reader clicked one button among ten, and
+   * a sentence at the top of the page about "this protocol" names none of them.
+   */
+  protected readonly approvalFailure = signal<{ id: string; reason: ApiFailure } | null>(null);
 
   /** The protocol being corrected, or null. */
   protected readonly editing = signal<ModeratedProtocol | null>(null);
@@ -109,6 +152,9 @@ export class Moderation {
   );
 
   protected readonly canDelete = computed(() => this.deleteComment().trim() !== '');
+
+  /** The backend refuses a withdrawal without a reason; so does this, before the round trip. */
+  protected readonly canWithdraw = computed(() => this.withdrawComment().trim() !== '');
 
   protected readonly archivePageCount = computed(() =>
     Math.max(1, Math.ceil(this.archiveTotal() / PAGE_SIZE)),
@@ -166,10 +212,28 @@ export class Moderation {
     if (field === 'machineNo' && value === '') {
       // Clearing the machine clears what depended on it. Leaving a title behind in a field the user
       // can no longer see or reach is how a filter starts lying about what it is filtering.
-      this.draft.set(NO_FILTER);
+      //
+      // THE APPROVAL FILTER SURVIVES, because it never depended on the machine: it is the one filter
+      // the backend applies without one, for the reason a queue is only useful whole. Resetting it
+      // here would mean "all machines" silently emptied the reviewer's queue — a filter clearing a
+      // filter it has nothing to do with.
+      this.draft.set({ ...NO_FILTER, approvalState: this.draft().approvalState });
       return;
     }
     this.draft.set(next);
+  }
+
+  /**
+   * Applies the approval filter immediately, without the Filter button.
+   *
+   * It is not part of the machine-first form: it needs no machine, it has one value, and a queue a
+   * reviewer has to press a second control to see is a queue they will stop opening. The other four
+   * fields keep the button, because they are a form that is filled in and then submitted.
+   */
+  protected filterByApproval(state: ProtocolFilter['approvalState']): void {
+    this.draft.update((current) => ({ ...current, approvalState: state }));
+    this.applied.set(this.draft());
+    this.load(0);
   }
 
   /** Applies the form. Back to page 0: page 3 of the old result is not page 3 of the new one. */
@@ -327,6 +391,80 @@ export class Moderation {
           this.editFailure.set(classify(error));
         },
       });
+  }
+
+  // -------------------------------------------------------------------------------------------
+  // Approval
+  // -------------------------------------------------------------------------------------------
+
+  /**
+   * Approves a protocol. No confirmation and no comment field: approving affirms the text as it
+   * stands, and the reader has just read it.
+   *
+   * <p><b>The refusal is handled explicitly, and that is the point of this method.</b> The backend
+   * answers 400 `FOUR_EYES_REQUIRED` when the caller filed or last corrected the protocol. Leaving
+   * that as a generic "the request failed" — or, worse, disabling the button and saying nothing —
+   * would leave an administrator staring at a control that does not work for a reason they cannot
+   * discover. The rule is explained in a sentence, beside the row it applies to.
+   */
+  protected approve(protocol: ModeratedProtocol): void {
+    if (this.approving()) {
+      return;
+    }
+    this.approving.set(protocol.id);
+    this.approvalFailure.set(null);
+
+    this.api.setApproval(protocol.id, true).subscribe({
+      next: () => {
+        this.approving.set(null);
+        this.approvalNotice.set({ title: protocol.title, approved: true });
+        // Reloaded rather than patched in place: the row may no longer belong on this page at all
+        // when the approval queue is the active filter, and a row that stayed would be describing a
+        // list it has just left.
+        this.load(this.page());
+      },
+      error: (error: unknown) => {
+        this.approving.set(null);
+        this.approvalFailure.set({ id: protocol.id, reason: classify(error) });
+      },
+    });
+  }
+
+  /** Withdraws approval, with the reason the backend requires and the reader is owed. */
+  protected confirmWithdraw(): void {
+    const target = this.withdrawing();
+    const comment = this.withdrawComment().trim();
+    if (!target || !comment || this.approving()) {
+      return;
+    }
+    this.approving.set(target.id);
+    this.approvalFailure.set(null);
+
+    this.api.setApproval(target.id, false, comment).subscribe({
+      next: () => {
+        this.approving.set(null);
+        this.withdrawing.set(null);
+        this.withdrawComment.set('');
+        this.approvalNotice.set({ title: target.title, approved: false });
+        this.load(this.page());
+      },
+      error: (error: unknown) => {
+        this.approving.set(null);
+        this.withdrawing.set(null);
+        this.approvalFailure.set({ id: target.id, reason: classify(error) });
+      },
+    });
+  }
+
+  protected cancelWithdraw(): void {
+    this.withdrawing.set(null);
+    this.withdrawComment.set('');
+  }
+
+  /** The refusal for THIS row, or null — so a sentence never appears beside the wrong protocol. */
+  protected approvalFailureFor(protocol: ModeratedProtocol): ApiFailure | null {
+    const failure = this.approvalFailure();
+    return failure && failure.id === protocol.id ? failure.reason : null;
   }
 
   // -------------------------------------------------------------------------------------------

@@ -35,6 +35,16 @@ export interface Citation {
   readonly incidentDate: string | null;
   /** Cosine similarity, 0..1. Shown so the demo can say why this is Mode A and the next is Mode B. */
   readonly similarity: number;
+  /**
+   * Whether an administrator has vouched for the protocol behind this citation.
+   *
+   * On the citation rather than fetched per source, because a client that had to ask a second
+   * endpoint for it would eventually forget to — and forgetting is the failure that matters here.
+   * Unapproved protocols stay searchable by decision (2026-08-11), so a Mode A answer can be
+   * grounded in text nobody has reviewed, and NFR-2's citation discipline makes any cited claim
+   * LOOK checked. This flag is what keeps that impression honest.
+   */
+  readonly approved: boolean;
 }
 
 /**
@@ -89,6 +99,24 @@ export interface ModeratedProtocol {
   readonly status: 'RECEIVED' | 'INDEXED' | 'FAILED';
   /** Searchable pieces this protocol contributes; 0 means stored but not retrievable. */
   readonly chunkCount: number;
+  /** Who vouched for this protocol, and when. On every row, not only on the queue. */
+  readonly approval: Approval;
+}
+
+/** The two states approval can be in. A closed set on the wire, matching the schema's constraint. */
+export type ApprovalState = 'APPROVED' | 'UNAPPROVED';
+
+/**
+ * One protocol's approval, as `PUT …/approval` returns it and as every list row carries it.
+ *
+ * `approvedBy` and `approvedAt` are non-null exactly when the state is `APPROVED` — a database
+ * constraint says so, which is why this is a state plus its evidence rather than three independent
+ * fields the client has to reconcile.
+ */
+export interface Approval {
+  readonly state: ApprovalState;
+  readonly approvedBy: string | null;
+  readonly approvedAt: string | null;
 }
 
 /**
@@ -105,6 +133,15 @@ export interface ProtocolFilter {
   /** ISO `yyyy-MM-dd`, as an `<input type="date">` produces it. */
   readonly from: string;
   readonly to: string;
+  /**
+   * The approval queue, and the one filter that is NOT subject to the machine-first rule.
+   *
+   * That rule exists because a title fragment across ten machines answers with rows the reviewer was
+   * not looking at. "Everything still waiting for review" is the opposite: a queue is only useful
+   * whole, and it is the first question an administrator asks after signing in. The backend agrees —
+   * it applies `approvalState` without requiring `machineNo`.
+   */
+  readonly approvalState: ApprovalState | '';
 }
 
 /** The unfiltered corpus: what the view shows until someone narrows it. */
@@ -113,6 +150,7 @@ export const NO_FILTER: ProtocolFilter = {
   titleContains: '',
   from: '',
   to: '',
+  approvalState: '',
 };
 
 /** One page of the corpus. `total` is what turns "Weiter" into "page 3 of 16". */

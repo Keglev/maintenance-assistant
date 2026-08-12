@@ -15,6 +15,15 @@ export type DemoUser = 'operator' | 'techniker' | 'schichtleiter' | 'admin';
 export const E2E_TITLE_PREFIX = 'E2E-THROWAWAY';
 
 /**
+ * The machine every writing test files against.
+ *
+ * Deliberately NOT PR-03: the E-47 demo case lives there, it is the thing the project is applied
+ * with, and no test should be near it. Shared here because two files now write, and two copies of
+ * "which machine is safe to write to" is one copy too many.
+ */
+export const E2E_MACHINE = 'VP-01';
+
+/**
  * Signs in through the real Keycloak login page.
  *
  * <p>Through the REAL page on purpose. Seeding a token into sessionStorage would be faster and
@@ -127,6 +136,75 @@ export async function sweepThrowaways(page: Page, machineNo: string): Promise<nu
     removed += 1;
   }
   return removed;
+}
+
+/**
+ * Corrects a protocol as the signed-in Schichtleiter, through the real API with their real token.
+ *
+ * <p><b>Why this is not a click, and why that is stated rather than hidden.</b> The correction path
+ * lives at `PUT /api/moderation/protocols/{id}`, which since 2026-08-13 only a Schichtleiter may
+ * call — and `/moderation`, the only screen with a Bearbeiten button, is guarded by
+ * `roleGuard('admin')`. The role that owns the act cannot reach the screen that performs it. That
+ * is a reported finding and a routing decision for Carlos; widening the route inside a UI pull
+ * request would be answering a permission question nobody asked this branch.
+ *
+ * <p>So this is ARRANGEMENT, not verification. Everything the drill actually proves — that the
+ * corrected text is what the corpus holds, and that the correction reset the approval — is asserted
+ * in the browser afterwards. This suite's own rule is that an API call is not a click; it is being
+ * obeyed, not sidestepped. <b>Delete this helper and restore the dialog clicks the day the route
+ * opens.</b>
+ *
+ * <p>The token is taken from the live session rather than minted: `fetch` runs inside the page, so
+ * the request is the one that browser could make, with the roles that browser holds.
+ */
+export async function correctAsSchichtleiter(
+  page: Page,
+  title: string,
+  content: string,
+  overrides: { machineNo?: string } = {},
+): Promise<{ status: number; reason?: string }> {
+  // `GET /api/protocols/mine` is the author's own list and is the only place a Schichtleiter can
+  // learn a protocol id — the moderation list is admin-only, and rightly so.
+  return page.evaluate(
+    async ([wanted, body, machineNo]) => {
+      const token = Object.keys(sessionStorage)
+        .filter((key) => key.includes('access_token'))
+        .map((key) => sessionStorage.getItem(key))
+        .find((value): value is string => !!value && value.split('.').length === 3);
+      if (!token) {
+        throw new Error('no access token in the page session — is the browser signed in?');
+      }
+      const headers = { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' };
+
+      const mine = (await (await fetch('/api/protocols/mine', { headers })).json()) as {
+        id: string;
+        title: string;
+      }[];
+      const protocol = mine.find((candidate) => candidate.title === wanted);
+      if (!protocol) {
+        throw new Error(`no uploaded protocol titled "${wanted}" — the filing step did not land`);
+      }
+
+      const response = await fetch(`/api/moderation/protocols/${protocol.id}`, {
+        method: 'PUT',
+        headers,
+        body: JSON.stringify({
+          machineNo,
+          protocolType: 'STOERUNG',
+          title: wanted,
+          errorCode: '',
+          content: body,
+          comment: 'e2e: corrected the root cause',
+        }),
+      });
+      if (response.ok) {
+        return { status: response.status };
+      }
+      const failure = (await response.json()) as { reason?: string };
+      return { status: response.status, reason: failure.reason };
+    },
+    [title, content, overrides.machineNo ?? E2E_MACHINE] as const,
+  );
 }
 
 /** Signs out through the confirmation dialog, so a test leaves no session behind. */

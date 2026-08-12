@@ -46,6 +46,24 @@
     </p>
   }
 
+  @if (approvalNotice(); as notice) {
+    <p class="notice notice-info moderation-notice" role="status" data-testid="approval-notice">
+      <span>
+        {{ notice.approved ? t().approval.approvedNotice : t().approval.withdrawnNotice }}:
+        {{ notice.title }}
+      </span>
+      <button
+        type="button"
+        class="link-button"
+        data-testid="approval-notice-dismiss"
+        [attr.aria-label]="t().signOut.dismiss"
+        (click)="approvalNotice.set(null)"
+      >
+        {{ t().common.close }}
+      </button>
+    </p>
+  }
+
   @if (removed(); as title) {
     <p class="notice notice-info moderation-notice" role="status" data-testid="removed-notice">
       <span>{{ t().moderation.removed }}: {{ title }}</span>
@@ -139,6 +157,24 @@
       </label>
     </div>
 
+    <!-- OUTSIDE `.filter-fields`, and not because of the layout: this is the one filter the backend
+         applies WITHOUT a machine, because "everything still waiting for review" is only useful
+         whole. It applies on change rather than on submit — a queue behind a second button press is
+         a queue nobody opens. -->
+    <label class="field filter-approval">
+      <span class="field-label">{{ t().moderation.filterApproval }}</span>
+      <select
+        name="approvalState"
+        data-testid="filter-approval"
+        [ngModel]="draft().approvalState"
+        (ngModelChange)="filterByApproval($event)"
+      >
+        <option value="">{{ t().moderation.filterApprovalAll }}</option>
+        <option value="UNAPPROVED">{{ t().approval.unapproved }}</option>
+        <option value="APPROVED">{{ t().approval.approved }}</option>
+      </select>
+    </label>
+
     <!-- A disabled field with no explanation reads as broken rather than as not-yet-applicable. -->
     <p class="field-hint" data-testid="filter-hint">{{ t().moderation.filterHint }}</p>
     <!-- The one place the interface language does NOT decide the format: a native date input is
@@ -203,6 +239,7 @@
               <th>{{ t().moderation.uploadedBy }}</th>
               <th>{{ t().upload.columnUploaded }}</th>
               <th>{{ t().upload.columnStatus }}</th>
+              <th>{{ t().approval.column }}</th>
               <th><span class="sr-only">{{ t().moderation.actions }}</span></th>
             </tr>
           </thead>
@@ -227,7 +264,24 @@
                     statusLabel(protocol.status)
                   }}</span>
                 </td>
-                <td class="row-actions">
+                <!-- On every row, not only on the unapproved ones. This list is also where an
+                     administrator checks that something they approved is STILL approved — and after
+                     a correction it will not be, because an edit resets it. -->
+                <td class="approval-cell">
+                  <app-approval-state
+                    [approval]="protocol.approval"
+                    [language]="language()"
+                    [showActor]="true"
+                  />
+                </td>
+                <!-- The buttons live in a DIV inside the cell, not on the cell itself. A <td> with
+                     `display: flex` stops being a table cell: the browser wraps it in an anonymous
+                     one and it no longer takes the row's height, so its bottom border floats
+                     mid-row the moment any other cell wraps to a second line. Invisible while every
+                     title fitted on one line, and visible the day the approval column made them
+                     wrap — which is how it was found. -->
+                <td class="actions-cell">
+                  <div class="row-actions">
                   <button
                     type="button"
                     class="btn btn-secondary btn-sm"
@@ -238,18 +292,54 @@
                   >
                     {{ t().moderation.open }}
                   </button>
-                  <!-- Correction before removal, in that order on screen too: since the ADR-006
-                       revision, fixing a wrong Massnahme is the cheaper and better of the two. -->
-                  <button
-                    type="button"
-                    class="btn btn-secondary btn-sm"
-                    data-testid="row-edit"
-                    [attr.aria-haspopup]="'dialog'"
-                    [attr.aria-label]="t().moderation.edit + ': ' + protocol.title"
-                    (click)="startEdit(protocol)"
-                  >
-                    {{ t().moderation.edit }}
-                  </button>
+                  <!-- THE CORRECTION BUTTON IS THE SCHICHTLEITER'S NOW, and it is gone for the
+                       administrator (2026-08-13): the approver does not also correct. The backend
+                       answers 403, so a button left here would offer an action that cannot work —
+                       and a control that fails reads as a broken application rather than as a job
+                       belonging to someone else. -->
+                  @if (canCorrect()) {
+                    <button
+                      type="button"
+                      class="btn btn-secondary btn-sm"
+                      data-testid="row-edit"
+                      [attr.aria-haspopup]="'dialog'"
+                      [attr.aria-label]="t().moderation.edit + ': ' + protocol.title"
+                      (click)="startEdit(protocol)"
+                    >
+                      {{ t().moderation.edit }}
+                    </button>
+                  }
+                  @if (canApprove()) {
+                    @if (protocol.approval.state === 'APPROVED') {
+                      <button
+                        type="button"
+                        class="btn btn-secondary btn-sm"
+                        data-testid="row-withdraw"
+                        [attr.aria-haspopup]="'dialog'"
+                        [attr.aria-label]="t().approval.withdraw + ': ' + protocol.title"
+                        (click)="withdrawing.set(protocol)"
+                      >
+                        <!-- The short label in the row, the full one in its accessible name and in
+                             the dialog it opens: three buttons per row have to fit beside six
+                             columns, and "Freigabe zurückziehen" set the whole table's widths. -->
+                        {{ t().approval.withdrawShort }}
+                      </button>
+                    } @else {
+                      <!-- No confirmation dialog, unlike withdrawing: approving affirms the text as
+                           it stands, and the reviewer has just read it. Withdrawing takes back
+                           something a named person vouched for, and that direction needs a reason. -->
+                      <button
+                        type="button"
+                        class="btn btn-primary btn-sm"
+                        data-testid="row-approve"
+                        [disabled]="approving() !== null"
+                        [attr.aria-label]="t().approval.approve + ': ' + protocol.title"
+                        (click)="approve(protocol)"
+                      >
+                        {{ approving() === protocol.id ? t().approval.approving : t().approval.approve }}
+                      </button>
+                    }
+                  }
                   <button
                     type="button"
                     class="btn btn-danger btn-sm"
@@ -260,8 +350,37 @@
                   >
                     {{ t().moderation.delete }}
                   </button>
+                  </div>
                 </td>
               </tr>
+              @if (approvalFailureFor(protocol); as reason) {
+                <!-- A row of its own under the one it is about, spanning the table. The refusal has
+                     to name the protocol it belongs to, and a sentence at the top of the page about
+                     "this protocol" names none of ten identical rows. -->
+                <tr class="approval-failure-row" data-testid="approval-failure-row">
+                  <td colspan="8">
+                    <p class="notice notice-error" role="alert" data-testid="approval-failure">
+                      @switch (reason) {
+                        @case ('fourEyesRequired') {
+                          {{ t().approval.fourEyes }}
+                        }
+                        @case ('archived') {
+                          {{ t().approval.archived }}
+                        }
+                        @case ('notFound') {
+                          {{ t().moderation.alreadyGone }}
+                        }
+                        @case ('forbidden') {
+                          {{ t().errors.forbidden }}
+                        }
+                        @default {
+                          {{ t().errors.generic }}
+                        }
+                      }
+                    </p>
+                  </td>
+                </tr>
+              }
             }
           </tbody>
         </table>
@@ -334,7 +453,8 @@
                   <td class="reason" data-testid="archive-comment">
                     {{ protocol.deleteComment || t().moderation.archiveNoComment }}
                   </td>
-                  <td class="row-actions">
+                  <td class="actions-cell">
+                    <div class="row-actions">
                     <!-- Open only. There is no restore and no edit here, by design: the archive is
                          for looking at what was removed, not for reversing it. -->
                     <button
@@ -347,6 +467,7 @@
                     >
                       {{ t().moderation.open }}
                     </button>
+                    </div>
                   </td>
                 </tr>
               }
@@ -374,9 +495,43 @@
   [protocolId]="viewing()?.id ?? null"
   [protocolTitle]="viewing()?.title ?? ''"
   [machine]="viewing()?.machineNo ?? ''"
+  [approval]="viewing()?.approval ?? null"
   source="moderation"
   (closed)="viewing.set(null)"
-/>
+>
+  <!-- The decision belongs where the evidence is. A reviewer who has just read the protocol should
+       not have to close the dialog, find the row again among ten and then decide — that is the step
+       at which the wrong row gets approved. -->
+  <!-- ONE PROJECTED ELEMENT, with the conditions INSIDE it. A `select=` selector matches the root
+       nodes of the projected content, and a node inside an `@if` is not one of them — a button
+       wrapped in a condition here is simply never projected, silently. Found by the test below,
+       which is the only way this fails: it renders, it just renders nowhere. -->
+  <span protocolActions class="viewer-approval-actions">
+    @if (canApprove() && viewing(); as target) {
+      @if (target.approval.state === 'APPROVED') {
+        <button
+          type="button"
+          class="btn btn-secondary btn-sm"
+          data-testid="viewer-withdraw"
+          [attr.aria-haspopup]="'dialog'"
+          (click)="withdrawing.set(target); viewing.set(null)"
+        >
+          {{ t().approval.withdraw }}
+        </button>
+      } @else {
+        <button
+          type="button"
+          class="btn btn-primary btn-sm"
+          data-testid="viewer-approve"
+          [disabled]="approving() !== null"
+          (click)="approve(target); viewing.set(null)"
+        >
+          {{ t().approval.approve }}
+        </button>
+      }
+    }
+  </span>
+</app-protocol-dialog>
 
 <!-- The archive's own viewer. Same component, third endpoint: the live paths answer 404 for a
      removed protocol, and this is the only door back to its content. -->
@@ -441,6 +596,65 @@
   </div>
   @if (!canDelete()) {
     <p class="field-hint" data-testid="delete-reason-required">
+      {{ t().moderation.reasonRequired }}
+    </p>
+  }
+</app-dialog>
+
+<!-- Withdrawing needs a reason and therefore needs a dialog; approving needs neither. The asymmetry
+     is the backend's rule and it is the right one: taking back what a named person vouched for is
+     the direction the next reader is owed an explanation for. -->
+<app-dialog
+  [open]="withdrawing() !== null"
+  [title]="t().approval.withdrawTitle"
+  testId="withdraw-confirm"
+  (closed)="cancelWithdraw()"
+>
+  @if (withdrawing(); as target) {
+    <p class="confirm-target" data-testid="withdraw-target">
+      <strong>{{ target.title }}</strong>
+      <span class="machine">{{ target.machineNo }}</span>
+    </p>
+  }
+  <!-- Says what does NOT happen, because that is the part a reviewer is least sure of: withdrawing
+       an approval is not a removal, and a protocol that stayed searchable would otherwise be a
+       surprise. -->
+  <p class="confirm-body">{{ t().approval.withdrawBody }}</p>
+
+  <label class="field">
+    <span class="field-label">{{ t().moderation.reason }}</span>
+    <span class="field-hint">{{ t().moderation.reasonHint }}</span>
+    <textarea
+      name="withdrawComment"
+      rows="2"
+      data-testid="withdraw-comment"
+      [placeholder]="t().approval.withdrawReasonPlaceholder"
+      [ngModel]="withdrawComment()"
+      (ngModelChange)="withdrawComment.set($event)"
+    ></textarea>
+  </label>
+
+  <div class="confirm-actions">
+    <button
+      type="button"
+      class="btn btn-primary"
+      data-testid="withdraw-confirm-button"
+      [disabled]="!canWithdraw() || approving() !== null"
+      (click)="confirmWithdraw()"
+    >
+      {{ approving() ? t().approval.approving : t().approval.withdraw }}
+    </button>
+    <button
+      type="button"
+      class="btn btn-secondary"
+      data-testid="withdraw-cancel"
+      (click)="cancelWithdraw()"
+    >
+      {{ t().common.cancel }}
+    </button>
+  </div>
+  @if (!canWithdraw()) {
+    <p class="field-hint" data-testid="withdraw-reason-required">
       {{ t().moderation.reasonRequired }}
     </p>
   }

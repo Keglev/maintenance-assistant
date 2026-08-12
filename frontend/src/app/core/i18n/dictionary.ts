@@ -178,6 +178,18 @@ export interface Dictionary {
     readonly helpGood: string;
     readonly helpWeak: string;
     readonly helpExamples: readonly SearchExample[];
+    /**
+     * The approved-only facet.
+     *
+     * OFF by default, and that default is decision 1 of 2026-08-11 rather than a convenience: the
+     * admin may not review at a weekend and the factory does not stop, so the protocol about the
+     * fault happening right now has to be findable before anyone signs it off.
+     */
+    readonly approvedOnly: string;
+    readonly approvedOnlyHint: string;
+    /** Why a filtered search found nothing — otherwise it reads as "no protocols exist". */
+    readonly approvedOnlyEmpty: string;
+    readonly approvedOnlyEmptyAction: string;
   };
   readonly modeA: {
     readonly badge: string;
@@ -195,6 +207,14 @@ export interface Dictionary {
     /** The drawer over a long answer. The text is clamped, never cut — see SearchAnswer. */
     readonly expandAnswer: string;
     readonly collapseAnswer: string;
+    /**
+     * Said ONCE at the answer level when any cited source is unapproved.
+     *
+     * A technician reading an answer must not have to audit the source list to learn that part of
+     * it is unreviewed — but this is a line, not a banner: an unapproved source is a normal, decided
+     * state of this system, and dressing it as a fault would make the feature look broken.
+     */
+    readonly unapprovedSources: (count: number) => string;
   };
   readonly viewer: {
     readonly title: string;
@@ -281,6 +301,43 @@ export interface Dictionary {
     readonly alreadyArchived: string;
     /** Native date inputs follow the BROWSER locale, so the expected format is spelled out. */
     readonly filterDateFormatHint: string;
+    /** The approval column and its filter. Not subject to the machine-first rule — a queue is whole. */
+    readonly filterApproval: string;
+    readonly filterApprovalAll: string;
+  };
+  /**
+   * Approval: the state, and the administrator's control over it.
+   *
+   * Its own section rather than more `moderation` keys, because the STATE is read on three surfaces
+   * that are not the Verwaltung view — a source card under an answer, the viewer dialog, and the
+   * answer-level note — while only the verbs below belong to moderation. Splitting them by owner
+   * keeps a technician-facing word out of an admin-facing section.
+   */
+  readonly approval: {
+    readonly approved: string;
+    readonly unapproved: string;
+    /** The table column, and the label the viewer's head uses. */
+    readonly column: string;
+    readonly approve: string;
+    readonly withdraw: string;
+    /** The button in a table row. The full phrase sets the width of six other columns. */
+    readonly withdrawShort: string;
+    readonly approving: string;
+    /** Confirmation of the act, named so the reviewer knows which of twenty rows moved. */
+    readonly approvedNotice: string;
+    readonly withdrawnNotice: string;
+    readonly withdrawTitle: string;
+    readonly withdrawBody: string;
+    readonly withdrawReasonPlaceholder: string;
+    /**
+     * The four-eyes refusal, in plain language.
+     *
+     * Two sentences because the reader needs two things: what happened, and what to do about it. A
+     * disabled button would have said neither, and a silent failure is a bug report.
+     */
+    readonly fourEyes: string;
+    /** Approving something that is in the archive. Archived is final. */
+    readonly archived: string;
   };
   /**
    * The paging control, shared by the three tables that have one.
@@ -428,10 +485,10 @@ export const DE: Dictionary = {
   },
   demo: {
     operator: 'Fragen stellen, bedienerseitige Antworten.',
-    techniker: 'Fragen stellen, vollständige technische Antworten.',
-    schichtleiter: 'Wie Techniker, zusätzlich Protokolle hochladen.',
+    techniker: 'Fragen stellen, vollständige technische Antworten, Protokolle schreiben.',
+    schichtleiter: 'Wie Techniker, zusätzlich Protokolle korrigieren.',
     admin:
-      'Prüft und entfernt Protokolle in der Protokollverwaltung. Stellt keine Fragen und lädt nichts hoch.',
+      'Gibt Protokolle frei, prüft und entfernt sie in der Protokollverwaltung. Stellt keine Fragen und schreibt nichts.',
     examplesHeading: 'Zum Ausprobieren',
     examplesIntro: 'Erst die Maschine wählen, dann die Frage stellen — gesucht wird je Maschine.',
     exampleMachine: 'Maschine',
@@ -468,8 +525,10 @@ export const DE: Dictionary = {
     rolesHeading: 'Wer darf was',
     roleOperator:
       'Bediener: Fragen stellen. Antworten enthalten nur Schritte für unterwiesene Personen, keine Elektro- oder Mechanikarbeiten.',
-    roleTechniker: 'Techniker: Fragen stellen, vollständige technische Antworten ohne Einschränkung.',
-    roleSchichtleiter: 'Schichtleiter: wie Techniker, zusätzlich neue Protokolle hochladen.',
+    roleTechniker:
+      'Techniker: Fragen stellen, vollständige technische Antworten ohne Einschränkung, Protokolle schreiben — korrigieren nie, auch nicht die eigenen.',
+    roleSchichtleiter:
+      'Schichtleiter: wie Techniker, zusätzlich neue Protokolle korrigieren — mit Begründung und sofortiger Neuindexierung.',
   },
   search: {
     heading: 'Frage zu einer Maschine',
@@ -499,6 +558,12 @@ export const DE: Dictionary = {
       { good: 'Presse kommt nicht auf Druck, E-47 steht an', weak: 'Druck' },
       { good: 'Band läuft schief nach dem Rollenwechsel', weak: 'Band' },
     ],
+    approvedOnly: 'Nur freigegebene Protokolle',
+    approvedOnlyHint:
+      'Standardmässig wird der ganze Bestand durchsucht — auch Protokolle, die noch niemand freigegeben hat.',
+    approvedOnlyEmpty:
+      'Gesucht wurde nur in freigegebenen Protokollen. Möglicherweise gibt es ein passendes Protokoll, das noch nicht freigegeben ist.',
+    approvedOnlyEmptyAction: 'Im ganzen Bestand suchen',
   },
   modeA: {
     badge: 'Belegte Antwort',
@@ -514,6 +579,10 @@ export const DE: Dictionary = {
     collapseSource: 'Quelle zuklappen',
     expandAnswer: 'Vollständige Antwort anzeigen',
     collapseAnswer: 'Antwort einklappen',
+    unapprovedSources: (count) =>
+      count === 1
+        ? 'Eine der Quellen ist noch nicht freigegeben — geprüft hat sie noch niemand.'
+        : `${count} der Quellen sind noch nicht freigegeben — geprüft hat sie noch niemand.`,
   },
   viewer: {
     title: 'Originalprotokoll',
@@ -602,6 +671,27 @@ export const DE: Dictionary = {
     alreadyArchived:
       'Dieses Protokoll wurde entfernt und lässt sich nicht mehr bearbeiten. Entfernt ist endgültig.',
     filterDateFormatHint: 'Format: TT.MM.JJJJ',
+    filterApproval: 'Freigabe',
+    filterApprovalAll: 'Alle',
+  },
+  approval: {
+    approved: 'Freigegeben',
+    unapproved: 'Nicht freigegeben',
+    column: 'Freigabe',
+    approve: 'Freigeben',
+    withdraw: 'Freigabe zurückziehen',
+    withdrawShort: 'Zurückziehen',
+    approving: 'Wird gespeichert …',
+    approvedNotice: 'Protokoll freigegeben',
+    withdrawnNotice: 'Freigabe zurückgezogen',
+    withdrawTitle: 'Freigabe zurückziehen?',
+    withdrawBody:
+      'Das Protokoll bleibt im Bestand und weiterhin durchsuchbar. Es gilt danach als ungeprüft und erscheint wieder in der Freigabeliste.',
+    withdrawReasonPlaceholder: 'z. B. Massnahme passt nicht zur beschriebenen Ursache.',
+    fourEyes:
+      'Sie haben dieses Protokoll geschrieben oder zuletzt korrigiert. Freigeben muss es eine andere Administratorin oder ein anderer Administrator — eine Freigabe ist ein zweites Paar Augen.',
+    archived:
+      'Dieses Protokoll wurde entfernt und lässt sich nicht mehr freigeben. Entfernt ist endgültig.',
   },
   pager: {
     label: 'Seitenblättern',
@@ -738,10 +828,10 @@ export const EN: Dictionary = {
   },
   demo: {
     operator: 'Ask questions, operator-safe answers.',
-    techniker: 'Ask questions, full technical answers.',
-    schichtleiter: 'Like the technician, and may upload protocols.',
+    techniker: 'Ask questions, full technical answers, file protocols.',
+    schichtleiter: 'Like the technician, and may correct protocols.',
     admin:
-      'Reviews and removes protocols in Protocol management. Does not ask questions and does not upload.',
+      'Approves protocols, reviews and removes them in Protocol management. Does not ask questions and does not write.',
     examplesHeading: 'Try these',
     examplesIntro: 'Choose the machine first, then ask — retrieval is filtered per machine.',
     exampleMachine: 'Machine',
@@ -781,8 +871,10 @@ export const EN: Dictionary = {
     rolesHeading: 'Who may do what',
     roleOperator:
       'Operator: ask questions. Answers contain only steps for instructed persons, no electrical or mechanical repair work.',
-    roleTechniker: 'Technician: ask questions, full technical answers with no restriction.',
-    roleSchichtleiter: 'Shift lead: like the technician, and may upload new protocols.',
+    roleTechniker:
+      'Technician: ask questions, full technical answers with no restriction, and file protocols — never corrects one, not even their own.',
+    roleSchichtleiter:
+      'Shift lead: like the technician, and may correct protocols — with a reason and an immediate re-index.',
   },
   search: {
     heading: 'Ask about a machine',
@@ -812,6 +904,12 @@ export const EN: Dictionary = {
       { good: 'Press does not build up pressure, E-47 showing', weak: 'pressure' },
       { good: 'Belt mistracks after the roller change', weak: 'belt' },
     ],
+    approvedOnly: 'Approved protocols only',
+    approvedOnlyHint:
+      'By default the whole corpus is searched — including protocols nobody has approved yet.',
+    approvedOnlyEmpty:
+      'Only approved protocols were searched. There may be a matching protocol that has not been approved yet.',
+    approvedOnlyEmptyAction: 'Search the whole corpus',
   },
   modeA: {
     badge: 'Sourced answer',
@@ -827,6 +925,10 @@ export const EN: Dictionary = {
     collapseSource: 'Collapse source',
     expandAnswer: 'Show full answer',
     collapseAnswer: 'Collapse answer',
+    unapprovedSources: (count) =>
+      count === 1
+        ? 'One of the sources has not been approved yet — nobody has reviewed it.'
+        : `${count} of the sources have not been approved yet — nobody has reviewed them.`,
   },
   viewer: {
     title: 'Original protocol',
@@ -913,6 +1015,26 @@ export const EN: Dictionary = {
     alreadyArchived:
       'This protocol was removed and can no longer be edited. Removed is final.',
     filterDateFormatHint: 'Format: MM/DD/YYYY',
+    filterApproval: 'Approval',
+    filterApprovalAll: 'All',
+  },
+  approval: {
+    approved: 'Approved',
+    unapproved: 'Not approved',
+    column: 'Approval',
+    approve: 'Approve',
+    withdraw: 'Withdraw approval',
+    withdrawShort: 'Withdraw',
+    approving: 'Saving …',
+    approvedNotice: 'Protocol approved',
+    withdrawnNotice: 'Approval withdrawn',
+    withdrawTitle: 'Withdraw approval?',
+    withdrawBody:
+      'The protocol stays in the records and stays searchable. It counts as unreviewed afterwards and returns to the approval queue.',
+    withdrawReasonPlaceholder: 'e.g. The action taken does not match the stated cause.',
+    fourEyes:
+      'You wrote or last corrected this protocol. Another administrator has to approve it — an approval is a second pair of eyes.',
+    archived: 'This protocol was removed and can no longer be approved. Removed is final.',
   },
   pager: {
     label: 'Pagination',

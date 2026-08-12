@@ -99,6 +99,13 @@
   font-family: var(--font-mono);
 }
 
+/* Its own line under the meta row. Beside the similarity figure it would compete with a number for
+   the same glance; under it, it is the last thing read before deciding whether to open the source,
+   which is the moment it is for. */
+.source-approval {
+  margin: var(--s-1) 0 0;
+}
+
 /* A chevron alone rather than a labelled button like the pager: it sits beside a title that already
    names what it opens, and its accessible name says the rest. */
 .source-toggle {
@@ -159,6 +166,14 @@
   white-space: nowrap;
 }
 
+/* LAST TO SHRINK, NEVER TO GO. `flex: none` while the title and the meta may both give way: the
+   thing a collapsed card must still be able to say is whether this source was reviewed. Ellipsing
+   that away to fit a longer title would be the one abbreviation this list cannot afford. */
+.source.collapsed .source-approval {
+  margin: 0;
+  flex: none;
+}
+
 /* Where a citation marker just landed. A ring rather than a background change: the card keeps its
    Mode A green, and the reader needs to see WHICH of five it is, not a second colour scheme. */
 .source.highlighted {
@@ -180,7 +195,8 @@
     display: block;
   }
 
-  .source.collapsed .source-meta {
+  .source.collapsed .source-meta,
+  .source.collapsed .source-approval {
     margin-top: var(--s-1);
   }
 }

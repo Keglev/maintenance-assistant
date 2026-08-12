@@ -1,0 +1,277 @@
+import type { Page } from '@playwright/test';
+
+import {
+  E2E_MACHINE,
+  E2E_TITLE_PREFIX,
+  correctAsSchichtleiter,
+  expect,
+  selectSearchMachine,
+  signIn,
+  signOut,
+  sweepThrowaways,
+  test,
+} from './support';
+
+/**
+ * THE TRUST CHAIN, in a browser.
+ *
+ * <p>v1.2's approval workflow is the most navigation-heavy feature in the project, which is exactly
+ * why the e2e foundation was built BEFORE it (PROJECT-PHASES, steps 1 and 2 swapped on 2026-08-11):
+ * it is developed against a rendered safety net rather than given one afterwards. This is that net's
+ * first new case.
+ *
+ * <p>What it walks: a protocol arrives unapproved, an administrator approves it and the state says
+ * WHO and WHEN, the queue filter finds the unapproved ones without a machine, a Schichtleiter's
+ * correction resets the approval, and withdrawing one takes a reason. Every step is a click and
+ * every assertion is on what the browser painted — with one arrangement step that cannot be a click
+ * and says so, in `moderation.e2e.ts`'s `correctAsSchichtleiter`.
+ *
+ * <p><b>THE FOUR-EYES REFUSAL IS NOT REACHABLE FROM HERE, and that is a fact about the deployment
+ * rather than a gap.</b> The rule refuses an approval by whoever filed or last corrected the
+ * protocol; only an admin may approve, only a Techniker or Schichtleiter may file, and since
+ * 2026-08-13 only a Schichtleiter may correct. No demo account holds two of those roles, so the
+ * refusal cannot be produced through the real stack at all — it is covered by
+ * `ProtocolApprovalIT` against a database and by the moderation spec against a stubbed 400. This
+ * comment is here so the next reader does not conclude it was forgotten.
+ *
+ * <p>CLEANUP IS PART OF THE TEST, as everywhere in this suite: what this creates it archives,
+ * through the application, with a reason. Never SQL.
+ */
+
+/** Not PR-03: the E-47 demo case lives there and no test should be near it. */
+const MACHINE = E2E_MACHINE;
+
+function throwawayTitle(): string {
+  return `${E2E_TITLE_PREFIX} approval ${Date.now()}`;
+}
+
+const BODY = [
+  'Symptom: Anlage startet nicht, keine Reaktion beim Einschalten.',
+  'Ursache: Not-Halt am Bedienpult war eingerastet.',
+  'Massnahme: Not-Halt entriegelt und quittiert, Anlage laeuft.',
+].join('\n');
+
+/** Files a throwaway as the Schichtleiter, so the approver is never the author. */
+async function fileProtocol(page: Page, title: string): Promise<void> {
+  await signIn(page, 'schichtleiter');
+  await page.getByTestId('nav-upload').click();
+  await page.getByTestId('mode-text').click();
+  await page.getByTestId('upload-machine').selectOption(MACHINE);
+  await page.getByTestId('upload-title').fill(title);
+  await page.getByTestId('text-input').fill(BODY);
+  await page.getByTestId('upload-button').click();
+  await expect(page.getByTestId('accepted')).toBeVisible();
+}
+
+/**
+ * Finds a protocol by title in the admin's corpus view, WHATEVER its approval state.
+ *
+ * <p>The approval filter is cleared first, and that is not tidiness — it is the behaviour under
+ * test. It applies on change and it STAYS applied, so after approving from the queue the row this
+ * helper is looking for has legitimately left the list it was found in. Leaving the filter set
+ * would make every post-approval assertion look for a row the application is correctly no longer
+ * showing.
+ */
+async function findInCorpus(page: Page, title: string) {
+  await page.getByTestId('tab-corpus').click();
+  await page.getByTestId('filter-approval').selectOption('');
+  await page.getByTestId('filter-machine').selectOption(MACHINE);
+  await page.getByTestId('filter-title').fill(title);
+  await page.getByTestId('filter-apply').click();
+
+  const row = page.getByTestId('moderation-row').filter({ hasText: title });
+  await expect(row).toHaveCount(1);
+  return row;
+}
+
+test.describe('the approve workflow', () => {
+  test.afterEach(async ({ browser }) => {
+    const context = await browser.newContext();
+    const page = await context.newPage();
+    try {
+      await signIn(page, 'admin');
+      await sweepThrowaways(page, MACHINE);
+    } finally {
+      await context.close();
+    }
+  });
+
+  test('an admin approves an unapproved protocol, and the state says who and when', async ({
+    page,
+  }) => {
+    const title = throwawayTitle();
+
+    await fileProtocol(page, title);
+    await signOut(page);
+
+    // --- The queue ---------------------------------------------------------------------------
+    await signIn(page, 'admin');
+    await page.getByTestId('tab-corpus').click();
+    await page.getByTestId('filter-approval').selectOption('UNAPPROVED');
+
+    // NO MACHINE CHOSEN, deliberately. The three other filters are refused without one (400
+    // MACHINE_REQUIRED_FOR_FILTER) because a title fragment across ten machines answers with rows
+    // nobody was looking for. A review queue is the opposite: it is only useful whole, and this is
+    // the assertion that the exemption survived into the interface.
+    const queued = page.getByTestId('moderation-row').filter({ hasText: title });
+    await expect(queued).toHaveCount(1);
+    await expect(queued.getByTestId('approval-state')).toHaveAttribute(
+      'data-approval',
+      'UNAPPROVED',
+    );
+    // A WORD, not only a colour — the project's accessibility line, asserted on a real render.
+    //
+    // Asserted as "the label is not empty" rather than as a German string: the interface language
+    // is remembered per browser profile, so which of the two dictionaries this run renders is not
+    // something this test controls, and pinning one of them made it fail on the sentence rather
+    // than on the behaviour. WHICH words appear is the badge spec's business, in jsdom, where the
+    // language is set explicitly. What belongs here is that a real render puts a readable label on
+    // the screen at all.
+    await expect(queued.locator('[data-testid="approval-state"] .approval-label')).not.toBeEmpty();
+
+    // --- The approval ------------------------------------------------------------------------
+    // No confirmation dialog: approving affirms the text as it stands, and the reviewer has just
+    // read it. Withdrawing is the direction that needs a reason, and it has one below.
+    await queued.getByTestId('row-approve').click();
+    await expect(page.getByTestId('approval-notice')).toContainText(title);
+
+    const approved = await findInCorpus(page, title);
+    await expect(approved.getByTestId('approval-state')).toHaveAttribute(
+      'data-approval',
+      'APPROVED',
+    );
+    // WHO and WHEN, on screen. An approval without an actor is not an audit record — the database
+    // constraint says the same thing, and this is that rule reaching a reader.
+    await expect(approved.getByTestId('approval-actor')).toContainText('admin');
+
+    // And it has left the queue, which is what makes the queue a queue.
+    await page.getByTestId('filter-approval').selectOption('UNAPPROVED');
+    await expect(page.getByTestId('moderation-row').filter({ hasText: title })).toHaveCount(0);
+  });
+
+  test('a correction resets the approval, and the interface says so', async ({ page }) => {
+    // THE RULE THE WHOLE CHAIN RESTS ON. A correction after approval is text nobody has reviewed,
+    // and an approval that survived it would vouch for words the approver never read — which is
+    // precisely what ADR-006's original refusal of editing was worried about.
+    const title = throwawayTitle();
+
+    await fileProtocol(page, title);
+    await signOut(page);
+
+    await signIn(page, 'admin');
+    const row = await findInCorpus(page, title);
+    await row.getByTestId('row-approve').click();
+    await expect(page.getByTestId('approval-notice')).toBeVisible();
+    await expect((await findInCorpus(page, title)).getByTestId('approval-state')).toHaveAttribute(
+      'data-approval',
+      'APPROVED',
+    );
+    await signOut(page);
+
+    // Arranged rather than clicked — see the helper for why, and for the routing finding that makes
+    // it necessary. The assertion that follows is in the browser, which is the half that matters.
+    await signIn(page, 'schichtleiter');
+    const corrected = await correctAsSchichtleiter(
+      page,
+      title,
+      BODY.replace('entriegelt', 'GETAUSCHT, war defekt'),
+    );
+    expect(corrected.status).toBe(202);
+    await signOut(page);
+
+    await signIn(page, 'admin');
+    const reset = await findInCorpus(page, title);
+    await expect(reset.getByTestId('approval-state')).toHaveAttribute(
+      'data-approval',
+      'UNAPPROVED',
+    );
+    // Back in the queue, which is where a protocol whose text has changed belongs.
+    await page.getByTestId('filter-approval').selectOption('UNAPPROVED');
+    await expect(page.getByTestId('moderation-row').filter({ hasText: title })).toHaveCount(1);
+  });
+
+  test('withdrawing an approval takes a reason before it takes effect', async ({ page }) => {
+    const title = throwawayTitle();
+
+    await fileProtocol(page, title);
+    await signOut(page);
+
+    await signIn(page, 'admin');
+    const row = await findInCorpus(page, title);
+    await row.getByTestId('row-approve').click();
+    await expect(page.getByTestId('approval-notice')).toBeVisible();
+
+    const approved = await findInCorpus(page, title);
+    await approved.getByTestId('row-withdraw').click();
+    await expect(page.getByTestId('withdraw-target')).toContainText(title);
+
+    // Enforced BEFORE the click rather than by a 400 afterwards, the same shape the edit and delete
+    // dialogs use: there is no state in which an unexplained withdrawal can be submitted.
+    await expect(page.getByTestId('withdraw-reason-required')).toBeVisible();
+    await expect(page.getByTestId('withdraw-confirm-button')).toBeDisabled();
+
+    await page.getByTestId('withdraw-comment').fill('e2e: Massnahme passt nicht zur Ursache');
+    await expect(page.getByTestId('withdraw-confirm-button')).toBeEnabled();
+    await page.getByTestId('withdraw-confirm-button').click();
+    await expect(page.getByTestId('approval-notice')).toBeVisible();
+
+    const withdrawn = await findInCorpus(page, title);
+    await expect(withdrawn.getByTestId('approval-state')).toHaveAttribute(
+      'data-approval',
+      'UNAPPROVED',
+    );
+    // Still in the corpus and still searchable — withdrawing trust is not removing a protocol, and
+    // a reviewer who assumed otherwise would use the control differently.
+    await expect(withdrawn.getByTestId('row-open')).toBeVisible();
+  });
+});
+
+test.describe('the approved-only facet', () => {
+  /**
+   * The query is intercepted rather than answered for real, the same trade `citation.e2e.ts` makes
+   * and for the same reason: a real answer is a paid call to a shared-capacity provider with a
+   * measured 38.9 s worst case and non-deterministic prose. What is under test here is what the
+   * BROWSER SENT — which is real, and is the thing a checkbox can get wrong.
+   */
+  const ANSWER = {
+    mode: 'B',
+    language: 'de',
+    answer: 'Dosierpumpen pruefen.\nFuellstandssensoren pruefen.',
+    claims: [],
+    citations: [],
+  };
+
+  test('sends the whole corpus by default, and narrows it only when asked', async ({ page }) => {
+    const sent: (boolean | undefined)[] = [];
+    await page.route('**/api/query', async (route) => {
+      sent.push((route.request().postDataJSON() as { approvedOnly?: boolean }).approvedOnly);
+      await route.fulfill({ json: ANSWER });
+    });
+
+    await signIn(page, 'techniker');
+    await selectSearchMachine(page, 'PR-03');
+    await page.getByTestId('question-input').fill('Warum faellt der Druck im Presshub ab?');
+
+    // OFF by default is the DECISION of 2026-08-11, not a convenience — the admin may not review at
+    // a weekend and the factory does not stop.
+    await expect(page.getByTestId('approved-only')).not.toBeChecked();
+    await page.getByTestId('ask-button').click();
+    await expect(page.getByTestId('answer-mode-b')).toBeVisible();
+
+    // No note: this answer was asked against everything, so Mode B means what it has always meant.
+    await expect(page.getByTestId('approved-only-note')).toHaveCount(0);
+
+    await page.getByTestId('approved-only').check();
+    await page.getByTestId('ask-button').click();
+    await expect(page.getByTestId('approved-only-note')).toBeVisible();
+
+    expect(sent, 'the facet has to reach the request, not just the checkbox').toEqual([false, true]);
+
+    // THE EMPTY STATE OF THE FACET, and the reason it needs one: a narrowed search that finds
+    // nothing answers Mode B exactly as a genuine gap in the corpus does. Without the way back, a
+    // reader concludes the plant has no protocol on this fault.
+    await page.getByTestId('approved-only-widen').click();
+    await expect(page.getByTestId('approved-only-note')).toHaveCount(0);
+    expect(sent).toEqual([false, true, false]);
+  });
+});

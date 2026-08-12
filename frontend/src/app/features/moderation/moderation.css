@@ -104,6 +104,13 @@
   flex: 0 1 11rem;
 }
 
+/* The approval queue, outside `.filter-fields` because it obeys none of that group's rules: no
+   machine required, no Filter button, applied on change. Kept narrow so it does not read as a fifth
+   member of the row above. */
+.filter-approval {
+  max-width: 16rem;
+}
+
 .filter-actions {
   display: flex;
   flex-wrap: wrap;
@@ -137,8 +144,32 @@
 .moderation-table {
   border-collapse: collapse;
   width: 100%;
-  min-width: 44rem;
+  /* Up from 44rem: the approval column and the approve button are two more things that have to fit
+     before the wrapper starts scrolling, and a table that scrolls one column early is a Löschen
+     button people cannot reach. */
+  min-width: 54rem;
   font-size: var(--t-sm);
+}
+
+/* The approval state wraps rather than widening the column: "Freigegeben admin · 12.08.2026" is the
+   longest cell in the table, and letting it set the width would push the actions off a tablet. */
+.approval-cell {
+  max-width: 11rem;
+}
+
+/* The title column gets the room the new approval column would otherwise take from it. Without
+   this, six columns and three buttons squeezed "presse aus, kein strom am pult" onto three lines
+   at 1280px — a table of three-line rows is a table nobody scans. */
+.moderation-table td:first-child,
+.moderation-table th:first-child {
+  min-width: 13rem;
+}
+
+/* A refusal belongs under the row it is about, sharing its full width, with no top border of its
+   own — the two are one unit, and a line between them would read as a row of its own. */
+.approval-failure-row td {
+  padding-top: 0;
+  border-bottom: 1px solid var(--c-line);
 }
 
 .moderation-table th,
@@ -177,9 +208,17 @@
   white-space: nowrap;
 }
 
-.moderation-table td.row-actions {
-  /* Wide enough for Öffnen + Bearbeiten + Löschen at the largest text scale. The table already
-     scrolls horizontally inside its wrapper, so claiming the width costs a scroll, not a collision. */
+/* THE FLEX BELONGS TO A DIV INSIDE THE CELL, NEVER TO THE CELL. A <td> with `display: flex` is no
+   longer a table cell — the browser wraps it in an anonymous one — so it stops taking the row's
+   height and its bottom border floats mid-row as soon as another cell wraps to a second line. That
+   was invisible while every title fitted on one line and appeared the day the approval column made
+   them wrap. The cell stays a cell; the row of buttons inside it is what lays out. */
+.moderation-table td.actions-cell {
+  /* Wide enough for the three buttons any ONE role sees at the largest text scale — Öffnen +
+     Freigeben/Zurückziehen + Löschen for an admin, Öffnen + Bearbeiten + Löschen for a
+     Schichtleiter. Nobody sees four, because nobody holds two jobs (2026-08-13); if that ever
+     changes, this number does too. The table already scrolls horizontally inside its wrapper, so
+     claiming the width costs a scroll, not a collision. */
   min-width: 19rem;
   width: 1%;
 }
@@ -193,7 +232,7 @@
     row-gap: var(--s-2);
   }
 
-  .moderation-table td.row-actions {
+  .moderation-table td.actions-cell {
     min-width: 0;
   }
 }

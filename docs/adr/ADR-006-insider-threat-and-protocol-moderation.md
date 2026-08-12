@@ -407,3 +407,83 @@ presenting them as simultaneous is accurate rather than lossy.
 No interface (PR 2), no duplicate detection on approval (still deferred, unchanged from the note
 above), and no change to who may delete. The approval queue has no assignment, no due date and no
 reminder: it is a filter on a list, which is the smallest thing that makes the state actionable.
+
+---
+
+## Revision — 2026-08-13: Option B, and the interface's obligations
+
+Two things changed after the revision above was implemented and reviewed. One is a permission
+Carlos reversed; the other is the interface that PR 1 deliberately left for PR 2.
+
+### The administrator stops editing — the role split is the rule, the ledger check is the belt
+
+The revision above left the admin the edit they had held since #39 and closed the resulting hole
+with a check on the act: `ProtocolApprovalService` refuses an approval by whoever filed the protocol
+or last corrected it. That works, and it describes the chain with two rules of different kinds — a
+role split for two of the three steps and a ledger lookup for the third.
+
+**Carlos chose the clean chain: Techniker writes, Schichtleiter corrects, Admin approves, and nobody
+holds two of those jobs.** `PUT /api/moderation/protocols/{id}` is now SCHICHTLEITER-only, and an
+administrator's attempt is refused 403 before the service is reached. It is the same guarantee said
+once, in the place a reader of the controller sees it.
+
+**The ledger check stays, deliberately, and its comment now says why rather than describing the
+decision that was reversed.** It is the only guard that can express "the same *human* filed and
+approved this", which a role cannot; it is the only one that survives a future role widening; and a
+rule enforced in exactly one place is one annotation edit away from being gone. It costs one query
+on an act that happens rarely. Its corrector branch is unreachable through the API as it stands —
+stated where the branch is, so the next reader does not have to work it out.
+
+Every comment that explained why the admin *kept* edit is gone rather than amended. A comment
+describing a decision that was reversed is the failure mode this ADR itself demonstrated once.
+
+**REPORTED, NOT FIXED: the corrector cannot reach the correction screen.** `/moderation` is guarded
+by `roleGuard('admin')` in `app.routes.ts`, and the Bearbeiten button lives on that view. So the
+correction path currently has no interface for anybody: the admin has the screen and not the
+permission, the Schichtleiter has the permission and not the screen. The API is correct and the
+button is rendered for the right role; widening the route is a permission decision that belongs to
+Carlos and was not taken inside a UI pull request. It is named in PROJECT-PHASES so it cannot be
+inherited as a mystery.
+
+### What the interface must say, and why it is not optional
+
+Decision 1 of 2026-08-11 keeps an unapproved protocol searchable and citable and accepts the cost:
+it is less reliable to troubleshoot from. **The whole of what is given in return is that the state is
+visible.** NFR-2's citation discipline — every claim names its source — is what makes a Mode A answer
+checkable, and it has the side effect of making any cited claim *look* checked. An unmarked
+unreviewed source would be that discipline working against itself.
+
+So the obligations are:
+
+- **Every source card carries its state**, in a word and an icon as well as a colour. Approved is
+  deliberately quiet; unapproved is a chip that can be found in a list of five. A state told only in
+  colour is a state some readers do not get, which is the rule the two answer modes and the footer
+  health dot already follow.
+- **The answer says it once, at answer level, when any cited source is unapproved.** A technician
+  acts on the answer, and on a tablet the sources may not be on screen at all — having to audit five
+  cards to discover that one is unreviewed is not being told. It is a LINE, not a banner: an
+  unapproved source is an ordinary decided state, and a warning panel would say the answer is
+  defective.
+- **The viewer repeats it in its head**, before the text rather than after it. A reader who works
+  through a protocol and only then learns nobody reviewed it has been told too late to act on it.
+- **The Verwaltung table carries who approved and when**, on every row and not only on the queue —
+  it is where an administrator checks that something they approved is *still* approved, and after a
+  correction it will not be.
+
+The approve control has no confirmation and no comment: approving affirms the text as it stands, and
+the reviewer has just read it. Withdrawing has both, because it takes back what a named person
+vouched for. **The four-eyes refusal is answered with the rule in plain language, beside the row it
+applies to** — a disabled button, or a generic "the request failed", leaves an administrator staring
+at a control that does not work for a reason they cannot discover.
+
+The approved-only search facet defaults to OFF, which is decision 1 rather than a convenience.
+Narrowing retrieval can leave nothing above the threshold, and the backend then answers Mode B
+exactly as it would for a genuine gap in the corpus — so the interface says which of the two
+happened and offers the way back. Without that line a reader concludes the plant has no protocol on
+the fault, when what happened is that theirs is not signed off yet.
+
+### Still not done
+
+Duplicate detection on approval (PR 3, unchanged from the note above). No assignment, no due date and
+no reminder on the queue: it is a filter on a list, which is the smallest thing that makes the state
+actionable.

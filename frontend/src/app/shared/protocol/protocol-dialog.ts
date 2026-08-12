@@ -10,8 +10,10 @@ import {
   signal,
 } from '@angular/core';
 
+import { Approval } from '../../core/api/api.types';
 import { ApiFailure, MaintenanceApiService, classify } from '../../core/api/maintenance-api.service';
 import { I18nService } from '../../core/i18n/i18n.service';
+import { ApprovalStateBadge } from '../approval/approval-state';
 import { Dialog } from '../dialog/dialog';
 import { ProtocolDocument, filenameOf, parseProtocol } from './protocol-document';
 
@@ -55,7 +57,7 @@ const DOCUMENT_SOURCES: Record<
  */
 @Component({
   selector: 'app-protocol-dialog',
-  imports: [Dialog],
+  imports: [ApprovalStateBadge, Dialog],
   templateUrl: './protocol-dialog.html',
   styleUrl: './protocol-dialog.css',
 })
@@ -67,6 +69,8 @@ export class ProtocolDialog implements OnDestroy {
   private readonly document = inject(DOCUMENT);
 
   protected readonly t = this.i18n.t;
+  /** Handed down to the date pipe inside the badge, which is pure and cannot read a signal. */
+  protected readonly language = this.i18n.language;
 
   /** The protocol to show, or `null` when the viewer is closed. Setting it starts the fetch. */
   readonly protocolId = input<string | null>(null);
@@ -83,6 +87,14 @@ export class ProtocolDialog implements OnDestroy {
   readonly protocolTitle = input('');
   /** The machine the question was asked about — the second half of "which document is this". */
   readonly machine = input('');
+  /**
+   * The protocol's approval, when the caller knows it. Null renders nothing.
+   *
+   * Optional because the three callers differ in what they hold: the Verwaltung row carries a full
+   * {@link Approval}, a citation carries only a boolean widened into one, and the archive carries
+   * none — approving something withdrawn from the corpus means nothing, and the backend refuses it.
+   */
+  readonly approval = input<Approval | null>(null);
   readonly closed = output<void>();
 
   protected readonly loading = signal(false);

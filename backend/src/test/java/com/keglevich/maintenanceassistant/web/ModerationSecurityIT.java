@@ -117,9 +117,11 @@ class ModerationSecurityIT {
     // relaxation. Decision 3 of 2026-08-11 makes them the CORRECTOR: the Techniker writes and never
     // fixes their own work, the Schichtleiter corrects, the Admin approves — three people. While
     // correcting belonged to the admin alone, the corrector and the approver were the same role and
-    // four eyes collapsed to two. The protection the old rule was reaching for has not gone away; it
-    // moved to where it can actually be enforced, in ProtocolApprovalService, which refuses an
-    // approval by whoever wrote or last corrected the protocol.
+    // four eyes collapsed to two.
+    //
+    // THE ADMIN IS NOT ON THIS LIST EITHER, and only because they are not a shop-floor role — the
+    // administrator's refusal has its own named test below, because it is a decision rather than the
+    // absence of one.
     @ValueSource(strings = {"operator", "techniker"})
     void noShopFloorRoleMayEdit(String role) throws Exception {
         mockMvc.perform(put("/api/moderation/protocols/{id}", PROTOCOL)
@@ -176,18 +178,24 @@ class ModerationSecurityIT {
     }
 
     @Test
-    @DisplayName("an admin keeps the edit they have had since #39")
-    void anAdminMayStillEdit() throws Exception {
-        // Deliberately unchanged. Removing a power while adding another would alter the trust chain
-        // in a way nobody asked for; four eyes is enforced on the ACT instead, so an admin who edits
-        // simply cannot be the one who then approves.
-        when(edits.edit(any(), any(), anyString())).thenReturn(Optional.of(PROTOCOL));
-
+    @DisplayName("an ADMIN may NOT edit — the approver does not also correct (2026-08-13)")
+    void anAdminMayNotEdit() throws Exception {
+        // THE PERMISSION THIS PR REVERSES. #53 left the admin with the edit they had held since #39
+        // and enforced four eyes on the ACT instead. Carlos chose the clean chain afterwards:
+        // Techniker writes, Schichtleiter corrects, Admin approves, and nobody does two jobs. This
+        // is that decision as a test — the one assertion that would go quiet if the annotation were
+        // widened back by accident.
         mockMvc.perform(put("/api/moderation/protocols/{id}", PROTOCOL)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"title\":\"Neu\",\"content\":\"Text\",\"comment\":\"korrigiert\"}")
                         .with(as("admin")))
-                .andExpect(status().isAccepted());
+                .andExpect(status().isForbidden());
+
+        // Refused before the service was reached, not after. The ledger check in
+        // ProtocolApprovalService is still there and still tested, but it is the belt now: it would
+        // only have caught this administrator LATER, at the approval, and only if they tried to
+        // approve their own correction.
+        verify(edits, never()).edit(any(), any(), anyString());
     }
 
     @Test
@@ -288,8 +296,8 @@ class ModerationSecurityIT {
     }
 
     @Test
-    @DisplayName("an admin edits a protocol and gets 202 — indexing is asynchronous")
-    void anAdminMayEdit() throws Exception {
+    @DisplayName("a Schichtleiter edits a protocol and gets 202 — indexing is asynchronous")
+    void theCorrectorMayEdit() throws Exception {
         when(edits.edit(any(), any(), anyString())).thenReturn(Optional.of(PROTOCOL));
 
         mockMvc.perform(put("/api/moderation/protocols/{id}", PROTOCOL)
@@ -298,13 +306,14 @@ class ModerationSecurityIT {
                                 {"title":"E-47 Druckabfall","errorCode":"E-47",
                                  "content":"Symptom:\\nKein Druck.\\n","comment":"Drehmoment korrigiert"}
                                 """)
-                        .with(as("admin")))
+                        .with(as("schichtleiter")))
                 // 202 rather than 200, matching upload: the protocol is corrected when this
                 // returns and it is not searchable again until the re-index finishes.
                 .andExpect(status().isAccepted())
                 .andExpect(jsonPath("$.status").value("RECEIVED"));
 
-        verify(edits).edit(eq(PROTOCOL), any(), eq("admin"));
+        // The actor recorded is the corrector, which is what the approval check later reads.
+        verify(edits).edit(eq(PROTOCOL), any(), eq("schichtleiter"));
     }
 
     @Test
@@ -315,7 +324,7 @@ class ModerationSecurityIT {
         mockMvc.perform(put("/api/moderation/protocols/{id}", UUID.randomUUID())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"title\":\"T\",\"content\":\"C\",\"comment\":\"warum\"}")
-                        .with(as("admin")))
+                        .with(as("schichtleiter")))
                 .andExpect(status().isNotFound());
     }
 

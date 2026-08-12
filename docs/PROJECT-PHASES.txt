@@ -185,8 +185,42 @@ rather than given one afterwards.
    The admin KEEPS edit, so four eyes is enforced on the ACT — an
    approval is refused for a protocol the same person filed or last
    corrected — rather than by the role split alone.
-   PR 2 (UI) IS NEXT: approval badges on answers and sources, the
-   admin approve control, the approved-only search facet.
+   PROGRESS 2026-08-13 — PR 2 of 3 IS OPEN (feat/approval-ui): THE
+   INTERFACE, plus ONE PERMISSION CARLOS REVERSED after reviewing #53.
+   OPTION B: THE ADMIN STOPS EDITING. Techniker writes, Schichtleiter
+   corrects, Admin approves, and nobody holds two of those jobs. The
+   edit endpoint is SCHICHTLEITER-only now; the act-based check in
+   ProtocolApprovalService is KEPT as the belt to the role split's
+   braces — it is the only guard that can express "the same human did
+   both", the only one that survives a future widening, and a rule
+   enforced in one place is one annotation edit away from being gone.
+   Every comment explaining why the admin kept edit is deleted rather
+   than amended (the ADR-006 collision this project already hit once).
+   VISIBILITY, which is what decision 1 costs: approval state on every
+   source card (word + icon + colour, never colour alone), ONE quiet
+   line at ANSWER level when any cited source is unapproved — a
+   technician acts on the answer and must not have to audit five cards
+   — the state in the viewer's head before the text, and an approval
+   column in Verwaltung carrying who and when. Approve has no dialog;
+   withdrawing takes a reason. The four-eyes refusal is answered with
+   the rule in plain language beside the row, never a disabled button.
+   Approved-only search facet, default OFF, with the Mode B note that
+   says WHY nothing was found and offers the way back.
+   FINDING, REPORTED AND NOT FIXED — CARLOS DECIDES: /moderation is
+   roleGuard('admin'), and the Bearbeiten button lives on that view.
+   So after this PR the CORRECTION PATH HAS NO INTERFACE FOR ANYBODY:
+   the admin has the screen and not the permission, the Schichtleiter
+   has the permission and not the screen. The API is right and the
+   button renders for the right role. Widening the route is a
+   permission decision and was deliberately not taken inside a UI PR.
+   Until it is decided, moderation.e2e.ts performs its correction step
+   as an authenticated PUT from the signed-in Schichtleiter's browser,
+   labelled as ARRANGEMENT, with every assertion still in the browser —
+   see correctAsSchichtleiter in e2e/support.ts, which is written to be
+   DELETED the day the route opens.
+   PR 3 (DUPLICATE DETECTION ON APPROVAL) IS NEXT: the pgvector
+   similarity run against the same machine's protocols, a WARNING with
+   links that NEVER blocks, and the E-47 seed as the proof case.
 
    THREE DESIGN DECISIONS, DECIDED BY CARLOS 2026-08-11 — the schema
    and the server side are now built; the interface is PR 2. They are written
@@ -291,6 +325,15 @@ STANDING LIST — small, always visible, never a release of its own:
     1280x900. Chosen for CHURN, not coverage: v1.1 spent four PRs (#41,
     #44, #45, #46) on spacing defects that were all found by opening
     production and looking.
+    TWELVE BASELINES SINCE 2026-08-13 (feat/approval-ui): a sixth surface,
+    the Mode A answer with an UNAPPROVED source, in both palettes. Added
+    against the "churn, not coverage" rule and on purpose: the other five
+    record places this project has already shipped a visual defect, while
+    this one is the case where BEING SEEN IS THE FEATURE. It introduces a
+    token pair (--c-review-*) that appears nowhere else, an amber chip
+    inside a green Mode A block and a line above the answer text — three
+    things a functional test can assert the existence of and none of which
+    it can notice going pale, colliding or vanishing behind a fade.
     ITS OWN CHECK, separate from the functional e2e job: a pixel diff and
     a broken flow are different news for different people, and the usual
     reaction to a noisy visual check is to disable the job it lives in —

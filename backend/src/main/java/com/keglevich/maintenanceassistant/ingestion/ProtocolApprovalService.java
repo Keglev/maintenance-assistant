@@ -27,12 +27,17 @@ import java.util.UUID;
  * worlds: NFR-2's citation discipline makes a cited claim look checked, and this flag is what keeps
  * that impression honest.
  *
- * <p><b>FOUR EYES, ENFORCED ON THE ACT.</b> Decision 3 of 2026-08-11 reads: author is never the
- * corrector, corrector is never the approver. Roles alone cannot express the second half, because
- * an administrator may both edit and approve — so the rule is checked against the protocol's own
- * history rather than against the caller's role: whoever filed it, and whoever last corrected it,
- * may not be the one who approves it. A reviewer approving their own words is one pair of eyes
- * twice, and the whole point of the chain is that it is two people.
+ * <p><b>FOUR EYES: THE ROLE SPLIT IS THE RULE, THIS CHECK IS THE BELT.</b> Decision 3 of 2026-08-11
+ * reads: author is never the corrector, corrector is never the approver. Since Carlos's decision of
+ * 2026-08-13 the roles say it outright — the Techniker files, the Schichtleiter corrects, the Admin
+ * approves, and <em>nobody holds two of those jobs</em> — so the primary guard is the
+ * {@code @PreAuthorize} on each endpoint.
+ *
+ * <p>This check stays anyway, and deliberately. It is the only guard that can express "the same
+ * HUMAN filed and approved this", which a role cannot; it is the only one that survives a future
+ * role widening, and a rule enforced in exactly one place is one annotation edit away from being
+ * gone. Whoever filed a protocol, and whoever last corrected it, may not be the one who approves it
+ * — checked against the protocol's own history. The cost is one query on an act that happens rarely.
  */
 @Service
 public class ProtocolApprovalService {
@@ -146,11 +151,15 @@ public class ProtocolApprovalService {
     /**
      * Refuses an approval by the person who wrote or last corrected the protocol.
      *
-     * <p>Checked against the ledger rather than against a role, because roles cannot express it: an
-     * administrator may edit and may approve, and the rule is about the same HUMAN doing both to
-     * the same protocol. {@code uploaded_by} covers the author; the newest EDIT event covers the
-     * corrector. Both are Keycloak usernames, which is why the two columns were written in one
-     * alphabet in the first place.
+     * <p>Checked against the ledger rather than against a role, because roles cannot express it:
+     * the rule is about the same HUMAN doing both to the same protocol. {@code uploaded_by} covers
+     * the author; the newest EDIT event covers the corrector. Both are Keycloak usernames, which is
+     * why the two columns were written in one alphabet in the first place.
+     *
+     * <p>Since 2026-08-13 no administrator can reach the edit path, so the corrector branch below
+     * is unreachable through the API as it stands today. It is KEPT rather than deleted: it is the
+     * belt to the role split's braces, and the branch that would matter first if the split were
+     * ever loosened. See the class javadoc.
      */
     private void requireFourEyes(UUID protocolId, Target target, String actor) {
         if (actor == null || actor.isBlank()) {

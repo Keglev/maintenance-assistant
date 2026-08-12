@@ -45,9 +45,10 @@ import java.util.UUID;
  *
  * <p>Its own controller and its own path prefix rather than more methods on
  * {@link ProtocolReadController}, because the authorisation rule is the feature. Everything under
- * {@code /api/moderation} is admin-only <b>with exactly one exception</b>, {@code PUT /{id}}: the
- * v1.2 trust chain makes the Schichtleiter the corrector, and the reasoning is on that method. It is
- * called out here because a class-level rule with a silent exception is worse than no rule.
+ * {@code /api/moderation} is admin-only <b>with exactly one exception</b>, {@code PUT /{id}}, which
+ * is <b>SCHICHTLEITER-only and closed to the administrator</b>: the v1.2 trust chain makes the
+ * Schichtleiter the corrector and nobody else, and the reasoning is on that method. It is called out
+ * here because a class-level rule with a silent exception is worse than no rule.
  *
  * <p><b>Reading here is not answering.</b> The shop-floor document endpoint is restricted to the
  * three roles that ask questions, because it exists to make a citation checkable. This one exists to
@@ -158,26 +159,31 @@ class ModerationController {
             @ApiResponse(responseCode = "400",
                     description = "No comment (`MODERATION_COMMENT_REQUIRED`), an attempt to change "
                             + "machine or type (`PROTOCOL_IDENTITY_LOCKED`), or an empty/oversized text"),
-            @ApiResponse(responseCode = "403", description = "Caller is not an administrator"),
+            @ApiResponse(responseCode = "403",
+                    description = "Caller is not a Schichtleiter — including an administrator, who "
+                            + "approves rather than corrects"),
             @ApiResponse(responseCode = "404", description = "No such protocol"),
             @ApiResponse(responseCode = "409", description = "The protocol is archived (`PROTOCOL_ARCHIVED`)")
     })
     /*
      * THE ONE EXCEPTION TO THIS CONTROLLER'S ADMIN-ONLY RULE, and it is the trust chain's hinge.
+     * It is not a widening of the class rule but a REPLACEMENT of it: this method is open to the
+     * Schichtleiter and CLOSED TO THE ADMINISTRATOR.
      *
      * Decision 3 of 2026-08-11: the Techniker writes and never corrects, not even their own; a
-     * correction is REQUESTED FROM THE SCHICHTLEITER, who performs it; the Admin approves. That
-     * makes three distinct people — author, corrector, approver — and it cannot work if correcting
-     * is an administrator's power alone, because then the corrector and the approver are the same
-     * role and four eyes collapse to two.
+     * correction is REQUESTED FROM THE SCHICHTLEITER, who performs it; the Admin approves. Three
+     * distinct people, one job each — and the cleanest way to say "nobody does two jobs" is that
+     * nobody HOLDS two jobs. Carlos's decision after reviewing #53: the admin stops editing.
      *
-     * The admin KEEPS the edit they have had since #39 — deliberately, because removing a power
-     * silently would change the chain in a way nobody asked for. Four eyes is therefore enforced on
-     * the ACT rather than by the role split alone: ProtocolApprovalService refuses an approval by
-     * whoever filed or last corrected the protocol, so an administrator who edits simply cannot be
-     * the one who then approves it.
+     * THE ROLE SPLIT IS THE RULE; THE LEDGER CHECK IS THE BELT. ProtocolApprovalService still
+     * refuses an approval by whoever filed or last corrected the protocol, and that check is
+     * deliberately KEPT even though no administrator can now reach the edit path at all. It costs
+     * one query on an act that happens rarely, it is the only guard that survives a future role
+     * widening, and it is the only one that could ever catch "the same human did both" — a role
+     * cannot express that. A rule enforced in one place only is a rule one @PreAuthorize edit away
+     * from being gone.
      */
-    @PreAuthorize("hasAnyRole('ADMIN', 'SCHICHTLEITER')")
+    @PreAuthorize("hasRole('SCHICHTLEITER')")
     ResponseEntity<Map<String, String>> edit(@PathVariable UUID id,
                                              @RequestBody ProtocolEditService.Correction correction,
                                              @AuthenticationPrincipal Jwt jwt) {

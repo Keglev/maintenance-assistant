@@ -73,8 +73,15 @@ public class QueryService {
      * @param role      the answer depth this caller is entitled to (NFR-3), resolved from the token
      *                  by the web layer and never sent by the client
      * @param subject   the token's {@code sub} claim, the rate-limit key
+     * @param approvedOnly restrict the answer to protocols an administrator has vouched for.
+     *                     <b>Defaults to false at every caller, by decision of 2026-08-11.</b> The
+     *                     admin may not review at a weekend and the factory does not stop, so the
+     *                     protocol about the fault happening right now has to be findable before
+     *                     anyone signs it off. This is an option a reader may ask for, never a
+     *                     default that quietly hides the newest knowledge in the plant.
      */
-    public QueryAnswer ask(String question, UUID machineId, QueryRole role, String subject) {
+    public QueryAnswer ask(String question, UUID machineId, QueryRole role, String subject,
+                           boolean approvedOnly) {
         if (question == null || question.isBlank()) {
             throw new InvalidQueryException("question must not be empty");
         }
@@ -88,7 +95,10 @@ public class QueryService {
             throw new RateLimitedException(e.retryAfterSeconds(), e.getMessage());
         }
 
-        Optional<QueryAnswer> cached = cache.get(question, machineId, role);
+        // approvedOnly is part of the cache key, not an afterthought: the same question against the
+        // same machine has two legitimate answers depending on it, and a cache that conflated them
+        // would serve the wider answer to a caller who asked for the reviewed subset.
+        Optional<QueryAnswer> cached = cache.get(question, machineId, role, approvedOnly);
         if (cached.isPresent()) {
             return cached.get();
         }
@@ -110,7 +120,7 @@ public class QueryService {
         }
 
         float[] questionVector = embed(question);
-        List<RetrievedChunk> hits = retriever.retrieve(machineId, questionVector, properties.topK());
+        List<RetrievedChunk> hits = retriever.retrieve(machineId, questionVector, properties.topK(), approvedOnly);
 
         double best = hits.isEmpty() ? 0.0 : hits.get(0).similarity();
         boolean grounded = !hits.isEmpty() && best >= properties.similarityThreshold();
@@ -133,7 +143,7 @@ public class QueryService {
             throw new ProviderUnavailableException("the answer service is temporarily unavailable: " + e.getMessage());
         }
 
-        cache.put(question, machineId, role, answer);
+        cache.put(question, machineId, role, approvedOnly, answer);
         budget.logUsage();
         return answer;
     }
@@ -189,7 +199,8 @@ public class QueryService {
             sources.add(new GroundedPrompt.LabelledSource(
                     "P" + label++, best.protocolId(), best.title(), best.errorCode(),
                     best.incidentDate(), best.similarity(),
-                    chunks.stream().map(RetrievedChunk::content).toList()));
+                    chunks.stream().map(RetrievedChunk::content).toList(),
+                    best.approved()));
         }
         return sources;
     }

@@ -1,5 +1,6 @@
 package com.keglevich.maintenanceassistant.web;
 
+import com.keglevich.maintenanceassistant.ingestion.ProtocolApprovalService;
 import com.keglevich.maintenanceassistant.ingestion.ProtocolDocumentService;
 import com.keglevich.maintenanceassistant.ingestion.ProtocolEditService;
 import com.keglevich.maintenanceassistant.ingestion.ProtocolIntakeService;
@@ -44,7 +45,9 @@ import java.util.UUID;
  *
  * <p>Its own controller and its own path prefix rather than more methods on
  * {@link ProtocolReadController}, because the authorisation rule is the feature. Everything under
- * {@code /api/moderation} is admin-only, and a reader can see that from the path.
+ * {@code /api/moderation} is admin-only <b>with exactly one exception</b>, {@code PUT /{id}}: the
+ * v1.2 trust chain makes the Schichtleiter the corrector, and the reasoning is on that method. It is
+ * called out here because a class-level rule with a silent exception is worse than no rule.
  *
  * <p><b>Reading here is not answering.</b> The shop-floor document endpoint is restricted to the
  * three roles that ask questions, because it exists to make a citation checkable. This one exists to
@@ -70,12 +73,14 @@ class ModerationController {
     private final ProtocolModerationService moderation;
     private final ProtocolEditService edits;
     private final ProtocolDocumentService documents;
+    private final ProtocolApprovalService approvals;
 
     ModerationController(ProtocolModerationService moderation, ProtocolEditService edits,
-                         ProtocolDocumentService documents) {
+                         ProtocolDocumentService documents, ProtocolApprovalService approvals) {
         this.moderation = moderation;
         this.edits = edits;
         this.documents = documents;
+        this.approvals = approvals;
     }
 
     @GetMapping
@@ -99,11 +104,16 @@ class ModerationController {
             @RequestParam(required = false) String machineNo,
             @RequestParam(required = false) String titleContains,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to) {
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to,
+            // The approval queue. NOT subject to the machine-first rule the three filters above
+            // obey: that rule exists because a title fragment across ten machines answers with rows
+            // the reviewer was not looking for, and "everything still waiting for review" is the
+            // opposite — a queue is only useful whole.
+            @RequestParam(required = false) String approvalState) {
         // The record's constructor is where the machine-first rule lives, so it holds for any caller
         // rather than for this method signature only.
-        return moderation.list(page, size,
-                new ProtocolModerationService.ProtocolFilter(machineNo, titleContains, from, to));
+        return moderation.list(page, size, new ProtocolModerationService.ProtocolFilter(
+                machineNo, titleContains, from, to, approvalState));
     }
 
     @GetMapping("/{id}/document")
@@ -152,6 +162,22 @@ class ModerationController {
             @ApiResponse(responseCode = "404", description = "No such protocol"),
             @ApiResponse(responseCode = "409", description = "The protocol is archived (`PROTOCOL_ARCHIVED`)")
     })
+    /*
+     * THE ONE EXCEPTION TO THIS CONTROLLER'S ADMIN-ONLY RULE, and it is the trust chain's hinge.
+     *
+     * Decision 3 of 2026-08-11: the Techniker writes and never corrects, not even their own; a
+     * correction is REQUESTED FROM THE SCHICHTLEITER, who performs it; the Admin approves. That
+     * makes three distinct people — author, corrector, approver — and it cannot work if correcting
+     * is an administrator's power alone, because then the corrector and the approver are the same
+     * role and four eyes collapse to two.
+     *
+     * The admin KEEPS the edit they have had since #39 — deliberately, because removing a power
+     * silently would change the chain in a way nobody asked for. Four eyes is therefore enforced on
+     * the ACT rather than by the role split alone: ProtocolApprovalService refuses an approval by
+     * whoever filed or last corrected the protocol, so an administrator who edits simply cannot be
+     * the one who then approves it.
+     */
+    @PreAuthorize("hasAnyRole('ADMIN', 'SCHICHTLEITER')")
     ResponseEntity<Map<String, String>> edit(@PathVariable UUID id,
                                              @RequestBody ProtocolEditService.Correction correction,
                                              @AuthenticationPrincipal Jwt jwt) {
@@ -193,6 +219,49 @@ class ModerationController {
 
     /** @param comment why this protocol is being removed. Required; blank counts as missing. */
     record DeleteRequest(String comment) {
+    }
+
+    @PutMapping("/{id}/approval")
+    @Operation(summary = "Approve a protocol, or withdraw approval",
+            description = "Approval is a STATEMENT, not a gate: an unapproved protocol stays "
+                    + "searchable and citable, because the administrator may not review at a "
+                    + "weekend and the factory does not stop. What approval changes is what the "
+                    + "interface can say about a source. FOUR EYES: whoever filed the protocol, and "
+                    + "whoever last corrected it, cannot approve it. Idempotent — approving "
+                    + "something already approved succeeds and writes no second audit row. A "
+                    + "comment is required to WITHDRAW approval and optional to grant it: taking "
+                    + "back something a named person vouched for is the direction that needs "
+                    + "explaining.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "The resulting approval state"),
+            @ApiResponse(responseCode = "400",
+                    description = "Withdrawing without a comment (`MODERATION_COMMENT_REQUIRED`), or "
+                            + "the caller wrote or corrected this protocol (`FOUR_EYES_REQUIRED`)"),
+            @ApiResponse(responseCode = "403", description = "Caller is not an administrator"),
+            @ApiResponse(responseCode = "404", description = "No such protocol"),
+            @ApiResponse(responseCode = "409", description = "The protocol is archived (`PROTOCOL_ARCHIVED`)")
+    })
+    ResponseEntity<ProtocolApprovalService.Approval> setApproval(
+            @PathVariable UUID id,
+            @RequestBody ApprovalRequest request,
+            @AuthenticationPrincipal Jwt jwt) {
+        return approvals.setApproval(id, request != null && request.approved(),
+                        jwt.getClaimAsString("preferred_username"),
+                        request == null ? null : request.comment())
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    /**
+     * @param approved the state being asserted, not a verb. PUT of a state rather than
+     *                 POST /approve + POST /unapprove, because "make this approved" is idempotent
+     *                 by construction and two endpoints would be two places to keep the four-eyes
+     *                 rule in step.
+     * @param comment  required to withdraw, optional to grant. In the body rather than a query
+     *                 parameter for the same reason the delete comment is: it can name a
+     *                 colleague's mistake, and a query string lands in access logs.
+     */
+    record ApprovalRequest(boolean approved, String comment) {
     }
 
     @GetMapping("/deleted")

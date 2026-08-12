@@ -124,11 +124,21 @@ public class ProtocolModerationService {
             conditions.add("p.created_at < :toExclusive");
             params.put("toExclusive", startOfDay(filter.to().plusDays(1)));
         }
+        if (filter.approvalState() != null) {
+            // NOT subject to the machine-first rule the three filters above obey, and the reason is
+            // what that rule is for: it exists because a title fragment or a date range across ten
+            // machines answers with rows the reviewer was not looking at. "Everything still waiting
+            // for review" is the opposite — a queue is only useful whole, and the first question an
+            // administrator asks after signing in is exactly that one.
+            conditions.add("p.approval_state = :approvalState");
+            params.put("approvalState", filter.approvalState());
+        }
         String where = " WHERE " + String.join(" AND ", conditions);
 
         List<ModeratedProtocol> rows = jdbc.sql("""
                         SELECT p.id, p.title, p.protocol_type, p.error_code, p.status,
                                p.uploaded_by, p.created_at, m.machine_no,
+                               p.approval_state, p.approved_by, p.approved_at,
                                (SELECT count(*) FROM chunk c WHERE c.protocol_id = p.id) AS chunk_count
                         FROM protocol p JOIN machine m ON m.id = p.machine_id"""
                         + where
@@ -151,7 +161,11 @@ public class ProtocolModerationService {
                         rs.getString("uploaded_by"),
                         rs.getObject("created_at", OffsetDateTime.class),
                         rs.getString("status"),
-                        rs.getInt("chunk_count")))
+                        rs.getInt("chunk_count"),
+                        new ProtocolApprovalService.Approval(
+                                rs.getString("approval_state"),
+                                rs.getString("approved_by"),
+                                rs.getObject("approved_at", OffsetDateTime.class))))
                 .list();
 
         long total = jdbc.sql("SELECT count(*) FROM protocol p JOIN machine m ON m.id = p.machine_id"
@@ -419,22 +433,37 @@ public class ProtocolModerationService {
      * @param from          earliest upload day, inclusive
      * @param to            latest upload day, inclusive; open-ended in either direction is allowed
      */
-    public record ProtocolFilter(String machineNo, String titleContains, LocalDate from, LocalDate to) {
+    public record ProtocolFilter(String machineNo, String titleContains, LocalDate from, LocalDate to,
+                                 String approvalState) {
 
         /** The stable code a client matches on. English prose from this layer is not an API. */
         public static final String MACHINE_REQUIRED = "MACHINE_REQUIRED_FOR_FILTER";
+        /** An approval filter that is neither state. */
+        public static final String UNKNOWN_APPROVAL_STATE = "UNKNOWN_APPROVAL_STATE";
 
         public ProtocolFilter {
             machineNo = blankToNull(machineNo);
             titleContains = blankToNull(titleContains);
+            approvalState = blankToNull(approvalState);
             if (machineNo == null && (titleContains != null || from != null || to != null)) {
                 throw new InvalidModerationRequestException(MACHINE_REQUIRED,
                         "a title or date filter needs a machine: choose a machine first");
             }
+            if (approvalState != null) {
+                approvalState = approvalState.toUpperCase(java.util.Locale.ROOT);
+                if (!ProtocolApprovalService.APPROVED.equals(approvalState)
+                        && !ProtocolApprovalService.UNAPPROVED.equals(approvalState)) {
+                    // Refused rather than ignored. A typo silently answering with the unfiltered
+                    // corpus would tell a reviewer their queue is the whole corpus.
+                    throw new InvalidModerationRequestException(UNKNOWN_APPROVAL_STATE,
+                            "approvalState must be APPROVED or UNAPPROVED, not '"
+                                    + approvalState + "'");
+                }
+            }
         }
 
         public static ProtocolFilter none() {
-            return new ProtocolFilter(null, null, null, null);
+            return new ProtocolFilter(null, null, null, null, null);
         }
 
         private static String blankToNull(String value) {
@@ -482,7 +511,13 @@ public class ProtocolModerationService {
             String uploadedBy,
             OffsetDateTime uploadedAt,
             String status,
-            int chunkCount) {
+            int chunkCount,
+            /*
+             * Returned on EVERY row rather than only on the queue. The moderation list is also
+             * where an administrator checks that something they approved is still approved — and
+             * after an edit it will not be, because a correction resets it.
+             */
+            ProtocolApprovalService.Approval approval) {
     }
 
     /**

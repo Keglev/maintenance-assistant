@@ -73,7 +73,8 @@ class QueryController {
                 roleOf(authentication),
                 // The stable Keycloak user id. A username can be renamed in the admin console and
                 // would silently hand someone a fresh rate-limit bucket.
-                jwt.getSubject());
+                jwt.getSubject(),
+                request.approvedOnlyOrDefault());
     }
 
     /**
@@ -105,7 +106,25 @@ class QueryController {
      *                  answered from another machine's protocols would look like a better feature
      *                  and be a worse answer
      */
-    record QueryRequest(String question, UUID machineId) {
+    record QueryRequest(String question, UUID machineId, Boolean approvedOnly) {
+
+        /**
+         * Absent means "everything", and that is the decision of 2026-08-11 rather than a default
+         * chosen for convenience.
+         *
+         * <p>Unapproved protocols stay searchable: the administrator may not review at a weekend
+         * and the factory does not stop, so the protocol about the fault happening right now must
+         * be findable before anyone signs it off. The accepted cost is that an answer can be
+         * grounded in unreviewed text — which is why every citation carries its approval state, so
+         * the interface can say so rather than let the reader assume.
+         *
+         * <p>A boxed Boolean rather than a primitive on purpose: it makes "the client did not send
+         * this" and "the client sent false" the same thing HERE, in one place, instead of leaving
+         * the JSON binding to decide it silently.
+         */
+        boolean approvedOnlyOrDefault() {
+            return Boolean.TRUE.equals(approvedOnly);
+        }
     }
 
     // ---------------------------------------------------------------------------------------

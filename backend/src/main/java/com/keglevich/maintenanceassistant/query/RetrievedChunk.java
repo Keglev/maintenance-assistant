@@ -23,5 +23,15 @@ record RetrievedChunk(
         String errorCode,
         String language,
         LocalDate incidentDate,
-        double similarity) {
+        double similarity,
+        /*
+         * Whether an administrator has vouched for the protocol this chunk came from.
+         *
+         * Carried all the way to the citation on purpose. Unapproved protocols stay searchable by
+         * decision (2026-08-11), which means an answer can be grounded in text nobody has reviewed —
+         * and NFR-2's citation discipline makes any cited claim LOOK checked. This flag is what
+         * keeps that impression honest, so it has to travel with the citation rather than be
+         * something the client fetches separately and might forget to.
+         */
+        boolean approved) {
 }

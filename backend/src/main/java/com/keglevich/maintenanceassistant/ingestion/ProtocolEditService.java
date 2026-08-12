@@ -128,10 +128,27 @@ public class ProtocolEditService {
 
         writeDocument(stored.sourceFile(), content);
 
+        /*
+         * AN EDIT RESETS APPROVAL, and this is the rule the whole trust chain rests on.
+         *
+         * The corrected text is text nobody has reviewed. Leaving the protocol approved would mean
+         * the approval flag vouches for words the approver never read — and ADR-006's entire
+         * argument is that a citation must never point at silently-changed content. The reset makes
+         * the flag mean what it says: APPROVED describes THIS text, not an earlier version of it.
+         *
+         * It is deliberately unconditional. "Only reset if the text actually changed" sounds
+         * thriftier and is a trap: it would make the guarantee depend on a diff, and a whitespace
+         * or encoding difference deciding whether a review still counts is not a rule anyone can
+         * reason about. Every edit already forces a re-index for the same reason.
+         *
+         * The protocol stays SEARCHABLE throughout (decision 1 of 2026-08-11) — it simply says of
+         * itself that it is no longer reviewed, and reappears in the administrator's queue.
+         */
         jdbc.sql("""
                         UPDATE protocol
                         SET title = :title, error_code = :errorCode, symptom = :content,
                             status = 'RECEIVED', indexed_at = NULL, failure_reason = NULL,
+                            approval_state = 'UNAPPROVED', approved_by = NULL, approved_at = NULL,
                             updated_at = :now
                         WHERE id = :id
                         """)
@@ -144,6 +161,14 @@ public class ProtocolEditService {
                 .update();
 
         moderation.recordEvent(protocolId, "EDIT", editedBy, comment);
+
+        // Two rows, not one, when the edit withdrew an approval. The EDIT row says the text changed;
+        // this one says the protocol stopped being vouched for, and by whose act. A reader of the
+        // ledger should not have to know the reset rule to see that the approval ended here.
+        if (ProtocolApprovalService.APPROVED.equals(stored.approvalState())) {
+            moderation.recordEvent(protocolId, "UNAPPROVE", editedBy,
+                    "approval reset automatically: the protocol was corrected — " + comment);
+        }
 
         // AFTER_COMMIT on the listener, so the indexer never looks for an update it cannot see yet.
         events.publishEvent(new ProtocolReceivedEvent(protocolId));
@@ -171,7 +196,8 @@ public class ProtocolEditService {
 
     private Optional<Stored> load(UUID protocolId) {
         return jdbc.sql("""
-                        SELECT p.title, p.protocol_type, p.source_file, p.deleted_at, m.machine_no
+                        SELECT p.title, p.protocol_type, p.source_file, p.deleted_at, p.approval_state,
+                               m.machine_no
                         FROM protocol p JOIN machine m ON m.id = p.machine_id
                         WHERE p.id = :id
                         """)
@@ -181,6 +207,7 @@ public class ProtocolEditService {
                         rs.getString("protocol_type"),
                         rs.getString("source_file"),
                         rs.getObject("deleted_at", OffsetDateTime.class),
+                        rs.getString("approval_state"),
                         rs.getString("machine_no")))
                 .optional();
     }
@@ -224,6 +251,6 @@ public class ProtocolEditService {
     }
 
     private record Stored(String title, String protocolType, String sourceFile,
-                          OffsetDateTime deletedAt, String machineNo) {
+                          OffsetDateTime deletedAt, String approvalState, String machineNo) {
     }
 }

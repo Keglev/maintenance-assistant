@@ -42,8 +42,16 @@ class ChunkRetriever {
      * cited in a green Mode A answer, and it costs a null check on a row already joined.
      *
      * @param questionVector the embedded question, same model and width as the stored chunks
+     * @param approvedOnly   narrow retrieval to protocols an administrator has vouched for.
+     *                       <b>False by default, and that is the decision of 2026-08-11, not an
+     *                       oversight:</b> the admin may not review at a weekend and the factory
+     *                       does not stop, so the newest protocol — the one about the fault
+     *                       happening now — must be findable before anyone signs it off. The
+     *                       parameter exists so a caller can ASK for the reviewed subset; it must
+     *                       never quietly become the default.
      */
-    List<RetrievedChunk> retrieve(UUID machineId, float[] questionVector, int topK) {
+    List<RetrievedChunk> retrieve(UUID machineId, float[] questionVector, int topK,
+                                  boolean approvedOnly) {
         String vector = toVectorLiteral(questionVector);
         return jdbc.sql("""
                         SELECT c.id                                                AS chunk_id,
@@ -53,12 +61,14 @@ class ChunkRetriever {
                                p.error_code                                        AS error_code,
                                p.language                                          AS language,
                                p.incident_date                                     AS incident_date,
+                               p.approval_state                                    AS approval_state,
                                1 - (c.embedding <=> CAST(:vector AS vector))       AS similarity
                         FROM chunk c
                         JOIN protocol p ON p.id = c.protocol_id
                         WHERE c.machine_id = :machineId
                           AND c.embedding IS NOT NULL
                           AND p.deleted_at IS NULL
+                          AND (NOT :approvedOnly OR p.approval_state = 'APPROVED')
                         ORDER BY c.embedding <=> CAST(:vector AS vector)
                         LIMIT :topK
                         """)
@@ -67,6 +77,7 @@ class ChunkRetriever {
                 .param("vector", vector)
                 .param("machineId", machineId)
                 .param("topK", topK)
+                .param("approvedOnly", approvedOnly)
                 .query((rs, rowNum) -> new RetrievedChunk(
                         rs.getObject("chunk_id", UUID.class),
                         rs.getObject("protocol_id", UUID.class),
@@ -75,7 +86,8 @@ class ChunkRetriever {
                         rs.getString("error_code"),
                         rs.getString("language"),
                         rs.getObject("incident_date", LocalDate.class),
-                        rs.getDouble("similarity")))
+                        rs.getDouble("similarity"),
+                        "APPROVED".equals(rs.getString("approval_state"))))
                 .list();
     }
 

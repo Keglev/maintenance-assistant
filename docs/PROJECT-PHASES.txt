@@ -264,6 +264,27 @@ STANDING LIST — small, always visible, never a release of its own:
     component had never had (shared/dialog/ had no .spec.ts at all).
     THE SUITE'S FIRST CAUGHT-AND-CLOSED DEFECT: found in a browser,
     held by 8 jsdom tests, and the e2e test.fail() marker is gone.
+  - VISUAL REGRESSION ADDED 2026-08-13 (test/e2e-visual-regression, ADR-007
+    dated section). Ten baselines — a Mode A answer, a clamped long answer
+    with its toggle and source header, the Verwaltung table, the upload
+    text mode, the Keycloak login page — each in both palettes, at
+    1280x900. Chosen for CHURN, not coverage: v1.1 spent four PRs (#41,
+    #44, #45, #46) on spacing defects that were all found by opening
+    production and looking.
+    ITS OWN CHECK, separate from the functional e2e job: a pixel diff and
+    a broken flow are different news for different people, and the usual
+    reaction to a noisy visual check is to disable the job it lives in —
+    which, folded together, would take the functional tests with it.
+    BASELINES HAVE ONE HOME, the pinned Playwright container, used both to
+    generate them locally and to compare them in CI. Font rendering is a
+    property of the machine, so a baseline made on a desktop is a
+    permanently red job, and a permanently red job is one people ignore.
+    THE SENTENCE THAT TRAVELS WITH IT: a baseline records what the app
+    LOOKS LIKE, not what it should look like. It proves pixels changed; a
+    human still decides whether they changed for the better. Regeneration
+    is explicit and belongs in the SAME PR as the design change.
+    Proven by measurement: reverting #46's one-line spacing fix moved
+    50,629 pixels (ratio 0.05, 25x the 0.002 tolerance) on four baselines.
   - E2E CHECK STATUS — ADVISORY, does not block a merge. ADR-007's bar
     for making it required is TEN consecutive green runs. The count
     RESTARTED 2026-08-12 at 0: the previous shape had 4 green runs but

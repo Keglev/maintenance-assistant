@@ -46,6 +46,36 @@ export default defineConfig({
     // design (202 Accepted, then a pipeline). Every wait in this suite is still a condition — see
     // the no-sleeps note in e2e/README.md.
     timeout: 15_000,
+
+    toHaveScreenshot: {
+      /*
+       * WHY A RATIO AND NOT A PIXEL COUNT. A baseline of a full page is ~1.2 million pixels, so a
+       * fixed allowance means something different on a screenshot of a table than on one of a login
+       * card. A ratio scales with what is being compared.
+       *
+       * 0.002 — two pixels in every thousand. The number is chosen from what each end costs:
+       *
+       *   Too tight (0): antialiasing on a single glyph edge reddens the job, the team learns the
+       *   visual check is noise, and it gets ignored. That is the failure mode this whole PR is
+       *   trying to avoid, and it is worse than having no check.
+       *
+       *   Too loose (0.01+): 12,000 pixels is a whole component moved or a colour swapped. #46's
+       *   defect — a header row welded to the list beneath it — was a few hundred pixels of white
+       *   space. A check that cannot see it is decoration.
+       *
+       * 0.002 is ~2,400 pixels at this viewport: comfortably more than glyph noise, comfortably
+       * less than any of the four design defects v1.1 shipped. `threshold` is per-pixel colour
+       * tolerance in YIQ space; 0.2 is Playwright's default and is about right for text edges.
+       */
+      maxDiffPixelRatio: 0.002,
+      threshold: 0.2,
+      // A moving progress bar or a blinking caret would make every baseline a coin toss.
+      animations: 'disabled',
+      caret: 'hide',
+      // Fonts must be loaded before anything is measured, or the first screenshot of a run captures
+      // a fallback face and every later one captures the real one.
+      scale: 'css',
+    },
   },
 
   use: {
@@ -68,13 +98,29 @@ export default defineConfig({
     },
   ],
 
+  /*
+   * ONE BASELINE PER TEST, not one per platform.
+   *
+   * Playwright's default suffixes snapshot names with the OS, which quietly invites a repository to
+   * hold a linux set and a darwin set and a win32 set of the same picture — three files that drift
+   * apart and two of which nobody ever looks at. There is exactly one authority here: the
+   * `mcr.microsoft.com/playwright` container, used both to generate baselines locally and to run
+   * them in CI (see e2e/README.md). A baseline taken anywhere else is not a second opinion, it is
+   * a wrong answer, and this template makes that impossible to commit by accident.
+   */
+  snapshotPathTemplate: '{testDir}/__screenshots__/{arg}{ext}',
+
   // Starts `ng serve` unless one is already up, so a developer with a dev server running does not
   // get a second one on a different port. The backend, Keycloak and Postgres are NOT started here —
   // see e2e/README.md for why the environment decision stops at the frontend.
+  //
+  // E2E_REUSE_SERVER exists for the containerised visual run: Playwright is inside the container and
+  // the dev server is on the host, so there is nothing for the container to start and everything to
+  // reuse — but `CI` is set in that job, which would otherwise turn reuse off.
   webServer: {
     command: 'npm start',
     url: BASE_URL,
-    reuseExistingServer: !process.env['CI'],
+    reuseExistingServer: !process.env['CI'] || process.env['E2E_REUSE_SERVER'] === '1',
     timeout: 180_000,
     stdout: 'ignore',
     stderr: 'pipe',

@@ -263,3 +263,116 @@ those four runs exercised is not the job that runs now: it has gained a throwawa
 provider stub, an armed indexing backlog and the re-index test it had always skipped. **A streak
 counts runs of the same thing.** The count restarts here, and the running total is kept in
 `frontend/e2e/README.md`, where someone deciding whether to promote the check will actually look.
+
+---
+
+## Dated note — 2026-08-13: visual regression
+
+**Ten baselines, five surfaces, both palettes, one viewport (1280×900), compared on every pull
+request.** A separate check from the functional suite.
+
+### Why, in numbers rather than principle
+
+v1.1 spent **four pull requests** — #41, #44, #45, #46 — on spacing and layout defects. Every one was
+found the same way: a person opened production and looked. #45's source list lost its top margin only
+when a toggle rendered between two elements; #46's header row sat welded to the list beneath it;
+#47 shipped a heading at 1.09:1 that every code-level check passed.
+
+None of that is visible to 226 unit tests or 21 functional e2e tests, and not because those tests are
+bad. **They assert what the DOM says. A layout defect is a statement about what the page looks
+like**, and the only instrument that can answer it is a picture.
+
+### What it covers, and the sentence that must travel with it
+
+It covers the surfaces that have already broken: a Mode A answer, a clamped long answer with its
+drawer toggle and source header (three defects came from that one area), the Verwaltung table, the
+upload view's two-column text mode, and the Keycloak login page.
+
+**What it cannot do: a baseline records what the application LOOKS LIKE, not what it should look
+like.** A screenshot of an ugly layout is a perfectly valid baseline and will hold that ugliness in
+place indefinitely. These tests prove that pixels *changed*; a human decides whether they changed for
+the better. Two consequences follow, and both are enforced in the README rather than left to taste:
+
+1. **Regeneration is an explicit act** — `npm run e2e:visual:update`, never a side effect of a normal
+   run.
+2. **New baselines belong in the same pull request as the design change that caused them.** A
+   follow-up "fix the baselines" commit turns the record into a rubber stamp applied after the fact,
+   and means the reviewer of the design change never saw the pixels it moved.
+
+**And it says nothing whatsoever about production.** These pictures are of a dev server, in Chromium,
+at one viewport, against a locally seeded corpus. Production serves a built bundle through nginx
+behind Caddy with a strict CSP. A green visual run means the layout did not change *here*.
+
+### The stability constraint, which decides the whole design
+
+**Font rendering is a property of the machine.** The same page screenshotted on Windows and on a
+GitHub runner differs on nearly every glyph edge. A baseline generated on a developer's desktop is
+therefore a permanently red CI job — and a permanently red job is one people learn to ignore, which
+is worse than not having the check at all.
+
+So there is exactly one authority: **the pinned `mcr.microsoft.com/playwright:v1.56.0-noble`
+container**, used both to generate baselines locally and to compare them in CI, which runs Playwright
+inside that same image via `docker run --network host`. `snapshotPathTemplate` drops Playwright's
+per-OS suffix so the repository cannot quietly accumulate a second, unchecked set. The image tag is
+pinned beside the `@playwright/test` version and the two are bumped together.
+
+On Docker Desktop, `--network host` is the VM's network rather than the developer's, so a small TCP
+bridge forwards loopback into the container. It exists so that **the production guard stays exactly
+as strict as it is** — pointing the tests at `host.docker.internal` would have been two lines shorter
+and would have traded a safety property for a screenshot.
+
+### Tolerance
+
+`maxDiffPixelRatio: 0.002` — two pixels per thousand, about 2,400 at this viewport. Chosen from what
+each end costs: at zero, antialiasing on one glyph edge reddens the job and the check becomes noise;
+at 0.01 the allowance is a whole component moved, and #46's defect was a few hundred pixels of white
+space. Proven by measurement rather than argument — reverting #46's one-line fix produced a diff of
+**50,629 pixels (ratio 0.05)**, twenty-five times the threshold, on four of the ten baselines.
+
+### A separate check, not a step in the existing job
+
+A pixel diff and a broken flow are different news for different people, and they are acted on
+differently: "the source list moved four pixels" wants a designer, "the citation click 401s" stops
+everything. Folded together, one amber word would hide the other signal — and the usual reaction to a
+noisy visual check is to disable the job it lives in, which would take the functional tests with it.
+
+Cost: one more stack provision, about two minutes. The stack setup itself is now a **shared composite
+action** used by both jobs rather than copied into each, because #51 closed two defects that were the
+same bug twice, both caused by a helper being duplicated instead of extracted.
+
+**Both checks remain advisory.** The `visual` job starts its own count at 0 against the ten-run bar.
+
+### Recorded, not taken
+
+More viewports (tablet portrait — the primary device — and 1920px, where #44's defects lived), more
+browsers, and per-component baselines instead of full pages. Each multiplies the number of pictures a
+reviewer must judge and the ways a run can go red. One viewport and five surfaces is a size a person
+will actually look at, which is the property that matters most in a check whose output is a picture.
+
+### What the first visual run caught — a CI defect wearing a layout disguise
+
+The check paid for itself before its baselines were a day old, and not in the way expected.
+
+Its first CI run reported a regression on the Verwaltung table: 54,577 pixels, 7 px taller than the
+baseline. The diff artifact settled it in seconds — **the rows were identical**, and the only
+difference was the status column, reading "Accepted, indexing" where the baseline read "Searchable".
+Not a layout regression at all. The corpus had not finished indexing when the screenshot was taken.
+
+Underneath were **two real defects in the CI stack**, both shipped in #51 and both invisible until
+something cared about a pixel:
+
+1. **The indexing wait could not tell "finished" from "not started."** It waited for *no protocol in
+   RECEIVED*, which is equally true of an empty database, so it sailed through before the seeder had
+   inserted a row. It then ran out of iterations without failing, letting the job continue against a
+   half-built fixture. The condition is now positive — 150 INDEXED — and the step fails loudly.
+2. **The seed and the indexer race.** `CORPUS_SEED_ENABLED` and `INGESTION_BACKLOG_ON_STARTUP` both
+   act at startup and nothing orders them; when the backlog scan wins it finds an empty table,
+   enqueues nothing and never runs again. Every functional run since #51 had been a coin toss on
+   whether the corpus had chunks at all — and passed regardless, because no assertion until these
+   baselines depended on it. Seeding and indexing are now separate starts with the row count
+   asserted in between.
+
+**This is the argument for a visual check, made by the check itself, in its first hours.** A picture
+asserts everything in frame, including the things nobody thought to assert — and the value here was
+not that the layout was wrong, but that the *fixture* was, silently, in a way four other test suites
+had been tolerating.

@@ -1,0 +1,106 @@
+name: frontend-e2e-visual
+
+# VISUAL REGRESSION — baseline screenshots compared per run (ADR-007, dated section 2026-08-13).
+#
+# ITS OWN WORKFLOW, AND ITS OWN CHECK, and that is the point rather than an accident of layout. A
+# pixel diff and a broken flow are different news for different people: "the source list moved four
+# pixels" wants a designer's eye, "the citation click 401s" wants a fix before anything else ships.
+# Folded into the functional job, a red baseline would hide a green suite behind one amber word, and
+# — worse — the first instinct on a noisy visual check is to disable the job it lives in, which would
+# take the functional tests with it. Separate, a red `visual` beside a green `e2e` says exactly what
+# it means: it works, and it looks different.
+#
+# The cost is one more stack provision (~2 min). Worth it for a signal that stays readable.
+#
+# PLAYWRIGHT RUNS INSIDE THE CONTAINER, not on the runner, and that is what makes the baselines
+# stable. Font rendering is a property of the machine: the same page screenshotted on Windows and on
+# a GitHub runner differs on nearly every glyph edge, which would make a committed baseline
+# permanently red. Baselines are generated locally with `npm run e2e:visual:update:docker` — the same
+# `mcr.microsoft.com/playwright:v1.56.0-noble` image this job uses — so the only environment that
+# ever produces or checks a baseline is that one image. See frontend/e2e/README.md.
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'frontend/**'
+      - 'backend/**'
+      - 'docker/keycloak/**'
+      - '.github/workflows/frontend-e2e-visual.yml'
+      - '.github/actions/e2e-stack/**'
+  push:
+    branches: [main]
+    paths:
+      - 'frontend/**'
+      - 'backend/**'
+      - 'docker/keycloak/**'
+      - '.github/workflows/frontend-e2e-visual.yml'
+      - '.github/actions/e2e-stack/**'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: frontend-e2e-visual-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  visual:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    steps:
+      - uses: actions/checkout@v7
+
+      # Postgres, Keycloak, the provider stub and a backend with an indexed corpus. Shared with the
+      # functional job rather than copied — see the action for why that matters here specifically.
+      - uses: ./.github/actions/e2e-stack
+
+      - name: Install dependencies
+        working-directory: frontend
+        run: npm ci
+
+      # ON THE RUNNER, NOT IN THE CONTAINER. The Playwright image ships Node 22.20 and the Angular
+      # CLI requires 22.22 or newer, so a dev server started inside it exits before it serves
+      # anything. It also does not need to be in there: the browser reaches it over the network, and
+      # on Linux `--network host` means the container and the runner share one, so localhost is the
+      # same localhost on both sides. Only the BROWSER has to live in the pinned image; the thing it
+      # renders can be served from anywhere.
+      - name: Start the dev server
+        working-directory: frontend
+        run: |
+          nohup npm start > "$RUNNER_TEMP/devserver.log" 2>&1 &
+          for i in $(seq 1 60); do
+            curl -fsS http://localhost:4200 >/dev/null 2>&1 && break
+            sleep 5
+          done
+          curl -fsS http://localhost:4200 >/dev/null || {
+            echo "::error::the dev server never came up"; tail -40 "$RUNNER_TEMP/devserver.log"; exit 1; }
+
+      - name: Compare against the baselines
+        working-directory: frontend
+        run: |
+          docker run --rm --network host \
+            -v "${{ github.workspace }}/frontend:/work" -w /work \
+            -e CI=1 -e E2E_REUSE_SERVER=1 \
+            mcr.microsoft.com/playwright:v1.56.0-noble \
+            npx playwright test --grep @visual --reporter=list
+
+      # THE DIFFS ARE THE DELIVERABLE OF A FAILED RUN. Playwright writes an expected, an actual and a
+      # diff PNG per failed baseline; without them a red job says "something changed" and nothing
+      # more, and the reader has to reproduce the whole stack to find out what. With them the
+      # decision — regression or intended change — takes about ten seconds. README.md explains how to
+      # read them and how to regenerate deliberately if the change was intended.
+      - name: Upload the visual diffs
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: visual-diffs
+          path: |
+            frontend/test-results
+            frontend/playwright-report
+          retention-days: 7
+          if-no-files-found: ignore
+
+      - name: Backend log on failure
+        if: failure()
+        run: tail -200 "$RUNNER_TEMP/backend.log" || true

@@ -274,7 +274,14 @@
                     [showActor]="true"
                   />
                 </td>
-                <td class="row-actions">
+                <!-- The buttons live in a DIV inside the cell, not on the cell itself. A <td> with
+                     `display: flex` stops being a table cell: the browser wraps it in an anonymous
+                     one and it no longer takes the row's height, so its bottom border floats
+                     mid-row the moment any other cell wraps to a second line. Invisible while every
+                     title fitted on one line, and visible the day the approval column made them
+                     wrap — which is how it was found. -->
+                <td class="actions-cell">
+                  <div class="row-actions">
                   <button
                     type="button"
                     class="btn btn-secondary btn-sm"
@@ -312,7 +319,10 @@
                         [attr.aria-label]="t().approval.withdraw + ': ' + protocol.title"
                         (click)="withdrawing.set(protocol)"
                       >
-                        {{ t().approval.withdraw }}
+                        <!-- The short label in the row, the full one in its accessible name and in
+                             the dialog it opens: three buttons per row have to fit beside six
+                             columns, and "Freigabe zurückziehen" set the whole table's widths. -->
+                        {{ t().approval.withdrawShort }}
                       </button>
                     } @else {
                       <!-- No confirmation dialog, unlike withdrawing: approving affirms the text as
@@ -340,6 +350,7 @@
                   >
                     {{ t().moderation.delete }}
                   </button>
+                  </div>
                 </td>
               </tr>
               @if (approvalFailureFor(protocol); as reason) {
@@ -442,7 +453,8 @@
                   <td class="reason" data-testid="archive-comment">
                     {{ protocol.deleteComment || t().moderation.archiveNoComment }}
                   </td>
-                  <td class="row-actions">
+                  <td class="actions-cell">
+                    <div class="row-actions">
                     <!-- Open only. There is no restore and no edit here, by design: the archive is
                          for looking at what was removed, not for reversing it. -->
                     <button
@@ -455,6 +467,7 @@
                     >
                       {{ t().moderation.open }}
                     </button>
+                    </div>
                   </td>
                 </tr>
               }

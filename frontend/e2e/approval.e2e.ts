@@ -63,9 +63,18 @@ async function fileProtocol(page: Page, title: string): Promise<void> {
   await expect(page.getByTestId('accepted')).toBeVisible();
 }
 
-/** Finds a protocol by title in the admin's corpus view. */
+/**
+ * Finds a protocol by title in the admin's corpus view, WHATEVER its approval state.
+ *
+ * <p>The approval filter is cleared first, and that is not tidiness — it is the behaviour under
+ * test. It applies on change and it STAYS applied, so after approving from the queue the row this
+ * helper is looking for has legitimately left the list it was found in. Leaving the filter set
+ * would make every post-approval assertion look for a row the application is correctly no longer
+ * showing.
+ */
 async function findInCorpus(page: Page, title: string) {
   await page.getByTestId('tab-corpus').click();
+  await page.getByTestId('filter-approval').selectOption('');
   await page.getByTestId('filter-machine').selectOption(MACHINE);
   await page.getByTestId('filter-title').fill(title);
   await page.getByTestId('filter-apply').click();
@@ -110,8 +119,15 @@ test.describe('the approve workflow', () => {
       'data-approval',
       'UNAPPROVED',
     );
-    // The word, not only the colour — the project's accessibility line, asserted on a real render.
-    await expect(queued.getByTestId('approval-state')).toContainText('Nicht freigegeben');
+    // A WORD, not only a colour — the project's accessibility line, asserted on a real render.
+    //
+    // Asserted as "the label is not empty" rather than as a German string: the interface language
+    // is remembered per browser profile, so which of the two dictionaries this run renders is not
+    // something this test controls, and pinning one of them made it fail on the sentence rather
+    // than on the behaviour. WHICH words appear is the badge spec's business, in jsdom, where the
+    // language is set explicitly. What belongs here is that a real render puts a readable label on
+    // the screen at all.
+    await expect(queued.locator('[data-testid="approval-state"] .approval-label')).not.toBeEmpty();
 
     // --- The approval ------------------------------------------------------------------------
     // No confirmation dialog: approving affirms the text as it stands, and the reviewer has just

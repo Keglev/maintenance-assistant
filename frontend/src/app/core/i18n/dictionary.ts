@@ -320,6 +320,8 @@ export interface Dictionary {
     readonly column: string;
     readonly approve: string;
     readonly withdraw: string;
+    /** The button in a table row. The full phrase sets the width of six other columns. */
+    readonly withdrawShort: string;
     readonly approving: string;
     /** Confirmation of the act, named so the reviewer knows which of twenty rows moved. */
     readonly approvedNotice: string;
@@ -678,6 +680,7 @@ export const DE: Dictionary = {
     column: 'Freigabe',
     approve: 'Freigeben',
     withdraw: 'Freigabe zurückziehen',
+    withdrawShort: 'Zurückziehen',
     approving: 'Wird gespeichert …',
     approvedNotice: 'Protokoll freigegeben',
     withdrawnNotice: 'Freigabe zurückgezogen',
@@ -1021,6 +1024,7 @@ export const EN: Dictionary = {
     column: 'Approval',
     approve: 'Approve',
     withdraw: 'Withdraw approval',
+    withdrawShort: 'Withdraw',
     approving: 'Saving …',
     approvedNotice: 'Protocol approved',
     withdrawnNotice: 'Approval withdrawn',

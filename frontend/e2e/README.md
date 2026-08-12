@@ -77,9 +77,16 @@ count of anything.
 
 ## Visual regression
 
-Ten baselines — five surfaces × two palettes — compared per run. They exist because v1.1 spent
+Twelve baselines — six surfaces × two palettes — compared per run. They exist because v1.1 spent
 **four pull requests** (#41, #44, #45, #46) on spacing and layout defects that were all found the
 same way: Carlos opened production and looked.
+
+The sixth surface, added in v1.2, is the Mode A answer with an **unapproved source**. It is the one
+baseline chosen for something other than churn, and the reason is that being seen *is* the feature:
+an unapproved source a technician does not notice is the 2026-08-11 decision failing silently. It
+carries a token pair (`--c-review-*`) that appears nowhere else, an amber chip inside a green block
+and a line above the answer text — three things a functional test can assert the existence of and
+none of which it can notice going pale, colliding, or vanishing behind a fade.
 
 ```bash
 npm run e2e:visual          # compare against the baselines
@@ -108,6 +115,17 @@ whole-suite diff.
 > `e2e/host-bridge.mjs` forwards loopback into it. On Linux and in CI it is a no-op. The bridge
 > exists so the production guard stays exactly as strict as it is — the tests really do talk to
 > loopback.
+
+**The dev server runs on YOUR machine, not in the container** — the pinned image ships Node 22.20
+and the Angular CLI wants 22.22 or newer, so a dev server started inside it exits before it serves
+anything. Only the *browser* has to live in the pinned image; the thing it renders can be served
+from anywhere. The CI job does the same (see `frontend-e2e-visual.yml`).
+
+> On **Windows**, start it as `npm start -- --host 0.0.0.0`. `ng serve` otherwise binds to the IPv6
+> loopback only, and the bridge reaches the host over `host.docker.internal`, which is IPv4 — so the
+> container finds nothing, Playwright decides it has to start its own server, and the run dies on
+> the Node version above. The error names the Node version and not the binding, which is why this
+> note exists.
 
 ### When a baseline fails: regression, or did you mean it?
 
@@ -191,6 +209,15 @@ is swept by the next run's `afterEach` — by the same audited path. A cleanup t
 database would bypass exactly the ledger the test exists to prove, and would still pass if that
 ledger were broken.
 
+> **One documented exception, and it is arrangement rather than verification.**
+> `correctAsSchichtleiter` in `support.ts` performs a correction as an authenticated `PUT` from the
+> signed-in Schichtleiter's own browser instead of by clicking. It exists because since 2026-08-13
+> only a Schichtleiter may correct, and `/moderation` — the only view with a Bearbeiten button — is
+> guarded by `roleGuard('admin')`: **the role that owns the act cannot reach the screen that
+> performs it.** That is a reported routing finding for Carlos to decide, not something a UI pull
+> request widened on its own. Every assertion around the call is still in the browser, and the
+> helper is written to be **deleted** the day the route opens.
+
 What that leaves behind is real and is accepted: an archived row and a `moderation_event` per run.
 ADR-006 has no restore, by design. They are capped at 50 per machine with the oldest purged, the
 machine used is `VP-01` rather than the E-47 demo machine on `PR-03`, and every artifact is titled
@@ -226,6 +253,7 @@ about a defect that was never about the answer.
 | `citation.e2e.ts` | **#26**: a citation click fetches its document with a token and does not 401, asserted on the status the browser received |
 | `role-gating.e2e.ts` | **#38**: the admin lands in Protokollverwaltung; shop-floor roles cannot reach `/moderation` by URL either |
 | `moderation.e2e.ts` | **the release drill**: file → correct with a reason → archive with a reason → still on the record |
+| `approval.e2e.ts` | **the v1.2 trust chain**: the queue without a machine, an approval that names who and when, a correction that resets it, a withdrawal that takes a reason, and the approved-only facet asserted on what the browser sent |
 | `contrast.e2e.ts` | **#47**: computed colour against computed background, both palettes, AA |
 | `reindex.e2e.ts` | the answer changing after a re-index. **Needs a real LLM key; `E2E_LLM=1`** |
 

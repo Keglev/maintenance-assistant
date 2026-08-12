@@ -75,6 +75,73 @@ What we give up, stated plainly: **the database is not pristine between runs.** 
 is a rule rather than a convenience — see below — and why nothing in the suite asserts a global
 count of anything.
 
+## Visual regression
+
+Ten baselines — five surfaces × two palettes — compared per run. They exist because v1.1 spent
+**four pull requests** (#41, #44, #45, #46) on spacing and layout defects that were all found the
+same way: Carlos opened production and looked.
+
+```bash
+npm run e2e:visual          # compare against the baselines
+npm run e2e:visual:update   # regenerate them — a deliberate act, never automatic
+```
+
+Both run **inside `mcr.microsoft.com/playwright:v1.56.0-noble`**, and that is not optional.
+
+### Baselines have exactly one home
+
+**Font rendering is a property of the machine.** The same page screenshotted on Windows and on a
+GitHub runner differs on nearly every glyph edge, so a baseline generated on a desktop is a
+permanently red CI job — and a permanently red job is one people learn to ignore, which is worse
+than not having it.
+
+So there is **one authority**: the pinned Playwright container. It is what `npm run e2e:visual*`
+uses locally and what the CI job runs (`docker run --network host …` — the same image, the same
+Chromium build, the same fonts). `snapshotPathTemplate` deliberately drops Playwright's per-OS
+suffix, so the repository cannot accumulate a `-win32` set nobody checks.
+
+The image tag is pinned next to the `@playwright/test` version in two places (`package.json` and
+`e2e/run-visual-docker.mjs`). **Bump them together, never one** — a mismatched Chromium is a
+whole-suite diff.
+
+> On Docker Desktop (Windows/macOS) `--network host` is the *VM's* network, not yours, so
+> `e2e/host-bridge.mjs` forwards loopback into it. On Linux and in CI it is a no-op. The bridge
+> exists so the production guard stays exactly as strict as it is — the tests really do talk to
+> loopback.
+
+### When a baseline fails: regression, or did you mean it?
+
+1. **Download the diffs.** The CI job uploads them as the `visual-diffs` artifact on failure.
+   Locally they are in `frontend/test-results/<test-name>/`.
+2. **Open the three PNGs** Playwright writes per failed baseline: `…-expected.png` (committed),
+   `…-actual.png` (this run), `…-diff.png` (the pixels that moved, in magenta). The diff answers the
+   question in about ten seconds.
+3. **Decide.**
+   - *You did not change the design* → **regression**. The diff is the bug report; fix the code.
+   - *You did change the design* → **intended**. Regenerate: `npm run e2e:visual:update`, look at
+     the new PNGs before staging them, and commit them.
+
+**Regeneration belongs in the SAME pull request as the change that caused it.** A separate "fix the
+baselines" commit is the one workflow this suite must never acquire: it turns a record of what the
+application looks like into a rubber stamp applied after the fact, and it means the reviewer of the
+design change never saw the pixels it changed. If you are regenerating baselines and cannot point at
+the change in the same diff that caused them, something is wrong.
+
+**A baseline records what the application LOOKS LIKE — not what it should look like.** A screenshot
+of an ugly layout is a valid baseline and will hold that ugliness in place forever. These tests
+prove pixels *changed*; a human still decides whether they changed for the better.
+
+### What is masked, and why
+
+| Masked | Reason |
+|---|---|
+| `.num` (upload/archive dates, pager state) | The corpus is seeded at container start, so "uploaded at" is when the runner booted. The pager state carries a count that grows with every writing test. |
+| `[data-testid="health-dot"]` | Polls a live backend on a 60 s interval — green, amber or grey depending on when the shot was taken. |
+| `.source-meta` (similarity %, incident date) | A float from a vector search. Stable today; a reranker or a re-embed would move it, and that is a retrieval change, not a layout regression. |
+| `[data-testid="archive-row"] td` | Deletion timestamps. |
+
+An unmasked clock makes a baseline that fails tomorrow morning for no reason at all.
+
 ## Is the CI check blocking yet?
 
 **No. It is advisory: a red `e2e` job does not stop a merge.** ADR-007 sets the bar for promoting it
@@ -82,9 +149,15 @@ to a required check at **ten consecutive green runs with no infrastructure-cause
 
 | | |
 |---|---|
-| **Consecutive green runs of the CURRENT job** | **0** — the count restarted on 2026-08-12 |
+| **Consecutive green runs of the CURRENT `e2e` job** | **2** — the count restarted on 2026-08-12 |
 | Green runs of the previous job shape | 4 (three on #50, one on main after merge) |
 | Why the count restarted | That job had no throwaway database, no provider stub, an unindexed corpus and skipped the re-index test. A streak counts runs of the same thing. |
+| **`visual` job** | Separate check, also advisory, **its own count starting at 0** |
+
+The `visual` job is deliberately a **separate check**: a pixel diff and a broken flow are different
+news for different people, and a red `visual` beside a green `e2e` says exactly what it means — it
+works, and it looks different. Folding them together would also mean the usual reaction to a noisy
+visual check (disable the job) takes the functional tests with it.
 
 **Update this table when the job changes shape or the streak advances.** It lives here rather than
 only in the ADR because this is the file someone opens when they wonder why a red check did not stop

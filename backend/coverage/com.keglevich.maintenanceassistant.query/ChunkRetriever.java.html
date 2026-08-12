@@ -42,10 +42,18 @@ class ChunkRetriever {
      * cited in a green Mode A answer, and it costs a null check on a row already joined.
      *
      * @param questionVector the embedded question, same model and width as the stored chunks
+     * @param approvedOnly   narrow retrieval to protocols an administrator has vouched for.
+     *                       &lt;b&gt;False by default, and that is the decision of 2026-08-11, not an
+     *                       oversight:&lt;/b&gt; the admin may not review at a weekend and the factory
+     *                       does not stop, so the newest protocol — the one about the fault
+     *                       happening now — must be findable before anyone signs it off. The
+     *                       parameter exists so a caller can ASK for the reviewed subset; it must
+     *                       never quietly become the default.
      */
-    List&lt;RetrievedChunk&gt; retrieve(UUID machineId, float[] questionVector, int topK) {
-<span class="fc" id="L47">        String vector = toVectorLiteral(questionVector);</span>
-<span class="fc" id="L48">        return jdbc.sql(&quot;&quot;&quot;</span>
+    List&lt;RetrievedChunk&gt; retrieve(UUID machineId, float[] questionVector, int topK,
+                                  boolean approvedOnly) {
+<span class="fc" id="L55">        String vector = toVectorLiteral(questionVector);</span>
+<span class="fc" id="L56">        return jdbc.sql(&quot;&quot;&quot;</span>
                         SELECT c.id                                                AS chunk_id,
                                c.protocol_id                                       AS protocol_id,
                                c.content                                           AS content,
@@ -53,51 +61,55 @@ class ChunkRetriever {
                                p.error_code                                        AS error_code,
                                p.language                                          AS language,
                                p.incident_date                                     AS incident_date,
+                               p.approval_state                                    AS approval_state,
                                1 - (c.embedding &lt;=&gt; CAST(:vector AS vector))       AS similarity
                         FROM chunk c
                         JOIN protocol p ON p.id = c.protocol_id
                         WHERE c.machine_id = :machineId
                           AND c.embedding IS NOT NULL
                           AND p.deleted_at IS NULL
+                          AND (NOT :approvedOnly OR p.approval_state = 'APPROVED')
                         ORDER BY c.embedding &lt;=&gt; CAST(:vector AS vector)
                         LIMIT :topK
                         &quot;&quot;&quot;)
                 // CAST(... AS vector) rather than the ::vector shorthand, because the named-parameter
                 // parser reads `::` as a parameter marker — the same trap ProtocolIndexWriter hit.
-<span class="fc" id="L67">                .param(&quot;vector&quot;, vector)</span>
-<span class="fc" id="L68">                .param(&quot;machineId&quot;, machineId)</span>
-<span class="fc" id="L69">                .param(&quot;topK&quot;, topK)</span>
-<span class="fc" id="L70">                .query((rs, rowNum) -&gt; new RetrievedChunk(</span>
-<span class="fc" id="L71">                        rs.getObject(&quot;chunk_id&quot;, UUID.class),</span>
-<span class="fc" id="L72">                        rs.getObject(&quot;protocol_id&quot;, UUID.class),</span>
-<span class="fc" id="L73">                        rs.getString(&quot;content&quot;),</span>
-<span class="fc" id="L74">                        rs.getString(&quot;title&quot;),</span>
-<span class="fc" id="L75">                        rs.getString(&quot;error_code&quot;),</span>
-<span class="fc" id="L76">                        rs.getString(&quot;language&quot;),</span>
-<span class="fc" id="L77">                        rs.getObject(&quot;incident_date&quot;, LocalDate.class),</span>
-<span class="fc" id="L78">                        rs.getDouble(&quot;similarity&quot;)))</span>
-<span class="fc" id="L79">                .list();</span>
+<span class="fc" id="L77">                .param(&quot;vector&quot;, vector)</span>
+<span class="fc" id="L78">                .param(&quot;machineId&quot;, machineId)</span>
+<span class="fc" id="L79">                .param(&quot;topK&quot;, topK)</span>
+<span class="fc" id="L80">                .param(&quot;approvedOnly&quot;, approvedOnly)</span>
+<span class="fc" id="L81">                .query((rs, rowNum) -&gt; new RetrievedChunk(</span>
+<span class="fc" id="L82">                        rs.getObject(&quot;chunk_id&quot;, UUID.class),</span>
+<span class="fc" id="L83">                        rs.getObject(&quot;protocol_id&quot;, UUID.class),</span>
+<span class="fc" id="L84">                        rs.getString(&quot;content&quot;),</span>
+<span class="fc" id="L85">                        rs.getString(&quot;title&quot;),</span>
+<span class="fc" id="L86">                        rs.getString(&quot;error_code&quot;),</span>
+<span class="fc" id="L87">                        rs.getString(&quot;language&quot;),</span>
+<span class="fc" id="L88">                        rs.getObject(&quot;incident_date&quot;, LocalDate.class),</span>
+<span class="fc" id="L89">                        rs.getDouble(&quot;similarity&quot;),</span>
+<span class="fc" id="L90">                        &quot;APPROVED&quot;.equals(rs.getString(&quot;approval_state&quot;))))</span>
+<span class="fc" id="L91">                .list();</span>
     }
 
     /** Whether a machine exists at all — an unknown id is the caller's mistake, not an empty answer. */
     boolean machineExists(UUID machineId) {
-<span class="fc" id="L84">        return jdbc.sql(&quot;SELECT count(*) FROM machine WHERE id = :id&quot;)</span>
-<span class="fc" id="L85">                .param(&quot;id&quot;, machineId)</span>
-<span class="fc" id="L86">                .query(Long.class)</span>
-<span class="pc bpc" id="L87" title="1 of 2 branches missed.">                .single() &gt; 0;</span>
+<span class="fc" id="L96">        return jdbc.sql(&quot;SELECT count(*) FROM machine WHERE id = :id&quot;)</span>
+<span class="fc" id="L97">                .param(&quot;id&quot;, machineId)</span>
+<span class="fc" id="L98">                .query(Long.class)</span>
+<span class="pc bpc" id="L99" title="1 of 2 branches missed.">                .single() &gt; 0;</span>
     }
 
     /** {@code [0.1,-0.2,…]} — pgvector's own input syntax. */
     private static String toVectorLiteral(float[] vector) {
-<span class="fc" id="L92">        StringBuilder out = new StringBuilder(vector.length * 12 + 2);</span>
-<span class="fc" id="L93">        out.append('[');</span>
-<span class="fc bfc" id="L94" title="All 2 branches covered.">        for (int i = 0; i &lt; vector.length; i++) {</span>
-<span class="fc bfc" id="L95" title="All 2 branches covered.">            if (i &gt; 0) {</span>
-<span class="fc" id="L96">                out.append(',');</span>
+<span class="fc" id="L104">        StringBuilder out = new StringBuilder(vector.length * 12 + 2);</span>
+<span class="fc" id="L105">        out.append('[');</span>
+<span class="fc bfc" id="L106" title="All 2 branches covered.">        for (int i = 0; i &lt; vector.length; i++) {</span>
+<span class="fc bfc" id="L107" title="All 2 branches covered.">            if (i &gt; 0) {</span>
+<span class="fc" id="L108">                out.append(',');</span>
             }
-<span class="fc" id="L98">            out.append(vector[i]);</span>
+<span class="fc" id="L110">            out.append(vector[i]);</span>
         }
-<span class="fc" id="L100">        return out.append(']').toString();</span>
+<span class="fc" id="L112">        return out.append(']').toString();</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

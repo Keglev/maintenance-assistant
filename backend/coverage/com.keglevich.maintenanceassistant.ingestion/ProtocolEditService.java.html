@@ -128,28 +128,53 @@ public class ProtocolEditService {
 
 <span class="fc" id="L129">        writeDocument(stored.sourceFile(), content);</span>
 
-<span class="fc" id="L131">        jdbc.sql(&quot;&quot;&quot;</span>
+        /*
+         * AN EDIT RESETS APPROVAL, and this is the rule the whole trust chain rests on.
+         *
+         * The corrected text is text nobody has reviewed. Leaving the protocol approved would mean
+         * the approval flag vouches for words the approver never read — and ADR-006's entire
+         * argument is that a citation must never point at silently-changed content. The reset makes
+         * the flag mean what it says: APPROVED describes THIS text, not an earlier version of it.
+         *
+         * It is deliberately unconditional. &quot;Only reset if the text actually changed&quot; sounds
+         * thriftier and is a trap: it would make the guarantee depend on a diff, and a whitespace
+         * or encoding difference deciding whether a review still counts is not a rule anyone can
+         * reason about. Every edit already forces a re-index for the same reason.
+         *
+         * The protocol stays SEARCHABLE throughout (decision 1 of 2026-08-11) — it simply says of
+         * itself that it is no longer reviewed, and reappears in the administrator's queue.
+         */
+<span class="fc" id="L147">        jdbc.sql(&quot;&quot;&quot;</span>
                         UPDATE protocol
                         SET title = :title, error_code = :errorCode, symptom = :content,
                             status = 'RECEIVED', indexed_at = NULL, failure_reason = NULL,
+                            approval_state = 'UNAPPROVED', approved_by = NULL, approved_at = NULL,
                             updated_at = :now
                         WHERE id = :id
                         &quot;&quot;&quot;)
-<span class="fc" id="L138">                .param(&quot;id&quot;, protocolId)</span>
-<span class="fc" id="L139">                .param(&quot;title&quot;, title)</span>
-<span class="fc" id="L140">                .param(&quot;errorCode&quot;, blankToNull(correction.errorCode()), java.sql.Types.VARCHAR)</span>
+<span class="fc" id="L155">                .param(&quot;id&quot;, protocolId)</span>
+<span class="fc" id="L156">                .param(&quot;title&quot;, title)</span>
+<span class="fc" id="L157">                .param(&quot;errorCode&quot;, blankToNull(correction.errorCode()), java.sql.Types.VARCHAR)</span>
                 // `symptom` holds the document text, as the upload path writes it (DOMAIN-MODEL.md).
-<span class="fc" id="L142">                .param(&quot;content&quot;, content)</span>
-<span class="fc" id="L143">                .param(&quot;now&quot;, OffsetDateTime.now())</span>
-<span class="fc" id="L144">                .update();</span>
+<span class="fc" id="L159">                .param(&quot;content&quot;, content)</span>
+<span class="fc" id="L160">                .param(&quot;now&quot;, OffsetDateTime.now())</span>
+<span class="fc" id="L161">                .update();</span>
 
-<span class="fc" id="L146">        moderation.recordEvent(protocolId, &quot;EDIT&quot;, editedBy, comment);</span>
+<span class="fc" id="L163">        moderation.recordEvent(protocolId, &quot;EDIT&quot;, editedBy, comment);</span>
+
+        // Two rows, not one, when the edit withdrew an approval. The EDIT row says the text changed;
+        // this one says the protocol stopped being vouched for, and by whose act. A reader of the
+        // ledger should not have to know the reset rule to see that the approval ended here.
+<span class="fc bfc" id="L168" title="All 2 branches covered.">        if (ProtocolApprovalService.APPROVED.equals(stored.approvalState())) {</span>
+<span class="fc" id="L169">            moderation.recordEvent(protocolId, &quot;UNAPPROVE&quot;, editedBy,</span>
+                    &quot;approval reset automatically: the protocol was corrected — &quot; + comment);
+        }
 
         // AFTER_COMMIT on the listener, so the indexer never looks for an update it cannot see yet.
-<span class="fc" id="L149">        events.publishEvent(new ProtocolReceivedEvent(protocolId));</span>
-<span class="fc" id="L150">        log.info(&quot;Moderation: {} edited protocol {} ('{}' -&gt; '{}', machine {}), re-indexing: {}&quot;,</span>
-<span class="fc" id="L151">                editedBy, protocolId, stored.title(), title, stored.machineNo(), comment);</span>
-<span class="fc" id="L152">        return Optional.of(protocolId);</span>
+<span class="fc" id="L174">        events.publishEvent(new ProtocolReceivedEvent(protocolId));</span>
+<span class="fc" id="L175">        log.info(&quot;Moderation: {} edited protocol {} ('{}' -&gt; '{}', machine {}), re-indexing: {}&quot;,</span>
+<span class="fc" id="L176">                editedBy, protocolId, stored.title(), title, stored.machineNo(), comment);</span>
+<span class="fc" id="L177">        return Optional.of(protocolId);</span>
     }
 
     /**
@@ -160,29 +185,31 @@ public class ProtocolEditService {
      * that screen would believe the protocol had moved.
      */
     private static void requireUnchangedIdentity(String submitted, String stored, String field) {
-<span class="pc bpc" id="L163" title="1 of 6 branches missed.">        if (submitted != null &amp;&amp; !submitted.isBlank() &amp;&amp; !submitted.trim().equalsIgnoreCase(stored)) {</span>
-<span class="fc" id="L164">            throw new ProtocolModerationService.InvalidModerationRequestException(IDENTITY_LOCKED,</span>
+<span class="pc bpc" id="L188" title="1 of 6 branches missed.">        if (submitted != null &amp;&amp; !submitted.isBlank() &amp;&amp; !submitted.trim().equalsIgnoreCase(stored)) {</span>
+<span class="fc" id="L189">            throw new ProtocolModerationService.InvalidModerationRequestException(IDENTITY_LOCKED,</span>
                     (&quot;%s cannot be changed by an edit (submitted '%s', stored '%s'): a protocol's &quot;
                             + &quot;machine and type are its identity, not its content. If they are wrong, &quot;
                             + &quot;delete it and upload a new one.&quot;)
-<span class="fc" id="L168">                            .formatted(field, submitted.trim(), stored));</span>
+<span class="fc" id="L193">                            .formatted(field, submitted.trim(), stored));</span>
         }
-<span class="fc" id="L170">    }</span>
+<span class="fc" id="L195">    }</span>
 
     private Optional&lt;Stored&gt; load(UUID protocolId) {
-<span class="fc" id="L173">        return jdbc.sql(&quot;&quot;&quot;</span>
-                        SELECT p.title, p.protocol_type, p.source_file, p.deleted_at, m.machine_no
+<span class="fc" id="L198">        return jdbc.sql(&quot;&quot;&quot;</span>
+                        SELECT p.title, p.protocol_type, p.source_file, p.deleted_at, p.approval_state,
+                               m.machine_no
                         FROM protocol p JOIN machine m ON m.id = p.machine_id
                         WHERE p.id = :id
                         &quot;&quot;&quot;)
-<span class="fc" id="L178">                .param(&quot;id&quot;, protocolId)</span>
-<span class="fc" id="L179">                .query((rs, rowNum) -&gt; new Stored(</span>
-<span class="fc" id="L180">                        rs.getString(&quot;title&quot;),</span>
-<span class="fc" id="L181">                        rs.getString(&quot;protocol_type&quot;),</span>
-<span class="fc" id="L182">                        rs.getString(&quot;source_file&quot;),</span>
-<span class="fc" id="L183">                        rs.getObject(&quot;deleted_at&quot;, OffsetDateTime.class),</span>
-<span class="fc" id="L184">                        rs.getString(&quot;machine_no&quot;)))</span>
-<span class="fc" id="L185">                .optional();</span>
+<span class="fc" id="L204">                .param(&quot;id&quot;, protocolId)</span>
+<span class="fc" id="L205">                .query((rs, rowNum) -&gt; new Stored(</span>
+<span class="fc" id="L206">                        rs.getString(&quot;title&quot;),</span>
+<span class="fc" id="L207">                        rs.getString(&quot;protocol_type&quot;),</span>
+<span class="fc" id="L208">                        rs.getString(&quot;source_file&quot;),</span>
+<span class="fc" id="L209">                        rs.getObject(&quot;deleted_at&quot;, OffsetDateTime.class),</span>
+<span class="fc" id="L210">                        rs.getString(&quot;approval_state&quot;),</span>
+<span class="fc" id="L211">                        rs.getString(&quot;machine_no&quot;)))</span>
+<span class="fc" id="L212">                .optional();</span>
     }
 
     /**
@@ -195,36 +222,36 @@ public class ProtocolEditService {
      * trustworthy as everything that has ever written to it.
      */
     private void writeDocument(String sourceFile, String content) {
-<span class="pc bpc" id="L198" title="2 of 4 branches missed.">        if (sourceFile == null || sourceFile.isBlank()) {</span>
-<span class="nc" id="L199">            throw new ProtocolIntakeService.InvalidProtocolException(</span>
+<span class="pc bpc" id="L225" title="2 of 4 branches missed.">        if (sourceFile == null || sourceFile.isBlank()) {</span>
+<span class="nc" id="L226">            throw new ProtocolIntakeService.InvalidProtocolException(</span>
                     &quot;this protocol has no stored document to correct&quot;);
         }
-<span class="fc" id="L202">        Path base = Path.of(fileProperties.basePath()).toAbsolutePath().normalize();</span>
-<span class="fc" id="L203">        Path path = base.resolve(sourceFile).normalize();</span>
-<span class="pc bpc" id="L204" title="1 of 2 branches missed.">        if (!path.startsWith(base)) {</span>
-<span class="nc" id="L205">            throw new IllegalStateException(&quot;source file outside the protocol volume: &quot; + sourceFile);</span>
+<span class="fc" id="L229">        Path base = Path.of(fileProperties.basePath()).toAbsolutePath().normalize();</span>
+<span class="fc" id="L230">        Path path = base.resolve(sourceFile).normalize();</span>
+<span class="pc bpc" id="L231" title="1 of 2 branches missed.">        if (!path.startsWith(base)) {</span>
+<span class="nc" id="L232">            throw new IllegalStateException(&quot;source file outside the protocol volume: &quot; + sourceFile);</span>
         }
         try {
-<span class="fc" id="L208">            Files.createDirectories(path.getParent());</span>
-<span class="fc" id="L209">            Files.writeString(path, content, StandardCharsets.UTF_8);</span>
-<span class="nc" id="L210">        } catch (IOException e) {</span>
-<span class="nc" id="L211">            throw new UncheckedIOException(&quot;cannot rewrite protocol document &quot; + sourceFile, e);</span>
-<span class="fc" id="L212">        }</span>
-<span class="fc" id="L213">    }</span>
+<span class="fc" id="L235">            Files.createDirectories(path.getParent());</span>
+<span class="fc" id="L236">            Files.writeString(path, content, StandardCharsets.UTF_8);</span>
+<span class="nc" id="L237">        } catch (IOException e) {</span>
+<span class="nc" id="L238">            throw new UncheckedIOException(&quot;cannot rewrite protocol document &quot; + sourceFile, e);</span>
+<span class="fc" id="L239">        }</span>
+<span class="fc" id="L240">    }</span>
 
     private static String required(String value, String field) {
-<span class="pc bpc" id="L216" title="1 of 4 branches missed.">        if (value == null || value.isBlank()) {</span>
-<span class="fc" id="L217">            throw new ProtocolIntakeService.InvalidProtocolException(field + &quot; is required&quot;);</span>
+<span class="pc bpc" id="L243" title="1 of 4 branches missed.">        if (value == null || value.isBlank()) {</span>
+<span class="fc" id="L244">            throw new ProtocolIntakeService.InvalidProtocolException(field + &quot; is required&quot;);</span>
         }
-<span class="fc" id="L219">        return value.strip();</span>
+<span class="fc" id="L246">        return value.strip();</span>
     }
 
     private static String blankToNull(String value) {
-<span class="pc bpc" id="L223" title="2 of 4 branches missed.">        return value == null || value.isBlank() ? null : value.strip();</span>
+<span class="pc bpc" id="L250" title="1 of 4 branches missed.">        return value == null || value.isBlank() ? null : value.strip();</span>
     }
 
-<span class="fc" id="L226">    private record Stored(String title, String protocolType, String sourceFile,</span>
-                          OffsetDateTime deletedAt, String machineNo) {
+<span class="fc" id="L253">    private record Stored(String title, String protocolType, String sourceFile,</span>
+                          OffsetDateTime deletedAt, String approvalState, String machineNo) {
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

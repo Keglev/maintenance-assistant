@@ -56,7 +56,19 @@ import java.util.UUID;
             String title,
             String errorCode,
             LocalDate incidentDate,
-            double similarity) {
+            double similarity,
+            /*
+             * Whether an administrator has vouched for the protocol behind this citation.
+             *
+             * ON THE CITATION, not fetched separately, and the reason is what a citation is FOR.
+             * NFR-2's discipline — every claim names its source — is what makes a Mode A answer
+             * checkable, and it has the side effect of making any cited claim LOOK verified.
+             * Unapproved protocols stay searchable by decision (2026-08-11), so an answer can be
+             * grounded in text nobody has reviewed. This flag is what lets the interface say so
+             * beside the source rather than leaving the reader to assume; a client that had to ask
+             * a second endpoint for it would eventually forget to.
+             */
+            boolean approved) {
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

@@ -93,7 +93,7 @@ import java.util.regex.Pattern;
 <span class="fc" id="L93">            GroundedPrompt.LabelledSource source = entry.getValue();</span>
 <span class="fc" id="L94">            citations.add(new QueryAnswer.Citation(</span>
 <span class="fc" id="L95">                    entry.getKey(), source.protocolId(), source.title(), source.errorCode(),</span>
-<span class="fc" id="L96">                    source.incidentDate(), round(source.similarity())));</span>
+<span class="fc" id="L96">                    source.incidentDate(), round(source.similarity()), source.approved()));</span>
 <span class="fc" id="L97">        }</span>
 
 <span class="fc" id="L99">        String prose = claims.stream()</span>

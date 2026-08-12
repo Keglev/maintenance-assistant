@@ -47,16 +47,16 @@ class QueryCache {
 <span class="fc" id="L47">                .build();</span>
 <span class="fc" id="L48">    }</span>
 
-    Optional&lt;QueryAnswer&gt; get(String question, UUID machineId, QueryRole role) {
-<span class="fc" id="L51">        QueryAnswer hit = cache.getIfPresent(new Key(normalise(question), machineId, role));</span>
+    Optional&lt;QueryAnswer&gt; get(String question, UUID machineId, QueryRole role, boolean approvedOnly) {
+<span class="fc" id="L51">        QueryAnswer hit = cache.getIfPresent(new Key(normalise(question), machineId, role, approvedOnly));</span>
 <span class="fc bfc" id="L52" title="All 2 branches covered.">        if (hit != null) {</span>
 <span class="fc" id="L53">            log.debug(&quot;Query cache hit for machine {} as {}&quot;, machineId, role);</span>
         }
 <span class="fc" id="L55">        return Optional.ofNullable(hit);</span>
     }
 
-    void put(String question, UUID machineId, QueryRole role, QueryAnswer answer) {
-<span class="fc" id="L59">        cache.put(new Key(normalise(question), machineId, role), answer);</span>
+    void put(String question, UUID machineId, QueryRole role, boolean approvedOnly, QueryAnswer answer) {
+<span class="fc" id="L59">        cache.put(new Key(normalise(question), machineId, role, approvedOnly), answer);</span>
 <span class="fc" id="L60">    }</span>
 
     /** Test seam and an operational one: a cache nobody can clear is a cache nobody can debug. */
@@ -72,7 +72,7 @@ class QueryCache {
 <span class="pc bpc" id="L72" title="1 of 2 branches missed.">        return question == null ? &quot;&quot; : question.strip().replaceAll(&quot;\\s+&quot;, &quot; &quot;).toLowerCase(Locale.ROOT);</span>
     }
 
-<span class="fc" id="L75">    private record Key(String question, UUID machineId, QueryRole role) {</span>
+<span class="fc" id="L75">    private record Key(String question, UUID machineId, QueryRole role, boolean approvedOnly) {</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

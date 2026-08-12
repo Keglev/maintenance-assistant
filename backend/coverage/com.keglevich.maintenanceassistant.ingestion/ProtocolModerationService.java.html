@@ -124,11 +124,21 @@ public class ProtocolModerationService {
 <span class="fc" id="L124">            conditions.add(&quot;p.created_at &lt; :toExclusive&quot;);</span>
 <span class="fc" id="L125">            params.put(&quot;toExclusive&quot;, startOfDay(filter.to().plusDays(1)));</span>
         }
-<span class="fc" id="L127">        String where = &quot; WHERE &quot; + String.join(&quot; AND &quot;, conditions);</span>
+<span class="pc bpc" id="L127" title="1 of 2 branches missed.">        if (filter.approvalState() != null) {</span>
+            // NOT subject to the machine-first rule the three filters above obey, and the reason is
+            // what that rule is for: it exists because a title fragment or a date range across ten
+            // machines answers with rows the reviewer was not looking at. &quot;Everything still waiting
+            // for review&quot; is the opposite — a queue is only useful whole, and the first question an
+            // administrator asks after signing in is exactly that one.
+<span class="nc" id="L133">            conditions.add(&quot;p.approval_state = :approvalState&quot;);</span>
+<span class="nc" id="L134">            params.put(&quot;approvalState&quot;, filter.approvalState());</span>
+        }
+<span class="fc" id="L136">        String where = &quot; WHERE &quot; + String.join(&quot; AND &quot;, conditions);</span>
 
-<span class="fc" id="L129">        List&lt;ModeratedProtocol&gt; rows = jdbc.sql(&quot;&quot;&quot;</span>
+<span class="fc" id="L138">        List&lt;ModeratedProtocol&gt; rows = jdbc.sql(&quot;&quot;&quot;</span>
                         SELECT p.id, p.title, p.protocol_type, p.error_code, p.status,
                                p.uploaded_by, p.created_at, m.machine_no,
+                               p.approval_state, p.approved_by, p.approved_at,
                                (SELECT count(*) FROM chunk c WHERE c.protocol_id = p.id) AS chunk_count
                         FROM protocol p JOIN machine m ON m.id = p.machine_id&quot;&quot;&quot;
                         + where
@@ -139,27 +149,31 @@ public class ProtocolModerationService {
                 // Tie-broken by id: two protocols uploaded in the same second would otherwise be
                 // free to swap places between pages, and a row that moves during paging is a row a
                 // reviewer can see twice or never.
-<span class="fc" id="L142">                .params(params)</span>
-<span class="fc" id="L143">                .param(&quot;limit&quot;, limit)</span>
-<span class="fc" id="L144">                .param(&quot;offset&quot;, offset)</span>
-<span class="fc" id="L145">                .query((rs, rowNum) -&gt; new ModeratedProtocol(</span>
-<span class="fc" id="L146">                        rs.getObject(&quot;id&quot;, UUID.class),</span>
-<span class="fc" id="L147">                        rs.getString(&quot;machine_no&quot;),</span>
-<span class="fc" id="L148">                        rs.getString(&quot;title&quot;),</span>
-<span class="fc" id="L149">                        rs.getString(&quot;protocol_type&quot;),</span>
-<span class="fc" id="L150">                        rs.getString(&quot;error_code&quot;),</span>
-<span class="fc" id="L151">                        rs.getString(&quot;uploaded_by&quot;),</span>
-<span class="fc" id="L152">                        rs.getObject(&quot;created_at&quot;, OffsetDateTime.class),</span>
-<span class="fc" id="L153">                        rs.getString(&quot;status&quot;),</span>
-<span class="fc" id="L154">                        rs.getInt(&quot;chunk_count&quot;)))</span>
-<span class="fc" id="L155">                .list();</span>
+<span class="fc" id="L152">                .params(params)</span>
+<span class="fc" id="L153">                .param(&quot;limit&quot;, limit)</span>
+<span class="fc" id="L154">                .param(&quot;offset&quot;, offset)</span>
+<span class="fc" id="L155">                .query((rs, rowNum) -&gt; new ModeratedProtocol(</span>
+<span class="fc" id="L156">                        rs.getObject(&quot;id&quot;, UUID.class),</span>
+<span class="fc" id="L157">                        rs.getString(&quot;machine_no&quot;),</span>
+<span class="fc" id="L158">                        rs.getString(&quot;title&quot;),</span>
+<span class="fc" id="L159">                        rs.getString(&quot;protocol_type&quot;),</span>
+<span class="fc" id="L160">                        rs.getString(&quot;error_code&quot;),</span>
+<span class="fc" id="L161">                        rs.getString(&quot;uploaded_by&quot;),</span>
+<span class="fc" id="L162">                        rs.getObject(&quot;created_at&quot;, OffsetDateTime.class),</span>
+<span class="fc" id="L163">                        rs.getString(&quot;status&quot;),</span>
+<span class="fc" id="L164">                        rs.getInt(&quot;chunk_count&quot;),</span>
+                        new ProtocolApprovalService.Approval(
+<span class="fc" id="L166">                                rs.getString(&quot;approval_state&quot;),</span>
+<span class="fc" id="L167">                                rs.getString(&quot;approved_by&quot;),</span>
+<span class="fc" id="L168">                                rs.getObject(&quot;approved_at&quot;, OffsetDateTime.class))))</span>
+<span class="fc" id="L169">                .list();</span>
 
-<span class="fc" id="L157">        long total = jdbc.sql(&quot;SELECT count(*) FROM protocol p JOIN machine m ON m.id = p.machine_id&quot;</span>
+<span class="fc" id="L171">        long total = jdbc.sql(&quot;SELECT count(*) FROM protocol p JOIN machine m ON m.id = p.machine_id&quot;</span>
                         + where)
-<span class="fc" id="L159">                .params(params)</span>
-<span class="fc" id="L160">                .query(Long.class)</span>
-<span class="fc" id="L161">                .single();</span>
-<span class="fc" id="L162">        return new ProtocolPage(rows, page, limit, total);</span>
+<span class="fc" id="L173">                .params(params)</span>
+<span class="fc" id="L174">                .query(Long.class)</span>
+<span class="fc" id="L175">                .single();</span>
+<span class="fc" id="L176">        return new ProtocolPage(rows, page, limit, total);</span>
     }
 
     /**
@@ -170,8 +184,8 @@ public class ProtocolModerationService {
      * The backslash goes first, because escaping it afterwards would escape the escapes.
      */
     private static String containsPattern(String raw) {
-<span class="fc" id="L173">        String escaped = raw.replace(&quot;\\&quot;, &quot;\\\\&quot;).replace(&quot;%&quot;, &quot;\\%&quot;).replace(&quot;_&quot;, &quot;\\_&quot;);</span>
-<span class="fc" id="L174">        return &quot;%&quot; + escaped + &quot;%&quot;;</span>
+<span class="fc" id="L187">        String escaped = raw.replace(&quot;\\&quot;, &quot;\\\\&quot;).replace(&quot;%&quot;, &quot;\\%&quot;).replace(&quot;_&quot;, &quot;\\_&quot;);</span>
+<span class="fc" id="L188">        return &quot;%&quot; + escaped + &quot;%&quot;;</span>
     }
 
     /**
@@ -182,7 +196,7 @@ public class ProtocolModerationService {
      * side of the filter and show it with a date on the other.
      */
     private static OffsetDateTime startOfDay(LocalDate day) {
-<span class="fc" id="L185">        return day.atStartOfDay().atOffset(ZoneOffset.UTC);</span>
+<span class="fc" id="L199">        return day.atStartOfDay().atOffset(ZoneOffset.UTC);</span>
     }
 
     /**
@@ -210,40 +224,40 @@ public class ProtocolModerationService {
      */
     @Transactional
     public boolean delete(UUID protocolId, String deletedBy, String comment) {
-<span class="fc" id="L213">        String reason = requireComment(comment);</span>
-<span class="fc" id="L214">        Optional&lt;DeletedProtocol&gt; target = jdbc.sql(&quot;&quot;&quot;</span>
+<span class="fc" id="L227">        String reason = requireComment(comment);</span>
+<span class="fc" id="L228">        Optional&lt;DeletedProtocol&gt; target = jdbc.sql(&quot;&quot;&quot;</span>
                         SELECT p.title, p.source_file, p.machine_id, m.machine_no
                         FROM protocol p JOIN machine m ON m.id = p.machine_id
                         WHERE p.id = :id AND p.deleted_at IS NULL
                         &quot;&quot;&quot;)
-<span class="fc" id="L219">                .param(&quot;id&quot;, protocolId)</span>
-<span class="fc" id="L220">                .query((rs, rowNum) -&gt; new DeletedProtocol(</span>
-<span class="fc" id="L221">                        rs.getString(&quot;title&quot;), rs.getString(&quot;source_file&quot;),</span>
-<span class="fc" id="L222">                        rs.getObject(&quot;machine_id&quot;, UUID.class), rs.getString(&quot;machine_no&quot;)))</span>
-<span class="fc" id="L223">                .optional();</span>
+<span class="fc" id="L233">                .param(&quot;id&quot;, protocolId)</span>
+<span class="fc" id="L234">                .query((rs, rowNum) -&gt; new DeletedProtocol(</span>
+<span class="fc" id="L235">                        rs.getString(&quot;title&quot;), rs.getString(&quot;source_file&quot;),</span>
+<span class="fc" id="L236">                        rs.getObject(&quot;machine_id&quot;, UUID.class), rs.getString(&quot;machine_no&quot;)))</span>
+<span class="fc" id="L237">                .optional();</span>
 
-<span class="fc bfc" id="L225" title="All 2 branches covered.">        if (target.isEmpty()) {</span>
-<span class="fc" id="L226">            return false;</span>
+<span class="fc bfc" id="L239" title="All 2 branches covered.">        if (target.isEmpty()) {</span>
+<span class="fc" id="L240">            return false;</span>
         }
 
-<span class="fc" id="L229">        int chunks = jdbc.sql(&quot;DELETE FROM chunk WHERE protocol_id = :id&quot;)</span>
-<span class="fc" id="L230">                .param(&quot;id&quot;, protocolId)</span>
-<span class="fc" id="L231">                .update();</span>
-<span class="fc" id="L232">        jdbc.sql(&quot;UPDATE protocol SET deleted_at = :now, updated_at = :now WHERE id = :id&quot;)</span>
-<span class="fc" id="L233">                .param(&quot;id&quot;, protocolId)</span>
-<span class="fc" id="L234">                .param(&quot;now&quot;, OffsetDateTime.now())</span>
-<span class="fc" id="L235">                .update();</span>
-<span class="fc" id="L236">        recordEvent(protocolId, &quot;DELETE&quot;, deletedBy, reason);</span>
+<span class="fc" id="L243">        int chunks = jdbc.sql(&quot;DELETE FROM chunk WHERE protocol_id = :id&quot;)</span>
+<span class="fc" id="L244">                .param(&quot;id&quot;, protocolId)</span>
+<span class="fc" id="L245">                .update();</span>
+<span class="fc" id="L246">        jdbc.sql(&quot;UPDATE protocol SET deleted_at = :now, updated_at = :now WHERE id = :id&quot;)</span>
+<span class="fc" id="L247">                .param(&quot;id&quot;, protocolId)</span>
+<span class="fc" id="L248">                .param(&quot;now&quot;, OffsetDateTime.now())</span>
+<span class="fc" id="L249">                .update();</span>
+<span class="fc" id="L250">        recordEvent(protocolId, &quot;DELETE&quot;, deletedBy, reason);</span>
 
         // INFO, not DEBUG: this is the audit trail of the audit function, and it is now the
         // human-readable half of a record whose queryable half is moderation_event. Enough of the
         // protocol's identity to recognise it later — a bare UUID tells a reader nothing about what
         // was removed, and after a purge this line is the only place the title survives.
-<span class="fc" id="L242">        log.info(&quot;Moderation: {} archived protocol {} ('{}', machine {}), {} chunks removed: {}&quot;,</span>
-<span class="fc" id="L243">                deletedBy, protocolId, target.get().title(), target.get().machineNo(), chunks, reason);</span>
+<span class="fc" id="L256">        log.info(&quot;Moderation: {} archived protocol {} ('{}', machine {}), {} chunks removed: {}&quot;,</span>
+<span class="fc" id="L257">                deletedBy, protocolId, target.get().title(), target.get().machineNo(), chunks, reason);</span>
 
-<span class="fc" id="L245">        enforceArchiveCap(target.get().machineId(), target.get().machineNo());</span>
-<span class="fc" id="L246">        return true;</span>
+<span class="fc" id="L259">        enforceArchiveCap(target.get().machineId(), target.get().machineNo());</span>
+<span class="fc" id="L260">        return true;</span>
     }
 
     /**
@@ -264,7 +278,7 @@ public class ProtocolModerationService {
      * would be the audit function losing its own audit trail.
      */
     private void enforceArchiveCap(UUID machineId, String machineNo) {
-<span class="fc" id="L267">        List&lt;PurgeTarget&gt; excess = jdbc.sql(&quot;&quot;&quot;</span>
+<span class="fc" id="L281">        List&lt;PurgeTarget&gt; excess = jdbc.sql(&quot;&quot;&quot;</span>
                         SELECT p.id, p.title, p.source_file
                         FROM protocol p
                         WHERE p.machine_id = :machineId AND p.deleted_at IS NOT NULL
@@ -274,24 +288,24 @@ public class ProtocolModerationService {
                 // OFFSET past the cap on the newest-first ordering: whatever is left is by
                 // definition everything older than the fiftieth deletion, so the query names the
                 // rows to purge rather than counting first and deciding afterwards.
-<span class="fc" id="L277">                .param(&quot;machineId&quot;, machineId)</span>
-<span class="fc" id="L278">                .param(&quot;cap&quot;, ARCHIVE_CAP)</span>
-<span class="fc" id="L279">                .query((rs, rowNum) -&gt; new PurgeTarget(</span>
-<span class="fc" id="L280">                        rs.getObject(&quot;id&quot;, UUID.class),</span>
-<span class="fc" id="L281">                        rs.getString(&quot;title&quot;),</span>
-<span class="fc" id="L282">                        rs.getString(&quot;source_file&quot;)))</span>
-<span class="fc" id="L283">                .list();</span>
+<span class="fc" id="L291">                .param(&quot;machineId&quot;, machineId)</span>
+<span class="fc" id="L292">                .param(&quot;cap&quot;, ARCHIVE_CAP)</span>
+<span class="fc" id="L293">                .query((rs, rowNum) -&gt; new PurgeTarget(</span>
+<span class="fc" id="L294">                        rs.getObject(&quot;id&quot;, UUID.class),</span>
+<span class="fc" id="L295">                        rs.getString(&quot;title&quot;),</span>
+<span class="fc" id="L296">                        rs.getString(&quot;source_file&quot;)))</span>
+<span class="fc" id="L297">                .list();</span>
 
-<span class="fc bfc" id="L285" title="All 2 branches covered.">        for (PurgeTarget purged : excess) {</span>
-<span class="fc" id="L286">            jdbc.sql(&quot;DELETE FROM protocol WHERE id = :id&quot;).param(&quot;id&quot;, purged.id()).update();</span>
-<span class="fc" id="L287">            deleteFile(purged.sourceFile());</span>
+<span class="fc bfc" id="L299" title="All 2 branches covered.">        for (PurgeTarget purged : excess) {</span>
+<span class="fc" id="L300">            jdbc.sql(&quot;DELETE FROM protocol WHERE id = :id&quot;).param(&quot;id&quot;, purged.id()).update();</span>
+<span class="fc" id="L301">            deleteFile(purged.sourceFile());</span>
             // The title survives here and nowhere else once the row is gone: moderation_event keeps
             // who removed it and why, and this line keeps what &quot;it&quot; was.
-<span class="fc" id="L290">            log.info(&quot;Moderation: archive cap ({}) reached for machine {} — purged protocol {} ('{}') &quot;</span>
+<span class="fc" id="L304">            log.info(&quot;Moderation: archive cap ({}) reached for machine {} — purged protocol {} ('{}') &quot;</span>
                             + &quot;permanently; its moderation events are kept&quot;,
-<span class="fc" id="L292">                    ARCHIVE_CAP, machineNo, purged.id(), purged.title());</span>
-<span class="fc" id="L293">        }</span>
-<span class="fc" id="L294">    }</span>
+<span class="fc" id="L306">                    ARCHIVE_CAP, machineNo, purged.id(), purged.title());</span>
+<span class="fc" id="L307">        }</span>
+<span class="fc" id="L308">    }</span>
 
     /**
      * One page of the archive: what was removed from this machine, newest deletion first.
@@ -301,12 +315,12 @@ public class ProtocolModerationService {
      * archive is asking about one of them. The latest DELETE is the one that put it here.
      */
     public DeletedProtocolPage listDeleted(String machineNo, int page, int size) {
-<span class="fc" id="L304">        int limit = Math.clamp(size, 1, MAX_PAGE_SIZE);</span>
-<span class="fc" id="L305">        int offset = Math.max(page, 0) * limit;</span>
-<span class="pc bpc" id="L306" title="1 of 4 branches missed.">        String machine = machineNo == null || machineNo.isBlank() ? null : machineNo.trim();</span>
-<span class="fc bfc" id="L307" title="All 2 branches covered.">        String where = machine == null ? &quot;&quot; : &quot; AND m.machine_no = :machineNo&quot;;</span>
+<span class="fc" id="L318">        int limit = Math.clamp(size, 1, MAX_PAGE_SIZE);</span>
+<span class="fc" id="L319">        int offset = Math.max(page, 0) * limit;</span>
+<span class="pc bpc" id="L320" title="1 of 4 branches missed.">        String machine = machineNo == null || machineNo.isBlank() ? null : machineNo.trim();</span>
+<span class="fc bfc" id="L321" title="All 2 branches covered.">        String where = machine == null ? &quot;&quot; : &quot; AND m.machine_no = :machineNo&quot;;</span>
 
-<span class="fc" id="L309">        List&lt;ArchivedProtocol&gt; rows = jdbc.sql(&quot;&quot;&quot;</span>
+<span class="fc" id="L323">        List&lt;ArchivedProtocol&gt; rows = jdbc.sql(&quot;&quot;&quot;</span>
                         SELECT p.id, p.title, p.protocol_type, p.error_code, p.uploaded_by,
                                p.created_at, p.deleted_at, m.machine_no,
                                e.actor AS deleted_by, e.comment AS delete_comment
@@ -323,57 +337,57 @@ public class ProtocolModerationService {
                         \nORDER BY p.deleted_at DESC, p.id
                         LIMIT :limit OFFSET :offset
                         &quot;&quot;&quot;)
-<span class="fc" id="L326">                .param(&quot;machineNo&quot;, machine, java.sql.Types.VARCHAR)</span>
-<span class="fc" id="L327">                .param(&quot;limit&quot;, limit)</span>
-<span class="fc" id="L328">                .param(&quot;offset&quot;, offset)</span>
-<span class="fc" id="L329">                .query((rs, rowNum) -&gt; new ArchivedProtocol(</span>
-<span class="fc" id="L330">                        rs.getObject(&quot;id&quot;, UUID.class),</span>
-<span class="fc" id="L331">                        rs.getString(&quot;machine_no&quot;),</span>
-<span class="fc" id="L332">                        rs.getString(&quot;title&quot;),</span>
-<span class="fc" id="L333">                        rs.getString(&quot;protocol_type&quot;),</span>
-<span class="fc" id="L334">                        rs.getString(&quot;error_code&quot;),</span>
-<span class="fc" id="L335">                        rs.getString(&quot;uploaded_by&quot;),</span>
-<span class="fc" id="L336">                        rs.getObject(&quot;created_at&quot;, OffsetDateTime.class),</span>
-<span class="fc" id="L337">                        rs.getObject(&quot;deleted_at&quot;, OffsetDateTime.class),</span>
-<span class="fc" id="L338">                        rs.getString(&quot;deleted_by&quot;),</span>
-<span class="fc" id="L339">                        rs.getString(&quot;delete_comment&quot;)))</span>
-<span class="fc" id="L340">                .list();</span>
+<span class="fc" id="L340">                .param(&quot;machineNo&quot;, machine, java.sql.Types.VARCHAR)</span>
+<span class="fc" id="L341">                .param(&quot;limit&quot;, limit)</span>
+<span class="fc" id="L342">                .param(&quot;offset&quot;, offset)</span>
+<span class="fc" id="L343">                .query((rs, rowNum) -&gt; new ArchivedProtocol(</span>
+<span class="fc" id="L344">                        rs.getObject(&quot;id&quot;, UUID.class),</span>
+<span class="fc" id="L345">                        rs.getString(&quot;machine_no&quot;),</span>
+<span class="fc" id="L346">                        rs.getString(&quot;title&quot;),</span>
+<span class="fc" id="L347">                        rs.getString(&quot;protocol_type&quot;),</span>
+<span class="fc" id="L348">                        rs.getString(&quot;error_code&quot;),</span>
+<span class="fc" id="L349">                        rs.getString(&quot;uploaded_by&quot;),</span>
+<span class="fc" id="L350">                        rs.getObject(&quot;created_at&quot;, OffsetDateTime.class),</span>
+<span class="fc" id="L351">                        rs.getObject(&quot;deleted_at&quot;, OffsetDateTime.class),</span>
+<span class="fc" id="L352">                        rs.getString(&quot;deleted_by&quot;),</span>
+<span class="fc" id="L353">                        rs.getString(&quot;delete_comment&quot;)))</span>
+<span class="fc" id="L354">                .list();</span>
 
-<span class="fc" id="L342">        long total = jdbc.sql(&quot;&quot;&quot;</span>
+<span class="fc" id="L356">        long total = jdbc.sql(&quot;&quot;&quot;</span>
                         SELECT count(*) FROM protocol p JOIN machine m ON m.id = p.machine_id
                         WHERE p.deleted_at IS NOT NULL&quot;&quot;&quot;
                         + where)
-<span class="fc" id="L346">                .param(&quot;machineNo&quot;, machine, java.sql.Types.VARCHAR)</span>
-<span class="fc" id="L347">                .query(Long.class)</span>
-<span class="fc" id="L348">                .single();</span>
-<span class="fc" id="L349">        return new DeletedProtocolPage(rows, page, limit, total, ARCHIVE_CAP);</span>
+<span class="fc" id="L360">                .param(&quot;machineNo&quot;, machine, java.sql.Types.VARCHAR)</span>
+<span class="fc" id="L361">                .query(Long.class)</span>
+<span class="fc" id="L362">                .single();</span>
+<span class="fc" id="L363">        return new DeletedProtocolPage(rows, page, limit, total, ARCHIVE_CAP);</span>
     }
 
     /** Writes one line of the ledger. Called by every moderation act, including {@link #delete}. */
     void recordEvent(UUID protocolId, String action, String actor, String comment) {
-<span class="fc" id="L354">        jdbc.sql(&quot;&quot;&quot;</span>
+<span class="fc" id="L368">        jdbc.sql(&quot;&quot;&quot;</span>
                         INSERT INTO moderation_event (id, protocol_id, action, actor, comment)
                         VALUES (:id, :protocolId, :action, :actor, :comment)
                         &quot;&quot;&quot;)
-<span class="fc" id="L358">                .param(&quot;id&quot;, UUID.randomUUID())</span>
-<span class="fc" id="L359">                .param(&quot;protocolId&quot;, protocolId)</span>
-<span class="fc" id="L360">                .param(&quot;action&quot;, action)</span>
-<span class="fc" id="L361">                .param(&quot;actor&quot;, actor)</span>
-<span class="fc" id="L362">                .param(&quot;comment&quot;, comment)</span>
-<span class="fc" id="L363">                .update();</span>
-<span class="fc" id="L364">    }</span>
+<span class="fc" id="L372">                .param(&quot;id&quot;, UUID.randomUUID())</span>
+<span class="fc" id="L373">                .param(&quot;protocolId&quot;, protocolId)</span>
+<span class="fc" id="L374">                .param(&quot;action&quot;, action)</span>
+<span class="fc" id="L375">                .param(&quot;actor&quot;, actor)</span>
+<span class="fc" id="L376">                .param(&quot;comment&quot;, comment)</span>
+<span class="fc" id="L377">                .update();</span>
+<span class="fc" id="L378">    }</span>
 
     /** The stable code a client matches on when a moderation act arrives without its reason. */
     public static final String COMMENT_REQUIRED = &quot;MODERATION_COMMENT_REQUIRED&quot;;
 
     static String requireComment(String comment) {
-<span class="fc bfc" id="L370" title="All 4 branches covered.">        if (comment == null || comment.isBlank()) {</span>
+<span class="fc bfc" id="L384" title="All 4 branches covered.">        if (comment == null || comment.isBlank()) {</span>
             // Blank counts as missing. A comment box someone tabbed past is not a stated reason,
             // and &quot; &quot; in the ledger would be worse than an empty one — it looks like an answer.
-<span class="fc" id="L373">            throw new InvalidModerationRequestException(COMMENT_REQUIRED,</span>
+<span class="fc" id="L387">            throw new InvalidModerationRequestException(COMMENT_REQUIRED,</span>
                     &quot;a moderation comment is required: say why this protocol is being changed&quot;);
         }
-<span class="fc" id="L376">        return comment.trim();</span>
+<span class="fc" id="L390">        return comment.trim();</span>
     }
 
     /**
@@ -385,24 +399,24 @@ public class ProtocolModerationService {
      * is logged as a warning so a stale file can be swept up; nothing can reach it in the meantime.
      */
     private void deleteFile(String sourceFile) {
-<span class="pc bpc" id="L388" title="2 of 4 branches missed.">        if (sourceFile == null || sourceFile.isBlank()) {</span>
-<span class="nc" id="L389">            return;</span>
+<span class="pc bpc" id="L402" title="2 of 4 branches missed.">        if (sourceFile == null || sourceFile.isBlank()) {</span>
+<span class="nc" id="L403">            return;</span>
         }
-<span class="fc" id="L391">        Path base = Path.of(fileProperties.basePath()).toAbsolutePath().normalize();</span>
-<span class="fc" id="L392">        Path path = base.resolve(sourceFile).normalize();</span>
+<span class="fc" id="L405">        Path base = Path.of(fileProperties.basePath()).toAbsolutePath().normalize();</span>
+<span class="fc" id="L406">        Path path = base.resolve(sourceFile).normalize();</span>
         // The same containment check the read path makes, for the same reason: source_file is a
         // column, and here a bad value would delete something outside the volume.
-<span class="pc bpc" id="L395" title="1 of 2 branches missed.">        if (!path.startsWith(base)) {</span>
-<span class="nc" id="L396">            log.warn(&quot;Moderation: refusing to delete {} — outside the protocol volume&quot;, sourceFile);</span>
-<span class="nc" id="L397">            return;</span>
+<span class="pc bpc" id="L409" title="1 of 2 branches missed.">        if (!path.startsWith(base)) {</span>
+<span class="nc" id="L410">            log.warn(&quot;Moderation: refusing to delete {} — outside the protocol volume&quot;, sourceFile);</span>
+<span class="nc" id="L411">            return;</span>
         }
         try {
-<span class="fc" id="L400">            Files.deleteIfExists(path);</span>
-<span class="nc" id="L401">        } catch (IOException e) {</span>
-<span class="nc" id="L402">            log.warn(&quot;Moderation: protocol row removed but its file {} could not be deleted: {}&quot;,</span>
-<span class="nc" id="L403">                    sourceFile, e.toString());</span>
-<span class="fc" id="L404">        }</span>
-<span class="fc" id="L405">    }</span>
+<span class="fc" id="L414">            Files.deleteIfExists(path);</span>
+<span class="nc" id="L415">        } catch (IOException e) {</span>
+<span class="nc" id="L416">            log.warn(&quot;Moderation: protocol row removed but its file {} could not be deleted: {}&quot;,</span>
+<span class="nc" id="L417">                    sourceFile, e.toString());</span>
+<span class="fc" id="L418">        }</span>
+<span class="fc" id="L419">    }</span>
 
     /**
      * What the reviewer narrowed the corpus to. Every field is optional; all of them absent is the
@@ -419,28 +433,43 @@ public class ProtocolModerationService {
      * @param from          earliest upload day, inclusive
      * @param to            latest upload day, inclusive; open-ended in either direction is allowed
      */
-    public record ProtocolFilter(String machineNo, String titleContains, LocalDate from, LocalDate to) {
+    public record ProtocolFilter(String machineNo, String titleContains, LocalDate from, LocalDate to,
+                                 String approvalState) {
 
         /** The stable code a client matches on. English prose from this layer is not an API. */
         public static final String MACHINE_REQUIRED = &quot;MACHINE_REQUIRED_FOR_FILTER&quot;;
+        /** An approval filter that is neither state. */
+        public static final String UNKNOWN_APPROVAL_STATE = &quot;UNKNOWN_APPROVAL_STATE&quot;;
 
-<span class="fc" id="L427">        public ProtocolFilter {</span>
-<span class="fc" id="L428">            machineNo = blankToNull(machineNo);</span>
-<span class="fc" id="L429">            titleContains = blankToNull(titleContains);</span>
-<span class="fc bfc" id="L430" title="All 8 branches covered.">            if (machineNo == null &amp;&amp; (titleContains != null || from != null || to != null)) {</span>
-<span class="fc" id="L431">                throw new InvalidModerationRequestException(MACHINE_REQUIRED,</span>
+<span class="fc" id="L444">        public ProtocolFilter {</span>
+<span class="fc" id="L445">            machineNo = blankToNull(machineNo);</span>
+<span class="fc" id="L446">            titleContains = blankToNull(titleContains);</span>
+<span class="fc" id="L447">            approvalState = blankToNull(approvalState);</span>
+<span class="fc bfc" id="L448" title="All 8 branches covered.">            if (machineNo == null &amp;&amp; (titleContains != null || from != null || to != null)) {</span>
+<span class="fc" id="L449">                throw new InvalidModerationRequestException(MACHINE_REQUIRED,</span>
                         &quot;a title or date filter needs a machine: choose a machine first&quot;);
             }
-<span class="fc" id="L434">        }</span>
+<span class="pc bpc" id="L452" title="1 of 2 branches missed.">            if (approvalState != null) {</span>
+<span class="nc" id="L453">                approvalState = approvalState.toUpperCase(java.util.Locale.ROOT);</span>
+<span class="nc bnc" id="L454" title="All 2 branches missed.">                if (!ProtocolApprovalService.APPROVED.equals(approvalState)</span>
+<span class="nc bnc" id="L455" title="All 2 branches missed.">                        &amp;&amp; !ProtocolApprovalService.UNAPPROVED.equals(approvalState)) {</span>
+                    // Refused rather than ignored. A typo silently answering with the unfiltered
+                    // corpus would tell a reviewer their queue is the whole corpus.
+<span class="nc" id="L458">                    throw new InvalidModerationRequestException(UNKNOWN_APPROVAL_STATE,</span>
+                            &quot;approvalState must be APPROVED or UNAPPROVED, not '&quot;
+                                    + approvalState + &quot;'&quot;);
+                }
+            }
+<span class="fc" id="L463">        }</span>
 
         public static ProtocolFilter none() {
-<span class="fc" id="L437">            return new ProtocolFilter(null, null, null, null);</span>
+<span class="fc" id="L466">            return new ProtocolFilter(null, null, null, null, null);</span>
         }
 
         private static String blankToNull(String value) {
             // An empty query parameter is an empty form field, which is a filter the user did not
             // fill in — not a search for the empty string, and not a reason to refuse the request.
-<span class="fc bfc" id="L443" title="All 4 branches covered.">            return value == null || value.isBlank() ? null : value.trim();</span>
+<span class="fc bfc" id="L472" title="All 4 branches covered.">            return value == null || value.isBlank() ? null : value.trim();</span>
         }
     }
 
@@ -450,12 +479,12 @@ public class ProtocolModerationService {
         private final String code;
 
         public InvalidModerationRequestException(String code, String message) {
-<span class="fc" id="L453">            super(message);</span>
-<span class="fc" id="L454">            this.code = code;</span>
-<span class="fc" id="L455">        }</span>
+<span class="fc" id="L482">            super(message);</span>
+<span class="fc" id="L483">            this.code = code;</span>
+<span class="fc" id="L484">        }</span>
 
         public String code() {
-<span class="fc" id="L458">            return code;</span>
+<span class="fc" id="L487">            return code;</span>
         }
     }
 
@@ -464,7 +493,7 @@ public class ProtocolModerationService {
      * @param size      rows per page after clamping
      * @param total     protocols in the corpus, so a client can render &quot;page 3 of 16&quot;
      */
-<span class="fc" id="L467">    public record ProtocolPage(List&lt;ModeratedProtocol&gt; items, int page, int size, long total) {</span>
+<span class="fc" id="L496">    public record ProtocolPage(List&lt;ModeratedProtocol&gt; items, int page, int size, long total) {</span>
     }
 
     /**
@@ -473,7 +502,7 @@ public class ProtocolModerationService {
      * @param chunkCount how many searchable pieces this protocol contributes; 0 means it is stored
      *                   but not retrievable, which is what RECEIVED and FAILED look like
      */
-<span class="fc" id="L476">    public record ModeratedProtocol(</span>
+<span class="fc" id="L505">    public record ModeratedProtocol(</span>
             UUID id,
             String machineNo,
             String title,
@@ -482,7 +511,13 @@ public class ProtocolModerationService {
             String uploadedBy,
             OffsetDateTime uploadedAt,
             String status,
-            int chunkCount) {
+            int chunkCount,
+            /*
+             * Returned on EVERY row rather than only on the queue. The moderation list is also
+             * where an administrator checks that something they approved is still approved — and
+             * after an edit it will not be, because a correction resets it.
+             */
+            ProtocolApprovalService.Approval approval) {
     }
 
     /**
@@ -491,7 +526,7 @@ public class ProtocolModerationService {
      * @param cap the per-machine ceiling, reported so the view can state it rather than hard-code a
      *            number that would drift the day the constant changes
      */
-<span class="fc" id="L494">    public record DeletedProtocolPage(List&lt;ArchivedProtocol&gt; items, int page, int size, long total,</span>
+<span class="fc" id="L529">    public record DeletedProtocolPage(List&lt;ArchivedProtocol&gt; items, int page, int size, long total,</span>
                                       int cap) {
     }
 
@@ -502,7 +537,7 @@ public class ProtocolModerationService {
      *                       other than this service, which nothing does today
      * @param deleteComment  the stated reason — the field the whole archive exists to carry
      */
-<span class="fc" id="L505">    public record ArchivedProtocol(</span>
+<span class="fc" id="L540">    public record ArchivedProtocol(</span>
             UUID id,
             String machineNo,
             String title,
@@ -515,11 +550,11 @@ public class ProtocolModerationService {
             String deleteComment) {
     }
 
-<span class="fc" id="L518">    private record DeletedProtocol(String title, String sourceFile, UUID machineId, String machineNo) {</span>
+<span class="fc" id="L553">    private record DeletedProtocol(String title, String sourceFile, UUID machineId, String machineNo) {</span>
     }
 
     /** What a purge needs to know: which row to drop, which file to remove, what to call it in the log. */
-<span class="fc" id="L522">    private record PurgeTarget(UUID id, String title, String sourceFile) {</span>
+<span class="fc" id="L557">    private record PurgeTarget(UUID id, String title, String sourceFile) {</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

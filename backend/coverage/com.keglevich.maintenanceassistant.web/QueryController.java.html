@@ -73,7 +73,8 @@ class QueryController {
 <span class="fc" id="L73">                roleOf(authentication),</span>
                 // The stable Keycloak user id. A username can be renamed in the admin console and
                 // would silently hand someone a fresh rate-limit bucket.
-<span class="fc" id="L76">                jwt.getSubject());</span>
+<span class="fc" id="L76">                jwt.getSubject(),</span>
+<span class="fc" id="L77">                request.approvedOnlyOrDefault());</span>
     }
 
     /**
@@ -84,16 +85,16 @@ class QueryController {
      * fuller answer, because the constraint exists to protect people who are &lt;em&gt;only&lt;/em&gt; operators.
      */
     private static QueryRole roleOf(Authentication authentication) {
-<span class="fc" id="L87">        var authorities = authentication.getAuthorities().stream()</span>
-<span class="fc" id="L88">                .map(GrantedAuthority::getAuthority)</span>
-<span class="fc" id="L89">                .toList();</span>
-<span class="pc bpc" id="L90" title="1 of 2 branches missed.">        if (authorities.contains(&quot;ROLE_SCHICHTLEITER&quot;)) {</span>
-<span class="nc" id="L91">            return QueryRole.SCHICHTLEITER;</span>
+<span class="fc" id="L88">        var authorities = authentication.getAuthorities().stream()</span>
+<span class="fc" id="L89">                .map(GrantedAuthority::getAuthority)</span>
+<span class="fc" id="L90">                .toList();</span>
+<span class="pc bpc" id="L91" title="1 of 2 branches missed.">        if (authorities.contains(&quot;ROLE_SCHICHTLEITER&quot;)) {</span>
+<span class="nc" id="L92">            return QueryRole.SCHICHTLEITER;</span>
         }
-<span class="fc bfc" id="L93" title="All 2 branches covered.">        if (authorities.contains(&quot;ROLE_TECHNIKER&quot;)) {</span>
-<span class="fc" id="L94">            return QueryRole.TECHNIKER;</span>
+<span class="fc bfc" id="L94" title="All 2 branches covered.">        if (authorities.contains(&quot;ROLE_TECHNIKER&quot;)) {</span>
+<span class="fc" id="L95">            return QueryRole.TECHNIKER;</span>
         }
-<span class="fc" id="L96">        return QueryRole.OPERATOR;</span>
+<span class="fc" id="L97">        return QueryRole.OPERATOR;</span>
     }
 
     /**
@@ -105,7 +106,25 @@ class QueryController {
      *                  answered from another machine's protocols would look like a better feature
      *                  and be a worse answer
      */
-<span class="fc" id="L108">    record QueryRequest(String question, UUID machineId) {</span>
+<span class="fc" id="L109">    record QueryRequest(String question, UUID machineId, Boolean approvedOnly) {</span>
+
+        /**
+         * Absent means &quot;everything&quot;, and that is the decision of 2026-08-11 rather than a default
+         * chosen for convenience.
+         *
+         * &lt;p&gt;Unapproved protocols stay searchable: the administrator may not review at a weekend
+         * and the factory does not stop, so the protocol about the fault happening right now must
+         * be findable before anyone signs it off. The accepted cost is that an answer can be
+         * grounded in unreviewed text — which is why every citation carries its approval state, so
+         * the interface can say so rather than let the reader assume.
+         *
+         * &lt;p&gt;A boxed Boolean rather than a primitive on purpose: it makes &quot;the client did not send
+         * this&quot; and &quot;the client sent false&quot; the same thing HERE, in one place, instead of leaving
+         * the JSON binding to decide it silently.
+         */
+        boolean approvedOnlyOrDefault() {
+<span class="fc" id="L126">            return Boolean.TRUE.equals(approvedOnly);</span>
+        }
     }
 
     // ---------------------------------------------------------------------------------------
@@ -115,7 +134,7 @@ class QueryController {
     @ExceptionHandler(QueryService.InvalidQueryException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     Map&lt;String, String&gt; onInvalid(QueryService.InvalidQueryException e) {
-<span class="nc" id="L118">        return Map.of(&quot;error&quot;, e.getMessage());</span>
+<span class="nc" id="L137">        return Map.of(&quot;error&quot;, e.getMessage());</span>
     }
 
     /**
@@ -124,9 +143,9 @@ class QueryController {
      */
     @ExceptionHandler(QueryService.RateLimitedException.class)
     ResponseEntity&lt;Map&lt;String, String&gt;&gt; onRateLimited(QueryService.RateLimitedException e) {
-<span class="fc" id="L127">        return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)</span>
-<span class="fc" id="L128">                .header(HttpHeaders.RETRY_AFTER, Long.toString(e.retryAfterSeconds()))</span>
-<span class="fc" id="L129">                .body(Map.of(&quot;error&quot;, e.getMessage()));</span>
+<span class="fc" id="L146">        return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)</span>
+<span class="fc" id="L147">                .header(HttpHeaders.RETRY_AFTER, Long.toString(e.retryAfterSeconds()))</span>
+<span class="fc" id="L148">                .body(Map.of(&quot;error&quot;, e.getMessage()));</span>
     }
 
     /**
@@ -143,17 +162,17 @@ class QueryController {
     @ExceptionHandler(QueryService.BudgetExhaustedException.class)
     @ResponseStatus(HttpStatus.SERVICE_UNAVAILABLE)
     Map&lt;String, String&gt; onBudgetExhausted(QueryService.BudgetExhaustedException e) {
-<span class="fc" id="L146">        return Map.of(</span>
+<span class="fc" id="L165">        return Map.of(</span>
                 &quot;reason&quot;, &quot;BUDGET_EXHAUSTED&quot;,
                 &quot;error&quot;, &quot;The assistant has reached today's answer limit. Retrieval and upload still &quot;
                         + &quot;work; answering resumes tomorrow.&quot;,
-<span class="fc" id="L150">                &quot;detail&quot;, e.getMessage());</span>
+<span class="fc" id="L169">                &quot;detail&quot;, e.getMessage());</span>
     }
 
     @ExceptionHandler(QueryService.ProviderUnavailableException.class)
     @ResponseStatus(HttpStatus.SERVICE_UNAVAILABLE)
     Map&lt;String, String&gt; onProviderUnavailable(QueryService.ProviderUnavailableException e) {
-<span class="nc" id="L156">        return Map.of(&quot;reason&quot;, &quot;PROVIDER_UNAVAILABLE&quot;, &quot;error&quot;, e.getMessage());</span>
+<span class="nc" id="L175">        return Map.of(&quot;reason&quot;, &quot;PROVIDER_UNAVAILABLE&quot;, &quot;error&quot;, e.getMessage());</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

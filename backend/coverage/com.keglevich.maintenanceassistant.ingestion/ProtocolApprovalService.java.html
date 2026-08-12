@@ -1,0 +1,213 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ProtocolApprovalService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">maintenance-assistant</a> &gt; <a href="index.source.html" class="el_package">com.keglevich.maintenanceassistant.ingestion</a> &gt; <span class="el_source">ProtocolApprovalService.java</span></div><h1>ProtocolApprovalService.java</h1><pre class="source lang-java linenums">package com.keglevich.maintenanceassistant.ingestion;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.jdbc.core.simple.JdbcClient;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.OffsetDateTime;
+import java.util.Optional;
+import java.util.UUID;
+
+/**
+ * Approval: a reviewer vouching for a protocol, and the four-eyes rule that keeps it meaningful.
+ *
+ * &lt;p&gt;&lt;b&gt;What approval is, and what it is not.&lt;/b&gt; It is a statement that a named person read this
+ * protocol and stands behind it. It is &lt;em&gt;not&lt;/em&gt; a gate on retrieval: an unapproved protocol is
+ * still searchable and still citable, by decision of 2026-08-11 — &quot;the admin may not review at a
+ * weekend, and the factory does not stop&quot;. The newest knowledge in a plant is exactly the knowledge
+ * that has not been reviewed yet, and hiding it until someone signs it off would withhold the
+ * protocol about the fault happening right now.
+ *
+ * &lt;p&gt;The trade-off is accepted rather than hidden: an unapproved protocol is less reliable to
+ * troubleshoot from. That is why the state is returned everywhere a protocol is — the moderation
+ * list, the caller's own uploads, and the citations on an answer — so the interface can always say
+ * which kind a reader is looking at. An unmarked unreviewed source would be the worst of both
+ * worlds: NFR-2's citation discipline makes a cited claim look checked, and this flag is what keeps
+ * that impression honest.
+ *
+ * &lt;p&gt;&lt;b&gt;FOUR EYES, ENFORCED ON THE ACT.&lt;/b&gt; Decision 3 of 2026-08-11 reads: author is never the
+ * corrector, corrector is never the approver. Roles alone cannot express the second half, because
+ * an administrator may both edit and approve — so the rule is checked against the protocol's own
+ * history rather than against the caller's role: whoever filed it, and whoever last corrected it,
+ * may not be the one who approves it. A reviewer approving their own words is one pair of eyes
+ * twice, and the whole point of the chain is that it is two people.
+ */
+@Service
+public class ProtocolApprovalService {
+
+<span class="fc" id="L40">    private static final Logger log = LoggerFactory.getLogger(ProtocolApprovalService.class);</span>
+
+    public static final String APPROVED = &quot;APPROVED&quot;;
+    public static final String UNAPPROVED = &quot;UNAPPROVED&quot;;
+
+    /** The caller wrote or last corrected this protocol, so they may not also vouch for it. */
+    public static final String FOUR_EYES_REQUIRED = &quot;FOUR_EYES_REQUIRED&quot;;
+    /** Approving something that is in the archive. */
+    public static final String PROTOCOL_ARCHIVED = ProtocolEditService.PROTOCOL_ARCHIVED;
+
+    private final JdbcClient jdbc;
+    private final ProtocolModerationService moderation;
+
+<span class="fc" id="L53">    ProtocolApprovalService(JdbcClient jdbc, ProtocolModerationService moderation) {</span>
+<span class="fc" id="L54">        this.jdbc = jdbc;</span>
+<span class="fc" id="L55">        this.moderation = moderation;</span>
+<span class="fc" id="L56">    }</span>
+
+    /** The state of one protocol's approval, as the API returns it. */
+<span class="fc" id="L59">    public record Approval(String state, String approvedBy, OffsetDateTime approvedAt) {</span>
+
+        public boolean approved() {
+<span class="fc" id="L62">            return APPROVED.equals(state);</span>
+        }
+    }
+
+    /**
+     * Approves or un-approves a protocol.
+     *
+     * &lt;p&gt;&lt;b&gt;Idempotent, and deliberately silent about a no-op.&lt;/b&gt; Approving something already
+     * approved answers success and writes nothing: the request asserts a state rather than
+     * performing a transition, so a double-clicked button is not an error and does not deserve a
+     * second row in the ledger. The ledger stays a record of CHANGES — one row per moment the
+     * corpus's trust actually moved — which is what makes it worth reading. Refusing the second
+     * call was the alternative, and it would turn a harmless repeat into a support question.
+     *
+     * &lt;p&gt;&lt;b&gt;A comment is required to withdraw approval and optional to grant it&lt;/b&gt;, and the
+     * asymmetry is the point. Approving affirms the text as it stands; un-approving takes back
+     * something a named person already vouched for, and the next reader is owed the reason. It is
+     * the same rule edit and delete follow, applied to the act that removes trust.
+     *
+     * @return empty if there is no such protocol
+     */
+    @Transactional
+    public Optional&lt;Approval&gt; setApproval(UUID protocolId, boolean approve, String actor,
+                                          String comment) {
+<span class="fc" id="L86">        Optional&lt;Target&gt; found = load(protocolId);</span>
+<span class="fc bfc" id="L87" title="All 2 branches covered.">        if (found.isEmpty()) {</span>
+<span class="fc" id="L88">            return Optional.empty();</span>
+        }
+<span class="fc" id="L90">        Target target = found.get();</span>
+
+<span class="pc bpc" id="L92" title="1 of 2 branches missed.">        if (target.deletedAt() != null) {</span>
+            // 409, like editing an archived protocol: it exists, the same administrator can read it
+            // in the archive, and &quot;no such protocol&quot; would be contradicted by their own screen.
+            // Archived is final — vouching for something withdrawn from the corpus means nothing.
+<span class="nc" id="L96">            throw new ProtocolModerationService.InvalidModerationRequestException(PROTOCOL_ARCHIVED,</span>
+                    &quot;this protocol is in the archive; approving it would vouch for something no &quot;
+                            + &quot;answer can cite&quot;);
+        }
+
+<span class="fc bfc" id="L101" title="All 2 branches covered.">        boolean alreadyInState = approve == APPROVED.equals(target.approvalState());</span>
+<span class="fc bfc" id="L102" title="All 2 branches covered.">        if (alreadyInState) {</span>
+<span class="fc" id="L103">            return Optional.of(target.asApproval());</span>
+        }
+
+<span class="fc bfc" id="L106" title="All 2 branches covered.">        if (approve) {</span>
+<span class="fc" id="L107">            requireFourEyes(protocolId, target, actor);</span>
+        } else {
+            // Withdrawing trust is a change to how the corpus reads, and it is the direction that
+            // needs explaining.
+<span class="fc" id="L111">            comment = ProtocolModerationService.requireComment(comment);</span>
+        }
+
+<span class="fc" id="L114">        OffsetDateTime now = OffsetDateTime.now();</span>
+<span class="fc" id="L115">        jdbc.sql(&quot;&quot;&quot;</span>
+                        UPDATE protocol
+                        SET approval_state = :state,
+                            approved_by    = :approvedBy,
+                            approved_at    = :approvedAt,
+                            updated_at     = :now
+                        WHERE id = :id
+                        &quot;&quot;&quot;)
+<span class="fc" id="L123">                .param(&quot;id&quot;, protocolId)</span>
+<span class="fc bfc" id="L124" title="All 2 branches covered.">                .param(&quot;state&quot;, approve ? APPROVED : UNAPPROVED)</span>
+<span class="fc bfc" id="L125" title="All 2 branches covered.">                .param(&quot;approvedBy&quot;, approve ? actor : null, java.sql.Types.VARCHAR)</span>
+<span class="fc bfc" id="L126" title="All 2 branches covered.">                .param(&quot;approvedAt&quot;, approve ? now : null, java.sql.Types.TIMESTAMP_WITH_TIMEZONE)</span>
+<span class="fc" id="L127">                .param(&quot;now&quot;, now)</span>
+<span class="fc" id="L128">                .update();</span>
+
+<span class="fc bfc" id="L130" title="All 2 branches covered.">        moderation.recordEvent(protocolId, approve ? &quot;APPROVE&quot; : &quot;UNAPPROVE&quot;, actor,</span>
+<span class="pc bpc" id="L131" title="1 of 4 branches missed.">                comment == null || comment.isBlank()</span>
+<span class="fc" id="L132">                        ? &quot;approved without further comment&quot;</span>
+<span class="fc" id="L133">                        : comment.trim());</span>
+
+        // INFO for the same reason deletion is: this is the audit trail of the audit function, and
+        // the queryable half lives in moderation_event.
+<span class="fc" id="L137">        log.info(&quot;Moderation: {} {} protocol {} ('{}', machine {})&quot;,</span>
+<span class="fc bfc" id="L138" title="All 2 branches covered.">                actor, approve ? &quot;approved&quot; : &quot;un-approved&quot;, protocolId, target.title(),</span>
+<span class="fc" id="L139">                target.machineNo());</span>
+
+<span class="fc bfc" id="L141" title="All 2 branches covered.">        return Optional.of(approve</span>
+<span class="fc" id="L142">                ? new Approval(APPROVED, actor, now)</span>
+<span class="fc" id="L143">                : new Approval(UNAPPROVED, null, null));</span>
+    }
+
+    /**
+     * Refuses an approval by the person who wrote or last corrected the protocol.
+     *
+     * &lt;p&gt;Checked against the ledger rather than against a role, because roles cannot express it: an
+     * administrator may edit and may approve, and the rule is about the same HUMAN doing both to
+     * the same protocol. {@code uploaded_by} covers the author; the newest EDIT event covers the
+     * corrector. Both are Keycloak usernames, which is why the two columns were written in one
+     * alphabet in the first place.
+     */
+    private void requireFourEyes(UUID protocolId, Target target, String actor) {
+<span class="pc bpc" id="L156" title="2 of 4 branches missed.">        if (actor == null || actor.isBlank()) {</span>
+<span class="nc" id="L157">            throw new IllegalStateException(&quot;an approval must carry an actor&quot;);</span>
+        }
+<span class="fc bfc" id="L159" title="All 2 branches covered.">        if (actor.equalsIgnoreCase(target.uploadedBy())) {</span>
+<span class="fc" id="L160">            throw new ProtocolModerationService.InvalidModerationRequestException(FOUR_EYES_REQUIRED,</span>
+                    &quot;you filed this protocol, so you cannot also approve it: approval is a second &quot;
+                            + &quot;pair of eyes, and it has to belong to someone else&quot;);
+        }
+<span class="fc" id="L164">        Optional&lt;String&gt; lastEditor = jdbc.sql(&quot;&quot;&quot;</span>
+                        SELECT actor FROM moderation_event
+                        WHERE protocol_id = :id AND action = 'EDIT'
+                        ORDER BY created_at DESC, id
+                        LIMIT 1
+                        &quot;&quot;&quot;)
+<span class="fc" id="L170">                .param(&quot;id&quot;, protocolId)</span>
+<span class="fc" id="L171">                .query(String.class)</span>
+<span class="fc" id="L172">                .optional();</span>
+<span class="fc bfc" id="L173" title="All 2 branches covered.">        if (lastEditor.filter(actor::equalsIgnoreCase).isPresent()) {</span>
+<span class="fc" id="L174">            throw new ProtocolModerationService.InvalidModerationRequestException(FOUR_EYES_REQUIRED,</span>
+                    &quot;you corrected this protocol, so you cannot also approve it: the corrector is &quot;
+                            + &quot;never the approver&quot;);
+        }
+<span class="fc" id="L178">    }</span>
+
+    /** The approval state of one protocol, for the read paths. */
+    public Optional&lt;Approval&gt; find(UUID protocolId) {
+<span class="nc" id="L182">        return load(protocolId).map(Target::asApproval);</span>
+    }
+
+    private Optional&lt;Target&gt; load(UUID protocolId) {
+<span class="fc" id="L186">        return jdbc.sql(&quot;&quot;&quot;</span>
+                        SELECT p.title, p.uploaded_by, p.deleted_at,
+                               p.approval_state, p.approved_by, p.approved_at, m.machine_no
+                        FROM protocol p JOIN machine m ON m.id = p.machine_id
+                        WHERE p.id = :id
+                        &quot;&quot;&quot;)
+<span class="fc" id="L192">                .param(&quot;id&quot;, protocolId)</span>
+<span class="fc" id="L193">                .query((rs, rowNum) -&gt; new Target(</span>
+<span class="fc" id="L194">                        rs.getString(&quot;title&quot;),</span>
+<span class="fc" id="L195">                        rs.getString(&quot;uploaded_by&quot;),</span>
+<span class="fc" id="L196">                        rs.getObject(&quot;deleted_at&quot;, OffsetDateTime.class),</span>
+<span class="fc" id="L197">                        rs.getString(&quot;approval_state&quot;),</span>
+<span class="fc" id="L198">                        rs.getString(&quot;approved_by&quot;),</span>
+<span class="fc" id="L199">                        rs.getObject(&quot;approved_at&quot;, OffsetDateTime.class),</span>
+<span class="fc" id="L200">                        rs.getString(&quot;machine_no&quot;)))</span>
+<span class="fc" id="L201">                .optional();</span>
+    }
+
+<span class="fc" id="L204">    private record Target(String title, String uploadedBy, OffsetDateTime deletedAt,</span>
+                          String approvalState, String approvedBy, OffsetDateTime approvedAt,
+                          String machineNo) {
+
+        Approval asApproval() {
+<span class="fc" id="L209">            return new Approval(approvalState, approvedBy, approvedAt);</span>
+        }
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

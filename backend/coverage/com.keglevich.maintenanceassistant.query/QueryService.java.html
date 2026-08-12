@@ -73,69 +73,79 @@ public class QueryService {
      * @param role      the answer depth this caller is entitled to (NFR-3), resolved from the token
      *                  by the web layer and never sent by the client
      * @param subject   the token's {@code sub} claim, the rate-limit key
+     * @param approvedOnly restrict the answer to protocols an administrator has vouched for.
+     *                     &lt;b&gt;Defaults to false at every caller, by decision of 2026-08-11.&lt;/b&gt; The
+     *                     admin may not review at a weekend and the factory does not stop, so the
+     *                     protocol about the fault happening right now has to be findable before
+     *                     anyone signs it off. This is an option a reader may ask for, never a
+     *                     default that quietly hides the newest knowledge in the plant.
      */
-    public QueryAnswer ask(String question, UUID machineId, QueryRole role, String subject) {
-<span class="pc bpc" id="L78" title="1 of 4 branches missed.">        if (question == null || question.isBlank()) {</span>
-<span class="fc" id="L79">            throw new InvalidQueryException(&quot;question must not be empty&quot;);</span>
+    public QueryAnswer ask(String question, UUID machineId, QueryRole role, String subject,
+                           boolean approvedOnly) {
+<span class="pc bpc" id="L85" title="1 of 4 branches missed.">        if (question == null || question.isBlank()) {</span>
+<span class="fc" id="L86">            throw new InvalidQueryException(&quot;question must not be empty&quot;);</span>
         }
-<span class="pc bpc" id="L81" title="1 of 2 branches missed.">        if (machineId == null) {</span>
-<span class="nc" id="L82">            throw new InvalidQueryException(&quot;machineId is required — search is scoped to one machine&quot;);</span>
+<span class="pc bpc" id="L88" title="1 of 2 branches missed.">        if (machineId == null) {</span>
+<span class="nc" id="L89">            throw new InvalidQueryException(&quot;machineId is required — search is scoped to one machine&quot;);</span>
         }
 
         try {
-<span class="fc" id="L86">            rateLimiter.check(subject);</span>
-<span class="fc" id="L87">        } catch (QueryRateLimiter.RateLimitExceededException e) {</span>
-<span class="fc" id="L88">            throw new RateLimitedException(e.retryAfterSeconds(), e.getMessage());</span>
-<span class="fc" id="L89">        }</span>
+<span class="fc" id="L93">            rateLimiter.check(subject);</span>
+<span class="fc" id="L94">        } catch (QueryRateLimiter.RateLimitExceededException e) {</span>
+<span class="fc" id="L95">            throw new RateLimitedException(e.retryAfterSeconds(), e.getMessage());</span>
+<span class="fc" id="L96">        }</span>
 
-<span class="fc" id="L91">        Optional&lt;QueryAnswer&gt; cached = cache.get(question, machineId, role);</span>
-<span class="fc bfc" id="L92" title="All 2 branches covered.">        if (cached.isPresent()) {</span>
-<span class="fc" id="L93">            return cached.get();</span>
+        // approvedOnly is part of the cache key, not an afterthought: the same question against the
+        // same machine has two legitimate answers depending on it, and a cache that conflated them
+        // would serve the wider answer to a caller who asked for the reviewed subset.
+<span class="fc" id="L101">        Optional&lt;QueryAnswer&gt; cached = cache.get(question, machineId, role, approvedOnly);</span>
+<span class="fc bfc" id="L102" title="All 2 branches covered.">        if (cached.isPresent()) {</span>
+<span class="fc" id="L103">            return cached.get();</span>
         }
 
-<span class="pc bpc" id="L96" title="1 of 2 branches missed.">        if (!chatClient.isConfigured()) {</span>
-<span class="nc" id="L97">            throw new ProviderUnavailableException(</span>
+<span class="pc bpc" id="L106" title="1 of 2 branches missed.">        if (!chatClient.isConfigured()) {</span>
+<span class="nc" id="L107">            throw new ProviderUnavailableException(</span>
                     &quot;the answer service is not configured (no LLM_API_KEY); retrieval works, answering does not&quot;);
         }
-<span class="fc bfc" id="L100" title="All 2 branches covered.">        if (!retriever.machineExists(machineId)) {</span>
-<span class="fc" id="L101">            throw new InvalidQueryException(&quot;unknown machine: &quot; + machineId);</span>
+<span class="fc bfc" id="L110" title="All 2 branches covered.">        if (!retriever.machineExists(machineId)) {</span>
+<span class="fc" id="L111">            throw new InvalidQueryException(&quot;unknown machine: &quot; + machineId);</span>
         }
 
         // Two, not one: a Mode A answer whose citations do not survive validation falls through to
         // Mode B, and that fall-through is a second paid call.
         try {
-<span class="fc" id="L107">            budget.checkHeadroom(2);</span>
-<span class="fc" id="L108">        } catch (ChatBudget.BudgetExhaustedException e) {</span>
-<span class="fc" id="L109">            throw new BudgetExhaustedException(e.getMessage());</span>
-<span class="fc" id="L110">        }</span>
+<span class="fc" id="L117">            budget.checkHeadroom(2);</span>
+<span class="fc" id="L118">        } catch (ChatBudget.BudgetExhaustedException e) {</span>
+<span class="fc" id="L119">            throw new BudgetExhaustedException(e.getMessage());</span>
+<span class="fc" id="L120">        }</span>
 
-<span class="fc" id="L112">        float[] questionVector = embed(question);</span>
-<span class="fc" id="L113">        List&lt;RetrievedChunk&gt; hits = retriever.retrieve(machineId, questionVector, properties.topK());</span>
+<span class="fc" id="L122">        float[] questionVector = embed(question);</span>
+<span class="fc" id="L123">        List&lt;RetrievedChunk&gt; hits = retriever.retrieve(machineId, questionVector, properties.topK(), approvedOnly);</span>
 
-<span class="fc bfc" id="L115" title="All 2 branches covered.">        double best = hits.isEmpty() ? 0.0 : hits.get(0).similarity();</span>
-<span class="fc bfc" id="L116" title="All 4 branches covered.">        boolean grounded = !hits.isEmpty() &amp;&amp; best &gt;= properties.similarityThreshold();</span>
+<span class="fc bfc" id="L125" title="All 2 branches covered.">        double best = hits.isEmpty() ? 0.0 : hits.get(0).similarity();</span>
+<span class="fc bfc" id="L126" title="All 4 branches covered.">        boolean grounded = !hits.isEmpty() &amp;&amp; best &gt;= properties.similarityThreshold();</span>
 
-<span class="fc" id="L118">        log.info(&quot;Query on machine {} as {}: {} hits, best similarity {}, threshold {} -&gt; Mode {}&quot;,</span>
-<span class="fc" id="L119">                machineId, role, hits.size(), String.format(java.util.Locale.ROOT, &quot;%.4f&quot;, best),</span>
-<span class="fc bfc" id="L120" title="All 2 branches covered.">                properties.similarityThreshold(), grounded ? &quot;A&quot; : &quot;B&quot;);</span>
+<span class="fc" id="L128">        log.info(&quot;Query on machine {} as {}: {} hits, best similarity {}, threshold {} -&gt; Mode {}&quot;,</span>
+<span class="fc" id="L129">                machineId, role, hits.size(), String.format(java.util.Locale.ROOT, &quot;%.4f&quot;, best),</span>
+<span class="fc bfc" id="L130" title="All 2 branches covered.">                properties.similarityThreshold(), grounded ? &quot;A&quot; : &quot;B&quot;);</span>
 
         QueryAnswer answer;
         try {
-<span class="fc bfc" id="L124" title="All 2 branches covered.">            answer = grounded</span>
-<span class="fc" id="L125">                    ? answerGrounded(question, role, hits)</span>
-<span class="fc" id="L126">                    : answerUngrounded(question, role);</span>
-<span class="nc" id="L127">        } catch (ChatClient.ChatException e) {</span>
+<span class="fc bfc" id="L134" title="All 2 branches covered.">            answer = grounded</span>
+<span class="fc" id="L135">                    ? answerGrounded(question, role, hits)</span>
+<span class="fc" id="L136">                    : answerUngrounded(question, role);</span>
+<span class="nc" id="L137">        } catch (ChatClient.ChatException e) {</span>
             // Everything the provider can do to us — a rejected key, a timeout, an unreadable or
             // truncated answer — arrives here as one type, and leaves as one status. The detail is
             // in the log and in the message; what the caller needs to know is that retrying later
             // is the right move and that nothing was answered wrongly in the meantime.
-<span class="nc" id="L132">            log.warn(&quot;Chat call failed: {}&quot;, e.getMessage());</span>
-<span class="nc" id="L133">            throw new ProviderUnavailableException(&quot;the answer service is temporarily unavailable: &quot; + e.getMessage());</span>
-<span class="fc" id="L134">        }</span>
+<span class="nc" id="L142">            log.warn(&quot;Chat call failed: {}&quot;, e.getMessage());</span>
+<span class="nc" id="L143">            throw new ProviderUnavailableException(&quot;the answer service is temporarily unavailable: &quot; + e.getMessage());</span>
+<span class="fc" id="L144">        }</span>
 
-<span class="fc" id="L136">        cache.put(question, machineId, role, answer);</span>
-<span class="fc" id="L137">        budget.logUsage();</span>
-<span class="fc" id="L138">        return answer;</span>
+<span class="fc" id="L146">        cache.put(question, machineId, role, approvedOnly, answer);</span>
+<span class="fc" id="L147">        budget.logUsage();</span>
+<span class="fc" id="L148">        return answer;</span>
     }
 
     /**
@@ -144,25 +154,25 @@ public class QueryService {
      * support its claim is worse than a shorter answer.
      */
     private QueryAnswer answerGrounded(String question, QueryRole role, List&lt;RetrievedChunk&gt; hits) {
-<span class="fc" id="L147">        List&lt;GroundedPrompt.LabelledSource&gt; sources = labelByProtocol(hits);</span>
+<span class="fc" id="L157">        List&lt;GroundedPrompt.LabelledSource&gt; sources = labelByProtocol(hits);</span>
 
-<span class="fc" id="L149">        ChatClient.Completion completion = chatClient.complete(new ChatClient.Prompt(</span>
-<span class="fc" id="L150">                GroundedPrompt.system(role),</span>
-<span class="fc" id="L151">                GroundedPrompt.user(question, sources),</span>
+<span class="fc" id="L159">        ChatClient.Completion completion = chatClient.complete(new ChatClient.Prompt(</span>
+<span class="fc" id="L160">                GroundedPrompt.system(role),</span>
+<span class="fc" id="L161">                GroundedPrompt.user(question, sources),</span>
                 GroundedPrompt.SCHEMA_NAME,
-<span class="fc" id="L153">                GroundedPrompt.schema()));</span>
+<span class="fc" id="L163">                GroundedPrompt.schema()));</span>
 
-<span class="fc" id="L155">        Optional&lt;QueryAnswer&gt; assembled = assembler.assembleGrounded(completion.content(), sources);</span>
-<span class="fc bfc" id="L156" title="All 2 branches covered.">        if (assembled.isPresent()) {</span>
-<span class="fc" id="L157">            return assembled.get();</span>
+<span class="fc" id="L165">        Optional&lt;QueryAnswer&gt; assembled = assembler.assembleGrounded(completion.content(), sources);</span>
+<span class="fc bfc" id="L166" title="All 2 branches covered.">        if (assembled.isPresent()) {</span>
+<span class="fc" id="L167">            return assembled.get();</span>
         }
 
         // Nothing the model said was attributable to a retrieved source. Retrieval thought it had an
         // answer and generation could not produce a grounded one, so the honest output is the
         // labelled general suggestion rather than a Mode A answer with no claims in it. Rare enough
         // to be worth a warning, and cheap enough to be worth the second call.
-<span class="fc" id="L164">        log.warn(&quot;Mode A produced no valid citations; falling through to Mode B&quot;);</span>
-<span class="fc" id="L165">        return answerUngrounded(question, role);</span>
+<span class="fc" id="L174">        log.warn(&quot;Mode A produced no valid citations; falling through to Mode B&quot;);</span>
+<span class="fc" id="L175">        return answerUngrounded(question, role);</span>
     }
 
     /**
@@ -174,33 +184,34 @@ public class QueryService {
      * as though it were two independent pieces of evidence.
      */
     private List&lt;GroundedPrompt.LabelledSource&gt; labelByProtocol(List&lt;RetrievedChunk&gt; hits) {
-<span class="fc" id="L177">        LinkedHashMap&lt;UUID, List&lt;RetrievedChunk&gt;&gt; byProtocol = new LinkedHashMap&lt;&gt;();</span>
-<span class="fc bfc" id="L178" title="All 2 branches covered.">        for (RetrievedChunk hit : hits) {</span>
-<span class="fc bfc" id="L179" title="All 2 branches covered.">            if (hit.similarity() &gt;= properties.similarityThreshold()) {</span>
-<span class="fc" id="L180">                byProtocol.computeIfAbsent(hit.protocolId(), key -&gt; new ArrayList&lt;&gt;()).add(hit);</span>
+<span class="fc" id="L187">        LinkedHashMap&lt;UUID, List&lt;RetrievedChunk&gt;&gt; byProtocol = new LinkedHashMap&lt;&gt;();</span>
+<span class="fc bfc" id="L188" title="All 2 branches covered.">        for (RetrievedChunk hit : hits) {</span>
+<span class="fc bfc" id="L189" title="All 2 branches covered.">            if (hit.similarity() &gt;= properties.similarityThreshold()) {</span>
+<span class="fc" id="L190">                byProtocol.computeIfAbsent(hit.protocolId(), key -&gt; new ArrayList&lt;&gt;()).add(hit);</span>
             }
-<span class="fc" id="L182">        }</span>
-<span class="fc" id="L183">        List&lt;GroundedPrompt.LabelledSource&gt; sources = new ArrayList&lt;&gt;();</span>
-<span class="fc" id="L184">        int label = 1;</span>
-<span class="fc bfc" id="L185" title="All 2 branches covered.">        for (List&lt;RetrievedChunk&gt; chunks : byProtocol.values()) {</span>
+<span class="fc" id="L192">        }</span>
+<span class="fc" id="L193">        List&lt;GroundedPrompt.LabelledSource&gt; sources = new ArrayList&lt;&gt;();</span>
+<span class="fc" id="L194">        int label = 1;</span>
+<span class="fc bfc" id="L195" title="All 2 branches covered.">        for (List&lt;RetrievedChunk&gt; chunks : byProtocol.values()) {</span>
             // The first is the best: the retrieval query returns them in rank order and grouping
             // preserves it, so this is the similarity the threshold was compared against.
-<span class="fc" id="L188">            RetrievedChunk best = chunks.get(0);</span>
-<span class="fc" id="L189">            sources.add(new GroundedPrompt.LabelledSource(</span>
-<span class="fc" id="L190">                    &quot;P&quot; + label++, best.protocolId(), best.title(), best.errorCode(),</span>
-<span class="fc" id="L191">                    best.incidentDate(), best.similarity(),</span>
-<span class="fc" id="L192">                    chunks.stream().map(RetrievedChunk::content).toList()));</span>
-<span class="fc" id="L193">        }</span>
-<span class="fc" id="L194">        return sources;</span>
+<span class="fc" id="L198">            RetrievedChunk best = chunks.get(0);</span>
+<span class="fc" id="L199">            sources.add(new GroundedPrompt.LabelledSource(</span>
+<span class="fc" id="L200">                    &quot;P&quot; + label++, best.protocolId(), best.title(), best.errorCode(),</span>
+<span class="fc" id="L201">                    best.incidentDate(), best.similarity(),</span>
+<span class="fc" id="L202">                    chunks.stream().map(RetrievedChunk::content).toList(),</span>
+<span class="fc" id="L203">                    best.approved()));</span>
+<span class="fc" id="L204">        }</span>
+<span class="fc" id="L205">        return sources;</span>
     }
 
     private QueryAnswer answerUngrounded(String question, QueryRole role) {
-<span class="fc" id="L198">        ChatClient.Completion completion = chatClient.complete(new ChatClient.Prompt(</span>
-<span class="fc" id="L199">                UngroundedPrompt.system(role),</span>
-<span class="fc" id="L200">                UngroundedPrompt.user(question),</span>
+<span class="fc" id="L209">        ChatClient.Completion completion = chatClient.complete(new ChatClient.Prompt(</span>
+<span class="fc" id="L210">                UngroundedPrompt.system(role),</span>
+<span class="fc" id="L211">                UngroundedPrompt.user(question),</span>
                 UngroundedPrompt.SCHEMA_NAME,
-<span class="fc" id="L202">                UngroundedPrompt.schema()));</span>
-<span class="fc" id="L203">        return assembler.assembleUngrounded(completion.content());</span>
+<span class="fc" id="L213">                UngroundedPrompt.schema()));</span>
+<span class="fc" id="L214">        return assembler.assembleUngrounded(completion.content());</span>
     }
 
     /**
@@ -215,15 +226,15 @@ public class QueryService {
     private float[] embed(String question) {
         EmbeddingClient.EmbeddingBatch batch;
         try {
-<span class="fc" id="L218">            batch = embeddingClient.embed(List.of(question));</span>
-<span class="nc" id="L219">        } catch (EmbeddingClient.EmbeddingException e) {</span>
-<span class="nc" id="L220">            log.warn(&quot;Question embedding failed: {}&quot;, e.getMessage());</span>
-<span class="nc" id="L221">            throw new ProviderUnavailableException(&quot;the search service is temporarily unavailable: &quot; + e.getMessage());</span>
-<span class="fc" id="L222">        }</span>
-<span class="pc bpc" id="L223" title="1 of 2 branches missed.">        if (batch.vectors().size() != 1) {</span>
-<span class="nc" id="L224">            throw new ProviderUnavailableException(&quot;embedding provider returned no vector for the question&quot;);</span>
+<span class="fc" id="L229">            batch = embeddingClient.embed(List.of(question));</span>
+<span class="nc" id="L230">        } catch (EmbeddingClient.EmbeddingException e) {</span>
+<span class="nc" id="L231">            log.warn(&quot;Question embedding failed: {}&quot;, e.getMessage());</span>
+<span class="nc" id="L232">            throw new ProviderUnavailableException(&quot;the search service is temporarily unavailable: &quot; + e.getMessage());</span>
+<span class="fc" id="L233">        }</span>
+<span class="pc bpc" id="L234" title="1 of 2 branches missed.">        if (batch.vectors().size() != 1) {</span>
+<span class="nc" id="L235">            throw new ProviderUnavailableException(&quot;embedding provider returned no vector for the question&quot;);</span>
         }
-<span class="fc" id="L226">        return batch.vectors().get(0);</span>
+<span class="fc" id="L237">        return batch.vectors().get(0);</span>
     }
 
     // ---------------------------------------------------------------------------------------
@@ -239,8 +250,8 @@ public class QueryService {
     /** The caller's mistake: an empty question, a missing or unknown machine. Becomes a 400. */
     public static class InvalidQueryException extends RuntimeException {
         InvalidQueryException(String message) {
-<span class="fc" id="L242">            super(message);</span>
-<span class="fc" id="L243">        }</span>
+<span class="fc" id="L253">            super(message);</span>
+<span class="fc" id="L254">        }</span>
     }
 
     /** This user is asking too fast (NFR-7). Becomes a 429 with a Retry-After. */
@@ -249,27 +260,27 @@ public class QueryService {
         private final long retryAfterSeconds;
 
         RateLimitedException(long retryAfterSeconds, String message) {
-<span class="fc" id="L252">            super(message);</span>
-<span class="fc" id="L253">            this.retryAfterSeconds = retryAfterSeconds;</span>
-<span class="fc" id="L254">        }</span>
+<span class="fc" id="L263">            super(message);</span>
+<span class="fc" id="L264">            this.retryAfterSeconds = retryAfterSeconds;</span>
+<span class="fc" id="L265">        }</span>
 
         public long retryAfterSeconds() {
-<span class="fc" id="L257">            return retryAfterSeconds;</span>
+<span class="fc" id="L268">            return retryAfterSeconds;</span>
         }
     }
 
     /** Today's global answer budget is spent (NFR-7). Becomes a 503, gracefully. */
     public static class BudgetExhaustedException extends RuntimeException {
         BudgetExhaustedException(String message) {
-<span class="fc" id="L264">            super(message);</span>
-<span class="fc" id="L265">        }</span>
+<span class="fc" id="L275">            super(message);</span>
+<span class="fc" id="L276">        }</span>
     }
 
     /** Answering is impossible right now — no key, or the provider is unreachable. Becomes a 503. */
     public static class ProviderUnavailableException extends RuntimeException {
         ProviderUnavailableException(String message) {
-<span class="nc" id="L271">            super(message);</span>
-<span class="nc" id="L272">        }</span>
+<span class="nc" id="L282">            super(message);</span>
+<span class="nc" id="L283">        }</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

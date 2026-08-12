@@ -95,7 +95,7 @@ class QueryPipelineIT {
     @DisplayName("the vector query returns only chunks of the machine it was scoped to")
     void retrievalIsScopedToOneMachine() {
         QueryAnswer answer = queries.ask("Presse kommt nicht auf Druck, Fehler E-47",
-                presse3, QueryRole.TECHNIKER, "sub-1");
+                presse3, QueryRole.TECHNIKER, "sub-1", false);
 
         assertThat(answer.mode()).isEqualTo(QueryAnswer.AnswerMode.A);
         // Every source offered to the model, and therefore every citation it could produce, belongs
@@ -112,7 +112,7 @@ class QueryPipelineIT {
     @Test
     @DisplayName("the same question against another machine retrieves that machine's protocol")
     void theSameQuestionOnAnotherMachineRetrievesItsOwn() {
-        queries.ask("Presse kommt nicht auf Druck, Fehler E-47", presse7, QueryRole.TECHNIKER, "sub-2");
+        queries.ask("Presse kommt nicht auf Druck, Fehler E-47", presse7, QueryRole.TECHNIKER, "sub-2", false);
 
         assertThat(chat.lastUserPrompt()).contains("PR-07").doesNotContain("PR-03");
     }
@@ -134,7 +134,7 @@ class QueryPipelineIT {
                 .update();
         cache.clear();
 
-        queries.ask("Presse kommt nicht auf Druck, Fehler E-47", presse3, QueryRole.TECHNIKER, "sub-9");
+        queries.ask("Presse kommt nicht auf Druck, Fehler E-47", presse3, QueryRole.TECHNIKER, "sub-9", false);
 
         assertThat(chat.lastUserPrompt())
                 .as("the archived protocols must not reach the model as sources")
@@ -145,7 +145,7 @@ class QueryPipelineIT {
     @DisplayName("similarity comes back on the 0..1 scale the threshold is expressed in")
     void similarityIsReportedOnTheThresholdScale() {
         QueryAnswer answer = queries.ask("Presse kommt nicht auf Druck, Fehler E-47",
-                presse3, QueryRole.TECHNIKER, "sub-3");
+                presse3, QueryRole.TECHNIKER, "sub-3", false);
 
         assertThat(answer.citations()).isNotEmpty();
         assertThat(answer.citations()).allSatisfy(citation ->
@@ -156,7 +156,7 @@ class QueryPipelineIT {
     @DisplayName("a question nothing covers is answered as Mode B, with no citations")
     void anUncoveredQuestionIsModeB() {
         QueryAnswer answer = queries.ask("Dosierpumpe laeuft ungleichmaessig",
-                presse3, QueryRole.TECHNIKER, "sub-4");
+                presse3, QueryRole.TECHNIKER, "sub-4", false);
 
         assertThat(answer.mode()).isEqualTo(QueryAnswer.AnswerMode.B);
         assertThat(answer.citations()).isEmpty();
@@ -168,14 +168,14 @@ class QueryPipelineIT {
     void aMachineWithoutProtocolsAnswersModeB() {
         UUID empty = machineId("AB-02");
 
-        assertThat(queries.ask("Foerderschnecke blockiert", empty, QueryRole.TECHNIKER, "sub-5").mode())
+        assertThat(queries.ask("Foerderschnecke blockiert", empty, QueryRole.TECHNIKER, "sub-5", false).mode())
                 .isEqualTo(QueryAnswer.AnswerMode.B);
     }
 
     @Test
     @DisplayName("chat usage is counted in the database, once per provider call")
     void usageIsCounted() {
-        queries.ask("Presse kommt nicht auf Druck, Fehler E-47", presse3, QueryRole.TECHNIKER, "sub-6");
+        queries.ask("Presse kommt nicht auf Druck, Fehler E-47", presse3, QueryRole.TECHNIKER, "sub-6", false);
 
         Integer calls = jdbc.sql("SELECT calls FROM chat_budget WHERE usage_date = :d")
                 .param("d", LocalDate.now()).query(Integer.class).single();
@@ -191,8 +191,8 @@ class QueryPipelineIT {
     @Test
     @DisplayName("a second identical question is served from the cache and costs nothing")
     void aRepeatedQuestionCostsNothing() {
-        queries.ask("Presse kommt nicht auf Druck, Fehler E-47", presse3, QueryRole.TECHNIKER, "sub-7");
-        queries.ask("  presse KOMMT nicht auf Druck, Fehler E-47 ", presse3, QueryRole.TECHNIKER, "sub-7");
+        queries.ask("Presse kommt nicht auf Druck, Fehler E-47", presse3, QueryRole.TECHNIKER, "sub-7", false);
+        queries.ask("  presse KOMMT nicht auf Druck, Fehler E-47 ", presse3, QueryRole.TECHNIKER, "sub-7", false);
 
         assertThat(chat.calls()).isEqualTo(1);
         assertThat(jdbc.sql("SELECT calls FROM chat_budget WHERE usage_date = :d")

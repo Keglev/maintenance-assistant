@@ -1,5 +1,6 @@
 package com.keglevich.maintenanceassistant.web;
 
+import com.keglevich.maintenanceassistant.ingestion.ProtocolApprovalService;
 import com.keglevich.maintenanceassistant.ingestion.ProtocolDocumentService;
 import com.keglevich.maintenanceassistant.ingestion.ProtocolEditService;
 import com.keglevich.maintenanceassistant.ingestion.ProtocolModerationService;
@@ -24,6 +25,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -41,10 +43,15 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 /**
  * Who may moderate. This is the feature's actual boundary, so it gets its own suite.
  *
- * <p>The interesting assertion is not that an admin may — it is that a <b>Schichtleiter may not</b>.
- * They are the only role that can write to the corpus, which makes them the role ADR-006 is about;
- * a moderation endpoint they could reach would let the author of a bad protocol quietly remove the
- * evidence, and the audit function would be judging itself.
+ * <p>The interesting assertions are the refusals, and v1.2 changed which ones they are. A
+ * Schichtleiter still may not delete, may not read the archive and — the one that matters most now
+ * — <b>may not approve</b>: they became the corrector in the trust chain, so letting them also
+ * approve would put the corrector and the approver back in the same pair of hands. What they may do
+ * is correct, which is the whole point of decision 3 of 2026-08-11.
+ *
+ * <p>The Techniker may write and may never fix, not even their own protocol. That is asserted here
+ * rather than assumed, because "may create" and "may fix what they created" are the same permission
+ * in most systems and deliberately are not in this one.
  */
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -67,6 +74,9 @@ class ModerationSecurityIT {
 
     @MockitoBean
     private ProtocolDocumentService documents;
+
+    @MockitoBean
+    private ProtocolApprovalService approvals;
 
     // ---------------------------------------------------------------------------------------
     // Refused
@@ -103,11 +113,15 @@ class ModerationSecurityIT {
     }
 
     @ParameterizedTest(name = "a {0} may not edit a protocol")
-    @ValueSource(strings = {"operator", "techniker", "schichtleiter"})
+    // THE SCHICHTLEITER IS NO LONGER ON THIS LIST, and that is the v1.2 trust chain rather than a
+    // relaxation. Decision 3 of 2026-08-11 makes them the CORRECTOR: the Techniker writes and never
+    // fixes their own work, the Schichtleiter corrects, the Admin approves — three people. While
+    // correcting belonged to the admin alone, the corrector and the approver were the same role and
+    // four eyes collapsed to two. The protection the old rule was reaching for has not gone away; it
+    // moved to where it can actually be enforced, in ProtocolApprovalService, which refuses an
+    // approval by whoever wrote or last corrected the protocol.
+    @ValueSource(strings = {"operator", "techniker"})
     void noShopFloorRoleMayEdit(String role) throws Exception {
-        // The Schichtleiter matters most here, and for the same reason as the delete: they are the
-        // only role that can write to the corpus, so a correction tool they could reach would let
-        // the author of a bad protocol quietly rewrite it after someone started asking about it.
         mockMvc.perform(put("/api/moderation/protocols/{id}", PROTOCOL)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"title\":\"Neu\",\"content\":\"Text\",\"comment\":\"korrigiert\"}")
@@ -115,6 +129,83 @@ class ModerationSecurityIT {
                 .andExpect(status().isForbidden());
 
         verify(edits, never()).edit(any(), any(), anyString());
+    }
+
+    @Test
+    @DisplayName("a Techniker may not edit even their OWN protocol — writing and fixing are not the same permission")
+    void aTechnikerMayNotEditTheirOwnProtocol() throws Exception {
+        // The rule that makes a correction worth something: it was made by a second person. There
+        // is no "unless you wrote it" branch anywhere, and this test exists so nobody adds one as a
+        // convenience — the endpoint cannot be reached by the role at all, whoever the author is.
+        mockMvc.perform(put("/api/moderation/protocols/{id}", PROTOCOL)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"title\":\"Neu\",\"content\":\"Text\",\"comment\":\"eigenes protokoll\"}")
+                        .with(as("techniker")))
+                .andExpect(status().isForbidden());
+
+        verify(edits, never()).edit(any(), any(), anyString());
+    }
+
+    @ParameterizedTest(name = "a {0} may not approve a protocol")
+    @ValueSource(strings = {"operator", "techniker", "schichtleiter"})
+    void noShopFloorRoleMayApprove(String role) throws Exception {
+        // The Schichtleiter is the one that matters. They may now correct, and if they could also
+        // approve then the corrector and the approver would be the same person again — which is
+        // exactly what the chain exists to prevent.
+        mockMvc.perform(put("/api/moderation/protocols/{id}/approval", PROTOCOL)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"approved\":true}")
+                        .with(as(role)))
+                .andExpect(status().isForbidden());
+
+        verify(approvals, never()).setApproval(any(), anyBoolean(), anyString(), any());
+    }
+
+    @Test
+    @DisplayName("a Schichtleiter MAY correct a protocol — they are the corrector in the chain")
+    void aSchichtleiterMayEdit() throws Exception {
+        when(edits.edit(any(), any(), anyString())).thenReturn(Optional.of(PROTOCOL));
+
+        mockMvc.perform(put("/api/moderation/protocols/{id}", PROTOCOL)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"title\":\"Neu\",\"content\":\"Text\",\"comment\":\"Drehmoment korrigiert\"}")
+                        .with(as("schichtleiter")))
+                .andExpect(status().isAccepted());
+
+        verify(edits).edit(eq(PROTOCOL), any(), eq("schichtleiter"));
+    }
+
+    @Test
+    @DisplayName("an admin keeps the edit they have had since #39")
+    void anAdminMayStillEdit() throws Exception {
+        // Deliberately unchanged. Removing a power while adding another would alter the trust chain
+        // in a way nobody asked for; four eyes is enforced on the ACT instead, so an admin who edits
+        // simply cannot be the one who then approves.
+        when(edits.edit(any(), any(), anyString())).thenReturn(Optional.of(PROTOCOL));
+
+        mockMvc.perform(put("/api/moderation/protocols/{id}", PROTOCOL)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"title\":\"Neu\",\"content\":\"Text\",\"comment\":\"korrigiert\"}")
+                        .with(as("admin")))
+                .andExpect(status().isAccepted());
+    }
+
+    @Test
+    @DisplayName("an admin may approve")
+    void anAdminMayApprove() throws Exception {
+        when(approvals.setApproval(any(), anyBoolean(), anyString(), any()))
+                .thenReturn(Optional.of(new ProtocolApprovalService.Approval(
+                        "APPROVED", "admin", OffsetDateTime.now())));
+
+        mockMvc.perform(put("/api/moderation/protocols/{id}/approval", PROTOCOL)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"approved\":true}")
+                        .with(as("admin")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.state").value("APPROVED"))
+                .andExpect(jsonPath("$.approvedBy").value("admin"));
+
+        verify(approvals).setApproval(eq(PROTOCOL), eq(true), eq("admin"), any());
     }
 
     @ParameterizedTest(name = "a {0} may not read the archive")
@@ -153,7 +244,8 @@ class ModerationSecurityIT {
         when(moderation.list(anyInt(), anyInt(), any())).thenReturn(new ProtocolModerationService.ProtocolPage(
                 List.of(new ProtocolModerationService.ModeratedProtocol(
                         PROTOCOL, "PR-03", "E-47 Druckabfall", "STOERUNG", "E-47",
-                        "schichtleiter", OffsetDateTime.now(), "INDEXED", 2)),
+                        "schichtleiter", OffsetDateTime.now(), "INDEXED", 2,
+                        new ProtocolApprovalService.Approval("APPROVED", "admin", OffsetDateTime.now()))),
                 0, 10, 151));
 
         mockMvc.perform(get("/api/moderation/protocols").param("page", "0").param("size", "10")

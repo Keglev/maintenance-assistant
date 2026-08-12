@@ -459,7 +459,7 @@ class ProtocolModerationIT {
 
     private static ProtocolModerationService.ProtocolFilter filter(
             String machineNo, String titleContains, LocalDate from, LocalDate to) {
-        return new ProtocolModerationService.ProtocolFilter(machineNo, titleContains, from, to);
+        return new ProtocolModerationService.ProtocolFilter(machineNo, titleContains, from, to, null);
     }
 
     private static List<String> titlesOf(ProtocolModerationService.ProtocolPage page) {

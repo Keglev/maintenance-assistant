@@ -123,12 +123,12 @@ class QueryDemoVerificationIT {
         // Retrieval is run once on its own first, so the similarity reported below is the number
         // the threshold was compared against rather than one inferred from the outcome.
         float[] vector = embeddingClient.embed(List.of(question)).vectors().get(0);
-        List<RetrievedChunk> hits = retriever.retrieve(machineId, vector, queryProperties.topK());
+        List<RetrievedChunk> hits = retriever.retrieve(machineId, vector, queryProperties.topK(), false);
         double best = hits.isEmpty() ? 0.0 : hits.get(0).similarity();
 
         long startedAt = System.nanoTime();
         // A fresh subject per call, so the rate limiter never shapes a measurement.
-        QueryAnswer answer = queries.ask(question, machineId, role, UUID.randomUUID().toString());
+        QueryAnswer answer = queries.ask(question, machineId, role, UUID.randomUUID().toString(), false);
         long millis = (System.nanoTime() - startedAt) / 1_000_000L;
 
         System.out.printf("%n=== %s | model=%s | threshold=%.3f%n", label, chatProperties.model(),

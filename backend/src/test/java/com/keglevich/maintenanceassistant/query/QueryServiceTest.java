@@ -365,7 +365,7 @@ class QueryServiceTest {
     @Test
     @DisplayName("an empty question is rejected before anything is spent")
     void emptyQuestionIsRejected() {
-        assertThatThrownBy(() -> service.ask("   ", MACHINE, QueryRole.TECHNIKER, SUBJECT))
+        assertThatThrownBy(() -> service.ask("   ", MACHINE, QueryRole.TECHNIKER, SUBJECT, false))
                 .isInstanceOf(QueryService.InvalidQueryException.class);
         assertThat(chat.calls()).isZero();
     }
@@ -375,11 +375,13 @@ class QueryServiceTest {
     // ---------------------------------------------------------------------------------------
 
     private QueryAnswer ask(QueryRole role) {
-        return service.ask("Presse kommt nicht auf Druck, E-47", MACHINE, role, SUBJECT);
+        // approvedOnly = false: the default every shop-floor caller uses, because unapproved
+        // protocols stay searchable by decision (2026-08-11).
+        return service.ask("Presse kommt nicht auf Druck, E-47", MACHINE, role, SUBJECT, false);
     }
 
     private QueryAnswer ask2(QueryRole role, String question) {
-        return service.ask(question, MACHINE, role, SUBJECT);
+        return service.ask(question, MACHINE, role, SUBJECT, false);
     }
 
     private static RetrievedChunk hit(double similarity) {
@@ -389,7 +391,9 @@ class QueryServiceTest {
     private static RetrievedChunk hit(UUID protocolId, double similarity) {
         return new RetrievedChunk(UUID.randomUUID(), protocolId,
                 "PR-03 · E-47 · Druckabfall\nSymptom: Presse kommt nicht auf Druck.",
-                "E-47 Druckabfall im Presshub", "E-47", "de", LocalDate.of(2024, 10, 8), similarity);
+                "E-47 Druckabfall im Presshub", "E-47", "de", LocalDate.of(2024, 10, 8), similarity,
+                // Approved, like the seeded corpus these fixtures imitate.
+                true);
     }
 
     /** Deterministic and meaningless: this test is about routing, not about retrieval quality. */
@@ -423,9 +427,21 @@ class QueryServiceTest {
             this.machineExists = false;
         }
 
+        /** What the last call asked for, so a test can assert the flag reached retrieval. */
+        private boolean lastApprovedOnly;
+
         @Override
-        List<RetrievedChunk> retrieve(UUID machineId, float[] questionVector, int topK) {
-            return hits.stream().limit(topK).toList();
+        List<RetrievedChunk> retrieve(UUID machineId, float[] questionVector, int topK,
+                                      boolean approvedOnly) {
+            this.lastApprovedOnly = approvedOnly;
+            return hits.stream()
+                    .filter(hit -> !approvedOnly || hit.approved())
+                    .limit(topK)
+                    .toList();
+        }
+
+        boolean lastApprovedOnly() {
+            return lastApprovedOnly;
         }
 
         @Override

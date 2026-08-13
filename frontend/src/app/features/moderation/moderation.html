@@ -275,13 +275,15 @@
                 </td>
                 <!-- On every row, not only on the unapproved ones. This list is also where an
                      administrator checks that something they approved is STILL approved — and after
-                     a correction it will not be, because an edit resets it. -->
+                     a correction it will not be, because an edit resets it.
+                     THE STATE, AND NOTHING ELSE, since 2026-08-14. It carried the approver and the
+                     date until Carlos's production drill found the column truncating — "Freigegeben
+                     system:corpus-seed · 12.08.2…" ran under the action buttons. Who and when are
+                     PROVENANCE, and provenance belongs in the record rather than repeated down
+                     twenty rows of a list somebody is scanning for a title: it is in the viewer's
+                     history section now, read once, beside the document. -->
                 <td class="approval-cell">
-                  <app-approval-state
-                    [approval]="protocol.approval"
-                    [language]="language()"
-                    [showActor]="true"
-                  />
+                  <app-approval-state [approval]="protocol.approval" />
                 </td>
                 <!-- The buttons live in a DIV inside the cell, not on the cell itself. A <td> with
                      `display: flex` stops being a table cell: the browser wraps it in an anonymous
@@ -639,11 +641,9 @@
                vouched for" is a merge-or-reject question, while "nearly the same as one nobody has
                reviewed" may be two people describing one fault from different angles — which this
                corpus wants both of. -->
-          <app-approval-state
-            [approval]="candidate.approval"
-            [language]="language()"
-            [showActor]="true"
-          />
+          <!-- The STATE is what the approver is comparing against; who signed the candidate off is
+               a question they can answer by opening it, where the history now lives. -->
+          <app-approval-state [approval]="candidate.approval" />
           <button
             type="button"
             class="btn btn-secondary btn-sm"

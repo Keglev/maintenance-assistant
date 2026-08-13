@@ -7,14 +7,13 @@
       <path d="M8 12.4l2.6 2.6L16 9.6" />
     </svg>
     <span class="approval-label">{{ t().approval.approved }}</span>
-    @if (showActor() && approval().approvedBy) {
-      <!-- WHO and WHEN, because an approval without an actor is not an audit record — the same rule
-           the database constraint states. The day, not the minute: a reviewer asks whether this was
-           signed off before or after last week's change, never at which second. -->
-      <span class="approval-actor" data-testid="approval-actor">
-        {{ approval().approvedBy }} · {{ approval().approvedAt | appDate: language() }}
-      </span>
-    }
+    <!-- THE ACTOR AND DATE ARE GONE FROM THIS BADGE (2026-08-14), and they were removed rather than
+         hidden behind a flag. This component renders in a table cell, a source card and a dialog
+         head; the longest of the three — "Freigegeben system:corpus-seed · 12.08.2026" in the
+         Verwaltung column — truncated in production and ran under the action buttons. WHO and WHEN
+         are provenance, they belong in the record rather than in every list that mentions it, and
+         the protocol viewer's history section is where they are now. What this badge says is the
+         STATE, in every one of its three homes. -->
   </span>
 } @else {
   <span class="approval approval-unapproved" data-testid="approval-state" data-approval="UNAPPROVED">

@@ -120,6 +120,41 @@ export interface Approval {
 }
 
 /**
+ * The vocabulary the moderation ledger can spell, matching the schema's own check constraint.
+ *
+ * `UNAPPROVE` rather than `WITHDRAW` — the verb the database has recorded since #53. The interface
+ * says "Freigabe zurückgezogen"; renaming the stored value would be a data migration and a sweep of
+ * three services to change a word no user reads.
+ */
+export type ModerationAction = 'EDIT' | 'DELETE' | 'APPROVE' | 'UNAPPROVE';
+
+/** One act on one protocol: what happened, who did it, when, and why. */
+export interface ModerationEvent {
+  readonly action: ModerationAction;
+  readonly actor: string;
+  /** Never blank — the table's own constraint requires a reason on every row. */
+  readonly comment: string;
+  readonly at: string;
+}
+
+/**
+ * A protocol's recent history, from `GET /api/moderation/protocols/{id}/history`.
+ *
+ * `events` is capped SERVER-side; `total` is how many exist. The pair is what lets the viewer say
+ * that older entries exist rather than presenting the newest three as though they were everything.
+ *
+ * **An empty list is a true answer, not a missing one.** The 150 seeded protocols were approved by
+ * the V5 migration itself — `system:corpus-seed`, no human act — so they have no ledger rows and
+ * never will. The viewer falls back to the approval columns on the protocol for exactly that case.
+ */
+export interface ProtocolHistory {
+  readonly events: readonly ModerationEvent[];
+  readonly total: number;
+  /** The server-side cap, sent so no screen hard-codes a number the backend is free to change. */
+  readonly limit: number;
+}
+
+/**
  * A protocol on the same machine that says close to what the one being approved says, from
  * `GET /api/moderation/protocols/{id}/similar`.
  *

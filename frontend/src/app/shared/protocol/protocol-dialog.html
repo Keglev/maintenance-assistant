@@ -13,11 +13,10 @@
         <!-- Beside the machine, in the head, so it is read BEFORE the text rather than looked up
              afterwards. A reader who has already worked through a protocol and only then learns
              that nobody has reviewed it has been told too late to act on it. -->
-        <app-approval-state
-          [approval]="state"
-          [language]="language()"
-          [showActor]="source() !== 'citation'"
-        />
+        <!-- STATE ONLY, everywhere, since 2026-08-14. Who approved it and when live in the history
+             section below, once, beside the document they are about — not repeated in a head, a
+             table cell and a source card, where the longest of the three truncated in production. -->
+        <app-approval-state [approval]="state" />
       }
     </p>
   }
@@ -112,5 +111,60 @@
         }
       }
     </article>
+  }
+
+  <!-- WHAT HAS BEEN DONE TO THIS PROTOCOL, and Carlos's ruling of 2026-08-14 about where it belongs.
+       The records table shows the approval STATE and nothing else — its FREIGABE column truncated in
+       production trying to carry "Freigegeben system:corpus-seed · 12.08.2026" — and the provenance
+       moved here, where it is read once, beside the document it describes.
+
+       ABSENT ENTIRELY when there is nothing to say: no events and no approval to attribute renders
+       no heading, no empty box and no "no history yet" line. The shop floor never sees this at all —
+       the endpoint refuses their roles, and the viewer does not ask. -->
+  @if (hasHistorySection()) {
+    <section class="viewer-history" data-testid="protocol-history">
+      <h4 class="viewer-history-heading">{{ t().viewer.historyHeading }}</h4>
+
+      @if (showsApprovalProvenance()) {
+        <!-- NO LEDGER ROWS, BUT AN APPROVAL — the 150 seeded protocols, approved by the V5 migration
+             itself. `system:corpus-seed` is the truthful record of that decision rather than a
+             placeholder: it says no human reviewed this, it was born approved. Showing nothing here
+             would let a reader assume the approval came from somewhere it did not. -->
+        <p class="viewer-history-seeded" data-testid="history-seeded">
+          {{ t().viewer.historyApproved }}: {{ approval()?.approvedBy }} ·
+          {{ approval()?.approvedAt | appDate: language() : true }}
+        </p>
+        @if (approval()?.approvedBy?.startsWith('system:')) {
+          <p class="caption" data-testid="history-seeded-note">{{ t().viewer.historySeeded }}</p>
+        }
+      } @else {
+        <ol class="viewer-history-list" data-testid="history-list">
+          @for (event of events(); track $index) {
+            <li class="viewer-history-item" data-testid="history-item">
+              <p class="viewer-history-act">
+                <span class="viewer-history-what">{{ actionLabel(event.action) }}</span>
+                <span class="viewer-history-who" data-testid="history-actor">{{ event.actor }}</span>
+                <!-- THE TIME AS WELL AS THE DAY. Two corrections on one afternoon are a different
+                     story from two a month apart, and the day-only format the tables use cannot
+                     tell them apart. -->
+                <span class="viewer-history-when" data-testid="history-when">{{
+                  event.at | appDate: language() : true
+                }}</span>
+              </p>
+              <!-- Never blank: the table's own constraint requires a reason on every row, which is
+                   why this needs no empty case. -->
+              <p class="viewer-history-why" data-testid="history-comment">{{ event.comment }}</p>
+            </li>
+          }
+        </ol>
+
+        @if (olderEvents() > 0) {
+          <!-- One quiet line, and NO "show all" control. The three-entry cap is a product decision:
+               a full change history is a report with its own screen, deferred deliberately. What
+               this line prevents is the truncation being silent. -->
+          <p class="caption" data-testid="history-more">{{ t().viewer.historyMore(olderEvents()) }}</p>
+        }
+      }
+    </section>
   }
 </app-dialog>

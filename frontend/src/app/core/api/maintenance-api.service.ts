@@ -11,6 +11,7 @@ import {
   NO_FILTER,
   ProtocolCorrection,
   ProtocolFilter,
+  ProtocolHistory,
   ProtocolPage,
   QueryAnswer,
   SimilarityReport,
@@ -167,6 +168,19 @@ export class MaintenanceApiService {
     return this.http.put<Approval>(
       `${this.apiBaseUrl}/moderation/protocols/${protocolId}/approval`,
       { approved, comment },
+    );
+  }
+
+  /**
+   * What has been done to one protocol, newest first. ADMIN and SCHICHTLEITER, server-side.
+   *
+   * Capped by the backend rather than here: a protocol edited weekly for a year has fifty rows, and
+   * fetching all of them so a dialog can drop forty-seven is a payload that grows with the corpus's
+   * age. The response carries `total` so the viewer can still say that older entries exist.
+   */
+  protocolHistory(protocolId: string): Observable<ProtocolHistory> {
+    return this.http.get<ProtocolHistory>(
+      `${this.apiBaseUrl}/moderation/protocols/${protocolId}/history`,
     );
   }
 

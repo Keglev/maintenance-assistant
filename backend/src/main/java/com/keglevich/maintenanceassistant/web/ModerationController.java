@@ -54,6 +54,7 @@ import java.util.UUID;
  * <pre>
  *   GET  /                          ADMIN, SCHICHTLEITER   the corpus list
  *   GET  /{id}/document             ADMIN, SCHICHTLEITER   read one protocol
+ *   GET  /{id}/history              ADMIN, SCHICHTLEITER   what was done to it
  *   PUT  /{id}                      SCHICHTLEITER          correct it  (admin refused)
  *   DELETE /{id}                    ADMIN                  archive it
  *   PUT  /{id}/approval             ADMIN                  approve / withdraw
@@ -62,9 +63,11 @@ import java.util.UUID;
  *   GET  /deleted/{id}/document     ADMIN                  an archived document
  * </pre>
  *
- * <p><b>The Schichtleiter's two reads exist to serve the one write, and go no further.</b> Correcting
- * is not moderating: you cannot correct what you cannot find or open, so the list and the document
- * come with the job — and nothing else does. Removing a protocol from the corpus, approving one, and
+ * <p><b>The Schichtleiter's three reads exist to serve the one write, and go no further.</b>
+ * Correcting is not moderating: you cannot correct what you cannot find, cannot open, or cannot see
+ * the recent history of — an edit that silently repeats a correction somebody made last week is the
+ * mistake the third one prevents — so the list, the document and the history come with the job, and
+ * nothing else does. Removing a protocol from the corpus, approving one, and
  * reading the archive of what was removed are the administrator's, unchanged. The archive in
  * particular holds exactly the protocols somebody decided were unfit to be read, and it stays behind
  * the role that decided it.
@@ -192,6 +195,43 @@ class ModerationController {
                         .build()
                         .toString())
                 .body(document.resource());
+    }
+
+    @GetMapping("/{id}/history")
+    @Operation(summary = "What has been done to this protocol, newest act first",
+            description = "The moderation ledger for one protocol: corrections, approvals, "
+                    + "withdrawals and its removal, each with WHO, WHEN and WHY. Limited "
+                    + "SERVER-SIDE to the newest few — the viewer shows a recent history beside a "
+                    + "document, not a report — with `total` reported so a client can say that "
+                    + "older entries exist rather than presenting the newest as everything. A "
+                    + "protocol approved by the V5 seed migration has NO events: the 150 seeded "
+                    + "protocols were born approved by a migration and no human act produced them, "
+                    + "so the honest answer is an empty list and the approval columns on the "
+                    + "protocol itself.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200",
+                    description = "The newest acts, possibly none. An unknown id answers an empty "
+                            + "history rather than 404 — the ledger outlives its subject by design, "
+                            + "so 'no rows' is a true answer here and not a missing resource"),
+            @ApiResponse(responseCode = "403",
+                    description = "Caller is neither an administrator nor a Schichtleiter")
+    })
+    /*
+     * THE SAME RULE AS THE DOCUMENT READ, and no wider: ADMIN and SCHICHTLEITER.
+     *
+     * The corrector gets it for the reason they got the document — you cannot judge a correction
+     * you are about to make without knowing what was already done to the protocol, and an edit that
+     * silently repeats a correction somebody made last week is the mistake this prevents.
+     *
+     * IT STOPS THERE, and the shop floor is refused deliberately. Who corrected what, who approved
+     * it and who took an approval back is MODERATION information: it names colleagues in connection
+     * with mistakes, which is exactly why the delete comment travels in a body rather than a query
+     * string (ADR-006). A technician checking a citation needs the protocol's text and its approval
+     * STATE, both of which they already have.
+     */
+    @PreAuthorize("hasAnyRole('ADMIN', 'SCHICHTLEITER')")
+    ProtocolModerationService.ProtocolHistory history(@PathVariable UUID id) {
+        return moderation.history(id);
     }
 
     @PutMapping("/{id}")

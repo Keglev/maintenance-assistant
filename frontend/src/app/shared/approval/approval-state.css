@@ -48,20 +48,8 @@
   font-weight: 700;
 }
 
-/* Who signed it off and when. One step down from the label it follows: it is the evidence behind
-   the word, not a second claim of its own. */
-.approval-actor {
-  font-family: var(--font-mono);
-  font-variant-numeric: tabular-nums;
-  color: var(--c-ink-muted);
-}
-
-/* In a narrow cell the actor drops under the label rather than forcing the column wider — the
-   Verwaltung table already scrolls horizontally below desktop width, and this is the cell most
-   likely to be the reason. */
-@media (max-width: 40rem) {
-  .approval {
-    flex-wrap: wrap;
-    white-space: normal;
-  }
-}
+/* THE ACTOR RULE IS GONE (2026-08-14), and so is the narrow-viewport wrap it needed. This badge is
+   an icon and a word now — "Nicht freigegeben" is the widest it gets — so there is nothing left to
+   wrap and nothing left that can set a column's width. Who signed it off and when moved to the
+   protocol viewer's history section, because the version that carried them here truncated in
+   production. */

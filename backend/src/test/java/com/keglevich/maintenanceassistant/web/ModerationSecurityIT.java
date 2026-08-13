@@ -4,6 +4,7 @@ import com.keglevich.maintenanceassistant.ingestion.ProtocolApprovalService;
 import com.keglevich.maintenanceassistant.ingestion.ProtocolDocumentService;
 import com.keglevich.maintenanceassistant.ingestion.ProtocolEditService;
 import com.keglevich.maintenanceassistant.ingestion.ProtocolModerationService;
+import com.keglevich.maintenanceassistant.ingestion.ProtocolSimilarityService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -18,6 +19,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
@@ -59,6 +61,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class ModerationSecurityIT {
 
     private static final UUID PROTOCOL = UUID.fromString("0f9c5b02-0000-4000-8000-000000000001");
+    /** The protocol the report points AT — a second id, so a mix-up cannot pass. */
+    private static final UUID OTHER = UUID.fromString("0f9c5b02-0000-4000-8000-000000000003");
 
     @Autowired
     private MockMvc mockMvc;
@@ -139,7 +143,7 @@ class ModerationSecurityIT {
     }
 
     @ParameterizedTest(name = "a Schichtleiter may not reach {0} — correcting is not moderating")
-    @ValueSource(strings = {"delete", "approve", "archive", "archivedDocument"})
+    @ValueSource(strings = {"delete", "approve", "archive", "archivedDocument", "similar"})
     void theCorrectorGetsTheCORRECTIONJobAndNothingElse(String act) throws Exception {
         // THE FENCE AROUND 2026-08-14's WIDENING, and the test that matters most in this file. Two
         // reads were opened so that one write could be reached; a Schichtleiter who can suddenly
@@ -153,6 +157,10 @@ class ModerationSecurityIT {
                     .contentType(MediaType.APPLICATION_JSON)
                     .content("{\"approved\":true}");
             case "archive" -> get("/api/moderation/protocols/deleted");
+            // The duplicate report. A corrector who could read it would be handed a signal with no
+            // act attached: the decision it informs — approve, merge or reject — is the
+            // administrator's, and correcting is not moderating.
+            case "similar" -> get("/api/moderation/protocols/{id}/similar", PROTOCOL);
             default -> get("/api/moderation/protocols/deleted/{id}/document", PROTOCOL);
         };
 
@@ -261,6 +269,41 @@ class ModerationSecurityIT {
         // only have caught this administrator LATER, at the approval, and only if they tried to
         // approve their own correction.
         verify(edits, never()).edit(any(), any(), anyString());
+    }
+
+    @ParameterizedTest(name = "a {0} may not read the duplicate report")
+    @ValueSource(strings = {"operator", "techniker", "schichtleiter"})
+    void noShopFloorRoleMayReadTheDuplicateReport(String role) throws Exception {
+        mockMvc.perform(get("/api/moderation/protocols/{id}/similar", PROTOCOL).with(as(role)))
+                .andExpect(status().isForbidden());
+
+        verify(approvals, never()).similarTo(any());
+    }
+
+    @Test
+    @DisplayName("an admin may read the duplicate report, and it carries each candidate's own approval state")
+    void anAdminMayReadTheDuplicateReport() throws Exception {
+        when(approvals.similarTo(PROTOCOL)).thenReturn(
+                new ProtocolSimilarityService.SimilarityReport(true, List.of(
+                        new ProtocolSimilarityService.SimilarProtocol(
+                                OTHER, "E-47 Druckabfall im Presshub", LocalDate.of(2024, 10, 8),
+                                "schichtleiter", OffsetDateTime.now(), 0.9305,
+                                new ProtocolApprovalService.Approval("APPROVED", "admin",
+                                        OffsetDateTime.now()))),
+                        1, List.of(OTHER), 0.92));
+
+        mockMvc.perform(get("/api/moderation/protocols/{id}/similar", PROTOCOL).with(as("admin")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.comparable").value(true))
+                .andExpect(jsonPath("$.total").value(1))
+                // The threshold travels with the answer so no screen and no test hard-codes a number
+                // the configuration is free to change.
+                .andExpect(jsonPath("$.threshold").value(0.92))
+                .andExpect(jsonPath("$.candidates[0].similarity").value(0.9305))
+                // The candidate's OWN state. "Nearly the same as something already vouched for" and
+                // "nearly the same as something nobody has reviewed" are different situations, and
+                // the interface cannot tell them apart without this.
+                .andExpect(jsonPath("$.candidates[0].approval.state").value("APPROVED"));
     }
 
     @Test

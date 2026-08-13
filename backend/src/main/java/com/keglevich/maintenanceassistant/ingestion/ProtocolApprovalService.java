@@ -38,6 +38,14 @@ import java.util.UUID;
  * role widening, and a rule enforced in exactly one place is one annotation edit away from being
  * gone. Whoever filed a protocol, and whoever last corrected it, may not be the one who approves it
  * — checked against the protocol's own history. The cost is one query on an act that happens rarely.
+ *
+ * <p><b>DUPLICATE DETECTION WARNS AND NEVER BLOCKS (2026-08-14).</b> Approving runs
+ * {@link ProtocolSimilarityService} against the same machine's protocols and records what it found
+ * in the ledger — and does nothing else with it. There is no branch below that refuses an approval
+ * on a similarity score, and there is not meant to be one: the four E-47 protocols are four
+ * different root causes behind one fault code, all legitimate, and any threshold sensitive enough
+ * to catch a real duplicate would flag them as copies of each other. The admin decides; the system
+ * informs, and then puts on the record that it informed.
  */
 @Service
 public class ProtocolApprovalService {
@@ -54,10 +62,13 @@ public class ProtocolApprovalService {
 
     private final JdbcClient jdbc;
     private final ProtocolModerationService moderation;
+    private final ProtocolSimilarityService similarity;
 
-    ProtocolApprovalService(JdbcClient jdbc, ProtocolModerationService moderation) {
+    ProtocolApprovalService(JdbcClient jdbc, ProtocolModerationService moderation,
+                            ProtocolSimilarityService similarity) {
         this.jdbc = jdbc;
         this.moderation = moderation;
+        this.similarity = similarity;
     }
 
     /** The state of one protocol's approval, as the API returns it. */
@@ -133,9 +144,7 @@ public class ProtocolApprovalService {
                 .update();
 
         moderation.recordEvent(protocolId, approve ? "APPROVE" : "UNAPPROVE", actor,
-                comment == null || comment.isBlank()
-                        ? "approved without further comment"
-                        : comment.trim());
+                approve ? approvalComment(protocolId, comment) : comment);
 
         // INFO for the same reason deletion is: this is the audit trail of the audit function, and
         // the queryable half lives in moderation_event.
@@ -146,6 +155,64 @@ public class ProtocolApprovalService {
         return Optional.of(approve
                 ? new Approval(APPROVED, actor, now)
                 : new Approval(UNAPPROVED, null, null));
+    }
+
+    /** The prefix an auditor can grep the ledger for. Stable text, like an error code. */
+    public static final String APPROVED_DESPITE = "approved despite ";
+
+    /**
+     * What the ledger says about an approval, including the fact that similar protocols existed.
+     *
+     * <p><b>Why this is on the record at all.</b> A plant auditor asking "did anybody notice that
+     * these two protocols say the same thing?" should find the answer in the ledger rather than in
+     * somebody's memory of a screen. It is the accountability argument ADR-006 already makes for
+     * delete-with-reason, applied to the moment a protocol becomes vouched-for: an informed decision
+     * and an uninformed one look identical afterwards unless one of them is written down.
+     *
+     * <p><b>The similarity is recomputed here rather than taken from the request</b>, and that is the
+     * point. If the client sent the ids it happened to display, an approval made through {@code curl}
+     * — or by a client that simply never asked — would record "nothing similar", which is the one
+     * answer the ledger must never give wrongly. The check belongs to the act, not to the screen.
+     *
+     * <p><b>NO JUSTIFICATION IS REQUIRED, deliberately.</b> A mandatory text field on every approval
+     * would make the common case — nothing similar, nothing to say — expensive, and a field people
+     * are forced to fill fills up with "ok". The record that the approver was informed and proceeded
+     * is the accountability that was missing; a sentence about it is not.
+     *
+     * <p>It stays ONE row. The ledger is a record of changes to the corpus's trust, and an approval
+     * is one change however much context it carries; a second SIMILARITY row would be an event that
+     * did not happen.
+     */
+    private String approvalComment(UUID protocolId, String comment) {
+        ProtocolSimilarityService.SimilarityReport report = similarity.findSimilar(protocolId);
+        String note = report.any()
+                ? APPROVED_DESPITE + report.total() + " similar protocol(s) on this machine: "
+                        + report.allIds().stream().map(UUID::toString)
+                                .collect(java.util.stream.Collectors.joining(", "))
+                : null;
+
+        String stated = comment == null || comment.isBlank() ? null : comment.trim();
+        if (stated != null && note != null) {
+            // The human's words first, the system's observation after: a reader of the ledger is
+            // looking for what the approver said, and a machine-generated clause in front of it
+            // reads as though the system did the approving.
+            return stated + " — " + note;
+        }
+        if (stated != null) {
+            return stated;
+        }
+        return note != null ? note : "approved without further comment";
+    }
+
+    /**
+     * The similarity report for one protocol, for the approver who is about to decide.
+     *
+     * <p>Exposed as its own read so the interface can ask <em>before</em> the approval rather than
+     * learn about it afterwards. It runs the same code the approval itself runs, so what the screen
+     * showed and what the ledger recorded cannot disagree.
+     */
+    public ProtocolSimilarityService.SimilarityReport similarTo(UUID protocolId) {
+        return similarity.findSimilar(protocolId);
     }
 
     /**

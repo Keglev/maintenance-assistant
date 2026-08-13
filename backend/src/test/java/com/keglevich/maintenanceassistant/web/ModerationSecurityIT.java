@@ -129,6 +129,55 @@ class ModerationSecurityIT {
                 .andExpect(jsonPath("$.items[0].approval.state").value("UNAPPROVED"));
     }
 
+    @ParameterizedTest(name = "a {0} may not read a protocol's history")
+    // The shop floor, refused. Who corrected what, who approved it and who took an approval back
+    // names colleagues in connection with mistakes — the same reason the delete comment travels in
+    // a body rather than a query string. A technician checking a citation gets the protocol's text
+    // and its approval STATE, and both already reach them.
+    @ValueSource(strings = {"operator", "techniker"})
+    void noShopFloorRoleMayReadTheHistory(String role) throws Exception {
+        mockMvc.perform(get("/api/moderation/protocols/{id}/history", PROTOCOL).with(as(role)))
+                .andExpect(status().isForbidden());
+
+        verify(moderation, never()).history(any());
+    }
+
+    @Test
+    @DisplayName("a Schichtleiter MAY read the history — an edit that repeats last week's is the risk")
+    void theCorrectorMayReadTheHistory() throws Exception {
+        when(moderation.history(PROTOCOL)).thenReturn(
+                new ProtocolModerationService.ProtocolHistory(List.of(
+                        new ProtocolModerationService.ModerationEvent(
+                                "APPROVE", "admin", "geprüft", OffsetDateTime.now())),
+                        4, 3));
+
+        mockMvc.perform(get("/api/moderation/protocols/{id}/history", PROTOCOL)
+                        .with(as("schichtleiter")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.events[0].action").value("APPROVE"))
+                .andExpect(jsonPath("$.events[0].actor").value("admin"))
+                // Every row carries a reason by database constraint, so the client never renders an
+                // entry with nothing beside it.
+                .andExpect(jsonPath("$.events[0].comment").value("geprüft"))
+                // The pair that lets a viewer say older entries exist rather than presenting the
+                // newest as everything — and the cap, sent so no screen hard-codes it.
+                .andExpect(jsonPath("$.total").value(4))
+                .andExpect(jsonPath("$.limit").value(3));
+    }
+
+    @Test
+    @DisplayName("an admin may read the history")
+    void anAdminMayReadTheHistory() throws Exception {
+        when(moderation.history(PROTOCOL)).thenReturn(
+                new ProtocolModerationService.ProtocolHistory(List.of(), 0, 3));
+
+        mockMvc.perform(get("/api/moderation/protocols/{id}/history", PROTOCOL).with(as("admin")))
+                .andExpect(status().isOk())
+                // An empty history is a 200, not a 404: the 150 seeded protocols have no ledger rows
+                // and never will, and "no acts" is a true answer about a protocol that exists.
+                .andExpect(jsonPath("$.total").value(0));
+    }
+
     @Test
     @DisplayName("a Schichtleiter MAY read a protocol's document — the edit dialog loads it")
     void theCorrectorMayReadTheDocument() throws Exception {

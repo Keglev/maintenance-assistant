@@ -4,7 +4,6 @@ import { beforeEach, describe, expect, it } from 'vitest';
 
 import { Approval } from '../../core/api/api.types';
 import { I18nService } from '../../core/i18n/i18n.service';
-import { UiLanguage } from '../../core/i18n/dictionary';
 import { ApprovalStateBadge } from './approval-state';
 
 /**
@@ -20,16 +19,10 @@ import { ApprovalStateBadge } from './approval-state';
  */
 @Component({
   imports: [ApprovalStateBadge],
-  template: `<app-approval-state
-    [approval]="approval()"
-    [language]="language()"
-    [showActor]="showActor()"
-  />`,
+  template: `<app-approval-state [approval]="approval()" />`,
 })
 class Host {
   readonly approval = signal<Approval>({ state: 'UNAPPROVED', approvedBy: null, approvedAt: null });
-  readonly language = signal<UiLanguage>('de');
-  readonly showActor = signal(false);
 }
 
 describe('ApprovalStateBadge', () => {
@@ -44,12 +37,11 @@ describe('ApprovalStateBadge', () => {
     TestBed.inject(I18nService).use('de');
   });
 
-  async function render(approval?: Approval, showActor = false) {
+  async function render(approval?: Approval) {
     const fixture = TestBed.createComponent(Host);
     if (approval) {
       fixture.componentInstance.approval.set(approval);
     }
-    fixture.componentInstance.showActor.set(showActor);
     await fixture.whenStable();
     return fixture.nativeElement as HTMLElement;
   }
@@ -77,32 +69,31 @@ describe('ApprovalStateBadge', () => {
     }
   });
 
-  it('names the approver and the day when the reader is auditing', async () => {
-    const element = await render(APPROVED, true);
-    const actor = element.querySelector('[data-testid="approval-actor"]')?.textContent ?? '';
+  it('says the STATE and never the actor, in either state', async () => {
+    // THE 2026-08-14 RULE, and the regression this test exists to catch. This badge renders in a
+    // table cell, a source card and a dialog head; when it also carried the approver and the date,
+    // the widest form of it — "Freigegeben system:corpus-seed · 12.08.2026" — overflowed the
+    // Verwaltung column in production and ran under the action buttons.
+    //
+    // WHO and WHEN are provenance and belong in the record, not in every list that mentions it:
+    // they are in the protocol viewer's history section now. If an actor ever reappears here, this
+    // is what says the defect came back rather than a feature arriving.
+    for (const approval of [undefined, APPROVED]) {
+      const element = await render(approval);
+      const badge = element.querySelector('[data-testid="approval-state"]');
 
-    // An approval without an actor is not an audit record — the same rule the database constraint
-    // states. The date follows the interface language, through the shared pipe.
-    expect(actor).toContain('admin');
-    expect(actor).toContain('11.08.2026');
+      expect(badge?.querySelector('[data-testid="approval-actor"]')).toBeNull();
+      expect(badge?.textContent).not.toContain('admin');
+      expect(badge?.textContent).not.toContain('2026');
+    }
   });
 
-  it('says nothing about who, where the reader is a technician reading an answer', async () => {
+  it('is short enough that it cannot set a table column’s width', async () => {
+    // The content half of the same fix, asserted rather than assumed: the badge is an icon and one
+    // label, and the label is the longest string it can ever hold.
     const element = await render(APPROVED);
+    const badge = element.querySelector('[data-testid="approval-state"]');
 
-    // A source card asks one question: was this reviewed. Putting a colleague's username under
-    // every cited claim would answer a question nobody asked, about a person who made no claim.
-    expect(element.querySelector('[data-testid="approval-actor"]')).toBeNull();
-    expect(element.querySelector('[data-testid="approval-state"]')?.textContent).toContain(
-      'Freigegeben',
-    );
-  });
-
-  it('shows no actor line for an unapproved protocol, even when asked to', async () => {
-    // There is nobody to name: the schema forbids an UNAPPROVED row from carrying an approver, so
-    // a template that rendered the field regardless would print an empty separator.
-    const element = await render(undefined, true);
-
-    expect(element.querySelector('[data-testid="approval-actor"]')).toBeNull();
+    expect(badge?.textContent?.trim()).toBe('Freigegeben');
   });
 });

@@ -862,6 +862,142 @@ ADR-006-insider-threat-and-protocol-moderation · maintenance-assistant Docs</ti
         note above). No assignment, no due date and no reminder on the
         queue: it is a filter on a list, which is the smallest thing
         that makes the state actionable.</p>
+        <hr />
+        <h2
+        id="revision-2026-08-14-the-corrector-gets-a-door-and-what-it-does-not-open">Revision
+        — 2026-08-14: the corrector gets a door, and what it does not
+        open</h2>
+        <p><strong>For one release the correction path had no interface
+        for anybody, and that is worth writing down rather than quietly
+        closing.</strong> The 2026-08-13 revision made
+        <code>PUT /api/moderation/protocols/{id}</code>
+        SCHICHTLEITER-only, which was the right rule. But the only
+        screen with a Bearbeiten button is <code>/moderation</code>, and
+        that route was <code>roleGuard('admin')</code> — so the
+        administrator held the screen without the permission and the
+        Schichtleiter held the permission without the screen.</p>
+        <p><strong>The role split landed before the route did.</strong>
+        It was named in that pull request rather than discovered later,
+        and left for Carlos because widening who may reach a view is a
+        permission decision and not a UI change. He has ruled: open it
+        to the Schichtleiter. The honest version of this history is more
+        useful than a clean-looking one — a permission and its path are
+        one change, and splitting them across two releases is how a
+        feature ships that nobody can use.</p>
+        <h3
+        id="the-endpoint-role-matrix-which-is-now-written-in-the-controller-too">The
+        endpoint × role matrix, which is now written in the controller
+        too</h3>
+        <table>
+        <colgroup>
+        <col style="width: 25%" />
+        <col style="width: 25%" />
+        <col style="width: 25%" />
+        <col style="width: 25%" />
+        </colgroup>
+        <thead>
+        <tr class="header">
+        <th>Endpoint</th>
+        <th>ADMIN</th>
+        <th>SCHICHTLEITER</th>
+        <th>Why</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr class="odd">
+        <td><code>GET /</code></td>
+        <td>✅</td>
+        <td>✅</td>
+        <td>you cannot correct what you cannot find</td>
+        </tr>
+        <tr class="even">
+        <td><code>GET /{id}/document</code></td>
+        <td>✅</td>
+        <td>✅</td>
+        <td>the edit dialog loads the stored text, not the row</td>
+        </tr>
+        <tr class="odd">
+        <td><code>PUT /{id}</code></td>
+        <td>❌</td>
+        <td>✅</td>
+        <td>the approver is never the corrector (2026-08-13)</td>
+        </tr>
+        <tr class="even">
+        <td><code>DELETE /{id}</code></td>
+        <td>✅</td>
+        <td>❌</td>
+        <td>removing from the corpus is moderation</td>
+        </tr>
+        <tr class="odd">
+        <td><code>PUT /{id}/approval</code></td>
+        <td>✅</td>
+        <td>❌</td>
+        <td>the corrector is never the approver</td>
+        </tr>
+        <tr class="even">
+        <td><code>GET /deleted</code></td>
+        <td>✅</td>
+        <td>❌</td>
+        <td>the archive holds what somebody judged unfit to be read</td>
+        </tr>
+        <tr class="odd">
+        <td><code>GET /deleted/{id}/document</code></td>
+        <td>✅</td>
+        <td>❌</td>
+        <td>same</td>
+        </tr>
+        </tbody>
+        </table>
+        <p>Operator and Techniker reach none of it. <strong>Two reads
+        were opened so that one write could be reached, and nothing else
+        was</strong>: a Schichtleiter who could suddenly delete would be
+        a worse defect than the unreachable endpoint this closes, so
+        that fence is a parameterised refusal test over all four
+        admin-only acts rather than the absence of a change.</p>
+        <p>The document read deserves its own line, because the obvious
+        objection is that a Schichtleiter can already fetch the same
+        bytes from <code>/api/protocols/{id}/document</code>, which is
+        open to the shop floor. True — and the alternative is a client
+        that picks one of two document paths by role. The reason
+        <code>/api/moderation/**</code> has its own document endpoint is
+        that the two differ in <strong>who may take them</strong>, which
+        is exactly the kind of difference that should stay visible at
+        the call site.</p>
+        <h3
+        id="correcting-is-not-moderating-and-the-screen-has-to-say-so">Correcting
+        is not moderating, and the screen has to say so</h3>
+        <p>The route is shared; the view is not. A Schichtleiter sees
+        the records list, Öffnen and Bearbeiten. They do not see
+        Löschen, Freigeben/Zurückziehen or the archive tab —
+        <strong>absent, not disabled</strong>. A destructive control
+        that exists only to refuse is noise on a shop-floor tablet and,
+        worse, tells the reader their role includes a power it does
+        not.</p>
+        <p>The wording follows the same rule. “Protokollverwaltung”
+        describes reviewing and removing, so the heading, the intro line
+        and the navigation entry are chosen by role — the corrector gets
+        “Protokolle korrigieren” and “Korrekturen”. A corrector who
+        clicks “Verwaltung” and finds no delete button has been told the
+        wrong thing about their own role, and the trust chain is only as
+        legible as the screen that presents it.</p>
+        <p><strong>One sentence was added to the correction
+        dialog</strong>: when the protocol is currently APPROVED, it
+        says that saving withdraws that approval. An edit resets
+        approval unconditionally, so a correction is how an approved
+        protocol quietly stops being approved — and the person about to
+        cause it should read that before they save rather than find it
+        in the list afterwards. In the dialog that is already open, not
+        a second confirmation: the ordinary case for a corrector is text
+        nobody has reviewed, and it must not pay for the rarer one.</p>
+        <h3 id="what-this-closes-in-the-test-suite">What this closes in
+        the test suite</h3>
+        <p><code>correctAsSchichtleiter</code> — the e2e helper that
+        performed the correction as an authenticated <code>PUT</code>
+        because no browser could take that step — is
+        <strong>deleted</strong>. It was written to be, and the pattern
+        is worth keeping even though the helper is not: when a gap is
+        somebody else’s decision, stand in for it in a way that names
+        itself, and make the stand-in cheap to remove.</p>
       </article>
     </main>
 
@@ -972,6 +1108,25 @@ ADR-006-insider-threat-and-protocol-moderation · maintenance-assistant Docs</ti
       the interface must say, and why it is not optional</a></li>
       <li><a href="#still-not-done" id="toc-still-not-done">Still not
       done</a></li>
+      </ul></li>
+      <li><a
+      href="#revision-2026-08-14-the-corrector-gets-a-door-and-what-it-does-not-open"
+      id="toc-revision-2026-08-14-the-corrector-gets-a-door-and-what-it-does-not-open">Revision
+      — 2026-08-14: the corrector gets a door, and what it does not
+      open</a>
+      <ul>
+      <li><a
+      href="#the-endpoint-role-matrix-which-is-now-written-in-the-controller-too"
+      id="toc-the-endpoint-role-matrix-which-is-now-written-in-the-controller-too">The
+      endpoint × role matrix, which is now written in the controller
+      too</a></li>
+      <li><a
+      href="#correcting-is-not-moderating-and-the-screen-has-to-say-so"
+      id="toc-correcting-is-not-moderating-and-the-screen-has-to-say-so">Correcting
+      is not moderating, and the screen has to say so</a></li>
+      <li><a href="#what-this-closes-in-the-test-suite"
+      id="toc-what-this-closes-in-the-test-suite">What this closes in
+      the test suite</a></li>
       </ul></li>
       </ul></li>
       </ul>

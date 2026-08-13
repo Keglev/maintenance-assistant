@@ -271,8 +271,24 @@ web ─── IngestionBacklogService ┘   (async, own pool)      │   └ Emb
         <code>ProtocolUploadController</code> (Techniker and
         Schichtleiter since v1.2), <code>IngestionAdminController</code>
         (admin), <code>OpenApiConfig</code>.</li>
+        <li><strong><code>ModerationController</code></strong> — the
+        trust chain’s security surface, and the one place where the
+        endpoint × role matrix is written down in full (class javadoc).
+        The class rule is <code>ADMIN</code>; the deviations are
+        <code>PUT /{id}</code> (SCHICHTLEITER only — the approver does
+        not correct) and, since 2026-08-14, the corpus list and the
+        document read (ADMIN or SCHICHTLEITER — you cannot correct what
+        you cannot find or open). Delete, approval and the archive stay
+        ADMIN. See <a
+        href="../adr/ADR-006-insider-threat-and-protocol-moderation.html">ADR-006</a>.</li>
         <li><strong>Angular client</strong> — login redirect and guarded
-        home; search and upload views in Phase 3.</li>
+        home; search and upload views in Phase 3.
+        <code>/moderation</code> is reached by two roles and renders two
+        views: the administrator reviews, approves and archives; the
+        Schichtleiter corrects, and the controls they may not use are
+        <strong>absent rather than disabled</strong>. The heading and
+        the navigation entry are chosen by role for the same
+        reason.</li>
         </ul>
       </article>
     </main>

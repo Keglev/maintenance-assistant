@@ -218,6 +218,36 @@ rather than given one afterwards.
    labelled as ARRANGEMENT, with every assertion still in the browser —
    see correctAsSchichtleiter in e2e/support.ts, which is written to be
    DELETED the day the route opens.
+
+   PROGRESS 2026-08-14 — CARLOS RULED, AND THE GAP ABOVE IS CLOSED
+   (feat/schichtleiter-correction-view). Open the path to the
+   Schichtleiter. /moderation is now roleGuard('admin','schichtleiter'),
+   and the backend widened exactly two endpoints, method-level: the
+   corpus LIST and the DOCUMENT read. You cannot correct what you cannot
+   find or open; the edit dialog loads the STORED TEXT rather than
+   rebuilding it from the row, so the document read is not optional.
+   IT STOPS THERE, and the fence has its own parameterised test: delete,
+   approve, the archive and archived documents stay ADMIN. The full
+   endpoint x role matrix now lives in ModerationController's class
+   javadoc and in ADR-006 — one place a reader can check the security
+   surface of the whole trust chain instead of collecting it from seven
+   annotations.
+   CORRECTING IS NOT MODERATING, and the screen says so: the
+   Schichtleiter sees the list, Öffnen and Bearbeiten, and does NOT see
+   Löschen, Freigeben/Zurückziehen or the archive tab — absent, never
+   disabled, because a control that exists only to refuse is noise on a
+   tablet and a lie about the role. The heading, the intro and the nav
+   entry are chosen by role ("Protokolle korrigieren", "Korrekturen"):
+   a corrector who clicks "Verwaltung" and finds no delete button has
+   been told the wrong thing about their own role.
+   One sentence in the correction dialog when the protocol is APPROVED,
+   because an edit resets approval (#53) and the person causing it
+   should read that before they save, not find it in the list after.
+   correctAsSchichtleiter IS DELETED — it was written to be, and every
+   e2e step is a click again. THE HISTORY IS RECORDED HONESTLY IN
+   ADR-006: for one release the correction path had no interface at all,
+   because the role split landed before the route did. A permission and
+   its path are one change.
    PR 3 (DUPLICATE DETECTION ON APPROVAL) IS NEXT: the pgvector
    similarity run against the same machine's protocols, a WARNING with
    links that NEVER blocks, and the E-47 seed as the proof case.
@@ -325,6 +355,15 @@ STANDING LIST — small, always visible, never a release of its own:
     1280x900. Chosen for CHURN, not coverage: v1.1 spent four PRs (#41,
     #44, #45, #46) on spacing defects that were all found by opening
     production and looking.
+    FOURTEEN BASELINES SINCE 2026-08-14 (feat/schichtleiter-correction-view):
+    a seventh surface, the Schichtleiter's view of the records table, in both
+    palettes. What defines it is what is ABSENT — no delete, no approval
+    control, no tab strip — which is what a functional test asserts well, and
+    the argument for a baseline anyway is that ABSENCE HAS A LAYOUT: the
+    actions cell is sized for three buttons and this role sees two, and the
+    tab strip that disappears was what separated the heading from the filter
+    card. The other twelve were untouched by that PR, which is the check
+    saying the admin's view really did not move.
     TWELVE BASELINES SINCE 2026-08-13 (feat/approval-ui): a sixth surface,
     the Mode A answer with an UNAPPROVED source, in both palettes. Added
     against the "churn, not coverage" rule and on purpose: the other five

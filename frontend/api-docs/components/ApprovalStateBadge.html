@@ -166,7 +166,13 @@ palettes, which is the same rule the footer health dot and the two answer modes 
 with a colour vision deficiency, or one glancing at a tablet in plant lighting, gets the same
 information as everyone else.<p><b>Approved is deliberately quiet, unapproved is deliberately not.</b> Most of the corpus is
 approved, so a loud green badge on every row would be noise the eye learns to skip — and the
-moment it does, the marker that matters stops being noticed too.
+moment it does, the marker that matters stops being noticed too.<p><b>IT SAYS THE STATE AND NOTHING ELSE (2026-08-14).</b> It used to name the approver and the
+day behind a {@code showActor} flag, and the flag is deleted rather than defaulted off: the
+longest form of it — "Freigegeben system:corpus-seed · 12.08.2026" — truncated in the Verwaltung
+table in production and ran under the action buttons. Who and when are PROVENANCE, and provenance
+belongs in the record rather than repeated in every list that mentions it. It is in the protocol
+viewer's history section now. The {@code language} input went with it: with no date to format,
+a required input that every one of four call sites had to supply was a cost with no purchase.
 
     </p>
 
@@ -208,13 +214,6 @@ moment it does, the marker that matters stops being noticed too.
                 <td class="col-md-9"><code>true</code></td>
             </tr>
 
-            <tr>
-                <td class="col-md-3">imports</td>
-                <td class="col-md-9">
-                        <div>        <code><a href="../components/App.html" target="_self" >AppDatePipe</a></code>
-</div>
-                </td>
-            </tr>
 
             <tr>
                 <td class="col-md-3">styleUrls</td>
@@ -265,11 +264,7 @@ moment it does, the marker that matters stops being noticed too.
 
                 <div class="col-sm-6">
                     <h4>Depends on</h4>
-                        <ul class="list-unstyled relationships-list">
-                                <li>
-                                            <code><a href="../components/App.html" target="_self" >AppDatePipe</a></code>
-                                </li>
-                        </ul>
+                        <p class="comment"><i>No results matching.</i></p>
                 </div>
             </div>
         </section>
@@ -321,12 +316,6 @@ moment it does, the marker that matters stops being noticed too.
                             <li>
                                 <span class="reference-badge reference-badge--property" aria-hidden="true">I</span><a href="#approval" >approval</a>
                             </li>
-                            <li>
-                                <span class="reference-badge reference-badge--property" aria-hidden="true">I</span><a href="#language" >language</a>
-                            </li>
-                            <li>
-                                <span class="reference-badge reference-badge--property" aria-hidden="true">I</span><a href="#showActor" >showActor</a>
-                            </li>
                         </ul>
                     </td>
                 </tr>
@@ -362,79 +351,9 @@ moment it does, the marker that matters stops being noticed too.
                 </tr>
                         <tr>
                             <td class="col-md-2" colspan="2">
-                                    <div class="io-line">Defined in <a href="" data-line="39" class="link-to-prism">src/app/shared/approval/approval-state.ts:39</a></div>
+                                    <div class="io-line">Defined in <a href="" data-line="44" class="link-to-prism">src/app/shared/approval/approval-state.ts:44</a></div>
                             </td>
                         </tr>
-            </tbody>
-        </table>
-        <table class="table table-sm table-bordered">
-            <tbody>
-                <tr>
-                    <td class="col-md-4">
-                        <a name="language"></a>
-                        <b>language</b>
-                    </td>
-                </tr>
-                <tr>
-                    <td class="col-md-4">
-                        <i>Type : </i>        <code><a href="../miscellaneous/typealiases.html#UiLanguage" target="_self" >UiLanguage</a></code>
-
-                    </td>
-                </tr>
-                <tr>
-                    <td class="col-md-4">
-                        <i>Required : </i>&nbsp;<b>true</b>
-                    </td>
-                </tr>
-                        <tr>
-                            <td class="col-md-2" colspan="2">
-                                    <div class="io-line">Defined in <a href="" data-line="48" class="link-to-prism">src/app/shared/approval/approval-state.ts:48</a></div>
-                            </td>
-                        </tr>
-                <tr>
-                    <td class="col-md-4">
-                        <div class="io-description"><p>The language the date is formatted in.</p>
-<p>An input rather than something read from the service, because <a href="../pipes/AppDatePipe.html">AppDatePipe</a> is pure: a
-language change alters no input on a table cell, so a pipe that read the signal itself would go
-stale until something else happened to redraw the row.</p>
-</div>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
-        <table class="table table-sm table-bordered">
-            <tbody>
-                <tr>
-                    <td class="col-md-4">
-                        <a name="showActor"></a>
-                        <b>showActor</b>
-                    </td>
-                </tr>
-                <tr>
-                    <td class="col-md-4">
-                        <i>Type : </i>        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/boolean" target="_blank" >boolean</a></code>
-
-                    </td>
-                </tr>
-                <tr>
-                    <td class="col-md-4">
-                        <i>Default value : </i><code>false</code>
-                    </td>
-                </tr>
-                        <tr>
-                            <td class="col-md-2" colspan="2">
-                                    <div class="io-line">Defined in <a href="" data-line="57" class="link-to-prism">src/app/shared/approval/approval-state.ts:57</a></div>
-                            </td>
-                        </tr>
-                <tr>
-                    <td class="col-md-4">
-                        <div class="io-description"><p>Whether to name the approver and the day.</p>
-<p>Off on a source card under an answer — a technician reading an answer needs to know whether the
-source was reviewed, not by whom — and on in the Verwaltung table and the viewer, where the
-reader is an administrator auditing exactly that.</p>
-</div>
-                    </td>
-                </tr>
             </tbody>
         </table>
 </section>
@@ -474,7 +393,7 @@ reader is an administrator auditing exactly that.</p>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="59" class="link-to-prism">src/app/shared/approval/approval-state.ts:59</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="46" class="link-to-prism">src/app/shared/approval/approval-state.ts:46</a></div>
                         </td>
                     </tr>
 
@@ -507,7 +426,7 @@ reader is an administrator auditing exactly that.</p>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="35" class="link-to-prism">src/app/shared/approval/approval-state.ts:35</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="40" class="link-to-prism">src/app/shared/approval/approval-state.ts:40</a></div>
                         </td>
                     </tr>
 
@@ -540,7 +459,7 @@ reader is an administrator auditing exactly that.</p>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="37" class="link-to-prism">src/app/shared/approval/approval-state.ts:37</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="42" class="link-to-prism">src/app/shared/approval/approval-state.ts:42</a></div>
                         </td>
                     </tr>
 
@@ -556,8 +475,6 @@ reader is an administrator auditing exactly that.</p>
         <pre class="line-numbers compodoc-sourcecode"><code class="language-typescript">import { Component, computed, input } from &#x27;@angular/core&#x27;;
 
 import { Approval } from &#x27;../../core/api/api.types&#x27;;
-import { AppDatePipe } from &#x27;../../core/i18n/app-date.pipe&#x27;;
-import { UiLanguage } from &#x27;../../core/i18n/dictionary&#x27;;
 import { I18nService } from &#x27;../../core/i18n/i18n.service&#x27;;
 import { inject } from &#x27;@angular/core&#x27;;
 
@@ -579,10 +496,17 @@ import { inject } from &#x27;@angular/core&#x27;;
  * &lt;p&gt;&lt;b&gt;Approved is deliberately quiet, unapproved is deliberately not.&lt;/b&gt; Most of the corpus is
  * approved, so a loud green badge on every row would be noise the eye learns to skip — and the
  * moment it does, the marker that matters stops being noticed too.
+ *
+ * &lt;p&gt;&lt;b&gt;IT SAYS THE STATE AND NOTHING ELSE (2026-08-14).&lt;/b&gt; It used to name the approver and the
+ * day behind a {@code showActor} flag, and the flag is deleted rather than defaulted off: the
+ * longest form of it — &quot;Freigegeben system:corpus-seed · 12.08.2026&quot; — truncated in the Verwaltung
+ * table in production and ran under the action buttons. Who and when are PROVENANCE, and provenance
+ * belongs in the record rather than repeated in every list that mentions it. It is in the protocol
+ * viewer&#x27;s history section now. The {@code language} input went with it: with no date to format,
+ * a required input that every one of four call sites had to supply was a cost with no purchase.
  */
 @Component({
   selector: &#x27;app-approval-state&#x27;,
-  imports: [AppDatePipe],
   templateUrl: &#x27;./approval-state.html&#x27;,
   styleUrl: &#x27;./approval-state.css&#x27;,
 })
@@ -592,24 +516,6 @@ export class ApprovalStateBadge {
   protected readonly t &#x3D; this.i18n.t;
 
   readonly approval &#x3D; input.required&lt;Approval&gt;();
-
-  /**
-   * The language the date is formatted in.
-   *
-   * An input rather than something read from the service, because {@link AppDatePipe} is pure: a
-   * language change alters no input on a table cell, so a pipe that read the signal itself would go
-   * stale until something else happened to redraw the row.
-   */
-  readonly language &#x3D; input.required&lt;UiLanguage&gt;();
-
-  /**
-   * Whether to name the approver and the day.
-   *
-   * Off on a source card under an answer — a technician reading an answer needs to know whether the
-   * source was reviewed, not by whom — and on in the Verwaltung table and the viewer, where the
-   * reader is an administrator auditing exactly that.
-   */
-  readonly showActor &#x3D; input(false);
 
   protected readonly approved &#x3D; computed(() &#x3D;&gt; this.approval().state &#x3D;&#x3D;&#x3D; &#x27;APPROVED&#x27;);
 }
@@ -626,14 +532,13 @@ export class ApprovalStateBadge {
       &lt;path d&#x3D;&quot;M8 12.4l2.6 2.6L16 9.6&quot; /&gt;
     &lt;/svg&gt;
     &lt;span class&#x3D;&quot;approval-label&quot;&gt;{{ t().approval.approved }}&lt;/span&gt;
-    @if (showActor() &amp;&amp; approval().approvedBy) {
-      &lt;!-- WHO and WHEN, because an approval without an actor is not an audit record — the same rule
-           the database constraint states. The day, not the minute: a reviewer asks whether this was
-           signed off before or after last week&#x27;s change, never at which second. --&gt;
-      &lt;span class&#x3D;&quot;approval-actor&quot; data-testid&#x3D;&quot;approval-actor&quot;&gt;
-        {{ approval().approvedBy }} · {{ approval().approvedAt | appDate: language() }}
-      &lt;/span&gt;
-    }
+    &lt;!-- THE ACTOR AND DATE ARE GONE FROM THIS BADGE (2026-08-14), and they were removed rather than
+         hidden behind a flag. This component renders in a table cell, a source card and a dialog
+         head; the longest of the three — &quot;Freigegeben system:corpus-seed · 12.08.2026&quot; in the
+         Verwaltung column — truncated in production and ran under the action buttons. WHO and WHEN
+         are provenance, they belong in the record rather than in every list that mentions it, and
+         the protocol viewer&#x27;s history section is where they are now. What this badge says is the
+         STATE, in every one of its three homes. --&gt;
   &lt;/span&gt;
 } @else {
   &lt;span class&#x3D;&quot;approval approval-unapproved&quot; data-testid&#x3D;&quot;approval-state&quot; data-approval&#x3D;&quot;UNAPPROVED&quot;&gt;
@@ -705,23 +610,11 @@ export class ApprovalStateBadge {
   font-weight: 700;
 }
 
-/* Who signed it off and when. One step down from the label it follows: it is the evidence behind
-   the word, not a second claim of its own. */
-.approval-actor {
-  font-family: var(--font-mono);
-  font-variant-numeric: tabular-nums;
-  color: var(--c-ink-muted);
-}
-
-/* In a narrow cell the actor drops under the label rather than forcing the column wider — the
-   Verwaltung table already scrolls horizontally below desktop width, and this is the cell most
-   likely to be the reason. */
-@media (max-width: 40rem) {
-  .approval {
-    flex-wrap: wrap;
-    white-space: normal;
-  }
-}
+/* THE ACTOR RULE IS GONE (2026-08-14), and so is the narrow-viewport wrap it needed. This badge is
+   an icon and a word now — &quot;Nicht freigegeben&quot; is the widest it gets — so there is nothing left to
+   wrap and nothing left that can set a column&#x27;s width. Who signed it off and when moved to the
+   protocol viewer&#x27;s history section, because the version that carried them here truncated in
+   production. */
 </code></pre>
     </div>
 
@@ -750,7 +643,7 @@ export class ApprovalStateBadge {
 <script src="../js/libs/htmlparser.js"></script>
 <script src="../js/libs/deep-iterator.js"></script>
 <script>
-        var COMPONENT_TEMPLATE = '<div><!-- One element per state rather than one element with two classes: the icon differs, and a shared     node with a swapped path is harder to read than two small blocks that each say one thing. -->@if (approved()) {  <span class="approval approval-approved" data-testid="approval-state" data-approval="APPROVED">    <svg class="approval-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">      <circle cx="12" cy="12" r="9" />      <path d="M8 12.4l2.6 2.6L16 9.6" />    </svg>    <span class="approval-label">{{ t().approval.approved }}</span>    @if (showActor() && approval().approvedBy) {      <!-- WHO and WHEN, because an approval without an actor is not an audit record — the same rule           the database constraint states. The day, not the minute: a reviewer asks whether this was           signed off before or after last week\'s change, never at which second. -->      <span class="approval-actor" data-testid="approval-actor">        {{ approval().approvedBy }} · {{ approval().approvedAt | appDate: language() }}      </span>    }  </span>} @else {  <span class="approval approval-unapproved" data-testid="approval-state" data-approval="UNAPPROVED">    <!-- The word is what carries the meaning; the colour and the triangle only make it findable. An         unapproved protocol is not an error, so this is not the danger red — it is the caution the         reader is owed before they act on the text. -->    <svg class="approval-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">      <path d="M12 3.6L1.8 20.4h20.4z" />      <path d="M12 9.6v4.6" />      <circle class="dot" cx="12" cy="17.4" r="1" />    </svg>    <span class="approval-label">{{ t().approval.unapproved }}</span>  </span>}</div>'
+        var COMPONENT_TEMPLATE = '<div><!-- One element per state rather than one element with two classes: the icon differs, and a shared     node with a swapped path is harder to read than two small blocks that each say one thing. -->@if (approved()) {  <span class="approval approval-approved" data-testid="approval-state" data-approval="APPROVED">    <svg class="approval-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">      <circle cx="12" cy="12" r="9" />      <path d="M8 12.4l2.6 2.6L16 9.6" />    </svg>    <span class="approval-label">{{ t().approval.approved }}</span>    <!-- THE ACTOR AND DATE ARE GONE FROM THIS BADGE (2026-08-14), and they were removed rather than         hidden behind a flag. This component renders in a table cell, a source card and a dialog         head; the longest of the three — "Freigegeben system:corpus-seed · 12.08.2026" in the         Verwaltung column — truncated in production and ran under the action buttons. WHO and WHEN         are provenance, they belong in the record rather than in every list that mentions it, and         the protocol viewer\'s history section is where they are now. What this badge says is the         STATE, in every one of its three homes. -->  </span>} @else {  <span class="approval approval-unapproved" data-testid="approval-state" data-approval="UNAPPROVED">    <!-- The word is what carries the meaning; the colour and the triangle only make it findable. An         unapproved protocol is not an error, so this is not the danger red — it is the caution the         reader is owed before they act on the text. -->    <svg class="approval-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">      <path d="M12 3.6L1.8 20.4h20.4z" />      <path d="M12 9.6v4.6" />      <circle class="dot" cx="12" cy="17.4" r="1" />    </svg>    <span class="approval-label">{{ t().approval.unapproved }}</span>  </span>}</div>'
     var COMPONENTS = [{'name': 'App', 'selector': 'app-root'},{'name': 'ApprovalStateBadge', 'selector': 'app-approval-state'},{'name': 'Dialog', 'selector': 'app-dialog'},{'name': 'HealthDot', 'selector': 'app-health-dot'},{'name': 'HelpDialog', 'selector': 'app-help-dialog'},{'name': 'Landing', 'selector': 'app-landing'},{'name': 'Moderation', 'selector': 'app-moderation'},{'name': 'Pager', 'selector': 'app-pager'},{'name': 'ProtocolDialog', 'selector': 'app-protocol-dialog'},{'name': 'Search', 'selector': 'app-search'},{'name': 'SearchAnswer', 'selector': 'app-search-answer'},{'name': 'SearchHelp', 'selector': 'app-search-help'},{'name': 'SearchSources', 'selector': 'app-search-sources'},{'name': 'SettingsDialog', 'selector': 'app-settings-dialog'},{'name': 'ThemeToggle', 'selector': 'app-theme-toggle'},{'name': 'Upload', 'selector': 'app-upload'}];
     var DIRECTIVES = [];
     var ACTUAL_COMPONENT = {'name': 'ApprovalStateBadge'};

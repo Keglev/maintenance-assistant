@@ -196,10 +196,10 @@ broken timestamp should still show the reviewer what is stored.
                     <h4>Used by</h4>
                         <ul class="list-unstyled relationships-list">
                                 <li>
-                                            <code><a href="../components/ApprovalStateBadge.html" target="_self" >ApprovalStateBadge</a></code>
+                                            <code><a href="../components/Moderation.html" target="_self" >Moderation</a></code>
                                 </li>
                                 <li>
-                                            <code><a href="../components/Moderation.html" target="_self" >Moderation</a></code>
+                                            <code><a href="../components/ProtocolDialog.html" target="_self" >ProtocolDialog</a></code>
                                 </li>
                                 <li>
                                             <code><a href="../components/Upload.html" target="_self" >Upload</a></code>
@@ -262,21 +262,25 @@ broken timestamp should still show the reviewer what is stored.
             </tr>
             <tr>
                 <td class="col-md-4">
-<code>transform(value: string | Date | null | undefined, language: <a href="../miscellaneous/typealiases.html#UiLanguage" target="_self">UiLanguage</a>)</code>
+<code>transform(value: string | Date | null | undefined, language: <a href="../miscellaneous/typealiases.html#UiLanguage" target="_self">UiLanguage</a>, withTime: unknown)</code>
                 </td>
             </tr>
 
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="47"
-                                    class="link-to-prism">src/app/core/i18n/app-date.pipe.ts:47</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="71"
+                                    class="link-to-prism">src/app/core/i18n/app-date.pipe.ts:71</a></div>
                         </td>
                     </tr>
 
 
             <tr>
                 <td class="col-md-4">
+                        <div class="io-description"><b>Example :</b><div><pre class="line-numbers"><code class="language-none">            keeps the day-only format it was written for — the viewer&#39;s history is the one
+            place that needs the minute, and a default that changed under twenty call sites
+            would be a formatting change disguised as a feature.
+</code></pre></div></div>
 
                             <div class="io-description">
                                 <b>Parameters :</b>
@@ -287,6 +291,8 @@ broken timestamp should still show the reviewer what is stored.
                                             <td>Name</td>
                                                 <td>Type</td>
                                             <td>Optional</td>
+                                                <td>Default value</td>
+                                                <td>Description</td>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -300,7 +306,11 @@ broken timestamp should still show the reviewer what is stored.
                                                     No
                                             </td>
 
+                                            <td>
+                                            </td>
 
+                                            <td>
+                                            </td>
                                         </tr>
                                         <tr>
                                                 <td>language</td>
@@ -312,7 +322,33 @@ broken timestamp should still show the reviewer what is stored.
                                                     No
                                             </td>
 
+                                            <td>
+                                            </td>
 
+                                            <td>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                                <td>withTime</td>
+                                            <td>
+                                                        <code>unknown</code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+                                            <td>
+                                                    <code>false</code>
+                                            </td>
+
+                                            <td>
+                                                    <p>whether to add the clock time. Optional and off, so every existing call site
+keeps the day-only format it was written for — the viewer&#39;s history is the one
+place that needs the minute, and a default that changed under twenty call sites
+would be a formatting change disguised as a feature.</p>
+
+                                            </td>
                                         </tr>
                                     </tbody>
                                 </table>
@@ -353,6 +389,24 @@ const PATTERNS: Readonly&lt;Record&lt;UiLanguage, string&gt;&gt; &#x3D; {
   en: &#x27;MM/dd/yyyy&#x27;,
 };
 
+/**
+ * The same day, with the clock time on it.
+ *
+ * &lt;p&gt;Added for the protocol viewer&#x27;s history section, where the day alone is not enough: two
+ * corrections on one afternoon are a different story from two a month apart, and a ledger that
+ * showed both as &quot;14.08.2026&quot; would hide the sequence a reader is there to reconstruct. The
+ * moderation table keeps the day-only format — a column of timestamps is noise in a list somebody
+ * is scanning for a title.
+ *
+ * &lt;p&gt;24-hour for German and 12-hour with am/pm for English, because that is what each language reads
+ * without converting in their head. No seconds: the ledger records an act by a person, and nobody
+ * needs to know which second they pressed the button.
+ */
+const PATTERNS_WITH_TIME: Readonly&lt;Record&lt;UiLanguage, string&gt;&gt; &#x3D; {
+  de: &quot;dd.MM.yyyy, HH:mm &#x27;Uhr&#x27;&quot;,
+  en: &#x27;MM/dd/yyyy, h:mm a&#x27;,
+};
+
 /** Which locale Angular formats with. &#x60;de&#x60; is registered in &#x60;app.config.ts&#x60;; &#x60;en-US&#x60; is built in. */
 const LOCALES: Readonly&lt;Record&lt;UiLanguage, string&gt;&gt; &#x3D; {
   de: &#x27;de&#x27;,
@@ -380,12 +434,23 @@ const LOCALES: Readonly&lt;Record&lt;UiLanguage, string&gt;&gt; &#x3D; {
  */
 @Pipe({ name: &#x27;appDate&#x27; })
 export class AppDatePipe implements PipeTransform {
-  transform(value: string | Date | null | undefined, language: UiLanguage): string {
+  /**
+   * @param withTime whether to add the clock time. Optional and off, so every existing call site
+   *                 keeps the day-only format it was written for — the viewer&#x27;s history is the one
+   *                 place that needs the minute, and a default that changed under twenty call sites
+   *                 would be a formatting change disguised as a feature.
+   */
+  transform(
+    value: string | Date | null | undefined,
+    language: UiLanguage,
+    withTime &#x3D; false,
+  ): string {
     if (value &#x3D;&#x3D;&#x3D; null || value &#x3D;&#x3D;&#x3D; undefined || value &#x3D;&#x3D;&#x3D; &#x27;&#x27;) {
       return &#x27;&#x27;;
     }
     try {
-      const formatted &#x3D; DATES.transform(value, PATTERNS[language], undefined, LOCALES[language]);
+      const pattern &#x3D; withTime ? PATTERNS_WITH_TIME[language] : PATTERNS[language];
+      const formatted &#x3D; DATES.transform(value, pattern, undefined, LOCALES[language]);
       return formatted ?? String(value);
     } catch {
       // DatePipe THROWS on a value it cannot parse rather than returning null. A row with a broken

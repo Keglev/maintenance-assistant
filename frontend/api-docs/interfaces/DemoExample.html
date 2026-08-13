@@ -559,6 +559,31 @@ export interface Dictionary {
     readonly loading: string;
     readonly download: string;
     readonly fallbackNote: string;
+    /**
+     * The history section: what has been done to this protocol, and by whom.
+     *
+     * &lt;p&gt;Carlos&#x27;s ruling of 2026-08-14: the records TABLE shows the approval STATE and nothing
+     * else, and the provenance — who, when, why — moves here. A column that had to carry
+     * &quot;Freigegeben system:corpus-seed · 12.08.2026&quot; truncated in production; the same sentence read
+     * once, beside the document it is about, is worth having.
+     */
+    readonly historyHeading: string;
+    /** One verb per ledger action, so a reader never sees &#x60;UNAPPROVE&#x60; on screen. */
+    readonly historyEdited: string;
+    readonly historyApproved: string;
+    readonly historyUnapproved: string;
+    readonly historyDeleted: string;
+    /** &quot;und 4 ältere Einträge&quot; — the tail the viewer deliberately does not show. */
+    readonly historyMore: (count: number) &#x3D;&gt; string;
+    /**
+     * The seeded case: approved by a migration, with no ledger row behind it.
+     *
+     * The 150 seeded protocols were born approved (decision 2 of 2026-08-11) and no human act
+     * produced that, so &#x60;system:corpus-seed&#x60; is the truthful record rather than a placeholder — and
+     * saying so is the point. A viewer that showed nothing here would imply the approval came from
+     * somewhere it did not.
+     */
+    readonly historySeeded: string;
   };
   readonly modeB: {
     readonly badge: string;
@@ -966,6 +991,17 @@ export const DE: Dictionary &#x3D; {
     download: &#x27;Herunterladen&#x27;,
     fallbackNote:
       &#x27;Dieses Protokoll folgt nicht der üblichen Gliederung. Es wird unverändert angezeigt.&#x27;,
+    historyHeading: &#x27;Verlauf&#x27;,
+    historyEdited: &#x27;Korrigiert&#x27;,
+    historyApproved: &#x27;Freigegeben&#x27;,
+    historyUnapproved: &#x27;Freigabe zurückgezogen&#x27;,
+    historyDeleted: &#x27;Aus dem Bestand entfernt&#x27;,
+    historyMore: (count) &#x3D;&gt;
+      count &#x3D;&#x3D;&#x3D; 1
+        ? &#x27;Ein älterer Eintrag wird hier nicht angezeigt.&#x27;
+        : &#x60;${count} ältere Einträge werden hier nicht angezeigt.&#x60;,
+    historySeeded:
+      &#x27;Dieses Protokoll wurde beim Aufbau des Bestands freigegeben, nicht von einer Person geprüft.&#x27;,
   },
   modeB: {
     badge: &#x27;Allgemeiner Vorschlag — keine Quelle im Bestand&#x27;,
@@ -1330,6 +1366,17 @@ export const EN: Dictionary &#x3D; {
     download: &#x27;Download&#x27;,
     fallbackNote:
       &#x27;This protocol does not follow the usual structure. It is shown exactly as it is filed.&#x27;,
+    historyHeading: &#x27;History&#x27;,
+    historyEdited: &#x27;Corrected&#x27;,
+    historyApproved: &#x27;Approved&#x27;,
+    historyUnapproved: &#x27;Approval withdrawn&#x27;,
+    historyDeleted: &#x27;Removed from the records&#x27;,
+    historyMore: (count) &#x3D;&gt;
+      count &#x3D;&#x3D;&#x3D; 1
+        ? &#x27;One older entry is not shown here.&#x27;
+        : &#x60;${count} older entries are not shown here.&#x60;,
+    historySeeded:
+      &#x27;This protocol was approved when the records were seeded, not reviewed by a person.&#x27;,
   },
   modeB: {
     badge: &#x27;General suggestion — no source in the records&#x27;,

@@ -210,6 +210,9 @@ customElements.define('compodoc-menu', class extends HTMLElement {
                                 <a href="interfaces/ModeratedProtocol.html" data-type="entity-link" >ModeratedProtocol</a>
                             </li>
                             <li class="link">
+                                <a href="interfaces/ModerationEvent.html" data-type="entity-link" >ModerationEvent</a>
+                            </li>
+                            <li class="link">
                                 <a href="interfaces/ProtocolCorrection.html" data-type="entity-link" >ProtocolCorrection</a>
                             </li>
                             <li class="link">
@@ -217,6 +220,9 @@ customElements.define('compodoc-menu', class extends HTMLElement {
                             </li>
                             <li class="link">
                                 <a href="interfaces/ProtocolFilter.html" data-type="entity-link" >ProtocolFilter</a>
+                            </li>
+                            <li class="link">
+                                <a href="interfaces/ProtocolHistory.html" data-type="entity-link" >ProtocolHistory</a>
                             </li>
                             <li class="link">
                                 <a href="interfaces/ProtocolPage.html" data-type="entity-link" >ProtocolPage</a>

@@ -273,7 +273,7 @@ not also destroy the record of who produced it.</p>
 
                             <tr>
                                 <td class="col-md-4">
-                                    <div class="io-line">Defined in <a href="" data-line="249" class="link-to-prism">src/app/core/api/api.types.ts:249</a></div>
+                                    <div class="io-line">Defined in <a href="" data-line="284" class="link-to-prism">src/app/core/api/api.types.ts:284</a></div>
                                 </td>
                             </tr>
 
@@ -318,7 +318,7 @@ not also destroy the record of who produced it.</p>
 
                             <tr>
                                 <td class="col-md-4">
-                                    <div class="io-line">Defined in <a href="" data-line="246" class="link-to-prism">src/app/core/api/api.types.ts:246</a></div>
+                                    <div class="io-line">Defined in <a href="" data-line="281" class="link-to-prism">src/app/core/api/api.types.ts:281</a></div>
                                 </td>
                             </tr>
 
@@ -357,7 +357,7 @@ not also destroy the record of who produced it.</p>
 
                             <tr>
                                 <td class="col-md-4">
-                                    <div class="io-line">Defined in <a href="" data-line="247" class="link-to-prism">src/app/core/api/api.types.ts:247</a></div>
+                                    <div class="io-line">Defined in <a href="" data-line="282" class="link-to-prism">src/app/core/api/api.types.ts:282</a></div>
                                 </td>
                             </tr>
 
@@ -396,7 +396,7 @@ not also destroy the record of who produced it.</p>
 
                             <tr>
                                 <td class="col-md-4">
-                                    <div class="io-line">Defined in <a href="" data-line="243" class="link-to-prism">src/app/core/api/api.types.ts:243</a></div>
+                                    <div class="io-line">Defined in <a href="" data-line="278" class="link-to-prism">src/app/core/api/api.types.ts:278</a></div>
                                 </td>
                             </tr>
 
@@ -435,7 +435,7 @@ not also destroy the record of who produced it.</p>
 
                             <tr>
                                 <td class="col-md-4">
-                                    <div class="io-line">Defined in <a href="" data-line="239" class="link-to-prism">src/app/core/api/api.types.ts:239</a></div>
+                                    <div class="io-line">Defined in <a href="" data-line="274" class="link-to-prism">src/app/core/api/api.types.ts:274</a></div>
                                 </td>
                             </tr>
 
@@ -474,7 +474,7 @@ not also destroy the record of who produced it.</p>
 
                             <tr>
                                 <td class="col-md-4">
-                                    <div class="io-line">Defined in <a href="" data-line="240" class="link-to-prism">src/app/core/api/api.types.ts:240</a></div>
+                                    <div class="io-line">Defined in <a href="" data-line="275" class="link-to-prism">src/app/core/api/api.types.ts:275</a></div>
                                 </td>
                             </tr>
 
@@ -513,7 +513,7 @@ not also destroy the record of who produced it.</p>
 
                             <tr>
                                 <td class="col-md-4">
-                                    <div class="io-line">Defined in <a href="" data-line="242" class="link-to-prism">src/app/core/api/api.types.ts:242</a></div>
+                                    <div class="io-line">Defined in <a href="" data-line="277" class="link-to-prism">src/app/core/api/api.types.ts:277</a></div>
                                 </td>
                             </tr>
 
@@ -552,7 +552,7 @@ not also destroy the record of who produced it.</p>
 
                             <tr>
                                 <td class="col-md-4">
-                                    <div class="io-line">Defined in <a href="" data-line="241" class="link-to-prism">src/app/core/api/api.types.ts:241</a></div>
+                                    <div class="io-line">Defined in <a href="" data-line="276" class="link-to-prism">src/app/core/api/api.types.ts:276</a></div>
                                 </td>
                             </tr>
 
@@ -591,7 +591,7 @@ not also destroy the record of who produced it.</p>
 
                             <tr>
                                 <td class="col-md-4">
-                                    <div class="io-line">Defined in <a href="" data-line="245" class="link-to-prism">src/app/core/api/api.types.ts:245</a></div>
+                                    <div class="io-line">Defined in <a href="" data-line="280" class="link-to-prism">src/app/core/api/api.types.ts:280</a></div>
                                 </td>
                             </tr>
 
@@ -630,7 +630,7 @@ not also destroy the record of who produced it.</p>
 
                             <tr>
                                 <td class="col-md-4">
-                                    <div class="io-line">Defined in <a href="" data-line="244" class="link-to-prism">src/app/core/api/api.types.ts:244</a></div>
+                                    <div class="io-line">Defined in <a href="" data-line="279" class="link-to-prism">src/app/core/api/api.types.ts:279</a></div>
                                 </td>
                             </tr>
 
@@ -751,6 +751,41 @@ export interface Approval {
   readonly state: ApprovalState;
   readonly approvedBy: string | null;
   readonly approvedAt: string | null;
+}
+
+/**
+ * The vocabulary the moderation ledger can spell, matching the schema&#x27;s own check constraint.
+ *
+ * &#x60;UNAPPROVE&#x60; rather than &#x60;WITHDRAW&#x60; — the verb the database has recorded since #53. The interface
+ * says &quot;Freigabe zurückgezogen&quot;; renaming the stored value would be a data migration and a sweep of
+ * three services to change a word no user reads.
+ */
+export type ModerationAction &#x3D; &#x27;EDIT&#x27; | &#x27;DELETE&#x27; | &#x27;APPROVE&#x27; | &#x27;UNAPPROVE&#x27;;
+
+/** One act on one protocol: what happened, who did it, when, and why. */
+export interface ModerationEvent {
+  readonly action: ModerationAction;
+  readonly actor: string;
+  /** Never blank — the table&#x27;s own constraint requires a reason on every row. */
+  readonly comment: string;
+  readonly at: string;
+}
+
+/**
+ * A protocol&#x27;s recent history, from &#x60;GET /api/moderation/protocols/{id}/history&#x60;.
+ *
+ * &#x60;events&#x60; is capped SERVER-side; &#x60;total&#x60; is how many exist. The pair is what lets the viewer say
+ * that older entries exist rather than presenting the newest three as though they were everything.
+ *
+ * **An empty list is a true answer, not a missing one.** The 150 seeded protocols were approved by
+ * the V5 migration itself — &#x60;system:corpus-seed&#x60;, no human act — so they have no ledger rows and
+ * never will. The viewer falls back to the approval columns on the protocol for exactly that case.
+ */
+export interface ProtocolHistory {
+  readonly events: readonly ModerationEvent[];
+  readonly total: number;
+  /** The server-side cap, sent so no screen hard-codes a number the backend is free to change. */
+  readonly limit: number;
 }
 
 /**

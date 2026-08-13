@@ -215,6 +215,9 @@
                             <a href="#PATTERNS" title="src/app/core/i18n/app-date.pipe.ts" class="reference-link "><span class="reference-badge reference-badge--variable" aria-hidden="true">V</span><span class="reference-link-label"><b>PATTERNS</b>&nbsp;&nbsp;&nbsp;(src/.../app-date.pipe.ts)</span></a>
                         </li>
                         <li>
+                            <a href="#PATTERNS_WITH_TIME" title="src/app/core/i18n/app-date.pipe.ts" class="reference-link "><span class="reference-badge reference-badge--variable" aria-hidden="true">V</span><span class="reference-link-label"><b>PATTERNS_WITH_TIME</b>&nbsp;&nbsp;&nbsp;(src/.../app-date.pipe.ts)</span></a>
+                        </li>
+                        <li>
                             <a href="#POLL_INTERVAL_MS" title="src/app/shared/health/health-dot.ts" class="reference-link "><span class="reference-badge reference-badge--variable" aria-hidden="true">V</span><span class="reference-link-label"><b>POLL_INTERVAL_MS</b>&nbsp;&nbsp;&nbsp;(src/.../health-dot.ts)</span></a>
                         </li>
                         <li>
@@ -705,6 +708,47 @@ neither side reads naturally.</p>
 
         </tbody>
     </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="PATTERNS_WITH_TIME"></a>
+                    <span class="name">
+                        <span ><b>PATTERNS_WITH_TIME</b></span>
+                        <a href="#PATTERNS_WITH_TIME"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>        <code><a href="../miscellaneous/typealiases.html#UiLanguage" target="_self" >Readonly&lt;Record&lt;UiLanguage, string&gt;&gt;</a></code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>{
+  de: &quot;dd.MM.yyyy, HH:mm &#x27;Uhr&#x27;&quot;,
+  en: &#x27;MM/dd/yyyy, h:mm a&#x27;,
+}</code>
+                    </td>
+                </tr>
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-description"><p>The same day, with the clock time on it.</p>
+<p>Added for the protocol viewer's history section, where the day alone is not enough: two
+corrections on one afternoon are a different story from two a month apart, and a ledger that
+showed both as "14.08.2026" would hide the sequence a reader is there to reconstruct. The
+moderation table keeps the day-only format — a column of timestamps is noise in a list somebody
+is scanning for a title.<p>24-hour for German and 12-hour with am/pm for English, because that is what each language reads
+without converting in their head. No seconds: the ledger records an act by a person, and nobody
+needs to know which second they pressed the button.</div>
+                </td>
+            </tr>
+
+        </tbody>
+    </table>
 </section>
     <h3>src/app/core/i18n/dictionary.ts</h3>
     <section data-compodoc="block-properties">
@@ -923,6 +967,17 @@ neither side reads naturally.</p>
     download: &#x27;Herunterladen&#x27;,
     fallbackNote:
       &#x27;Dieses Protokoll folgt nicht der üblichen Gliederung. Es wird unverändert angezeigt.&#x27;,
+    historyHeading: &#x27;Verlauf&#x27;,
+    historyEdited: &#x27;Korrigiert&#x27;,
+    historyApproved: &#x27;Freigegeben&#x27;,
+    historyUnapproved: &#x27;Freigabe zurückgezogen&#x27;,
+    historyDeleted: &#x27;Aus dem Bestand entfernt&#x27;,
+    historyMore: (count) &#x3D;&gt;
+      count &#x3D;&#x3D;&#x3D; 1
+        ? &#x27;Ein älterer Eintrag wird hier nicht angezeigt.&#x27;
+        : &#x60;${count} ältere Einträge werden hier nicht angezeigt.&#x60;,
+    historySeeded:
+      &#x27;Dieses Protokoll wurde beim Aufbau des Bestands freigegeben, nicht von einer Person geprüft.&#x27;,
   },
   modeB: {
     badge: &#x27;Allgemeiner Vorschlag — keine Quelle im Bestand&#x27;,
@@ -1345,6 +1400,17 @@ DECISIONS.txt, which is what the two modes are called throughout the project&#39
     download: &#x27;Download&#x27;,
     fallbackNote:
       &#x27;This protocol does not follow the usual structure. It is shown exactly as it is filed.&#x27;,
+    historyHeading: &#x27;History&#x27;,
+    historyEdited: &#x27;Corrected&#x27;,
+    historyApproved: &#x27;Approved&#x27;,
+    historyUnapproved: &#x27;Approval withdrawn&#x27;,
+    historyDeleted: &#x27;Removed from the records&#x27;,
+    historyMore: (count) &#x3D;&gt;
+      count &#x3D;&#x3D;&#x3D; 1
+        ? &#x27;One older entry is not shown here.&#x27;
+        : &#x60;${count} older entries are not shown here.&#x60;,
+    historySeeded:
+      &#x27;This protocol was approved when the records were seeded, not reviewed by a person.&#x27;,
   },
   modeB: {
     badge: &#x27;General suggestion — no source in the records&#x27;,

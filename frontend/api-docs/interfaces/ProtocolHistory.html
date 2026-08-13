@@ -123,7 +123,7 @@
   <li class="breadcrumb-item">Interfaces</li>
   <li class="breadcrumb-item"
   >
-  Machine</li>
+  ProtocolHistory</li>
 </ol>
 
 <div class="io-file io-file-path" data-compodoc="entity-file-path">
@@ -159,7 +159,12 @@
                 <h3>Description</h3>
             </p>
             <p class="comment">
-                <p>A machine, from <code>GET /api/machines</code>.</p>
+                <p>A protocol&#39;s recent history, from <code>GET /api/moderation/protocols/{id}/history</code>.</p>
+<p><code>events</code> is capped SERVER-side; <code>total</code> is how many exist. The pair is what lets the viewer say
+that older entries exist rather than presenting the newest three as though they were everything.</p>
+<p><strong>An empty list is a true answer, not a missing one.</strong> The 150 seeded protocols were approved by
+the V5 migration itself — <code>system:corpus-seed</code>, no human act — so they have no ledger rows and
+never will. The viewer falls back to the approval columns on the protocol for exactly that case.</p>
 
             </p>
 
@@ -177,28 +182,18 @@
                 <td class="col-md-9">
                     <ul class="index-list">
                         <li>
-                                <a href="#id" class="reference-link ">
-                                    <span class="reference-badge reference-badge--property" aria-hidden="true">P</span><span class="reference-link-label">id</span>
+                                <a href="#events" class="reference-link ">
+                                    <span class="reference-badge reference-badge--property" aria-hidden="true">P</span><span class="reference-link-label">events</span>
                                 </a>
                         </li>
                         <li>
-                                <a href="#location" class="reference-link ">
-                                    <span class="reference-badge reference-badge--property" aria-hidden="true">P</span><span class="reference-link-label">location</span>
+                                <a href="#limit" class="reference-link ">
+                                    <span class="reference-badge reference-badge--property" aria-hidden="true">P</span><span class="reference-link-label">limit</span>
                                 </a>
                         </li>
                         <li>
-                                <a href="#machineNo" class="reference-link ">
-                                    <span class="reference-badge reference-badge--property" aria-hidden="true">P</span><span class="reference-link-label">machineNo</span>
-                                </a>
-                        </li>
-                        <li>
-                                <a href="#name" class="reference-link ">
-                                    <span class="reference-badge reference-badge--property" aria-hidden="true">P</span><span class="reference-link-label">name</span>
-                                </a>
-                        </li>
-                        <li>
-                                <a href="#type" class="reference-link ">
-                                    <span class="reference-badge reference-badge--property" aria-hidden="true">P</span><span class="reference-link-label">type</span>
+                                <a href="#total" class="reference-link ">
+                                    <span class="reference-badge reference-badge--property" aria-hidden="true">P</span><span class="reference-link-label">total</span>
                                 </a>
                         </li>
                     </ul>
@@ -216,9 +211,9 @@
                 <tbody>
                         <tr>
                             <td class="col-md-4">
-                                <a name="id"></a>
-                                <span class="name "><b>id</b>
-                                    <a href="#id">
+                                <a name="events"></a>
+                                <span class="name "><b>events</b>
+                                    <a href="#events">
                                         <span class="icon ion-ios-link"></span>
                                     </a>
                                 </span>
@@ -226,7 +221,7 @@
                         </tr>
                         <tr>
                             <td class="col-md-4">
-                                <code>id:         <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+                                <code>events:     <code>{}</code>
 </code>
                             </td>
                         </tr>
@@ -234,7 +229,7 @@
 
                             <tr>
                                 <td class="col-md-4">
-                                    <i>Type : </i>        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+                                    <i>Type : </i>    <code>{}</code>
 
                                 </td>
                             </tr>
@@ -245,7 +240,7 @@
 
                             <tr>
                                 <td class="col-md-4">
-                                    <div class="io-line">Defined in <a href="" data-line="11" class="link-to-prism">src/app/core/api/api.types.ts:11</a></div>
+                                    <div class="io-line">Defined in <a href="" data-line="151" class="link-to-prism">src/app/core/api/api.types.ts:151</a></div>
                                 </td>
                             </tr>
 
@@ -255,9 +250,9 @@
                 <tbody>
                         <tr>
                             <td class="col-md-4">
-                                <a name="location"></a>
-                                <span class="name "><b>location</b>
-                                    <a href="#location">
+                                <a name="limit"></a>
+                                <span class="name "><b>limit</b>
+                                    <a href="#limit">
                                         <span class="icon ion-ios-link"></span>
                                     </a>
                                 </span>
@@ -265,7 +260,7 @@
                         </tr>
                         <tr>
                             <td class="col-md-4">
-                                <code>location:     <code>string | null</code>
+                                <code>limit:         <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/number" target="_blank" >number</a></code>
 </code>
                             </td>
                         </tr>
@@ -273,7 +268,7 @@
 
                             <tr>
                                 <td class="col-md-4">
-                                    <i>Type : </i>    <code>string | null</code>
+                                    <i>Type : </i>        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/number" target="_blank" >number</a></code>
 
                                 </td>
                             </tr>
@@ -284,52 +279,13 @@
 
                             <tr>
                                 <td class="col-md-4">
-                                    <div class="io-line">Defined in <a href="" data-line="16" class="link-to-prism">src/app/core/api/api.types.ts:16</a></div>
-                                </td>
-                            </tr>
-
-                </tbody>
-            </table>
-            <table class="table table-sm table-bordered">
-                <tbody>
-                        <tr>
-                            <td class="col-md-4">
-                                <a name="machineNo"></a>
-                                <span class="name "><b>machineNo</b>
-                                    <a href="#machineNo">
-                                        <span class="icon ion-ios-link"></span>
-                                    </a>
-                                </span>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="col-md-4">
-                                <code>machineNo:         <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
-</code>
-                            </td>
-                        </tr>
-
-
-                            <tr>
-                                <td class="col-md-4">
-                                    <i>Type : </i>        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
-
-                                </td>
-                            </tr>
-
-
-
-
-
-                            <tr>
-                                <td class="col-md-4">
-                                    <div class="io-line">Defined in <a href="" data-line="13" class="link-to-prism">src/app/core/api/api.types.ts:13</a></div>
+                                    <div class="io-line">Defined in <a href="" data-line="154" class="link-to-prism">src/app/core/api/api.types.ts:154</a></div>
                                 </td>
                             </tr>
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-description"><p>The plant-facing identifier (PR-03) — what people say out loud.</p>
+                            <div class="io-description"><p>The server-side cap, sent so no screen hard-codes a number the backend is free to change.</p>
 </div>
                         </td>
                     </tr>
@@ -339,9 +295,9 @@
                 <tbody>
                         <tr>
                             <td class="col-md-4">
-                                <a name="name"></a>
-                                <span class="name "><b>name</b>
-                                    <a href="#name">
+                                <a name="total"></a>
+                                <span class="name "><b>total</b>
+                                    <a href="#total">
                                         <span class="icon ion-ios-link"></span>
                                     </a>
                                 </span>
@@ -349,7 +305,7 @@
                         </tr>
                         <tr>
                             <td class="col-md-4">
-                                <code>name:         <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+                                <code>total:         <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/number" target="_blank" >number</a></code>
 </code>
                             </td>
                         </tr>
@@ -357,7 +313,7 @@
 
                             <tr>
                                 <td class="col-md-4">
-                                    <i>Type : </i>        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+                                    <i>Type : </i>        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/number" target="_blank" >number</a></code>
 
                                 </td>
                             </tr>
@@ -368,46 +324,7 @@
 
                             <tr>
                                 <td class="col-md-4">
-                                    <div class="io-line">Defined in <a href="" data-line="14" class="link-to-prism">src/app/core/api/api.types.ts:14</a></div>
-                                </td>
-                            </tr>
-
-                </tbody>
-            </table>
-            <table class="table table-sm table-bordered">
-                <tbody>
-                        <tr>
-                            <td class="col-md-4">
-                                <a name="type"></a>
-                                <span class="name "><b>type</b>
-                                    <a href="#type">
-                                        <span class="icon ion-ios-link"></span>
-                                    </a>
-                                </span>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="col-md-4">
-                                <code>type:         <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
-</code>
-                            </td>
-                        </tr>
-
-
-                            <tr>
-                                <td class="col-md-4">
-                                    <i>Type : </i>        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
-
-                                </td>
-                            </tr>
-
-
-
-
-
-                            <tr>
-                                <td class="col-md-4">
-                                    <div class="io-line">Defined in <a href="" data-line="15" class="link-to-prism">src/app/core/api/api.types.ts:15</a></div>
+                                    <div class="io-line">Defined in <a href="" data-line="152" class="link-to-prism">src/app/core/api/api.types.ts:152</a></div>
                                 </td>
                             </tr>
 
@@ -761,7 +678,7 @@ export interface HealthStatus {
        <script>
             var COMPODOC_CURRENT_PAGE_DEPTH = 1;
             var COMPODOC_CURRENT_PAGE_CONTEXT = 'interface';
-            var COMPODOC_CURRENT_PAGE_URL = 'Machine.html';
+            var COMPODOC_CURRENT_PAGE_URL = 'ProtocolHistory.html';
             var MAX_SEARCH_RESULTS = 15;
        </script>
 

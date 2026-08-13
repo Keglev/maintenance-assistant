@@ -217,6 +217,8 @@ one: saving a file is exactly what an object URL is for.</p>
             <tr>
                 <td class="col-md-3">imports</td>
                 <td class="col-md-9">
+                        <div>        <code><a href="../components/App.html" target="_self" >AppDatePipe</a></code>
+</div>
                         <div>        <code><a href="../components/ApprovalStateBadge.html" target="_self" >ApprovalStateBadge</a></code>
 </div>
                         <div>        <code><a href="../components/Dialog.html" target="_self" >Dialog</a></code>
@@ -272,6 +274,9 @@ one: saving a file is exactly what an object URL is for.</p>
                     <h4>Depends on</h4>
                         <ul class="list-unstyled relationships-list">
                                 <li>
+                                            <code><a href="../components/App.html" target="_self" >AppDatePipe</a></code>
+                                </li>
+                                <li>
                                             <code><a href="../components/ApprovalStateBadge.html" target="_self" >ApprovalStateBadge</a></code>
                                 </li>
                                 <li>
@@ -318,6 +323,12 @@ one: saving a file is exactly what an object URL is for.</p>
                                 <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
                                     <span class="modifier">Protected</span>
                                     <span class="modifier">Readonly</span>
+                                <a href="#events" >events</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
+                                    <span class="modifier">Protected</span>
+                                    <span class="modifier">Readonly</span>
                                 <a href="#failure" >failure</a>
                             </li>
                             <li>
@@ -325,6 +336,18 @@ one: saving a file is exactly what an object URL is for.</p>
                                     <span class="modifier">Private</span>
                                     <span class="modifier">Readonly</span>
                                 <a href="#file" >file</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
+                                    <span class="modifier">Protected</span>
+                                    <span class="modifier">Readonly</span>
+                                <a href="#hasHistorySection" >hasHistorySection</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
+                                    <span class="modifier">Protected</span>
+                                    <span class="modifier">Readonly</span>
+                                <a href="#history" >history</a>
                             </li>
                             <li>
                                 <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
@@ -353,13 +376,31 @@ one: saving a file is exactly what an object URL is for.</p>
                                 <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
                                     <span class="modifier">Protected</span>
                                     <span class="modifier">Readonly</span>
+                                <a href="#olderEvents" >olderEvents</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
+                                    <span class="modifier">Protected</span>
+                                    <span class="modifier">Readonly</span>
                                 <a href="#parsed" >parsed</a>
                             </li>
                             <li>
                                 <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
                                     <span class="modifier">Protected</span>
                                     <span class="modifier">Readonly</span>
+                                <a href="#showsApprovalProvenance" >showsApprovalProvenance</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
+                                    <span class="modifier">Protected</span>
+                                    <span class="modifier">Readonly</span>
                                 <a href="#t" >t</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
+                                    <span class="modifier">Private</span>
+                                    <span class="modifier">Readonly</span>
+                                <a href="#wantsHistory" >wantsHistory</a>
                             </li>
                         </ul>
                     </td>
@@ -378,6 +419,11 @@ one: saving a file is exactly what an object URL is for.</p>
                             <li>
                                 <span class="reference-badge reference-badge--method" aria-hidden="true">M</span>
                                     <span class="modifier">Protected</span>
+                                <a href="#actionLabel" >actionLabel</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--method" aria-hidden="true">M</span>
+                                    <span class="modifier">Protected</span>
                                 <a href="#close" >close</a>
                             </li>
                             <li>
@@ -389,6 +435,11 @@ one: saving a file is exactly what an object URL is for.</p>
                                 <span class="reference-badge reference-badge--method" aria-hidden="true">M</span>
                                     <span class="modifier">Private</span>
                                 <a href="#load" >load</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--method" aria-hidden="true">M</span>
+                                    <span class="modifier">Private</span>
+                                <a href="#loadHistory" >loadHistory</a>
                             </li>
                             <li>
                                 <span class="reference-badge reference-badge--method" aria-hidden="true">M</span>
@@ -471,7 +522,7 @@ one: saving a file is exactly what an object URL is for.</p>
                 </tr>
                         <tr>
                             <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="110" class="link-to-prism">src/app/shared/protocol/protocol-dialog.ts:110</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="168" class="link-to-prism">src/app/shared/protocol/protocol-dialog.ts:168</a></div>
                             </td>
                         </tr>
 
@@ -502,7 +553,7 @@ one: saving a file is exactly what an object URL is for.</p>
                 </tr>
                         <tr>
                             <td class="col-md-2" colspan="2">
-                                    <div class="io-line">Defined in <a href="" data-line="97" class="link-to-prism">src/app/shared/protocol/protocol-dialog.ts:97</a></div>
+                                    <div class="io-line">Defined in <a href="" data-line="98" class="link-to-prism">src/app/shared/protocol/protocol-dialog.ts:98</a></div>
                             </td>
                         </tr>
                 <tr>
@@ -537,7 +588,7 @@ none — approving something withdrawn from the corpus means nothing, and the ba
                 </tr>
                         <tr>
                             <td class="col-md-2" colspan="2">
-                                    <div class="io-line">Defined in <a href="" data-line="89" class="link-to-prism">src/app/shared/protocol/protocol-dialog.ts:89</a></div>
+                                    <div class="io-line">Defined in <a href="" data-line="90" class="link-to-prism">src/app/shared/protocol/protocol-dialog.ts:90</a></div>
                             </td>
                         </tr>
                 <tr>
@@ -569,7 +620,7 @@ none — approving something withdrawn from the corpus means nothing, and the ba
                 </tr>
                         <tr>
                             <td class="col-md-2" colspan="2">
-                                    <div class="io-line">Defined in <a href="" data-line="76" class="link-to-prism">src/app/shared/protocol/protocol-dialog.ts:76</a></div>
+                                    <div class="io-line">Defined in <a href="" data-line="77" class="link-to-prism">src/app/shared/protocol/protocol-dialog.ts:77</a></div>
                             </td>
                         </tr>
                 <tr>
@@ -601,7 +652,7 @@ none — approving something withdrawn from the corpus means nothing, and the ba
                 </tr>
                         <tr>
                             <td class="col-md-2" colspan="2">
-                                    <div class="io-line">Defined in <a href="" data-line="87" class="link-to-prism">src/app/shared/protocol/protocol-dialog.ts:87</a></div>
+                                    <div class="io-line">Defined in <a href="" data-line="88" class="link-to-prism">src/app/shared/protocol/protocol-dialog.ts:88</a></div>
                             </td>
                         </tr>
                 <tr>
@@ -633,7 +684,7 @@ none — approving something withdrawn from the corpus means nothing, and the ba
                 </tr>
                         <tr>
                             <td class="col-md-2" colspan="2">
-                                    <div class="io-line">Defined in <a href="" data-line="85" class="link-to-prism">src/app/shared/protocol/protocol-dialog.ts:85</a></div>
+                                    <div class="io-line">Defined in <a href="" data-line="86" class="link-to-prism">src/app/shared/protocol/protocol-dialog.ts:86</a></div>
                             </td>
                         </tr>
                 <tr>
@@ -668,7 +719,7 @@ person this dialog was reused for.</p>
                 </tr>
                         <tr>
                             <td class="col-md-2" colspan="2">
-                                    <div class="io-line">Defined in <a href="" data-line="98" class="link-to-prism">src/app/shared/protocol/protocol-dialog.ts:98</a></div>
+                                    <div class="io-line">Defined in <a href="" data-line="99" class="link-to-prism">src/app/shared/protocol/protocol-dialog.ts:99</a></div>
                             </td>
                         </tr>
             </tbody>
@@ -682,6 +733,77 @@ person this dialog was reused for.</p>
     <h3 id="methods">
         Methods
     </h3>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="actionLabel"></a>
+                    <span class="name">
+                            <span class="modifier">Protected</span>
+                        <span ><b>actionLabel</b></span>
+                        <a href="#actionLabel"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                        <span class="modifier-icon icon ion-ios-reset"></span>
+                    <code>actionLabel(action: <a href="../interfaces/ModerationEvent.html" target="_self">ModerationEvent</a>)</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="235"
+                                    class="link-to-prism">src/app/shared/protocol/protocol-dialog.ts:235</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                        <div class="io-description"><p>The verb for one ledger action, so <code>UNAPPROVE</code> never reaches a screen.</p>
+</div>
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                                <td>Type</td>
+                                            <td>Optional</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>action</td>
+                                            <td>
+                                                            <code><a href="../interfaces/ModerationEvent.html" target="_self" >ModerationEvent</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+
+                        </div>
+                            <div class="io-description">
+                                
+                            </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
     <table class="table table-sm table-bordered">
         <tbody>
             <tr>
@@ -704,8 +826,8 @@ person this dialog was reused for.</p>
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="175"
-                                    class="link-to-prism">src/app/shared/protocol/protocol-dialog.ts:175</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="271"
+                                    class="link-to-prism">src/app/shared/protocol/protocol-dialog.ts:271</a></div>
                         </td>
                     </tr>
 
@@ -743,8 +865,8 @@ person this dialog was reused for.</p>
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="159"
-                                    class="link-to-prism">src/app/shared/protocol/protocol-dialog.ts:159</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="255"
+                                    class="link-to-prism">src/app/shared/protocol/protocol-dialog.ts:255</a></div>
                         </td>
                     </tr>
 
@@ -786,14 +908,91 @@ the browser performs from an <code>/api/</code> href is a fresh navigation with 
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="127"
-                                    class="link-to-prism">src/app/shared/protocol/protocol-dialog.ts:127</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="185"
+                                    class="link-to-prism">src/app/shared/protocol/protocol-dialog.ts:185</a></div>
                         </td>
                     </tr>
 
 
             <tr>
                 <td class="col-md-4">
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                                <td>Type</td>
+                                            <td>Optional</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>protocolId</td>
+                                            <td>
+                                                            <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>        <code><a href="https://www.typescriptlang.org/docs/handbook/basic-types.html" target="_blank" >void</a></code>
+
+                        </div>
+                            <div class="io-description">
+                                
+                            </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="loadHistory"></a>
+                    <span class="name">
+                            <span class="modifier">Private</span>
+                        <span ><b>loadHistory</b></span>
+                        <a href="#loadHistory"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                        <span class="modifier-icon icon ion-ios-reset"></span>
+                    <code>loadHistory(protocolId: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank">string</a>)</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="224"
+                                    class="link-to-prism">src/app/shared/protocol/protocol-dialog.ts:224</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                        <div class="io-description"><p>Fetches the ledger, and fails silently when it cannot.</p>
+<p><b>A failure here leaves the history absent rather than putting an error in the dialog.</b>
+The viewer's job is to show a protocol; the history is context beside it, and a red box about an
+unreachable audit trail would sit next to a document that loaded perfectly and read as though
+the document were the problem. The document's own failure has a message, because that one is the
+dialog failing at what it is for.<p>Note the fallback below still runs: a protocol whose history call failed but whose approval
+columns are present shows the provenance line, which is true whatever happened to this request.
+</div>
 
                             <div class="io-description">
                                 <b>Parameters :</b>
@@ -853,8 +1052,8 @@ the browser performs from an <code>/api/</code> href is a fresh navigation with 
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="123"
-                                    class="link-to-prism">src/app/shared/protocol/protocol-dialog.ts:123</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="181"
+                                    class="link-to-prism">src/app/shared/protocol/protocol-dialog.ts:181</a></div>
                         </td>
                     </tr>
 
@@ -892,8 +1091,8 @@ the browser performs from an <code>/api/</code> href is a fresh navigation with 
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="193"
-                                    class="link-to-prism">src/app/shared/protocol/protocol-dialog.ts:193</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="293"
+                                    class="link-to-prism">src/app/shared/protocol/protocol-dialog.ts:293</a></div>
                         </td>
                     </tr>
 
@@ -937,8 +1136,8 @@ reading it.</p>
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="179"
-                                    class="link-to-prism">src/app/shared/protocol/protocol-dialog.ts:179</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="275"
+                                    class="link-to-prism">src/app/shared/protocol/protocol-dialog.ts:275</a></div>
                         </td>
                     </tr>
 
@@ -987,7 +1186,7 @@ reading it.</p>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="65" class="link-to-prism">src/app/shared/protocol/protocol-dialog.ts:65</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="66" class="link-to-prism">src/app/shared/protocol/protocol-dialog.ts:66</a></div>
                         </td>
                     </tr>
 
@@ -1020,7 +1219,7 @@ reading it.</p>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="108" class="link-to-prism">src/app/shared/protocol/protocol-dialog.ts:108</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="166" class="link-to-prism">src/app/shared/protocol/protocol-dialog.ts:166</a></div>
                         </td>
                     </tr>
 
@@ -1059,10 +1258,52 @@ reading it.</p>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="69" class="link-to-prism">src/app/shared/protocol/protocol-dialog.ts:69</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="70" class="link-to-prism">src/app/shared/protocol/protocol-dialog.ts:70</a></div>
                         </td>
                     </tr>
 
+
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="events"></a>
+                    <span class="name">
+                            <span class="modifier">Protected</span>
+                            <span class="modifier">Readonly</span>
+                        <span ><b>events</b></span>
+                        <a href="#events"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>unknown</code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>computed(() &#x3D;&gt; this.history()?.events ?? [])</code>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="125" class="link-to-prism">src/app/shared/protocol/protocol-dialog.ts:125</a></div>
+                        </td>
+                    </tr>
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-description"><p>The events to render, or an empty list.</p>
+<p>Already capped by the backend to <a href="ProtocolHistory.limit">ProtocolHistory.limit</a>; this does not slice again.
+Two places enforcing one cap is two places for it to drift, and the server's is the one that
+bounds the payload.
+</div>
+                </td>
+            </tr>
 
         </tbody>
     </table>
@@ -1092,7 +1333,7 @@ reading it.</p>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="101" class="link-to-prism">src/app/shared/protocol/protocol-dialog.ts:101</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="102" class="link-to-prism">src/app/shared/protocol/protocol-dialog.ts:102</a></div>
                         </td>
                     </tr>
 
@@ -1125,13 +1366,97 @@ reading it.</p>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="105" class="link-to-prism">src/app/shared/protocol/protocol-dialog.ts:105</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="163" class="link-to-prism">src/app/shared/protocol/protocol-dialog.ts:163</a></div>
                         </td>
                     </tr>
 
             <tr>
                 <td class="col-md-4">
                     <div class="io-description"><p>Held so the download saves the ORIGINAL bytes, not a re-encoding of the parsed text.</p>
+</div>
+                </td>
+            </tr>
+
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="hasHistorySection"></a>
+                    <span class="name">
+                            <span class="modifier">Protected</span>
+                            <span class="modifier">Readonly</span>
+                        <span ><b>hasHistorySection</b></span>
+                        <a href="#hasHistorySection"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>unknown</code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>computed(
+    () &#x3D;&gt; this.events().length &gt; 0 || this.showsApprovalProvenance(),
+  )</code>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="158" class="link-to-prism">src/app/shared/protocol/protocol-dialog.ts:158</a></div>
+                        </td>
+                    </tr>
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-description"><p>Nothing to say: no events, and no approval to attribute. An empty box would be worse.</p>
+</div>
+                </td>
+            </tr>
+
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="history"></a>
+                    <span class="name">
+                            <span class="modifier">Protected</span>
+                            <span class="modifier">Readonly</span>
+                        <span ><b>history</b></span>
+                        <a href="#history"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>unknown</code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>signal&lt;ProtocolHistory | null&gt;(null)</code>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="113" class="link-to-prism">src/app/shared/protocol/protocol-dialog.ts:113</a></div>
+                        </td>
+                    </tr>
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-description"><p>What has been done to this protocol, or null when it was not asked for.</p>
+<p><b>Only fetched on the moderation paths.</b> `citation` is the shop floor's viewer, and the
+endpoint answers 403 for those roles by design — who corrected what and who took an approval
+back names colleagues in connection with mistakes, which is moderation information. A technician
+checking a citation gets the text and the approval STATE, both of which they already have.
 </div>
                 </td>
             </tr>
@@ -1164,7 +1489,7 @@ reading it.</p>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="66" class="link-to-prism">src/app/shared/protocol/protocol-dialog.ts:66</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="67" class="link-to-prism">src/app/shared/protocol/protocol-dialog.ts:67</a></div>
                         </td>
                     </tr>
 
@@ -1197,7 +1522,7 @@ reading it.</p>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="73" class="link-to-prism">src/app/shared/protocol/protocol-dialog.ts:73</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="74" class="link-to-prism">src/app/shared/protocol/protocol-dialog.ts:74</a></div>
                         </td>
                     </tr>
 
@@ -1236,7 +1561,7 @@ reading it.</p>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="100" class="link-to-prism">src/app/shared/protocol/protocol-dialog.ts:100</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="101" class="link-to-prism">src/app/shared/protocol/protocol-dialog.ts:101</a></div>
                         </td>
                     </tr>
 
@@ -1268,10 +1593,57 @@ reading it.</p>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="110" class="link-to-prism">src/app/shared/protocol/protocol-dialog.ts:110</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="168" class="link-to-prism">src/app/shared/protocol/protocol-dialog.ts:168</a></div>
                         </td>
                     </tr>
 
+
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="olderEvents"></a>
+                    <span class="name">
+                            <span class="modifier">Protected</span>
+                            <span class="modifier">Readonly</span>
+                        <span ><b>olderEvents</b></span>
+                        <a href="#olderEvents"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>unknown</code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>computed(() &#x3D;&gt; {
+    const history &#x3D; this.history();
+    return history ? history.total - history.events.length : 0;
+  })</code>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="136" class="link-to-prism">src/app/shared/protocol/protocol-dialog.ts:136</a></div>
+                        </td>
+                    </tr>
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-description"><p>How many acts exist beyond the ones shown.</p>
+<p>THE CAP IS A PRODUCT DECISION, NOT A TECHNICAL LIMIT (see `ProtocolModerationService`): the
+viewer exists to let somebody read a protocol, and three lines answer "what happened to this
+recently" without pushing the document below the fold. A full change history is a REPORT with
+its own screen, deferred deliberately. This number is what stops the truncation being silent —
+it is not an invitation to add a "show all" control here.
+</div>
+                </td>
+            </tr>
 
         </tbody>
     </table>
@@ -1301,10 +1673,59 @@ reading it.</p>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="102" class="link-to-prism">src/app/shared/protocol/protocol-dialog.ts:102</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="103" class="link-to-prism">src/app/shared/protocol/protocol-dialog.ts:103</a></div>
                         </td>
                     </tr>
 
+
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="showsApprovalProvenance"></a>
+                    <span class="name">
+                            <span class="modifier">Protected</span>
+                            <span class="modifier">Readonly</span>
+                        <span ><b>showsApprovalProvenance</b></span>
+                        <a href="#showsApprovalProvenance"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>unknown</code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>computed(
+    () &#x3D;&gt;
+      this.wantsHistory() &amp;&amp;
+      this.events().length &#x3D;&#x3D;&#x3D; 0 &amp;&amp;
+      (this.approval()?.approvedBy ?? null) !&#x3D;&#x3D; null,
+  )</code>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="150" class="link-to-prism">src/app/shared/protocol/protocol-dialog.ts:150</a></div>
+                        </td>
+                    </tr>
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-description"><p>Whether to fall back to the approval columns instead of a ledger.</p>
+<p>The seeded case, and it is a true statement rather than a placeholder. The 150 protocols the
+corpus was built from were approved by the V5 migration itself — `system:corpus-seed`, no human
+act — so they have no ledger rows and never will. Showing nothing at all would imply the
+approval came from somewhere it did not; showing the actor once, here, is the honest record of
+the decision that seeded them.
+</div>
+                </td>
+            </tr>
 
         </tbody>
     </table>
@@ -1334,10 +1755,49 @@ reading it.</p>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="71" class="link-to-prism">src/app/shared/protocol/protocol-dialog.ts:71</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="72" class="link-to-prism">src/app/shared/protocol/protocol-dialog.ts:72</a></div>
                         </td>
                     </tr>
 
+
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="wantsHistory"></a>
+                    <span class="name">
+                            <span class="modifier">Private</span>
+                            <span class="modifier">Readonly</span>
+                        <span ><b>wantsHistory</b></span>
+                        <a href="#wantsHistory"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>unknown</code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>computed(() &#x3D;&gt; this.source() !&#x3D;&#x3D; &#x27;citation&#x27;)</code>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="116" class="link-to-prism">src/app/shared/protocol/protocol-dialog.ts:116</a></div>
+                        </td>
+                    </tr>
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-description"><p>Whether the reader may see a history at all. The same rule the endpoint enforces.</p>
+</div>
+                </td>
+            </tr>
 
         </tbody>
     </table>
@@ -1359,8 +1819,9 @@ import {
   signal,
 } from &#x27;@angular/core&#x27;;
 
-import { Approval } from &#x27;../../core/api/api.types&#x27;;
+import { Approval, ModerationEvent, ProtocolHistory } from &#x27;../../core/api/api.types&#x27;;
 import { ApiFailure, MaintenanceApiService, classify } from &#x27;../../core/api/maintenance-api.service&#x27;;
+import { AppDatePipe } from &#x27;../../core/i18n/app-date.pipe&#x27;;
 import { I18nService } from &#x27;../../core/i18n/i18n.service&#x27;;
 import { ApprovalStateBadge } from &#x27;../approval/approval-state&#x27;;
 import { Dialog } from &#x27;../dialog/dialog&#x27;;
@@ -1406,7 +1867,7 @@ const DOCUMENT_SOURCES: Record&lt;
  */
 @Component({
   selector: &#x27;app-protocol-dialog&#x27;,
-  imports: [ApprovalStateBadge, Dialog],
+  imports: [AppDatePipe, ApprovalStateBadge, Dialog],
   templateUrl: &#x27;./protocol-dialog.html&#x27;,
   styleUrl: &#x27;./protocol-dialog.css&#x27;,
 })
@@ -1450,6 +1911,63 @@ export class ProtocolDialog implements OnDestroy {
   protected readonly failure &#x3D; signal&lt;ApiFailure | null&gt;(null);
   protected readonly parsed &#x3D; signal&lt;ProtocolDocument | null&gt;(null);
 
+  /**
+   * What has been done to this protocol, or null when it was not asked for.
+   *
+   * &lt;p&gt;&lt;b&gt;Only fetched on the moderation paths.&lt;/b&gt; &#x60;citation&#x60; is the shop floor&#x27;s viewer, and the
+   * endpoint answers 403 for those roles by design — who corrected what and who took an approval
+   * back names colleagues in connection with mistakes, which is moderation information. A technician
+   * checking a citation gets the text and the approval STATE, both of which they already have.
+   */
+  protected readonly history &#x3D; signal&lt;ProtocolHistory | null&gt;(null);
+
+  /** Whether the reader may see a history at all. The same rule the endpoint enforces. */
+  private readonly wantsHistory &#x3D; computed(() &#x3D;&gt; this.source() !&#x3D;&#x3D; &#x27;citation&#x27;);
+
+  /**
+   * The events to render, or an empty list.
+   *
+   * &lt;p&gt;Already capped by the backend to {@link ProtocolHistory.limit}; this does not slice again.
+   * Two places enforcing one cap is two places for it to drift, and the server&#x27;s is the one that
+   * bounds the payload.
+   */
+  protected readonly events &#x3D; computed(() &#x3D;&gt; this.history()?.events ?? []);
+
+  /**
+   * How many acts exist beyond the ones shown.
+   *
+   * &lt;p&gt;THE CAP IS A PRODUCT DECISION, NOT A TECHNICAL LIMIT (see &#x60;ProtocolModerationService&#x60;): the
+   * viewer exists to let somebody read a protocol, and three lines answer &quot;what happened to this
+   * recently&quot; without pushing the document below the fold. A full change history is a REPORT with
+   * its own screen, deferred deliberately. This number is what stops the truncation being silent —
+   * it is not an invitation to add a &quot;show all&quot; control here.
+   */
+  protected readonly olderEvents &#x3D; computed(() &#x3D;&gt; {
+    const history &#x3D; this.history();
+    return history ? history.total - history.events.length : 0;
+  });
+
+  /**
+   * Whether to fall back to the approval columns instead of a ledger.
+   *
+   * &lt;p&gt;The seeded case, and it is a true statement rather than a placeholder. The 150 protocols the
+   * corpus was built from were approved by the V5 migration itself — &#x60;system:corpus-seed&#x60;, no human
+   * act — so they have no ledger rows and never will. Showing nothing at all would imply the
+   * approval came from somewhere it did not; showing the actor once, here, is the honest record of
+   * the decision that seeded them.
+   */
+  protected readonly showsApprovalProvenance &#x3D; computed(
+    () &#x3D;&gt;
+      this.wantsHistory() &amp;&amp;
+      this.events().length &#x3D;&#x3D;&#x3D; 0 &amp;&amp;
+      (this.approval()?.approvedBy ?? null) !&#x3D;&#x3D; null,
+  );
+
+  /** Nothing to say: no events, and no approval to attribute. An empty box would be worse. */
+  protected readonly hasHistorySection &#x3D; computed(
+    () &#x3D;&gt; this.events().length &gt; 0 || this.showsApprovalProvenance(),
+  );
+
   /** Held so the download saves the ORIGINAL bytes, not a re-encoding of the parsed text. */
   private readonly file &#x3D; signal&lt;{ blob: Blob; filename: string } | null&gt;(null);
 
@@ -1476,6 +1994,7 @@ export class ProtocolDialog implements OnDestroy {
   private load(protocolId: string): void {
     this.reset();
     this.loading.set(true);
+    this.loadHistory(protocolId);
 
     const document$ &#x3D; DOCUMENT_SOURCES[this.source()](this.api, protocolId);
 
@@ -1497,6 +2016,43 @@ export class ProtocolDialog implements OnDestroy {
         this.failure.set(classify(error));
       },
     });
+  }
+
+  /**
+   * Fetches the ledger, and fails silently when it cannot.
+   *
+   * &lt;p&gt;&lt;b&gt;A failure here leaves the history absent rather than putting an error in the dialog.&lt;/b&gt;
+   * The viewer&#x27;s job is to show a protocol; the history is context beside it, and a red box about an
+   * unreachable audit trail would sit next to a document that loaded perfectly and read as though
+   * the document were the problem. The document&#x27;s own failure has a message, because that one is the
+   * dialog failing at what it is for.
+   *
+   * &lt;p&gt;Note the fallback below still runs: a protocol whose history call failed but whose approval
+   * columns are present shows the provenance line, which is true whatever happened to this request.
+   */
+  private loadHistory(protocolId: string): void {
+    if (!this.wantsHistory()) {
+      return;
+    }
+    this.api.protocolHistory(protocolId).subscribe({
+      next: (history) &#x3D;&gt; this.history.set(history),
+      error: () &#x3D;&gt; this.history.set(null),
+    });
+  }
+
+  /** The verb for one ledger action, so &#x60;UNAPPROVE&#x60; never reaches a screen. */
+  protected actionLabel(action: ModerationEvent[&#x27;action&#x27;]): string {
+    const labels &#x3D; this.t().viewer;
+    switch (action) {
+      case &#x27;EDIT&#x27;:
+        return labels.historyEdited;
+      case &#x27;APPROVE&#x27;:
+        return labels.historyApproved;
+      case &#x27;UNAPPROVE&#x27;:
+        return labels.historyUnapproved;
+      default:
+        return labels.historyDeleted;
+    }
   }
 
   /**
@@ -1530,6 +2086,10 @@ export class ProtocolDialog implements OnDestroy {
     this.failure.set(null);
     this.parsed.set(null);
     this.file.set(null);
+    // Cleared with the rest: a reviewer clicking from one protocol to the next must never read the
+    // previous protocol&#x27;s history under the new document, which is the failure mode of every
+    // signal held across a reopen.
+    this.history.set(null);
   }
 
   /**
@@ -1565,11 +2125,10 @@ export class ProtocolDialog implements OnDestroy {
         &lt;!-- Beside the machine, in the head, so it is read BEFORE the text rather than looked up
              afterwards. A reader who has already worked through a protocol and only then learns
              that nobody has reviewed it has been told too late to act on it. --&gt;
-        &lt;app-approval-state
-          [approval]&#x3D;&quot;state&quot;
-          [language]&#x3D;&quot;language()&quot;
-          [showActor]&#x3D;&quot;source() !&#x3D;&#x3D; &#x27;citation&#x27;&quot;
-        /&gt;
+        &lt;!-- STATE ONLY, everywhere, since 2026-08-14. Who approved it and when live in the history
+             section below, once, beside the document they are about — not repeated in a head, a
+             table cell and a source card, where the longest of the three truncated in production. --&gt;
+        &lt;app-approval-state [approval]&#x3D;&quot;state&quot; /&gt;
       }
     &lt;/p&gt;
   }
@@ -1664,6 +2223,61 @@ export class ProtocolDialog implements OnDestroy {
         }
       }
     &lt;/article&gt;
+  }
+
+  &lt;!-- WHAT HAS BEEN DONE TO THIS PROTOCOL, and Carlos&#x27;s ruling of 2026-08-14 about where it belongs.
+       The records table shows the approval STATE and nothing else — its FREIGABE column truncated in
+       production trying to carry &quot;Freigegeben system:corpus-seed · 12.08.2026&quot; — and the provenance
+       moved here, where it is read once, beside the document it describes.
+
+       ABSENT ENTIRELY when there is nothing to say: no events and no approval to attribute renders
+       no heading, no empty box and no &quot;no history yet&quot; line. The shop floor never sees this at all —
+       the endpoint refuses their roles, and the viewer does not ask. --&gt;
+  @if (hasHistorySection()) {
+    &lt;section class&#x3D;&quot;viewer-history&quot; data-testid&#x3D;&quot;protocol-history&quot;&gt;
+      &lt;h4 class&#x3D;&quot;viewer-history-heading&quot;&gt;{{ t().viewer.historyHeading }}&lt;/h4&gt;
+
+      @if (showsApprovalProvenance()) {
+        &lt;!-- NO LEDGER ROWS, BUT AN APPROVAL — the 150 seeded protocols, approved by the V5 migration
+             itself. &#x60;system:corpus-seed&#x60; is the truthful record of that decision rather than a
+             placeholder: it says no human reviewed this, it was born approved. Showing nothing here
+             would let a reader assume the approval came from somewhere it did not. --&gt;
+        &lt;p class&#x3D;&quot;viewer-history-seeded&quot; data-testid&#x3D;&quot;history-seeded&quot;&gt;
+          {{ t().viewer.historyApproved }}: {{ approval()?.approvedBy }} ·
+          {{ approval()?.approvedAt | appDate: language() : true }}
+        &lt;/p&gt;
+        @if (approval()?.approvedBy?.startsWith(&#x27;system:&#x27;)) {
+          &lt;p class&#x3D;&quot;caption&quot; data-testid&#x3D;&quot;history-seeded-note&quot;&gt;{{ t().viewer.historySeeded }}&lt;/p&gt;
+        }
+      } @else {
+        &lt;ol class&#x3D;&quot;viewer-history-list&quot; data-testid&#x3D;&quot;history-list&quot;&gt;
+          @for (event of events(); track $index) {
+            &lt;li class&#x3D;&quot;viewer-history-item&quot; data-testid&#x3D;&quot;history-item&quot;&gt;
+              &lt;p class&#x3D;&quot;viewer-history-act&quot;&gt;
+                &lt;span class&#x3D;&quot;viewer-history-what&quot;&gt;{{ actionLabel(event.action) }}&lt;/span&gt;
+                &lt;span class&#x3D;&quot;viewer-history-who&quot; data-testid&#x3D;&quot;history-actor&quot;&gt;{{ event.actor }}&lt;/span&gt;
+                &lt;!-- THE TIME AS WELL AS THE DAY. Two corrections on one afternoon are a different
+                     story from two a month apart, and the day-only format the tables use cannot
+                     tell them apart. --&gt;
+                &lt;span class&#x3D;&quot;viewer-history-when&quot; data-testid&#x3D;&quot;history-when&quot;&gt;{{
+                  event.at | appDate: language() : true
+                }}&lt;/span&gt;
+              &lt;/p&gt;
+              &lt;!-- Never blank: the table&#x27;s own constraint requires a reason on every row, which is
+                   why this needs no empty case. --&gt;
+              &lt;p class&#x3D;&quot;viewer-history-why&quot; data-testid&#x3D;&quot;history-comment&quot;&gt;{{ event.comment }}&lt;/p&gt;
+            &lt;/li&gt;
+          }
+        &lt;/ol&gt;
+
+        @if (olderEvents() &gt; 0) {
+          &lt;!-- One quiet line, and NO &quot;show all&quot; control. The three-entry cap is a product decision:
+               a full change history is a report with its own screen, deferred deliberately. What
+               this line prevents is the truncation being silent. --&gt;
+          &lt;p class&#x3D;&quot;caption&quot; data-testid&#x3D;&quot;history-more&quot;&gt;{{ t().viewer.historyMore(olderEvents()) }}&lt;/p&gt;
+        }
+      }
+    &lt;/section&gt;
   }
 &lt;/app-dialog&gt;
 </code></pre>
@@ -1773,6 +2387,87 @@ export class ProtocolDialog implements OnDestroy {
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
+
+/* ------------------------------------------------------------------------------------------
+   History — what has been done to this protocol
+   ------------------------------------------------------------------------------------------
+   BELOW THE DOCUMENT, not above it. The dialog exists to let somebody read a protocol; the
+   history is context about that protocol, and context that pushed the text below the fold would
+   have inverted the two. Separated by a rule rather than a card, because a card inside a dialog
+   reads as a second dialog. */
+.viewer-history {
+  margin-top: var(--s-5);
+  padding-top: var(--s-4);
+  border-top: 1px solid var(--c-line);
+}
+
+.viewer-history-heading {
+  margin: 0 0 var(--s-3);
+  font-size: var(--t-sm);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--c-ink-muted);
+}
+
+/* An ordered list with its numbering suppressed: the order is the meaning — newest act first — so
+   an &lt;ol&gt; is the honest element even though a visible &quot;1.&quot; beside a timestamp would be noise. */
+.viewer-history-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+}
+
+.viewer-history-item + .viewer-history-item {
+  padding-top: var(--s-3);
+  border-top: 1px solid var(--c-line);
+}
+
+/* What / who / when on one line, wrapping as a group rather than letting the timestamp strand
+   itself on a line of its own at a narrow width. */
+.viewer-history-act {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--s-1) var(--s-3);
+  margin: 0 0 var(--s-1);
+}
+
+/* The verb carries the line. It is the one word a reader scans a history for. */
+.viewer-history-what {
+  font-weight: 600;
+}
+
+/* Monospace for both, and for the same reason the uploader column uses it: a username and a
+   timestamp are identifiers, not prose, and tabular figures keep three timestamps aligned under
+   each other rather than shimmying by a digit&#x27;s width. */
+.viewer-history-who,
+.viewer-history-when,
+.viewer-history-seeded {
+  font-family: var(--font-mono);
+  font-size: var(--t-sm);
+  font-variant-numeric: tabular-nums;
+  color: var(--c-ink-muted);
+}
+
+.viewer-history-seeded {
+  margin: 0 0 var(--s-1);
+}
+
+/* The reason, in prose and at reading measure: it is the field the whole ledger exists to carry,
+   and the one part of an entry that is a sentence rather than an identifier. */
+.viewer-history-why {
+  margin: 0;
+  max-width: var(--read-max);
+  font-size: var(--t-sm);
+  line-height: var(--lh-relaxed);
+}
+
+.viewer-history .caption {
+  margin: var(--s-3) 0 0;
+}
 </code></pre>
     </div>
 
@@ -1801,7 +2496,7 @@ export class ProtocolDialog implements OnDestroy {
 <script src="../js/libs/htmlparser.js"></script>
 <script src="../js/libs/deep-iterator.js"></script>
 <script>
-        var COMPONENT_TEMPLATE = '<div><app-dialog  [open]="protocolId() !== null"  [title]="protocolTitle() || t().viewer.title"  testId="protocol"  (closed)="close()">  <!-- The machine belongs in the head next to the title: on a shop floor "which machine is this       about" is the first question asked of any document. -->  @if (machine() || approval()) {    <p class="viewer-machine" dialogSubtitle data-testid="protocol-machine">      <span>{{ machine() }}</span>      @if (approval(); as state) {        <!-- Beside the machine, in the head, so it is read BEFORE the text rather than looked up             afterwards. A reader who has already worked through a protocol and only then learns             that nobody has reviewed it has been told too late to act on it. -->        <app-approval-state          [approval]="state"          [language]="language()"          [showActor]="source() !== \'citation\'"        />      }    </p>  }  <!-- Re-projected into the dialog\'s own action row, so a caller that owns a verb for this protocol       — the Verwaltung view\'s approve and withdraw — can put it beside Download without this       component learning what the verb is. The citation viewer passes nothing and gets nothing. -->  <ng-content select="[protocolActions]" ngProjectAs="[dialogActions]" />  <button    type="button"    class="btn btn-secondary btn-sm"    dialogActions    data-testid="protocol-download"    [disabled]="!canDownload()"    (click)="download()"  >    <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">      <path d="M12 4v11" />      <path d="M7.5 10.5L12 15l4.5-4.5" />      <path d="M5 19h14" />    </svg>    {{ t().viewer.download }}  </button>  @if (loading()) {    <p class="viewer-loading" role="status" aria-live="polite" data-testid="protocol-loading">      {{ t().viewer.loading }}    </p>  }  @if (failure(); as reason) {    <!-- A source that will not open is worth saying out loud: the claim in the answer still rests         on this protocol, and the reader is entitled to know the evidence is unreachable rather         than to stare at an empty dialog. -->    <p class="notice notice-error" role="alert" data-testid="protocol-failure">      @switch (reason) {        @case (\'notFound\') {          {{ t().errors.documentMissing }}        }        @case (\'forbidden\') {          {{ t().errors.forbidden }}        }        @case (\'unavailable\') {          {{ t().errors.unavailable }}        }        @default {          {{ t().errors.generic }}        }      }    </p>  }  @if (parsed(); as document) {    <!-- lang="de" is wrong for the English protocols in the corpus and right for the 108 German         ones, so neither is asserted here: the document carries no lang and inherits the         interface\'s, which is what the shell already set. -->    <article class="protocol" data-testid="protocol-body">      @if (document.kind === \'raw\') {        <!-- The parser did not recognise the structure. The file itself is still the evidence, so             it is shown as it stands rather than replaced by an apology. Preformatted, because the             line breaks are the only structure left. -->        <p class="caption viewer-fallback-note" data-testid="protocol-fallback-note">          {{ t().viewer.fallbackNote }}        </p>        <pre class="protocol-raw" data-testid="protocol-raw">{{ document.raw }}</pre>      } @else {        @for (segment of document.segments; track $index) {          @switch (segment.kind) {            @case (\'meta\') {              <dl class="protocol-meta" data-testid="protocol-meta">                @for (row of segment.rows; track row.label) {                  <dt>{{ row.label }}</dt>                  <dd>{{ row.value }}</dd>                }              </dl>            }            @case (\'title\') {              <h3 class="protocol-title" data-testid="protocol-doc-title">{{ segment.text }}</h3>            }            @case (\'section\') {              <section class="protocol-section" data-testid="protocol-section">                @if (segment.heading) {                  <h4 class="protocol-heading">{{ segment.heading }}</h4>                }                @for (paragraph of segment.paragraphs; track $index) {                  <p class="protocol-paragraph">{{ paragraph }}</p>                }              </section>            }          }        }      }    </article>  }</app-dialog></div>'
+        var COMPONENT_TEMPLATE = '<div><app-dialog  [open]="protocolId() !== null"  [title]="protocolTitle() || t().viewer.title"  testId="protocol"  (closed)="close()">  <!-- The machine belongs in the head next to the title: on a shop floor "which machine is this       about" is the first question asked of any document. -->  @if (machine() || approval()) {    <p class="viewer-machine" dialogSubtitle data-testid="protocol-machine">      <span>{{ machine() }}</span>      @if (approval(); as state) {        <!-- Beside the machine, in the head, so it is read BEFORE the text rather than looked up             afterwards. A reader who has already worked through a protocol and only then learns             that nobody has reviewed it has been told too late to act on it. -->        <!-- STATE ONLY, everywhere, since 2026-08-14. Who approved it and when live in the history             section below, once, beside the document they are about — not repeated in a head, a             table cell and a source card, where the longest of the three truncated in production. -->        <app-approval-state [approval]="state" />      }    </p>  }  <!-- Re-projected into the dialog\'s own action row, so a caller that owns a verb for this protocol       — the Verwaltung view\'s approve and withdraw — can put it beside Download without this       component learning what the verb is. The citation viewer passes nothing and gets nothing. -->  <ng-content select="[protocolActions]" ngProjectAs="[dialogActions]" />  <button    type="button"    class="btn btn-secondary btn-sm"    dialogActions    data-testid="protocol-download"    [disabled]="!canDownload()"    (click)="download()"  >    <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">      <path d="M12 4v11" />      <path d="M7.5 10.5L12 15l4.5-4.5" />      <path d="M5 19h14" />    </svg>    {{ t().viewer.download }}  </button>  @if (loading()) {    <p class="viewer-loading" role="status" aria-live="polite" data-testid="protocol-loading">      {{ t().viewer.loading }}    </p>  }  @if (failure(); as reason) {    <!-- A source that will not open is worth saying out loud: the claim in the answer still rests         on this protocol, and the reader is entitled to know the evidence is unreachable rather         than to stare at an empty dialog. -->    <p class="notice notice-error" role="alert" data-testid="protocol-failure">      @switch (reason) {        @case (\'notFound\') {          {{ t().errors.documentMissing }}        }        @case (\'forbidden\') {          {{ t().errors.forbidden }}        }        @case (\'unavailable\') {          {{ t().errors.unavailable }}        }        @default {          {{ t().errors.generic }}        }      }    </p>  }  @if (parsed(); as document) {    <!-- lang="de" is wrong for the English protocols in the corpus and right for the 108 German         ones, so neither is asserted here: the document carries no lang and inherits the         interface\'s, which is what the shell already set. -->    <article class="protocol" data-testid="protocol-body">      @if (document.kind === \'raw\') {        <!-- The parser did not recognise the structure. The file itself is still the evidence, so             it is shown as it stands rather than replaced by an apology. Preformatted, because the             line breaks are the only structure left. -->        <p class="caption viewer-fallback-note" data-testid="protocol-fallback-note">          {{ t().viewer.fallbackNote }}        </p>        <pre class="protocol-raw" data-testid="protocol-raw">{{ document.raw }}</pre>      } @else {        @for (segment of document.segments; track $index) {          @switch (segment.kind) {            @case (\'meta\') {              <dl class="protocol-meta" data-testid="protocol-meta">                @for (row of segment.rows; track row.label) {                  <dt>{{ row.label }}</dt>                  <dd>{{ row.value }}</dd>                }              </dl>            }            @case (\'title\') {              <h3 class="protocol-title" data-testid="protocol-doc-title">{{ segment.text }}</h3>            }            @case (\'section\') {              <section class="protocol-section" data-testid="protocol-section">                @if (segment.heading) {                  <h4 class="protocol-heading">{{ segment.heading }}</h4>                }                @for (paragraph of segment.paragraphs; track $index) {                  <p class="protocol-paragraph">{{ paragraph }}</p>                }              </section>            }          }        }      }    </article>  }  <!-- WHAT HAS BEEN DONE TO THIS PROTOCOL, and Carlos\'s ruling of 2026-08-14 about where it belongs.       The records table shows the approval STATE and nothing else — its FREIGABE column truncated in       production trying to carry "Freigegeben system:corpus-seed · 12.08.2026" — and the provenance       moved here, where it is read once, beside the document it describes.       ABSENT ENTIRELY when there is nothing to say: no events and no approval to attribute renders       no heading, no empty box and no "no history yet" line. The shop floor never sees this at all —       the endpoint refuses their roles, and the viewer does not ask. -->  @if (hasHistorySection()) {    <section class="viewer-history" data-testid="protocol-history">      <h4 class="viewer-history-heading">{{ t().viewer.historyHeading }}</h4>      @if (showsApprovalProvenance()) {        <!-- NO LEDGER ROWS, BUT AN APPROVAL — the 150 seeded protocols, approved by the V5 migration             itself. `system:corpus-seed` is the truthful record of that decision rather than a             placeholder: it says no human reviewed this, it was born approved. Showing nothing here             would let a reader assume the approval came from somewhere it did not. -->        <p class="viewer-history-seeded" data-testid="history-seeded">          {{ t().viewer.historyApproved }}: {{ approval()?.approvedBy }} ·          {{ approval()?.approvedAt | appDate: language() : true }}        </p>        @if (approval()?.approvedBy?.startsWith(\'system:\')) {          <p class="caption" data-testid="history-seeded-note">{{ t().viewer.historySeeded }}</p>        }      } @else {        <ol class="viewer-history-list" data-testid="history-list">          @for (event of events(); track $index) {            <li class="viewer-history-item" data-testid="history-item">              <p class="viewer-history-act">                <span class="viewer-history-what">{{ actionLabel(event.action) }}</span>                <span class="viewer-history-who" data-testid="history-actor">{{ event.actor }}</span>                <!-- THE TIME AS WELL AS THE DAY. Two corrections on one afternoon are a different                     story from two a month apart, and the day-only format the tables use cannot                     tell them apart. -->                <span class="viewer-history-when" data-testid="history-when">{{                  event.at | appDate: language() : true                }}</span>              </p>              <!-- Never blank: the table\'s own constraint requires a reason on every row, which is                   why this needs no empty case. -->              <p class="viewer-history-why" data-testid="history-comment">{{ event.comment }}</p>            </li>          }        </ol>        @if (olderEvents() > 0) {          <!-- One quiet line, and NO "show all" control. The three-entry cap is a product decision:               a full change history is a report with its own screen, deferred deliberately. What               this line prevents is the truncation being silent. -->          <p class="caption" data-testid="history-more">{{ t().viewer.historyMore(olderEvents()) }}</p>        }      }    </section>  }</app-dialog></div>'
     var COMPONENTS = [{'name': 'App', 'selector': 'app-root'},{'name': 'ApprovalStateBadge', 'selector': 'app-approval-state'},{'name': 'Dialog', 'selector': 'app-dialog'},{'name': 'HealthDot', 'selector': 'app-health-dot'},{'name': 'HelpDialog', 'selector': 'app-help-dialog'},{'name': 'Landing', 'selector': 'app-landing'},{'name': 'Moderation', 'selector': 'app-moderation'},{'name': 'Pager', 'selector': 'app-pager'},{'name': 'ProtocolDialog', 'selector': 'app-protocol-dialog'},{'name': 'Search', 'selector': 'app-search'},{'name': 'SearchAnswer', 'selector': 'app-search-answer'},{'name': 'SearchHelp', 'selector': 'app-search-help'},{'name': 'SearchSources', 'selector': 'app-search-sources'},{'name': 'SettingsDialog', 'selector': 'app-settings-dialog'},{'name': 'ThemeToggle', 'selector': 'app-theme-toggle'},{'name': 'Upload', 'selector': 'app-upload'}];
     var DIRECTIVES = [];
     var ACTUAL_COMPONENT = {'name': 'ProtocolDialog'};

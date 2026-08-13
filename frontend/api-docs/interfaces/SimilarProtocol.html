@@ -260,7 +260,7 @@ people describing one fault from different angles — which this corpus wants bo
 
                             <tr>
                                 <td class="col-md-4">
-                                    <div class="io-line">Defined in <a href="" data-line="140" class="link-to-prism">src/app/core/api/api.types.ts:140</a></div>
+                                    <div class="io-line">Defined in <a href="" data-line="175" class="link-to-prism">src/app/core/api/api.types.ts:175</a></div>
                                 </td>
                             </tr>
 
@@ -299,7 +299,7 @@ people describing one fault from different angles — which this corpus wants bo
 
                             <tr>
                                 <td class="col-md-4">
-                                    <div class="io-line">Defined in <a href="" data-line="132" class="link-to-prism">src/app/core/api/api.types.ts:132</a></div>
+                                    <div class="io-line">Defined in <a href="" data-line="167" class="link-to-prism">src/app/core/api/api.types.ts:167</a></div>
                                 </td>
                             </tr>
 
@@ -338,7 +338,7 @@ people describing one fault from different angles — which this corpus wants bo
 
                             <tr>
                                 <td class="col-md-4">
-                                    <div class="io-line">Defined in <a href="" data-line="135" class="link-to-prism">src/app/core/api/api.types.ts:135</a></div>
+                                    <div class="io-line">Defined in <a href="" data-line="170" class="link-to-prism">src/app/core/api/api.types.ts:170</a></div>
                                 </td>
                             </tr>
 
@@ -383,7 +383,7 @@ people describing one fault from different angles — which this corpus wants bo
 
                             <tr>
                                 <td class="col-md-4">
-                                    <div class="io-line">Defined in <a href="" data-line="139" class="link-to-prism">src/app/core/api/api.types.ts:139</a></div>
+                                    <div class="io-line">Defined in <a href="" data-line="174" class="link-to-prism">src/app/core/api/api.types.ts:174</a></div>
                                 </td>
                             </tr>
 
@@ -428,7 +428,7 @@ people describing one fault from different angles — which this corpus wants bo
 
                             <tr>
                                 <td class="col-md-4">
-                                    <div class="io-line">Defined in <a href="" data-line="133" class="link-to-prism">src/app/core/api/api.types.ts:133</a></div>
+                                    <div class="io-line">Defined in <a href="" data-line="168" class="link-to-prism">src/app/core/api/api.types.ts:168</a></div>
                                 </td>
                             </tr>
 
@@ -467,7 +467,7 @@ people describing one fault from different angles — which this corpus wants bo
 
                             <tr>
                                 <td class="col-md-4">
-                                    <div class="io-line">Defined in <a href="" data-line="137" class="link-to-prism">src/app/core/api/api.types.ts:137</a></div>
+                                    <div class="io-line">Defined in <a href="" data-line="172" class="link-to-prism">src/app/core/api/api.types.ts:172</a></div>
                                 </td>
                             </tr>
 
@@ -506,7 +506,7 @@ people describing one fault from different angles — which this corpus wants bo
 
                             <tr>
                                 <td class="col-md-4">
-                                    <div class="io-line">Defined in <a href="" data-line="136" class="link-to-prism">src/app/core/api/api.types.ts:136</a></div>
+                                    <div class="io-line">Defined in <a href="" data-line="171" class="link-to-prism">src/app/core/api/api.types.ts:171</a></div>
                                 </td>
                             </tr>
 
@@ -627,6 +627,41 @@ export interface Approval {
   readonly state: ApprovalState;
   readonly approvedBy: string | null;
   readonly approvedAt: string | null;
+}
+
+/**
+ * The vocabulary the moderation ledger can spell, matching the schema&#x27;s own check constraint.
+ *
+ * &#x60;UNAPPROVE&#x60; rather than &#x60;WITHDRAW&#x60; — the verb the database has recorded since #53. The interface
+ * says &quot;Freigabe zurückgezogen&quot;; renaming the stored value would be a data migration and a sweep of
+ * three services to change a word no user reads.
+ */
+export type ModerationAction &#x3D; &#x27;EDIT&#x27; | &#x27;DELETE&#x27; | &#x27;APPROVE&#x27; | &#x27;UNAPPROVE&#x27;;
+
+/** One act on one protocol: what happened, who did it, when, and why. */
+export interface ModerationEvent {
+  readonly action: ModerationAction;
+  readonly actor: string;
+  /** Never blank — the table&#x27;s own constraint requires a reason on every row. */
+  readonly comment: string;
+  readonly at: string;
+}
+
+/**
+ * A protocol&#x27;s recent history, from &#x60;GET /api/moderation/protocols/{id}/history&#x60;.
+ *
+ * &#x60;events&#x60; is capped SERVER-side; &#x60;total&#x60; is how many exist. The pair is what lets the viewer say
+ * that older entries exist rather than presenting the newest three as though they were everything.
+ *
+ * **An empty list is a true answer, not a missing one.** The 150 seeded protocols were approved by
+ * the V5 migration itself — &#x60;system:corpus-seed&#x60;, no human act — so they have no ledger rows and
+ * never will. The viewer falls back to the approval columns on the protocol for exactly that case.
+ */
+export interface ProtocolHistory {
+  readonly events: readonly ModerationEvent[];
+  readonly total: number;
+  /** The server-side cap, sent so no screen hard-codes a number the backend is free to change. */
+  readonly limit: number;
 }
 
 /**

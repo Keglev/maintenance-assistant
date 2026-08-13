@@ -46,6 +46,15 @@ class OpenApiSpecIT {
 
     assertThat(spec).contains("\"openapi\"").contains("/api/health").contains("/api/hello");
 
+    // The two links out of Swagger UI live in the description because springdoc has no property
+    // for a topbar link. They are the reader's only way back to the application and to the
+    // documentation site, and being data rather than an asset they are silently deletable — so
+    // the build asserts they are still served. This proves the CONFIGURATION, not the RENDERING:
+    // a Swagger UI that stopped rendering markdown would still pass here.
+    assertThat(spec)
+        .contains("https://maintenance.smartsupply.com.de/")
+        .contains("https://keglev.github.io/maintenance-assistant/");
+
     Files.createDirectories(OUTPUT.getParent());
     Files.writeString(OUTPUT, spec);
 

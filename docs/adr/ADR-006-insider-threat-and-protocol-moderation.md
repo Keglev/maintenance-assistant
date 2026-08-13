@@ -553,3 +553,190 @@ pay for the rarer one.
 because no browser could take that step — is **deleted**. It was written to be, and the pattern is
 worth keeping even though the helper is not: when a gap is somebody else's decision, stand in for it
 in a way that names itself, and make the stand-in cheap to remove.
+
+---
+
+## Revision — 2026-08-14: duplicate detection, and the number that had to be measured
+
+The 2026-08-10 note deferred this with one non-negotiable condition: **it warns, it never blocks.**
+This revision implements it, and the measurement it required changed *which* protocols the argument
+rests on.
+
+### Similarity warns. Nothing refuses an approval on a score.
+
+There is no branch in `ProtocolSimilarityService`, in `ProtocolApprovalService` or in
+`ModerationController` that can turn a similarity into a refusal, the approve button in the dialog is
+never disabled, and a *failed* similarity call approves anyway. `ProtocolDuplicateIT` asserts it with
+a verbatim copy — the strongest signal the feature can produce — still approving.
+
+**Why it must be this way is a fact about this corpus rather than a philosophy.** Four protocols on
+PR-03 carry the fault code E-47: a worn piston seal, a pressure-relief valve sticking, a programme
+change, and a slow build-up. Four different root causes, four legitimate protocols, all four
+correctly cited together in the demo answer. A threshold sensitive enough to catch a genuine
+duplicate would report all six of their pairs, and a system that had refused the fourth of them would
+have removed exactly the knowledge that makes the demo answer good.
+
+### What is compared: the protocol, as the mean of its chunk vectors
+
+Each protocol is reduced to one vector — the centroid of its chunk embeddings — and two protocols are
+compared by the cosine similarity of their centroids. The obvious alternative, the best
+chunk-to-chunk match, was measured alongside it and rejected:
+
+- **A maximum over a set that grows with document length is not a comparison of documents.** A
+  six-chunk protocol gets six chances to score high on one of them, and under chunk-max, adding a
+  paragraph the other document does not contain *cannot lower* the score. The statistic is monotone
+  in length, which is precisely the "two long protocols overlapping in one paragraph" false positive.
+- **The centroid moves the right way.** Material the other document lacks pulls the mean away from
+  it, which is what "these two say different things" should do to a number.
+- **Measured in this corpus**: E-47 #1 (two chunks) against #13 (one chunk) scores **0.8205** by
+  chunk-max and **0.7698** by centroid. The case where chunk-max reads distinctly higher is exactly
+  the shape of the false positive — one section of a longer document matching a shorter one whole.
+
+The cost is stated rather than hidden: a genuine duplicate buried inside a long protocol is *diluted*
+by the centroid and can fall below the threshold. That is the right side to err on for a feature
+whose premise is not crying wolf. A missed warning costs a second protocol in a corpus that tolerates
+several accounts of one fault by design; a false one costs the approver's trust in every warning
+after it.
+
+### The threshold: measured, a config property, and NOT ADR-002's 0.55
+
+`maintenance.duplicates.similarity-threshold`, never a literal. ADR-002's 0.55 is a **different
+question** and the numbers do not transfer: that one is question-to-chunk, a short interrogative
+sentence against a paragraph of a maintenance report. This is document-to-document, between two texts
+of the same genre, on the same machine, written from the same template, both carrying the chunker's
+`PR-03 · E-47 · <title>` context prefix. Everything here starts high — **the mean over all 1,393
+same-machine pairs in the corpus is 0.5547**, which is where the query path's *threshold* sits.
+Carrying 0.55 over would flag roughly half the corpus.
+
+Measured 2026-08-14 by `DuplicateSimilarityCalibrationIT`, against the real provider (`bge-m3`) and
+the real 165-protocol corpus:
+
+| What | Centroid similarity |
+|---|---|
+| mean over all 1,393 same-machine pairs | 0.5547 |
+| the four E-47 protocols against each other | 0.7594 – **0.8329** |
+| **highest legitimate pair anywhere in the corpus** | **0.9151** |
+| one incident re-narrated by a second person — the *realistic* duplicate | **0.9305** |
+| a verbatim re-file under a different title | 0.9778 |
+
+**Chosen: 0.92.** It clears the highest legitimate pair by 0.0049 and sits 0.0105 below the realistic
+duplicate.
+
+### THE FINDING: the E-47 four are not the constraint
+
+The brief for this work assumed the threshold had to clear the E-47 spread. It does, by 0.09 — and
+that turned out not to be the binding condition. **The highest-scoring legitimate pair in the corpus
+is not an E-47 pair at all**: it is PR-07's "Halbjahreswartung Presse 7" and "Jahreswartung Presse 7"
+at **0.9151** — the 4000-hour and 8000-hour services, same machine, same technician, same template,
+genuinely different work. Scheduled maintenance runs closer than fault reports do, because a
+checklist is a form and two filled-in forms resemble each other more than two incidents do.
+
+So the usable window is **0.9151 … 0.9305 — 0.0154 wide**, and that is narrower than anyone would
+choose. It is reported rather than smoothed over, and it is survivable for exactly one reason: **this
+feature warns and never blocks.** A false positive costs one card in a dialog that an approver
+dismisses in a second; a false negative costs the warning entirely. 0.92 sits low in the window on
+purpose, to buy sensitivity with the cheaper kind of error. *If this feature blocked, this margin
+would not be shippable* — which is the strongest argument yet for the rule the 2026-08-10 note set.
+
+Any change to the embedding model, to the chunker, or to the corpus invalidates every number above.
+`DuplicateSimilarityCalibrationIT` is how they are re-taken; it is skipped unless `LLM_API_KEY` is
+set, so CI never runs it and it never spends money by accident.
+
+### Cost, and where it runs
+
+One SQL statement, no provider call, nothing written. The candidate's chunks already exist — it was
+indexed when it was filed — so this asks the vectors a question rather than computing new ones.
+Measured with `EXPLAIN ANALYZE` against the 165-protocol corpus (182 chunks, 25 protocols on the
+busiest machine): **1.7 ms execution, 4.8 ms planning**.
+
+It is a sequential scan and deliberately does **not** use the HNSW index: that index answers "nearest
+neighbours of this vector", and this asks for an aggregate per protocol, which is a different
+question. The cost is therefore linear in the corpus rather than logarithmic. At this size that is
+1.7 ms; a hundredfold corpus would be a fifth of a second on an admin's click, which is still the
+right trade for a query nobody runs in a loop. If it ever stops being, the fix is a stored
+per-protocol centroid, not an index this shape of query cannot use.
+
+**Archived protocols are excluded**, and the comparison is scoped to one machine. The machine scope
+is a domain rule and not an optimisation: a seal replacement on PR-03 and a seal replacement on PR-07
+are two maintenance events, not one written twice.
+
+A protocol with no vectors yet reports `comparable: false` rather than an empty candidate list. Those
+are different facts and only one of them is a statement about the corpus.
+
+### What the approver sees, and what the wording is for
+
+Up to **three** candidates, most similar first, each with its title, incident date, similarity as a
+whole percentage — and **its own approval state**, which is the field the decision turns on. "Nearly
+the same as a protocol an administrator already vouched for" is a merge-or-reject question; "nearly
+the same as one nobody has reviewed" is often two honest accounts of one fault, and this corpus wants
+both. The count of everything above the threshold is reported separately, so a long tail is visible
+rather than cut silently to three. Each candidate opens in the existing read-only viewer, because a
+percentage is not a comparison.
+
+**The dialog opens only when there is something in it.** Nothing similar means no dialog and one
+click, which is the 2026-08-13 behaviour unchanged: a box that opened every time to announce "nothing
+found" would tax the common case for the rare one, and a permanently empty section is one readers
+learn to skip — including on the day it fills.
+
+The wording carries the rule. Review palette (`--c-review-*`), never danger; an information glyph
+rather than the triangle the "this edit resets approval" notice uses; no sentence that says
+"warning" or implies wrongdoing; and the approve button enabled throughout. **Being similar is normal
+here.** A sentence implying a problem beside a button that plainly works teaches a reader to distrust
+one of the two.
+
+Contrast was measured on the new surface in both palettes, all above AA: the review notice 8.49:1
+light / 9.17:1 dark, a card title 13.57 / 13.51, the percentage 5.47 / 7.52, the method line
+5.85 / 5.65.
+
+### The ledger records an informed approval
+
+When an administrator approves a protocol that had candidates, the `APPROVE` row's comment carries
+`approved despite N similar protocol(s) on this machine: <ids>` — every id above the threshold, not
+only the three shown. **No schema change**, and no second event: the ledger is a record of changes to
+the corpus's trust, and one approval is one change however much context it carries.
+
+The reasoning is ADR-006's own delete-with-reason argument applied to the moment a protocol becomes
+vouched-for. A plant auditor asking "did anybody notice that these two say the same thing?" should
+find the answer in the ledger rather than in somebody's memory of a screen — and an informed decision
+and an uninformed one look identical afterwards unless one of them is written down.
+
+**The similarity is recomputed by the approval rather than taken from the request.** If the client
+sent the ids it happened to display, an approval made through `curl` — or by a client that never
+asked — would record "nothing similar", which is the one answer the ledger must never give wrongly.
+The check belongs to the act, not to the screen.
+
+**No justification text is required, deliberately.** A mandatory field on every approval would make
+the common case — nothing similar, nothing to say — expensive, and a field people are forced to fill
+fills up with "ok". The missing accountability was the *record that the approver was informed and
+proceeded*; a sentence about it is not.
+
+### What this does NOT do, and will not
+
+- **No merge.** Two protocols are two events; combining their text would produce a document that
+  describes neither, authored by nobody, with two `uploaded_by` values and one row to put them in.
+- **No "supersedes" link between protocols, and this was considered and rejected rather than
+  forgotten.** It would make the corpus a **graph**, and every answer would then have to explain
+  which version it cites — a technician reading a Mode A answer would need to understand a
+  superseding relationship before trusting a citation, which is a worse burden than the one it
+  removes. Sources are already date-ordered and carry their incident date, which tells a technician
+  what is recent using a fact the protocol already has.
+- **No automatic action of any kind**: nothing is hidden, demoted, merged or unapproved because of a
+  similarity score.
+
+### A note on the four-eyes refusal, found while looking for a way to demonstrate it
+
+The act-based check in `ProtocolApprovalService` refuses an approval by whoever filed or last
+corrected the protocol. **Neither branch is reachable through the API as it stands, and that is the
+role split working rather than dead code.** Approval is admin-only; upload is Techniker and
+Schichtleiter; correction has been Schichtleiter-only since 2026-08-13. An administrator can
+therefore never be the author and never be the corrector.
+
+Adding a second demo administrator was considered as a way to make the refusal clickable for a
+visitor. **It would not**: the rule fires on the *same human doing two acts*, and no administrator
+can perform the first one. Making it demonstrable would mean giving a demo account two of the three
+jobs, which contradicts the decision the chain rests on and would misrepresent the design on the one
+screen a visitor looks at. So it was not done, and the reasoning is here rather than in a commit
+message nobody will find. The check stays as the belt to the split's braces — it is the only guard
+that could express "the same human did both", the only one that survives a future widening of any of
+those three annotations, and a rule enforced in exactly one place is one edit away from being gone.
+It is covered by `ProtocolApprovalIT` against a real database.

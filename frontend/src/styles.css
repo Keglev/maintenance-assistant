@@ -691,6 +691,42 @@ textarea:disabled {
   color: var(--c-brand-strong);
 }
 
+/*
+ * A consequence the reader is about to cause, in the review palette rather than the danger one.
+ *
+ * v1.2's third variant, and the hue is the argument: losing an approval is not an error and not a
+ * failure — it is the correct result of correcting text nobody has re-read (#53). Red would say the
+ * save is about to go wrong; amber says it is about to change something else as well. Same tokens as
+ * the unapproved marker it predicts, so the sentence here and the chip that appears afterwards are
+ * visibly the same fact.
+ */
+.notice-review {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--s-2);
+  background: var(--c-review-soft);
+  border-color: var(--c-review-line);
+  color: var(--c-review-ink);
+}
+
+.notice-icon {
+  flex: none;
+  width: 1.05rem;
+  height: 1.05rem;
+  margin-top: 0.1rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* The one filled part of the warning glyph: a stroked dot renders as a smudge at this size. */
+.notice-icon .dot {
+  fill: currentColor;
+  stroke: none;
+}
+
 /* A reader who asked the operating system for less motion gets none of it. */
 @media (prefers-reduced-motion: reduce) {
   *,

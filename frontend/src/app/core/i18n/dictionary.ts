@@ -73,6 +73,14 @@ export interface Dictionary {
     readonly search: string;
     readonly upload: string;
     readonly moderation: string;
+    /**
+     * The same route as {@link moderation}, named for the OTHER job behind it.
+     *
+     * The Schichtleiter corrects and neither reviews nor removes, so "Verwaltung" would describe
+     * powers they do not have. Naming the entry after the job is part of what makes the trust chain
+     * legible from the screen.
+     */
+    readonly corrections: string;
     readonly signOut: string;
     readonly language: string;
     readonly help: string;
@@ -249,6 +257,23 @@ export interface Dictionary {
   readonly moderation: {
     readonly heading: string;
     readonly intro: string;
+    /**
+     * The same view, named for the corrector.
+     *
+     * Two roles reach this route since 2026-08-14 and do different things on it: the admin reviews,
+     * approves and archives; the Schichtleiter corrects and does none of those. A heading that
+     * described powers the reader does not have would contradict the buttons underneath it.
+     */
+    readonly headingCorrector: string;
+    readonly introCorrector: string;
+    /**
+     * Shown in the correction dialog when the protocol is currently APPROVED.
+     *
+     * An edit resets approval unconditionally (#53), and the person about to make one is owed that
+     * before they press save — a correction is how an approved protocol quietly stops being
+     * approved, and nobody should discover it from the list afterwards.
+     */
+    readonly editResetsApproval: string;
     readonly uploadedBy: string;
     readonly actions: string;
     readonly open: string;
@@ -427,6 +452,7 @@ export const DE: Dictionary = {
     search: 'Suche',
     upload: 'Protokoll hochladen',
     moderation: 'Protokollverwaltung',
+    corrections: 'Korrekturen',
     signOut: 'Abmelden',
     language: 'Sprache',
     help: 'Hilfe',
@@ -617,6 +643,11 @@ export const DE: Dictionary = {
     heading: 'Protokollverwaltung',
     intro:
       'Alle Protokolle im Bestand. Öffnen zum Prüfen, entfernen was nicht hineingehört.',
+    headingCorrector: 'Protokolle korrigieren',
+    introCorrector:
+      'Alle Protokolle im Bestand. Öffnen zum Nachlesen, korrigieren was fachlich falsch ist — mit Begründung und sofortiger Neuindexierung.',
+    editResetsApproval:
+      'Dieses Protokoll ist freigegeben. Mit der Korrektur verliert es die Freigabe und muss erneut geprüft werden.',
     uploadedBy: 'Hochgeladen von',
     actions: 'Aktionen',
     open: 'Öffnen',
@@ -770,6 +801,7 @@ export const EN: Dictionary = {
     search: 'Search',
     upload: 'Upload protocol',
     moderation: 'Protocol management',
+    corrections: 'Corrections',
     signOut: 'Sign out',
     language: 'Language',
     help: 'Help',
@@ -961,6 +993,11 @@ export const EN: Dictionary = {
   moderation: {
     heading: 'Protocol management',
     intro: 'Every protocol in the records. Open one to review it, remove what does not belong.',
+    headingCorrector: 'Correct protocols',
+    introCorrector:
+      'Every protocol in the records. Open one to read it, correct what is technically wrong — with a reason and an immediate re-index.',
+    editResetsApproval:
+      'This protocol is approved. Correcting it withdraws that approval, and it has to be reviewed again.',
     uploadedBy: 'Uploaded by',
     actions: 'Actions',
     open: 'Open',

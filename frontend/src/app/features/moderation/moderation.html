@@ -1,33 +1,42 @@
 <div class="page page-wide">
-  <h1 class="page-title">{{ t().moderation.heading }}</h1>
+  <!-- The heading names the JOB, not the route. Two roles share this screen since 2026-08-14 and
+       they do different things on it; a Schichtleiter under "Protokollverwaltung" would be told
+       their role includes reviewing and removing, which it does not. -->
+  <h1 class="page-title">{{ tab() === 'archive' ? t().moderation.heading : heading() }}</h1>
   <p class="page-lead">
-    {{ tab() === 'archive' ? t().moderation.archiveIntro : t().moderation.intro }}
+    {{ tab() === 'archive' ? t().moderation.archiveIntro : intro() }}
   </p>
 
   <!-- Two halves of one job: what is in the corpus, and what was taken out of it. Tabs rather than
-       a second route, because a reviewer moves between them while deciding. -->
-  <div class="tabs" role="tablist" [attr.aria-label]="t().moderation.heading">
-    <button
-      type="button"
-      role="tab"
-      data-testid="tab-corpus"
-      [class.active]="tab() === 'corpus'"
-      [attr.aria-selected]="tab() === 'corpus'"
-      (click)="showTab('corpus')"
-    >
-      {{ t().moderation.tabCorpus }}
-    </button>
-    <button
-      type="button"
-      role="tab"
-      data-testid="tab-archive"
-      [class.active]="tab() === 'archive'"
-      [attr.aria-selected]="tab() === 'archive'"
-      (click)="showTab('archive')"
-    >
-      {{ t().moderation.tabArchive }}
-    </button>
-  </div>
+       a second route, because a reviewer moves between them while deciding.
+
+       THE WHOLE BAR IS ABSENT FOR THE CORRECTOR, not just its second tab. The archive is the
+       administrator's — it holds exactly the protocols somebody decided were unfit to be read — and
+       a tab strip with one tab is a control that does nothing dressed as a choice. -->
+  @if (canArchive()) {
+    <div class="tabs" role="tablist" [attr.aria-label]="t().moderation.heading">
+      <button
+        type="button"
+        role="tab"
+        data-testid="tab-corpus"
+        [class.active]="tab() === 'corpus'"
+        [attr.aria-selected]="tab() === 'corpus'"
+        (click)="showTab('corpus')"
+      >
+        {{ t().moderation.tabCorpus }}
+      </button>
+      <button
+        type="button"
+        role="tab"
+        data-testid="tab-archive"
+        [class.active]="tab() === 'archive'"
+        [attr.aria-selected]="tab() === 'archive'"
+        (click)="showTab('archive')"
+      >
+        {{ t().moderation.tabArchive }}
+      </button>
+    </div>
+  }
 
   @if (corrected(); as title) {
     <p class="notice notice-info moderation-notice" role="status" data-testid="corrected-notice">
@@ -340,16 +349,22 @@
                       </button>
                     }
                   }
-                  <button
-                    type="button"
-                    class="btn btn-danger btn-sm"
-                    data-testid="row-delete"
-                    [attr.aria-haspopup]="'dialog'"
-                    [attr.aria-label]="t().moderation.delete + ': ' + protocol.title"
-                    (click)="deleting.set(protocol)"
-                  >
-                    {{ t().moderation.delete }}
-                  </button>
+                  <!-- Removing from the corpus is the administrator's, and stays so: 2026-08-14
+                       opened the LIST and the DOCUMENT to the corrector, nothing more. Absent for
+                       them rather than disabled — a destructive control that exists only to refuse
+                       is noise on a tablet and a lie about the role. -->
+                  @if (canArchive()) {
+                    <button
+                      type="button"
+                      class="btn btn-danger btn-sm"
+                      data-testid="row-delete"
+                      [attr.aria-haspopup]="'dialog'"
+                      [attr.aria-label]="t().moderation.delete + ': ' + protocol.title"
+                      (click)="deleting.set(protocol)"
+                    >
+                      {{ t().moderation.delete }}
+                    </button>
+                  }
                   </div>
                 </td>
               </tr>
@@ -399,7 +414,10 @@
   </section>
   }
 
-  @if (tab() === 'archive') {
+  <!-- `canArchive()` as well as the tab, so the archive cannot be rendered by a role that may not
+       read it even if `tab` were somehow set — the state is not reachable through the UI, and a
+       second condition costs nothing to say what the section actually depends on. -->
+  @if (canArchive() && tab() === 'archive') {
     <section class="card archive-controls">
       <label class="field">
         <span class="field-label">{{ t().upload.machine }}</span>
@@ -668,6 +686,22 @@
 >
   @if (editing(); as target) {
     <p class="confirm-body">{{ t().moderation.editIntro }}</p>
+
+    @if (target.approval.state === 'APPROVED') {
+      <!-- ONE SENTENCE, IN THE DIALOG THAT IS ALREADY OPEN — not a second confirmation. An edit
+           resets approval unconditionally (#53), so a correction is how an approved protocol quietly
+           stops being approved, and the person about to make one should read that before they press
+           save rather than discover it from the list afterwards. A second dialog would make the
+           ordinary case (correcting something unapproved) pay for the rarer one. -->
+      <p class="notice notice-review" role="note" data-testid="edit-resets-approval">
+        <svg class="notice-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path d="M12 3.6L1.8 20.4h20.4z" />
+          <path d="M12 9.6v4.6" />
+          <circle class="dot" cx="12" cy="17.4" r="1" />
+        </svg>
+        {{ t().moderation.editResetsApproval }}
+      </p>
+    }
 
     @if (editFailure(); as reason) {
       <p class="notice notice-error" role="alert" data-testid="edit-failure">

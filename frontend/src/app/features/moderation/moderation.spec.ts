@@ -735,10 +735,9 @@ describe('Moderation', () => {
     // THE OTHER HALF OF THE SAME RULE. The corrector is never the approver, so this role sees
     // Bearbeiten and neither Freigeben nor Freigabe zurückziehen.
     //
-    // NOTE, AND IT IS A FINDING RATHER THAN A GAP IN THE TEST: /moderation is guarded by
-    // roleGuard('admin'), so no Schichtleiter can reach this view today and the correction path has
-    // no interface at all. Widening that route is a permission decision for Carlos and is
-    // deliberately not made here. This test is what makes the button correct the day it is.
+    // Since 2026-08-14 this role can actually REACH this view — until then the route was
+    // admin-only, the correction path had no interface for anybody, and this test was holding a
+    // button nobody could press.
     roles.set(['schichtleiter']);
     const fixture = await render();
     const element = fixture.nativeElement as HTMLElement;
@@ -746,6 +745,63 @@ describe('Moderation', () => {
     expect(element.querySelector('[data-testid="row-edit"]')).not.toBeNull();
     expect(element.querySelector('[data-testid="row-approve"]')).toBeNull();
     expect(element.querySelector('[data-testid="row-withdraw"]')).toBeNull();
+  });
+
+  it('gives the Schichtleiter the correction job and nothing else', async () => {
+    // THE FENCE, ON THE SCREEN. 2026-08-14 opened this route and two endpoints so that one write
+    // could be reached; a corrector who finds Löschen or the archive here would have been handed
+    // the administrator's job by a routing change, which is a worse defect than the one it fixed.
+    //
+    // ABSENT, NOT DISABLED, and asserted that way on purpose: a destructive control that exists
+    // only to refuse is noise on a shop-floor tablet and a lie about the role.
+    roles.set(['schichtleiter']);
+    const fixture = await render();
+    const element = fixture.nativeElement as HTMLElement;
+
+    expect(element.querySelector('[data-testid="row-delete"]')).toBeNull();
+    // The whole tab strip, not just its second tab: one tab is a choice that is not a choice.
+    expect(element.querySelector('[data-testid="tab-archive"]')).toBeNull();
+    expect(element.querySelector('[data-testid="tab-corpus"]')).toBeNull();
+    // What they DO keep: the list, and the two things the correction needs.
+    expect(element.querySelector('[data-testid="moderation-table"]')).not.toBeNull();
+    expect(element.querySelector('[data-testid="row-open"]')).not.toBeNull();
+  });
+
+  it('names the screen after the job the reader may do on it', async () => {
+    // Two roles, one route, two headings. "Protokollverwaltung" describes reviewing and removing;
+    // a Schichtleiter does neither, and a title that claimed otherwise would contradict the buttons
+    // directly underneath it.
+    const admin = await render();
+    expect((admin.nativeElement as HTMLElement).querySelector('.page-title')?.textContent).toContain(
+      'Protokollverwaltung',
+    );
+
+    roles.set(['schichtleiter']);
+    const corrector = await render();
+    const element = corrector.nativeElement as HTMLElement;
+    expect(element.querySelector('.page-title')?.textContent).toContain('korrigieren');
+    expect(element.querySelector('.page-lead')?.textContent).toContain('korrigieren');
+  });
+
+  it('warns in the correction dialog when the protocol is currently approved', async () => {
+    // An edit resets approval unconditionally (#53), so a correction is how an approved protocol
+    // quietly stops being approved. The person about to cause that reads it BEFORE they save —
+    // one sentence in the dialog already open, not a second confirmation.
+    const fixture = await render();
+    const element = await openEdit(fixture);
+
+    expect(element.querySelector('[data-testid="edit-resets-approval"]')?.textContent).toContain(
+      'verliert es die Freigabe',
+    );
+  });
+
+  it('says nothing about approval when the protocol has none to lose', async () => {
+    // The ordinary case for a corrector — most of what reaches them is unreviewed — and it stays
+    // silent. A line on every correction is a line readers stop seeing.
+    const fixture = await render(page([UNAPPROVED]));
+    const element = await openEdit(fixture);
+
+    expect(element.querySelector('[data-testid="edit-resets-approval"]')).toBeNull();
   });
 
   // -------------------------------------------------------------------------------------------

@@ -103,6 +103,34 @@ export class Moderation {
   /** Who may approve. Admin only, here and — decisively — on the endpoint. */
   protected readonly canApprove = computed(() => this.auth.realmRoles().includes('admin'));
 
+  /**
+   * Who may remove a protocol from the corpus, and read the archive of what was removed.
+   *
+   * <p>The administrator, and nobody else — unchanged by 2026-08-14's widening. That change opened
+   * the corpus LIST and the DOCUMENT read to the Schichtleiter so their one write would be
+   * reachable; it opened nothing else, and this signal is where the interface says so.
+   *
+   * <p><b>Absent rather than disabled.</b> A Löschen button that exists only to refuse is noise on a
+   * shop-floor tablet, and worse, it tells the reader their role includes a power it does not.
+   */
+  protected readonly canArchive = this.canApprove;
+
+  /**
+   * What this screen is called, which depends on what the reader may do on it.
+   *
+   * <p>"Protokollverwaltung" describes reviewing and removing. A Schichtleiter does neither: they
+   * correct. Two roles behind one route need two names, or the wording quietly contradicts the
+   * buttons — which is the same defect as a control that only refuses, arriving through the door of
+   * the page title.
+   */
+  protected readonly heading = computed(() =>
+    this.canApprove() ? this.t().moderation.heading : this.t().moderation.headingCorrector,
+  );
+
+  protected readonly intro = computed(() =>
+    this.canApprove() ? this.t().moderation.intro : this.t().moderation.introCorrector,
+  );
+
   /** The protocol whose approval is being changed, while the request is in flight. */
   protected readonly approving = signal<string | null>(null);
   /** The protocol whose approval is being withdrawn, or null. Withdrawal needs a reason. */

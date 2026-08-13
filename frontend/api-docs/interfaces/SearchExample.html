@@ -663,13 +663,6 @@ export interface Dictionary {
     readonly withdrawTitle: string;
     readonly withdrawBody: string;
     readonly withdrawReasonPlaceholder: string;
-    /**
-     * The four-eyes refusal, in plain language.
-     *
-     * Two sentences because the reader needs two things: what happened, and what to do about it. A
-     * disabled button would have said neither, and a silent failure is a bug report.
-     */
-    readonly fourEyes: string;
     /** Approving something that is in the archive. Archived is final. */
     readonly archived: string;
   };
@@ -1059,8 +1052,6 @@ export const DE: Dictionary &#x3D; {
     withdrawBody:
       &#x27;Das Protokoll bleibt im Bestand und weiterhin durchsuchbar. Es gilt danach als ungeprüft und erscheint wieder in der Freigabeliste.&#x27;,
     withdrawReasonPlaceholder: &#x27;z. B. Massnahme passt nicht zur beschriebenen Ursache.&#x27;,
-    fourEyes:
-      &#x27;Sie haben dieses Protokoll geschrieben oder zuletzt korrigiert. Freigeben muss es eine andere Administratorin oder ein anderer Administrator — eine Freigabe ist ein zweites Paar Augen.&#x27;,
     archived:
       &#x27;Dieses Protokoll wurde entfernt und lässt sich nicht mehr freigeben. Entfernt ist endgültig.&#x27;,
   },
@@ -1432,8 +1423,6 @@ export const EN: Dictionary &#x3D; {
     withdrawBody:
       &#x27;The protocol stays in the records and stays searchable. It counts as unreviewed afterwards and returns to the approval queue.&#x27;,
     withdrawReasonPlaceholder: &#x27;e.g. The action taken does not match the stated cause.&#x27;,
-    fourEyes:
-      &#x27;You wrote or last corrected this protocol. Another administrator has to approve it — an approval is a second pair of eyes.&#x27;,
     archived: &#x27;This protocol was removed and can no longer be approved. Removed is final.&#x27;,
   },
   duplicates: {

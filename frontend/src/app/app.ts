@@ -92,13 +92,34 @@ export class App {
   );
 
   /**
-   * Whether to offer the Protokollverwaltung view.
+   * Whether to offer the protocol view — and it is two different views behind one entry.
    *
-   * Presentation, like {@link canUpload} — the route guard and the backend decide. What it buys is
-   * that the three shop-floor roles are not shown a door onto a 403, and that the admin, who until
-   * now signed in to an empty application, has one.
+   * <p>The admin reviews, approves and archives. The Schichtleiter corrects, and since 2026-08-14
+   * reaches the same route to do it: they had held the correction endpoint alone since 2026-08-13
+   * with no door onto it, so the permission existed and the path did not.
+   *
+   * <p>Presentation, like {@link canUpload} — the route guard and, decisively, the backend decide.
+   * What it buys is that the two roles with a job here have a door and the two without one do not.
+   * What the door OPENS ONTO differs by role: the component renders the controls each may use, and
+   * {@link nav.moderation} is worded for the reader rather than for the route.
    */
-  protected readonly canModerate = this.isAdmin;
+  protected readonly canModerate = computed(
+    () =>
+      this.isAdmin() ||
+      this.auth.realmRoles().some((role) => role.toLowerCase() === 'schichtleiter'),
+  );
+
+  /**
+   * What to call that entry, because the two roles do not do the same thing behind it.
+   *
+   * "Protokollverwaltung" describes reviewing and removing; a Schichtleiter does neither. Naming the
+   * link after the job is part of what makes the trust chain legible from the screen — a corrector
+   * who clicks "Verwaltung" and finds no delete button has been told the wrong thing about their
+   * own role.
+   */
+  protected readonly moderationLabel = computed(() =>
+    this.isAdmin() ? this.t().nav.moderation : this.t().nav.corrections,
+  );
 
   protected use(language: UiLanguage): void {
     this.i18n.use(language);

@@ -83,19 +83,84 @@ class ModerationSecurityIT {
     // ---------------------------------------------------------------------------------------
 
     @ParameterizedTest(name = "a {0} may not list the corpus")
-    @ValueSource(strings = {"operator", "techniker", "schichtleiter"})
+    // THE SCHICHTLEITER CAME OFF THIS LIST ON 2026-08-14, and it is the narrowest widening that
+    // makes their one write reachable: they have been the only role that may correct since
+    // 2026-08-13, and until now there was no way for them to FIND the protocol to correct. An
+    // Operator and a Techniker are still refused — neither corrects anything.
+    @ValueSource(strings = {"operator", "techniker"})
     void noShopFloorRoleMayList(String role) throws Exception {
         mockMvc.perform(get("/api/moderation/protocols").with(as(role)))
                 .andExpect(status().isForbidden());
     }
 
     @ParameterizedTest(name = "a {0} may not read a protocol through the moderation path")
-    @ValueSource(strings = {"operator", "techniker", "schichtleiter"})
+    // Same change, same reason: the edit dialog loads the STORED TEXT rather than reconstructing it
+    // from the row, so a corrector who cannot read this file cannot safely rewrite it.
+    @ValueSource(strings = {"operator", "techniker"})
     void noShopFloorRoleMayReadThroughModeration(String role) throws Exception {
         // The shop-floor document endpoint stays open to them; this one is not it. Reading for
-        // review is an admin act on an admin path.
+        // review or for correction is not the same act as reading to check a citation.
         mockMvc.perform(get("/api/moderation/protocols/{id}/document", PROTOCOL).with(as(role)))
                 .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @DisplayName("a Schichtleiter MAY list the corpus — they cannot correct what they cannot find")
+    void theCorrectorMayList() throws Exception {
+        when(moderation.list(anyInt(), anyInt(), any())).thenReturn(
+                new ProtocolModerationService.ProtocolPage(List.of(
+                        new ProtocolModerationService.ModeratedProtocol(
+                                PROTOCOL, "PR-03", "E-47 Druckabfall", "STOERUNG", "E-47",
+                                "techniker", OffsetDateTime.now(), "INDEXED", 2,
+                                new ProtocolApprovalService.Approval("UNAPPROVED", null, null))),
+                        0, 10, 1));
+
+        mockMvc.perform(get("/api/moderation/protocols").with(as("schichtleiter")))
+                .andExpect(status().isOk())
+                // The author travels with the row for this reader too. A corrector who cannot see
+                // who filed a protocol is correcting an anonymous claim.
+                .andExpect(jsonPath("$.items[0].uploadedBy").value("techniker"))
+                // And the approval state, because correcting an APPROVED protocol knocks it out of
+                // approval (#53) and the person doing it is owed that warning.
+                .andExpect(jsonPath("$.items[0].approval.state").value("UNAPPROVED"));
+    }
+
+    @Test
+    @DisplayName("a Schichtleiter MAY read a protocol's document — the edit dialog loads it")
+    void theCorrectorMayReadTheDocument() throws Exception {
+        when(documents.find(PROTOCOL)).thenReturn(Optional.of(
+                new ProtocolDocumentService.ProtocolDocument(
+                        new org.springframework.core.io.ByteArrayResource("Symptom:\n".getBytes()),
+                        "PR-03-E-47.txt", "text/plain;charset=UTF-8", 9)));
+
+        mockMvc.perform(get("/api/moderation/protocols/{id}/document", PROTOCOL)
+                        .with(as("schichtleiter")))
+                .andExpect(status().isOk());
+    }
+
+    @ParameterizedTest(name = "a Schichtleiter may not reach {0} — correcting is not moderating")
+    @ValueSource(strings = {"delete", "approve", "archive", "archivedDocument"})
+    void theCorrectorGetsTheCORRECTIONJobAndNothingElse(String act) throws Exception {
+        // THE FENCE AROUND 2026-08-14's WIDENING, and the test that matters most in this file. Two
+        // reads were opened so that one write could be reached; a Schichtleiter who can suddenly
+        // delete, approve or read the archive of what was removed would be a worse defect than the
+        // unreachable endpoint this change exists to fix.
+        var request = switch (act) {
+            case "delete" -> delete("/api/moderation/protocols/{id}", PROTOCOL)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content("{\"comment\":\"weg damit\"}");
+            case "approve" -> put("/api/moderation/protocols/{id}/approval", PROTOCOL)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content("{\"approved\":true}");
+            case "archive" -> get("/api/moderation/protocols/deleted");
+            default -> get("/api/moderation/protocols/deleted/{id}/document", PROTOCOL);
+        };
+
+        mockMvc.perform(request.with(as("schichtleiter"))).andExpect(status().isForbidden());
+
+        // Refused before anything happened, not after.
+        verify(moderation, never()).delete(any(), anyString(), anyString());
+        verify(approvals, never()).setApproval(any(), anyBoolean(), anyString(), any());
     }
 
     @ParameterizedTest(name = "a {0} may not delete a protocol")

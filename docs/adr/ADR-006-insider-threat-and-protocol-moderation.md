@@ -487,3 +487,69 @@ the fault, when what happened is that theirs is not signed off yet.
 Duplicate detection on approval (PR 3, unchanged from the note above). No assignment, no due date and
 no reminder on the queue: it is a filter on a list, which is the smallest thing that makes the state
 actionable.
+
+---
+
+## Revision — 2026-08-14: the corrector gets a door, and what it does not open
+
+**For one release the correction path had no interface for anybody, and that is worth writing down
+rather than quietly closing.** The 2026-08-13 revision made `PUT /api/moderation/protocols/{id}`
+SCHICHTLEITER-only, which was the right rule. But the only screen with a Bearbeiten button is
+`/moderation`, and that route was `roleGuard('admin')` — so the administrator held the screen without
+the permission and the Schichtleiter held the permission without the screen.
+
+**The role split landed before the route did.** It was named in that pull request rather than
+discovered later, and left for Carlos because widening who may reach a view is a permission decision
+and not a UI change. He has ruled: open it to the Schichtleiter. The honest version of this history
+is more useful than a clean-looking one — a permission and its path are one change, and splitting
+them across two releases is how a feature ships that nobody can use.
+
+### The endpoint × role matrix, which is now written in the controller too
+
+| Endpoint | ADMIN | SCHICHTLEITER | Why |
+|---|---|---|---|
+| `GET /` | ✅ | ✅ | you cannot correct what you cannot find |
+| `GET /{id}/document` | ✅ | ✅ | the edit dialog loads the stored text, not the row |
+| `PUT /{id}` | ❌ | ✅ | the approver is never the corrector (2026-08-13) |
+| `DELETE /{id}` | ✅ | ❌ | removing from the corpus is moderation |
+| `PUT /{id}/approval` | ✅ | ❌ | the corrector is never the approver |
+| `GET /deleted` | ✅ | ❌ | the archive holds what somebody judged unfit to be read |
+| `GET /deleted/{id}/document` | ✅ | ❌ | same |
+
+Operator and Techniker reach none of it. **Two reads were opened so that one write could be reached,
+and nothing else was**: a Schichtleiter who could suddenly delete would be a worse defect than the
+unreachable endpoint this closes, so that fence is a parameterised refusal test over all four
+admin-only acts rather than the absence of a change.
+
+The document read deserves its own line, because the obvious objection is that a Schichtleiter can
+already fetch the same bytes from `/api/protocols/{id}/document`, which is open to the shop floor.
+True — and the alternative is a client that picks one of two document paths by role. The reason
+`/api/moderation/**` has its own document endpoint is that the two differ in **who may take them**,
+which is exactly the kind of difference that should stay visible at the call site.
+
+### Correcting is not moderating, and the screen has to say so
+
+The route is shared; the view is not. A Schichtleiter sees the records list, Öffnen and Bearbeiten.
+They do not see Löschen, Freigeben/Zurückziehen or the archive tab — **absent, not disabled**. A
+destructive control that exists only to refuse is noise on a shop-floor tablet and, worse, tells the
+reader their role includes a power it does not.
+
+The wording follows the same rule. "Protokollverwaltung" describes reviewing and removing, so the
+heading, the intro line and the navigation entry are chosen by role — the corrector gets "Protokolle
+korrigieren" and "Korrekturen". A corrector who clicks "Verwaltung" and finds no delete button has
+been told the wrong thing about their own role, and the trust chain is only as legible as the screen
+that presents it.
+
+**One sentence was added to the correction dialog**: when the protocol is currently APPROVED, it says
+that saving withdraws that approval. An edit resets approval unconditionally, so a correction is how
+an approved protocol quietly stops being approved — and the person about to cause it should read that
+before they save rather than find it in the list afterwards. In the dialog that is already open, not
+a second confirmation: the ordinary case for a corrector is text nobody has reviewed, and it must not
+pay for the rarer one.
+
+### What this closes in the test suite
+
+`correctAsSchichtleiter` — the e2e helper that performed the correction as an authenticated `PUT`
+because no browser could take that step — is **deleted**. It was written to be, and the pattern is
+worth keeping even though the helper is not: when a gap is somebody else's decision, stand in for it
+in a way that names itself, and make the stand-in cheap to remove.

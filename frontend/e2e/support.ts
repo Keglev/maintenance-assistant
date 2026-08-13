@@ -139,72 +139,25 @@ export async function sweepThrowaways(page: Page, machineNo: string): Promise<nu
 }
 
 /**
- * Corrects a protocol as the signed-in Schichtleiter, through the real API with their real token.
+ * Puts the browser on the protocol list, whichever role is signed in.
  *
- * <p><b>Why this is not a click, and why that is stated rather than hidden.</b> The correction path
- * lives at `PUT /api/moderation/protocols/{id}`, which since 2026-08-13 only a Schichtleiter may
- * call — and `/moderation`, the only screen with a Bearbeiten button, is guarded by
- * `roleGuard('admin')`. The role that owns the act cannot reach the screen that performs it. That
- * is a reported finding and a routing decision for Carlos; widening the route inside a UI pull
- * request would be answering a permission question nobody asked this branch.
+ * <p><b>Because the two roles do not land in the same place.</b> An administrator's home IS this
+ * view — it is the only thing they can do — so `signIn` leaves them on it. A Schichtleiter's home is
+ * `/search`, because asking questions is most of their day; correcting is a job they navigate to.
+ * A helper that assumed the admin's landing page silently searched an empty page for a filter that
+ * was never there, which is how this was found.
  *
- * <p>So this is ARRANGEMENT, not verification. Everything the drill actually proves — that the
- * corrected text is what the corpus holds, and that the correction reset the approval — is asserted
- * in the browser afterwards. This suite's own rule is that an API call is not a click; it is being
- * obeyed, not sidestepped. <b>Delete this helper and restore the dialog clicks the day the route
- * opens.</b>
- *
- * <p>The token is taken from the live session rather than minted: `fetch` runs inside the page, so
- * the request is the one that browser could make, with the roles that browser holds.
+ * <p>Through the NAV ENTRY rather than `page.goto`, when navigation is needed: the entry is part of
+ * what this change delivers — the corrector had no door onto this screen until 2026-08-14 — and a
+ * test that typed the URL would pass with the door still missing.
  */
-export async function correctAsSchichtleiter(
-  page: Page,
-  title: string,
-  content: string,
-  overrides: { machineNo?: string } = {},
-): Promise<{ status: number; reason?: string }> {
-  // `GET /api/protocols/mine` is the author's own list and is the only place a Schichtleiter can
-  // learn a protocol id — the moderation list is admin-only, and rightly so.
-  return page.evaluate(
-    async ([wanted, body, machineNo]) => {
-      const token = Object.keys(sessionStorage)
-        .filter((key) => key.includes('access_token'))
-        .map((key) => sessionStorage.getItem(key))
-        .find((value): value is string => !!value && value.split('.').length === 3);
-      if (!token) {
-        throw new Error('no access token in the page session — is the browser signed in?');
-      }
-      const headers = { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' };
-
-      const mine = (await (await fetch('/api/protocols/mine', { headers })).json()) as {
-        id: string;
-        title: string;
-      }[];
-      const protocol = mine.find((candidate) => candidate.title === wanted);
-      if (!protocol) {
-        throw new Error(`no uploaded protocol titled "${wanted}" — the filing step did not land`);
-      }
-
-      const response = await fetch(`/api/moderation/protocols/${protocol.id}`, {
-        method: 'PUT',
-        headers,
-        body: JSON.stringify({
-          machineNo,
-          protocolType: 'STOERUNG',
-          title: wanted,
-          errorCode: '',
-          content: body,
-          comment: 'e2e: corrected the root cause',
-        }),
-      });
-      if (response.ok) {
-        return { status: response.status };
-      }
-      const failure = (await response.json()) as { reason?: string };
-      return { status: response.status, reason: failure.reason };
-    },
-    [title, content, overrides.machineNo ?? E2E_MACHINE] as const,
-  );
+export async function openProtocolList(page: Page): Promise<void> {
+  const list = page.getByTestId('moderation-table').or(page.getByTestId('moderation-empty'));
+  if (await list.count()) {
+    return;
+  }
+  await page.getByTestId('nav-moderation').click();
+  await expect(list).toBeVisible();
 }
 
 /** Signs out through the confirmation dialog, so a test leaves no session behind. */

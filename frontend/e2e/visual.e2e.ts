@@ -24,10 +24,12 @@ import { expect, selectSearchMachine, signIn, test } from './support';
  * causes it (see e2e/README.md), and why a "fix the baselines" commit afterwards is the one
  * workflow this suite must never acquire.
  *
- * <p><b>Chosen for churn, not for coverage.</b> Six surfaces, both palettes. Five of them are places
- * this project has already shipped a visual defect; the sixth (v1.2's unapproved source) is the one
- * case where being seen IS the feature — see {@link UNAPPROVED_ANSWER}. Adding a baseline per view
- * would make a suite nobody dares change.
+ * <p><b>Chosen for churn, not for coverage.</b> Seven surfaces, both palettes. Five of them are
+ * places this project has already shipped a visual defect; the sixth (v1.2's unapproved source) is
+ * the one case where being seen IS the feature — see {@link UNAPPROVED_ANSWER}; the seventh is the
+ * corrector's view of the records table, where what changed is a set of ABSENCES and absence has a
+ * layout. Each has its argument written where it lives. Adding a baseline per view would make a
+ * suite nobody dares change.
  */
 
 /** The seeded E-47 demo case — the same fixture citation.e2e.ts uses. */
@@ -230,6 +232,35 @@ for (const scheme of SCHEMES) {
       await expect(page.getByTestId('moderation-table')).toBeVisible();
 
       await expect(page).toHaveScreenshot(`moderation-${scheme}.png`, {
+        fullPage: true,
+        mask: nonDeterministic(page),
+      });
+    });
+
+    test(`the corrector's view of the same table @visual`, async ({ page }) => {
+      /*
+       * A SEVENTH SURFACE, and the reasoning both ways, because "chosen for churn, not coverage" is
+       * the rule this suite is held to.
+       *
+       * AGAINST: what defines this view is what is ABSENT — no Löschen, no approval control, no tab
+       * strip — and absence is precisely what a functional test asserts well. `role-gating.e2e.ts`
+       * checks all four with `toHaveCount(0)`, and the vitest spec checks them again in jsdom.
+       *
+       * FOR, and it is why this exists: absence has a LAYOUT, and nothing above can see it. The
+       * actions cell carries `min-width: 19rem`, sized for the three buttons an admin sees; this
+       * role sees two, so the cell's spare width is new geometry no existing baseline covers. The
+       * tab strip that disappears was also the element separating the heading from the filter card,
+       * and a header row welded to what follows it is exactly the defect (#46) that put this suite
+       * in the repository. Two new strings sit above it, either of which can wrap somewhere ugly.
+       *
+       * Full page for that reason: the missing strip is a whole-page rhythm question, not a table
+       * question.
+       */
+      await signIn(page, 'schichtleiter');
+      await page.getByTestId('nav-moderation').click();
+      await expect(page.getByTestId('moderation-table')).toBeVisible();
+
+      await expect(page).toHaveScreenshot(`corrections-${scheme}.png`, {
         fullPage: true,
         mask: nonDeterministic(page),
       });

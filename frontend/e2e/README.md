@@ -77,7 +77,7 @@ count of anything.
 
 ## Visual regression
 
-Twelve baselines — six surfaces × two palettes — compared per run. They exist because v1.1 spent
+Fourteen baselines — seven surfaces × two palettes — compared per run. They exist because v1.1 spent
 **four pull requests** (#41, #44, #45, #46) on spacing and layout defects that were all found the
 same way: Carlos opened production and looked.
 
@@ -87,6 +87,14 @@ an unapproved source a technician does not notice is the 2026-08-11 decision fai
 carries a token pair (`--c-review-*`) that appears nowhere else, an amber chip inside a green block
 and a line above the answer text — three things a functional test can assert the existence of and
 none of which it can notice going pale, colliding, or vanishing behind a fade.
+
+The seventh, added in v1.2's third pull request, is the **Schichtleiter's view of the records
+table**. What defines it is what is *absent* — no delete, no approval control, no tab strip — and
+absence is exactly what a functional test asserts well, which is the argument against it. The
+argument for it, and the reason it is here: **absence has a layout.** The actions cell is sized for
+the three buttons an admin sees and this role sees two; the tab strip that disappears was also what
+separated the heading from the filter card, and a header row welded to what follows it is the defect
+(#46) that put this suite in the repository.
 
 ```bash
 npm run e2e:visual          # compare against the baselines
@@ -216,14 +224,14 @@ is swept by the next run's `afterEach` — by the same audited path. A cleanup t
 database would bypass exactly the ledger the test exists to prove, and would still pass if that
 ledger were broken.
 
-> **One documented exception, and it is arrangement rather than verification.**
-> `correctAsSchichtleiter` in `support.ts` performs a correction as an authenticated `PUT` from the
-> signed-in Schichtleiter's own browser instead of by clicking. It exists because since 2026-08-13
-> only a Schichtleiter may correct, and `/moderation` — the only view with a Bearbeiten button — is
-> guarded by `roleGuard('admin')`: **the role that owns the act cannot reach the screen that
-> performs it.** That is a reported routing finding for Carlos to decide, not something a UI pull
-> request widened on its own. Every assertion around the call is still in the browser, and the
-> helper is written to be **deleted** the day the route opens.
+> **There is no exception left.** For one release there was: `correctAsSchichtleiter` performed the
+> correction as an authenticated `PUT` because the role that owns the act could not reach the screen
+> that performs it — correcting had become the Schichtleiter's while `/moderation` was still
+> `roleGuard('admin')`. It was written to be **deleted** the day the route opened, and on 2026-08-14
+> it was. Every step in this suite is a click again.
+>
+> That is the pattern worth copying rather than the helper: when a gap is a decision somebody else
+> has to make, stand in for it in a way that names itself, and make the stand-in cheap to remove.
 
 What that leaves behind is real and is accepted: an archived row and a `moderation_event` per run.
 ADR-006 has no restore, by design. They are capped at 50 per machine with the oldest purged, the
@@ -258,7 +266,7 @@ about a defect that was never about the answer.
 |---|---|
 | `login.e2e.ts` | the themed Keycloak page (asserted by theme-owned elements, because a broken theme falls back to stock **silently**), demo sign-in, a refused password, sign-out |
 | `citation.e2e.ts` | **#26**: a citation click fetches its document with a token and does not 401, asserted on the status the browser received |
-| `role-gating.e2e.ts` | **#38**: the admin lands in Protokollverwaltung; shop-floor roles cannot reach `/moderation` by URL either |
+| `role-gating.e2e.ts` | **#38**: the admin lands in Protokollverwaltung; the roles with no job there still cannot reach `/moderation` by URL, and the Schichtleiter reaches a view with no delete, no approve and no archive |
 | `moderation.e2e.ts` | **the release drill**: file → correct with a reason → archive with a reason → still on the record |
 | `approval.e2e.ts` | **the v1.2 trust chain**: the queue without a machine, an approval that names who and when, a correction that resets it, a withdrawal that takes a reason, and the approved-only facet asserted on what the browser sent |
 | `contrast.e2e.ts` | **#47**: computed colour against computed background, both palettes, AA |

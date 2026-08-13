@@ -42,10 +42,21 @@ export const routes: Routes = [
   {
     path: 'moderation',
     loadComponent: () => import('./features/moderation/moderation').then((m) => m.Moderation),
-    // The admin's first shop-floor route. Guarded here and, decisively, on every endpoint it calls:
-    // hiding a route is presentation, and the backend refuses the calls regardless (NFR-3).
-    canActivate: [roleGuard('admin')],
-    title: 'Protokollverwaltung · Wartungsassistent',
+    // TWO ROLES, ONE ROUTE, AND THEY SEE DIFFERENT VIEWS OF IT.
+    //
+    // The admin reviews, approves and archives. The Schichtleiter corrects — and until 2026-08-14
+    // could not reach this screen at all, which meant the correction endpoint they had held alone
+    // since 2026-08-13 had no interface for anybody: the admin had the screen without the
+    // permission, the corrector the permission without the screen.
+    //
+    // Opening the route does NOT hand the Schichtleiter the admin's view. The component renders the
+    // controls each role may actually use (see `Moderation.canCorrect` / `canApprove` / `canArchive`)
+    // and the backend refuses the rest regardless — hiding a control is presentation, and the
+    // decision counts only server-side (NFR-3).
+    canActivate: [roleGuard('admin', 'schichtleiter')],
+    // Two roles, two jobs, and the browser tab should say which one is on screen. The heading in the
+    // view is chosen the same way — see the component's `heading`.
+    title: 'Protokolle · Wartungsassistent',
   },
   // `/home` is the OIDC redirect URI registered in the Keycloak realm, so the path has to keep
   // resolving — but the Phase 1 identity page it used to show is gone. Someone arriving from a

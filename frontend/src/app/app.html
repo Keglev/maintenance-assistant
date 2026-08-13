@@ -34,11 +34,14 @@
             t().nav.upload
           }}</a>
         }
-        <!-- The admin's only entry into the application. Until moderation existed they signed in to
-             an empty shell, which is why this link is the whole nav for them. -->
+        <!-- The admin's only entry into the application — until moderation existed they signed in
+             to an empty shell, which is why this link is the whole nav for them — and since
+             2026-08-14 the Schichtleiter's entry to the correction job as well. Same route, two
+             views, and the LABEL says which one: a corrector who clicks "Verwaltung" and finds no
+             delete button has been told the wrong thing about their own role. -->
         @if (canModerate()) {
           <a routerLink="/moderation" routerLinkActive="active" data-testid="nav-moderation">{{
-            t().nav.moderation
+            moderationLabel()
           }}</a>
         }
       </nav>

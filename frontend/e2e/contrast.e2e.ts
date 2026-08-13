@@ -152,6 +152,34 @@ for (const scheme of SCHEMES) {
     });
 
     /**
+     * The correction dialog's approval warning — v1.2's third notice variant.
+     *
+     * New tokens on a new ground: `--c-review-*` had only ever been used on the surface and on a
+     * chip, and this puts the same ink on a filled panel inside a modal, which is a different
+     * background stack. That is the #47 shape — a colour correct on one palette and not the other,
+     * with nothing wrong in the stylesheet to look at — and it is a sentence the reader must
+     * actually read, because it is the only warning that an approval is about to be withdrawn.
+     */
+    test('the approval warning in the correction dialog is legible', async ({ page }) => {
+      await signIn(page, 'schichtleiter');
+      await page.getByTestId('nav-moderation').click();
+      await expect(page.getByTestId('moderation-table')).toBeVisible();
+
+      // The seeded 150 are APPROVED (`system:corpus-seed`), so the queue filter is the shortest
+      // route to a protocol whose correction would cost an approval.
+      await page.getByTestId('filter-approval').selectOption('APPROVED');
+      await page.getByTestId('moderation-row').first().getByTestId('row-edit').click();
+      await expect(page.getByTestId('edit-resets-approval')).toBeVisible();
+
+      const measured = await contrastReport(page, '[data-testid="edit-resets-approval"]');
+      expect(
+        measured.ratio,
+        `the approval warning is ${measured.color} on ${measured.background} = ` +
+          `${measured.ratio.toFixed(2)}:1 in ${scheme}`,
+      ).toBeGreaterThanOrEqual(AA_NORMAL);
+    });
+
+    /**
      * A DEFECT THIS SUITE FOUND IN EXISTING CODE, on its first complete run.
      *
      * `.footer-note` — the "Demo, synthetic data" line at the foot of every signed-in page — uses

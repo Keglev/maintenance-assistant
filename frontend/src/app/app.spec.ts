@@ -78,21 +78,44 @@ describe('App', () => {
     }
   });
 
-  it('offers the protocol management view to an admin, and to nobody else', async () => {
-    const admin = await render(['admin']);
-    expect(
-      (admin.nativeElement as HTMLElement).querySelector('[data-testid="nav-moderation"]'),
-    ).not.toBeNull();
-
-    for (const role of ['operator', 'techniker', 'schichtleiter']) {
+  it('offers the protocol view to the two roles with a job on it, and to no others', async () => {
+    // THE SCHICHTLEITER JOINED THE ADMIN HERE ON 2026-08-14, and it is the fix for a live
+    // regression rather than a relaxation: they had been the only role that may correct a protocol
+    // since 2026-08-13 and had no door onto the screen that corrects one. The permission existed;
+    // the path to it did not.
+    for (const role of ['admin', 'schichtleiter']) {
       const fixture = await render([role]);
-      // Presentation, not protection — but the Schichtleiter is the role moderation exists to
-      // check, and a door onto it in their nav would be the wrong invitation.
+      expect(
+        (fixture.nativeElement as HTMLElement).querySelector('[data-testid="nav-moderation"]'),
+        role,
+      ).not.toBeNull();
+    }
+
+    for (const role of ['operator', 'techniker']) {
+      const fixture = await render([role]);
+      // Presentation, not protection — but neither of these corrects anything, so a door onto a
+      // screen whose every control would refuse them is the wrong invitation.
       expect(
         (fixture.nativeElement as HTMLElement).querySelector('[data-testid="nav-moderation"]'),
         role,
       ).toBeNull();
     }
+  });
+
+  it('names that entry after the job, which differs by role', async () => {
+    // A corrector who clicks "Verwaltung" and finds no delete button has been told the wrong thing
+    // about their own role. Same route, two labels, because it is two jobs.
+    const corrector = await render(['schichtleiter']);
+    expect(
+      (corrector.nativeElement as HTMLElement).querySelector('[data-testid="nav-moderation"]')
+        ?.textContent,
+    ).toContain('Korrekturen');
+
+    const admin = await render(['admin']);
+    expect(
+      (admin.nativeElement as HTMLElement).querySelector('[data-testid="nav-moderation"]')
+        ?.textContent,
+    ).toContain('Protokollverwaltung');
   });
 
   it('hides the search entry from an admin, and only from an admin', async () => {

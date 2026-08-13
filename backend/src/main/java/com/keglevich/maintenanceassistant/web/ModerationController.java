@@ -44,16 +44,34 @@ import java.util.UUID;
  * size, rate or vocabulary catches that. Traceability was already in place; this is remediation.
  *
  * <p>Its own controller and its own path prefix rather than more methods on
- * {@link ProtocolReadController}, because the authorisation rule is the feature. Everything under
- * {@code /api/moderation} is admin-only <b>with exactly one exception</b>, {@code PUT /{id}}, which
- * is <b>SCHICHTLEITER-only and closed to the administrator</b>: the v1.2 trust chain makes the
- * Schichtleiter the corrector and nobody else, and the reasoning is on that method. It is called out
- * here because a class-level rule with a silent exception is worse than no rule.
+ * {@link ProtocolReadController}, because the authorisation rule is the feature.
+ *
+ * <p><b>THE MATRIX, IN ONE PLACE, because this is the security surface of the whole trust chain and
+ * a reader should not have to collect it from seven annotations.</b> The class rule is
+ * {@code hasRole('ADMIN')}; every deviation is method-level and listed here.
+ *
+ * <pre>
+ *   GET  /                          ADMIN, SCHICHTLEITER   the corpus list
+ *   GET  /{id}/document             ADMIN, SCHICHTLEITER   read one protocol
+ *   PUT  /{id}                      SCHICHTLEITER          correct it  (admin refused)
+ *   DELETE /{id}                    ADMIN                  archive it
+ *   PUT  /{id}/approval             ADMIN                  approve / withdraw
+ *   GET  /deleted                   ADMIN                  the archive
+ *   GET  /deleted/{id}/document     ADMIN                  an archived document
+ * </pre>
+ *
+ * <p><b>The Schichtleiter's two reads exist to serve the one write, and go no further.</b> Correcting
+ * is not moderating: you cannot correct what you cannot find or open, so the list and the document
+ * come with the job — and nothing else does. Removing a protocol from the corpus, approving one, and
+ * reading the archive of what was removed are the administrator's, unchanged. The archive in
+ * particular holds exactly the protocols somebody decided were unfit to be read, and it stays behind
+ * the role that decided it.
  *
  * <p><b>Reading here is not answering.</b> The shop-floor document endpoint is restricted to the
  * three roles that ask questions, because it exists to make a citation checkable. This one exists to
- * let a reviewer read a protocol they are deciding the fate of — a different act, on a path an admin
- * reaches without holding a shop-floor role.
+ * let a reviewer read a protocol they are deciding the fate of, or a corrector read the text they
+ * are about to rewrite — different acts, on a path an admin reaches without holding a shop-floor
+ * role.
  *
  * <p><b>Two verbs were added by ADR-006's 2026-08-10 revision.</b> {@code PUT} corrects a protocol
  * in place and forces a re-index, because the reason editing was refused — an answer citing text
@@ -97,8 +115,21 @@ class ModerationController {
             @ApiResponse(responseCode = "400",
                     description = "A title or date filter was sent without a machine "
                             + "(`reason: MACHINE_REQUIRED_FOR_FILTER`)"),
-            @ApiResponse(responseCode = "403", description = "Caller is not an administrator")
+            @ApiResponse(responseCode = "403",
+                    description = "Caller is neither an administrator nor a Schichtleiter")
     })
+    /*
+     * OPEN TO THE CORRECTOR AS WELL AS THE REVIEWER, and only because the correction needs it.
+     *
+     * The Schichtleiter has been the only role that may correct a protocol since 2026-08-13, and
+     * until 2026-08-14 there was no way for them to FIND one: this list was admin-only, so the
+     * permission existed and the path to it did not. A correction endpoint nobody can reach is a
+     * correction endpoint that does not exist.
+     *
+     * It stops here. The list and the document below are what the job needs; delete, approve and the
+     * archive stay the administrator's, because correcting is not moderating.
+     */
+    @PreAuthorize("hasAnyRole('ADMIN', 'SCHICHTLEITER')")
     ProtocolModerationService.ProtocolPage list(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
@@ -120,12 +151,27 @@ class ModerationController {
     @GetMapping("/{id}/document")
     @Operation(summary = "Read the original document of any protocol",
             description = "The same file the shop floor sees behind a citation, reachable by an "
-                    + "administrator who holds no shop-floor role. Reviewing is not answering.")
+                    + "administrator who holds no shop-floor role, and by the Schichtleiter who is "
+                    + "about to correct it. Reviewing is not answering.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "The document"),
-            @ApiResponse(responseCode = "403", description = "Caller is not an administrator"),
+            @ApiResponse(responseCode = "403",
+                    description = "Caller is neither an administrator nor a Schichtleiter"),
             @ApiResponse(responseCode = "404", description = "No such protocol, or its file is gone")
     })
+    /*
+     * The other half of what a correction needs. The edit dialog loads the STORED TEXT rather than
+     * reconstructing it from the row — a form pre-filled with anything else would silently replace
+     * the document with whatever the form happened to know — so the corrector must be able to read
+     * this file before they can safely rewrite it.
+     *
+     * The Schichtleiter also holds a shop-floor role and could reach the same bytes through
+     * /api/protocols/{id}/document. That is not an argument for leaving this one closed: the client
+     * would then need two document paths chosen by role, and the reason THIS path exists is that
+     * the two differ in who may take them, which is exactly the kind of difference that should stay
+     * visible at the call site.
+     */
+    @PreAuthorize("hasAnyRole('ADMIN', 'SCHICHTLEITER')")
     ResponseEntity<Resource> document(@PathVariable UUID id) {
         // The live document. An archived protocol answers 404 here, exactly as a stale citation
         // does on the shop-floor path — the archive changed who can still read a removed protocol,

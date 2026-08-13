@@ -3,8 +3,8 @@ import type { Page } from '@playwright/test';
 import {
   E2E_MACHINE,
   E2E_TITLE_PREFIX,
-  correctAsSchichtleiter,
   expect,
+  openProtocolList,
   signIn,
   signOut,
   sweepThrowaways,
@@ -70,9 +70,17 @@ async function fileProtocol(page: Page, title: string): Promise<void> {
   await expect(page.getByTestId('accepted')).toBeVisible();
 }
 
-/** Finds a protocol by title in the admin's corpus view. */
+/** Finds a protocol by title in the corpus list, as whichever role is signed in. */
 async function findInCorpus(page: Page, title: string) {
-  await page.getByTestId('tab-corpus').click();
+  // Two roles reach this list since 2026-08-14, and they do not arrive from the same place: the
+  // admin signs in to it, the Schichtleiter navigates to it from search.
+  await openProtocolList(page);
+  // The tab strip is the administrator's — a corrector may not read the archive, so for them there
+  // is no strip to click.
+  const corpusTab = page.getByTestId('tab-corpus');
+  if (await corpusTab.count()) {
+    await corpusTab.click();
+  }
   await page.getByTestId('filter-machine').selectOption(MACHINE);
   // The title filter is refused without a machine (400 MACHINE_REQUIRED_FOR_FILTER) and the UI
   // disables it until one is chosen — so the order above is the contract, not a preference.
@@ -125,32 +133,47 @@ test.describe('moderation round trip', () => {
 
     // --- 3. Correction, with a mandatory reason ----------------------------------------------
     //
-    // PERFORMED AS THE SCHICHTLEITER, AND NOT BY CLICKING, and both halves of that need saying.
-    //
-    // Since 2026-08-13 correcting is the Schichtleiter's and the administrator has no Bearbeiten
-    // button — the endpoint answers 403 for them. But `/moderation` is guarded by
-    // `roleGuard('admin')`, so the role that OWNS this act cannot reach the screen it lives on:
-    // the correction path currently has no interface for anybody. That is a routing decision for
-    // Carlos, reported rather than fixed here, and it is why this step is an authenticated PUT
-    // instead of the clicks it used to be.
-    //
-    // It is still the real backend, the real token and the real role. What it is not is a click,
-    // and this suite's own rule says an API call is not one — so it is ARRANGEMENT, and every
-    // assertion around it stays in the browser. The day the route opens, this helper is deleted
-    // and the clicks come back.
+    // CLICKED AGAIN, BY THE SCHICHTLEITER. #54 had to perform this step as an authenticated PUT,
+    // because correcting had become theirs while `/moderation` was still `roleGuard('admin')` — the
+    // corrector held the permission and the administrator held the screen, so the step existed and
+    // no browser could take it. The route opened on 2026-08-14 and the helper that stood in for it
+    // is deleted, which is what it was written for.
     await signOut(page);
     await signIn(page, 'schichtleiter');
+    row = await findInCorpus(page, title);
 
-    // The identity lock is exercised on the way past, because it is the one rule of the correction
-    // that cannot be checked from a screen nobody can open: machine and type are provenance, not
-    // properties, and an attempt to change them is refused 400 PROTOCOL_IDENTITY_LOCKED rather than
-    // silently ignored. "Words can be fixed, identity cannot."
-    const refused = await correctAsSchichtleiter(page, title, CORRECTED_BODY, { machineNo: 'PR-03' });
-    expect(refused.status, 'moving a protocol to another machine must be refused').toBe(400);
-    expect(refused.reason).toBe('PROTOCOL_IDENTITY_LOCKED');
+    await row.getByTestId('row-edit').click();
+    await expect(page.getByTestId('edit-title')).toHaveValue(title);
 
-    const accepted = await correctAsSchichtleiter(page, title, CORRECTED_BODY);
-    expect(accepted.status, 'the Schichtleiter is the corrector in the chain').toBe(202);
+    // Machine and type are provenance, not properties: the API refuses a change with 400
+    // PROTOCOL_IDENTITY_LOCKED. "Words can be fixed, identity cannot."
+    //
+    // They are not DISABLED FIELDS — they are not fields at all. The dialog renders them as text,
+    // which is a stronger guarantee than a disabled input (nothing to re-enable in a devtools
+    // panel) and is what this asserts: the element exists, shows the machine, and is not something
+    // that can be typed into. The 400 itself is `ModerationFilterValidationIT`'s, where a client
+    // that is not this form can actually attempt it.
+    await expect(page.getByTestId('edit-machine')).toContainText(MACHINE);
+    for (const locked of ['edit-machine', 'edit-type']) {
+      const tag = await page.getByTestId(locked).evaluate((node) => node.tagName);
+      expect(tag, `${locked} should be static text, not an input`).toBe('P');
+      await expect(page.getByTestId(locked).locator('input, select, textarea')).toHaveCount(0);
+    }
+    await expect(page.getByTestId('edit-locked-hint')).toBeVisible();
+
+    await page.getByTestId('edit-content').fill(CORRECTED_BODY);
+
+    // The reason is required, and the UI enforces it BEFORE the click rather than after: the save
+    // button is disabled while the comment is empty, with a hint saying why. Asserted in that shape
+    // because it is the stronger one — there is no state in which an unexplained correction can be
+    // submitted and then refused.
+    await expect(page.getByTestId('edit-reason-required')).toBeVisible();
+    await expect(page.getByTestId('edit-save')).toBeDisabled();
+
+    await page.getByTestId('edit-comment').fill('e2e: corrected the root cause');
+    await expect(page.getByTestId('edit-save')).toBeEnabled();
+    await page.getByTestId('edit-save').click();
+    await expect(page.getByTestId('corrected-notice')).toBeVisible();
 
     await signOut(page);
     await signIn(page, 'admin');

@@ -26,7 +26,10 @@ test.describe('role gating', () => {
     await expect(page.getByTestId('nav-moderation')).toBeVisible();
   });
 
-  test('a shop-floor role cannot reach /moderation, by URL either', async ({ page }) => {
+  test('a role with no job there cannot reach /moderation, by URL either', async ({ page }) => {
+    // The Techniker, who writes and never corrects. The Schichtleiter came off this test on
+    // 2026-08-14 and has one of their own below; a guard that refuses everybody is not the rule,
+    // "only the two roles with a job here" is.
     await signIn(page, 'techniker');
 
     // Typing the URL, not clicking a link that is not there — a guard that only hides its nav entry
@@ -49,16 +52,44 @@ test.describe('role gating', () => {
     await expect(page.getByTestId('nav-upload')).toHaveCount(0);
   });
 
-  test('a Schichtleiter may upload, and still may not moderate', async ({ page }) => {
+  test('a Schichtleiter may upload, and reaches the correction view', async ({ page }) => {
     await signIn(page, 'schichtleiter');
 
     await expect(page.getByTestId('nav-upload')).toBeVisible();
     await page.getByTestId('nav-upload').click();
     await expect(page.getByTestId('upload-machine')).toBeVisible();
 
-    // Moderation belongs to the role that CANNOT write (ADR-006): a tool the author of a bad
-    // protocol could reach would let them remove the evidence.
+    // 2026-08-14: the corrector gets a door. Until then this test asserted the opposite, and it was
+    // right to — the endpoint was admin-only. Correcting became theirs on 2026-08-13 and the screen
+    // did not follow, which left the correction path with no interface for anybody.
+    await expect(page.getByTestId('nav-moderation')).toBeVisible();
+    await page.getByTestId('nav-moderation').click();
+    await expect(page).toHaveURL(/\/moderation$/);
+    await expect(page.getByTestId('moderation-table').or(page.getByTestId('moderation-empty')))
+      .toBeVisible();
+  });
+
+  test('the correction view gives the Schichtleiter no moderation powers', async ({ page }) => {
+    // THE FENCE, ON A REAL RENDER. Opening the route handed the corrector a screen the administrator
+    // built; what they must NOT find on it is the administrator's job. ADR-006's reason still holds:
+    // moderation belongs to the role that cannot write, because a tool the author of a bad protocol
+    // could reach would let them remove the evidence.
+    await signIn(page, 'schichtleiter');
     await page.goto('/moderation');
-    await expect(page).not.toHaveURL(/\/moderation$/);
+    await expect(page.getByTestId('moderation-row').first()).toBeVisible();
+
+    const row = page.getByTestId('moderation-row').first();
+    await expect(row.getByTestId('row-edit')).toBeVisible();
+    await expect(row.getByTestId('row-open')).toBeVisible();
+
+    // Absent, not disabled — a control that exists only to refuse is noise, and a lie about the role.
+    await expect(row.getByTestId('row-delete')).toHaveCount(0);
+    await expect(row.getByTestId('row-approve')).toHaveCount(0);
+    await expect(row.getByTestId('row-withdraw')).toHaveCount(0);
+    await expect(page.getByTestId('tab-archive')).toHaveCount(0);
+
+    // And the screen says which job it is, because "Verwaltung" would describe powers just checked
+    // to be absent.
+    await expect(page.locator('.page-title')).not.toHaveText(/Protokollverwaltung|Protocol management/);
   });
 });

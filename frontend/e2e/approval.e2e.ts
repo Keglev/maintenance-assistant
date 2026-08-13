@@ -3,8 +3,8 @@ import type { Page } from '@playwright/test';
 import {
   E2E_MACHINE,
   E2E_TITLE_PREFIX,
-  correctAsSchichtleiter,
   expect,
+  openProtocolList,
   selectSearchMachine,
   signIn,
   signOut,
@@ -22,9 +22,10 @@ import {
  *
  * <p>What it walks: a protocol arrives unapproved, an administrator approves it and the state says
  * WHO and WHEN, the queue filter finds the unapproved ones without a machine, a Schichtleiter's
- * correction resets the approval, and withdrawing one takes a reason. Every step is a click and
- * every assertion is on what the browser painted — with one arrangement step that cannot be a click
- * and says so, in `moderation.e2e.ts`'s `correctAsSchichtleiter`.
+ * correction resets the approval, and withdrawing one takes a reason. <b>Every step is a click and
+ * every assertion is on what the browser painted.</b> The correction was an authenticated PUT for
+ * one release — the Schichtleiter held the permission while the administrator held the screen — and
+ * became a click again on 2026-08-14, when the route opened to the role that owns the act.
  *
  * <p><b>THE FOUR-EYES REFUSAL IS NOT REACHABLE FROM HERE, and that is a fact about the deployment
  * rather than a gap.</b> The rule refuses an approval by whoever filed or last corrected the
@@ -73,7 +74,15 @@ async function fileProtocol(page: Page, title: string): Promise<void> {
  * showing.
  */
 async function findInCorpus(page: Page, title: string) {
-  await page.getByTestId('tab-corpus').click();
+  // The Schichtleiter lands on /search, not here — correcting is a job they navigate to.
+  await openProtocolList(page);
+  // The tab strip exists only for the administrator: a Schichtleiter may not read the archive, and
+  // a strip with one tab is a choice that is not a choice. Clicked when present so this helper
+  // serves both readers of the same list.
+  const corpusTab = page.getByTestId('tab-corpus');
+  if (await corpusTab.count()) {
+    await corpusTab.click();
+  }
   await page.getByTestId('filter-approval').selectOption('');
   await page.getByTestId('filter-machine').selectOption(MACHINE);
   await page.getByTestId('filter-title').fill(title);
@@ -168,15 +177,22 @@ test.describe('the approve workflow', () => {
     );
     await signOut(page);
 
-    // Arranged rather than clicked — see the helper for why, and for the routing finding that makes
-    // it necessary. The assertion that follows is in the browser, which is the half that matters.
+    // CLICKED, since 2026-08-14. This was an authenticated PUT while the correction endpoint was
+    // the Schichtleiter's and the screen was the administrator's; the route opened and the stand-in
+    // helper was deleted.
     await signIn(page, 'schichtleiter');
-    const corrected = await correctAsSchichtleiter(
-      page,
-      title,
-      BODY.replace('entriegelt', 'GETAUSCHT, war defekt'),
-    );
-    expect(corrected.status).toBe(202);
+    const toCorrect = await findInCorpus(page, title);
+
+    // The warning the corrector is owed: this protocol is approved right now, and saving takes that
+    // away. It is asserted here rather than in a test of its own because this is the walk where a
+    // protocol is actually approved first — the state that makes the sentence appear at all.
+    await toCorrect.getByTestId('row-edit').click();
+    await expect(page.getByTestId('edit-resets-approval')).toBeVisible();
+
+    await page.getByTestId('edit-content').fill(BODY.replace('entriegelt', 'GETAUSCHT, war defekt'));
+    await page.getByTestId('edit-comment').fill('e2e: Ursache war ein Defekt, nicht die Bedienung');
+    await page.getByTestId('edit-save').click();
+    await expect(page.getByTestId('corrected-notice')).toBeVisible();
     await signOut(page);
 
     await signIn(page, 'admin');

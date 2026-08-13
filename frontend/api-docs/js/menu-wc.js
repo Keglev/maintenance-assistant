@@ -231,6 +231,12 @@ customElements.define('compodoc-menu', class extends HTMLElement {
                                 <a href="interfaces/SearchExample.html" data-type="entity-link" >SearchExample</a>
                             </li>
                             <li class="link">
+                                <a href="interfaces/SimilarityReport.html" data-type="entity-link" >SimilarityReport</a>
+                            </li>
+                            <li class="link">
+                                <a href="interfaces/SimilarProtocol.html" data-type="entity-link" >SimilarProtocol</a>
+                            </li>
+                            <li class="link">
                                 <a href="interfaces/SourceFocus.html" data-type="entity-link" >SourceFocus</a>
                             </li>
                             <li class="link">

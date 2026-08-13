@@ -167,7 +167,14 @@ reason, and neither can be undone: there is no restore, and the edit dialog will
 move a protocol to another machine, because machine identity is provenance rather than content.<p><b>v1.2 splits the jobs.</b> Approval is the administrator's, correction is the Schichtleiter's,
 and nobody holds both — so the row's buttons now depend on the reader's role rather than on the
 view they are standing in. See <a href="canCorrect">canCorrect</a> and <a href="canApprove">canApprove</a> for what that means here
-and for the routing question it exposes.
+and for the routing question it exposes.<p><b>Duplicate detection, 2026-08-14, and the one rule it follows: it WARNS, it never blocks.</b>
+Approving now asks first whether this machine already holds a protocol saying close to the same
+thing, and shows up to three if it does — with their dates, their similarity and, decisively,
+their OWN approval state. Nothing on this screen can refuse an approval on that basis, the
+approve button in the dialog is never disabled, and a failed similarity call approves anyway
+(<a href="approve">approve</a>). Four legitimate E-47 protocols on PR-03 describe four different root causes
+behind one fault code, and a feature that could turn "similar" into "refused" would have removed
+exactly the knowledge that makes the demo answer good.
 
     </p>
 
@@ -419,6 +426,12 @@ and for the routing question it exposes.
                                 <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
                                     <span class="modifier">Protected</span>
                                     <span class="modifier">Readonly</span>
+                                <a href="#checkingDuplicates" >checkingDuplicates</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
+                                    <span class="modifier">Protected</span>
+                                    <span class="modifier">Readonly</span>
                                 <a href="#corrected" >corrected</a>
                             </li>
                             <li>
@@ -438,6 +451,36 @@ and for the routing question it exposes.
                                     <span class="modifier">Protected</span>
                                     <span class="modifier">Readonly</span>
                                 <a href="#draft" >draft</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
+                                    <span class="modifier">Protected</span>
+                                    <span class="modifier">Readonly</span>
+                                <a href="#duplicates" >duplicates</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
+                                    <span class="modifier">Protected</span>
+                                    <span class="modifier">Readonly</span>
+                                <a href="#duplicatesBeyondShown" >duplicatesBeyondShown</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
+                                    <span class="modifier">Protected</span>
+                                    <span class="modifier">Readonly</span>
+                                <a href="#duplicatesOf" >duplicatesOf</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
+                                    <span class="modifier">Protected</span>
+                                    <span class="modifier">Readonly</span>
+                                <a href="#duplicatesOpen" >duplicatesOpen</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
+                                    <span class="modifier">Protected</span>
+                                    <span class="modifier">Readonly</span>
+                                <a href="#duplicateThresholdPercent" >duplicateThresholdPercent</a>
                             </li>
                             <li>
                                 <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
@@ -635,6 +678,12 @@ and for the routing question it exposes.
                                 <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
                                     <span class="modifier">Protected</span>
                                     <span class="modifier">Readonly</span>
+                                <a href="#viewingCandidate" >viewingCandidate</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
+                                    <span class="modifier">Protected</span>
+                                    <span class="modifier">Readonly</span>
                                 <a href="#withdrawComment" >withdrawComment</a>
                             </li>
                             <li>
@@ -675,6 +724,11 @@ and for the routing question it exposes.
                             <li>
                                 <span class="reference-badge reference-badge--method" aria-hidden="true">M</span>
                                     <span class="modifier">Protected</span>
+                                <a href="#approveFromDialog" >approveFromDialog</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--method" aria-hidden="true">M</span>
+                                    <span class="modifier">Protected</span>
                                 <a href="#cancelDelete" >cancelDelete</a>
                             </li>
                             <li>
@@ -686,6 +740,16 @@ and for the routing question it exposes.
                                 <span class="reference-badge reference-badge--method" aria-hidden="true">M</span>
                                     <span class="modifier">Protected</span>
                                 <a href="#cancelWithdraw" >cancelWithdraw</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--method" aria-hidden="true">M</span>
+                                    <span class="modifier">Protected</span>
+                                <a href="#closeDuplicates" >closeDuplicates</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--method" aria-hidden="true">M</span>
+                                    <span class="modifier">Private</span>
+                                <a href="#commitApproval" >commitApproval</a>
                             </li>
                             <li>
                                 <span class="reference-badge reference-badge--method" aria-hidden="true">M</span>
@@ -731,6 +795,16 @@ and for the routing question it exposes.
                                 <span class="reference-badge reference-badge--method" aria-hidden="true">M</span>
                                     <span class="modifier">Protected</span>
                                 <a href="#nextArchive" >nextArchive</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--method" aria-hidden="true">M</span>
+                                    <span class="modifier">Protected</span>
+                                <a href="#openCandidate" >openCandidate</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--method" aria-hidden="true">M</span>
+                                    <span class="modifier">Protected</span>
+                                <a href="#percent" >percent</a>
                             </li>
                             <li>
                                 <span class="reference-badge reference-badge--method" aria-hidden="true">M</span>
@@ -790,7 +864,7 @@ and for the routing question it exposes.
                 </tr>
                         <tr>
                             <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="225" class="link-to-prism">src/app/features/moderation/moderation.ts:225</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="272" class="link-to-prism">src/app/features/moderation/moderation.ts:272</a></div>
                             </td>
                         </tr>
 
@@ -829,8 +903,8 @@ and for the routing question it exposes.
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="268"
-                                    class="link-to-prism">src/app/features/moderation/moderation.ts:268</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="315"
+                                    class="link-to-prism">src/app/features/moderation/moderation.ts:315</a></div>
                         </td>
                     </tr>
 
@@ -870,8 +944,8 @@ and for the routing question it exposes.
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="493"
-                                    class="link-to-prism">src/app/features/moderation/moderation.ts:493</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="614"
+                                    class="link-to-prism">src/app/features/moderation/moderation.ts:614</a></div>
                         </td>
                     </tr>
 
@@ -941,16 +1015,293 @@ and for the routing question it exposes.
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="438"
-                                    class="link-to-prism">src/app/features/moderation/moderation.ts:438</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="491"
+                                    class="link-to-prism">src/app/features/moderation/moderation.ts:491</a></div>
                         </td>
                     </tr>
 
 
             <tr>
                 <td class="col-md-4">
-                        <div class="io-description"><p>Approves a protocol. No confirmation and no comment field: approving affirms the text as it
-stands, and the reader has just read it.</p>
+                        <div class="io-description"><p>Starts an approval by asking what the corpus already says.</p>
+<p><b>The dialog appears only when there is something to look at.</b> If nothing on this machine
+is similar, this is still the #54 behaviour — one click, no confirmation, because approving
+affirms text the reader has just read. A dialog that opened every time to announce "nothing
+found" would tax the common case to serve the rare one, and a permanently empty section is how a
+reader learns to click straight past a section that will one day be full.<p><b>It fails OPEN, deliberately.</b> A failed similarity call approves anyway rather than
+stopping the reviewer, and nothing is lost by it: the backend recomputes the same comparison
+inside the approval and writes what it found into the ledger, so the audit record is correct
+whether or not this call succeeded. The check here is an aid to a decision; it is not the
+decision, and it is not the record. Blocking an approval on a failed *warning* would invert the
+governing rule of the whole feature.
+</div>
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                                <td>Type</td>
+                                            <td>Optional</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>protocol</td>
+                                            <td>
+                                                            <code><a href="../interfaces/ModeratedProtocol.html" target="_self" >ModeratedProtocol</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>        <code><a href="https://www.typescriptlang.org/docs/handbook/basic-types.html" target="_blank" >void</a></code>
+
+                        </div>
+                            <div class="io-description">
+                                
+                            </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="approveFromDialog"></a>
+                    <span class="name">
+                            <span class="modifier">Protected</span>
+                        <span ><b>approveFromDialog</b></span>
+                        <a href="#approveFromDialog"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                        <span class="modifier-icon icon ion-ios-reset"></span>
+                    <code>approveFromDialog()</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="516"
+                                    class="link-to-prism">src/app/features/moderation/moderation.ts:516</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                        <div class="io-description"><p>Approves the protocol whose similar siblings the reviewer has just been shown.</p>
+</div>
+
+                        <div class="io-description">
+                            <b>Returns : </b>        <code><a href="https://www.typescriptlang.org/docs/handbook/basic-types.html" target="_blank" >void</a></code>
+
+                        </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="cancelDelete"></a>
+                    <span class="name">
+                            <span class="modifier">Protected</span>
+                        <span ><b>cancelDelete</b></span>
+                        <a href="#cancelDelete"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                        <span class="modifier-icon icon ion-ios-reset"></span>
+                    <code>cancelDelete()</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="385"
+                                    class="link-to-prism">src/app/features/moderation/moderation.ts:385</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+
+                        <div class="io-description">
+                            <b>Returns : </b>        <code><a href="https://www.typescriptlang.org/docs/handbook/basic-types.html" target="_blank" >void</a></code>
+
+                        </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="cancelEdit"></a>
+                    <span class="name">
+                            <span class="modifier">Protected</span>
+                        <span ><b>cancelEdit</b></span>
+                        <a href="#cancelEdit"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                        <span class="modifier-icon icon ion-ios-reset"></span>
+                    <code>cancelEdit()</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="426"
+                                    class="link-to-prism">src/app/features/moderation/moderation.ts:426</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+
+                        <div class="io-description">
+                            <b>Returns : </b>        <code><a href="https://www.typescriptlang.org/docs/handbook/basic-types.html" target="_blank" >void</a></code>
+
+                        </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="cancelWithdraw"></a>
+                    <span class="name">
+                            <span class="modifier">Protected</span>
+                        <span ><b>cancelWithdraw</b></span>
+                        <a href="#cancelWithdraw"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                        <span class="modifier-icon icon ion-ios-reset"></span>
+                    <code>cancelWithdraw()</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="608"
+                                    class="link-to-prism">src/app/features/moderation/moderation.ts:608</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+
+                        <div class="io-description">
+                            <b>Returns : </b>        <code><a href="https://www.typescriptlang.org/docs/handbook/basic-types.html" target="_blank" >void</a></code>
+
+                        </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="closeDuplicates"></a>
+                    <span class="name">
+                            <span class="modifier">Protected</span>
+                        <span ><b>closeDuplicates</b></span>
+                        <a href="#closeDuplicates"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                        <span class="modifier-icon icon ion-ios-reset"></span>
+                    <code>closeDuplicates()</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="536"
+                                    class="link-to-prism">src/app/features/moderation/moderation.ts:536</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+
+                        <div class="io-description">
+                            <b>Returns : </b>        <code><a href="https://www.typescriptlang.org/docs/handbook/basic-types.html" target="_blank" >void</a></code>
+
+                        </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="commitApproval"></a>
+                    <span class="name">
+                            <span class="modifier">Private</span>
+                        <span ><b>commitApproval</b></span>
+                        <a href="#commitApproval"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                        <span class="modifier-icon icon ion-ios-reset"></span>
+                    <code>commitApproval(protocol: <a href="../interfaces/ModeratedProtocol.html" target="_self">ModeratedProtocol</a>)</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="563"
+                                    class="link-to-prism">src/app/features/moderation/moderation.ts:563</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                        <div class="io-description"><p>Performs the approval itself.</p>
 <p><b>The refusal is handled explicitly, and that is the point of this method.</b> The backend
 answers 400 `FOUR_EYES_REQUIRED` when the caller filed or last corrected the protocol. Leaving
 that as a generic "the request failed" — or, worse, disabling the button and saying nothing —
@@ -1000,123 +1351,6 @@ discover. The rule is explained in a sentence, beside the row it applies to.
         <tbody>
             <tr>
                 <td class="col-md-4">
-                    <a name="cancelDelete"></a>
-                    <span class="name">
-                            <span class="modifier">Protected</span>
-                        <span ><b>cancelDelete</b></span>
-                        <a href="#cancelDelete"><span class="icon ion-ios-link"></span></a>
-                    </span>
-                </td>
-            </tr>
-            <tr>
-                <td class="col-md-4">
-                        <span class="modifier-icon icon ion-ios-reset"></span>
-                    <code>cancelDelete()</code>
-                </td>
-            </tr>
-
-
-                    <tr>
-                        <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="338"
-                                    class="link-to-prism">src/app/features/moderation/moderation.ts:338</a></div>
-                        </td>
-                    </tr>
-
-
-            <tr>
-                <td class="col-md-4">
-
-                        <div class="io-description">
-                            <b>Returns : </b>        <code><a href="https://www.typescriptlang.org/docs/handbook/basic-types.html" target="_blank" >void</a></code>
-
-                        </div>
-                </td>
-            </tr>
-        </tbody>
-    </table>
-    <table class="table table-sm table-bordered">
-        <tbody>
-            <tr>
-                <td class="col-md-4">
-                    <a name="cancelEdit"></a>
-                    <span class="name">
-                            <span class="modifier">Protected</span>
-                        <span ><b>cancelEdit</b></span>
-                        <a href="#cancelEdit"><span class="icon ion-ios-link"></span></a>
-                    </span>
-                </td>
-            </tr>
-            <tr>
-                <td class="col-md-4">
-                        <span class="modifier-icon icon ion-ios-reset"></span>
-                    <code>cancelEdit()</code>
-                </td>
-            </tr>
-
-
-                    <tr>
-                        <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="379"
-                                    class="link-to-prism">src/app/features/moderation/moderation.ts:379</a></div>
-                        </td>
-                    </tr>
-
-
-            <tr>
-                <td class="col-md-4">
-
-                        <div class="io-description">
-                            <b>Returns : </b>        <code><a href="https://www.typescriptlang.org/docs/handbook/basic-types.html" target="_blank" >void</a></code>
-
-                        </div>
-                </td>
-            </tr>
-        </tbody>
-    </table>
-    <table class="table table-sm table-bordered">
-        <tbody>
-            <tr>
-                <td class="col-md-4">
-                    <a name="cancelWithdraw"></a>
-                    <span class="name">
-                            <span class="modifier">Protected</span>
-                        <span ><b>cancelWithdraw</b></span>
-                        <a href="#cancelWithdraw"><span class="icon ion-ios-link"></span></a>
-                    </span>
-                </td>
-            </tr>
-            <tr>
-                <td class="col-md-4">
-                        <span class="modifier-icon icon ion-ios-reset"></span>
-                    <code>cancelWithdraw()</code>
-                </td>
-            </tr>
-
-
-                    <tr>
-                        <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="487"
-                                    class="link-to-prism">src/app/features/moderation/moderation.ts:487</a></div>
-                        </td>
-                    </tr>
-
-
-            <tr>
-                <td class="col-md-4">
-
-                        <div class="io-description">
-                            <b>Returns : </b>        <code><a href="https://www.typescriptlang.org/docs/handbook/basic-types.html" target="_blank" >void</a></code>
-
-                        </div>
-                </td>
-            </tr>
-        </tbody>
-    </table>
-    <table class="table table-sm table-bordered">
-        <tbody>
-            <tr>
-                <td class="col-md-4">
                     <a name="confirmDelete"></a>
                     <span class="name">
                             <span class="modifier">Protected</span>
@@ -1135,8 +1369,8 @@ discover. The rule is explained in a sentence, beside the row it applies to.
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="316"
-                                    class="link-to-prism">src/app/features/moderation/moderation.ts:316</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="363"
+                                    class="link-to-prism">src/app/features/moderation/moderation.ts:363</a></div>
                         </td>
                     </tr>
 
@@ -1179,8 +1413,8 @@ footer quietly describing a corpus that no longer exists.</p>
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="462"
-                                    class="link-to-prism">src/app/features/moderation/moderation.ts:462</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="583"
+                                    class="link-to-prism">src/app/features/moderation/moderation.ts:583</a></div>
                         </td>
                     </tr>
 
@@ -1220,8 +1454,8 @@ footer quietly describing a corpus that no longer exists.</p>
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="238"
-                                    class="link-to-prism">src/app/features/moderation/moderation.ts:238</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="285"
+                                    class="link-to-prism">src/app/features/moderation/moderation.ts:285</a></div>
                         </td>
                     </tr>
 
@@ -1303,8 +1537,8 @@ footer quietly describing a corpus that no longer exists.</p>
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="531"
-                                    class="link-to-prism">src/app/features/moderation/moderation.ts:531</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="652"
+                                    class="link-to-prism">src/app/features/moderation/moderation.ts:652</a></div>
                         </td>
                     </tr>
 
@@ -1372,8 +1606,8 @@ footer quietly describing a corpus that no longer exists.</p>
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="261"
-                                    class="link-to-prism">src/app/features/moderation/moderation.ts:261</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="308"
+                                    class="link-to-prism">src/app/features/moderation/moderation.ts:308</a></div>
                         </td>
                     </tr>
 
@@ -1446,8 +1680,8 @@ fields keep the button, because they are a form that is filled in and then submi
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="280"
-                                    class="link-to-prism">src/app/features/moderation/moderation.ts:280</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="327"
+                                    class="link-to-prism">src/app/features/moderation/moderation.ts:327</a></div>
                         </td>
                     </tr>
 
@@ -1515,8 +1749,8 @@ fields keep the button, because they are a form that is filled in and then submi
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="511"
-                                    class="link-to-prism">src/app/features/moderation/moderation.ts:511</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="632"
+                                    class="link-to-prism">src/app/features/moderation/moderation.ts:632</a></div>
                         </td>
                     </tr>
 
@@ -1584,8 +1818,8 @@ fields keep the button, because they are a form that is filled in and then submi
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="303"
-                                    class="link-to-prism">src/app/features/moderation/moderation.ts:303</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="350"
+                                    class="link-to-prism">src/app/features/moderation/moderation.ts:350</a></div>
                         </td>
                     </tr>
 
@@ -1623,8 +1857,8 @@ fields keep the button, because they are a form that is filled in and then submi
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="542"
-                                    class="link-to-prism">src/app/features/moderation/moderation.ts:542</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="663"
+                                    class="link-to-prism">src/app/features/moderation/moderation.ts:663</a></div>
                         </td>
                     </tr>
 
@@ -1636,6 +1870,155 @@ fields keep the button, because they are a form that is filled in and then submi
                             <b>Returns : </b>        <code><a href="https://www.typescriptlang.org/docs/handbook/basic-types.html" target="_blank" >void</a></code>
 
                         </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="openCandidate"></a>
+                    <span class="name">
+                            <span class="modifier">Protected</span>
+                        <span ><b>openCandidate</b></span>
+                        <a href="#openCandidate"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                        <span class="modifier-icon icon ion-ios-reset"></span>
+                    <code>openCandidate(candidate: <a href="../interfaces/SimilarProtocol.html" target="_self">SimilarProtocol</a>)</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="550"
+                                    class="link-to-prism">src/app/features/moderation/moderation.ts:550</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                        <div class="io-description"><p>Opens one candidate in the read-only viewer.</p>
+<p>The duplicate dialog steps aside rather than stacking a second modal on top of itself — see
+<a href="duplicatesOpen">duplicatesOpen</a>. Two focus traps in one page is a bug looking for a keyboard, and closing
+this one would lose the list the reviewer is halfway through comparing. It comes back when the
+viewer does.
+</div>
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                                <td>Type</td>
+                                            <td>Optional</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>candidate</td>
+                                            <td>
+                                                            <code><a href="../interfaces/SimilarProtocol.html" target="_self" >SimilarProtocol</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>        <code><a href="https://www.typescriptlang.org/docs/handbook/basic-types.html" target="_blank" >void</a></code>
+
+                        </div>
+                            <div class="io-description">
+                                
+                            </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="percent"></a>
+                    <span class="name">
+                            <span class="modifier">Protected</span>
+                        <span ><b>percent</b></span>
+                        <a href="#percent"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                        <span class="modifier-icon icon ion-ios-reset"></span>
+                    <code>percent(similarity: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/number" target="_blank">number</a>)</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="532"
+                                    class="link-to-prism">src/app/features/moderation/moderation.ts:532</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                        <div class="io-description"><p>A cosine similarity as a whole percentage.</p>
+<p>Rounded to no decimals deliberately: 93.05 % beside 92.87 % invites a reviewer to treat the
+difference as meaningful, and it is not — the decision this number informs is "open both and
+read them", which 93 % and 93 % answer identically.
+</div>
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                                <td>Type</td>
+                                            <td>Optional</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>similarity</td>
+                                            <td>
+                                                            <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/number" target="_blank" >number</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/number" target="_blank" >number</a></code>
+
+                        </div>
+                            <div class="io-description">
+                                
+                            </div>
                 </td>
             </tr>
         </tbody>
@@ -1662,8 +2045,8 @@ fields keep the button, because they are a form that is filled in and then submi
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="297"
-                                    class="link-to-prism">src/app/features/moderation/moderation.ts:297</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="344"
+                                    class="link-to-prism">src/app/features/moderation/moderation.ts:344</a></div>
                         </td>
                     </tr>
 
@@ -1701,8 +2084,8 @@ fields keep the button, because they are a form that is filled in and then submi
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="536"
-                                    class="link-to-prism">src/app/features/moderation/moderation.ts:536</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="657"
+                                    class="link-to-prism">src/app/features/moderation/moderation.ts:657</a></div>
                         </td>
                     </tr>
 
@@ -1740,8 +2123,8 @@ fields keep the button, because they are a form that is filled in and then submi
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="274"
-                                    class="link-to-prism">src/app/features/moderation/moderation.ts:274</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="321"
+                                    class="link-to-prism">src/app/features/moderation/moderation.ts:321</a></div>
                         </td>
                     </tr>
 
@@ -1781,8 +2164,8 @@ fields keep the button, because they are a form that is filled in and then submi
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="392"
-                                    class="link-to-prism">src/app/features/moderation/moderation.ts:392</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="439"
+                                    class="link-to-prism">src/app/features/moderation/moderation.ts:439</a></div>
                         </td>
                     </tr>
 
@@ -1826,8 +2209,8 @@ were optional.</p>
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="502"
-                                    class="link-to-prism">src/app/features/moderation/moderation.ts:502</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="623"
+                                    class="link-to-prism">src/app/features/moderation/moderation.ts:623</a></div>
                         </td>
                     </tr>
 
@@ -1895,8 +2278,8 @@ were optional.</p>
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="355"
-                                    class="link-to-prism">src/app/features/moderation/moderation.ts:355</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="402"
+                                    class="link-to-prism">src/app/features/moderation/moderation.ts:402</a></div>
                         </td>
                     </tr>
 
@@ -1970,8 +2353,8 @@ happened to know.</p>
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="548"
-                                    class="link-to-prism">src/app/features/moderation/moderation.ts:548</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="669"
+                                    class="link-to-prism">src/app/features/moderation/moderation.ts:669</a></div>
                         </td>
                     </tr>
 
@@ -2050,7 +2433,7 @@ happened to know.</p>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="56" class="link-to-prism">src/app/features/moderation/moderation.ts:56</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="67" class="link-to-prism">src/app/features/moderation/moderation.ts:67</a></div>
                         </td>
                     </tr>
 
@@ -2083,7 +2466,7 @@ happened to know.</p>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="204" class="link-to-prism">src/app/features/moderation/moderation.ts:204</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="251" class="link-to-prism">src/app/features/moderation/moderation.ts:251</a></div>
                         </td>
                     </tr>
 
@@ -2122,7 +2505,7 @@ happened to know.</p>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="147" class="link-to-prism">src/app/features/moderation/moderation.ts:147</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="158" class="link-to-prism">src/app/features/moderation/moderation.ts:158</a></div>
                         </td>
                     </tr>
 
@@ -2163,7 +2546,7 @@ a sentence at the top of the page about &quot;this protocol&quot; names none of 
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="140" class="link-to-prism">src/app/features/moderation/moderation.ts:140</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="151" class="link-to-prism">src/app/features/moderation/moderation.ts:151</a></div>
                         </td>
                     </tr>
 
@@ -2202,7 +2585,7 @@ a sentence at the top of the page about &quot;this protocol&quot; names none of 
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="135" class="link-to-prism">src/app/features/moderation/moderation.ts:135</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="146" class="link-to-prism">src/app/features/moderation/moderation.ts:146</a></div>
                         </td>
                     </tr>
 
@@ -2241,7 +2624,7 @@ a sentence at the top of the page about &quot;this protocol&quot; names none of 
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="164" class="link-to-prism">src/app/features/moderation/moderation.ts:164</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="211" class="link-to-prism">src/app/features/moderation/moderation.ts:211</a></div>
                         </td>
                     </tr>
 
@@ -2274,7 +2657,7 @@ a sentence at the top of the page about &quot;this protocol&quot; names none of 
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="161" class="link-to-prism">src/app/features/moderation/moderation.ts:161</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="208" class="link-to-prism">src/app/features/moderation/moderation.ts:208</a></div>
                         </td>
                     </tr>
 
@@ -2313,7 +2696,7 @@ a sentence at the top of the page about &quot;this protocol&quot; names none of 
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="166" class="link-to-prism">src/app/features/moderation/moderation.ts:166</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="213" class="link-to-prism">src/app/features/moderation/moderation.ts:213</a></div>
                         </td>
                     </tr>
 
@@ -2346,7 +2729,7 @@ a sentence at the top of the page about &quot;this protocol&quot; names none of 
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="165" class="link-to-prism">src/app/features/moderation/moderation.ts:165</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="212" class="link-to-prism">src/app/features/moderation/moderation.ts:212</a></div>
                         </td>
                     </tr>
 
@@ -2379,7 +2762,7 @@ a sentence at the top of the page about &quot;this protocol&quot; names none of 
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="162" class="link-to-prism">src/app/features/moderation/moderation.ts:162</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="209" class="link-to-prism">src/app/features/moderation/moderation.ts:209</a></div>
                         </td>
                     </tr>
 
@@ -2414,7 +2797,7 @@ a sentence at the top of the page about &quot;this protocol&quot; names none of 
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="187" class="link-to-prism">src/app/features/moderation/moderation.ts:187</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="234" class="link-to-prism">src/app/features/moderation/moderation.ts:234</a></div>
                         </td>
                     </tr>
 
@@ -2447,7 +2830,7 @@ a sentence at the top of the page about &quot;this protocol&quot; names none of 
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="163" class="link-to-prism">src/app/features/moderation/moderation.ts:163</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="210" class="link-to-prism">src/app/features/moderation/moderation.ts:210</a></div>
                         </td>
                     </tr>
 
@@ -2480,7 +2863,7 @@ a sentence at the top of the page about &quot;this protocol&quot; names none of 
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="58" class="link-to-prism">src/app/features/moderation/moderation.ts:58</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="69" class="link-to-prism">src/app/features/moderation/moderation.ts:69</a></div>
                         </td>
                     </tr>
 
@@ -2513,7 +2896,7 @@ a sentence at the top of the page about &quot;this protocol&quot; names none of 
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="104" class="link-to-prism">src/app/features/moderation/moderation.ts:104</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="115" class="link-to-prism">src/app/features/moderation/moderation.ts:115</a></div>
                         </td>
                     </tr>
 
@@ -2552,7 +2935,7 @@ a sentence at the top of the page about &quot;this protocol&quot; names none of 
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="116" class="link-to-prism">src/app/features/moderation/moderation.ts:116</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="127" class="link-to-prism">src/app/features/moderation/moderation.ts:127</a></div>
                         </td>
                     </tr>
 
@@ -2595,7 +2978,7 @@ shop-floor tablet, and worse, it tells the reader their role includes a power it
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="101" class="link-to-prism">src/app/features/moderation/moderation.ts:101</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="112" class="link-to-prism">src/app/features/moderation/moderation.ts:112</a></div>
                         </td>
                     </tr>
 
@@ -2643,7 +3026,7 @@ gap is reported. The day the route opens, this button is already right.
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="182" class="link-to-prism">src/app/features/moderation/moderation.ts:182</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="229" class="link-to-prism">src/app/features/moderation/moderation.ts:229</a></div>
                         </td>
                     </tr>
 
@@ -2681,7 +3064,7 @@ gap is reported. The day the route opens, this button is already right.
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="175" class="link-to-prism">src/app/features/moderation/moderation.ts:175</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="222" class="link-to-prism">src/app/features/moderation/moderation.ts:222</a></div>
                         </td>
                     </tr>
 
@@ -2723,13 +3106,52 @@ only in the browser is a suggestion.</p>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="185" class="link-to-prism">src/app/features/moderation/moderation.ts:185</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="232" class="link-to-prism">src/app/features/moderation/moderation.ts:232</a></div>
                         </td>
                     </tr>
 
             <tr>
                 <td class="col-md-4">
                     <div class="io-description"><p>The backend refuses a withdrawal without a reason; so does this, before the round trip.</p>
+</div>
+                </td>
+            </tr>
+
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="checkingDuplicates"></a>
+                    <span class="name">
+                            <span class="modifier">Protected</span>
+                            <span class="modifier">Readonly</span>
+                        <span ><b>checkingDuplicates</b></span>
+                        <a href="#checkingDuplicates"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>unknown</code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>signal&lt;string | null&gt;(null)</code>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="165" class="link-to-prism">src/app/features/moderation/moderation.ts:165</a></div>
+                        </td>
+                    </tr>
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-description"><p>Which protocol&#39;s similarity check is in flight, so its button can say it is working.</p>
 </div>
                 </td>
             </tr>
@@ -2762,7 +3184,7 @@ only in the browser is a suggestion.</p>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="81" class="link-to-prism">src/app/features/moderation/moderation.ts:81</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="92" class="link-to-prism">src/app/features/moderation/moderation.ts:92</a></div>
                         </td>
                     </tr>
 
@@ -2801,7 +3223,7 @@ only in the browser is a suggestion.</p>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="77" class="link-to-prism">src/app/features/moderation/moderation.ts:77</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="88" class="link-to-prism">src/app/features/moderation/moderation.ts:88</a></div>
                         </td>
                     </tr>
 
@@ -2840,7 +3262,7 @@ only in the browser is a suggestion.</p>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="75" class="link-to-prism">src/app/features/moderation/moderation.ts:75</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="86" class="link-to-prism">src/app/features/moderation/moderation.ts:86</a></div>
                         </td>
                     </tr>
 
@@ -2879,13 +3301,219 @@ only in the browser is a suggestion.</p>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="202" class="link-to-prism">src/app/features/moderation/moderation.ts:202</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="249" class="link-to-prism">src/app/features/moderation/moderation.ts:249</a></div>
                         </td>
                     </tr>
 
             <tr>
                 <td class="col-md-4">
                     <div class="io-description"><p>What the form currently holds — edited freely, and not yet asked for.</p>
+</div>
+                </td>
+            </tr>
+
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="duplicates"></a>
+                    <span class="name">
+                            <span class="modifier">Protected</span>
+                            <span class="modifier">Readonly</span>
+                        <span ><b>duplicates</b></span>
+                        <a href="#duplicates"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>unknown</code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>signal&lt;SimilarityReport | null&gt;(null)</code>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="169" class="link-to-prism">src/app/features/moderation/moderation.ts:169</a></div>
+                        </td>
+                    </tr>
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-description"><p>What the check found. Null means no dialog — there is nothing to compare.</p>
+</div>
+                </td>
+            </tr>
+
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="duplicatesBeyondShown"></a>
+                    <span class="name">
+                            <span class="modifier">Protected</span>
+                            <span class="modifier">Readonly</span>
+                        <span ><b>duplicatesBeyondShown</b></span>
+                        <a href="#duplicatesBeyondShown"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>unknown</code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>computed(() &#x3D;&gt; {
+    const report &#x3D; this.duplicates();
+    return report ? report.total - report.candidates.length : 0;
+  })</code>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="191" class="link-to-prism">src/app/features/moderation/moderation.ts:191</a></div>
+                        </td>
+                    </tr>
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-description"><p>How many cleared the threshold beyond the three shown. Zero renders nothing.</p>
+</div>
+                </td>
+            </tr>
+
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="duplicatesOf"></a>
+                    <span class="name">
+                            <span class="modifier">Protected</span>
+                            <span class="modifier">Readonly</span>
+                        <span ><b>duplicatesOf</b></span>
+                        <a href="#duplicatesOf"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>unknown</code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>signal&lt;ModeratedProtocol | null&gt;(null)</code>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="167" class="link-to-prism">src/app/features/moderation/moderation.ts:167</a></div>
+                        </td>
+                    </tr>
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-description"><p>The protocol about to be approved, held while its similar siblings are on screen.</p>
+</div>
+                </td>
+            </tr>
+
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="duplicatesOpen"></a>
+                    <span class="name">
+                            <span class="modifier">Protected</span>
+                            <span class="modifier">Readonly</span>
+                        <span ><b>duplicatesOpen</b></span>
+                        <a href="#duplicatesOpen"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>unknown</code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>computed(
+    () &#x3D;&gt; this.duplicates() !&#x3D;&#x3D; null &amp;&amp; this.viewingCandidate() &#x3D;&#x3D;&#x3D; null,
+  )</code>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="181" class="link-to-prism">src/app/features/moderation/moderation.ts:181</a></div>
+                        </td>
+                    </tr>
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-description"><p>Whether the duplicate list is on screen.</p>
+<p>It steps aside while a candidate is open in the viewer instead of stacking two modals: two
+focus traps in one page fight over Tab and Escape, and the alternative — closing this dialog to
+open the viewer — would throw away the list the reviewer is in the middle of comparing. Closing
+the viewer brings it straight back, with its state intact.
+</div>
+                </td>
+            </tr>
+
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="duplicateThresholdPercent"></a>
+                    <span class="name">
+                            <span class="modifier">Protected</span>
+                            <span class="modifier">Readonly</span>
+                        <span ><b>duplicateThresholdPercent</b></span>
+                        <a href="#duplicateThresholdPercent"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>unknown</code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>computed(() &#x3D;&gt;
+    Math.round((this.duplicates()?.threshold ?? 0) * 100),
+  )</code>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="186" class="link-to-prism">src/app/features/moderation/moderation.ts:186</a></div>
+                        </td>
+                    </tr>
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-description"><p>The threshold as a whole percentage, for the one sentence that explains the numbers.</p>
 </div>
                 </td>
             </tr>
@@ -2918,7 +3546,7 @@ only in the browser is a suggestion.</p>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="154" class="link-to-prism">src/app/features/moderation/moderation.ts:154</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="201" class="link-to-prism">src/app/features/moderation/moderation.ts:201</a></div>
                         </td>
                     </tr>
 
@@ -2951,7 +3579,7 @@ only in the browser is a suggestion.</p>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="153" class="link-to-prism">src/app/features/moderation/moderation.ts:153</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="200" class="link-to-prism">src/app/features/moderation/moderation.ts:200</a></div>
                         </td>
                     </tr>
 
@@ -2984,7 +3612,7 @@ only in the browser is a suggestion.</p>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="152" class="link-to-prism">src/app/features/moderation/moderation.ts:152</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="199" class="link-to-prism">src/app/features/moderation/moderation.ts:199</a></div>
                         </td>
                     </tr>
 
@@ -3017,7 +3645,7 @@ only in the browser is a suggestion.</p>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="157" class="link-to-prism">src/app/features/moderation/moderation.ts:157</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="204" class="link-to-prism">src/app/features/moderation/moderation.ts:204</a></div>
                         </td>
                     </tr>
 
@@ -3050,7 +3678,7 @@ only in the browser is a suggestion.</p>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="150" class="link-to-prism">src/app/features/moderation/moderation.ts:150</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="197" class="link-to-prism">src/app/features/moderation/moderation.ts:197</a></div>
                         </td>
                     </tr>
 
@@ -3089,7 +3717,7 @@ only in the browser is a suggestion.</p>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="156" class="link-to-prism">src/app/features/moderation/moderation.ts:156</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="203" class="link-to-prism">src/app/features/moderation/moderation.ts:203</a></div>
                         </td>
                     </tr>
 
@@ -3128,7 +3756,7 @@ only in the browser is a suggestion.</p>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="158" class="link-to-prism">src/app/features/moderation/moderation.ts:158</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="205" class="link-to-prism">src/app/features/moderation/moderation.ts:205</a></div>
                         </td>
                     </tr>
 
@@ -3161,7 +3789,7 @@ only in the browser is a suggestion.</p>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="151" class="link-to-prism">src/app/features/moderation/moderation.ts:151</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="198" class="link-to-prism">src/app/features/moderation/moderation.ts:198</a></div>
                         </td>
                     </tr>
 
@@ -3194,7 +3822,7 @@ only in the browser is a suggestion.</p>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="68" class="link-to-prism">src/app/features/moderation/moderation.ts:68</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="79" class="link-to-prism">src/app/features/moderation/moderation.ts:79</a></div>
                         </td>
                     </tr>
 
@@ -3227,7 +3855,7 @@ only in the browser is a suggestion.</p>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="225" class="link-to-prism">src/app/features/moderation/moderation.ts:225</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="272" class="link-to-prism">src/app/features/moderation/moderation.ts:272</a></div>
                         </td>
                     </tr>
 
@@ -3262,7 +3890,7 @@ only in the browser is a suggestion.</p>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="191" class="link-to-prism">src/app/features/moderation/moderation.ts:191</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="238" class="link-to-prism">src/app/features/moderation/moderation.ts:238</a></div>
                         </td>
                     </tr>
 
@@ -3295,7 +3923,7 @@ only in the browser is a suggestion.</p>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="224" class="link-to-prism">src/app/features/moderation/moderation.ts:224</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="271" class="link-to-prism">src/app/features/moderation/moderation.ts:271</a></div>
                         </td>
                     </tr>
 
@@ -3328,7 +3956,7 @@ only in the browser is a suggestion.</p>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="190" class="link-to-prism">src/app/features/moderation/moderation.ts:190</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="237" class="link-to-prism">src/app/features/moderation/moderation.ts:237</a></div>
                         </td>
                     </tr>
 
@@ -3363,7 +3991,7 @@ only in the browser is a suggestion.</p>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="126" class="link-to-prism">src/app/features/moderation/moderation.ts:126</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="137" class="link-to-prism">src/app/features/moderation/moderation.ts:137</a></div>
                         </td>
                     </tr>
 
@@ -3406,7 +4034,7 @@ the page title.
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="57" class="link-to-prism">src/app/features/moderation/moderation.ts:57</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="68" class="link-to-prism">src/app/features/moderation/moderation.ts:68</a></div>
                         </td>
                     </tr>
 
@@ -3441,7 +4069,7 @@ the page title.
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="130" class="link-to-prism">src/app/features/moderation/moderation.ts:130</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="141" class="link-to-prism">src/app/features/moderation/moderation.ts:141</a></div>
                         </td>
                     </tr>
 
@@ -3476,7 +4104,7 @@ the page title.
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="217" class="link-to-prism">src/app/features/moderation/moderation.ts:217</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="264" class="link-to-prism">src/app/features/moderation/moderation.ts:264</a></div>
                         </td>
                     </tr>
 
@@ -3515,7 +4143,7 @@ the page title.
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="62" class="link-to-prism">src/app/features/moderation/moderation.ts:62</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="73" class="link-to-prism">src/app/features/moderation/moderation.ts:73</a></div>
                         </td>
                     </tr>
 
@@ -3554,7 +4182,7 @@ the page title.
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="67" class="link-to-prism">src/app/features/moderation/moderation.ts:67</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="78" class="link-to-prism">src/app/features/moderation/moderation.ts:78</a></div>
                         </td>
                     </tr>
 
@@ -3587,7 +4215,7 @@ the page title.
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="214" class="link-to-prism">src/app/features/moderation/moderation.ts:214</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="261" class="link-to-prism">src/app/features/moderation/moderation.ts:261</a></div>
                         </td>
                     </tr>
 
@@ -3630,7 +4258,7 @@ caller that is not this form.</p>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="198" class="link-to-prism">src/app/features/moderation/moderation.ts:198</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="245" class="link-to-prism">src/app/features/moderation/moderation.ts:245</a></div>
                         </td>
                     </tr>
 
@@ -3669,7 +4297,7 @@ caller that is not this form.</p>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="199" class="link-to-prism">src/app/features/moderation/moderation.ts:199</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="246" class="link-to-prism">src/app/features/moderation/moderation.ts:246</a></div>
                         </td>
                     </tr>
 
@@ -3702,7 +4330,7 @@ caller that is not this form.</p>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="65" class="link-to-prism">src/app/features/moderation/moderation.ts:65</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="76" class="link-to-prism">src/app/features/moderation/moderation.ts:76</a></div>
                         </td>
                     </tr>
 
@@ -3737,7 +4365,7 @@ caller that is not this form.</p>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="221" class="link-to-prism">src/app/features/moderation/moderation.ts:221</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="268" class="link-to-prism">src/app/features/moderation/moderation.ts:268</a></div>
                         </td>
                     </tr>
 
@@ -3770,7 +4398,7 @@ caller that is not this form.</p>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="195" class="link-to-prism">src/app/features/moderation/moderation.ts:195</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="242" class="link-to-prism">src/app/features/moderation/moderation.ts:242</a></div>
                         </td>
                     </tr>
 
@@ -3803,7 +4431,7 @@ caller that is not this form.</p>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="64" class="link-to-prism">src/app/features/moderation/moderation.ts:64</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="75" class="link-to-prism">src/app/features/moderation/moderation.ts:75</a></div>
                         </td>
                     </tr>
 
@@ -3836,7 +4464,7 @@ caller that is not this form.</p>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="79" class="link-to-prism">src/app/features/moderation/moderation.ts:79</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="90" class="link-to-prism">src/app/features/moderation/moderation.ts:90</a></div>
                         </td>
                     </tr>
 
@@ -3875,7 +4503,7 @@ caller that is not this form.</p>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="60" class="link-to-prism">src/app/features/moderation/moderation.ts:60</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="71" class="link-to-prism">src/app/features/moderation/moderation.ts:71</a></div>
                         </td>
                     </tr>
 
@@ -3908,7 +4536,7 @@ caller that is not this form.</p>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="84" class="link-to-prism">src/app/features/moderation/moderation.ts:84</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="95" class="link-to-prism">src/app/features/moderation/moderation.ts:95</a></div>
                         </td>
                     </tr>
 
@@ -3947,7 +4575,7 @@ caller that is not this form.</p>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="66" class="link-to-prism">src/app/features/moderation/moderation.ts:66</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="77" class="link-to-prism">src/app/features/moderation/moderation.ts:77</a></div>
                         </td>
                     </tr>
 
@@ -3980,7 +4608,7 @@ caller that is not this form.</p>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="71" class="link-to-prism">src/app/features/moderation/moderation.ts:71</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="82" class="link-to-prism">src/app/features/moderation/moderation.ts:82</a></div>
                         </td>
                     </tr>
 
@@ -4019,13 +4647,52 @@ caller that is not this form.</p>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="73" class="link-to-prism">src/app/features/moderation/moderation.ts:73</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="84" class="link-to-prism">src/app/features/moderation/moderation.ts:84</a></div>
                         </td>
                     </tr>
 
             <tr>
                 <td class="col-md-4">
                     <div class="io-description"><p>The archived protocol open in the viewer, or null — a different endpoint, so a different slot.</p>
+</div>
+                </td>
+            </tr>
+
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="viewingCandidate"></a>
+                    <span class="name">
+                            <span class="modifier">Protected</span>
+                            <span class="modifier">Readonly</span>
+                        <span ><b>viewingCandidate</b></span>
+                        <a href="#viewingCandidate"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>unknown</code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>signal&lt;SimilarProtocol | null&gt;(null)</code>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="171" class="link-to-prism">src/app/features/moderation/moderation.ts:171</a></div>
+                        </td>
+                    </tr>
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-description"><p>A candidate open in the read-only viewer, or null.</p>
 </div>
                 </td>
             </tr>
@@ -4058,7 +4725,7 @@ caller that is not this form.</p>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="138" class="link-to-prism">src/app/features/moderation/moderation.ts:138</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="149" class="link-to-prism">src/app/features/moderation/moderation.ts:149</a></div>
                         </td>
                     </tr>
 
@@ -4091,7 +4758,7 @@ caller that is not this form.</p>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="137" class="link-to-prism">src/app/features/moderation/moderation.ts:137</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="148" class="link-to-prism">src/app/features/moderation/moderation.ts:148</a></div>
                         </td>
                     </tr>
 
@@ -4119,6 +4786,8 @@ import {
   ModeratedProtocol,
   NO_FILTER,
   ProtocolFilter,
+  SimilarProtocol,
+  SimilarityReport,
 } from &#x27;../../core/api/api.types&#x27;;
 import { ApiFailure, MaintenanceApiService, classify } from &#x27;../../core/api/maintenance-api.service&#x27;;
 import { AuthService } from &#x27;../../core/auth/auth.service&#x27;;
@@ -4157,6 +4826,15 @@ const PAGE_SIZE &#x3D; 5;
  * and nobody holds both — so the row&#x27;s buttons now depend on the reader&#x27;s role rather than on the
  * view they are standing in. See {@link canCorrect} and {@link canApprove} for what that means here
  * and for the routing question it exposes.
+ *
+ * &lt;p&gt;&lt;b&gt;Duplicate detection, 2026-08-14, and the one rule it follows: it WARNS, it never blocks.&lt;/b&gt;
+ * Approving now asks first whether this machine already holds a protocol saying close to the same
+ * thing, and shows up to three if it does — with their dates, their similarity and, decisively,
+ * their OWN approval state. Nothing on this screen can refuse an approval on that basis, the
+ * approve button in the dialog is never disabled, and a failed similarity call approves anyway
+ * ({@link approve}). Four legitimate E-47 protocols on PR-03 describe four different root causes
+ * behind one fault code, and a feature that could turn &quot;similar&quot; into &quot;refused&quot; would have removed
+ * exactly the knowledge that makes the demo answer good.
  */
 @Component({
   selector: &#x27;app-moderation&#x27;,
@@ -4257,6 +4935,42 @@ export class Moderation {
    * a sentence at the top of the page about &quot;this protocol&quot; names none of them.
    */
   protected readonly approvalFailure &#x3D; signal&lt;{ id: string; reason: ApiFailure } | null&gt;(null);
+
+  // -------------------------------------------------------------------------------------------
+  // Duplicate detection — INFORMATION, never a gate
+  // -------------------------------------------------------------------------------------------
+
+  /** Which protocol&#x27;s similarity check is in flight, so its button can say it is working. */
+  protected readonly checkingDuplicates &#x3D; signal&lt;string | null&gt;(null);
+  /** The protocol about to be approved, held while its similar siblings are on screen. */
+  protected readonly duplicatesOf &#x3D; signal&lt;ModeratedProtocol | null&gt;(null);
+  /** What the check found. Null means no dialog — there is nothing to compare. */
+  protected readonly duplicates &#x3D; signal&lt;SimilarityReport | null&gt;(null);
+  /** A candidate open in the read-only viewer, or null. */
+  protected readonly viewingCandidate &#x3D; signal&lt;SimilarProtocol | null&gt;(null);
+
+  /**
+   * Whether the duplicate list is on screen.
+   *
+   * &lt;p&gt;It steps aside while a candidate is open in the viewer instead of stacking two modals: two
+   * focus traps in one page fight over Tab and Escape, and the alternative — closing this dialog to
+   * open the viewer — would throw away the list the reviewer is in the middle of comparing. Closing
+   * the viewer brings it straight back, with its state intact.
+   */
+  protected readonly duplicatesOpen &#x3D; computed(
+    () &#x3D;&gt; this.duplicates() !&#x3D;&#x3D; null &amp;&amp; this.viewingCandidate() &#x3D;&#x3D;&#x3D; null,
+  );
+
+  /** The threshold as a whole percentage, for the one sentence that explains the numbers. */
+  protected readonly duplicateThresholdPercent &#x3D; computed(() &#x3D;&gt;
+    Math.round((this.duplicates()?.threshold ?? 0) * 100),
+  );
+
+  /** How many cleared the threshold beyond the three shown. Zero renders nothing. */
+  protected readonly duplicatesBeyondShown &#x3D; computed(() &#x3D;&gt; {
+    const report &#x3D; this.duplicates();
+    return report ? report.total - report.candidates.length : 0;
+  });
 
   /** The protocol being corrected, or null. */
   protected readonly editing &#x3D; signal&lt;ModeratedProtocol | null&gt;(null);
@@ -4538,8 +5252,86 @@ export class Moderation {
   // -------------------------------------------------------------------------------------------
 
   /**
-   * Approves a protocol. No confirmation and no comment field: approving affirms the text as it
-   * stands, and the reader has just read it.
+   * Starts an approval by asking what the corpus already says.
+   *
+   * &lt;p&gt;&lt;b&gt;The dialog appears only when there is something to look at.&lt;/b&gt; If nothing on this machine
+   * is similar, this is still the #54 behaviour — one click, no confirmation, because approving
+   * affirms text the reader has just read. A dialog that opened every time to announce &quot;nothing
+   * found&quot; would tax the common case to serve the rare one, and a permanently empty section is how a
+   * reader learns to click straight past a section that will one day be full.
+   *
+   * &lt;p&gt;&lt;b&gt;It fails OPEN, deliberately.&lt;/b&gt; A failed similarity call approves anyway rather than
+   * stopping the reviewer, and nothing is lost by it: the backend recomputes the same comparison
+   * inside the approval and writes what it found into the ledger, so the audit record is correct
+   * whether or not this call succeeded. The check here is an aid to a decision; it is not the
+   * decision, and it is not the record. Blocking an approval on a failed *warning* would invert the
+   * governing rule of the whole feature.
+   */
+  protected approve(protocol: ModeratedProtocol): void {
+    if (this.approving() || this.checkingDuplicates()) {
+      return;
+    }
+    this.checkingDuplicates.set(protocol.id);
+    this.approvalFailure.set(null);
+
+    this.api.similarProtocols(protocol.id).subscribe({
+      next: (report) &#x3D;&gt; {
+        this.checkingDuplicates.set(null);
+        if (report.candidates.length &#x3D;&#x3D;&#x3D; 0) {
+          this.commitApproval(protocol);
+          return;
+        }
+        this.duplicatesOf.set(protocol);
+        this.duplicates.set(report);
+      },
+      error: () &#x3D;&gt; {
+        this.checkingDuplicates.set(null);
+        this.commitApproval(protocol);
+      },
+    });
+  }
+
+  /** Approves the protocol whose similar siblings the reviewer has just been shown. */
+  protected approveFromDialog(): void {
+    const target &#x3D; this.duplicatesOf();
+    if (!target) {
+      return;
+    }
+    this.closeDuplicates();
+    this.commitApproval(target);
+  }
+
+  /**
+   * A cosine similarity as a whole percentage.
+   *
+   * &lt;p&gt;Rounded to no decimals deliberately: 93.05 % beside 92.87 % invites a reviewer to treat the
+   * difference as meaningful, and it is not — the decision this number informs is &quot;open both and
+   * read them&quot;, which 93 % and 93 % answer identically.
+   */
+  protected percent(similarity: number): number {
+    return Math.round(similarity * 100);
+  }
+
+  protected closeDuplicates(): void {
+    this.duplicatesOf.set(null);
+    this.duplicates.set(null);
+    this.viewingCandidate.set(null);
+  }
+
+  /**
+   * Opens one candidate in the read-only viewer.
+   *
+   * &lt;p&gt;The duplicate dialog steps aside rather than stacking a second modal on top of itself — see
+   * {@link duplicatesOpen}. Two focus traps in one page is a bug looking for a keyboard, and closing
+   * this one would lose the list the reviewer is halfway through comparing. It comes back when the
+   * viewer does.
+   */
+  protected openCandidate(candidate: SimilarProtocol): void {
+    this.viewingCandidate.set(candidate);
+  }
+
+  /**
+   * Performs the approval itself.
    *
    * &lt;p&gt;&lt;b&gt;The refusal is handled explicitly, and that is the point of this method.&lt;/b&gt; The backend
    * answers 400 &#x60;FOUR_EYES_REQUIRED&#x60; when the caller filed or last corrected the protocol. Leaving
@@ -4547,12 +5339,8 @@ export class Moderation {
    * would leave an administrator staring at a control that does not work for a reason they cannot
    * discover. The rule is explained in a sentence, beside the row it applies to.
    */
-  protected approve(protocol: ModeratedProtocol): void {
-    if (this.approving()) {
-      return;
-    }
+  private commitApproval(protocol: ModeratedProtocol): void {
     this.approving.set(protocol.id);
-    this.approvalFailure.set(null);
 
     this.api.setApproval(protocol.id, true).subscribe({
       next: () &#x3D;&gt; {
@@ -5009,18 +5797,26 @@ export class Moderation {
                         {{ t().approval.withdrawShort }}
                       &lt;/button&gt;
                     } @else {
-                      &lt;!-- No confirmation dialog, unlike withdrawing: approving affirms the text as
-                           it stands, and the reviewer has just read it. Withdrawing takes back
-                           something a named person vouched for, and that direction needs a reason. --&gt;
+                      &lt;!-- Still no confirmation dialog in the ordinary case, which is what #54
+                           decided: approving affirms the text as it stands and the reviewer has
+                           just read it. Withdrawing takes back something a named person vouched
+                           for, and that direction needs a reason.
+                           SINCE 2026-08-14 the click first asks whether this machine already holds
+                           something similar, and a dialog opens ONLY if it does — information when
+                           there is information, one click when there is not. --&gt;
                       &lt;button
                         type&#x3D;&quot;button&quot;
                         class&#x3D;&quot;btn btn-primary btn-sm&quot;
                         data-testid&#x3D;&quot;row-approve&quot;
-                        [disabled]&#x3D;&quot;approving() !&#x3D;&#x3D; null&quot;
+                        [disabled]&#x3D;&quot;approving() !&#x3D;&#x3D; null || checkingDuplicates() !&#x3D;&#x3D; null&quot;
                         [attr.aria-label]&#x3D;&quot;t().approval.approve + &#x27;: &#x27; + protocol.title&quot;
                         (click)&#x3D;&quot;approve(protocol)&quot;
                       &gt;
-                        {{ approving() &#x3D;&#x3D;&#x3D; protocol.id ? t().approval.approving : t().approval.approve }}
+                        {{
+                          approving() &#x3D;&#x3D;&#x3D; protocol.id || checkingDuplicates() &#x3D;&#x3D;&#x3D; protocol.id
+                            ? t().approval.approving
+                            : t().approval.approve
+                        }}
                       &lt;/button&gt;
                     }
                   }
@@ -5216,7 +6012,7 @@ export class Moderation {
           type&#x3D;&quot;button&quot;
           class&#x3D;&quot;btn btn-primary btn-sm&quot;
           data-testid&#x3D;&quot;viewer-approve&quot;
-          [disabled]&#x3D;&quot;approving() !&#x3D;&#x3D; null&quot;
+          [disabled]&#x3D;&quot;approving() !&#x3D;&#x3D; null || checkingDuplicates() !&#x3D;&#x3D; null&quot;
           (click)&#x3D;&quot;approve(target); viewing.set(null)&quot;
         &gt;
           {{ t().approval.approve }}
@@ -5235,6 +6031,132 @@ export class Moderation {
   source&#x3D;&quot;archive&quot;
   (closed)&#x3D;&quot;viewingArchived.set(null)&quot;
 /&gt;
+
+&lt;!-- A candidate from the duplicate list, in the SAME read-only viewer the rest of this screen uses.
+     Comparing two protocols means reading both, and a percentage is not a comparison — the reviewer
+     has to be able to see the actual words before deciding that two accounts of one fault are one
+     account filed twice. The duplicate dialog steps aside while this is open (see duplicatesOpen)
+     and returns with its list intact. --&gt;
+&lt;app-protocol-dialog
+  [protocolId]&#x3D;&quot;viewingCandidate()?.id ?? null&quot;
+  [protocolTitle]&#x3D;&quot;viewingCandidate()?.title ?? &#x27;&#x27;&quot;
+  [machine]&#x3D;&quot;duplicatesOf()?.machineNo ?? &#x27;&#x27;&quot;
+  [approval]&#x3D;&quot;viewingCandidate()?.approval ?? null&quot;
+  source&#x3D;&quot;moderation&quot;
+  (closed)&#x3D;&quot;viewingCandidate.set(null)&quot;
+/&gt;
+
+&lt;!-- DUPLICATE DETECTION: INFORMATION, NEVER AN OBSTACLE.
+     It opens only when something on this machine is actually similar — no permanently empty
+     section, and the ordinary approval stays one click (#54). The review palette rather than the
+     danger one, and no word here says &quot;warning&quot;: being similar is NORMAL in this corpus, where four
+     legitimate E-47 protocols describe four different root causes behind one fault code. The
+     approve button below is enabled the entire time, because a sentence implying wrongdoing beside a
+     button that works anyway would teach the reader to distrust one of the two. --&gt;
+&lt;app-dialog
+  [open]&#x3D;&quot;duplicatesOpen()&quot;
+  [title]&#x3D;&quot;t().duplicates.title&quot;
+  testId&#x3D;&quot;duplicates&quot;
+  (closed)&#x3D;&quot;closeDuplicates()&quot;
+&gt;
+  @if (duplicates(); as report) {
+    @if (duplicatesOf(); as target) {
+      &lt;!-- Which protocol is being approved, named. The button that opened this was one of several
+           identical ones in a table. --&gt;
+      &lt;p class&#x3D;&quot;confirm-target&quot; data-testid&#x3D;&quot;duplicates-target&quot;&gt;
+        &lt;strong&gt;{{ target.title }}&lt;/strong&gt;
+        &lt;span class&#x3D;&quot;machine&quot;&gt;{{ target.machineNo }}&lt;/span&gt;
+      &lt;/p&gt;
+    }
+
+    &lt;p class&#x3D;&quot;notice notice-review&quot; role&#x3D;&quot;note&quot; data-testid&#x3D;&quot;duplicates-intro&quot;&gt;
+      &lt;svg class&#x3D;&quot;notice-icon&quot; viewBox&#x3D;&quot;0 0 24 24&quot; aria-hidden&#x3D;&quot;true&quot; focusable&#x3D;&quot;false&quot;&gt;
+        &lt;circle cx&#x3D;&quot;12&quot; cy&#x3D;&quot;12&quot; r&#x3D;&quot;9&quot; /&gt;
+        &lt;path d&#x3D;&quot;M12 11v5.4&quot; /&gt;
+        &lt;circle class&#x3D;&quot;dot&quot; cx&#x3D;&quot;12&quot; cy&#x3D;&quot;7.8&quot; r&#x3D;&quot;1&quot; /&gt;
+      &lt;/svg&gt;
+      &lt;!-- An INFORMATION glyph, not the triangle the &quot;edit resets approval&quot; notice uses. Both sit
+           in the review palette and they say different things: that one predicts a consequence of
+           pressing save, this one reports a fact about the corpus. --&gt;
+      {{ t().duplicates.intro(report.total) }}
+    &lt;/p&gt;
+
+    &lt;ul class&#x3D;&quot;duplicate-list&quot; data-testid&#x3D;&quot;duplicate-list&quot;&gt;
+      @for (candidate of report.candidates; track candidate.id) {
+        &lt;li class&#x3D;&quot;duplicate-card&quot; data-testid&#x3D;&quot;duplicate-card&quot;&gt;
+          &lt;div class&#x3D;&quot;duplicate-head&quot;&gt;
+            &lt;span class&#x3D;&quot;duplicate-title&quot;&gt;{{ candidate.title }}&lt;/span&gt;
+            &lt;!-- The percentage is a rounded whole number on purpose: four decimal places would
+                 invite a reviewer to compare 93.05 with 92.87 as though the difference meant
+                 something a human decision should turn on. --&gt;
+            &lt;span class&#x3D;&quot;duplicate-score&quot; data-testid&#x3D;&quot;duplicate-score&quot;&gt;
+              {{ percent(candidate.similarity) }} % {{ t().duplicates.match }}
+            &lt;/span&gt;
+          &lt;/div&gt;
+          &lt;div class&#x3D;&quot;duplicate-meta&quot;&gt;
+            &lt;span class&#x3D;&quot;num&quot;&gt;{{ candidate.incidentDate | appDate: language() }}&lt;/span&gt;
+            &lt;span class&#x3D;&quot;uploader&quot;&gt;{{ candidate.uploadedBy }}&lt;/span&gt;
+          &lt;/div&gt;
+          &lt;!-- THE CANDIDATE&#x27;S OWN APPROVAL STATE, and it is the reason this card is worth reading
+               rather than a detail on it: &quot;nearly the same as something an administrator already
+               vouched for&quot; is a merge-or-reject question, while &quot;nearly the same as one nobody has
+               reviewed&quot; may be two people describing one fault from different angles — which this
+               corpus wants both of. --&gt;
+          &lt;app-approval-state
+            [approval]&#x3D;&quot;candidate.approval&quot;
+            [language]&#x3D;&quot;language()&quot;
+            [showActor]&#x3D;&quot;true&quot;
+          /&gt;
+          &lt;button
+            type&#x3D;&quot;button&quot;
+            class&#x3D;&quot;btn btn-secondary btn-sm&quot;
+            data-testid&#x3D;&quot;duplicate-open&quot;
+            [attr.aria-haspopup]&#x3D;&quot;&#x27;dialog&#x27;&quot;
+            [attr.aria-label]&#x3D;&quot;t().duplicates.openCandidate + &#x27;: &#x27; + candidate.title&quot;
+            (click)&#x3D;&quot;openCandidate(candidate)&quot;
+          &gt;
+            {{ t().duplicates.openCandidate }}
+          &lt;/button&gt;
+        &lt;/li&gt;
+      }
+    &lt;/ul&gt;
+
+    @if (duplicatesBeyondShown() &gt; 0) {
+      &lt;!-- Three links are a prompt to compare; ten are a report nobody reads. The count is what
+           stops the fourth from disappearing without trace. --&gt;
+      &lt;p class&#x3D;&quot;field-hint&quot; data-testid&#x3D;&quot;duplicates-more&quot;&gt;
+        {{ t().duplicates.more(duplicatesBeyondShown()) }}
+      &lt;/p&gt;
+    }
+
+    &lt;!-- Says what the number means. A percentage with no stated basis is read as a certainty. --&gt;
+    &lt;p class&#x3D;&quot;field-hint&quot; data-testid&#x3D;&quot;duplicates-method&quot;&gt;
+      {{ t().duplicates.method(duplicateThresholdPercent()) }}
+    &lt;/p&gt;
+
+    &lt;div class&#x3D;&quot;confirm-actions&quot;&gt;
+      &lt;!-- ENABLED, ALWAYS. The whole feature is one sentence: the system informs, the admin decides.
+           There is no state of this dialog in which this button is disabled, and the backend has no
+           branch that refuses an approval on a similarity score either. --&gt;
+      &lt;button
+        type&#x3D;&quot;button&quot;
+        class&#x3D;&quot;btn btn-primary&quot;
+        data-testid&#x3D;&quot;duplicates-approve&quot;
+        (click)&#x3D;&quot;approveFromDialog()&quot;
+      &gt;
+        {{ t().approval.approve }}
+      &lt;/button&gt;
+      &lt;button
+        type&#x3D;&quot;button&quot;
+        class&#x3D;&quot;btn btn-secondary&quot;
+        data-testid&#x3D;&quot;duplicates-cancel&quot;
+        (click)&#x3D;&quot;closeDuplicates()&quot;
+      &gt;
+        {{ t().common.cancel }}
+      &lt;/button&gt;
+    &lt;/div&gt;
+  }
+&lt;/app-dialog&gt;
 
 &lt;app-dialog
   [open]&#x3D;&quot;deleting() !&#x3D;&#x3D; null&quot;
@@ -5795,6 +6717,68 @@ export class Moderation {
   color: var(--c-ink-hint);
 }
 
+/* ------------------------------------------------------------------------------------------
+   Duplicate detection — the review palette, and nothing that reads as danger
+   ------------------------------------------------------------------------------------------
+   The cards use the SURFACE tokens rather than --c-review-*, and that is deliberate: the review
+   colour appears exactly once in this dialog, on the sentence at the top that explains why the
+   list is there. Tinting every card as well would make three ordinary protocols look like three
+   problems, when being similar is normal in this corpus — four legitimate E-47 protocols describe
+   four different root causes behind one fault code. */
+.duplicate-list {
+  list-style: none;
+  margin: 0 0 var(--s-3);
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+}
+
+.duplicate-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--s-2);
+  padding: var(--s-3);
+  border: 1px solid var(--c-line);
+  border-radius: var(--r-md);
+  /* Recessed inside the dialog&#x27;s own surface. --c-sunken is the token that steps the RIGHT way in
+     both palettes — it is lighter than the card in light and darker than it in dark — which is the
+     defect the dark palette carried before it was fixed and the reason not to invent a value here. */
+  background: var(--c-sunken);
+}
+
+/* The title and the score share a line and separate at narrow widths, because the score is what
+   the eye scans down the list and a title long enough to push it off screen is common here. */
+.duplicate-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--s-2) var(--s-3);
+  width: 100%;
+}
+
+.duplicate-title {
+  font-weight: 600;
+}
+
+/* Tabular figures so a column of percentages lines up rather than shimmying by a digit&#x27;s width. */
+.duplicate-score {
+  flex: none;
+  font-size: var(--t-sm);
+  font-variant-numeric: tabular-nums;
+  color: var(--c-ink-muted);
+}
+
+.duplicate-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2) var(--s-3);
+  font-size: var(--t-sm);
+  color: var(--c-ink-muted);
+}
+
 /* Visible to a screen reader, not to the eye: the actions column has no heading worth showing, and
    an empty &lt;th&gt; reads as an unlabelled column rather than as no label. */
 .sr-only {
@@ -5835,7 +6819,7 @@ export class Moderation {
 <script src="../js/libs/htmlparser.js"></script>
 <script src="../js/libs/deep-iterator.js"></script>
 <script>
-        var COMPONENT_TEMPLATE = '<div><div class="page page-wide">  <!-- The heading names the JOB, not the route. Two roles share this screen since 2026-08-14 and       they do different things on it; a Schichtleiter under "Protokollverwaltung" would be told       their role includes reviewing and removing, which it does not. -->  <h1 class="page-title">{{ tab() === \'archive\' ? t().moderation.heading : heading() }}</h1>  <p class="page-lead">    {{ tab() === \'archive\' ? t().moderation.archiveIntro : intro() }}  </p>  <!-- Two halves of one job: what is in the corpus, and what was taken out of it. Tabs rather than       a second route, because a reviewer moves between them while deciding.       THE WHOLE BAR IS ABSENT FOR THE CORRECTOR, not just its second tab. The archive is the       administrator\'s — it holds exactly the protocols somebody decided were unfit to be read — and       a tab strip with one tab is a control that does nothing dressed as a choice. -->  @if (canArchive()) {    <div class="tabs" role="tablist" [attr.aria-label]="t().moderation.heading">      <button        type="button"        role="tab"        data-testid="tab-corpus"        [class.active]="tab() === \'corpus\'"        [attr.aria-selected]="tab() === \'corpus\'"        (click)="showTab(\'corpus\')"      >        {{ t().moderation.tabCorpus }}      </button>      <button        type="button"        role="tab"        data-testid="tab-archive"        [class.active]="tab() === \'archive\'"        [attr.aria-selected]="tab() === \'archive\'"        (click)="showTab(\'archive\')"      >        {{ t().moderation.tabArchive }}      </button>    </div>  }  @if (corrected(); as title) {    <p class="notice notice-info moderation-notice" role="status" data-testid="corrected-notice">      <!-- 202, not 200: the text is fixed and the index catches up in a moment. Saying so is the           same honesty the upload view owes its 202. -->      <span>{{ t().moderation.edited }}: {{ title }}</span>      <button        type="button"        class="link-button"        data-testid="corrected-dismiss"        [attr.aria-label]="t().signOut.dismiss"        (click)="corrected.set(null)"      >        {{ t().common.close }}      </button>    </p>  }  @if (approvalNotice(); as notice) {    <p class="notice notice-info moderation-notice" role="status" data-testid="approval-notice">      <span>        {{ notice.approved ? t().approval.approvedNotice : t().approval.withdrawnNotice }}:        {{ notice.title }}      </span>      <button        type="button"        class="link-button"        data-testid="approval-notice-dismiss"        [attr.aria-label]="t().signOut.dismiss"        (click)="approvalNotice.set(null)"      >        {{ t().common.close }}      </button>    </p>  }  @if (removed(); as title) {    <p class="notice notice-info moderation-notice" role="status" data-testid="removed-notice">      <span>{{ t().moderation.removed }}: {{ title }}</span>      <button        type="button"        class="link-button"        data-testid="removed-dismiss"        [attr.aria-label]="t().signOut.dismiss"        (click)="removed.set(null)"      >        {{ t().common.close }}      </button>    </p>  }  @if (failure(); as reason) {    <p class="notice notice-error" role="alert" data-testid="moderation-failure">      @switch (reason) {        @case (\'forbidden\') {          {{ t().errors.forbidden }}        }        @case (\'notFound\') {          {{ t().moderation.alreadyGone }}        }        @case (\'unavailable\') {          {{ t().errors.unavailable }}        }        @default {          {{ t().errors.generic }}        }      }    </p>  }  @if (tab() === \'corpus\') {  <!-- Above the table, not in a drawer: with 150 protocols and growing, finding one is the first       thing a reviewer does, not an option they go looking for. -->  <form class="card filter-bar" (ngSubmit)="applyFilter()" [attr.aria-label]="t().moderation.filterLegend">    <div class="filter-fields">      <label class="field">        <span class="field-label">{{ t().upload.machine }}</span>        <select          name="machineNo"          data-testid="filter-machine"          [ngModel]="draft().machineNo"          (ngModelChange)="edit(\'machineNo\', $event)"        >          <option value="">{{ t().moderation.filterMachineAll }}</option>          @for (machine of machines(); track machine.id) {            <option [value]="machine.machineNo">{{ machine.machineNo }} · {{ machine.name }}</option>          }        </select>      </label>      <!-- Disabled until a machine is chosen, which is the same rule the backend enforces with a           400: a title fragment over ten machines answers with rows nobody was looking for. -->      <label class="field">        <span class="field-label">{{ t().moderation.filterTitle }}</span>        <input          type="search"          name="titleContains"          data-testid="filter-title"          [disabled]="!machineChosen()"          [ngModel]="draft().titleContains"          (ngModelChange)="edit(\'titleContains\', $event)"        />      </label>      <label class="field field-date">        <span class="field-label">{{ t().moderation.filterFrom }}</span>        <input          type="date"          name="from"          data-testid="filter-from"          [disabled]="!machineChosen()"          [ngModel]="draft().from"          (ngModelChange)="edit(\'from\', $event)"        />      </label>      <label class="field field-date">        <span class="field-label">{{ t().moderation.filterTo }}</span>        <input          type="date"          name="to"          data-testid="filter-to"          [disabled]="!machineChosen()"          [ngModel]="draft().to"          (ngModelChange)="edit(\'to\', $event)"        />      </label>    </div>    <!-- OUTSIDE `.filter-fields`, and not because of the layout: this is the one filter the backend         applies WITHOUT a machine, because "everything still waiting for review" is only useful         whole. It applies on change rather than on submit — a queue behind a second button press is         a queue nobody opens. -->    <label class="field filter-approval">      <span class="field-label">{{ t().moderation.filterApproval }}</span>      <select        name="approvalState"        data-testid="filter-approval"        [ngModel]="draft().approvalState"        (ngModelChange)="filterByApproval($event)"      >        <option value="">{{ t().moderation.filterApprovalAll }}</option>        <option value="UNAPPROVED">{{ t().approval.unapproved }}</option>        <option value="APPROVED">{{ t().approval.approved }}</option>      </select>    </label>    <!-- A disabled field with no explanation reads as broken rather than as not-yet-applicable. -->    <p class="field-hint" data-testid="filter-hint">{{ t().moderation.filterHint }}</p>    <!-- The one place the interface language does NOT decide the format: a native date input is         drawn by the browser in the BROWSER\'s locale, so an English interface on a German machine         still shows TT.MM.JJJJ. Replacing it with a custom picker would cost a keyboard-accessible,         touch-friendly control the platform already gives; naming the expected format costs a line.         The value sent to the API is ISO either way. -->    <p class="field-hint" data-testid="filter-date-format">      {{ t().moderation.filterDateFormatHint }}    </p>    @if (machinesFailed()) {      <p class="notice notice-error" data-testid="filter-machines-error">        {{ t().search.machinesUnavailable }}      </p>    }    <div class="filter-actions">      <button type="submit" class="btn btn-primary btn-sm" data-testid="filter-apply">        {{ t().moderation.filterApply }}      </button>      <button        type="button"        class="btn btn-secondary btn-sm"        data-testid="filter-reset"        (click)="resetFilter()"      >        {{ t().moderation.filterReset }}      </button>    </div>  </form>  <section class="card">    @if (loading()) {      <p class="hint" role="status" data-testid="moderation-loading">{{ t().moderation.loading }}</p>    } @else if (protocols().length === 0) {      <!-- Two different "nothing here": an empty corpus is a fact, an empty filtered result is           something the reader can undo. A bare table would say neither. -->      <div class="empty-state" data-testid="moderation-empty">        <p class="hint">          {{ isFiltered() ? t().moderation.emptyFiltered : t().moderation.empty }}        </p>        @if (isFiltered()) {          <button            type="button"            class="btn btn-secondary btn-sm"            data-testid="empty-reset"            (click)="resetFilter()"          >            {{ t().moderation.filterReset }}          </button>        }      </div>    } @else {      <div class="table-scroll">        <table class="moderation-table" data-testid="moderation-table">          <thead>            <tr>              <th>{{ t().upload.columnProtocol }}</th>              <th>{{ t().upload.machine }}</th>              <th>{{ t().upload.type }}</th>              <th>{{ t().moderation.uploadedBy }}</th>              <th>{{ t().upload.columnUploaded }}</th>              <th>{{ t().upload.columnStatus }}</th>              <th>{{ t().approval.column }}</th>              <th><span class="sr-only">{{ t().moderation.actions }}</span></th>            </tr>          </thead>          <tbody>            @for (protocol of protocols(); track protocol.id) {              <tr data-testid="moderation-row">                <td>{{ protocol.title }}</td>                <td class="machine">{{ protocol.machineNo }}</td>                <td>                  {{                    protocol.protocolType === \'WARTUNG\'                      ? t().upload.typeMaintenance                      : t().upload.typeFault                  }}                </td>                <!-- The author, on screen. A reviewer who can see a bad protocol but not who filed                     it can remove the text and learn nothing (ADR-006). -->                <td class="uploader" data-testid="row-uploader">{{ protocol.uploadedBy }}</td>                <td class="num">{{ protocol.uploadedAt | appDate: language() }}</td>                <td>                  <span class="status status-{{ protocol.status.toLowerCase() }}">{{                    statusLabel(protocol.status)                  }}</span>                </td>                <!-- On every row, not only on the unapproved ones. This list is also where an                     administrator checks that something they approved is STILL approved — and after                     a correction it will not be, because an edit resets it. -->                <td class="approval-cell">                  <app-approval-state                    [approval]="protocol.approval"                    [language]="language()"                    [showActor]="true"                  />                </td>                <!-- The buttons live in a DIV inside the cell, not on the cell itself. A <td> with                     `display: flex` stops being a table cell: the browser wraps it in an anonymous                     one and it no longer takes the row\'s height, so its bottom border floats                     mid-row the moment any other cell wraps to a second line. Invisible while every                     title fitted on one line, and visible the day the approval column made them                     wrap — which is how it was found. -->                <td class="actions-cell">                  <div class="row-actions">                  <button                    type="button"                    class="btn btn-secondary btn-sm"                    data-testid="row-open"                    [attr.aria-haspopup]="\'dialog\'"                    [attr.aria-label]="t().moderation.open + \': \' + protocol.title"                    (click)="viewing.set(protocol)"                  >                    {{ t().moderation.open }}                  </button>                  <!-- THE CORRECTION BUTTON IS THE SCHICHTLEITER\'S NOW, and it is gone for the                       administrator (2026-08-13): the approver does not also correct. The backend                       answers 403, so a button left here would offer an action that cannot work —                       and a control that fails reads as a broken application rather than as a job                       belonging to someone else. -->                  @if (canCorrect()) {                    <button                      type="button"                      class="btn btn-secondary btn-sm"                      data-testid="row-edit"                      [attr.aria-haspopup]="\'dialog\'"                      [attr.aria-label]="t().moderation.edit + \': \' + protocol.title"                      (click)="startEdit(protocol)"                    >                      {{ t().moderation.edit }}                    </button>                  }                  @if (canApprove()) {                    @if (protocol.approval.state === \'APPROVED\') {                      <button                        type="button"                        class="btn btn-secondary btn-sm"                        data-testid="row-withdraw"                        [attr.aria-haspopup]="\'dialog\'"                        [attr.aria-label]="t().approval.withdraw + \': \' + protocol.title"                        (click)="withdrawing.set(protocol)"                      >                        <!-- The short label in the row, the full one in its accessible name and in                             the dialog it opens: three buttons per row have to fit beside six                             columns, and "Freigabe zurückziehen" set the whole table\'s widths. -->                        {{ t().approval.withdrawShort }}                      </button>                    } @else {                      <!-- No confirmation dialog, unlike withdrawing: approving affirms the text as                           it stands, and the reviewer has just read it. Withdrawing takes back                           something a named person vouched for, and that direction needs a reason. -->                      <button                        type="button"                        class="btn btn-primary btn-sm"                        data-testid="row-approve"                        [disabled]="approving() !== null"                        [attr.aria-label]="t().approval.approve + \': \' + protocol.title"                        (click)="approve(protocol)"                      >                        {{ approving() === protocol.id ? t().approval.approving : t().approval.approve }}                      </button>                    }                  }                  <!-- Removing from the corpus is the administrator\'s, and stays so: 2026-08-14                       opened the LIST and the DOCUMENT to the corrector, nothing more. Absent for                       them rather than disabled — a destructive control that exists only to refuse                       is noise on a tablet and a lie about the role. -->                  @if (canArchive()) {                    <button                      type="button"                      class="btn btn-danger btn-sm"                      data-testid="row-delete"                      [attr.aria-haspopup]="\'dialog\'"                      [attr.aria-label]="t().moderation.delete + \': \' + protocol.title"                      (click)="deleting.set(protocol)"                    >                      {{ t().moderation.delete }}                    </button>                  }                  </div>                </td>              </tr>              @if (approvalFailureFor(protocol); as reason) {                <!-- A row of its own under the one it is about, spanning the table. The refusal has                     to name the protocol it belongs to, and a sentence at the top of the page about                     "this protocol" names none of ten identical rows. -->                <tr class="approval-failure-row" data-testid="approval-failure-row">                  <td colspan="8">                    <p class="notice notice-error" role="alert" data-testid="approval-failure">                      @switch (reason) {                        @case (\'fourEyesRequired\') {                          {{ t().approval.fourEyes }}                        }                        @case (\'archived\') {                          {{ t().approval.archived }}                        }                        @case (\'notFound\') {                          {{ t().moderation.alreadyGone }}                        }                        @case (\'forbidden\') {                          {{ t().errors.forbidden }}                        }                        @default {                          {{ t().errors.generic }}                        }                      }                    </p>                  </td>                </tr>              }            }          </tbody>        </table>      </div>      <app-pager        testId="page"        [page]="page()"        [pageCount]="pageCount()"        [total]="total()"        [label]="t().moderation.tabCorpus"        (previous)="previous()"        (next)="next()"      />    }  </section>  }  <!-- `canArchive()` as well as the tab, so the archive cannot be rendered by a role that may not       read it even if `tab` were somehow set — the state is not reachable through the UI, and a       second condition costs nothing to say what the section actually depends on. -->  @if (canArchive() && tab() === \'archive\') {    <section class="card archive-controls">      <label class="field">        <span class="field-label">{{ t().upload.machine }}</span>        <select          name="archiveMachine"          data-testid="archive-machine"          [ngModel]="archiveMachine()"          (ngModelChange)="filterArchive($event)"        >          <option value="">{{ t().moderation.filterMachineAll }}</option>          @for (machine of machines(); track machine.id) {            <option [value]="machine.machineNo">{{ machine.machineNo }} · {{ machine.name }}</option>          }        </select>      </label>      <!-- The cap and the absence of a restore are stated, not discovered: both are decisions, and           a reviewer who assumes deletions are recoverable will use deletion differently. -->      <p class="field-hint" data-testid="archive-hint">{{ t().moderation.archiveHint(archiveCap()) }}</p>    </section>    <section class="card">      @if (archiveLoading()) {        <p class="hint" role="status" data-testid="archive-loading">          {{ t().moderation.archiveLoading }}        </p>      } @else if (archived().length === 0) {        <div class="empty-state" data-testid="archive-empty">          <p class="hint">{{ t().moderation.archiveEmpty }}</p>        </div>      } @else {        <div class="table-scroll">          <table class="moderation-table" data-testid="archive-table">            <thead>              <tr>                <th>{{ t().upload.columnProtocol }}</th>                <th>{{ t().upload.machine }}</th>                <th>{{ t().moderation.archiveDeletedAt }}</th>                <th>{{ t().moderation.archiveDeletedBy }}</th>                <th>{{ t().moderation.archiveComment }}</th>                <th><span class="sr-only">{{ t().moderation.actions }}</span></th>              </tr>            </thead>            <tbody>              @for (protocol of archived(); track protocol.id) {                <tr data-testid="archive-row">                  <td>{{ protocol.title }}</td>                  <td class="machine">{{ protocol.machineNo }}</td>                  <td class="num">{{ protocol.deletedAt | appDate: language() }}</td>                  <td class="uploader" data-testid="archive-actor">{{ protocol.deletedBy }}</td>                  <!-- The reason is the field the whole archive exists to carry. -->                  <td class="reason" data-testid="archive-comment">                    {{ protocol.deleteComment || t().moderation.archiveNoComment }}                  </td>                  <td class="actions-cell">                    <div class="row-actions">                    <!-- Open only. There is no restore and no edit here, by design: the archive is                         for looking at what was removed, not for reversing it. -->                    <button                      type="button"                      class="btn btn-secondary btn-sm"                      data-testid="archive-open"                      [attr.aria-haspopup]="\'dialog\'"                      [attr.aria-label]="t().moderation.open + \': \' + protocol.title"                      (click)="viewingArchived.set(protocol)"                    >                      {{ t().moderation.open }}                    </button>                    </div>                  </td>                </tr>              }            </tbody>          </table>        </div>        <app-pager          testId="archive"          [page]="archivePage()"          [pageCount]="archivePageCount()"          [total]="archiveTotal()"          [label]="t().moderation.tabArchive"          (previous)="previousArchive()"          (next)="nextArchive()"        />      }    </section>  }</div><!-- The same viewer the shop floor reads a citation with, pointed at the admin-only path: an admin     holds no shop-floor role, so the citation path would 403 for exactly this reader. --><app-protocol-dialog  [protocolId]="viewing()?.id ?? null"  [protocolTitle]="viewing()?.title ?? \'\'"  [machine]="viewing()?.machineNo ?? \'\'"  [approval]="viewing()?.approval ?? null"  source="moderation"  (closed)="viewing.set(null)">  <!-- The decision belongs where the evidence is. A reviewer who has just read the protocol should       not have to close the dialog, find the row again among ten and then decide — that is the step       at which the wrong row gets approved. -->  <!-- ONE PROJECTED ELEMENT, with the conditions INSIDE it. A `select=` selector matches the root       nodes of the projected content, and a node inside an `@if` is not one of them — a button       wrapped in a condition here is simply never projected, silently. Found by the test below,       which is the only way this fails: it renders, it just renders nowhere. -->  <span protocolActions class="viewer-approval-actions">    @if (canApprove() && viewing(); as target) {      @if (target.approval.state === \'APPROVED\') {        <button          type="button"          class="btn btn-secondary btn-sm"          data-testid="viewer-withdraw"          [attr.aria-haspopup]="\'dialog\'"          (click)="withdrawing.set(target); viewing.set(null)"        >          {{ t().approval.withdraw }}        </button>      } @else {        <button          type="button"          class="btn btn-primary btn-sm"          data-testid="viewer-approve"          [disabled]="approving() !== null"          (click)="approve(target); viewing.set(null)"        >          {{ t().approval.approve }}        </button>      }    }  </span></app-protocol-dialog><!-- The archive\'s own viewer. Same component, third endpoint: the live paths answer 404 for a     removed protocol, and this is the only door back to its content. --><app-protocol-dialog  [protocolId]="viewingArchived()?.id ?? null"  [protocolTitle]="viewingArchived()?.title ?? \'\'"  [machine]="viewingArchived()?.machineNo ?? \'\'"  source="archive"  (closed)="viewingArchived.set(null)"/><app-dialog  [open]="deleting() !== null"  [title]="t().moderation.confirmTitle"  testId="delete-confirm"  (closed)="cancelDelete()">  @if (deleting(); as target) {    <!-- The title and machine are repeated here on purpose: the button that opened this dialog was         one of ten identical ones in a row, and "are you sure" without naming the thing is how the         wrong row gets deleted. -->    <p class="confirm-target" data-testid="delete-target">      <strong>{{ target.title }}</strong>      <span class="machine">{{ target.machineNo }}</span>    </p>  }  <p class="confirm-body">{{ t().moderation.confirmBody }}</p>  <!-- Required, here and on the server. Removing something from the corpus without saying why is       exactly the kind of unexplained change the audit trail exists to make visible. -->  <label class="field">    <span class="field-label">{{ t().moderation.reason }}</span>    <span class="field-hint">{{ t().moderation.reasonHint }}</span>    <textarea      name="deleteComment"      rows="2"      data-testid="delete-comment"      [placeholder]="t().moderation.reasonPlaceholder"      [ngModel]="deleteComment()"      (ngModelChange)="deleteComment.set($event)"    ></textarea>  </label>  <div class="confirm-actions">    <button      type="button"      class="btn btn-danger"      data-testid="delete-confirm-button"      [disabled]="!canDelete()"      (click)="confirmDelete()"    >      {{ t().moderation.delete }}    </button>    <button      type="button"      class="btn btn-secondary"      data-testid="delete-cancel"      (click)="cancelDelete()"    >      {{ t().common.cancel }}    </button>  </div>  @if (!canDelete()) {    <p class="field-hint" data-testid="delete-reason-required">      {{ t().moderation.reasonRequired }}    </p>  }</app-dialog><!-- Withdrawing needs a reason and therefore needs a dialog; approving needs neither. The asymmetry     is the backend\'s rule and it is the right one: taking back what a named person vouched for is     the direction the next reader is owed an explanation for. --><app-dialog  [open]="withdrawing() !== null"  [title]="t().approval.withdrawTitle"  testId="withdraw-confirm"  (closed)="cancelWithdraw()">  @if (withdrawing(); as target) {    <p class="confirm-target" data-testid="withdraw-target">      <strong>{{ target.title }}</strong>      <span class="machine">{{ target.machineNo }}</span>    </p>  }  <!-- Says what does NOT happen, because that is the part a reviewer is least sure of: withdrawing       an approval is not a removal, and a protocol that stayed searchable would otherwise be a       surprise. -->  <p class="confirm-body">{{ t().approval.withdrawBody }}</p>  <label class="field">    <span class="field-label">{{ t().moderation.reason }}</span>    <span class="field-hint">{{ t().moderation.reasonHint }}</span>    <textarea      name="withdrawComment"      rows="2"      data-testid="withdraw-comment"      [placeholder]="t().approval.withdrawReasonPlaceholder"      [ngModel]="withdrawComment()"      (ngModelChange)="withdrawComment.set($event)"    ></textarea>  </label>  <div class="confirm-actions">    <button      type="button"      class="btn btn-primary"      data-testid="withdraw-confirm-button"      [disabled]="!canWithdraw() || approving() !== null"      (click)="confirmWithdraw()"    >      {{ approving() ? t().approval.approving : t().approval.withdraw }}    </button>    <button      type="button"      class="btn btn-secondary"      data-testid="withdraw-cancel"      (click)="cancelWithdraw()"    >      {{ t().common.cancel }}    </button>  </div>  @if (!canWithdraw()) {    <p class="field-hint" data-testid="withdraw-reason-required">      {{ t().moderation.reasonRequired }}    </p>  }</app-dialog><app-dialog  [open]="editing() !== null"  [title]="t().moderation.editTitle"  testId="edit"  (closed)="cancelEdit()">  @if (editing(); as target) {    <p class="confirm-body">{{ t().moderation.editIntro }}</p>    @if (target.approval.state === \'APPROVED\') {      <!-- ONE SENTENCE, IN THE DIALOG THAT IS ALREADY OPEN — not a second confirmation. An edit           resets approval unconditionally (#53), so a correction is how an approved protocol quietly           stops being approved, and the person about to make one should read that before they press           save rather than discover it from the list afterwards. A second dialog would make the           ordinary case (correcting something unapproved) pay for the rarer one. -->      <p class="notice notice-review" role="note" data-testid="edit-resets-approval">        <svg class="notice-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">          <path d="M12 3.6L1.8 20.4h20.4z" />          <path d="M12 9.6v4.6" />          <circle class="dot" cx="12" cy="17.4" r="1" />        </svg>        {{ t().moderation.editResetsApproval }}      </p>    }    @if (editFailure(); as reason) {      <p class="notice notice-error" role="alert" data-testid="edit-failure">        @switch (reason) {          @case (\'identityLocked\') {            {{ t().moderation.identityLocked }}          }          @case (\'archived\') {            {{ t().moderation.alreadyArchived }}          }          @case (\'notFound\') {            {{ t().moderation.alreadyGone }}          }          @case (\'rejectedContent\') {            {{ t().errors.uploadRejected }}          }          @case (\'forbidden\') {            {{ t().errors.forbidden }}          }          @default {            {{ t().errors.generic }}          }        }      </p>    }    <!-- Machine and type are shown and locked. Not hidden: a reviewer has to see which machine they         are correcting. Not editable: identity is provenance, not content (ADR-006 revision). -->    <div class="edit-locked">      <p class="locked-field" data-testid="edit-machine">        <span class="field-label">{{ t().upload.machine }}</span>        <span class="machine">{{ target.machineNo }}</span>      </p>      <p class="locked-field" data-testid="edit-type">        <span class="field-label">{{ t().upload.type }}</span>        <span>{{          target.protocolType === \'WARTUNG\' ? t().upload.typeMaintenance : t().upload.typeFault        }}</span>      </p>    </div>    <p class="field-hint" data-testid="edit-locked-hint">{{ t().moderation.editLockedHint }}</p>    <label class="field">      <span class="field-label">{{ t().upload.title }}</span>      <input        type="text"        name="editTitle"        data-testid="edit-title"        [ngModel]="editTitle()"        (ngModelChange)="editTitle.set($event)"      />    </label>    <label class="field">      <span class="field-label">{{ t().upload.errorCode }}</span>      <input        type="text"        name="editErrorCode"        data-testid="edit-error-code"        [ngModel]="editErrorCode()"        (ngModelChange)="editErrorCode.set($event)"      />    </label>    <label class="field">      <span class="field-label">{{ t().moderation.editContent }}</span>      <span class="field-hint">{{ t().moderation.editContentHint }}</span>      @if (editLoading()) {        <span class="hint" role="status" data-testid="edit-loading">{{          t().moderation.editLoading        }}</span>      }      <textarea        name="editContent"        rows="10"        data-testid="edit-content"        [disabled]="editLoading()"        [ngModel]="editContent()"        (ngModelChange)="editContent.set($event)"      ></textarea>    </label>    <label class="field">      <span class="field-label">{{ t().moderation.reason }}</span>      <span class="field-hint">{{ t().moderation.reasonHint }}</span>      <textarea        name="editComment"        rows="2"        data-testid="edit-comment"        [placeholder]="t().moderation.reasonPlaceholder"        [ngModel]="editComment()"        (ngModelChange)="editComment.set($event)"      ></textarea>    </label>    <div class="confirm-actions">      <button        type="button"        class="btn btn-primary"        data-testid="edit-save"        [disabled]="!canSaveEdit() || editSaving()"        (click)="saveEdit()"      >        {{ editSaving() ? t().moderation.editSaving : t().moderation.editSave }}      </button>      <button type="button" class="btn btn-secondary" data-testid="edit-cancel" (click)="cancelEdit()">        {{ t().common.cancel }}      </button>    </div>    @if (!canSaveEdit()) {      <p class="field-hint" data-testid="edit-reason-required">{{ t().moderation.reasonRequired }}</p>    }  }</app-dialog></div>'
+        var COMPONENT_TEMPLATE = '<div><div class="page page-wide">  <!-- The heading names the JOB, not the route. Two roles share this screen since 2026-08-14 and       they do different things on it; a Schichtleiter under "Protokollverwaltung" would be told       their role includes reviewing and removing, which it does not. -->  <h1 class="page-title">{{ tab() === \'archive\' ? t().moderation.heading : heading() }}</h1>  <p class="page-lead">    {{ tab() === \'archive\' ? t().moderation.archiveIntro : intro() }}  </p>  <!-- Two halves of one job: what is in the corpus, and what was taken out of it. Tabs rather than       a second route, because a reviewer moves between them while deciding.       THE WHOLE BAR IS ABSENT FOR THE CORRECTOR, not just its second tab. The archive is the       administrator\'s — it holds exactly the protocols somebody decided were unfit to be read — and       a tab strip with one tab is a control that does nothing dressed as a choice. -->  @if (canArchive()) {    <div class="tabs" role="tablist" [attr.aria-label]="t().moderation.heading">      <button        type="button"        role="tab"        data-testid="tab-corpus"        [class.active]="tab() === \'corpus\'"        [attr.aria-selected]="tab() === \'corpus\'"        (click)="showTab(\'corpus\')"      >        {{ t().moderation.tabCorpus }}      </button>      <button        type="button"        role="tab"        data-testid="tab-archive"        [class.active]="tab() === \'archive\'"        [attr.aria-selected]="tab() === \'archive\'"        (click)="showTab(\'archive\')"      >        {{ t().moderation.tabArchive }}      </button>    </div>  }  @if (corrected(); as title) {    <p class="notice notice-info moderation-notice" role="status" data-testid="corrected-notice">      <!-- 202, not 200: the text is fixed and the index catches up in a moment. Saying so is the           same honesty the upload view owes its 202. -->      <span>{{ t().moderation.edited }}: {{ title }}</span>      <button        type="button"        class="link-button"        data-testid="corrected-dismiss"        [attr.aria-label]="t().signOut.dismiss"        (click)="corrected.set(null)"      >        {{ t().common.close }}      </button>    </p>  }  @if (approvalNotice(); as notice) {    <p class="notice notice-info moderation-notice" role="status" data-testid="approval-notice">      <span>        {{ notice.approved ? t().approval.approvedNotice : t().approval.withdrawnNotice }}:        {{ notice.title }}      </span>      <button        type="button"        class="link-button"        data-testid="approval-notice-dismiss"        [attr.aria-label]="t().signOut.dismiss"        (click)="approvalNotice.set(null)"      >        {{ t().common.close }}      </button>    </p>  }  @if (removed(); as title) {    <p class="notice notice-info moderation-notice" role="status" data-testid="removed-notice">      <span>{{ t().moderation.removed }}: {{ title }}</span>      <button        type="button"        class="link-button"        data-testid="removed-dismiss"        [attr.aria-label]="t().signOut.dismiss"        (click)="removed.set(null)"      >        {{ t().common.close }}      </button>    </p>  }  @if (failure(); as reason) {    <p class="notice notice-error" role="alert" data-testid="moderation-failure">      @switch (reason) {        @case (\'forbidden\') {          {{ t().errors.forbidden }}        }        @case (\'notFound\') {          {{ t().moderation.alreadyGone }}        }        @case (\'unavailable\') {          {{ t().errors.unavailable }}        }        @default {          {{ t().errors.generic }}        }      }    </p>  }  @if (tab() === \'corpus\') {  <!-- Above the table, not in a drawer: with 150 protocols and growing, finding one is the first       thing a reviewer does, not an option they go looking for. -->  <form class="card filter-bar" (ngSubmit)="applyFilter()" [attr.aria-label]="t().moderation.filterLegend">    <div class="filter-fields">      <label class="field">        <span class="field-label">{{ t().upload.machine }}</span>        <select          name="machineNo"          data-testid="filter-machine"          [ngModel]="draft().machineNo"          (ngModelChange)="edit(\'machineNo\', $event)"        >          <option value="">{{ t().moderation.filterMachineAll }}</option>          @for (machine of machines(); track machine.id) {            <option [value]="machine.machineNo">{{ machine.machineNo }} · {{ machine.name }}</option>          }        </select>      </label>      <!-- Disabled until a machine is chosen, which is the same rule the backend enforces with a           400: a title fragment over ten machines answers with rows nobody was looking for. -->      <label class="field">        <span class="field-label">{{ t().moderation.filterTitle }}</span>        <input          type="search"          name="titleContains"          data-testid="filter-title"          [disabled]="!machineChosen()"          [ngModel]="draft().titleContains"          (ngModelChange)="edit(\'titleContains\', $event)"        />      </label>      <label class="field field-date">        <span class="field-label">{{ t().moderation.filterFrom }}</span>        <input          type="date"          name="from"          data-testid="filter-from"          [disabled]="!machineChosen()"          [ngModel]="draft().from"          (ngModelChange)="edit(\'from\', $event)"        />      </label>      <label class="field field-date">        <span class="field-label">{{ t().moderation.filterTo }}</span>        <input          type="date"          name="to"          data-testid="filter-to"          [disabled]="!machineChosen()"          [ngModel]="draft().to"          (ngModelChange)="edit(\'to\', $event)"        />      </label>    </div>    <!-- OUTSIDE `.filter-fields`, and not because of the layout: this is the one filter the backend         applies WITHOUT a machine, because "everything still waiting for review" is only useful         whole. It applies on change rather than on submit — a queue behind a second button press is         a queue nobody opens. -->    <label class="field filter-approval">      <span class="field-label">{{ t().moderation.filterApproval }}</span>      <select        name="approvalState"        data-testid="filter-approval"        [ngModel]="draft().approvalState"        (ngModelChange)="filterByApproval($event)"      >        <option value="">{{ t().moderation.filterApprovalAll }}</option>        <option value="UNAPPROVED">{{ t().approval.unapproved }}</option>        <option value="APPROVED">{{ t().approval.approved }}</option>      </select>    </label>    <!-- A disabled field with no explanation reads as broken rather than as not-yet-applicable. -->    <p class="field-hint" data-testid="filter-hint">{{ t().moderation.filterHint }}</p>    <!-- The one place the interface language does NOT decide the format: a native date input is         drawn by the browser in the BROWSER\'s locale, so an English interface on a German machine         still shows TT.MM.JJJJ. Replacing it with a custom picker would cost a keyboard-accessible,         touch-friendly control the platform already gives; naming the expected format costs a line.         The value sent to the API is ISO either way. -->    <p class="field-hint" data-testid="filter-date-format">      {{ t().moderation.filterDateFormatHint }}    </p>    @if (machinesFailed()) {      <p class="notice notice-error" data-testid="filter-machines-error">        {{ t().search.machinesUnavailable }}      </p>    }    <div class="filter-actions">      <button type="submit" class="btn btn-primary btn-sm" data-testid="filter-apply">        {{ t().moderation.filterApply }}      </button>      <button        type="button"        class="btn btn-secondary btn-sm"        data-testid="filter-reset"        (click)="resetFilter()"      >        {{ t().moderation.filterReset }}      </button>    </div>  </form>  <section class="card">    @if (loading()) {      <p class="hint" role="status" data-testid="moderation-loading">{{ t().moderation.loading }}</p>    } @else if (protocols().length === 0) {      <!-- Two different "nothing here": an empty corpus is a fact, an empty filtered result is           something the reader can undo. A bare table would say neither. -->      <div class="empty-state" data-testid="moderation-empty">        <p class="hint">          {{ isFiltered() ? t().moderation.emptyFiltered : t().moderation.empty }}        </p>        @if (isFiltered()) {          <button            type="button"            class="btn btn-secondary btn-sm"            data-testid="empty-reset"            (click)="resetFilter()"          >            {{ t().moderation.filterReset }}          </button>        }      </div>    } @else {      <div class="table-scroll">        <table class="moderation-table" data-testid="moderation-table">          <thead>            <tr>              <th>{{ t().upload.columnProtocol }}</th>              <th>{{ t().upload.machine }}</th>              <th>{{ t().upload.type }}</th>              <th>{{ t().moderation.uploadedBy }}</th>              <th>{{ t().upload.columnUploaded }}</th>              <th>{{ t().upload.columnStatus }}</th>              <th>{{ t().approval.column }}</th>              <th><span class="sr-only">{{ t().moderation.actions }}</span></th>            </tr>          </thead>          <tbody>            @for (protocol of protocols(); track protocol.id) {              <tr data-testid="moderation-row">                <td>{{ protocol.title }}</td>                <td class="machine">{{ protocol.machineNo }}</td>                <td>                  {{                    protocol.protocolType === \'WARTUNG\'                      ? t().upload.typeMaintenance                      : t().upload.typeFault                  }}                </td>                <!-- The author, on screen. A reviewer who can see a bad protocol but not who filed                     it can remove the text and learn nothing (ADR-006). -->                <td class="uploader" data-testid="row-uploader">{{ protocol.uploadedBy }}</td>                <td class="num">{{ protocol.uploadedAt | appDate: language() }}</td>                <td>                  <span class="status status-{{ protocol.status.toLowerCase() }}">{{                    statusLabel(protocol.status)                  }}</span>                </td>                <!-- On every row, not only on the unapproved ones. This list is also where an                     administrator checks that something they approved is STILL approved — and after                     a correction it will not be, because an edit resets it. -->                <td class="approval-cell">                  <app-approval-state                    [approval]="protocol.approval"                    [language]="language()"                    [showActor]="true"                  />                </td>                <!-- The buttons live in a DIV inside the cell, not on the cell itself. A <td> with                     `display: flex` stops being a table cell: the browser wraps it in an anonymous                     one and it no longer takes the row\'s height, so its bottom border floats                     mid-row the moment any other cell wraps to a second line. Invisible while every                     title fitted on one line, and visible the day the approval column made them                     wrap — which is how it was found. -->                <td class="actions-cell">                  <div class="row-actions">                  <button                    type="button"                    class="btn btn-secondary btn-sm"                    data-testid="row-open"                    [attr.aria-haspopup]="\'dialog\'"                    [attr.aria-label]="t().moderation.open + \': \' + protocol.title"                    (click)="viewing.set(protocol)"                  >                    {{ t().moderation.open }}                  </button>                  <!-- THE CORRECTION BUTTON IS THE SCHICHTLEITER\'S NOW, and it is gone for the                       administrator (2026-08-13): the approver does not also correct. The backend                       answers 403, so a button left here would offer an action that cannot work —                       and a control that fails reads as a broken application rather than as a job                       belonging to someone else. -->                  @if (canCorrect()) {                    <button                      type="button"                      class="btn btn-secondary btn-sm"                      data-testid="row-edit"                      [attr.aria-haspopup]="\'dialog\'"                      [attr.aria-label]="t().moderation.edit + \': \' + protocol.title"                      (click)="startEdit(protocol)"                    >                      {{ t().moderation.edit }}                    </button>                  }                  @if (canApprove()) {                    @if (protocol.approval.state === \'APPROVED\') {                      <button                        type="button"                        class="btn btn-secondary btn-sm"                        data-testid="row-withdraw"                        [attr.aria-haspopup]="\'dialog\'"                        [attr.aria-label]="t().approval.withdraw + \': \' + protocol.title"                        (click)="withdrawing.set(protocol)"                      >                        <!-- The short label in the row, the full one in its accessible name and in                             the dialog it opens: three buttons per row have to fit beside six                             columns, and "Freigabe zurückziehen" set the whole table\'s widths. -->                        {{ t().approval.withdrawShort }}                      </button>                    } @else {                      <!-- Still no confirmation dialog in the ordinary case, which is what #54                           decided: approving affirms the text as it stands and the reviewer has                           just read it. Withdrawing takes back something a named person vouched                           for, and that direction needs a reason.                           SINCE 2026-08-14 the click first asks whether this machine already holds                           something similar, and a dialog opens ONLY if it does — information when                           there is information, one click when there is not. -->                      <button                        type="button"                        class="btn btn-primary btn-sm"                        data-testid="row-approve"                        [disabled]="approving() !== null || checkingDuplicates() !== null"                        [attr.aria-label]="t().approval.approve + \': \' + protocol.title"                        (click)="approve(protocol)"                      >                        {{                          approving() === protocol.id || checkingDuplicates() === protocol.id                            ? t().approval.approving                            : t().approval.approve                        }}                      </button>                    }                  }                  <!-- Removing from the corpus is the administrator\'s, and stays so: 2026-08-14                       opened the LIST and the DOCUMENT to the corrector, nothing more. Absent for                       them rather than disabled — a destructive control that exists only to refuse                       is noise on a tablet and a lie about the role. -->                  @if (canArchive()) {                    <button                      type="button"                      class="btn btn-danger btn-sm"                      data-testid="row-delete"                      [attr.aria-haspopup]="\'dialog\'"                      [attr.aria-label]="t().moderation.delete + \': \' + protocol.title"                      (click)="deleting.set(protocol)"                    >                      {{ t().moderation.delete }}                    </button>                  }                  </div>                </td>              </tr>              @if (approvalFailureFor(protocol); as reason) {                <!-- A row of its own under the one it is about, spanning the table. The refusal has                     to name the protocol it belongs to, and a sentence at the top of the page about                     "this protocol" names none of ten identical rows. -->                <tr class="approval-failure-row" data-testid="approval-failure-row">                  <td colspan="8">                    <p class="notice notice-error" role="alert" data-testid="approval-failure">                      @switch (reason) {                        @case (\'fourEyesRequired\') {                          {{ t().approval.fourEyes }}                        }                        @case (\'archived\') {                          {{ t().approval.archived }}                        }                        @case (\'notFound\') {                          {{ t().moderation.alreadyGone }}                        }                        @case (\'forbidden\') {                          {{ t().errors.forbidden }}                        }                        @default {                          {{ t().errors.generic }}                        }                      }                    </p>                  </td>                </tr>              }            }          </tbody>        </table>      </div>      <app-pager        testId="page"        [page]="page()"        [pageCount]="pageCount()"        [total]="total()"        [label]="t().moderation.tabCorpus"        (previous)="previous()"        (next)="next()"      />    }  </section>  }  <!-- `canArchive()` as well as the tab, so the archive cannot be rendered by a role that may not       read it even if `tab` were somehow set — the state is not reachable through the UI, and a       second condition costs nothing to say what the section actually depends on. -->  @if (canArchive() && tab() === \'archive\') {    <section class="card archive-controls">      <label class="field">        <span class="field-label">{{ t().upload.machine }}</span>        <select          name="archiveMachine"          data-testid="archive-machine"          [ngModel]="archiveMachine()"          (ngModelChange)="filterArchive($event)"        >          <option value="">{{ t().moderation.filterMachineAll }}</option>          @for (machine of machines(); track machine.id) {            <option [value]="machine.machineNo">{{ machine.machineNo }} · {{ machine.name }}</option>          }        </select>      </label>      <!-- The cap and the absence of a restore are stated, not discovered: both are decisions, and           a reviewer who assumes deletions are recoverable will use deletion differently. -->      <p class="field-hint" data-testid="archive-hint">{{ t().moderation.archiveHint(archiveCap()) }}</p>    </section>    <section class="card">      @if (archiveLoading()) {        <p class="hint" role="status" data-testid="archive-loading">          {{ t().moderation.archiveLoading }}        </p>      } @else if (archived().length === 0) {        <div class="empty-state" data-testid="archive-empty">          <p class="hint">{{ t().moderation.archiveEmpty }}</p>        </div>      } @else {        <div class="table-scroll">          <table class="moderation-table" data-testid="archive-table">            <thead>              <tr>                <th>{{ t().upload.columnProtocol }}</th>                <th>{{ t().upload.machine }}</th>                <th>{{ t().moderation.archiveDeletedAt }}</th>                <th>{{ t().moderation.archiveDeletedBy }}</th>                <th>{{ t().moderation.archiveComment }}</th>                <th><span class="sr-only">{{ t().moderation.actions }}</span></th>              </tr>            </thead>            <tbody>              @for (protocol of archived(); track protocol.id) {                <tr data-testid="archive-row">                  <td>{{ protocol.title }}</td>                  <td class="machine">{{ protocol.machineNo }}</td>                  <td class="num">{{ protocol.deletedAt | appDate: language() }}</td>                  <td class="uploader" data-testid="archive-actor">{{ protocol.deletedBy }}</td>                  <!-- The reason is the field the whole archive exists to carry. -->                  <td class="reason" data-testid="archive-comment">                    {{ protocol.deleteComment || t().moderation.archiveNoComment }}                  </td>                  <td class="actions-cell">                    <div class="row-actions">                    <!-- Open only. There is no restore and no edit here, by design: the archive is                         for looking at what was removed, not for reversing it. -->                    <button                      type="button"                      class="btn btn-secondary btn-sm"                      data-testid="archive-open"                      [attr.aria-haspopup]="\'dialog\'"                      [attr.aria-label]="t().moderation.open + \': \' + protocol.title"                      (click)="viewingArchived.set(protocol)"                    >                      {{ t().moderation.open }}                    </button>                    </div>                  </td>                </tr>              }            </tbody>          </table>        </div>        <app-pager          testId="archive"          [page]="archivePage()"          [pageCount]="archivePageCount()"          [total]="archiveTotal()"          [label]="t().moderation.tabArchive"          (previous)="previousArchive()"          (next)="nextArchive()"        />      }    </section>  }</div><!-- The same viewer the shop floor reads a citation with, pointed at the admin-only path: an admin     holds no shop-floor role, so the citation path would 403 for exactly this reader. --><app-protocol-dialog  [protocolId]="viewing()?.id ?? null"  [protocolTitle]="viewing()?.title ?? \'\'"  [machine]="viewing()?.machineNo ?? \'\'"  [approval]="viewing()?.approval ?? null"  source="moderation"  (closed)="viewing.set(null)">  <!-- The decision belongs where the evidence is. A reviewer who has just read the protocol should       not have to close the dialog, find the row again among ten and then decide — that is the step       at which the wrong row gets approved. -->  <!-- ONE PROJECTED ELEMENT, with the conditions INSIDE it. A `select=` selector matches the root       nodes of the projected content, and a node inside an `@if` is not one of them — a button       wrapped in a condition here is simply never projected, silently. Found by the test below,       which is the only way this fails: it renders, it just renders nowhere. -->  <span protocolActions class="viewer-approval-actions">    @if (canApprove() && viewing(); as target) {      @if (target.approval.state === \'APPROVED\') {        <button          type="button"          class="btn btn-secondary btn-sm"          data-testid="viewer-withdraw"          [attr.aria-haspopup]="\'dialog\'"          (click)="withdrawing.set(target); viewing.set(null)"        >          {{ t().approval.withdraw }}        </button>      } @else {        <button          type="button"          class="btn btn-primary btn-sm"          data-testid="viewer-approve"          [disabled]="approving() !== null || checkingDuplicates() !== null"          (click)="approve(target); viewing.set(null)"        >          {{ t().approval.approve }}        </button>      }    }  </span></app-protocol-dialog><!-- The archive\'s own viewer. Same component, third endpoint: the live paths answer 404 for a     removed protocol, and this is the only door back to its content. --><app-protocol-dialog  [protocolId]="viewingArchived()?.id ?? null"  [protocolTitle]="viewingArchived()?.title ?? \'\'"  [machine]="viewingArchived()?.machineNo ?? \'\'"  source="archive"  (closed)="viewingArchived.set(null)"/><!-- A candidate from the duplicate list, in the SAME read-only viewer the rest of this screen uses.     Comparing two protocols means reading both, and a percentage is not a comparison — the reviewer     has to be able to see the actual words before deciding that two accounts of one fault are one     account filed twice. The duplicate dialog steps aside while this is open (see duplicatesOpen)     and returns with its list intact. --><app-protocol-dialog  [protocolId]="viewingCandidate()?.id ?? null"  [protocolTitle]="viewingCandidate()?.title ?? \'\'"  [machine]="duplicatesOf()?.machineNo ?? \'\'"  [approval]="viewingCandidate()?.approval ?? null"  source="moderation"  (closed)="viewingCandidate.set(null)"/><!-- DUPLICATE DETECTION: INFORMATION, NEVER AN OBSTACLE.     It opens only when something on this machine is actually similar — no permanently empty     section, and the ordinary approval stays one click (#54). The review palette rather than the     danger one, and no word here says "warning": being similar is NORMAL in this corpus, where four     legitimate E-47 protocols describe four different root causes behind one fault code. The     approve button below is enabled the entire time, because a sentence implying wrongdoing beside a     button that works anyway would teach the reader to distrust one of the two. --><app-dialog  [open]="duplicatesOpen()"  [title]="t().duplicates.title"  testId="duplicates"  (closed)="closeDuplicates()">  @if (duplicates(); as report) {    @if (duplicatesOf(); as target) {      <!-- Which protocol is being approved, named. The button that opened this was one of several           identical ones in a table. -->      <p class="confirm-target" data-testid="duplicates-target">        <strong>{{ target.title }}</strong>        <span class="machine">{{ target.machineNo }}</span>      </p>    }    <p class="notice notice-review" role="note" data-testid="duplicates-intro">      <svg class="notice-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">        <circle cx="12" cy="12" r="9" />        <path d="M12 11v5.4" />        <circle class="dot" cx="12" cy="7.8" r="1" />      </svg>      <!-- An INFORMATION glyph, not the triangle the "edit resets approval" notice uses. Both sit           in the review palette and they say different things: that one predicts a consequence of           pressing save, this one reports a fact about the corpus. -->      {{ t().duplicates.intro(report.total) }}    </p>    <ul class="duplicate-list" data-testid="duplicate-list">      @for (candidate of report.candidates; track candidate.id) {        <li class="duplicate-card" data-testid="duplicate-card">          <div class="duplicate-head">            <span class="duplicate-title">{{ candidate.title }}</span>            <!-- The percentage is a rounded whole number on purpose: four decimal places would                 invite a reviewer to compare 93.05 with 92.87 as though the difference meant                 something a human decision should turn on. -->            <span class="duplicate-score" data-testid="duplicate-score">              {{ percent(candidate.similarity) }} % {{ t().duplicates.match }}            </span>          </div>          <div class="duplicate-meta">            <span class="num">{{ candidate.incidentDate | appDate: language() }}</span>            <span class="uploader">{{ candidate.uploadedBy }}</span>          </div>          <!-- THE CANDIDATE\'S OWN APPROVAL STATE, and it is the reason this card is worth reading               rather than a detail on it: "nearly the same as something an administrator already               vouched for" is a merge-or-reject question, while "nearly the same as one nobody has               reviewed" may be two people describing one fault from different angles — which this               corpus wants both of. -->          <app-approval-state            [approval]="candidate.approval"            [language]="language()"            [showActor]="true"          />          <button            type="button"            class="btn btn-secondary btn-sm"            data-testid="duplicate-open"            [attr.aria-haspopup]="\'dialog\'"            [attr.aria-label]="t().duplicates.openCandidate + \': \' + candidate.title"            (click)="openCandidate(candidate)"          >            {{ t().duplicates.openCandidate }}          </button>        </li>      }    </ul>    @if (duplicatesBeyondShown() > 0) {      <!-- Three links are a prompt to compare; ten are a report nobody reads. The count is what           stops the fourth from disappearing without trace. -->      <p class="field-hint" data-testid="duplicates-more">        {{ t().duplicates.more(duplicatesBeyondShown()) }}      </p>    }    <!-- Says what the number means. A percentage with no stated basis is read as a certainty. -->    <p class="field-hint" data-testid="duplicates-method">      {{ t().duplicates.method(duplicateThresholdPercent()) }}    </p>    <div class="confirm-actions">      <!-- ENABLED, ALWAYS. The whole feature is one sentence: the system informs, the admin decides.           There is no state of this dialog in which this button is disabled, and the backend has no           branch that refuses an approval on a similarity score either. -->      <button        type="button"        class="btn btn-primary"        data-testid="duplicates-approve"        (click)="approveFromDialog()"      >        {{ t().approval.approve }}      </button>      <button        type="button"        class="btn btn-secondary"        data-testid="duplicates-cancel"        (click)="closeDuplicates()"      >        {{ t().common.cancel }}      </button>    </div>  }</app-dialog><app-dialog  [open]="deleting() !== null"  [title]="t().moderation.confirmTitle"  testId="delete-confirm"  (closed)="cancelDelete()">  @if (deleting(); as target) {    <!-- The title and machine are repeated here on purpose: the button that opened this dialog was         one of ten identical ones in a row, and "are you sure" without naming the thing is how the         wrong row gets deleted. -->    <p class="confirm-target" data-testid="delete-target">      <strong>{{ target.title }}</strong>      <span class="machine">{{ target.machineNo }}</span>    </p>  }  <p class="confirm-body">{{ t().moderation.confirmBody }}</p>  <!-- Required, here and on the server. Removing something from the corpus without saying why is       exactly the kind of unexplained change the audit trail exists to make visible. -->  <label class="field">    <span class="field-label">{{ t().moderation.reason }}</span>    <span class="field-hint">{{ t().moderation.reasonHint }}</span>    <textarea      name="deleteComment"      rows="2"      data-testid="delete-comment"      [placeholder]="t().moderation.reasonPlaceholder"      [ngModel]="deleteComment()"      (ngModelChange)="deleteComment.set($event)"    ></textarea>  </label>  <div class="confirm-actions">    <button      type="button"      class="btn btn-danger"      data-testid="delete-confirm-button"      [disabled]="!canDelete()"      (click)="confirmDelete()"    >      {{ t().moderation.delete }}    </button>    <button      type="button"      class="btn btn-secondary"      data-testid="delete-cancel"      (click)="cancelDelete()"    >      {{ t().common.cancel }}    </button>  </div>  @if (!canDelete()) {    <p class="field-hint" data-testid="delete-reason-required">      {{ t().moderation.reasonRequired }}    </p>  }</app-dialog><!-- Withdrawing needs a reason and therefore needs a dialog; approving needs neither. The asymmetry     is the backend\'s rule and it is the right one: taking back what a named person vouched for is     the direction the next reader is owed an explanation for. --><app-dialog  [open]="withdrawing() !== null"  [title]="t().approval.withdrawTitle"  testId="withdraw-confirm"  (closed)="cancelWithdraw()">  @if (withdrawing(); as target) {    <p class="confirm-target" data-testid="withdraw-target">      <strong>{{ target.title }}</strong>      <span class="machine">{{ target.machineNo }}</span>    </p>  }  <!-- Says what does NOT happen, because that is the part a reviewer is least sure of: withdrawing       an approval is not a removal, and a protocol that stayed searchable would otherwise be a       surprise. -->  <p class="confirm-body">{{ t().approval.withdrawBody }}</p>  <label class="field">    <span class="field-label">{{ t().moderation.reason }}</span>    <span class="field-hint">{{ t().moderation.reasonHint }}</span>    <textarea      name="withdrawComment"      rows="2"      data-testid="withdraw-comment"      [placeholder]="t().approval.withdrawReasonPlaceholder"      [ngModel]="withdrawComment()"      (ngModelChange)="withdrawComment.set($event)"    ></textarea>  </label>  <div class="confirm-actions">    <button      type="button"      class="btn btn-primary"      data-testid="withdraw-confirm-button"      [disabled]="!canWithdraw() || approving() !== null"      (click)="confirmWithdraw()"    >      {{ approving() ? t().approval.approving : t().approval.withdraw }}    </button>    <button      type="button"      class="btn btn-secondary"      data-testid="withdraw-cancel"      (click)="cancelWithdraw()"    >      {{ t().common.cancel }}    </button>  </div>  @if (!canWithdraw()) {    <p class="field-hint" data-testid="withdraw-reason-required">      {{ t().moderation.reasonRequired }}    </p>  }</app-dialog><app-dialog  [open]="editing() !== null"  [title]="t().moderation.editTitle"  testId="edit"  (closed)="cancelEdit()">  @if (editing(); as target) {    <p class="confirm-body">{{ t().moderation.editIntro }}</p>    @if (target.approval.state === \'APPROVED\') {      <!-- ONE SENTENCE, IN THE DIALOG THAT IS ALREADY OPEN — not a second confirmation. An edit           resets approval unconditionally (#53), so a correction is how an approved protocol quietly           stops being approved, and the person about to make one should read that before they press           save rather than discover it from the list afterwards. A second dialog would make the           ordinary case (correcting something unapproved) pay for the rarer one. -->      <p class="notice notice-review" role="note" data-testid="edit-resets-approval">        <svg class="notice-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">          <path d="M12 3.6L1.8 20.4h20.4z" />          <path d="M12 9.6v4.6" />          <circle class="dot" cx="12" cy="17.4" r="1" />        </svg>        {{ t().moderation.editResetsApproval }}      </p>    }    @if (editFailure(); as reason) {      <p class="notice notice-error" role="alert" data-testid="edit-failure">        @switch (reason) {          @case (\'identityLocked\') {            {{ t().moderation.identityLocked }}          }          @case (\'archived\') {            {{ t().moderation.alreadyArchived }}          }          @case (\'notFound\') {            {{ t().moderation.alreadyGone }}          }          @case (\'rejectedContent\') {            {{ t().errors.uploadRejected }}          }          @case (\'forbidden\') {            {{ t().errors.forbidden }}          }          @default {            {{ t().errors.generic }}          }        }      </p>    }    <!-- Machine and type are shown and locked. Not hidden: a reviewer has to see which machine they         are correcting. Not editable: identity is provenance, not content (ADR-006 revision). -->    <div class="edit-locked">      <p class="locked-field" data-testid="edit-machine">        <span class="field-label">{{ t().upload.machine }}</span>        <span class="machine">{{ target.machineNo }}</span>      </p>      <p class="locked-field" data-testid="edit-type">        <span class="field-label">{{ t().upload.type }}</span>        <span>{{          target.protocolType === \'WARTUNG\' ? t().upload.typeMaintenance : t().upload.typeFault        }}</span>      </p>    </div>    <p class="field-hint" data-testid="edit-locked-hint">{{ t().moderation.editLockedHint }}</p>    <label class="field">      <span class="field-label">{{ t().upload.title }}</span>      <input        type="text"        name="editTitle"        data-testid="edit-title"        [ngModel]="editTitle()"        (ngModelChange)="editTitle.set($event)"      />    </label>    <label class="field">      <span class="field-label">{{ t().upload.errorCode }}</span>      <input        type="text"        name="editErrorCode"        data-testid="edit-error-code"        [ngModel]="editErrorCode()"        (ngModelChange)="editErrorCode.set($event)"      />    </label>    <label class="field">      <span class="field-label">{{ t().moderation.editContent }}</span>      <span class="field-hint">{{ t().moderation.editContentHint }}</span>      @if (editLoading()) {        <span class="hint" role="status" data-testid="edit-loading">{{          t().moderation.editLoading        }}</span>      }      <textarea        name="editContent"        rows="10"        data-testid="edit-content"        [disabled]="editLoading()"        [ngModel]="editContent()"        (ngModelChange)="editContent.set($event)"      ></textarea>    </label>    <label class="field">      <span class="field-label">{{ t().moderation.reason }}</span>      <span class="field-hint">{{ t().moderation.reasonHint }}</span>      <textarea        name="editComment"        rows="2"        data-testid="edit-comment"        [placeholder]="t().moderation.reasonPlaceholder"        [ngModel]="editComment()"        (ngModelChange)="editComment.set($event)"      ></textarea>    </label>    <div class="confirm-actions">      <button        type="button"        class="btn btn-primary"        data-testid="edit-save"        [disabled]="!canSaveEdit() || editSaving()"        (click)="saveEdit()"      >        {{ editSaving() ? t().moderation.editSaving : t().moderation.editSave }}      </button>      <button type="button" class="btn btn-secondary" data-testid="edit-cancel" (click)="cancelEdit()">        {{ t().common.cancel }}      </button>    </div>    @if (!canSaveEdit()) {      <p class="field-hint" data-testid="edit-reason-required">{{ t().moderation.reasonRequired }}</p>    }  }</app-dialog></div>'
     var COMPONENTS = [{'name': 'App', 'selector': 'app-root'},{'name': 'ApprovalStateBadge', 'selector': 'app-approval-state'},{'name': 'Dialog', 'selector': 'app-dialog'},{'name': 'HealthDot', 'selector': 'app-health-dot'},{'name': 'HelpDialog', 'selector': 'app-help-dialog'},{'name': 'Landing', 'selector': 'app-landing'},{'name': 'Moderation', 'selector': 'app-moderation'},{'name': 'Pager', 'selector': 'app-pager'},{'name': 'ProtocolDialog', 'selector': 'app-protocol-dialog'},{'name': 'Search', 'selector': 'app-search'},{'name': 'SearchAnswer', 'selector': 'app-search-answer'},{'name': 'SearchHelp', 'selector': 'app-search-help'},{'name': 'SearchSources', 'selector': 'app-search-sources'},{'name': 'SettingsDialog', 'selector': 'app-settings-dialog'},{'name': 'ThemeToggle', 'selector': 'app-theme-toggle'},{'name': 'Upload', 'selector': 'app-upload'}];
     var DIRECTIVES = [];
     var ACTUAL_COMPONENT = {'name': 'Moderation'};

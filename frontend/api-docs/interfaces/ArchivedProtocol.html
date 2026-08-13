@@ -273,7 +273,7 @@ not also destroy the record of who produced it.</p>
 
                             <tr>
                                 <td class="col-md-4">
-                                    <div class="io-line">Defined in <a href="" data-line="201" class="link-to-prism">src/app/core/api/api.types.ts:201</a></div>
+                                    <div class="io-line">Defined in <a href="" data-line="249" class="link-to-prism">src/app/core/api/api.types.ts:249</a></div>
                                 </td>
                             </tr>
 
@@ -318,7 +318,7 @@ not also destroy the record of who produced it.</p>
 
                             <tr>
                                 <td class="col-md-4">
-                                    <div class="io-line">Defined in <a href="" data-line="198" class="link-to-prism">src/app/core/api/api.types.ts:198</a></div>
+                                    <div class="io-line">Defined in <a href="" data-line="246" class="link-to-prism">src/app/core/api/api.types.ts:246</a></div>
                                 </td>
                             </tr>
 
@@ -357,7 +357,7 @@ not also destroy the record of who produced it.</p>
 
                             <tr>
                                 <td class="col-md-4">
-                                    <div class="io-line">Defined in <a href="" data-line="199" class="link-to-prism">src/app/core/api/api.types.ts:199</a></div>
+                                    <div class="io-line">Defined in <a href="" data-line="247" class="link-to-prism">src/app/core/api/api.types.ts:247</a></div>
                                 </td>
                             </tr>
 
@@ -396,7 +396,7 @@ not also destroy the record of who produced it.</p>
 
                             <tr>
                                 <td class="col-md-4">
-                                    <div class="io-line">Defined in <a href="" data-line="195" class="link-to-prism">src/app/core/api/api.types.ts:195</a></div>
+                                    <div class="io-line">Defined in <a href="" data-line="243" class="link-to-prism">src/app/core/api/api.types.ts:243</a></div>
                                 </td>
                             </tr>
 
@@ -435,7 +435,7 @@ not also destroy the record of who produced it.</p>
 
                             <tr>
                                 <td class="col-md-4">
-                                    <div class="io-line">Defined in <a href="" data-line="191" class="link-to-prism">src/app/core/api/api.types.ts:191</a></div>
+                                    <div class="io-line">Defined in <a href="" data-line="239" class="link-to-prism">src/app/core/api/api.types.ts:239</a></div>
                                 </td>
                             </tr>
 
@@ -474,7 +474,7 @@ not also destroy the record of who produced it.</p>
 
                             <tr>
                                 <td class="col-md-4">
-                                    <div class="io-line">Defined in <a href="" data-line="192" class="link-to-prism">src/app/core/api/api.types.ts:192</a></div>
+                                    <div class="io-line">Defined in <a href="" data-line="240" class="link-to-prism">src/app/core/api/api.types.ts:240</a></div>
                                 </td>
                             </tr>
 
@@ -513,7 +513,7 @@ not also destroy the record of who produced it.</p>
 
                             <tr>
                                 <td class="col-md-4">
-                                    <div class="io-line">Defined in <a href="" data-line="194" class="link-to-prism">src/app/core/api/api.types.ts:194</a></div>
+                                    <div class="io-line">Defined in <a href="" data-line="242" class="link-to-prism">src/app/core/api/api.types.ts:242</a></div>
                                 </td>
                             </tr>
 
@@ -552,7 +552,7 @@ not also destroy the record of who produced it.</p>
 
                             <tr>
                                 <td class="col-md-4">
-                                    <div class="io-line">Defined in <a href="" data-line="193" class="link-to-prism">src/app/core/api/api.types.ts:193</a></div>
+                                    <div class="io-line">Defined in <a href="" data-line="241" class="link-to-prism">src/app/core/api/api.types.ts:241</a></div>
                                 </td>
                             </tr>
 
@@ -591,7 +591,7 @@ not also destroy the record of who produced it.</p>
 
                             <tr>
                                 <td class="col-md-4">
-                                    <div class="io-line">Defined in <a href="" data-line="197" class="link-to-prism">src/app/core/api/api.types.ts:197</a></div>
+                                    <div class="io-line">Defined in <a href="" data-line="245" class="link-to-prism">src/app/core/api/api.types.ts:245</a></div>
                                 </td>
                             </tr>
 
@@ -630,7 +630,7 @@ not also destroy the record of who produced it.</p>
 
                             <tr>
                                 <td class="col-md-4">
-                                    <div class="io-line">Defined in <a href="" data-line="196" class="link-to-prism">src/app/core/api/api.types.ts:196</a></div>
+                                    <div class="io-line">Defined in <a href="" data-line="244" class="link-to-prism">src/app/core/api/api.types.ts:244</a></div>
                                 </td>
                             </tr>
 
@@ -751,6 +751,54 @@ export interface Approval {
   readonly state: ApprovalState;
   readonly approvedBy: string | null;
   readonly approvedAt: string | null;
+}
+
+/**
+ * A protocol on the same machine that says close to what the one being approved says, from
+ * &#x60;GET /api/moderation/protocols/{id}/similar&#x60;.
+ *
+ * &#x60;approval&#x60; is the candidate&#x27;s OWN state, and it is the reason a card is worth reading rather than
+ * a detail on it: &quot;nearly the same as a protocol an administrator already vouched for&quot; is a
+ * merge-or-reject question, while &quot;nearly the same as one nobody has reviewed&quot; may simply be two
+ * people describing one fault from different angles — which this corpus wants both of.
+ */
+export interface SimilarProtocol {
+  readonly id: string;
+  readonly title: string;
+  /** The day of the incident, not of the upload — what a duplicate would duplicate. */
+  readonly incidentDate: string;
+  readonly uploadedBy: string;
+  readonly uploadedAt: string;
+  /** Cosine similarity of the two protocols&#x27; chunk centroids, 0..1. Shown as a percentage. */
+  readonly similarity: number;
+  readonly approval: Approval;
+}
+
+/**
+ * What the approver is shown before they decide. **Information, never a gate.**
+ *
+ * No field here is capable of refusing an approval and no code path treats it as though it were: the
+ * four E-47 protocols on PR-03 are four different root causes behind one fault code, every one of
+ * them legitimate, and a threshold sensitive enough to catch a genuine duplicate would report them
+ * as copies of each other.
+ */
+export interface SimilarityReport {
+  /**
+   * False when the protocol has no vectors yet — filed seconds ago, or its indexing failed.
+   *
+   * A different fact from &quot;nothing similar&quot;, and typed separately so the two cannot arrive as the
+   * same empty list. The view treats both as &quot;no dialog&quot;, because neither is something an approver
+   * can act on; the distinction exists so the API does not have to lie.
+   */
+  readonly comparable: boolean;
+  /** The most similar first, at most three. */
+  readonly candidates: readonly SimilarProtocol[];
+  /** How many cleared the threshold in all — so a long tail is visible rather than cut silently. */
+  readonly total: number;
+  /** Every id above the threshold. The ledger&#x27;s field; the interface reads &#x60;candidates&#x60;. */
+  readonly allIds: readonly string[];
+  /** The threshold in force, sent by the backend so no screen hard-codes a configurable number. */
+  readonly threshold: number;
 }
 
 /**

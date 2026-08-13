@@ -695,6 +695,26 @@ export interface Dictionary {
     readonly archived: string;
   };
   /**
+   * Duplicate detection, shown before an approval when the corpus already holds something close.
+   *
+   * &lt;p&gt;&lt;b&gt;The wording is the feature.&lt;/b&gt; Every string here is written to inform rather than to
+   * accuse: no &quot;warning&quot;, no &quot;problem&quot;, no &quot;are you sure&quot;. The approve button in this dialog is
+   * enabled the whole time, and the text has to match — a sentence that implies wrongdoing beside a
+   * button that works anyway teaches the reader to distrust one of the two. Four legitimate E-47
+   * protocols on one machine are the reason: being similar is normal in this corpus.
+   */
+  readonly duplicates: {
+    readonly title: string;
+    /** One sentence: what was found, and that the decision is still the reader&#x27;s. */
+    readonly intro: (count: number) &#x3D;&gt; string;
+    /** What &quot;similar&quot; is measured on, said once so the percentage is not a mystery number. */
+    readonly method: (percent: number) &#x3D;&gt; string;
+    readonly match: string;
+    readonly openCandidate: string;
+    /** &quot;und 2 weitere&quot; — the tail that is counted rather than shown. */
+    readonly more: (count: number) &#x3D;&gt; string;
+  };
+  /**
    * The paging control, shared by the three tables that have one.
    *
    * Its own section rather than a copy under each view: the labels are the control&#x27;s, not the
@@ -1054,6 +1074,18 @@ export const DE: Dictionary &#x3D; {
     archived:
       &#x27;Dieses Protokoll wurde entfernt und lässt sich nicht mehr freigeben. Entfernt ist endgültig.&#x27;,
   },
+  duplicates: {
+    title: &#x27;Ähnliche Protokolle an dieser Maschine&#x27;,
+    intro: (count) &#x3D;&gt;
+      count &#x3D;&#x3D;&#x3D; 1
+        ? &#x27;Ein Protokoll an derselben Maschine beschreibt Ähnliches. Das ist häufig in Ordnung — dieselbe Störung kann mehrere Ursachen haben. Bitte kurz vergleichen und dann entscheiden.&#x27;
+        : &#x60;${count} Protokolle an derselben Maschine beschreiben Ähnliches. Das ist häufig in Ordnung — dieselbe Störung kann mehrere Ursachen haben. Bitte kurz vergleichen und dann entscheiden.&#x60;,
+    method: (percent) &#x3D;&gt;
+      &#x60;Verglichen wird der gesamte Protokolltext, nicht nur der Titel. Angezeigt wird alles ab ${percent} % Übereinstimmung.&#x60;,
+    match: &#x27;Übereinstimmung&#x27;,
+    openCandidate: &#x27;Protokoll öffnen&#x27;,
+    more: (count) &#x3D;&gt; &#x60;und ${count} weitere über der Schwelle&#x60;,
+  },
   pager: {
     label: &#x27;Seitenblättern&#x27;,
     previous: &#x27;Vorherige Seite&#x27;,
@@ -1402,6 +1434,18 @@ export const EN: Dictionary &#x3D; {
     fourEyes:
       &#x27;You wrote or last corrected this protocol. Another administrator has to approve it — an approval is a second pair of eyes.&#x27;,
     archived: &#x27;This protocol was removed and can no longer be approved. Removed is final.&#x27;,
+  },
+  duplicates: {
+    title: &#x27;Similar protocols on this machine&#x27;,
+    intro: (count) &#x3D;&gt;
+      count &#x3D;&#x3D;&#x3D; 1
+        ? &#x27;One protocol on the same machine describes something similar. That is often fine — one fault can have several causes. Have a quick look, then decide.&#x27;
+        : &#x60;${count} protocols on the same machine describe something similar. That is often fine — one fault can have several causes. Have a quick look, then decide.&#x60;,
+    method: (percent) &#x3D;&gt;
+      &#x60;The comparison uses the whole protocol text, not just the title. Everything from ${percent} % agreement upwards is listed.&#x60;,
+    match: &#x27;agreement&#x27;,
+    openCandidate: &#x27;Open protocol&#x27;,
+    more: (count) &#x3D;&gt; &#x60;and ${count} more above the threshold&#x60;,
   },
   pager: {
     label: &#x27;Pagination&#x27;,

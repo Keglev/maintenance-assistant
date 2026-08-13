@@ -4,6 +4,37 @@
 
 ## 5.1 Whitebox: overall system
 
+### Container view
+
+Moved here from the README on 2026-08-15. It had grown into a full container-and-topology diagram —
+useful, but not something a reader can take in at a glance, which is what a README diagram has to be.
+The README now carries only the request path; this is where the containers are described, next to
+the module table they decompose into. The deployment topology proper, with volumes, published ports
+and certificate issuance, is [§7](07-deployment-view.md).
+
+```mermaid
+flowchart LR
+    B["Browser<br/>Angular 22 · PKCE"]
+    C["Caddy<br/>TLS · security headers"]
+    F["frontend<br/>nginx + SPA bundle"]
+    A["backend<br/>Spring Boot 4.1 · Java 21<br/>ingestion · query · web"]
+    K["Keycloak<br/>realm: maintenance"]
+    P[("PostgreSQL 17<br/>+ pgvector")]
+    V[["protocol files<br/>volume"]]
+    L["IONOS AI Model Hub<br/>Berlin · bge-m3 + Llama-3.3-70B"]
+
+    B -->|HTTPS| C
+    B -->|OIDC Auth Code + PKCE| K
+    C -->|"/"| F
+    C -->|"/api/*, /swagger-ui*"| A
+    A -->|validates JWT via JWKS| K
+    A -->|"SQL: machine filter + vector rank"| P
+    A --> V
+    A -->|embeddings · chat| L
+```
+
+### Modules
+
 One Spring Boot application, split internally into three packages per
 [ADR-001](../adr/ADR-001-modular-monolith-first.md) and
 [§4.1](04-solution-strategy.md#41-decomposition):

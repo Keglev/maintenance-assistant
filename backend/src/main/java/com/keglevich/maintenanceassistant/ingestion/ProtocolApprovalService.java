@@ -223,10 +223,18 @@ public class ProtocolApprovalService {
      * the author; the newest EDIT event covers the corrector. Both are Keycloak usernames, which is
      * why the two columns were written in one alphabet in the first place.
      *
-     * <p>Since 2026-08-13 no administrator can reach the edit path, so the corrector branch below
-     * is unreachable through the API as it stands today. It is KEPT rather than deleted: it is the
-     * belt to the role split's braces, and the branch that would matter first if the split were
-     * ever loosened. See the class javadoc.
+     * <p><b>NEITHER BRANCH IS REACHABLE THROUGH THE API AS IT STANDS TODAY, and that is the role
+     * split working rather than dead code.</b> Approval is admin-only; upload is Techniker and
+     * Schichtleiter; correction has been Schichtleiter-only since 2026-08-13. An administrator can
+     * therefore never be the author and never be the corrector, so no request this API accepts can
+     * make either condition true. (Checked while looking for a way to demonstrate the refusal by
+     * clicking — see the 2026-08-14 note in ADR-006; there is none, and adding a second demo
+     * administrator would not create one.)
+     *
+     * <p>It is KEPT rather than deleted. It is the belt to the role split's braces: it is the only
+     * guard that could ever express "the same HUMAN did both", it is the one that survives a future
+     * widening of any of those three annotations, and a rule enforced in exactly one place is one
+     * edit away from being gone. See the class javadoc.
      */
     private void requireFourEyes(UUID protocolId, Target target, String actor) {
         if (actor == null || actor.isBlank()) {

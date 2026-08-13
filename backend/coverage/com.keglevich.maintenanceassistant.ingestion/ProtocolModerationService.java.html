@@ -363,31 +363,114 @@ public class ProtocolModerationService {
 <span class="fc" id="L363">        return new DeletedProtocolPage(rows, page, limit, total, ARCHIVE_CAP);</span>
     }
 
+    /**
+     * How many ledger entries the protocol viewer shows.
+     *
+     * &lt;p&gt;&lt;b&gt;THREE IS A PRODUCT DECISION, NOT A TECHNICAL LIMIT — please do not &quot;fix&quot; it.&lt;/b&gt; The
+     * viewer exists to let somebody read a protocol; the history beside it answers &quot;what has been
+     * done to this recently, and by whom&quot;, and three lines answer that on a tablet without pushing
+     * the document itself below the fold. A full change history is a REPORT — its own screen, with
+     * paging and filters — and Carlos has deferred it deliberately rather than left it out by
+     * accident. Raising this number would grow a dialog into that report one line at a time.
+     *
+     * &lt;p&gt;The count of everything is returned beside the three, so the viewer can say that older
+     * entries exist. A truncation nobody is told about is the failure this constant would otherwise
+     * cause.
+     */
+    public static final int HISTORY_LIMIT = 3;
+
+    /**
+     * What has been done to one protocol, newest act first.
+     *
+     * &lt;p&gt;&lt;b&gt;Limited in SQL rather than in the client&lt;/b&gt;, which is the whole reason this returns a
+     * record instead of a list: a protocol edited weekly for a year has fifty rows, and sending all
+     * of them so a dialog can drop forty-seven is a payload that grows with the corpus's age. The
+     * index {@code ix_moderation_event_protocol (protocol_id, created_at DESC)} exists for exactly
+     * this ordering and was written in V4 for the archive's lateral join.
+     *
+     * &lt;p&gt;Works for an archived protocol as well as a live one. {@code moderation_event} has no
+     * foreign key — deliberately, so a purge cannot erase the ledger — so this is a lookup by id and
+     * nothing about the protocol's state changes what it can answer.
+     *
+     * &lt;p&gt;&lt;b&gt;Every row carries a comment by database constraint&lt;/b&gt; ({@code ck_moderation_event_comment}
+     * requires a non-blank one), so the caller never has to render an entry with no reason beside it.
+     */
+    public ProtocolHistory history(UUID protocolId) {
+<span class="fc" id="L399">        List&lt;ModerationEvent&gt; events = jdbc.sql(&quot;&quot;&quot;</span>
+                        SELECT action, actor, comment, created_at
+                        FROM moderation_event
+                        WHERE protocol_id = :id
+                        ORDER BY created_at DESC, id
+                        LIMIT :limit
+                        &quot;&quot;&quot;)
+                // Tie-broken by id for the same reason the corpus list is: an edit and the
+                // UNAPPROVE it triggers share a transaction timestamp to the microsecond, so
+                // created_at alone leaves their order free to swap between two reads of one dialog.
+<span class="fc" id="L409">                .param(&quot;id&quot;, protocolId)</span>
+<span class="fc" id="L410">                .param(&quot;limit&quot;, HISTORY_LIMIT)</span>
+<span class="fc" id="L411">                .query((rs, rowNum) -&gt; new ModerationEvent(</span>
+<span class="fc" id="L412">                        rs.getString(&quot;action&quot;),</span>
+<span class="fc" id="L413">                        rs.getString(&quot;actor&quot;),</span>
+<span class="fc" id="L414">                        rs.getString(&quot;comment&quot;),</span>
+<span class="fc" id="L415">                        rs.getObject(&quot;created_at&quot;, OffsetDateTime.class)))</span>
+<span class="fc" id="L416">                .list();</span>
+
+<span class="fc" id="L418">        long total = jdbc.sql(&quot;SELECT count(*) FROM moderation_event WHERE protocol_id = :id&quot;)</span>
+<span class="fc" id="L419">                .param(&quot;id&quot;, protocolId)</span>
+<span class="fc" id="L420">                .query(Long.class)</span>
+<span class="fc" id="L421">                .single();</span>
+<span class="fc" id="L422">        return new ProtocolHistory(events, total, HISTORY_LIMIT);</span>
+    }
+
+    /**
+     * One act, as the viewer shows it.
+     *
+     * @param action one of EDIT, DELETE, APPROVE, UNAPPROVE — the vocabulary
+     *               {@code ck_moderation_event_action} allows
+     * @param actor  the Keycloak username of whoever did it
+     * @param comment why. Never null and never blank; the table's own constraint says so
+     * @param at     when, to the second. The viewer shows the TIME as well as the day: two edits on
+     *               one afternoon are a different story from two edits a month apart, and the
+     *               moderation list's day-only format cannot tell them apart
+     */
+<span class="fc" id="L436">    public record ModerationEvent(String action, String actor, String comment, OffsetDateTime at) {</span>
+    }
+
+    /**
+     * @param total how many acts this protocol has had in all, so the viewer can say that older
+     *              entries exist rather than silently showing the newest three as though they were
+     *              everything
+     * @param limit the server-side cap, reported so no screen hard-codes a number this service is
+     *              free to change — the same reason the archive page reports its own cap
+     */
+<span class="fc" id="L446">    public record ProtocolHistory(List&lt;ModerationEvent&gt; events, long total, int limit) {</span>
+    }
+
     /** Writes one line of the ledger. Called by every moderation act, including {@link #delete}. */
     void recordEvent(UUID protocolId, String action, String actor, String comment) {
-<span class="fc" id="L368">        jdbc.sql(&quot;&quot;&quot;</span>
+<span class="fc" id="L451">        jdbc.sql(&quot;&quot;&quot;</span>
                         INSERT INTO moderation_event (id, protocol_id, action, actor, comment)
                         VALUES (:id, :protocolId, :action, :actor, :comment)
                         &quot;&quot;&quot;)
-<span class="fc" id="L372">                .param(&quot;id&quot;, UUID.randomUUID())</span>
-<span class="fc" id="L373">                .param(&quot;protocolId&quot;, protocolId)</span>
-<span class="fc" id="L374">                .param(&quot;action&quot;, action)</span>
-<span class="fc" id="L375">                .param(&quot;actor&quot;, actor)</span>
-<span class="fc" id="L376">                .param(&quot;comment&quot;, comment)</span>
-<span class="fc" id="L377">                .update();</span>
-<span class="fc" id="L378">    }</span>
+<span class="fc" id="L455">                .param(&quot;id&quot;, UUID.randomUUID())</span>
+<span class="fc" id="L456">                .param(&quot;protocolId&quot;, protocolId)</span>
+<span class="fc" id="L457">                .param(&quot;action&quot;, action)</span>
+<span class="fc" id="L458">                .param(&quot;actor&quot;, actor)</span>
+<span class="fc" id="L459">                .param(&quot;comment&quot;, comment)</span>
+<span class="fc" id="L460">                .update();</span>
+<span class="fc" id="L461">    }</span>
 
     /** The stable code a client matches on when a moderation act arrives without its reason. */
     public static final String COMMENT_REQUIRED = &quot;MODERATION_COMMENT_REQUIRED&quot;;
 
     static String requireComment(String comment) {
-<span class="fc bfc" id="L384" title="All 4 branches covered.">        if (comment == null || comment.isBlank()) {</span>
+<span class="fc bfc" id="L467" title="All 4 branches covered.">        if (comment == null || comment.isBlank()) {</span>
             // Blank counts as missing. A comment box someone tabbed past is not a stated reason,
             // and &quot; &quot; in the ledger would be worse than an empty one — it looks like an answer.
-<span class="fc" id="L387">            throw new InvalidModerationRequestException(COMMENT_REQUIRED,</span>
+<span class="fc" id="L470">            throw new InvalidModerationRequestException(COMMENT_REQUIRED,</span>
                     &quot;a moderation comment is required: say why this protocol is being changed&quot;);
         }
-<span class="fc" id="L390">        return comment.trim();</span>
+<span class="fc" id="L473">        return comment.trim();</span>
     }
 
     /**
@@ -399,24 +482,24 @@ public class ProtocolModerationService {
      * is logged as a warning so a stale file can be swept up; nothing can reach it in the meantime.
      */
     private void deleteFile(String sourceFile) {
-<span class="pc bpc" id="L402" title="2 of 4 branches missed.">        if (sourceFile == null || sourceFile.isBlank()) {</span>
-<span class="nc" id="L403">            return;</span>
+<span class="pc bpc" id="L485" title="2 of 4 branches missed.">        if (sourceFile == null || sourceFile.isBlank()) {</span>
+<span class="nc" id="L486">            return;</span>
         }
-<span class="fc" id="L405">        Path base = Path.of(fileProperties.basePath()).toAbsolutePath().normalize();</span>
-<span class="fc" id="L406">        Path path = base.resolve(sourceFile).normalize();</span>
+<span class="fc" id="L488">        Path base = Path.of(fileProperties.basePath()).toAbsolutePath().normalize();</span>
+<span class="fc" id="L489">        Path path = base.resolve(sourceFile).normalize();</span>
         // The same containment check the read path makes, for the same reason: source_file is a
         // column, and here a bad value would delete something outside the volume.
-<span class="pc bpc" id="L409" title="1 of 2 branches missed.">        if (!path.startsWith(base)) {</span>
-<span class="nc" id="L410">            log.warn(&quot;Moderation: refusing to delete {} — outside the protocol volume&quot;, sourceFile);</span>
-<span class="nc" id="L411">            return;</span>
+<span class="pc bpc" id="L492" title="1 of 2 branches missed.">        if (!path.startsWith(base)) {</span>
+<span class="nc" id="L493">            log.warn(&quot;Moderation: refusing to delete {} — outside the protocol volume&quot;, sourceFile);</span>
+<span class="nc" id="L494">            return;</span>
         }
         try {
-<span class="fc" id="L414">            Files.deleteIfExists(path);</span>
-<span class="nc" id="L415">        } catch (IOException e) {</span>
-<span class="nc" id="L416">            log.warn(&quot;Moderation: protocol row removed but its file {} could not be deleted: {}&quot;,</span>
-<span class="nc" id="L417">                    sourceFile, e.toString());</span>
-<span class="fc" id="L418">        }</span>
-<span class="fc" id="L419">    }</span>
+<span class="fc" id="L497">            Files.deleteIfExists(path);</span>
+<span class="nc" id="L498">        } catch (IOException e) {</span>
+<span class="nc" id="L499">            log.warn(&quot;Moderation: protocol row removed but its file {} could not be deleted: {}&quot;,</span>
+<span class="nc" id="L500">                    sourceFile, e.toString());</span>
+<span class="fc" id="L501">        }</span>
+<span class="fc" id="L502">    }</span>
 
     /**
      * What the reviewer narrowed the corpus to. Every field is optional; all of them absent is the
@@ -441,35 +524,35 @@ public class ProtocolModerationService {
         /** An approval filter that is neither state. */
         public static final String UNKNOWN_APPROVAL_STATE = &quot;UNKNOWN_APPROVAL_STATE&quot;;
 
-<span class="fc" id="L444">        public ProtocolFilter {</span>
-<span class="fc" id="L445">            machineNo = blankToNull(machineNo);</span>
-<span class="fc" id="L446">            titleContains = blankToNull(titleContains);</span>
-<span class="fc" id="L447">            approvalState = blankToNull(approvalState);</span>
-<span class="fc bfc" id="L448" title="All 8 branches covered.">            if (machineNo == null &amp;&amp; (titleContains != null || from != null || to != null)) {</span>
-<span class="fc" id="L449">                throw new InvalidModerationRequestException(MACHINE_REQUIRED,</span>
+<span class="fc" id="L527">        public ProtocolFilter {</span>
+<span class="fc" id="L528">            machineNo = blankToNull(machineNo);</span>
+<span class="fc" id="L529">            titleContains = blankToNull(titleContains);</span>
+<span class="fc" id="L530">            approvalState = blankToNull(approvalState);</span>
+<span class="fc bfc" id="L531" title="All 8 branches covered.">            if (machineNo == null &amp;&amp; (titleContains != null || from != null || to != null)) {</span>
+<span class="fc" id="L532">                throw new InvalidModerationRequestException(MACHINE_REQUIRED,</span>
                         &quot;a title or date filter needs a machine: choose a machine first&quot;);
             }
-<span class="pc bpc" id="L452" title="1 of 2 branches missed.">            if (approvalState != null) {</span>
-<span class="nc" id="L453">                approvalState = approvalState.toUpperCase(java.util.Locale.ROOT);</span>
-<span class="nc bnc" id="L454" title="All 2 branches missed.">                if (!ProtocolApprovalService.APPROVED.equals(approvalState)</span>
-<span class="nc bnc" id="L455" title="All 2 branches missed.">                        &amp;&amp; !ProtocolApprovalService.UNAPPROVED.equals(approvalState)) {</span>
+<span class="pc bpc" id="L535" title="1 of 2 branches missed.">            if (approvalState != null) {</span>
+<span class="nc" id="L536">                approvalState = approvalState.toUpperCase(java.util.Locale.ROOT);</span>
+<span class="nc bnc" id="L537" title="All 2 branches missed.">                if (!ProtocolApprovalService.APPROVED.equals(approvalState)</span>
+<span class="nc bnc" id="L538" title="All 2 branches missed.">                        &amp;&amp; !ProtocolApprovalService.UNAPPROVED.equals(approvalState)) {</span>
                     // Refused rather than ignored. A typo silently answering with the unfiltered
                     // corpus would tell a reviewer their queue is the whole corpus.
-<span class="nc" id="L458">                    throw new InvalidModerationRequestException(UNKNOWN_APPROVAL_STATE,</span>
+<span class="nc" id="L541">                    throw new InvalidModerationRequestException(UNKNOWN_APPROVAL_STATE,</span>
                             &quot;approvalState must be APPROVED or UNAPPROVED, not '&quot;
                                     + approvalState + &quot;'&quot;);
                 }
             }
-<span class="fc" id="L463">        }</span>
+<span class="fc" id="L546">        }</span>
 
         public static ProtocolFilter none() {
-<span class="fc" id="L466">            return new ProtocolFilter(null, null, null, null, null);</span>
+<span class="fc" id="L549">            return new ProtocolFilter(null, null, null, null, null);</span>
         }
 
         private static String blankToNull(String value) {
             // An empty query parameter is an empty form field, which is a filter the user did not
             // fill in — not a search for the empty string, and not a reason to refuse the request.
-<span class="fc bfc" id="L472" title="All 4 branches covered.">            return value == null || value.isBlank() ? null : value.trim();</span>
+<span class="fc bfc" id="L555" title="All 4 branches covered.">            return value == null || value.isBlank() ? null : value.trim();</span>
         }
     }
 
@@ -479,12 +562,12 @@ public class ProtocolModerationService {
         private final String code;
 
         public InvalidModerationRequestException(String code, String message) {
-<span class="fc" id="L482">            super(message);</span>
-<span class="fc" id="L483">            this.code = code;</span>
-<span class="fc" id="L484">        }</span>
+<span class="fc" id="L565">            super(message);</span>
+<span class="fc" id="L566">            this.code = code;</span>
+<span class="fc" id="L567">        }</span>
 
         public String code() {
-<span class="fc" id="L487">            return code;</span>
+<span class="fc" id="L570">            return code;</span>
         }
     }
 
@@ -493,7 +576,7 @@ public class ProtocolModerationService {
      * @param size      rows per page after clamping
      * @param total     protocols in the corpus, so a client can render &quot;page 3 of 16&quot;
      */
-<span class="fc" id="L496">    public record ProtocolPage(List&lt;ModeratedProtocol&gt; items, int page, int size, long total) {</span>
+<span class="fc" id="L579">    public record ProtocolPage(List&lt;ModeratedProtocol&gt; items, int page, int size, long total) {</span>
     }
 
     /**
@@ -502,7 +585,7 @@ public class ProtocolModerationService {
      * @param chunkCount how many searchable pieces this protocol contributes; 0 means it is stored
      *                   but not retrievable, which is what RECEIVED and FAILED look like
      */
-<span class="fc" id="L505">    public record ModeratedProtocol(</span>
+<span class="fc" id="L588">    public record ModeratedProtocol(</span>
             UUID id,
             String machineNo,
             String title,
@@ -526,7 +609,7 @@ public class ProtocolModerationService {
      * @param cap the per-machine ceiling, reported so the view can state it rather than hard-code a
      *            number that would drift the day the constant changes
      */
-<span class="fc" id="L529">    public record DeletedProtocolPage(List&lt;ArchivedProtocol&gt; items, int page, int size, long total,</span>
+<span class="fc" id="L612">    public record DeletedProtocolPage(List&lt;ArchivedProtocol&gt; items, int page, int size, long total,</span>
                                       int cap) {
     }
 
@@ -537,7 +620,7 @@ public class ProtocolModerationService {
      *                       other than this service, which nothing does today
      * @param deleteComment  the stated reason — the field the whole archive exists to carry
      */
-<span class="fc" id="L540">    public record ArchivedProtocol(</span>
+<span class="fc" id="L623">    public record ArchivedProtocol(</span>
             UUID id,
             String machineNo,
             String title,
@@ -550,11 +633,11 @@ public class ProtocolModerationService {
             String deleteComment) {
     }
 
-<span class="fc" id="L553">    private record DeletedProtocol(String title, String sourceFile, UUID machineId, String machineNo) {</span>
+<span class="fc" id="L636">    private record DeletedProtocol(String title, String sourceFile, UUID machineId, String machineNo) {</span>
     }
 
     /** What a purge needs to know: which row to drop, which file to remove, what to call it in the log. */
-<span class="fc" id="L557">    private record PurgeTarget(UUID id, String title, String sourceFile) {</span>
+<span class="fc" id="L640">    private record PurgeTarget(UUID id, String title, String sourceFile) {</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

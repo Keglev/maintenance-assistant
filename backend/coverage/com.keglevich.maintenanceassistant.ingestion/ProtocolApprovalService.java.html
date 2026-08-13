@@ -263,7 +263,7 @@ public class ProtocolApprovalService {
 
     /** The approval state of one protocol, for the read paths. */
     public Optional&lt;Approval&gt; find(UUID protocolId) {
-<span class="nc" id="L266">        return load(protocolId).map(Target::asApproval);</span>
+<span class="fc" id="L266">        return load(protocolId).map(Target::asApproval);</span>
     }
 
     private Optional&lt;Target&gt; load(UUID protocolId) {

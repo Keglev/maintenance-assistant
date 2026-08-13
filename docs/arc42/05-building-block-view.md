@@ -56,4 +56,13 @@ web ─── IngestionBacklogService ┘   (async, own pool)      │   └ Emb
 - **`web`** — `SecurityConfig` (resource server, realm roles → `ROLE_*`), `HealthController`,
   `HelloController`, `ProtocolUploadController` (Techniker and Schichtleiter since v1.2),
   `IngestionAdminController` (admin), `OpenApiConfig`.
+- **`ModerationController`** — the trust chain's security surface, and the one place where the
+  endpoint × role matrix is written down in full (class javadoc). The class rule is `ADMIN`; the
+  deviations are `PUT /{id}` (SCHICHTLEITER only — the approver does not correct) and, since
+  2026-08-14, the corpus list and the document read (ADMIN or SCHICHTLEITER — you cannot correct
+  what you cannot find or open). Delete, approval and the archive stay ADMIN. See
+  [ADR-006](../adr/ADR-006-insider-threat-and-protocol-moderation.md).
 - **Angular client** — login redirect and guarded home; search and upload views in Phase 3.
+  `/moderation` is reached by two roles and renders two views: the administrator reviews, approves
+  and archives; the Schichtleiter corrects, and the controls they may not use are **absent rather
+  than disabled**. The heading and the navigation entry are chosen by role for the same reason.

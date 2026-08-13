@@ -7,7 +7,7 @@ documentation is otherwise English.
 |---|---|
 | **Operator** | Machine operator. Receives operator-safe instructions only — never electrical or mechanical repair steps. |
 | **Techniker** | Shop-floor technician (*Fachkraft*). Receives full technical answers including repair steps, and since v1.2 FILES protocols — but never corrects one, not even their own. |
-| **Schichtleiter** | Shift supervisor. Writes protocols and, since v1.2, CORRECTS them with a mandatory reason. May not approve — the corrector is never the approver. |
+| **Schichtleiter** | Shift supervisor. Writes protocols and, since v1.2, CORRECTS them with a mandatory reason, on their own view of the protocol list. May not approve, delete or read the archive — the corrector is never the approver, and correcting is not moderating. |
 | **Admin** | System administrator. Manages users and roles in Keycloak; since v1.1 reviews and archives protocols, and since v1.2 APPROVES them. Does not correct one (2026-08-13) — the approver is never the corrector. |
 | **Protocol** (*Protokoll*) | A maintenance record for one incident or service: symptom, cause, action, parts used. The **citation unit** of an answer. |
 | **Störung / Wartung** | The two protocol types: fault (unplanned) and maintenance (planned). *Inspektion* was dropped — it lives in manufacturer manuals. |

@@ -1285,6 +1285,189 @@ ADR-006-insider-threat-and-protocol-moderation · maintenance-assistant Docs</ti
         enforced in exactly one place is one edit away from being gone.
         It is covered by <code>ProtocolApprovalIT</code> against a real
         database.</p>
+        <hr />
+        <h2
+        id="note-2026-08-14-the-table-shows-state-the-record-shows-provenance">Note
+        — 2026-08-14: the table shows state, the record shows
+        provenance</h2>
+        <p>Carlos drilled #56 in production and found the Verwaltung
+        table’s FREIGABE column truncated:
+        <code>Freigegeben system:corpus-seed · 12.08.2…</code> ran under
+        the action buttons. His ruling, and the design this note
+        records: <strong>the list shows the approval STATE; who approved
+        it and when move into the protocol viewer as a history
+        section.</strong></p>
+        <h3 id="the-defect-measured">The defect, measured</h3>
+        <p>The column carried the label, the approver and the date
+        inside <code>max-width: 11rem</code>, while the badge sets
+        <code>white-space: nowrap</code>. So the text did not wrap — it
+        <strong>overflowed</strong>. Measured in the live page at the
+        badge’s own font: the cap is <strong>176 px</strong>, the seeded
+        string renders at <strong>293 px</strong> (a 117 px overflow,
+        two-thirds of the cell spilling out), and even the ordinary
+        <code>admin · 12.08.2026</code> case renders at 218 px (42 px
+        over). The <code>max-width</code> was treating a content problem
+        as a layout problem.</p>
+        <p>The fix is content, not CSS: with the state alone the widest
+        the badge can ever be is <strong>139 px</strong> (“Nicht
+        freigegeben”), so the cap is gone entirely and the cell is sized
+        by what it holds. Measured after the change, at 1920 px and at
+        1280 px: <strong>0 px overflow in the approval cell, 0 px in the
+        actions cell, 0 buttons painted outside their own
+        row.</strong></p>
+        <p><code>showActor</code> was <strong>deleted rather than
+        defaulted off</strong>, and its <code>language</code> input with
+        it. The badge renders in a table cell, a source card and a
+        dialog head, and provenance repeated in every list that mentions
+        a protocol is what produced the defect in the first place. A
+        flag would have left the overflowing form one binding away.</p>
+        <h3 id="why-the-actor-is-worth-keeping-at-all">Why the actor is
+        worth keeping at all</h3>
+        <p>Carlos asked, and the answer belongs on the record rather
+        than in a commit message. For the 150 seeded protocols
+        <code>system:corpus-seed</code> says something true and
+        load-bearing: <strong>no human reviewed this — it was born
+        approved by a migration.</strong> That is the honest record of
+        decision 2 of 2026-08-11, and inventing a person’s name there
+        would fabricate exactly the unearned trust the approval flag
+        exists to make visible. It is useless repeated on every table
+        row and valuable once, in the record.</p>
+        <h3
+        id="the-ledger-already-spelled-four-verbs-a-finding-and-no-migration">The
+        ledger already spelled four verbs — a finding, and no
+        migration</h3>
+        <p>The brief for this work assumed
+        <code>ck_moderation_event_action</code> was still V4’s
+        <code>('EDIT','DELETE')</code> and asked for a migration
+        widening it. <strong>It was widened by V5 (#53)</strong>, in the
+        same migration that added the approval columns, to
+        <code>('EDIT','DELETE','APPROVE','UNAPPROVE')</code> — and
+        approvals and withdrawals have been writing proper rows ever
+        since: actor, timestamp, and a non-blank comment the table’s own
+        <code>ck_moderation_event_comment</code> requires.</p>
+        <p>Verified on the development database, which carries #53–#56
+        data: Flyway at V5, six migrations, all successful; the
+        constraint in force naming all four verbs; and <strong>52
+        APPROVE, 31 UNAPPROVE, 51 EDIT and 105 DELETE rows already
+        present</strong>. No migration was needed and none was added —
+        the number of Flyway files is unchanged by this pull
+        request.</p>
+        <p>The stored verb is <code>UNAPPROVE</code>, not
+        <code>WITHDRAW</code>. The interface says “Freigabe
+        zurückgezogen”; renaming the stored value would mean a data
+        migration and a sweep of three services to change a word no user
+        reads. <code>ProtocolHistoryIT</code> asserts the vocabulary in
+        force, including that an invented <code>WITHDRAW</code> is
+        <strong>refused by the database</strong> — so whoever extends
+        the set finds the constraint rather than a silent no-op.</p>
+        <h3
+        id="what-happens-to-approvals-recorded-before-this-change-nothing-is-missing">What
+        happens to approvals recorded before this change: nothing is
+        missing</h3>
+        <p>Counted on the same database: of 163 approved protocols,
+        <strong>13 were approved by <code>admin</code> and all 13 have
+        their ledger row</strong>; <strong>150 were approved by
+        <code>system:corpus-seed</code> and none of them has one, by
+        design</strong>. So there is no backfill to do and none was
+        attempted. The only rowless approvals are the migration’s own,
+        and the viewer degrades to exactly them: when a protocol has no
+        acts but does have an approver, the section names that approver
+        and the day, and adds one sentence when the actor is a
+        <code>system:</code> one. A viewer that showed nothing there
+        would let a reader assume the approval came from somewhere it
+        did not.</p>
+        <h3 id="the-history-section">The history section</h3>
+        <p>The <strong>last three</strong> acts, newest first. Each line
+        carries the verb in plain language (<code>UNAPPROVE</code> never
+        reaches a screen), the actor, and the <strong>date and the
+        time</strong> — two corrections on one afternoon are a different
+        story from two a month apart, and the day-only format the tables
+        use cannot tell them apart. The reason comes with every entry,
+        which needs no empty case because the database requires a
+        non-blank comment on every row.</p>
+        <p><strong>THE THREE-ENTRY CAP IS A PRODUCT DECISION, NOT A
+        TECHNICAL LIMIT</strong>, and it is written down in two places
+        in the code so nobody “fixes” it. The viewer exists to let
+        somebody read a protocol; three lines answer “what has been done
+        to this recently” without pushing the document below the fold. A
+        full change history is a <strong>report</strong> — its own
+        screen, with paging and filters — and Carlos has deferred it
+        deliberately. There is no “show all” control here and there is
+        not meant to be one. What there is instead is one quiet line
+        saying older entries exist, which is what stops the truncation
+        being silent.</p>
+        <p>Nothing to say renders <strong>no section</strong>: no
+        heading, no empty box, no “no history yet”. An unapproved
+        protocol nobody has touched has neither acts nor provenance, and
+        a heading over nothing is furniture.</p>
+        <p><code>GET /api/moderation/protocols/{id}/history</code>,
+        limited server-side with the total reported beside it — a
+        protocol edited weekly for a year has fifty rows, and sending
+        all of them so a dialog can drop forty-seven is a payload that
+        grows with the corpus’s age.</p>
+        <table>
+        <colgroup>
+        <col style="width: 25%" />
+        <col style="width: 25%" />
+        <col style="width: 25%" />
+        <col style="width: 25%" />
+        </colgroup>
+        <thead>
+        <tr class="header">
+        <th>Endpoint</th>
+        <th>ADMIN</th>
+        <th>SCHICHTLEITER</th>
+        <th>Why</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr class="odd">
+        <td><code>GET /{id}/history</code></td>
+        <td>✅</td>
+        <td>✅</td>
+        <td>you cannot judge a correction without knowing what was
+        already done</td>
+        </tr>
+        </tbody>
+        </table>
+        <p>The corrector gets it for the reason they got the document
+        read in the 2026-08-14 widening: <strong>an edit that silently
+        repeats a correction somebody made last week is what it
+        prevents.</strong> The shop floor is refused, and that is
+        deliberate — who corrected what, who approved it and who took an
+        approval back names colleagues in connection with mistakes,
+        which is the same reason the delete comment travels in a request
+        body rather than a query string. A technician checking a
+        citation needs the protocol’s text and its approval STATE, and
+        both already reach them.</p>
+        <p>A failed history call leaves the section
+        <strong>absent</strong> rather than putting an error beside it.
+        The dialog exists to show a protocol; a red box about an
+        unreachable audit trail next to a document that loaded perfectly
+        would read as though the document were the problem.</p>
+        <h3
+        id="a-finding-about-the-visual-check-recorded-because-it-nearly-hid-this-change">A
+        finding about the visual check, recorded because it nearly hid
+        this change</h3>
+        <p><code>maxDiffPixelRatio</code> is 0.002 — roughly a thousand
+        pixels on a dialog-sized shot, which is <strong>enough to absorb
+        one line of text disappearing.</strong> When the badge stopped
+        rendering its actor, the duplicate-detection baselines still
+        passed, and <code>--update-snapshots</code> therefore refreshed
+        nothing: it only rewrites what fails. A baseline that survives a
+        deliberate content change has quietly stopped recording what the
+        application looks like, which is the one property ADR-007 asks
+        of it.</p>
+        <p>The practice that follows, now written into
+        <code>visual.e2e.ts</code> and <code>e2e/README.md</code>:
+        <strong>after an intentional change, delete the affected
+        baselines and regenerate rather than trusting
+        <code>--update-snapshots</code> to notice.</strong> Regeneration
+        is byte-deterministic in the pinned container, so
+        <code>git status</code> afterwards is an exact list of what
+        really moved. Doing that here showed exactly two files; the
+        other fourteen were byte-identical, which is the check saying
+        the records table itself did not shift.</p>
       </article>
     </main>
 
@@ -1454,6 +1637,35 @@ ADR-006-insider-threat-and-protocol-moderation · maintenance-assistant Docs</ti
       id="toc-a-note-on-the-four-eyes-refusal-found-while-looking-for-a-way-to-demonstrate-it">A
       note on the four-eyes refusal, found while looking for a way to
       demonstrate it</a></li>
+      </ul></li>
+      <li><a
+      href="#note-2026-08-14-the-table-shows-state-the-record-shows-provenance"
+      id="toc-note-2026-08-14-the-table-shows-state-the-record-shows-provenance">Note
+      — 2026-08-14: the table shows state, the record shows
+      provenance</a>
+      <ul>
+      <li><a href="#the-defect-measured"
+      id="toc-the-defect-measured">The defect, measured</a></li>
+      <li><a href="#why-the-actor-is-worth-keeping-at-all"
+      id="toc-why-the-actor-is-worth-keeping-at-all">Why the actor is
+      worth keeping at all</a></li>
+      <li><a
+      href="#the-ledger-already-spelled-four-verbs-a-finding-and-no-migration"
+      id="toc-the-ledger-already-spelled-four-verbs-a-finding-and-no-migration">The
+      ledger already spelled four verbs — a finding, and no
+      migration</a></li>
+      <li><a
+      href="#what-happens-to-approvals-recorded-before-this-change-nothing-is-missing"
+      id="toc-what-happens-to-approvals-recorded-before-this-change-nothing-is-missing">What
+      happens to approvals recorded before this change: nothing is
+      missing</a></li>
+      <li><a href="#the-history-section"
+      id="toc-the-history-section">The history section</a></li>
+      <li><a
+      href="#a-finding-about-the-visual-check-recorded-because-it-nearly-hid-this-change"
+      id="toc-a-finding-about-the-visual-check-recorded-because-it-nearly-hid-this-change">A
+      finding about the visual check, recorded because it nearly hid
+      this change</a></li>
       </ul></li>
       </ul></li>
       </ul>

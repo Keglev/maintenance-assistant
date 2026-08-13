@@ -320,6 +320,73 @@ rather than given one afterwards.
    bump the Settings dialog reads — A RELEASE OBLIGATION — and the tag
    itself. Robots never tag.
 
+   PROGRESS 2026-08-14 — PR 5 (feat/protocol-history), FROM CARLOS'S
+   PRODUCTION DRILL OF #56 AND THE LAST ONE BEFORE THE TAG. The
+   Verwaltung table's FREIGABE column truncated: it carried "Freigegeben
+   system:corpus-seed · 12.08.2…" under the action buttons. MEASURED in
+   the live page: the cap was 176px, the seeded string renders at 293px
+   — a 117px overflow, two-thirds of the cell — and even "admin ·
+   12.08.2026" ran 42px over. The badge sets white-space: nowrap, so the
+   text never wrapped; the max-width was treating a CONTENT problem as a
+   layout problem.
+   CARLOS'S RULING: THE LIST SHOWS STATE, THE RECORD SHOWS PROVENANCE.
+   The column holds the badge alone — widest form 139px, so the cap is
+   gone and the cell is sized by what it holds — and who/when moved into
+   the protocol viewer as a HISTORY SECTION. Verified after the change
+   at 1920px and 1280px: 0px overflow in the approval cell, 0px in the
+   actions cell, 0 buttons painted outside their own row (#41 T4's
+   defect, checked rather than assumed).
+   showActor IS DELETED, not defaulted off, and its language input with
+   it: the badge renders in a table cell, a source card and a dialog
+   head, and a flag would have left the overflowing form one binding
+   away.
+   THE HISTORY: the last three acts, newest first, each with the verb in
+   plain language, the actor, the DATE AND TIME (two corrections in one
+   afternoon are a different story from two a month apart, which the
+   day-only table format cannot say) and the reason every ledger row
+   carries by constraint. appDate grew an OPTIONAL withTime rather than
+   changing under twenty existing call sites.
+   THE THREE-ENTRY CAP IS A PRODUCT DECISION, said twice in the code so
+   nobody "fixes" it: a full change history is a REPORT with its own
+   screen and Carlos deferred it. No "show all" control; one quiet line
+   saying older entries exist, which is what stops the truncation being
+   silent. Nothing to say renders NO section, not an empty box.
+   THE FINDING ON V5.1: THE PROMPT'S PREMISE WAS THREE PRs STALE. It
+   assumed ck_moderation_event_action was still V4's ('EDIT','DELETE')
+   and asked for a migration. V5 (#53) already widened it to include
+   APPROVE and UNAPPROVE, and approvals have been writing proper rows
+   ever since. Verified on the dev database carrying #53-#56 data:
+   Flyway at V5, six migrations, all successful, and 52 APPROVE / 31
+   UNAPPROVE / 51 EDIT / 105 DELETE rows already present. NO MIGRATION
+   WAS ADDED — the Flyway file count is unchanged. The stored verb stays
+   UNAPPROVE rather than WITHDRAW; renaming it would be a data migration
+   and a three-service sweep to change a word no user reads, and an
+   invented WITHDRAW is now proven to be REFUSED by the database.
+   BACKFILL: NOTHING IS MISSING. Of 163 approved protocols, the 13
+   approved by a human all have their row; the 150 approved by
+   system:corpus-seed have none, BY DESIGN — no human act produced them.
+   The viewer degrades to exactly that case and names the seed actor,
+   because showing nothing would let a reader assume the approval came
+   from somewhere it did not.
+   A FINDING ABOUT THE VISUAL CHECK, worth carrying: maxDiffPixelRatio
+   0.002 is ~1,000px on a dialog-sized shot, which is ENOUGH TO ABSORB
+   ONE LINE OF TEXT DISAPPEARING. When the badge lost its actor the
+   duplicate baselines still PASSED, so --update-snapshots refreshed
+   nothing — it only rewrites what fails, and a baseline that survives a
+   deliberate content change has stopped recording what the app looks
+   like. THE PRACTICE, now in visual.e2e.ts and e2e/README.md: after an
+   intentional change DELETE the affected baselines and regenerate.
+   Regeneration is byte-deterministic in the pinned container, so git
+   status afterwards is an exact list of what really moved — here,
+   exactly two files, with the other fourteen byte-identical.
+   EIGHTEEN BASELINES — nine surfaces x two palettes. The NINTH is the
+   viewer's history section, scoped to the section and
+   unmasked because every value in it is stubbed. It could not reuse the
+   duplicate dialog's focus-settle wait — this viewer's first focusable
+   is a Download button DISABLED until the document arrives, so the panel
+   takes focus instead (#50) and which wins is a race; focus is placed
+   explicitly.
+
    THREE DESIGN DECISIONS, DECIDED BY CARLOS 2026-08-11 — the schema
    and the server side are now built; the interface is PR 2. They are written
    down here so v1.2's implementer inherits the reasoning and does not

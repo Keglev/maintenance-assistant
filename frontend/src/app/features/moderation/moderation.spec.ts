@@ -4,7 +4,13 @@ import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
-import { ArchivedProtocol, ModeratedProtocol, ProtocolPage } from '../../core/api/api.types';
+import {
+  ArchivedProtocol,
+  ModeratedProtocol,
+  ProtocolPage,
+  SimilarProtocol,
+  SimilarityReport,
+} from '../../core/api/api.types';
 import { AuthService } from '../../core/auth/auth.service';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { Moderation } from './moderation';
@@ -92,6 +98,49 @@ describe('Moderation', () => {
       | HTMLTextAreaElement;
     field.value = value;
     field.dispatchEvent(new Event(field.tagName === 'SELECT' ? 'change' : 'input'));
+  }
+
+  /**
+   * Answers the duplicate check that every approval now makes first.
+   *
+   * <p>Since 2026-08-14 pressing Freigeben asks what the corpus already says before it approves. An
+   * empty answer is the ordinary case — nothing similar, no dialog, one click, exactly the #54
+   * behaviour — so most tests here just need it flushed and out of the way.
+   */
+  function noSimilar(id = 'p-1'): void {
+    httpMock.expectOne(`/api/moderation/protocols/${id}/similar`).flush({
+      comparable: true,
+      candidates: [],
+      total: 0,
+      allIds: [],
+      threshold: 0.92,
+    });
+  }
+
+  /** One candidate above the threshold — the case that opens the dialog. */
+  function similarTo(
+    id = 'p-1',
+    overrides: Partial<SimilarProtocol> = {},
+    report: Partial<SimilarityReport> = {},
+  ): void {
+    const candidate: SimilarProtocol = {
+      id: 'p-9',
+      title: 'E-47 Druckabfall im Presshub',
+      incidentDate: '2024-10-08',
+      uploadedBy: 'techniker',
+      uploadedAt: '2026-08-07T08:00:00Z',
+      similarity: 0.9305,
+      approval: { state: 'APPROVED', approvedBy: 'admin', approvedAt: '2026-08-11T09:00:00Z' },
+      ...overrides,
+    };
+    httpMock.expectOne(`/api/moderation/protocols/${id}/similar`).flush({
+      comparable: true,
+      candidates: [candidate],
+      total: 1,
+      allIds: [candidate.id],
+      threshold: 0.92,
+      ...report,
+    });
   }
 
   it('lists the corpus with the author of each protocol', async () => {
@@ -602,12 +651,20 @@ describe('Moderation', () => {
     ).toBe('UNAPPROVED');
   });
 
-  it('approves without a dialog, and reloads the page it changed', async () => {
+  it('approves without a dialog when nothing on the machine is similar', async () => {
     const fixture = await render(page([UNAPPROVED]));
     const element = fixture.nativeElement as HTMLElement;
 
     (element.querySelector('[data-testid="row-approve"]') as HTMLButtonElement).click();
     await fixture.whenStable();
+
+    // THE ORDINARY CASE STAYS ONE CLICK. Duplicate detection asks first and then gets out of the
+    // way — a dialog that opened every time to announce "nothing found" would tax the common case
+    // to serve the rare one, and a permanently empty section teaches a reader to click past a
+    // section that will one day be full.
+    noSimilar();
+    await fixture.whenStable();
+    expect(element.querySelector('[data-testid="duplicates-dialog"]')).toBeNull();
 
     const request = httpMock.expectOne('/api/moderation/protocols/p-1/approval');
     expect(request.request.method).toBe('PUT');
@@ -632,6 +689,8 @@ describe('Moderation', () => {
 
     (element.querySelector('[data-testid="row-approve"]') as HTMLButtonElement).click();
     await fixture.whenStable();
+    noSimilar();
+    await fixture.whenStable();
     httpMock.expectOne('/api/moderation/protocols/p-1/approval').flush(
       { reason: 'FOUR_EYES_REQUIRED', error: 'you corrected this protocol' },
       { status: 400, statusText: 'Bad Request' },
@@ -646,6 +705,181 @@ describe('Moderation', () => {
     expect(failure).toContain('andere');
     // Beside the row it belongs to: the reader clicked one button among ten identical ones.
     expect(element.querySelector('[data-testid="approval-failure-row"]')).not.toBeNull();
+  });
+
+  // -------------------------------------------------------------------------------------------
+  // Duplicate detection — INFORMATION, never a gate
+  // -------------------------------------------------------------------------------------------
+
+  it('shows similar protocols before an approval, with each candidate’s own approval state', async () => {
+    const fixture = await render(page([UNAPPROVED]));
+    const element = fixture.nativeElement as HTMLElement;
+
+    (element.querySelector('[data-testid="row-approve"]') as HTMLButtonElement).click();
+    await fixture.whenStable();
+    similarTo();
+    await fixture.whenStable();
+
+    expect(element.querySelector('[data-testid="duplicates-dialog"]')).not.toBeNull();
+    // Which protocol is being approved, named: the button that opened this was one of several
+    // identical ones in a table.
+    expect(element.querySelector('[data-testid="duplicates-target"]')?.textContent).toContain(
+      'E-47 Druckabfall',
+    );
+
+    const card = element.querySelector('[data-testid="duplicate-card"]');
+    expect(card?.textContent).toContain('E-47 Druckabfall im Presshub');
+    // A whole percentage. 93.05 beside 92.87 invites a reviewer to treat the difference as
+    // meaningful, and the decision it informs — open both and read them — is the same either way.
+    expect(element.querySelector('[data-testid="duplicate-score"]')?.textContent).toContain('93 %');
+    // THE FIELD THIS FEATURE TURNS ON. "Nearly the same as something an administrator already
+    // vouched for" is a merge-or-reject question; "nearly the same as one nobody has reviewed" may
+    // be two people describing one fault from different angles, which this corpus wants both of.
+    expect(card?.textContent).toContain('Freigegeben');
+    // The threshold comes from the backend, so no screen hard-codes a configurable number.
+    expect(element.querySelector('[data-testid="duplicates-method"]')?.textContent).toContain('92');
+
+    // NOTHING WAS APPROVED YET, and nothing was refused either.
+    httpMock.expectNone('/api/moderation/protocols/p-1/approval');
+  });
+
+  it('keeps the approve button enabled throughout — similarity warns, it never blocks', async () => {
+    const fixture = await render(page([UNAPPROVED]));
+    const element = fixture.nativeElement as HTMLElement;
+
+    (element.querySelector('[data-testid="row-approve"]') as HTMLButtonElement).click();
+    await fixture.whenStable();
+    // A verbatim copy is the strongest signal this feature can produce.
+    similarTo('p-1', { similarity: 0.9778 });
+    await fixture.whenStable();
+
+    // THE GOVERNING RULE, AS A TEST. There is no state of this dialog in which the button is
+    // disabled, and no branch on the server that refuses an approval on a score either. Four
+    // legitimate E-47 protocols describe four different root causes behind one fault code; a
+    // feature that could turn "similar" into "refused" would have removed exactly the knowledge
+    // that makes the demo answer good.
+    const approve = element.querySelector(
+      '[data-testid="duplicates-approve"]',
+    ) as HTMLButtonElement;
+    expect(approve.disabled).toBe(false);
+    // And no danger styling: this is the review palette, and the words never say "warning".
+    expect(approve.className).not.toContain('btn-danger');
+    expect(element.querySelector('[data-testid="duplicates-intro"]')?.className).toContain(
+      'notice-review',
+    );
+
+    approve.click();
+    await fixture.whenStable();
+
+    const request = httpMock.expectOne('/api/moderation/protocols/p-1/approval');
+    expect(request.request.body).toEqual({ approved: true, comment: '' });
+    request.flush({ state: 'APPROVED', approvedBy: 'admin', approvedAt: '2026-08-14T10:00:00Z' });
+    httpMock.expectOne((r) => r.url === '/api/moderation/protocols').flush(page([protocol()]));
+    await fixture.whenStable();
+
+    expect(element.querySelector('[data-testid="duplicates-dialog"]')).toBeNull();
+  });
+
+  it('renders no candidate section at all when nothing is similar', async () => {
+    // THE EMPTY CASE. Not an empty list inside a dialog nobody needed — no dialog. A section that
+    // is permanently blank is one readers learn to skip, including on the day it fills up.
+    const fixture = await render(page([UNAPPROVED]));
+    const element = fixture.nativeElement as HTMLElement;
+
+    (element.querySelector('[data-testid="row-approve"]') as HTMLButtonElement).click();
+    await fixture.whenStable();
+    noSimilar();
+    await fixture.whenStable();
+
+    expect(element.querySelector('[data-testid="duplicates-dialog"]')).toBeNull();
+    expect(element.querySelector('[data-testid="duplicate-list"]')).toBeNull();
+    expect(element.querySelector('[data-testid="duplicates-intro"]')).toBeNull();
+
+    httpMock
+      .expectOne('/api/moderation/protocols/p-1/approval')
+      .flush({ state: 'APPROVED', approvedBy: 'admin', approvedAt: '2026-08-14T10:00:00Z' });
+    httpMock.expectOne((r) => r.url === '/api/moderation/protocols').flush(page([protocol()]));
+    await fixture.whenStable();
+  });
+
+  it('counts the tail rather than dropping it', async () => {
+    const fixture = await render(page([UNAPPROVED]));
+    const element = fixture.nativeElement as HTMLElement;
+
+    (element.querySelector('[data-testid="row-approve"]') as HTMLButtonElement).click();
+    await fixture.whenStable();
+    similarTo('p-1', {}, { total: 4, allIds: ['p-9', 'p-8', 'p-7', 'p-6'] });
+    await fixture.whenStable();
+
+    // Three links are a prompt to compare; ten are a report nobody reads. The count is what stops
+    // the fourth from disappearing without trace.
+    expect(element.querySelector('[data-testid="duplicates-more"]')?.textContent).toContain('3');
+
+    (element.querySelector('[data-testid="duplicates-cancel"]') as HTMLButtonElement).click();
+    await fixture.whenStable();
+    httpMock.expectNone('/api/moderation/protocols/p-1/approval');
+  });
+
+  it('opens a candidate in the read-only viewer, and comes back to the list', async () => {
+    const fixture = await render(page([UNAPPROVED]));
+    const element = fixture.nativeElement as HTMLElement;
+
+    (element.querySelector('[data-testid="row-approve"]') as HTMLButtonElement).click();
+    await fixture.whenStable();
+    similarTo();
+    await fixture.whenStable();
+
+    (element.querySelector('[data-testid="duplicate-open"]') as HTMLButtonElement).click();
+    await fixture.whenStable();
+
+    // A percentage is not a comparison: deciding that two accounts of one fault are one account
+    // filed twice means reading both. The admin path, not the citation one — an admin holds no
+    // shop-floor role and the citation endpoint would 403 for exactly this reader.
+    httpMock
+      .expectOne('/api/moderation/protocols/p-9/document')
+      .flush(new Blob(['Symptom:\nKein Druck.\n'], { type: 'text/plain' }));
+    await fixture.whenStable();
+    await fixture.whenStable();
+
+    // ONE MODAL AT A TIME. Two focus traps in one page fight over Tab and Escape, so the duplicate
+    // list steps aside rather than stacking — and it comes back with its state intact rather than
+    // making the reviewer start the comparison again.
+    expect(element.querySelector('[data-testid="duplicates-dialog"]')).toBeNull();
+
+    (element.querySelector('[data-testid="protocol-close"]') as HTMLButtonElement).click();
+    await fixture.whenStable();
+
+    expect(element.querySelector('[data-testid="duplicates-dialog"]')).not.toBeNull();
+    expect(element.querySelector('[data-testid="duplicate-card"]')?.textContent).toContain(
+      'E-47 Druckabfall im Presshub',
+    );
+
+    (element.querySelector('[data-testid="duplicates-cancel"]') as HTMLButtonElement).click();
+    await fixture.whenStable();
+  });
+
+  it('approves anyway when the similarity check itself fails', async () => {
+    // FAIL OPEN, DELIBERATELY. Nothing is lost by it: the backend recomputes the same comparison
+    // inside the approval and writes what it found into the ledger, so the audit record is correct
+    // whether or not this call succeeded. Blocking an approval because a WARNING could not be
+    // fetched would invert the rule the whole feature rests on.
+    const fixture = await render(page([UNAPPROVED]));
+    const element = fixture.nativeElement as HTMLElement;
+
+    (element.querySelector('[data-testid="row-approve"]') as HTMLButtonElement).click();
+    await fixture.whenStable();
+    httpMock
+      .expectOne('/api/moderation/protocols/p-1/similar')
+      .flush('', { status: 503, statusText: 'Service Unavailable' });
+    await fixture.whenStable();
+
+    httpMock
+      .expectOne('/api/moderation/protocols/p-1/approval')
+      .flush({ state: 'APPROVED', approvedBy: 'admin', approvedAt: '2026-08-14T10:00:00Z' });
+    httpMock.expectOne((r) => r.url === '/api/moderation/protocols').flush(page([protocol()]));
+    await fixture.whenStable();
+
+    expect(element.querySelector('[data-testid="approval-notice"]')).not.toBeNull();
   });
 
   it('will not withdraw an approval without a stated reason', async () => {

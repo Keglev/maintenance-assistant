@@ -13,6 +13,7 @@ import {
   ProtocolFilter,
   ProtocolPage,
   QueryAnswer,
+  SimilarityReport,
   UploadAccepted,
   UploadStatus,
 } from './api.types';
@@ -166,6 +167,21 @@ export class MaintenanceApiService {
     return this.http.put<Approval>(
       `${this.apiBaseUrl}/moderation/protocols/${protocolId}/approval`,
       { approved, comment },
+    );
+  }
+
+  /**
+   * Protocols on the same machine that say close to what this one says. Admin only, server-side.
+   *
+   * **A read, and only ever a read.** It is asked before an approval so the approver can compare,
+   * and the approval itself does not depend on it: the backend recomputes the same comparison and
+   * writes what it found into the ledger, so an approval made without ever calling this records the
+   * same fact. That is what makes it safe for the view to fail open when this call errors — see
+   * `Moderation.approve`.
+   */
+  similarProtocols(protocolId: string): Observable<SimilarityReport> {
+    return this.http.get<SimilarityReport>(
+      `${this.apiBaseUrl}/moderation/protocols/${protocolId}/similar`,
     );
   }
 

@@ -77,7 +77,7 @@ count of anything.
 
 ## Visual regression
 
-Sixteen baselines — eight surfaces × two palettes — compared per run. They exist because v1.1 spent
+Eighteen baselines — nine surfaces × two palettes — compared per run. They exist because v1.1 spent
 **four pull requests** (#41, #44, #45, #46) on spacing and layout defects that were all found the
 same way: Carlos opened production and looked.
 
@@ -109,7 +109,35 @@ rendered inside a card rather than in a table cell.
 > to its first control from a `setTimeout`, one tick after the panel renders — so a screenshot taken
 > on `toBeVisible()` caught the panel with or without a focus ring depending on the scheduler.
 > **Visible is not settled.** The test now waits for focus to land, and any future baseline of a
-> dialog needs the same line.
+> dialog needs the same line — or, where *which* element wins is itself a race, places focus
+> explicitly. The protocol viewer is that second case: its first focusable is a Download button that
+> is disabled until the document arrives, so the panel takes focus instead (the #50 fix) and the
+> winner depends on whether the fetch beat the timer.
+
+The ninth, added in v1.2's fifth pull request, is the **protocol viewer's history section** — where
+provenance went when Carlos's production drill found the records table's approval column truncating.
+It is where that PR's design lives, and the claim is a layout claim: three entries reading well
+beside a document, the verb/actor/timestamp line wrapping at a dialog's width, separators that
+survive the dark palette. Scoped to the section and unmasked, because every value in it is stubbed.
+
+### The tolerance can hide a real change — delete before you regenerate
+
+`maxDiffPixelRatio` is `0.002`, about a thousand pixels on a dialog-sized shot. That is **enough to
+absorb one line of text disappearing.** It happened on 2026-08-14: the approval badge stopped
+rendering its actor, the duplicate-dialog baselines still passed, and `--update-snapshots` therefore
+refreshed nothing — it only rewrites what *fails*. A baseline that survives a deliberate content
+change has quietly stopped recording what the application looks like, which is the one thing
+[ADR-007](../../docs/adr/ADR-007-end-to-end-testing-strategy.md) asks of it.
+
+**So after an intentional change, delete the affected baselines and regenerate rather than trusting
+`--update-snapshots` to notice.** Regeneration is byte-deterministic in the pinned container, so
+`git status` afterwards is an exact list of what really moved:
+
+```bash
+rm frontend/e2e/__screenshots__/*.png
+npm run e2e:visual:update
+git status --porcelain frontend/e2e/__screenshots__/   # exactly what changed, and nothing else
+```
 
 ```bash
 npm run e2e:visual          # compare against the baselines
@@ -200,7 +228,7 @@ to a required check at **ten consecutive green runs with no infrastructure-cause
 | **Consecutive green runs of the CURRENT `e2e` job** | **2** — the count restarted on 2026-08-12 |
 | Green runs of the previous job shape | 4 (three on #50, one on main after merge) |
 | Why the count restarted | That job had no throwaway database, no provider stub, an unindexed corpus and skipped the re-index test. A streak counts runs of the same thing. |
-| **`visual` job** | Separate check, also advisory. **2 consecutive green runs** (2026-08-13). The set grew to 16 on 2026-08-14; adding a surface does not restart the count, because the other fourteen are compared against the same bytes they always were — a *shape* change does, as it did for `e2e` on 2026-08-12. |
+| **`visual` job** | Separate check, also advisory. **2 consecutive green runs** (2026-08-13). The set grew to 16 and then 18 on 2026-08-14; adding a surface does not restart the count, because the rest are compared against the same bytes they always were — a *shape* change does, as it did for `e2e` on 2026-08-12. |
 
 The `visual` job is deliberately a **separate check**: a pixel diff and a broken flow are different
 news for different people, and a red `visual` beside a green `e2e` says exactly what it means — it

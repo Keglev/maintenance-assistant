@@ -33,18 +33,32 @@ import org.springframework.context.annotation.Configuration;
 <span class="fc" id="L33">        .info(new Info()</span>
 <span class="fc" id="L34">            .title(&quot;maintenance-assistant API&quot;)</span>
 <span class="fc" id="L35">            .version(&quot;v1&quot;)</span>
-            // Markdown, which Swagger UI renders in place. The back-link is the only navigation
-            // out of the documentation: the UI is a page of its own with no header of ours, so a
-            // reader who arrives here from the README would otherwise have to reach for the
-            // browser's back button to find the application it describes.
-<span class="fc" id="L40">            .description(&quot;&quot;&quot;</span>
+            // Markdown, which Swagger UI renders in place. The two back-links are the only
+            // navigation out of the documentation: the UI is a page of its own with no header of
+            // ours, so a reader who arrives here — from the README or from the card on the docs
+            // landing page — would otherwise have to reach for the browser's back button to find
+            // either the application it describes or the documentation that sent them here.
+            //
+            // The spec's own description carries them on purpose. springdoc offers no property
+            // for a link in the Swagger UI topbar, and the alternatives (a layout override, or a
+            // static wrapper page around the distribution) mean shipping and maintaining assets
+            // for one anchor. This is data in the document we already publish: no asset, no
+            // inline script or style, and therefore nothing the Caddy CSP can refuse.
+            //
+            // FAILURE MODE, stated rather than assumed: if a future Swagger UI stops rendering
+            // markdown in the description, these degrade to visible literal text — wrong-looking,
+            // not invisible. OpenApiSpecIT asserts both URLs are in the served document, which
+            // catches the configuration being lost; it cannot catch a rendering change, and only
+            // opening the page does.
+<span class="fc" id="L53">            .description(&quot;&quot;&quot;</span>
                 Search industrial maintenance protocols in natural language (DE/EN) and get \
                 answers with citations. Roles come from Keycloak; answers are filtered by role \
                 server-side.
 
-                [← Back to the application](https://maintenance.smartsupply.com.de/)&quot;&quot;&quot;)
-<span class="fc" id="L46">            .license(new License().name(&quot;MIT&quot;).url(&quot;https://opensource.org/licenses/MIT&quot;)))</span>
-<span class="fc" id="L47">        .components(new Components().addSecuritySchemes(&quot;keycloak&quot;, keycloak));</span>
+                [← Back to the application](https://maintenance.smartsupply.com.de/) · \
+                [Documentation site](https://keglev.github.io/maintenance-assistant/)&quot;&quot;&quot;)
+<span class="fc" id="L60">            .license(new License().name(&quot;MIT&quot;).url(&quot;https://opensource.org/licenses/MIT&quot;)))</span>
+<span class="fc" id="L61">        .components(new Components().addSecuritySchemes(&quot;keycloak&quot;, keycloak));</span>
   }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

@@ -253,15 +253,6 @@ export type ApiFailure =
   | 'rejectedContent'
   /** An edit tried to change the machine or the type — the identity lock (ADR-006 revision). */
   | 'identityLocked'
-  /**
-   * The approval was refused because the caller wrote or last corrected this protocol.
-   *
-   * Its own failure rather than a generic 400, because it is the only refusal in this API that the
-   * reader can act on by asking a specific person: another administrator has to approve it. A
-   * disabled button or a silent failure here is a bug report waiting to happen — the reader would
-   * have no way to learn that the rule exists, let alone that they tripped it.
-   */
-  | 'fourEyesRequired'
   /** The protocol is already in the archive, and archived is final. */
   | 'archived'
   | 'forbidden'
@@ -298,12 +289,6 @@ export function classify(error: unknown): ApiFailure {
     case 400:
       if (reasonOf(error) === 'PROTOCOL_IDENTITY_LOCKED') {
         return 'identityLocked';
-      }
-      // The four-eyes refusal. Matched on the code rather than on the status, because a 400 from
-      // this endpoint is also how a withdrawal without a reason comes back — and those two need
-      // opposite sentences: one names a rule, the other names a missing field.
-      if (reasonOf(error) === 'FOUR_EYES_REQUIRED') {
-        return 'fourEyesRequired';
       }
       return REJECTION_CODES.has(reasonOf(error) ?? '') ? 'rejectedContent' : 'generic';
     // Only one thing answers 409 in this API: an edit of a protocol that is already archived. The

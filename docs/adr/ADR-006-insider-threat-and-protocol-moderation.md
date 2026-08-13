@@ -857,3 +857,123 @@ intentional change, delete the affected baselines and regenerate rather than tru
 `git status` afterwards is an exact list of what really moved. Doing that here showed exactly two
 files; the other fourteen were byte-identical, which is the check saying the records table itself did
 not shift.
+
+---
+
+## Revision — 2026-08-15: four eyes moves from a runtime check to the role split, and a test
+
+Carlos drilled #57 in production and was refused an approval on "Fehlercode x-99" — a red banner
+across the administrator's table, citing the four-eyes rule. **Nobody had broken it.**
+
+### What actually happened
+
+That protocol carries an `EDIT` event whose actor is `admin`, written during a drill *before* #54
+removed the administrator's edit right. The act-based check compared the approver's username against
+the newest `EDIT` actor, found a match, and refused. It was applying today's rule to yesterday's
+data — and because approval is the only thing an administrator can do to a protocol, the refusal was
+permanent: no role could ever clear it.
+
+### The sequence is the point, and it is worth writing down plainly
+
+**A guard that was right, and then became wrong because the design around it changed.**
+
+1. **#53 introduced it, correctly.** At that time the administrator still held the edit. "The same
+   human filed and approved this" and "the same human corrected and approved this" were both
+   reachable, and no role split prevented either. A runtime comparison was the only thing that
+   could express the rule.
+2. **#54 made it redundant.** Option B split the roles: Techniker writes, Schichtleiter corrects,
+   Admin approves, and nobody holds two of the three jobs. From that commit the check could no
+   longer fire on anything a live role can produce — approval is admin-only, upload is Techniker
+   and Schichtleiter, correction is Schichtleiter-only.
+3. **It was kept anyway, deliberately**, as the belt to the split's braces. The argument was
+   recorded in the 2026-08-14 note above and it was a reasonable one: a rule enforced in exactly one
+   place is one `@PreAuthorize` edit away from being gone.
+4. **And then it fired — on legacy data only.** The residual it retained was not a safety property.
+   It was a trap for rows written under the old rules.
+
+The lesson is not "do not keep backstops". It is that **a backstop has to be checked against the
+design it is backing up.** This one stopped protecting a live path the moment the roles became
+disjoint, and nobody re-read it in that light for three pull requests.
+
+### The decision: simplify, and move the guard rather than drop it
+
+**Removed:** `requireFourEyes` and both branches, the `FOUR_EYES_REQUIRED` reason code, the
+frontend's `classify()` case, its `ApiFailure` member, both dictionary strings and the `@switch`
+branch that rendered the banner. No dead reason code, no unreachable error path, and no UI handling
+a response the backend can no longer produce. Every javadoc paragraph arguing for the check is
+deleted rather than softened — this project has already been bitten once by a document that outlived
+its decision.
+
+**The property is unchanged and is now stated structurally:**
+
+> No role may hold both a corpus-write authority (upload, correct) and the approve authority.
+
+**Where it lives:** `RoleMatrixIT`. It fails the build the day someone widens an annotation, instead
+of showing a banner to one user at runtime — earlier, louder, and for every endpoint rather than for
+one pair.
+
+### How the matrix is derived, and why not by reading the annotations
+
+**Every cell is measured by making the request.** For each endpoint and each realm role the test
+issues a real call through the full security filter chain: 403 means refused, anything else means the
+method was entered. Reflection over `@PreAuthorize` was considered and rejected:
+
+- **Parsing SpEL is a re-implementation.** It would need its own model of `hasRole` versus
+  `hasAnyRole`, the `ROLE_` prefix, `isAuthenticated()`, and whatever a future expression uses. The
+  day it meets one it does not understand it goes quietly green — the worst possible failure for a
+  guard.
+- **An annotation is not the effective rule.** `ModerationController` carries a class-level
+  `hasRole('ADMIN')` that method-level annotations *replace*. Reflection over one method cannot see
+  that; a request can. The same is true of anything `SecurityConfig` does to the chain.
+- **A hand-written table is not evidence.** Restating the matrix in a second file would assert only
+  that two files agree, and both were written by the same person on the same afternoon.
+
+Reflection is still used for the one job it is good at: `everyEndpointIsInTheMatrix` walks Spring's
+own handler mapping and fails if a controller gains a route the matrix does not probe.
+
+### A defect in the test, found because it failed for the wrong reason
+
+The upload probe first sent `machineNo` and `protocolType`; the controller declares `machine` and
+`type`. **Spring MVC resolves handler arguments before the method-security interceptor runs**, so the
+missing required parameter produced a 400 for every role — and 400 is "not 403", which the matrix
+read as ALLOWED. It duly reported that all four roles could upload, including the administrator, and
+the four-eyes assertion failed for a reason that had nothing to do with the application.
+
+A guard that can be defeated by a typo in its own request builder is not a guard, so
+`everyProbeActuallyReachesTheGuard` was added: if an endpoint answers every role with the same 4xx
+that is not 403, the request never reached the rule and the row is reported as meaningless rather
+than trusted. It says nothing about *who* should be allowed, so it does not beg the question the
+other tests answer.
+
+### What would break the property, and what the test would say
+
+Widening the approval endpoint to the Schichtleiter — the most plausible future mistake, since they
+already reach that screen — fails with:
+
+```
+role SCHICHTLEITER can both write to the corpus (POST /api/protocols and
+PUT /api/moderation/protocols/{id}) and approve — FOUR EYES IS GONE: the same person could
+write a protocol and then vouch for it. The trust chain rests on these authorities being held
+by DIFFERENT roles (decision 3 of 2026-08-11, ADR-006). If this widening is intended, the chain
+has to be redesigned — not this test relaxed.
+```
+
+That was produced by actually making the change, not by reading the code.
+
+### Legacy data: nothing is migrated, and that is deliberate
+
+The pre-#54 `EDIT` rows stay exactly as they are. **They are the record of what happened under the
+rules of the day**, and rewriting history so it matches the current rules is the opposite of what
+this ledger exists for — the same argument that gives `moderation_event` no foreign key and no
+restore endpoint. What changes is only that they no longer block anything.
+
+Measured on the development database: 12 `EDIT` rows carry `admin` as their actor, all of them
+orphaned by the archive cap; no live protocol there currently carries one. The x-99 protocol is
+production data and was not queried. `ProtocolApprovalIT.aPreOptionBEditDoesNotBlockTheApproval`
+reproduces the shape — an administrator's own old `EDIT`, then that administrator approving — and
+asserts both that the approval succeeds and that the old row is still there afterwards.
+
+### What is NOT changed
+
+Who may write, correct or approve. This is a refactor of how a property is *guarded*, not of the
+property. The three roles and their three jobs are exactly as decision 3 of 2026-08-11 set them.

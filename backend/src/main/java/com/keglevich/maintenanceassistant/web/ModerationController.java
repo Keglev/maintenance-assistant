@@ -263,13 +263,13 @@ class ModerationController {
      * distinct people, one job each — and the cleanest way to say "nobody does two jobs" is that
      * nobody HOLDS two jobs. Carlos's decision after reviewing #53: the admin stops editing.
      *
-     * THE ROLE SPLIT IS THE RULE; THE LEDGER CHECK IS THE BELT. ProtocolApprovalService still
-     * refuses an approval by whoever filed or last corrected the protocol, and that check is
-     * deliberately KEPT even though no administrator can now reach the edit path at all. It costs
-     * one query on an act that happens rarely, it is the only guard that survives a future role
-     * widening, and it is the only one that could ever catch "the same human did both" — a role
-     * cannot express that. A rule enforced in one place only is a rule one @PreAuthorize edit away
-     * from being gone.
+     * THE ROLE SPLIT IS THE WHOLE RULE (2026-08-15). A ledger check in ProtocolApprovalService used
+     * to sit behind it as a second line; it was removed once it became clear it could no longer fire
+     * on anything a live role can produce, and that the only thing it did fire on was pre-#54 data.
+     * What replaced it is RoleMatrixTest, which reads the @PreAuthorize annotations on these methods
+     * and fails the build if any role gains both a corpus-write authority and the approve authority.
+     * A rule enforced in one place only is a rule one annotation edit away from being gone — so the
+     * annotation edit is what is now guarded, in CI, rather than its consequence at runtime.
      */
     @PreAuthorize("hasRole('SCHICHTLEITER')")
     ResponseEntity<Map<String, String>> edit(@PathVariable UUID id,
@@ -320,8 +320,10 @@ class ModerationController {
             description = "Approval is a STATEMENT, not a gate: an unapproved protocol stays "
                     + "searchable and citable, because the administrator may not review at a "
                     + "weekend and the factory does not stop. What approval changes is what the "
-                    + "interface can say about a source. FOUR EYES: whoever filed the protocol, and "
-                    + "whoever last corrected it, cannot approve it. Idempotent — approving "
+                    + "interface can say about a source. FOUR EYES is carried by the ROLE SPLIT — "
+                    + "the Techniker files, the Schichtleiter corrects, the Admin approves, and no "
+                    + "role holds two of those jobs — rather than by comparing usernames here. "
+                    + "Idempotent — approving "
                     + "something already approved succeeds and writes no second audit row. A "
                     + "comment is required to WITHDRAW approval and optional to grant it: taking "
                     + "back something a named person vouched for is the direction that needs "
@@ -329,8 +331,7 @@ class ModerationController {
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "The resulting approval state"),
             @ApiResponse(responseCode = "400",
-                    description = "Withdrawing without a comment (`MODERATION_COMMENT_REQUIRED`), or "
-                            + "the caller wrote or corrected this protocol (`FOUR_EYES_REQUIRED`)"),
+                    description = "Withdrawing without a comment (`MODERATION_COMMENT_REQUIRED`)"),
             @ApiResponse(responseCode = "403", description = "Caller is not an administrator"),
             @ApiResponse(responseCode = "404", description = "No such protocol"),
             @ApiResponse(responseCode = "409", description = "The protocol is archived (`PROTOCOL_ARCHIVED`)")
@@ -349,8 +350,8 @@ class ModerationController {
     /**
      * @param approved the state being asserted, not a verb. PUT of a state rather than
      *                 POST /approve + POST /unapprove, because "make this approved" is idempotent
-     *                 by construction and two endpoints would be two places to keep the four-eyes
-     *                 rule in step.
+     *                 by construction and two endpoints would be two places to keep one rule in
+     *                 step.
      * @param comment  required to withdraw, optional to grant. In the body rather than a query
      *                 parameter for the same reason the delete comment is: it can name a
      *                 colleague's mistake, and a query string lands in access logs.

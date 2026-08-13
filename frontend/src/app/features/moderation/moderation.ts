@@ -554,11 +554,12 @@ export class Moderation {
   /**
    * Performs the approval itself.
    *
-   * <p><b>The refusal is handled explicitly, and that is the point of this method.</b> The backend
-   * answers 400 `FOUR_EYES_REQUIRED` when the caller filed or last corrected the protocol. Leaving
-   * that as a generic "the request failed" — or, worse, disabling the button and saying nothing —
-   * would leave an administrator staring at a control that does not work for a reason they cannot
-   * discover. The rule is explained in a sentence, beside the row it applies to.
+   * <p>A failure is still reported beside the row it belongs to rather than at the top of the page,
+   * because the reader pressed one button among ten identical ones. What can fail is now narrower:
+   * the protocol was archived or removed by somebody else while this screen was open. The
+   * four-eyes refusal that used to be handled here is gone with the runtime check behind it
+   * (2026-08-15) — the property is carried by the role split and guarded by a test, and no response
+   * this client can receive says `FOUR_EYES_REQUIRED` any more.
    */
   private commitApproval(protocol: ModeratedProtocol): void {
     this.approving.set(protocol.id);

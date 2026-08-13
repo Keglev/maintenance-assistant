@@ -703,7 +703,12 @@ describe('Moderation', () => {
     );
   });
 
-  it('explains the four-eyes refusal beside the row, instead of failing generically', async () => {
+  it('reports a refused approval beside the row it belongs to', async () => {
+    // THE FOUR-EYES CASE THAT USED TO BE HERE IS GONE with the runtime check behind it
+    // (2026-08-15): the property is carried by the role split now, and no response this client can
+    // receive says FOUR_EYES_REQUIRED any more. What remains worth asserting is the PLACEMENT — a
+    // failure names the row it is about, because the reader pressed one button among ten identical
+    // ones and a sentence at the top of the page about "this protocol" names none of them.
     const fixture = await render(page([UNAPPROVED]));
     const element = fixture.nativeElement as HTMLElement;
 
@@ -712,18 +717,14 @@ describe('Moderation', () => {
     noSimilar();
     await fixture.whenStable();
     httpMock.expectOne('/api/moderation/protocols/p-1/approval').flush(
-      { reason: 'FOUR_EYES_REQUIRED', error: 'you corrected this protocol' },
-      { status: 400, statusText: 'Bad Request' },
+      { reason: 'PROTOCOL_ARCHIVED', error: 'this protocol is in the archive' },
+      { status: 409, statusText: 'Conflict' },
     );
     await fixture.whenStable();
 
-    // THE SENTENCE IS THE POINT. A disabled button, or "the request failed", would leave an
-    // administrator staring at a control that does not work for a reason they cannot discover —
-    // which is a bug report waiting to happen rather than a rule being enforced.
-    const failure = element.querySelector('[data-testid="approval-failure"]')?.textContent ?? '';
-    expect(failure).toContain('zuletzt korrigiert');
-    expect(failure).toContain('andere');
-    // Beside the row it belongs to: the reader clicked one button among ten identical ones.
+    expect(element.querySelector('[data-testid="approval-failure"]')?.textContent).toContain(
+      'entfernt',
+    );
     expect(element.querySelector('[data-testid="approval-failure-row"]')).not.toBeNull();
   });
 

@@ -17,6 +17,24 @@ const PATTERNS: Readonly<Record<UiLanguage, string>> = {
   en: 'MM/dd/yyyy',
 };
 
+/**
+ * The same day, with the clock time on it.
+ *
+ * <p>Added for the protocol viewer's history section, where the day alone is not enough: two
+ * corrections on one afternoon are a different story from two a month apart, and a ledger that
+ * showed both as "14.08.2026" would hide the sequence a reader is there to reconstruct. The
+ * moderation table keeps the day-only format — a column of timestamps is noise in a list somebody
+ * is scanning for a title.
+ *
+ * <p>24-hour for German and 12-hour with am/pm for English, because that is what each language reads
+ * without converting in their head. No seconds: the ledger records an act by a person, and nobody
+ * needs to know which second they pressed the button.
+ */
+const PATTERNS_WITH_TIME: Readonly<Record<UiLanguage, string>> = {
+  de: "dd.MM.yyyy, HH:mm 'Uhr'",
+  en: 'MM/dd/yyyy, h:mm a',
+};
+
 /** Which locale Angular formats with. `de` is registered in `app.config.ts`; `en-US` is built in. */
 const LOCALES: Readonly<Record<UiLanguage, string>> = {
   de: 'de',
@@ -44,12 +62,23 @@ const LOCALES: Readonly<Record<UiLanguage, string>> = {
  */
 @Pipe({ name: 'appDate' })
 export class AppDatePipe implements PipeTransform {
-  transform(value: string | Date | null | undefined, language: UiLanguage): string {
+  /**
+   * @param withTime whether to add the clock time. Optional and off, so every existing call site
+   *                 keeps the day-only format it was written for — the viewer's history is the one
+   *                 place that needs the minute, and a default that changed under twenty call sites
+   *                 would be a formatting change disguised as a feature.
+   */
+  transform(
+    value: string | Date | null | undefined,
+    language: UiLanguage,
+    withTime = false,
+  ): string {
     if (value === null || value === undefined || value === '') {
       return '';
     }
     try {
-      const formatted = DATES.transform(value, PATTERNS[language], undefined, LOCALES[language]);
+      const pattern = withTime ? PATTERNS_WITH_TIME[language] : PATTERNS[language];
+      const formatted = DATES.transform(value, pattern, undefined, LOCALES[language]);
       return formatted ?? String(value);
     } catch {
       // DatePipe THROWS on a value it cannot parse rather than returning null. A row with a broken

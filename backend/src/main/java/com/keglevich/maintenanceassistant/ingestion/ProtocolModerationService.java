@@ -363,6 +363,89 @@ public class ProtocolModerationService {
         return new DeletedProtocolPage(rows, page, limit, total, ARCHIVE_CAP);
     }
 
+    /**
+     * How many ledger entries the protocol viewer shows.
+     *
+     * <p><b>THREE IS A PRODUCT DECISION, NOT A TECHNICAL LIMIT — please do not "fix" it.</b> The
+     * viewer exists to let somebody read a protocol; the history beside it answers "what has been
+     * done to this recently, and by whom", and three lines answer that on a tablet without pushing
+     * the document itself below the fold. A full change history is a REPORT — its own screen, with
+     * paging and filters — and Carlos has deferred it deliberately rather than left it out by
+     * accident. Raising this number would grow a dialog into that report one line at a time.
+     *
+     * <p>The count of everything is returned beside the three, so the viewer can say that older
+     * entries exist. A truncation nobody is told about is the failure this constant would otherwise
+     * cause.
+     */
+    public static final int HISTORY_LIMIT = 3;
+
+    /**
+     * What has been done to one protocol, newest act first.
+     *
+     * <p><b>Limited in SQL rather than in the client</b>, which is the whole reason this returns a
+     * record instead of a list: a protocol edited weekly for a year has fifty rows, and sending all
+     * of them so a dialog can drop forty-seven is a payload that grows with the corpus's age. The
+     * index {@code ix_moderation_event_protocol (protocol_id, created_at DESC)} exists for exactly
+     * this ordering and was written in V4 for the archive's lateral join.
+     *
+     * <p>Works for an archived protocol as well as a live one. {@code moderation_event} has no
+     * foreign key — deliberately, so a purge cannot erase the ledger — so this is a lookup by id and
+     * nothing about the protocol's state changes what it can answer.
+     *
+     * <p><b>Every row carries a comment by database constraint</b> ({@code ck_moderation_event_comment}
+     * requires a non-blank one), so the caller never has to render an entry with no reason beside it.
+     */
+    public ProtocolHistory history(UUID protocolId) {
+        List<ModerationEvent> events = jdbc.sql("""
+                        SELECT action, actor, comment, created_at
+                        FROM moderation_event
+                        WHERE protocol_id = :id
+                        ORDER BY created_at DESC, id
+                        LIMIT :limit
+                        """)
+                // Tie-broken by id for the same reason the corpus list is: an edit and the
+                // UNAPPROVE it triggers share a transaction timestamp to the microsecond, so
+                // created_at alone leaves their order free to swap between two reads of one dialog.
+                .param("id", protocolId)
+                .param("limit", HISTORY_LIMIT)
+                .query((rs, rowNum) -> new ModerationEvent(
+                        rs.getString("action"),
+                        rs.getString("actor"),
+                        rs.getString("comment"),
+                        rs.getObject("created_at", OffsetDateTime.class)))
+                .list();
+
+        long total = jdbc.sql("SELECT count(*) FROM moderation_event WHERE protocol_id = :id")
+                .param("id", protocolId)
+                .query(Long.class)
+                .single();
+        return new ProtocolHistory(events, total, HISTORY_LIMIT);
+    }
+
+    /**
+     * One act, as the viewer shows it.
+     *
+     * @param action one of EDIT, DELETE, APPROVE, UNAPPROVE — the vocabulary
+     *               {@code ck_moderation_event_action} allows
+     * @param actor  the Keycloak username of whoever did it
+     * @param comment why. Never null and never blank; the table's own constraint says so
+     * @param at     when, to the second. The viewer shows the TIME as well as the day: two edits on
+     *               one afternoon are a different story from two edits a month apart, and the
+     *               moderation list's day-only format cannot tell them apart
+     */
+    public record ModerationEvent(String action, String actor, String comment, OffsetDateTime at) {
+    }
+
+    /**
+     * @param total how many acts this protocol has had in all, so the viewer can say that older
+     *              entries exist rather than silently showing the newest three as though they were
+     *              everything
+     * @param limit the server-side cap, reported so no screen hard-codes a number this service is
+     *              free to change — the same reason the archive page reports its own cap
+     */
+    public record ProtocolHistory(List<ModerationEvent> events, long total, int limit) {
+    }
+
     /** Writes one line of the ledger. Called by every moderation act, including {@link #delete}. */
     void recordEvent(UUID protocolId, String action, String actor, String comment) {
         jdbc.sql("""

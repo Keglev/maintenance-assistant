@@ -740,3 +740,120 @@ message nobody will find. The check stays as the belt to the split's braces — 
 that could express "the same human did both", the only one that survives a future widening of any of
 those three annotations, and a rule enforced in exactly one place is one edit away from being gone.
 It is covered by `ProtocolApprovalIT` against a real database.
+
+---
+
+## Note — 2026-08-14: the table shows state, the record shows provenance
+
+Carlos drilled #56 in production and found the Verwaltung table's FREIGABE column truncated:
+`Freigegeben system:corpus-seed · 12.08.2…` ran under the action buttons. His ruling, and the design
+this note records: **the list shows the approval STATE; who approved it and when move into the
+protocol viewer as a history section.**
+
+### The defect, measured
+
+The column carried the label, the approver and the date inside `max-width: 11rem`, while the badge
+sets `white-space: nowrap`. So the text did not wrap — it **overflowed**. Measured in the live page
+at the badge's own font: the cap is **176 px**, the seeded string renders at **293 px** (a 117 px
+overflow, two-thirds of the cell spilling out), and even the ordinary `admin · 12.08.2026` case
+renders at 218 px (42 px over). The `max-width` was treating a content problem as a layout problem.
+
+The fix is content, not CSS: with the state alone the widest the badge can ever be is **139 px**
+("Nicht freigegeben"), so the cap is gone entirely and the cell is sized by what it holds. Measured
+after the change, at 1920 px and at 1280 px: **0 px overflow in the approval cell, 0 px in the
+actions cell, 0 buttons painted outside their own row.**
+
+`showActor` was **deleted rather than defaulted off**, and its `language` input with it. The badge
+renders in a table cell, a source card and a dialog head, and provenance repeated in every list that
+mentions a protocol is what produced the defect in the first place. A flag would have left the
+overflowing form one binding away.
+
+### Why the actor is worth keeping at all
+
+Carlos asked, and the answer belongs on the record rather than in a commit message. For the 150
+seeded protocols `system:corpus-seed` says something true and load-bearing: **no human reviewed
+this — it was born approved by a migration.** That is the honest record of decision 2 of 2026-08-11,
+and inventing a person's name there would fabricate exactly the unearned trust the approval flag
+exists to make visible. It is useless repeated on every table row and valuable once, in the record.
+
+### The ledger already spelled four verbs — a finding, and no migration
+
+The brief for this work assumed `ck_moderation_event_action` was still V4's `('EDIT','DELETE')` and
+asked for a migration widening it. **It was widened by V5 (#53)**, in the same migration that added
+the approval columns, to `('EDIT','DELETE','APPROVE','UNAPPROVE')` — and approvals and withdrawals
+have been writing proper rows ever since: actor, timestamp, and a non-blank comment the table's own
+`ck_moderation_event_comment` requires.
+
+Verified on the development database, which carries #53–#56 data: Flyway at V5, six migrations, all
+successful; the constraint in force naming all four verbs; and **52 APPROVE, 31 UNAPPROVE, 51 EDIT
+and 105 DELETE rows already present**. No migration was needed and none was added — the number of
+Flyway files is unchanged by this pull request.
+
+The stored verb is `UNAPPROVE`, not `WITHDRAW`. The interface says "Freigabe zurückgezogen"; renaming
+the stored value would mean a data migration and a sweep of three services to change a word no user
+reads. `ProtocolHistoryIT` asserts the vocabulary in force, including that an invented `WITHDRAW` is
+**refused by the database** — so whoever extends the set finds the constraint rather than a silent
+no-op.
+
+### What happens to approvals recorded before this change: nothing is missing
+
+Counted on the same database: of 163 approved protocols, **13 were approved by `admin` and all 13
+have their ledger row**; **150 were approved by `system:corpus-seed` and none of them has one, by
+design**. So there is no backfill to do and none was attempted. The only rowless approvals are the
+migration's own, and the viewer degrades to exactly them: when a protocol has no acts but does have
+an approver, the section names that approver and the day, and adds one sentence when the actor is a
+`system:` one. A viewer that showed nothing there would let a reader assume the approval came from
+somewhere it did not.
+
+### The history section
+
+The **last three** acts, newest first. Each line carries the verb in plain language (`UNAPPROVE`
+never reaches a screen), the actor, and the **date and the time** — two corrections on one afternoon
+are a different story from two a month apart, and the day-only format the tables use cannot tell them
+apart. The reason comes with every entry, which needs no empty case because the database requires a
+non-blank comment on every row.
+
+**THE THREE-ENTRY CAP IS A PRODUCT DECISION, NOT A TECHNICAL LIMIT**, and it is written down in two
+places in the code so nobody "fixes" it. The viewer exists to let somebody read a protocol; three
+lines answer "what has been done to this recently" without pushing the document below the fold. A
+full change history is a **report** — its own screen, with paging and filters — and Carlos has
+deferred it deliberately. There is no "show all" control here and there is not meant to be one. What
+there is instead is one quiet line saying older entries exist, which is what stops the truncation
+being silent.
+
+Nothing to say renders **no section**: no heading, no empty box, no "no history yet". An unapproved
+protocol nobody has touched has neither acts nor provenance, and a heading over nothing is furniture.
+
+`GET /api/moderation/protocols/{id}/history`, limited server-side with the total reported beside it —
+a protocol edited weekly for a year has fifty rows, and sending all of them so a dialog can drop
+forty-seven is a payload that grows with the corpus's age.
+
+| Endpoint | ADMIN | SCHICHTLEITER | Why |
+|---|---|---|---|
+| `GET /{id}/history` | ✅ | ✅ | you cannot judge a correction without knowing what was already done |
+
+The corrector gets it for the reason they got the document read in the 2026-08-14 widening: **an edit
+that silently repeats a correction somebody made last week is what it prevents.** The shop floor is
+refused, and that is deliberate — who corrected what, who approved it and who took an approval back
+names colleagues in connection with mistakes, which is the same reason the delete comment travels in
+a request body rather than a query string. A technician checking a citation needs the protocol's text
+and its approval STATE, and both already reach them.
+
+A failed history call leaves the section **absent** rather than putting an error beside it. The dialog
+exists to show a protocol; a red box about an unreachable audit trail next to a document that loaded
+perfectly would read as though the document were the problem.
+
+### A finding about the visual check, recorded because it nearly hid this change
+
+`maxDiffPixelRatio` is 0.002 — roughly a thousand pixels on a dialog-sized shot, which is **enough to
+absorb one line of text disappearing.** When the badge stopped rendering its actor, the
+duplicate-detection baselines still passed, and `--update-snapshots` therefore refreshed nothing: it
+only rewrites what fails. A baseline that survives a deliberate content change has quietly stopped
+recording what the application looks like, which is the one property ADR-007 asks of it.
+
+The practice that follows, now written into `visual.e2e.ts` and `e2e/README.md`: **after an
+intentional change, delete the affected baselines and regenerate rather than trusting
+`--update-snapshots` to notice.** Regeneration is byte-deterministic in the pinned container, so
+`git status` afterwards is an exact list of what really moved. Doing that here showed exactly two
+files; the other fourteen were byte-identical, which is the check saying the records table itself did
+not shift.

@@ -240,6 +240,57 @@ for (const scheme of SCHEMES) {
     });
 
     /**
+     * The protocol viewer's history section — where v1.2's provenance lives since 2026-08-14.
+     *
+     * <p>Measured because this is the only place the corpus now says who approved a protocol and
+     * when. Three of the four selectors are deliberately QUIET type — a heading in
+     * `--c-ink-muted`, and an actor and a timestamp in monospace at `--t-sm` — and quiet is exactly
+     * the register that slips below AA without anyone noticing, on a surface a reader is expected
+     * to actually read rather than glance at.
+     */
+    test('the protocol history is legible', async ({ page }) => {
+      await signIn(page, 'admin');
+      await expect(page.getByTestId('moderation-table')).toBeVisible();
+      // Stubbed so the section is fully populated whatever the corpus currently holds: this test is
+      // about the colours it paints, not about which protocol happens to be first in the list.
+      await page.route('**/history', (route) =>
+        route.fulfill({
+          json: {
+            limit: 3,
+            total: 4,
+            events: [
+              {
+                action: 'APPROVE',
+                actor: 'admin',
+                comment: 'geprüft und freigegeben',
+                at: '2026-08-14T09:30:00Z',
+              },
+            ],
+          },
+        }),
+      );
+
+      await page.getByTestId('row-open').first().click();
+      await expect(page.getByTestId('protocol-history')).toBeVisible();
+
+      for (const selector of [
+        '[data-testid="protocol-history"] .viewer-history-heading',
+        '[data-testid="protocol-history"] .viewer-history-what',
+        '[data-testid="history-actor"]',
+        '[data-testid="history-when"]',
+        '[data-testid="history-comment"]',
+        '[data-testid="history-more"]',
+      ]) {
+        const measured = await contrastReport(page, selector);
+        expect(
+          measured.ratio,
+          `${selector} is ${measured.color} on ${measured.background} = ` +
+            `${measured.ratio.toFixed(2)}:1 in ${scheme}`,
+        ).toBeGreaterThanOrEqual(AA_NORMAL);
+      }
+    });
+
+    /**
      * A DEFECT THIS SUITE FOUND IN EXISTING CODE, on its first complete run.
      *
      * `.footer-note` — the "Demo, synthetic data" line at the foot of every signed-in page — uses

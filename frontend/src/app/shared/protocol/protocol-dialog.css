@@ -98,3 +98,84 @@
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
+
+/* ------------------------------------------------------------------------------------------
+   History — what has been done to this protocol
+   ------------------------------------------------------------------------------------------
+   BELOW THE DOCUMENT, not above it. The dialog exists to let somebody read a protocol; the
+   history is context about that protocol, and context that pushed the text below the fold would
+   have inverted the two. Separated by a rule rather than a card, because a card inside a dialog
+   reads as a second dialog. */
+.viewer-history {
+  margin-top: var(--s-5);
+  padding-top: var(--s-4);
+  border-top: 1px solid var(--c-line);
+}
+
+.viewer-history-heading {
+  margin: 0 0 var(--s-3);
+  font-size: var(--t-sm);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--c-ink-muted);
+}
+
+/* An ordered list with its numbering suppressed: the order is the meaning — newest act first — so
+   an <ol> is the honest element even though a visible "1." beside a timestamp would be noise. */
+.viewer-history-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+}
+
+.viewer-history-item + .viewer-history-item {
+  padding-top: var(--s-3);
+  border-top: 1px solid var(--c-line);
+}
+
+/* What / who / when on one line, wrapping as a group rather than letting the timestamp strand
+   itself on a line of its own at a narrow width. */
+.viewer-history-act {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--s-1) var(--s-3);
+  margin: 0 0 var(--s-1);
+}
+
+/* The verb carries the line. It is the one word a reader scans a history for. */
+.viewer-history-what {
+  font-weight: 600;
+}
+
+/* Monospace for both, and for the same reason the uploader column uses it: a username and a
+   timestamp are identifiers, not prose, and tabular figures keep three timestamps aligned under
+   each other rather than shimmying by a digit's width. */
+.viewer-history-who,
+.viewer-history-when,
+.viewer-history-seeded {
+  font-family: var(--font-mono);
+  font-size: var(--t-sm);
+  font-variant-numeric: tabular-nums;
+  color: var(--c-ink-muted);
+}
+
+.viewer-history-seeded {
+  margin: 0 0 var(--s-1);
+}
+
+/* The reason, in prose and at reading measure: it is the field the whole ledger exists to carry,
+   and the one part of an entry that is a sentence rather than an identifier. */
+.viewer-history-why {
+  margin: 0;
+  max-width: var(--read-max);
+  font-size: var(--t-sm);
+  line-height: var(--lh-relaxed);
+}
+
+.viewer-history .caption {
+  margin: var(--s-3) 0 0;
+}

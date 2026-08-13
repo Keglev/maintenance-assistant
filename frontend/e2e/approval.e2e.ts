@@ -152,9 +152,30 @@ test.describe('the approve workflow', () => {
       'data-approval',
       'APPROVED',
     );
-    // WHO and WHEN, on screen. An approval without an actor is not an audit record — the database
-    // constraint says the same thing, and this is that rule reaching a reader.
-    await expect(approved.getByTestId('approval-actor')).toContainText('admin');
+    // AND THE COLUMN SAYS NOTHING ELSE. It carried the approver and the date until Carlos's
+    // production drill of #56 found it truncating — "Freigegeben system:corpus-seed · 12.08.2…"
+    // running under the action buttons. Who and when are provenance and moved into the viewer.
+    await expect(approved.getByTestId('approval-state')).not.toContainText('admin');
+
+    // WHO AND WHEN, ON SCREEN, WHERE THEY LIVE NOW. An approval without an actor is not an audit
+    // record — the database constraint says the same thing, and this is that rule reaching a
+    // reader, in the record rather than in the list.
+    await approved.getByTestId('row-open').click();
+    await expect(page.getByTestId('protocol-history')).toBeVisible();
+    const entry = page.getByTestId('history-item').first();
+    await expect(entry.getByTestId('history-actor')).toContainText('admin');
+    // The TIME as well as the day: two acts on one afternoon are a different story from two a
+    // month apart, and the table's day-only format cannot tell them apart.
+    //
+    // ONE OR TWO DIGITS FOR THE HOUR, and that is a correction rather than a loosened assertion.
+    // German renders 24-hour ("18:05 Uhr") and English 12-hour ("6:05 PM"), and which dictionary a
+    // run gets is a property of the browser profile rather than of this test — the same lesson the
+    // approval label above already carries. What belongs here is that a clock time is on screen at
+    // all; WHICH format is the date pipe's business, in jsdom, where the language is set.
+    await expect(entry.getByTestId('history-when')).toContainText(/\d{1,2}:\d{2}/);
+    // Every ledger row carries a reason by database constraint, so an entry never renders bare.
+    await expect(entry.getByTestId('history-comment')).not.toBeEmpty();
+    await page.getByTestId('protocol-close').click();
 
     // And it has left the queue, which is what makes the queue a queue.
     await page.getByTestId('filter-approval').selectOption('UNAPPROVED');

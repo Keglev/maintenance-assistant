@@ -151,15 +151,23 @@
   font-size: var(--t-sm);
 }
 
-/* The approval state wraps rather than widening the column: "Freigegeben admin · 12.08.2026" is the
-   longest cell in the table, and letting it set the width would push the actions off a tablet. */
+/* THE COLUMN THAT TRUNCATED IN PRODUCTION, and what fixed it.
+   It used to carry "Freigegeben system:corpus-seed · 12.08.2026" inside `max-width: 11rem`, and the
+   badge sets `white-space: nowrap` — so the text did not wrap, it overflowed, and ran under the
+   action buttons. The max-width was treating a content problem as a layout problem.
+   Since 2026-08-14 the cell holds the STATE and nothing else (Carlos's ruling): "Nicht freigegeben"
+   is the widest it can be, which fits in well under half the old ceiling. `nowrap` keeps the badge
+   on one line and the cell is sized by its own content — no cap to overflow, nothing to clip. */
 .approval-cell {
-  max-width: 11rem;
+  white-space: nowrap;
+  width: 1%;
 }
 
-/* The title column gets the room the new approval column would otherwise take from it. Without
-   this, six columns and three buttons squeezed "presse aus, kein strom am pult" onto three lines
-   at 1280px — a table of three-line rows is a table nobody scans. */
+/* The title column gets the room the approval column would otherwise take from it. Without this,
+   six columns and three buttons squeezed "presse aus, kein strom am pult" onto three lines at
+   1280px — a table of three-line rows is a table nobody scans. The floor stays where it was even
+   though the approval cell shrank on 2026-08-14: it is the title that needs the guarantee, and
+   giving the freed width back to it is exactly what an unchanged min-width does. */
 .moderation-table td:first-child,
 .moderation-table th:first-child {
   min-width: 13rem;

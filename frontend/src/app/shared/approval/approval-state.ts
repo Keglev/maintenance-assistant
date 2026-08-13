@@ -1,8 +1,6 @@
 import { Component, computed, input } from '@angular/core';
 
 import { Approval } from '../../core/api/api.types';
-import { AppDatePipe } from '../../core/i18n/app-date.pipe';
-import { UiLanguage } from '../../core/i18n/dictionary';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { inject } from '@angular/core';
 
@@ -24,10 +22,17 @@ import { inject } from '@angular/core';
  * <p><b>Approved is deliberately quiet, unapproved is deliberately not.</b> Most of the corpus is
  * approved, so a loud green badge on every row would be noise the eye learns to skip — and the
  * moment it does, the marker that matters stops being noticed too.
+ *
+ * <p><b>IT SAYS THE STATE AND NOTHING ELSE (2026-08-14).</b> It used to name the approver and the
+ * day behind a {@code showActor} flag, and the flag is deleted rather than defaulted off: the
+ * longest form of it — "Freigegeben system:corpus-seed · 12.08.2026" — truncated in the Verwaltung
+ * table in production and ran under the action buttons. Who and when are PROVENANCE, and provenance
+ * belongs in the record rather than repeated in every list that mentions it. It is in the protocol
+ * viewer's history section now. The {@code language} input went with it: with no date to format,
+ * a required input that every one of four call sites had to supply was a cost with no purchase.
  */
 @Component({
   selector: 'app-approval-state',
-  imports: [AppDatePipe],
   templateUrl: './approval-state.html',
   styleUrl: './approval-state.css',
 })
@@ -37,24 +42,6 @@ export class ApprovalStateBadge {
   protected readonly t = this.i18n.t;
 
   readonly approval = input.required<Approval>();
-
-  /**
-   * The language the date is formatted in.
-   *
-   * An input rather than something read from the service, because {@link AppDatePipe} is pure: a
-   * language change alters no input on a table cell, so a pipe that read the signal itself would go
-   * stale until something else happened to redraw the row.
-   */
-  readonly language = input.required<UiLanguage>();
-
-  /**
-   * Whether to name the approver and the day.
-   *
-   * Off on a source card under an answer — a technician reading an answer needs to know whether the
-   * source was reviewed, not by whom — and on in the Verwaltung table and the viewer, where the
-   * reader is an administrator auditing exactly that.
-   */
-  readonly showActor = input(false);
 
   protected readonly approved = computed(() => this.approval().state === 'APPROVED');
 }

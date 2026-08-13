@@ -10,8 +10,9 @@ import {
   signal,
 } from '@angular/core';
 
-import { Approval } from '../../core/api/api.types';
+import { Approval, ModerationEvent, ProtocolHistory } from '../../core/api/api.types';
 import { ApiFailure, MaintenanceApiService, classify } from '../../core/api/maintenance-api.service';
+import { AppDatePipe } from '../../core/i18n/app-date.pipe';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { ApprovalStateBadge } from '../approval/approval-state';
 import { Dialog } from '../dialog/dialog';
@@ -57,7 +58,7 @@ const DOCUMENT_SOURCES: Record<
  */
 @Component({
   selector: 'app-protocol-dialog',
-  imports: [ApprovalStateBadge, Dialog],
+  imports: [AppDatePipe, ApprovalStateBadge, Dialog],
   templateUrl: './protocol-dialog.html',
   styleUrl: './protocol-dialog.css',
 })
@@ -101,6 +102,63 @@ export class ProtocolDialog implements OnDestroy {
   protected readonly failure = signal<ApiFailure | null>(null);
   protected readonly parsed = signal<ProtocolDocument | null>(null);
 
+  /**
+   * What has been done to this protocol, or null when it was not asked for.
+   *
+   * <p><b>Only fetched on the moderation paths.</b> `citation` is the shop floor's viewer, and the
+   * endpoint answers 403 for those roles by design — who corrected what and who took an approval
+   * back names colleagues in connection with mistakes, which is moderation information. A technician
+   * checking a citation gets the text and the approval STATE, both of which they already have.
+   */
+  protected readonly history = signal<ProtocolHistory | null>(null);
+
+  /** Whether the reader may see a history at all. The same rule the endpoint enforces. */
+  private readonly wantsHistory = computed(() => this.source() !== 'citation');
+
+  /**
+   * The events to render, or an empty list.
+   *
+   * <p>Already capped by the backend to {@link ProtocolHistory.limit}; this does not slice again.
+   * Two places enforcing one cap is two places for it to drift, and the server's is the one that
+   * bounds the payload.
+   */
+  protected readonly events = computed(() => this.history()?.events ?? []);
+
+  /**
+   * How many acts exist beyond the ones shown.
+   *
+   * <p>THE CAP IS A PRODUCT DECISION, NOT A TECHNICAL LIMIT (see `ProtocolModerationService`): the
+   * viewer exists to let somebody read a protocol, and three lines answer "what happened to this
+   * recently" without pushing the document below the fold. A full change history is a REPORT with
+   * its own screen, deferred deliberately. This number is what stops the truncation being silent —
+   * it is not an invitation to add a "show all" control here.
+   */
+  protected readonly olderEvents = computed(() => {
+    const history = this.history();
+    return history ? history.total - history.events.length : 0;
+  });
+
+  /**
+   * Whether to fall back to the approval columns instead of a ledger.
+   *
+   * <p>The seeded case, and it is a true statement rather than a placeholder. The 150 protocols the
+   * corpus was built from were approved by the V5 migration itself — `system:corpus-seed`, no human
+   * act — so they have no ledger rows and never will. Showing nothing at all would imply the
+   * approval came from somewhere it did not; showing the actor once, here, is the honest record of
+   * the decision that seeded them.
+   */
+  protected readonly showsApprovalProvenance = computed(
+    () =>
+      this.wantsHistory() &&
+      this.events().length === 0 &&
+      (this.approval()?.approvedBy ?? null) !== null,
+  );
+
+  /** Nothing to say: no events, and no approval to attribute. An empty box would be worse. */
+  protected readonly hasHistorySection = computed(
+    () => this.events().length > 0 || this.showsApprovalProvenance(),
+  );
+
   /** Held so the download saves the ORIGINAL bytes, not a re-encoding of the parsed text. */
   private readonly file = signal<{ blob: Blob; filename: string } | null>(null);
 
@@ -127,6 +185,7 @@ export class ProtocolDialog implements OnDestroy {
   private load(protocolId: string): void {
     this.reset();
     this.loading.set(true);
+    this.loadHistory(protocolId);
 
     const document$ = DOCUMENT_SOURCES[this.source()](this.api, protocolId);
 
@@ -148,6 +207,43 @@ export class ProtocolDialog implements OnDestroy {
         this.failure.set(classify(error));
       },
     });
+  }
+
+  /**
+   * Fetches the ledger, and fails silently when it cannot.
+   *
+   * <p><b>A failure here leaves the history absent rather than putting an error in the dialog.</b>
+   * The viewer's job is to show a protocol; the history is context beside it, and a red box about an
+   * unreachable audit trail would sit next to a document that loaded perfectly and read as though
+   * the document were the problem. The document's own failure has a message, because that one is the
+   * dialog failing at what it is for.
+   *
+   * <p>Note the fallback below still runs: a protocol whose history call failed but whose approval
+   * columns are present shows the provenance line, which is true whatever happened to this request.
+   */
+  private loadHistory(protocolId: string): void {
+    if (!this.wantsHistory()) {
+      return;
+    }
+    this.api.protocolHistory(protocolId).subscribe({
+      next: (history) => this.history.set(history),
+      error: () => this.history.set(null),
+    });
+  }
+
+  /** The verb for one ledger action, so `UNAPPROVE` never reaches a screen. */
+  protected actionLabel(action: ModerationEvent['action']): string {
+    const labels = this.t().viewer;
+    switch (action) {
+      case 'EDIT':
+        return labels.historyEdited;
+      case 'APPROVE':
+        return labels.historyApproved;
+      case 'UNAPPROVE':
+        return labels.historyUnapproved;
+      default:
+        return labels.historyDeleted;
+    }
   }
 
   /**
@@ -181,6 +277,10 @@ export class ProtocolDialog implements OnDestroy {
     this.failure.set(null);
     this.parsed.set(null);
     this.file.set(null);
+    // Cleared with the rest: a reviewer clicking from one protocol to the next must never read the
+    // previous protocol's history under the new document, which is the failure mode of every
+    // signal held across a reopen.
+    this.history.set(null);
   }
 
   /**

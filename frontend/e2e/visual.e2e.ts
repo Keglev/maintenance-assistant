@@ -24,13 +24,24 @@ import { expect, selectSearchMachine, signIn, test } from './support';
  * causes it (see e2e/README.md), and why a "fix the baselines" commit afterwards is the one
  * workflow this suite must never acquire.
  *
- * <p><b>Chosen for churn, not for coverage.</b> Eight surfaces, both palettes. Five of them are
+ * <p><b>A NOTE ON THE TOLERANCE, learned the hard way on 2026-08-14.</b> `maxDiffPixelRatio` is
+ * 0.002, and that is ~1,000 pixels on a dialog-sized shot — enough to absorb ONE LINE OF TEXT
+ * disappearing. When the approval badge stopped rendering its actor, the duplicate-dialog baselines
+ * still passed, and `--update-snapshots` therefore refreshed nothing: it only rewrites what fails.
+ * A baseline records what the application LOOKS LIKE, so one that survives a deliberate content
+ * change has quietly stopped doing its job. <b>After an intentional change, delete the affected
+ * baselines and regenerate rather than trusting `--update-snapshots` to notice.</b> Regeneration is
+ * byte-deterministic in the pinned container, so `git status` afterwards is an exact list of what
+ * really moved.
+ *
+ * <p><b>Chosen for churn, not for coverage.</b> Nine surfaces, both palettes. Five of them are
  * places this project has already shipped a visual defect; the sixth (v1.2's unapproved source) is
  * the one case where being seen IS the feature — see {@link UNAPPROVED_ANSWER}; the seventh is the
  * corrector's view of the records table, where what changed is a set of ABSENCES and absence has a
  * layout; the eighth is the duplicate-detection dialog, whose governing rule — inform, never
- * obstruct — is itself a visual claim. Each has its argument written where it lives. Adding a
- * baseline per view would make a suite nobody dares change.
+ * obstruct — is itself a visual claim; the ninth is the viewer's history section, which is where
+ * v1.2's provenance went when the records table stopped carrying it. Each has its argument written
+ * where it lives. Adding a baseline per view would make a suite nobody dares change.
  */
 
 /** The seeded E-47 demo case — the same fixture citation.e2e.ts uses. */
@@ -339,6 +350,80 @@ for (const scheme of SCHEMES) {
       // whose alignment against the percentage is worth recording.
       await expect(page.getByTestId('duplicates-dialog')).toHaveScreenshot(
         `duplicates-${scheme}.png`,
+      );
+    });
+
+    test(`the protocol viewer with a history @visual`, async ({ page }) => {
+      /*
+       * A NINTH SURFACE, and the argument is where this PR's design actually lives.
+       *
+       * Carlos's ruling of 2026-08-14 moved provenance OUT of the records table — its column
+       * truncated in production carrying "Freigegeben system:corpus-seed · 12.08.2026" — and INTO
+       * this section. So the claim being made is that three ledger entries read well beside a
+       * document, and that is a claim about layout: the verb / actor / timestamp line wrapping at a
+       * dialog's width, three entries separated by rules without turning the dialog into a table,
+       * and the whole thing sitting BELOW the protocol without pushing it off screen.
+       *
+       * A functional test asserts each string is present; none of them can see the timestamp
+       * wrapping under the actor, the separators disappearing in dark, or the section growing until
+       * the document it is about is out of view.
+       *
+       * Three entries and an overflow line, because that is the fullest this section can ever be —
+       * the cap is a product decision and the widest case is the one worth recording.
+       */
+      const HISTORY = {
+        limit: 3,
+        total: 5,
+        events: [
+          {
+            action: 'UNAPPROVE',
+            actor: 'admin',
+            comment: 'Massnahme passt nicht zur beschriebenen Ursache.',
+            at: '2026-08-14T16:05:00Z',
+          },
+          {
+            action: 'EDIT',
+            actor: 'schichtleiter',
+            comment: 'Anzugsmoment auf 90 Nm korrigiert.',
+            at: '2026-08-14T11:20:00Z',
+          },
+          {
+            action: 'APPROVE',
+            actor: 'admin',
+            comment: 'approved despite 1 similar protocol(s) on this machine',
+            at: '2026-08-13T07:45:00Z',
+          },
+        ],
+      };
+
+      await signIn(page, 'admin');
+      await page.route('**/history', (route) => route.fulfill({ json: HISTORY }));
+      await expect(page.getByTestId('moderation-table')).toBeVisible();
+
+      await page.getByTestId('row-open').first().click();
+      await expect(page.getByTestId('protocol-body')).toBeVisible();
+      await expect(page.getByTestId('protocol-history')).toBeVisible();
+      // VISIBLE IS NOT SETTLED — the lesson the duplicate dialog's baseline taught on its first run
+      // (#56). The dialog moves focus from a setTimeout one tick after the panel renders, so a shot
+      // taken on visibility catches it with or without a focus ring depending on the scheduler.
+      //
+      // THIS DIALOG CANNOT BE WAITED ON THE WAY THAT ONE WAS, and the reason is a documented
+      // behaviour rather than a bug: the viewer's first focusable is the Download button, which is
+      // DISABLED until the document arrives, so the panel itself takes focus instead (the #50 fix
+      // in `dialog.ts`). Which of the two ends up focused therefore depends on whether the fetch
+      // beat the timer — a race, and a visible one, because it decides where the ring is drawn.
+      // Focus is placed explicitly so the shot is taken from one known state rather than a coin
+      // toss. Nothing inside the history section can hold focus, so the ring is outside the crop
+      // below — this line makes the RUN deterministic, not the pixels.
+      await page.getByTestId('protocol-close').focus();
+
+      // SCOPED TO THE SECTION, AND WITH NO MASKS — both for the same reason. The document above it
+      // is whatever protocol happens to be first in the corpus, so a shot of the whole dialog would
+      // be mostly a masked rectangle and would clip the third entry below the fold. Every value in
+      // the history is stubbed, so scoped this way the baseline is fully deterministic and is
+      // entirely about the thing under test.
+      await expect(page.getByTestId('protocol-history')).toHaveScreenshot(
+        `viewer-history-${scheme}.png`,
       );
     });
 

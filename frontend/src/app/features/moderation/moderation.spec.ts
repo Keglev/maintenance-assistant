@@ -117,6 +117,19 @@ describe('Moderation', () => {
     });
   }
 
+  /**
+   * Answers the history the viewer now fetches whenever it opens on a moderation path.
+   *
+   * <p>Since 2026-08-14 the viewer carries a history section, so opening it is two requests rather
+   * than one. What the section RENDERS is the viewer spec's business, in its own file; here it only
+   * has to be answered so `httpMock.verify()` stays meaningful.
+   */
+  function noHistory(id: string): void {
+    httpMock
+      .expectOne(`/api/moderation/protocols/${id}/history`)
+      .flush({ events: [], total: 0, limit: 3 });
+  }
+
   /** One candidate above the threshold — the case that opens the dialog. */
   function similarTo(
     id = 'p-1',
@@ -265,6 +278,7 @@ describe('Moderation', () => {
     // the reader this dialog was reused for.
     const request = httpMock.expectOne('/api/moderation/protocols/p-1/document');
     request.flush(new Blob(['Symptom:\nKein Druck.\n'], { type: 'text/plain' }));
+    noHistory('p-1');
     await fixture.whenStable();
     await fixture.whenStable();
 
@@ -599,7 +613,7 @@ describe('Moderation', () => {
     approval: { state: 'UNAPPROVED', approvedBy: null, approvedAt: null },
   });
 
-  it('shows the approval state of every row, with who approved it and when', async () => {
+  it('shows the approval STATE of every row, and nothing else in that column', async () => {
     const fixture = await render();
     const element = fixture.nativeElement as HTMLElement;
 
@@ -607,8 +621,14 @@ describe('Moderation', () => {
     // something they approved is still approved, and after a correction it will not be.
     const cell = element.querySelector('[data-testid="approval-state"]')?.textContent ?? '';
     expect(cell).toContain('Freigegeben');
-    expect(cell).toContain('admin');
-    expect(cell).toContain('11.08.2026');
+
+    // AND NO ACTOR AND NO DATE, which is the fix for a defect Carlos found in production on
+    // 2026-08-14: the column carried "Freigegeben system:corpus-seed · 12.08.2026" inside an
+    // 11rem cap while the badge sets `white-space: nowrap`, so the text did not wrap — it
+    // overflowed and ran under the action buttons. Who and when are provenance and moved into the
+    // protocol viewer's history section, where they are read once beside the document.
+    expect(cell).not.toContain('admin');
+    expect(cell).not.toContain('11.08.2026');
   });
 
   it('filters to the approval queue without a machine, and without a second button press', async () => {
@@ -838,6 +858,7 @@ describe('Moderation', () => {
     httpMock
       .expectOne('/api/moderation/protocols/p-9/document')
       .flush(new Blob(['Symptom:\nKein Druck.\n'], { type: 'text/plain' }));
+    noHistory('p-9');
     await fixture.whenStable();
     await fixture.whenStable();
 
@@ -938,6 +959,7 @@ describe('Moderation', () => {
     httpMock
       .expectOne('/api/moderation/protocols/p-1/document')
       .flush(new Blob(['Symptom:\nKein Druck.\n'], { type: 'text/plain' }));
+    noHistory('p-1');
     await fixture.whenStable();
     await fixture.whenStable();
 
@@ -1122,6 +1144,10 @@ describe('Moderation', () => {
     httpMock
       .expectOne('/api/moderation/protocols/deleted/a-1/document')
       .flush(new Blob(['Symptom:\nErfunden.\n'], { type: 'text/plain' }));
+    // The archive viewer asks for a history too, and it is the one place where the answer is
+    // certain to be interesting: an archived protocol has at least a DELETE row, which is the
+    // record ADR-006's archive exists to preserve.
+    noHistory('a-1');
     await fixture.whenStable();
     await fixture.whenStable();
 

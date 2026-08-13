@@ -435,6 +435,25 @@ rather than given one afterwards.
    as actor, all orphaned by the archive cap. An IT reproduces the x-99
    shape and proves it now approves.
 
+   PROGRESS 2026-08-13 — (docs/swagger-visibility) THE LIVE SWAGGER UI
+   BECOMES REACHABLE IN ONE CLICK. It has been public and working since
+   #31 and nothing pointed at it: the docs landing card labelled
+   "Backend API" opens the STATIC Redocly rendering, and the README
+   mentioned /swagger-ui inside a clause. A tenth card on both landing
+   pages (EN and DE) links the live UI directly, and the README lists
+   the static reference and the live UI as two entries that each say
+   what they are. THE WAY BACK, which springdoc gives no property for,
+   is a markdown link in the OpenAPI info.description beside the
+   back-to-the-application link that was already there — data in a
+   document CI already publishes, so NOTHING IS HAND-DEPLOYED here and
+   no fourth host file joins the Caddyfile, the compose file and the
+   Keycloak theme. OpenApiSpecIT asserts both URLs are served, which
+   catches the config being deleted and NOT a Swagger UI that stopped
+   rendering markdown; measured against swagger-ui 5.32.11 (springdoc
+   3.1.0) on the live host, where the existing link renders as a
+   visible anchor with 0 CSP violations. /swagger-ui stays public by
+   design and was not touched.
+
    EIGHTEEN BASELINES — nine surfaces x two palettes. The NINTH is the
    viewer's history section, scoped to the section and
    unmasked because every value in it is stubbed. It could not reuse the

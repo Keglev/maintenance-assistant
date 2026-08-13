@@ -38,11 +38,19 @@ import java.util.UUID;
  * role widening, and a rule enforced in exactly one place is one annotation edit away from being
  * gone. Whoever filed a protocol, and whoever last corrected it, may not be the one who approves it
  * — checked against the protocol's own history. The cost is one query on an act that happens rarely.
+ *
+ * &lt;p&gt;&lt;b&gt;DUPLICATE DETECTION WARNS AND NEVER BLOCKS (2026-08-14).&lt;/b&gt; Approving runs
+ * {@link ProtocolSimilarityService} against the same machine's protocols and records what it found
+ * in the ledger — and does nothing else with it. There is no branch below that refuses an approval
+ * on a similarity score, and there is not meant to be one: the four E-47 protocols are four
+ * different root causes behind one fault code, all legitimate, and any threshold sensitive enough
+ * to catch a real duplicate would flag them as copies of each other. The admin decides; the system
+ * informs, and then puts on the record that it informed.
  */
 @Service
 public class ProtocolApprovalService {
 
-<span class="fc" id="L45">    private static final Logger log = LoggerFactory.getLogger(ProtocolApprovalService.class);</span>
+<span class="fc" id="L53">    private static final Logger log = LoggerFactory.getLogger(ProtocolApprovalService.class);</span>
 
     public static final String APPROVED = &quot;APPROVED&quot;;
     public static final String UNAPPROVED = &quot;UNAPPROVED&quot;;
@@ -54,17 +62,20 @@ public class ProtocolApprovalService {
 
     private final JdbcClient jdbc;
     private final ProtocolModerationService moderation;
+    private final ProtocolSimilarityService similarity;
 
-<span class="fc" id="L58">    ProtocolApprovalService(JdbcClient jdbc, ProtocolModerationService moderation) {</span>
-<span class="fc" id="L59">        this.jdbc = jdbc;</span>
-<span class="fc" id="L60">        this.moderation = moderation;</span>
-<span class="fc" id="L61">    }</span>
+    ProtocolApprovalService(JdbcClient jdbc, ProtocolModerationService moderation,
+<span class="fc" id="L68">                            ProtocolSimilarityService similarity) {</span>
+<span class="fc" id="L69">        this.jdbc = jdbc;</span>
+<span class="fc" id="L70">        this.moderation = moderation;</span>
+<span class="fc" id="L71">        this.similarity = similarity;</span>
+<span class="fc" id="L72">    }</span>
 
     /** The state of one protocol's approval, as the API returns it. */
-<span class="fc" id="L64">    public record Approval(String state, String approvedBy, OffsetDateTime approvedAt) {</span>
+<span class="fc" id="L75">    public record Approval(String state, String approvedBy, OffsetDateTime approvedAt) {</span>
 
         public boolean approved() {
-<span class="fc" id="L67">            return APPROVED.equals(state);</span>
+<span class="fc" id="L78">            return APPROVED.equals(state);</span>
         }
     }
 
@@ -88,36 +99,36 @@ public class ProtocolApprovalService {
     @Transactional
     public Optional&lt;Approval&gt; setApproval(UUID protocolId, boolean approve, String actor,
                                           String comment) {
-<span class="fc" id="L91">        Optional&lt;Target&gt; found = load(protocolId);</span>
-<span class="fc bfc" id="L92" title="All 2 branches covered.">        if (found.isEmpty()) {</span>
-<span class="fc" id="L93">            return Optional.empty();</span>
+<span class="fc" id="L102">        Optional&lt;Target&gt; found = load(protocolId);</span>
+<span class="fc bfc" id="L103" title="All 2 branches covered.">        if (found.isEmpty()) {</span>
+<span class="fc" id="L104">            return Optional.empty();</span>
         }
-<span class="fc" id="L95">        Target target = found.get();</span>
+<span class="fc" id="L106">        Target target = found.get();</span>
 
-<span class="pc bpc" id="L97" title="1 of 2 branches missed.">        if (target.deletedAt() != null) {</span>
+<span class="pc bpc" id="L108" title="1 of 2 branches missed.">        if (target.deletedAt() != null) {</span>
             // 409, like editing an archived protocol: it exists, the same administrator can read it
             // in the archive, and &quot;no such protocol&quot; would be contradicted by their own screen.
             // Archived is final — vouching for something withdrawn from the corpus means nothing.
-<span class="nc" id="L101">            throw new ProtocolModerationService.InvalidModerationRequestException(PROTOCOL_ARCHIVED,</span>
+<span class="nc" id="L112">            throw new ProtocolModerationService.InvalidModerationRequestException(PROTOCOL_ARCHIVED,</span>
                     &quot;this protocol is in the archive; approving it would vouch for something no &quot;
                             + &quot;answer can cite&quot;);
         }
 
-<span class="fc bfc" id="L106" title="All 2 branches covered.">        boolean alreadyInState = approve == APPROVED.equals(target.approvalState());</span>
-<span class="fc bfc" id="L107" title="All 2 branches covered.">        if (alreadyInState) {</span>
-<span class="fc" id="L108">            return Optional.of(target.asApproval());</span>
+<span class="fc bfc" id="L117" title="All 2 branches covered.">        boolean alreadyInState = approve == APPROVED.equals(target.approvalState());</span>
+<span class="fc bfc" id="L118" title="All 2 branches covered.">        if (alreadyInState) {</span>
+<span class="fc" id="L119">            return Optional.of(target.asApproval());</span>
         }
 
-<span class="fc bfc" id="L111" title="All 2 branches covered.">        if (approve) {</span>
-<span class="fc" id="L112">            requireFourEyes(protocolId, target, actor);</span>
+<span class="fc bfc" id="L122" title="All 2 branches covered.">        if (approve) {</span>
+<span class="fc" id="L123">            requireFourEyes(protocolId, target, actor);</span>
         } else {
             // Withdrawing trust is a change to how the corpus reads, and it is the direction that
             // needs explaining.
-<span class="fc" id="L116">            comment = ProtocolModerationService.requireComment(comment);</span>
+<span class="fc" id="L127">            comment = ProtocolModerationService.requireComment(comment);</span>
         }
 
-<span class="fc" id="L119">        OffsetDateTime now = OffsetDateTime.now();</span>
-<span class="fc" id="L120">        jdbc.sql(&quot;&quot;&quot;</span>
+<span class="fc" id="L130">        OffsetDateTime now = OffsetDateTime.now();</span>
+<span class="fc" id="L131">        jdbc.sql(&quot;&quot;&quot;</span>
                         UPDATE protocol
                         SET approval_state = :state,
                             approved_by    = :approvedBy,
@@ -125,27 +136,83 @@ public class ProtocolApprovalService {
                             updated_at     = :now
                         WHERE id = :id
                         &quot;&quot;&quot;)
-<span class="fc" id="L128">                .param(&quot;id&quot;, protocolId)</span>
-<span class="fc bfc" id="L129" title="All 2 branches covered.">                .param(&quot;state&quot;, approve ? APPROVED : UNAPPROVED)</span>
-<span class="fc bfc" id="L130" title="All 2 branches covered.">                .param(&quot;approvedBy&quot;, approve ? actor : null, java.sql.Types.VARCHAR)</span>
-<span class="fc bfc" id="L131" title="All 2 branches covered.">                .param(&quot;approvedAt&quot;, approve ? now : null, java.sql.Types.TIMESTAMP_WITH_TIMEZONE)</span>
-<span class="fc" id="L132">                .param(&quot;now&quot;, now)</span>
-<span class="fc" id="L133">                .update();</span>
+<span class="fc" id="L139">                .param(&quot;id&quot;, protocolId)</span>
+<span class="fc bfc" id="L140" title="All 2 branches covered.">                .param(&quot;state&quot;, approve ? APPROVED : UNAPPROVED)</span>
+<span class="fc bfc" id="L141" title="All 2 branches covered.">                .param(&quot;approvedBy&quot;, approve ? actor : null, java.sql.Types.VARCHAR)</span>
+<span class="fc bfc" id="L142" title="All 2 branches covered.">                .param(&quot;approvedAt&quot;, approve ? now : null, java.sql.Types.TIMESTAMP_WITH_TIMEZONE)</span>
+<span class="fc" id="L143">                .param(&quot;now&quot;, now)</span>
+<span class="fc" id="L144">                .update();</span>
 
-<span class="fc bfc" id="L135" title="All 2 branches covered.">        moderation.recordEvent(protocolId, approve ? &quot;APPROVE&quot; : &quot;UNAPPROVE&quot;, actor,</span>
-<span class="pc bpc" id="L136" title="1 of 4 branches missed.">                comment == null || comment.isBlank()</span>
-<span class="fc" id="L137">                        ? &quot;approved without further comment&quot;</span>
-<span class="fc" id="L138">                        : comment.trim());</span>
+<span class="fc bfc" id="L146" title="All 2 branches covered.">        moderation.recordEvent(protocolId, approve ? &quot;APPROVE&quot; : &quot;UNAPPROVE&quot;, actor,</span>
+<span class="fc bfc" id="L147" title="All 2 branches covered.">                approve ? approvalComment(protocolId, comment) : comment);</span>
 
         // INFO for the same reason deletion is: this is the audit trail of the audit function, and
         // the queryable half lives in moderation_event.
-<span class="fc" id="L142">        log.info(&quot;Moderation: {} {} protocol {} ('{}', machine {})&quot;,</span>
-<span class="fc bfc" id="L143" title="All 2 branches covered.">                actor, approve ? &quot;approved&quot; : &quot;un-approved&quot;, protocolId, target.title(),</span>
-<span class="fc" id="L144">                target.machineNo());</span>
+<span class="fc" id="L151">        log.info(&quot;Moderation: {} {} protocol {} ('{}', machine {})&quot;,</span>
+<span class="fc bfc" id="L152" title="All 2 branches covered.">                actor, approve ? &quot;approved&quot; : &quot;un-approved&quot;, protocolId, target.title(),</span>
+<span class="fc" id="L153">                target.machineNo());</span>
 
-<span class="fc bfc" id="L146" title="All 2 branches covered.">        return Optional.of(approve</span>
-<span class="fc" id="L147">                ? new Approval(APPROVED, actor, now)</span>
-<span class="fc" id="L148">                : new Approval(UNAPPROVED, null, null));</span>
+<span class="fc bfc" id="L155" title="All 2 branches covered.">        return Optional.of(approve</span>
+<span class="fc" id="L156">                ? new Approval(APPROVED, actor, now)</span>
+<span class="fc" id="L157">                : new Approval(UNAPPROVED, null, null));</span>
+    }
+
+    /** The prefix an auditor can grep the ledger for. Stable text, like an error code. */
+    public static final String APPROVED_DESPITE = &quot;approved despite &quot;;
+
+    /**
+     * What the ledger says about an approval, including the fact that similar protocols existed.
+     *
+     * &lt;p&gt;&lt;b&gt;Why this is on the record at all.&lt;/b&gt; A plant auditor asking &quot;did anybody notice that
+     * these two protocols say the same thing?&quot; should find the answer in the ledger rather than in
+     * somebody's memory of a screen. It is the accountability argument ADR-006 already makes for
+     * delete-with-reason, applied to the moment a protocol becomes vouched-for: an informed decision
+     * and an uninformed one look identical afterwards unless one of them is written down.
+     *
+     * &lt;p&gt;&lt;b&gt;The similarity is recomputed here rather than taken from the request&lt;/b&gt;, and that is the
+     * point. If the client sent the ids it happened to display, an approval made through {@code curl}
+     * — or by a client that simply never asked — would record &quot;nothing similar&quot;, which is the one
+     * answer the ledger must never give wrongly. The check belongs to the act, not to the screen.
+     *
+     * &lt;p&gt;&lt;b&gt;NO JUSTIFICATION IS REQUIRED, deliberately.&lt;/b&gt; A mandatory text field on every approval
+     * would make the common case — nothing similar, nothing to say — expensive, and a field people
+     * are forced to fill fills up with &quot;ok&quot;. The record that the approver was informed and proceeded
+     * is the accountability that was missing; a sentence about it is not.
+     *
+     * &lt;p&gt;It stays ONE row. The ledger is a record of changes to the corpus's trust, and an approval
+     * is one change however much context it carries; a second SIMILARITY row would be an event that
+     * did not happen.
+     */
+    private String approvalComment(UUID protocolId, String comment) {
+<span class="fc" id="L187">        ProtocolSimilarityService.SimilarityReport report = similarity.findSimilar(protocolId);</span>
+<span class="fc bfc" id="L188" title="All 2 branches covered.">        String note = report.any()</span>
+<span class="fc" id="L189">                ? APPROVED_DESPITE + report.total() + &quot; similar protocol(s) on this machine: &quot;</span>
+<span class="fc" id="L190">                        + report.allIds().stream().map(UUID::toString)</span>
+<span class="fc" id="L191">                                .collect(java.util.stream.Collectors.joining(&quot;, &quot;))</span>
+<span class="fc" id="L192">                : null;</span>
+
+<span class="pc bpc" id="L194" title="1 of 4 branches missed.">        String stated = comment == null || comment.isBlank() ? null : comment.trim();</span>
+<span class="pc bpc" id="L195" title="1 of 4 branches missed.">        if (stated != null &amp;&amp; note != null) {</span>
+            // The human's words first, the system's observation after: a reader of the ledger is
+            // looking for what the approver said, and a machine-generated clause in front of it
+            // reads as though the system did the approving.
+<span class="fc" id="L199">            return stated + &quot; — &quot; + note;</span>
+        }
+<span class="pc bpc" id="L201" title="1 of 2 branches missed.">        if (stated != null) {</span>
+<span class="nc" id="L202">            return stated;</span>
+        }
+<span class="fc bfc" id="L204" title="All 2 branches covered.">        return note != null ? note : &quot;approved without further comment&quot;;</span>
+    }
+
+    /**
+     * The similarity report for one protocol, for the approver who is about to decide.
+     *
+     * &lt;p&gt;Exposed as its own read so the interface can ask &lt;em&gt;before&lt;/em&gt; the approval rather than
+     * learn about it afterwards. It runs the same code the approval itself runs, so what the screen
+     * showed and what the ledger recorded cannot disagree.
+     */
+    public ProtocolSimilarityService.SimilarityReport similarTo(UUID protocolId) {
+<span class="nc" id="L215">        return similarity.findSimilar(protocolId);</span>
     }
 
     /**
@@ -156,66 +223,74 @@ public class ProtocolApprovalService {
      * the author; the newest EDIT event covers the corrector. Both are Keycloak usernames, which is
      * why the two columns were written in one alphabet in the first place.
      *
-     * &lt;p&gt;Since 2026-08-13 no administrator can reach the edit path, so the corrector branch below
-     * is unreachable through the API as it stands today. It is KEPT rather than deleted: it is the
-     * belt to the role split's braces, and the branch that would matter first if the split were
-     * ever loosened. See the class javadoc.
+     * &lt;p&gt;&lt;b&gt;NEITHER BRANCH IS REACHABLE THROUGH THE API AS IT STANDS TODAY, and that is the role
+     * split working rather than dead code.&lt;/b&gt; Approval is admin-only; upload is Techniker and
+     * Schichtleiter; correction has been Schichtleiter-only since 2026-08-13. An administrator can
+     * therefore never be the author and never be the corrector, so no request this API accepts can
+     * make either condition true. (Checked while looking for a way to demonstrate the refusal by
+     * clicking — see the 2026-08-14 note in ADR-006; there is none, and adding a second demo
+     * administrator would not create one.)
+     *
+     * &lt;p&gt;It is KEPT rather than deleted. It is the belt to the role split's braces: it is the only
+     * guard that could ever express &quot;the same HUMAN did both&quot;, it is the one that survives a future
+     * widening of any of those three annotations, and a rule enforced in exactly one place is one
+     * edit away from being gone. See the class javadoc.
      */
     private void requireFourEyes(UUID protocolId, Target target, String actor) {
-<span class="pc bpc" id="L165" title="2 of 4 branches missed.">        if (actor == null || actor.isBlank()) {</span>
-<span class="nc" id="L166">            throw new IllegalStateException(&quot;an approval must carry an actor&quot;);</span>
+<span class="pc bpc" id="L240" title="2 of 4 branches missed.">        if (actor == null || actor.isBlank()) {</span>
+<span class="nc" id="L241">            throw new IllegalStateException(&quot;an approval must carry an actor&quot;);</span>
         }
-<span class="fc bfc" id="L168" title="All 2 branches covered.">        if (actor.equalsIgnoreCase(target.uploadedBy())) {</span>
-<span class="fc" id="L169">            throw new ProtocolModerationService.InvalidModerationRequestException(FOUR_EYES_REQUIRED,</span>
+<span class="fc bfc" id="L243" title="All 2 branches covered.">        if (actor.equalsIgnoreCase(target.uploadedBy())) {</span>
+<span class="fc" id="L244">            throw new ProtocolModerationService.InvalidModerationRequestException(FOUR_EYES_REQUIRED,</span>
                     &quot;you filed this protocol, so you cannot also approve it: approval is a second &quot;
                             + &quot;pair of eyes, and it has to belong to someone else&quot;);
         }
-<span class="fc" id="L173">        Optional&lt;String&gt; lastEditor = jdbc.sql(&quot;&quot;&quot;</span>
+<span class="fc" id="L248">        Optional&lt;String&gt; lastEditor = jdbc.sql(&quot;&quot;&quot;</span>
                         SELECT actor FROM moderation_event
                         WHERE protocol_id = :id AND action = 'EDIT'
                         ORDER BY created_at DESC, id
                         LIMIT 1
                         &quot;&quot;&quot;)
-<span class="fc" id="L179">                .param(&quot;id&quot;, protocolId)</span>
-<span class="fc" id="L180">                .query(String.class)</span>
-<span class="fc" id="L181">                .optional();</span>
-<span class="fc bfc" id="L182" title="All 2 branches covered.">        if (lastEditor.filter(actor::equalsIgnoreCase).isPresent()) {</span>
-<span class="fc" id="L183">            throw new ProtocolModerationService.InvalidModerationRequestException(FOUR_EYES_REQUIRED,</span>
+<span class="fc" id="L254">                .param(&quot;id&quot;, protocolId)</span>
+<span class="fc" id="L255">                .query(String.class)</span>
+<span class="fc" id="L256">                .optional();</span>
+<span class="fc bfc" id="L257" title="All 2 branches covered.">        if (lastEditor.filter(actor::equalsIgnoreCase).isPresent()) {</span>
+<span class="fc" id="L258">            throw new ProtocolModerationService.InvalidModerationRequestException(FOUR_EYES_REQUIRED,</span>
                     &quot;you corrected this protocol, so you cannot also approve it: the corrector is &quot;
                             + &quot;never the approver&quot;);
         }
-<span class="fc" id="L187">    }</span>
+<span class="fc" id="L262">    }</span>
 
     /** The approval state of one protocol, for the read paths. */
     public Optional&lt;Approval&gt; find(UUID protocolId) {
-<span class="nc" id="L191">        return load(protocolId).map(Target::asApproval);</span>
+<span class="nc" id="L266">        return load(protocolId).map(Target::asApproval);</span>
     }
 
     private Optional&lt;Target&gt; load(UUID protocolId) {
-<span class="fc" id="L195">        return jdbc.sql(&quot;&quot;&quot;</span>
+<span class="fc" id="L270">        return jdbc.sql(&quot;&quot;&quot;</span>
                         SELECT p.title, p.uploaded_by, p.deleted_at,
                                p.approval_state, p.approved_by, p.approved_at, m.machine_no
                         FROM protocol p JOIN machine m ON m.id = p.machine_id
                         WHERE p.id = :id
                         &quot;&quot;&quot;)
-<span class="fc" id="L201">                .param(&quot;id&quot;, protocolId)</span>
-<span class="fc" id="L202">                .query((rs, rowNum) -&gt; new Target(</span>
-<span class="fc" id="L203">                        rs.getString(&quot;title&quot;),</span>
-<span class="fc" id="L204">                        rs.getString(&quot;uploaded_by&quot;),</span>
-<span class="fc" id="L205">                        rs.getObject(&quot;deleted_at&quot;, OffsetDateTime.class),</span>
-<span class="fc" id="L206">                        rs.getString(&quot;approval_state&quot;),</span>
-<span class="fc" id="L207">                        rs.getString(&quot;approved_by&quot;),</span>
-<span class="fc" id="L208">                        rs.getObject(&quot;approved_at&quot;, OffsetDateTime.class),</span>
-<span class="fc" id="L209">                        rs.getString(&quot;machine_no&quot;)))</span>
-<span class="fc" id="L210">                .optional();</span>
+<span class="fc" id="L276">                .param(&quot;id&quot;, protocolId)</span>
+<span class="fc" id="L277">                .query((rs, rowNum) -&gt; new Target(</span>
+<span class="fc" id="L278">                        rs.getString(&quot;title&quot;),</span>
+<span class="fc" id="L279">                        rs.getString(&quot;uploaded_by&quot;),</span>
+<span class="fc" id="L280">                        rs.getObject(&quot;deleted_at&quot;, OffsetDateTime.class),</span>
+<span class="fc" id="L281">                        rs.getString(&quot;approval_state&quot;),</span>
+<span class="fc" id="L282">                        rs.getString(&quot;approved_by&quot;),</span>
+<span class="fc" id="L283">                        rs.getObject(&quot;approved_at&quot;, OffsetDateTime.class),</span>
+<span class="fc" id="L284">                        rs.getString(&quot;machine_no&quot;)))</span>
+<span class="fc" id="L285">                .optional();</span>
     }
 
-<span class="fc" id="L213">    private record Target(String title, String uploadedBy, OffsetDateTime deletedAt,</span>
+<span class="fc" id="L288">    private record Target(String title, String uploadedBy, OffsetDateTime deletedAt,</span>
                           String approvalState, String approvedBy, OffsetDateTime approvedAt,
                           String machineNo) {
 
         Approval asApproval() {
-<span class="fc" id="L218">            return new Approval(approvalState, approvedBy, approvedAt);</span>
+<span class="fc" id="L293">            return new Approval(approvalState, approvedBy, approvedAt);</span>
         }
     }
 }

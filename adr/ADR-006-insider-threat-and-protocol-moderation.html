@@ -998,6 +998,293 @@ ADR-006-insider-threat-and-protocol-moderation · maintenance-assistant Docs</ti
         is worth keeping even though the helper is not: when a gap is
         somebody else’s decision, stand in for it in a way that names
         itself, and make the stand-in cheap to remove.</p>
+        <hr />
+        <h2
+        id="revision-2026-08-14-duplicate-detection-and-the-number-that-had-to-be-measured">Revision
+        — 2026-08-14: duplicate detection, and the number that had to be
+        measured</h2>
+        <p>The 2026-08-10 note deferred this with one non-negotiable
+        condition: <strong>it warns, it never blocks.</strong> This
+        revision implements it, and the measurement it required changed
+        <em>which</em> protocols the argument rests on.</p>
+        <h3
+        id="similarity-warns.-nothing-refuses-an-approval-on-a-score.">Similarity
+        warns. Nothing refuses an approval on a score.</h3>
+        <p>There is no branch in <code>ProtocolSimilarityService</code>,
+        in <code>ProtocolApprovalService</code> or in
+        <code>ModerationController</code> that can turn a similarity
+        into a refusal, the approve button in the dialog is never
+        disabled, and a <em>failed</em> similarity call approves anyway.
+        <code>ProtocolDuplicateIT</code> asserts it with a verbatim copy
+        — the strongest signal the feature can produce — still
+        approving.</p>
+        <p><strong>Why it must be this way is a fact about this corpus
+        rather than a philosophy.</strong> Four protocols on PR-03 carry
+        the fault code E-47: a worn piston seal, a pressure-relief valve
+        sticking, a programme change, and a slow build-up. Four
+        different root causes, four legitimate protocols, all four
+        correctly cited together in the demo answer. A threshold
+        sensitive enough to catch a genuine duplicate would report all
+        six of their pairs, and a system that had refused the fourth of
+        them would have removed exactly the knowledge that makes the
+        demo answer good.</p>
+        <h3
+        id="what-is-compared-the-protocol-as-the-mean-of-its-chunk-vectors">What
+        is compared: the protocol, as the mean of its chunk vectors</h3>
+        <p>Each protocol is reduced to one vector — the centroid of its
+        chunk embeddings — and two protocols are compared by the cosine
+        similarity of their centroids. The obvious alternative, the best
+        chunk-to-chunk match, was measured alongside it and
+        rejected:</p>
+        <ul>
+        <li><strong>A maximum over a set that grows with document length
+        is not a comparison of documents.</strong> A six-chunk protocol
+        gets six chances to score high on one of them, and under
+        chunk-max, adding a paragraph the other document does not
+        contain <em>cannot lower</em> the score. The statistic is
+        monotone in length, which is precisely the “two long protocols
+        overlapping in one paragraph” false positive.</li>
+        <li><strong>The centroid moves the right way.</strong> Material
+        the other document lacks pulls the mean away from it, which is
+        what “these two say different things” should do to a
+        number.</li>
+        <li><strong>Measured in this corpus</strong>: E-47 #1 (two
+        chunks) against #13 (one chunk) scores <strong>0.8205</strong>
+        by chunk-max and <strong>0.7698</strong> by centroid. The case
+        where chunk-max reads distinctly higher is exactly the shape of
+        the false positive — one section of a longer document matching a
+        shorter one whole.</li>
+        </ul>
+        <p>The cost is stated rather than hidden: a genuine duplicate
+        buried inside a long protocol is <em>diluted</em> by the
+        centroid and can fall below the threshold. That is the right
+        side to err on for a feature whose premise is not crying wolf. A
+        missed warning costs a second protocol in a corpus that
+        tolerates several accounts of one fault by design; a false one
+        costs the approver’s trust in every warning after it.</p>
+        <h3
+        id="the-threshold-measured-a-config-property-and-not-adr-002s-0.55">The
+        threshold: measured, a config property, and NOT ADR-002’s
+        0.55</h3>
+        <p><code>maintenance.duplicates.similarity-threshold</code>,
+        never a literal. ADR-002’s 0.55 is a <strong>different
+        question</strong> and the numbers do not transfer: that one is
+        question-to-chunk, a short interrogative sentence against a
+        paragraph of a maintenance report. This is document-to-document,
+        between two texts of the same genre, on the same machine,
+        written from the same template, both carrying the chunker’s
+        <code>PR-03 · E-47 · &lt;title&gt;</code> context prefix.
+        Everything here starts high — <strong>the mean over all 1,393
+        same-machine pairs in the corpus is 0.5547</strong>, which is
+        where the query path’s <em>threshold</em> sits. Carrying 0.55
+        over would flag roughly half the corpus.</p>
+        <p>Measured 2026-08-14 by
+        <code>DuplicateSimilarityCalibrationIT</code>, against the real
+        provider (<code>bge-m3</code>) and the real 165-protocol
+        corpus:</p>
+        <table>
+        <colgroup>
+        <col style="width: 50%" />
+        <col style="width: 50%" />
+        </colgroup>
+        <thead>
+        <tr class="header">
+        <th>What</th>
+        <th>Centroid similarity</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr class="odd">
+        <td>mean over all 1,393 same-machine pairs</td>
+        <td>0.5547</td>
+        </tr>
+        <tr class="even">
+        <td>the four E-47 protocols against each other</td>
+        <td>0.7594 – <strong>0.8329</strong></td>
+        </tr>
+        <tr class="odd">
+        <td><strong>highest legitimate pair anywhere in the
+        corpus</strong></td>
+        <td><strong>0.9151</strong></td>
+        </tr>
+        <tr class="even">
+        <td>one incident re-narrated by a second person — the
+        <em>realistic</em> duplicate</td>
+        <td><strong>0.9305</strong></td>
+        </tr>
+        <tr class="odd">
+        <td>a verbatim re-file under a different title</td>
+        <td>0.9778</td>
+        </tr>
+        </tbody>
+        </table>
+        <p><strong>Chosen: 0.92.</strong> It clears the highest
+        legitimate pair by 0.0049 and sits 0.0105 below the realistic
+        duplicate.</p>
+        <h3 id="the-finding-the-e-47-four-are-not-the-constraint">THE
+        FINDING: the E-47 four are not the constraint</h3>
+        <p>The brief for this work assumed the threshold had to clear
+        the E-47 spread. It does, by 0.09 — and that turned out not to
+        be the binding condition. <strong>The highest-scoring legitimate
+        pair in the corpus is not an E-47 pair at all</strong>: it is
+        PR-07’s “Halbjahreswartung Presse 7” and “Jahreswartung Presse
+        7” at <strong>0.9151</strong> — the 4000-hour and 8000-hour
+        services, same machine, same technician, same template,
+        genuinely different work. Scheduled maintenance runs closer than
+        fault reports do, because a checklist is a form and two
+        filled-in forms resemble each other more than two incidents
+        do.</p>
+        <p>So the usable window is <strong>0.9151 … 0.9305 — 0.0154
+        wide</strong>, and that is narrower than anyone would choose. It
+        is reported rather than smoothed over, and it is survivable for
+        exactly one reason: <strong>this feature warns and never
+        blocks.</strong> A false positive costs one card in a dialog
+        that an approver dismisses in a second; a false negative costs
+        the warning entirely. 0.92 sits low in the window on purpose, to
+        buy sensitivity with the cheaper kind of error. <em>If this
+        feature blocked, this margin would not be shippable</em> — which
+        is the strongest argument yet for the rule the 2026-08-10 note
+        set.</p>
+        <p>Any change to the embedding model, to the chunker, or to the
+        corpus invalidates every number above.
+        <code>DuplicateSimilarityCalibrationIT</code> is how they are
+        re-taken; it is skipped unless <code>LLM_API_KEY</code> is set,
+        so CI never runs it and it never spends money by accident.</p>
+        <h3 id="cost-and-where-it-runs">Cost, and where it runs</h3>
+        <p>One SQL statement, no provider call, nothing written. The
+        candidate’s chunks already exist — it was indexed when it was
+        filed — so this asks the vectors a question rather than
+        computing new ones. Measured with <code>EXPLAIN ANALYZE</code>
+        against the 165-protocol corpus (182 chunks, 25 protocols on the
+        busiest machine): <strong>1.7 ms execution, 4.8 ms
+        planning</strong>.</p>
+        <p>It is a sequential scan and deliberately does
+        <strong>not</strong> use the HNSW index: that index answers
+        “nearest neighbours of this vector”, and this asks for an
+        aggregate per protocol, which is a different question. The cost
+        is therefore linear in the corpus rather than logarithmic. At
+        this size that is 1.7 ms; a hundredfold corpus would be a fifth
+        of a second on an admin’s click, which is still the right trade
+        for a query nobody runs in a loop. If it ever stops being, the
+        fix is a stored per-protocol centroid, not an index this shape
+        of query cannot use.</p>
+        <p><strong>Archived protocols are excluded</strong>, and the
+        comparison is scoped to one machine. The machine scope is a
+        domain rule and not an optimisation: a seal replacement on PR-03
+        and a seal replacement on PR-07 are two maintenance events, not
+        one written twice.</p>
+        <p>A protocol with no vectors yet reports
+        <code>comparable: false</code> rather than an empty candidate
+        list. Those are different facts and only one of them is a
+        statement about the corpus.</p>
+        <h3 id="what-the-approver-sees-and-what-the-wording-is-for">What
+        the approver sees, and what the wording is for</h3>
+        <p>Up to <strong>three</strong> candidates, most similar first,
+        each with its title, incident date, similarity as a whole
+        percentage — and <strong>its own approval state</strong>, which
+        is the field the decision turns on. “Nearly the same as a
+        protocol an administrator already vouched for” is a
+        merge-or-reject question; “nearly the same as one nobody has
+        reviewed” is often two honest accounts of one fault, and this
+        corpus wants both. The count of everything above the threshold
+        is reported separately, so a long tail is visible rather than
+        cut silently to three. Each candidate opens in the existing
+        read-only viewer, because a percentage is not a comparison.</p>
+        <p><strong>The dialog opens only when there is something in
+        it.</strong> Nothing similar means no dialog and one click,
+        which is the 2026-08-13 behaviour unchanged: a box that opened
+        every time to announce “nothing found” would tax the common case
+        for the rare one, and a permanently empty section is one readers
+        learn to skip — including on the day it fills.</p>
+        <p>The wording carries the rule. Review palette
+        (<code>--c-review-*</code>), never danger; an information glyph
+        rather than the triangle the “this edit resets approval” notice
+        uses; no sentence that says “warning” or implies wrongdoing; and
+        the approve button enabled throughout. <strong>Being similar is
+        normal here.</strong> A sentence implying a problem beside a
+        button that plainly works teaches a reader to distrust one of
+        the two.</p>
+        <p>Contrast was measured on the new surface in both palettes,
+        all above AA: the review notice 8.49:1 light / 9.17:1 dark, a
+        card title 13.57 / 13.51, the percentage 5.47 / 7.52, the method
+        line 5.85 / 5.65.</p>
+        <h3 id="the-ledger-records-an-informed-approval">The ledger
+        records an informed approval</h3>
+        <p>When an administrator approves a protocol that had
+        candidates, the <code>APPROVE</code> row’s comment carries
+        <code>approved despite N similar protocol(s) on this machine: &lt;ids&gt;</code>
+        — every id above the threshold, not only the three shown.
+        <strong>No schema change</strong>, and no second event: the
+        ledger is a record of changes to the corpus’s trust, and one
+        approval is one change however much context it carries.</p>
+        <p>The reasoning is ADR-006’s own delete-with-reason argument
+        applied to the moment a protocol becomes vouched-for. A plant
+        auditor asking “did anybody notice that these two say the same
+        thing?” should find the answer in the ledger rather than in
+        somebody’s memory of a screen — and an informed decision and an
+        uninformed one look identical afterwards unless one of them is
+        written down.</p>
+        <p><strong>The similarity is recomputed by the approval rather
+        than taken from the request.</strong> If the client sent the ids
+        it happened to display, an approval made through
+        <code>curl</code> — or by a client that never asked — would
+        record “nothing similar”, which is the one answer the ledger
+        must never give wrongly. The check belongs to the act, not to
+        the screen.</p>
+        <p><strong>No justification text is required,
+        deliberately.</strong> A mandatory field on every approval would
+        make the common case — nothing similar, nothing to say —
+        expensive, and a field people are forced to fill fills up with
+        “ok”. The missing accountability was the <em>record that the
+        approver was informed and proceeded</em>; a sentence about it is
+        not.</p>
+        <h3 id="what-this-does-not-do-and-will-not">What this does NOT
+        do, and will not</h3>
+        <ul>
+        <li><strong>No merge.</strong> Two protocols are two events;
+        combining their text would produce a document that describes
+        neither, authored by nobody, with two <code>uploaded_by</code>
+        values and one row to put them in.</li>
+        <li><strong>No “supersedes” link between protocols, and this was
+        considered and rejected rather than forgotten.</strong> It would
+        make the corpus a <strong>graph</strong>, and every answer would
+        then have to explain which version it cites — a technician
+        reading a Mode A answer would need to understand a superseding
+        relationship before trusting a citation, which is a worse burden
+        than the one it removes. Sources are already date-ordered and
+        carry their incident date, which tells a technician what is
+        recent using a fact the protocol already has.</li>
+        <li><strong>No automatic action of any kind</strong>: nothing is
+        hidden, demoted, merged or unapproved because of a similarity
+        score.</li>
+        </ul>
+        <h3
+        id="a-note-on-the-four-eyes-refusal-found-while-looking-for-a-way-to-demonstrate-it">A
+        note on the four-eyes refusal, found while looking for a way to
+        demonstrate it</h3>
+        <p>The act-based check in <code>ProtocolApprovalService</code>
+        refuses an approval by whoever filed or last corrected the
+        protocol. <strong>Neither branch is reachable through the API as
+        it stands, and that is the role split working rather than dead
+        code.</strong> Approval is admin-only; upload is Techniker and
+        Schichtleiter; correction has been Schichtleiter-only since
+        2026-08-13. An administrator can therefore never be the author
+        and never be the corrector.</p>
+        <p>Adding a second demo administrator was considered as a way to
+        make the refusal clickable for a visitor. <strong>It would
+        not</strong>: the rule fires on the <em>same human doing two
+        acts</em>, and no administrator can perform the first one.
+        Making it demonstrable would mean giving a demo account two of
+        the three jobs, which contradicts the decision the chain rests
+        on and would misrepresent the design on the one screen a visitor
+        looks at. So it was not done, and the reasoning is here rather
+        than in a commit message nobody will find. The check stays as
+        the belt to the split’s braces — it is the only guard that could
+        express “the same human did both”, the only one that survives a
+        future widening of any of those three annotations, and a rule
+        enforced in exactly one place is one edit away from being gone.
+        It is covered by <code>ProtocolApprovalIT</code> against a real
+        database.</p>
       </article>
     </main>
 
@@ -1127,6 +1414,46 @@ ADR-006-insider-threat-and-protocol-moderation · maintenance-assistant Docs</ti
       <li><a href="#what-this-closes-in-the-test-suite"
       id="toc-what-this-closes-in-the-test-suite">What this closes in
       the test suite</a></li>
+      </ul></li>
+      <li><a
+      href="#revision-2026-08-14-duplicate-detection-and-the-number-that-had-to-be-measured"
+      id="toc-revision-2026-08-14-duplicate-detection-and-the-number-that-had-to-be-measured">Revision
+      — 2026-08-14: duplicate detection, and the number that had to be
+      measured</a>
+      <ul>
+      <li><a
+      href="#similarity-warns.-nothing-refuses-an-approval-on-a-score."
+      id="toc-similarity-warns.-nothing-refuses-an-approval-on-a-score.">Similarity
+      warns. Nothing refuses an approval on a score.</a></li>
+      <li><a
+      href="#what-is-compared-the-protocol-as-the-mean-of-its-chunk-vectors"
+      id="toc-what-is-compared-the-protocol-as-the-mean-of-its-chunk-vectors">What
+      is compared: the protocol, as the mean of its chunk
+      vectors</a></li>
+      <li><a
+      href="#the-threshold-measured-a-config-property-and-not-adr-002s-0.55"
+      id="toc-the-threshold-measured-a-config-property-and-not-adr-002s-0.55">The
+      threshold: measured, a config property, and NOT ADR-002’s
+      0.55</a></li>
+      <li><a href="#the-finding-the-e-47-four-are-not-the-constraint"
+      id="toc-the-finding-the-e-47-four-are-not-the-constraint">THE
+      FINDING: the E-47 four are not the constraint</a></li>
+      <li><a href="#cost-and-where-it-runs"
+      id="toc-cost-and-where-it-runs">Cost, and where it runs</a></li>
+      <li><a href="#what-the-approver-sees-and-what-the-wording-is-for"
+      id="toc-what-the-approver-sees-and-what-the-wording-is-for">What
+      the approver sees, and what the wording is for</a></li>
+      <li><a href="#the-ledger-records-an-informed-approval"
+      id="toc-the-ledger-records-an-informed-approval">The ledger
+      records an informed approval</a></li>
+      <li><a href="#what-this-does-not-do-and-will-not"
+      id="toc-what-this-does-not-do-and-will-not">What this does NOT do,
+      and will not</a></li>
+      <li><a
+      href="#a-note-on-the-four-eyes-refusal-found-while-looking-for-a-way-to-demonstrate-it"
+      id="toc-a-note-on-the-four-eyes-refusal-found-while-looking-for-a-way-to-demonstrate-it">A
+      note on the four-eyes refusal, found while looking for a way to
+      demonstrate it</a></li>
       </ul></li>
       </ul></li>
       </ul>

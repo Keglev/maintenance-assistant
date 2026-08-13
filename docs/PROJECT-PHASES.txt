@@ -248,9 +248,77 @@ rather than given one afterwards.
    ADR-006: for one release the correction path had no interface at all,
    because the role split landed before the route did. A permission and
    its path are one change.
-   PR 3 (DUPLICATE DETECTION ON APPROVAL) IS NEXT: the pgvector
-   similarity run against the same machine's protocols, a WARNING with
-   links that NEVER blocks, and the E-47 seed as the proof case.
+   PROGRESS 2026-08-14 — PR 4 of 4 IS OPEN (feat/duplicate-detection),
+   THE LAST FEATURE OF v1.2.0. Approving a protocol first asks what the
+   corpus already says: up to three protocols on the SAME machine that
+   say close to the same thing, each with its date, its similarity as a
+   whole percentage and — the field the decision turns on — ITS OWN
+   APPROVAL STATE. "Nearly the same as something an administrator
+   already vouched for" is a merge-or-reject question; "nearly the same
+   as one nobody has reviewed" is often two honest accounts of one
+   fault, and this corpus wants both. Each opens in the existing
+   read-only viewer, because a percentage is not a comparison.
+   IT WARNS AND NEVER BLOCKS. No branch anywhere refuses an approval on
+   a score, the approve button is never disabled, a FAILED similarity
+   call approves anyway (the backend recomputes and records regardless),
+   and a test approves past a verbatim copy so that nobody adds the
+   "obvious" guard later. THE DIALOG OPENS ONLY WHEN IT HAS CONTENT —
+   nothing similar is still one click, and a permanently empty section
+   is one readers learn to skip, including on the day it fills.
+   WHAT IS COMPARED: the PROTOCOL, as the centroid of its chunk
+   vectors. Chunk-to-chunk best match was measured beside it and
+   rejected — a maximum over a set that GROWS WITH DOCUMENT LENGTH
+   cannot go down when material the other document lacks is added, so it
+   flags two long protocols overlapping in one paragraph. Measured: E-47
+   #1 against #13 is 0.8205 by chunk-max and 0.7698 by centroid, and
+   that gap is the false positive's exact shape.
+   THE THRESHOLD IS A CONFIG PROPERTY, MEASURED, and it is NOT ADR-002's
+   0.55 — that is question-to-chunk, this is document-to-document
+   between two texts of one genre on one machine from one template. The
+   MEAN over all 1,393 same-machine pairs is 0.5547.
+   THE FINDING, AND IT IS NOT WHAT THE BRIEF ASSUMED: the E-47 four are
+   the tightest FAULT cluster (0.7594-0.8329) and they are NOT the
+   constraint — they clear the threshold by 0.09. The highest legitimate
+   pair in the whole corpus is PR-07's Halbjahreswartung and
+   Jahreswartung at 0.9151: scheduled maintenance shares a template, a
+   technician and a vocabulary, and two filled-in checklists resemble
+   each other more than two incidents do. A realistic duplicate (one
+   incident re-narrated by a second person) scores 0.9305 and a verbatim
+   re-file 0.9778, so the usable window is 0.0154 WIDE. 0.92 sits in it,
+   low on purpose. THE NARROW WINDOW IS SURVIVABLE ONLY BECAUSE IT
+   WARNS: a false positive costs one card an approver dismisses, a false
+   negative costs the warning. A blocking feature could not ship this
+   margin — which is the strongest argument yet for the rule Carlos set.
+   THE LEDGER RECORDS AN INFORMED APPROVAL: "approved despite N similar
+   protocols", with their ids, in the APPROVE row's own comment. No
+   schema change, no second event, and NO mandatory justification text —
+   the missing accountability was the record that the approver was
+   informed and proceeded, not a sentence about it. Recomputed by the
+   approval rather than taken from the request, so an approval made by
+   curl records the same fact as one made through the dialog.
+   DELIBERATELY NOT DONE, in ADR-006: no merge, and NO "supersedes" link
+   between protocols — it would make the corpus a graph and every answer
+   would have to explain which version it cites. Date-ordered sources
+   already tell a technician what is recent.
+   FOUR EYES, A FINDING RATHER THAN A FEATURE: the optional second demo
+   administrator was NOT added, because it would not work. The act-based
+   refusal fires on the same HUMAN doing two acts, and since #54 no
+   administrator can file or correct anything — so no admin account,
+   however many there are, can trip it. Making it clickable would mean
+   giving a demo account two of the three jobs, which contradicts the
+   decision the chain rests on. The check stays as the belt to the role
+   split's braces and is covered by ProtocolApprovalIT.
+   Cost, measured with EXPLAIN ANALYZE against the corpus: 1.7 ms
+   execution, 4.8 ms planning, on an admin's click. A sequential scan
+   that deliberately does not use the HNSW index — that index answers
+   "nearest neighbours of this vector" and this asks for an aggregate
+   per protocol.
+   v1.2.0 IS FEATURE-COMPLETE PENDING CARLOS'S DRILL AND TAG. #53 the
+   schema and the server side, #54 the interface and Option B, #55 the
+   corrector's door, and this. Remaining before the tag: the browser
+   walkthrough (an API call is not a click), the package.json version
+   bump the Settings dialog reads — A RELEASE OBLIGATION — and the tag
+   itself. Robots never tag.
 
    THREE DESIGN DECISIONS, DECIDED BY CARLOS 2026-08-11 — the schema
    and the server side are now built; the interface is PR 2. They are written
@@ -355,6 +423,24 @@ STANDING LIST — small, always visible, never a release of its own:
     1280x900. Chosen for CHURN, not coverage: v1.1 spent four PRs (#41,
     #44, #45, #46) on spacing defects that were all found by opening
     production and looking.
+    SIXTEEN BASELINES SINCE 2026-08-14 (feat/duplicate-detection): an eighth
+    surface, the duplicate-detection dialog with candidates, in both palettes.
+    It wins the "churn, not coverage" argument the same way the unapproved
+    source did — the rule this dialog obeys IS A VISUAL RULE. A functional
+    test can assert the approve button is enabled and the class list says
+    notice-review; it cannot notice the amber going pale against --c-sunken, a
+    card border vanishing in dark, or the percentage colliding with a long
+    title, and every one of those turns "information" back into "obstacle"
+    without changing a single assertion. It also brings two new pieces of
+    geometry: cards recessed on --c-sunken inside a dialog surface, and an
+    approval badge inside a card rather than in a table cell. THE OTHER
+    FOURTEEN ARE BYTE-IDENTICAL after --update-snapshots, which is the check
+    saying the admin's table did not move.
+    IT WAS FLAKY ON ITS FIRST RUN, and the cause is worth carrying: the dialog
+    moves focus from a setTimeout one tick after the panel renders, so a shot
+    taken on "visible" caught the panel with or without a focus ring depending
+    on the scheduler. VISIBLE IS NOT SETTLED — the test now waits for focus to
+    land. Any new baseline of a dialog needs the same line.
     FOURTEEN BASELINES SINCE 2026-08-14 (feat/schichtleiter-correction-view):
     a seventh surface, the Schichtleiter's view of the records table, in both
     palettes. What defines it is what is ABSENT — no delete, no approval

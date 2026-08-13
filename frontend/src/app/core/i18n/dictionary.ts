@@ -365,6 +365,26 @@ export interface Dictionary {
     readonly archived: string;
   };
   /**
+   * Duplicate detection, shown before an approval when the corpus already holds something close.
+   *
+   * <p><b>The wording is the feature.</b> Every string here is written to inform rather than to
+   * accuse: no "warning", no "problem", no "are you sure". The approve button in this dialog is
+   * enabled the whole time, and the text has to match — a sentence that implies wrongdoing beside a
+   * button that works anyway teaches the reader to distrust one of the two. Four legitimate E-47
+   * protocols on one machine are the reason: being similar is normal in this corpus.
+   */
+  readonly duplicates: {
+    readonly title: string;
+    /** One sentence: what was found, and that the decision is still the reader's. */
+    readonly intro: (count: number) => string;
+    /** What "similar" is measured on, said once so the percentage is not a mystery number. */
+    readonly method: (percent: number) => string;
+    readonly match: string;
+    readonly openCandidate: string;
+    /** "und 2 weitere" — the tail that is counted rather than shown. */
+    readonly more: (count: number) => string;
+  };
+  /**
    * The paging control, shared by the three tables that have one.
    *
    * Its own section rather than a copy under each view: the labels are the control's, not the
@@ -724,6 +744,18 @@ export const DE: Dictionary = {
     archived:
       'Dieses Protokoll wurde entfernt und lässt sich nicht mehr freigeben. Entfernt ist endgültig.',
   },
+  duplicates: {
+    title: 'Ähnliche Protokolle an dieser Maschine',
+    intro: (count) =>
+      count === 1
+        ? 'Ein Protokoll an derselben Maschine beschreibt Ähnliches. Das ist häufig in Ordnung — dieselbe Störung kann mehrere Ursachen haben. Bitte kurz vergleichen und dann entscheiden.'
+        : `${count} Protokolle an derselben Maschine beschreiben Ähnliches. Das ist häufig in Ordnung — dieselbe Störung kann mehrere Ursachen haben. Bitte kurz vergleichen und dann entscheiden.`,
+    method: (percent) =>
+      `Verglichen wird der gesamte Protokolltext, nicht nur der Titel. Angezeigt wird alles ab ${percent} % Übereinstimmung.`,
+    match: 'Übereinstimmung',
+    openCandidate: 'Protokoll öffnen',
+    more: (count) => `und ${count} weitere über der Schwelle`,
+  },
   pager: {
     label: 'Seitenblättern',
     previous: 'Vorherige Seite',
@@ -1072,6 +1104,18 @@ export const EN: Dictionary = {
     fourEyes:
       'You wrote or last corrected this protocol. Another administrator has to approve it — an approval is a second pair of eyes.',
     archived: 'This protocol was removed and can no longer be approved. Removed is final.',
+  },
+  duplicates: {
+    title: 'Similar protocols on this machine',
+    intro: (count) =>
+      count === 1
+        ? 'One protocol on the same machine describes something similar. That is often fine — one fault can have several causes. Have a quick look, then decide.'
+        : `${count} protocols on the same machine describe something similar. That is often fine — one fault can have several causes. Have a quick look, then decide.`,
+    method: (percent) =>
+      `The comparison uses the whole protocol text, not just the title. Everything from ${percent} % agreement upwards is listed.`,
+    match: 'agreement',
+    openCandidate: 'Open protocol',
+    more: (count) => `and ${count} more above the threshold`,
   },
   pager: {
     label: 'Pagination',

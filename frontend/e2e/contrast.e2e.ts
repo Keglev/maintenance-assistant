@@ -180,6 +180,66 @@ for (const scheme of SCHEMES) {
     });
 
     /**
+     * The duplicate-detection dialog — v1.2's last new surface, and three grounds in one shot.
+     *
+     * <p>Measured rather than eyeballed because the whole design turns on legibility: the sentence
+     * has to be READ, or an approver treats the list as an obstacle and clicks past it. Three
+     * different stacks are checked because each is new: the review-palette notice on a dialog
+     * surface, a card title on `--c-sunken` (the token that was INVERTED between palettes once
+     * already — recessed read as raised in dark), and the similarity percentage, which is
+     * `--c-ink-muted` on that same recessed ground and is the smallest text in the dialog.
+     */
+    test('the duplicate-detection dialog is legible', async ({ page }) => {
+      await signIn(page, 'admin');
+      await expect(page.getByTestId('moderation-table')).toBeVisible();
+      // Stubbed so the dialog opens whatever the corpus currently holds: this test is about the
+      // colours the dialog paints, not about whether two real protocols happen to be similar.
+      await page.route('**/similar', (route) =>
+        route.fulfill({
+          json: {
+            comparable: true,
+            total: 1,
+            allIds: ['0f9c5b02-0000-4000-8000-000000000001'],
+            threshold: 0.92,
+            candidates: [
+              {
+                id: '0f9c5b02-0000-4000-8000-000000000001',
+                title: 'E-47 Druckabfall im Presshub',
+                incidentDate: '2024-10-08',
+                uploadedBy: 'techniker',
+                uploadedAt: '2026-08-07T08:00:00Z',
+                similarity: 0.9778,
+                approval: {
+                  state: 'APPROVED',
+                  approvedBy: 'admin',
+                  approvedAt: '2026-08-11T09:00:00Z',
+                },
+              },
+            ],
+          },
+        }),
+      );
+
+      await page.getByTestId('filter-approval').selectOption('UNAPPROVED');
+      await page.getByTestId('row-approve').first().click();
+      await expect(page.getByTestId('duplicates-dialog')).toBeVisible();
+
+      for (const selector of [
+        '[data-testid="duplicates-intro"]',
+        '[data-testid="duplicate-card"] .duplicate-title',
+        '[data-testid="duplicate-score"]',
+        '[data-testid="duplicates-method"]',
+      ]) {
+        const measured = await contrastReport(page, selector);
+        expect(
+          measured.ratio,
+          `${selector} is ${measured.color} on ${measured.background} = ` +
+            `${measured.ratio.toFixed(2)}:1 in ${scheme}`,
+        ).toBeGreaterThanOrEqual(AA_NORMAL);
+      }
+    });
+
+    /**
      * A DEFECT THIS SUITE FOUND IN EXISTING CODE, on its first complete run.
      *
      * `.footer-note` — the "Demo, synthetic data" line at the foot of every signed-in page — uses

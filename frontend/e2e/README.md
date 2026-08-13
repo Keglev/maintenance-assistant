@@ -77,7 +77,7 @@ count of anything.
 
 ## Visual regression
 
-Fourteen baselines — seven surfaces × two palettes — compared per run. They exist because v1.1 spent
+Sixteen baselines — eight surfaces × two palettes — compared per run. They exist because v1.1 spent
 **four pull requests** (#41, #44, #45, #46) on spacing and layout defects that were all found the
 same way: Carlos opened production and looked.
 
@@ -95,6 +95,21 @@ argument for it, and the reason it is here: **absence has a layout.** The action
 the three buttons an admin sees and this role sees two; the tab strip that disappears was also what
 separated the heading from the filter card, and a header row welded to what follows it is the defect
 (#46) that put this suite in the repository.
+
+The eighth, added in v1.2's fourth pull request, is the **duplicate-detection dialog with
+candidates**. It wins the same argument the sixth did: the rule this dialog obeys is itself a
+*visual* rule — inform, never obstruct. A functional test can assert the approve button is enabled
+and the class list says `notice-review`; it cannot notice the amber going pale against `--c-sunken`,
+a card border vanishing in dark, or the percentage colliding with a long title, and every one of
+those turns "information" back into "obstacle" without changing an assertion. It also brings two new
+pieces of geometry: cards recessed on `--c-sunken` inside a dialog surface, and an approval badge
+rendered inside a card rather than in a table cell.
+
+> **It was flaky on its very first run, and the cause generalises.** The shared dialog moves focus
+> to its first control from a `setTimeout`, one tick after the panel renders — so a screenshot taken
+> on `toBeVisible()` caught the panel with or without a focus ring depending on the scheduler.
+> **Visible is not settled.** The test now waits for focus to land, and any future baseline of a
+> dialog needs the same line.
 
 ```bash
 npm run e2e:visual          # compare against the baselines
@@ -185,7 +200,7 @@ to a required check at **ten consecutive green runs with no infrastructure-cause
 | **Consecutive green runs of the CURRENT `e2e` job** | **2** — the count restarted on 2026-08-12 |
 | Green runs of the previous job shape | 4 (three on #50, one on main after merge) |
 | Why the count restarted | That job had no throwaway database, no provider stub, an unindexed corpus and skipped the re-index test. A streak counts runs of the same thing. |
-| **`visual` job** | Separate check, also advisory. **2 consecutive green runs** on the same baselines (2026-08-13) |
+| **`visual` job** | Separate check, also advisory. **2 consecutive green runs** (2026-08-13). The set grew to 16 on 2026-08-14; adding a surface does not restart the count, because the other fourteen are compared against the same bytes they always were — a *shape* change does, as it did for `e2e` on 2026-08-12. |
 
 The `visual` job is deliberately a **separate check**: a pixel diff and a broken flow are different
 news for different people, and a red `visual` beside a green `e2e` says exactly what it means — it

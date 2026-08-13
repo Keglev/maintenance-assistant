@@ -334,18 +334,26 @@
                         {{ t().approval.withdrawShort }}
                       </button>
                     } @else {
-                      <!-- No confirmation dialog, unlike withdrawing: approving affirms the text as
-                           it stands, and the reviewer has just read it. Withdrawing takes back
-                           something a named person vouched for, and that direction needs a reason. -->
+                      <!-- Still no confirmation dialog in the ordinary case, which is what #54
+                           decided: approving affirms the text as it stands and the reviewer has
+                           just read it. Withdrawing takes back something a named person vouched
+                           for, and that direction needs a reason.
+                           SINCE 2026-08-14 the click first asks whether this machine already holds
+                           something similar, and a dialog opens ONLY if it does — information when
+                           there is information, one click when there is not. -->
                       <button
                         type="button"
                         class="btn btn-primary btn-sm"
                         data-testid="row-approve"
-                        [disabled]="approving() !== null"
+                        [disabled]="approving() !== null || checkingDuplicates() !== null"
                         [attr.aria-label]="t().approval.approve + ': ' + protocol.title"
                         (click)="approve(protocol)"
                       >
-                        {{ approving() === protocol.id ? t().approval.approving : t().approval.approve }}
+                        {{
+                          approving() === protocol.id || checkingDuplicates() === protocol.id
+                            ? t().approval.approving
+                            : t().approval.approve
+                        }}
                       </button>
                     }
                   }
@@ -541,7 +549,7 @@
           type="button"
           class="btn btn-primary btn-sm"
           data-testid="viewer-approve"
-          [disabled]="approving() !== null"
+          [disabled]="approving() !== null || checkingDuplicates() !== null"
           (click)="approve(target); viewing.set(null)"
         >
           {{ t().approval.approve }}
@@ -560,6 +568,132 @@
   source="archive"
   (closed)="viewingArchived.set(null)"
 />
+
+<!-- A candidate from the duplicate list, in the SAME read-only viewer the rest of this screen uses.
+     Comparing two protocols means reading both, and a percentage is not a comparison — the reviewer
+     has to be able to see the actual words before deciding that two accounts of one fault are one
+     account filed twice. The duplicate dialog steps aside while this is open (see duplicatesOpen)
+     and returns with its list intact. -->
+<app-protocol-dialog
+  [protocolId]="viewingCandidate()?.id ?? null"
+  [protocolTitle]="viewingCandidate()?.title ?? ''"
+  [machine]="duplicatesOf()?.machineNo ?? ''"
+  [approval]="viewingCandidate()?.approval ?? null"
+  source="moderation"
+  (closed)="viewingCandidate.set(null)"
+/>
+
+<!-- DUPLICATE DETECTION: INFORMATION, NEVER AN OBSTACLE.
+     It opens only when something on this machine is actually similar — no permanently empty
+     section, and the ordinary approval stays one click (#54). The review palette rather than the
+     danger one, and no word here says "warning": being similar is NORMAL in this corpus, where four
+     legitimate E-47 protocols describe four different root causes behind one fault code. The
+     approve button below is enabled the entire time, because a sentence implying wrongdoing beside a
+     button that works anyway would teach the reader to distrust one of the two. -->
+<app-dialog
+  [open]="duplicatesOpen()"
+  [title]="t().duplicates.title"
+  testId="duplicates"
+  (closed)="closeDuplicates()"
+>
+  @if (duplicates(); as report) {
+    @if (duplicatesOf(); as target) {
+      <!-- Which protocol is being approved, named. The button that opened this was one of several
+           identical ones in a table. -->
+      <p class="confirm-target" data-testid="duplicates-target">
+        <strong>{{ target.title }}</strong>
+        <span class="machine">{{ target.machineNo }}</span>
+      </p>
+    }
+
+    <p class="notice notice-review" role="note" data-testid="duplicates-intro">
+      <svg class="notice-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <circle cx="12" cy="12" r="9" />
+        <path d="M12 11v5.4" />
+        <circle class="dot" cx="12" cy="7.8" r="1" />
+      </svg>
+      <!-- An INFORMATION glyph, not the triangle the "edit resets approval" notice uses. Both sit
+           in the review palette and they say different things: that one predicts a consequence of
+           pressing save, this one reports a fact about the corpus. -->
+      {{ t().duplicates.intro(report.total) }}
+    </p>
+
+    <ul class="duplicate-list" data-testid="duplicate-list">
+      @for (candidate of report.candidates; track candidate.id) {
+        <li class="duplicate-card" data-testid="duplicate-card">
+          <div class="duplicate-head">
+            <span class="duplicate-title">{{ candidate.title }}</span>
+            <!-- The percentage is a rounded whole number on purpose: four decimal places would
+                 invite a reviewer to compare 93.05 with 92.87 as though the difference meant
+                 something a human decision should turn on. -->
+            <span class="duplicate-score" data-testid="duplicate-score">
+              {{ percent(candidate.similarity) }} % {{ t().duplicates.match }}
+            </span>
+          </div>
+          <div class="duplicate-meta">
+            <span class="num">{{ candidate.incidentDate | appDate: language() }}</span>
+            <span class="uploader">{{ candidate.uploadedBy }}</span>
+          </div>
+          <!-- THE CANDIDATE'S OWN APPROVAL STATE, and it is the reason this card is worth reading
+               rather than a detail on it: "nearly the same as something an administrator already
+               vouched for" is a merge-or-reject question, while "nearly the same as one nobody has
+               reviewed" may be two people describing one fault from different angles — which this
+               corpus wants both of. -->
+          <app-approval-state
+            [approval]="candidate.approval"
+            [language]="language()"
+            [showActor]="true"
+          />
+          <button
+            type="button"
+            class="btn btn-secondary btn-sm"
+            data-testid="duplicate-open"
+            [attr.aria-haspopup]="'dialog'"
+            [attr.aria-label]="t().duplicates.openCandidate + ': ' + candidate.title"
+            (click)="openCandidate(candidate)"
+          >
+            {{ t().duplicates.openCandidate }}
+          </button>
+        </li>
+      }
+    </ul>
+
+    @if (duplicatesBeyondShown() > 0) {
+      <!-- Three links are a prompt to compare; ten are a report nobody reads. The count is what
+           stops the fourth from disappearing without trace. -->
+      <p class="field-hint" data-testid="duplicates-more">
+        {{ t().duplicates.more(duplicatesBeyondShown()) }}
+      </p>
+    }
+
+    <!-- Says what the number means. A percentage with no stated basis is read as a certainty. -->
+    <p class="field-hint" data-testid="duplicates-method">
+      {{ t().duplicates.method(duplicateThresholdPercent()) }}
+    </p>
+
+    <div class="confirm-actions">
+      <!-- ENABLED, ALWAYS. The whole feature is one sentence: the system informs, the admin decides.
+           There is no state of this dialog in which this button is disabled, and the backend has no
+           branch that refuses an approval on a similarity score either. -->
+      <button
+        type="button"
+        class="btn btn-primary"
+        data-testid="duplicates-approve"
+        (click)="approveFromDialog()"
+      >
+        {{ t().approval.approve }}
+      </button>
+      <button
+        type="button"
+        class="btn btn-secondary"
+        data-testid="duplicates-cancel"
+        (click)="closeDuplicates()"
+      >
+        {{ t().common.cancel }}
+      </button>
+    </div>
+  }
+</app-dialog>
 
 <app-dialog
   [open]="deleting() !== null"

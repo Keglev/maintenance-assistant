@@ -27,13 +27,16 @@ import {
  * one release — the Schichtleiter held the permission while the administrator held the screen — and
  * became a click again on 2026-08-14, when the route opened to the role that owns the act.
  *
- * <p><b>THE FOUR-EYES REFUSAL IS NOT REACHABLE FROM HERE, and that is a fact about the deployment
- * rather than a gap.</b> The rule refuses an approval by whoever filed or last corrected the
- * protocol; only an admin may approve, only a Techniker or Schichtleiter may file, and since
- * 2026-08-13 only a Schichtleiter may correct. No demo account holds two of those roles, so the
- * refusal cannot be produced through the real stack at all — it is covered by
- * `ProtocolApprovalIT` against a database and by the moderation spec against a stubbed 400. This
- * comment is here so the next reader does not conclude it was forgotten.
+ * <p><b>THE FOUR-EYES REFUSAL IS NOT REACHABLE FROM HERE, and 2026-08-14 sharpened why: it is not
+ * reachable AT ALL, by anybody, and that is the role split working.</b> The rule refuses an approval
+ * by whoever filed or last corrected the protocol. Only an admin may approve; only a Techniker or
+ * Schichtleiter may file; since 2026-08-13 only a Schichtleiter may correct. An administrator can
+ * therefore never be the author and never be the corrector, so no request this API accepts can make
+ * either condition true — this is not "no demo account holds two roles", it is "no account can",
+ * and adding a second demo administrator would not change it (see the 2026-08-14 note in ADR-006).
+ * The check is kept as the belt to the split's braces and is covered by `ProtocolApprovalIT` against
+ * a database and by the moderation spec against a stubbed 400. This comment is here so the next
+ * reader does not conclude it was forgotten.
  *
  * <p>CLEANUP IS PART OF THE TEST, as everywhere in this suite: what this creates it archives,
  * through the application, with a reason. Never SQL.
@@ -204,6 +207,80 @@ test.describe('the approve workflow', () => {
     // Back in the queue, which is where a protocol whose text has changed belongs.
     await page.getByTestId('filter-approval').selectOption('UNAPPROVED');
     await expect(page.getByTestId('moderation-row').filter({ hasText: title })).toHaveCount(1);
+  });
+
+  test('similar protocols are shown before an approval, and the approval still goes through', async ({
+    page,
+  }) => {
+    // DUPLICATE DETECTION, WHERE IT ACTUALLY MATTERS: an approver looking at the corpus's own
+    // opinion of what they are about to vouch for. Two protocols, one body — which is what a real
+    // duplicate is, two people writing up the same fault because neither knew the other had.
+    //
+    // NEEDS AN EMBEDDING, so it runs only with E2E_LLM set, like the re-index test: a protocol with
+    // no vectors has nothing to compare and the check correctly reports "not comparable". Free
+    // against the provider stub — see e2e/README.md.
+    test.skip(!process.env.E2E_LLM, 'needs indexed vectors; set E2E_LLM=1 (the stub is free)');
+
+    const first = `${throwawayTitle()} A`;
+    const second = `${throwawayTitle()} B`;
+
+    await fileProtocol(page, first);
+    await page.getByTestId('mode-text').click();
+    await page.getByTestId('upload-machine').selectOption(MACHINE);
+    await page.getByTestId('upload-title').fill(second);
+    await page.getByTestId('text-input').fill(BODY);
+    await page.getByTestId('upload-button').click();
+    await expect(page.getByTestId('accepted')).toBeVisible();
+
+    // Indexed is the precondition, not the subject: the comparison runs on vectors, and vectors
+    // arrive asynchronously. Polled through the application's own refresh, never slept on.
+    const firstRow = page.getByTestId('uploads-table').locator('tr').filter({ hasText: first });
+    const secondRow = page.getByTestId('uploads-table').locator('tr').filter({ hasText: second });
+    await expect(async () => {
+      await page.getByTestId('refresh-button').click();
+      await expect(firstRow.locator('.status-indexed')).toHaveCount(1, { timeout: 2_000 });
+      await expect(secondRow.locator('.status-indexed')).toHaveCount(1, { timeout: 2_000 });
+    }).toPass({ timeout: 180_000, intervals: [3_000] });
+    await signOut(page);
+
+    await signIn(page, 'admin');
+    const toApprove = await findInCorpus(page, second);
+    await toApprove.getByTestId('row-approve').click();
+
+    // --- What the approver is told -----------------------------------------------------------
+    await expect(page.getByTestId('duplicates-dialog')).toBeVisible();
+    await expect(page.getByTestId('duplicates-target')).toContainText(second);
+    const card = page.getByTestId('duplicate-card').filter({ hasText: first });
+    await expect(card).toHaveCount(1);
+    // Its OWN approval state, which is the field the decision turns on: this one is unapproved, so
+    // the situation is "a second account of one fault", not "a copy of something already vouched
+    // for". Asserted on the badge's data attribute rather than on a word, because the interface
+    // language is a property of the browser profile and not of this test.
+    await expect(card.getByTestId('approval-state')).toHaveAttribute('data-approval', 'UNAPPROVED');
+    await expect(card.getByTestId('duplicate-score')).toContainText('%');
+
+    // --- It is INFORMATION, and the button says so -------------------------------------------
+    // The whole feature in one assertion. Nothing here is disabled, nothing is red, and the
+    // approval below completes: the E-47 four are the reason a threshold must never refuse.
+    await expect(page.getByTestId('duplicates-approve')).toBeEnabled();
+
+    // --- And the evidence is one click away ---------------------------------------------------
+    // A percentage is not a comparison. The candidate opens in the same read-only viewer the rest
+    // of the screen uses, and the list is still there afterwards rather than making the reviewer
+    // start again.
+    await card.getByTestId('duplicate-open').click();
+    await expect(page.getByTestId('protocol-body')).toBeVisible();
+    await page.getByTestId('protocol-close').click();
+    await expect(page.getByTestId('duplicates-dialog')).toBeVisible();
+
+    await page.getByTestId('duplicates-approve').click();
+    await expect(page.getByTestId('approval-notice')).toContainText(second);
+
+    const approved = await findInCorpus(page, second);
+    await expect(approved.getByTestId('approval-state')).toHaveAttribute(
+      'data-approval',
+      'APPROVED',
+    );
   });
 
   test('withdrawing an approval takes a reason before it takes effect', async ({ page }) => {

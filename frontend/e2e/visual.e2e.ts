@@ -24,12 +24,13 @@ import { expect, selectSearchMachine, signIn, test } from './support';
  * causes it (see e2e/README.md), and why a "fix the baselines" commit afterwards is the one
  * workflow this suite must never acquire.
  *
- * <p><b>Chosen for churn, not for coverage.</b> Seven surfaces, both palettes. Five of them are
+ * <p><b>Chosen for churn, not for coverage.</b> Eight surfaces, both palettes. Five of them are
  * places this project has already shipped a visual defect; the sixth (v1.2's unapproved source) is
  * the one case where being seen IS the feature — see {@link UNAPPROVED_ANSWER}; the seventh is the
  * corrector's view of the records table, where what changed is a set of ABSENCES and absence has a
- * layout. Each has its argument written where it lives. Adding a baseline per view would make a
- * suite nobody dares change.
+ * layout; the eighth is the duplicate-detection dialog, whose governing rule — inform, never
+ * obstruct — is itself a visual claim. Each has its argument written where it lives. Adding a
+ * baseline per view would make a suite nobody dares change.
  */
 
 /** The seeded E-47 demo case — the same fixture citation.e2e.ts uses. */
@@ -264,6 +265,81 @@ for (const scheme of SCHEMES) {
         fullPage: true,
         mask: nonDeterministic(page),
       });
+    });
+
+    test(`the duplicate-detection dialog @visual`, async ({ page }) => {
+      /*
+       * AN EIGHTH SURFACE, and the argument is the same one the unapproved-source baseline won on:
+       * being seen a particular way IS the feature.
+       *
+       * The rule this dialog has to obey is a VISUAL rule — "no red, no warning framing, the review
+       * palette, and an approve button that plainly still works". A functional test can assert that
+       * the button is enabled and that the class list says `notice-review`; it cannot notice the
+       * amber going pale against --c-sunken, a card border vanishing in dark, the percentage
+       * colliding with a long title, or the primary button losing its weight beside a list. Every
+       * one of those turns "information" back into "obstacle" without changing a single assertion.
+       *
+       * It also brings TWO new pieces of geometry no baseline covers: cards recessed on --c-sunken
+       * inside a dialog surface (the token that inverted between palettes once already), and an
+       * approval badge rendered INSIDE a card rather than in a table cell.
+       *
+       * Scoped to the dialog panel: the page behind it is the Verwaltung table, which already has
+       * its own baseline two tests up.
+       */
+      const CANDIDATE = {
+        comparable: true,
+        total: 2,
+        allIds: ['0f9c5b02-0000-4000-8000-000000000001', '0f9c5b02-0000-4000-8000-000000000003'],
+        threshold: 0.92,
+        candidates: [
+          {
+            id: SEED.protocolId,
+            title: 'E-47 Druckabfall im Presshub',
+            incidentDate: '2024-10-08',
+            uploadedBy: 'techniker',
+            uploadedAt: '2026-08-07T08:00:00Z',
+            similarity: 0.9778,
+            approval: {
+              state: 'APPROVED',
+              approvedBy: 'admin',
+              approvedAt: '2026-08-11T09:00:00Z',
+            },
+          },
+          {
+            id: SEED.secondProtocolId,
+            title: 'E-47 nach Programmwechsel auf Teil 4711',
+            incidentDate: '2024-11-02',
+            uploadedBy: 'schichtleiter',
+            uploadedAt: '2026-08-07T08:00:00Z',
+            similarity: 0.9305,
+            // ONE OF EACH, deliberately: the two states are what the reviewer is meant to tell
+            // apart, and a baseline showing only one would not hold the distinction.
+            approval: { state: 'UNAPPROVED', approvedBy: null, approvedAt: null },
+          },
+        ],
+      };
+
+      await signIn(page, 'admin');
+      await page.route('**/similar', (route) => route.fulfill({ json: CANDIDATE }));
+      await expect(page.getByTestId('moderation-table')).toBeVisible();
+
+      // The approval queue, so a row with an approve button is on screen whatever the corpus has
+      // been doing — the seeded corpus is born approved and the queue is the 15 that are not.
+      await page.getByTestId('filter-approval').selectOption('UNAPPROVED');
+      await page.getByTestId('row-approve').first().click();
+      await expect(page.getByTestId('duplicates-dialog')).toBeVisible();
+      // WAIT FOR FOCUS TO LAND, and this line is here because its absence made the dark baseline
+      // flaky on its very first run. The dialog moves focus to its first control from a setTimeout,
+      // one tick after the panel renders — so a screenshot taken on "visible" catches the panel
+      // with or without a focus ring depending on the scheduler. Visible is not settled.
+      await expect(page.getByTestId('duplicates-close')).toBeFocused();
+
+      // NO MASKS, and that is a decision rather than an omission: every value in this dialog comes
+      // from the stub above, including the dates. Masking them would blank exactly the row of text
+      // whose alignment against the percentage is worth recording.
+      await expect(page.getByTestId('duplicates-dialog')).toHaveScreenshot(
+        `duplicates-${scheme}.png`,
+      );
     });
 
     test(`the upload view in text mode @visual`, async ({ page }) => {

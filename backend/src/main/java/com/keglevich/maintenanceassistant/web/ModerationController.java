@@ -5,6 +5,7 @@ import com.keglevich.maintenanceassistant.ingestion.ProtocolDocumentService;
 import com.keglevich.maintenanceassistant.ingestion.ProtocolEditService;
 import com.keglevich.maintenanceassistant.ingestion.ProtocolIntakeService;
 import com.keglevich.maintenanceassistant.ingestion.ProtocolModerationService;
+import com.keglevich.maintenanceassistant.ingestion.ProtocolSimilarityService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -56,6 +57,7 @@ import java.util.UUID;
  *   PUT  /{id}                      SCHICHTLEITER          correct it  (admin refused)
  *   DELETE /{id}                    ADMIN                  archive it
  *   PUT  /{id}/approval             ADMIN                  approve / withdraw
+ *   GET  /{id}/similar              ADMIN                  what it may duplicate
  *   GET  /deleted                   ADMIN                  the archive
  *   GET  /deleted/{id}/document     ADMIN                  an archived document
  * </pre>
@@ -314,6 +316,40 @@ class ModerationController {
      *                 colleague's mistake, and a query string lands in access logs.
      */
     record ApprovalRequest(boolean approved, String comment) {
+    }
+
+    @GetMapping("/{id}/similar")
+    @Operation(summary = "Protocols on the same machine that say close to what this one says",
+            description = "INFORMATION FOR AN APPROVER, NEVER A GATE. Nothing in this API refuses "
+                    + "an approval on a similarity score, and nothing is meant to: the four E-47 "
+                    + "protocols on PR-03 are four different root causes behind one fault code, all "
+                    + "legitimate, and a threshold sensitive enough to catch a genuine duplicate "
+                    + "would flag them as copies of each other. Compared at PROTOCOL level — the "
+                    + "mean of a protocol's chunk vectors — against live protocols on the SAME "
+                    + "machine; archived ones are excluded. Each candidate carries its OWN approval "
+                    + "state, because 'nearly the same as something already vouched for' and "
+                    + "'nearly the same as something nobody has reviewed' are different situations. "
+                    + "The threshold in force is returned with the result rather than left for a "
+                    + "client to hard-code.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200",
+                    description = "The report, possibly with no candidates. `comparable` is false "
+                            + "when the protocol has no vectors yet — filed seconds ago, or its "
+                            + "indexing failed — which is a different fact from 'nothing similar'"),
+            @ApiResponse(responseCode = "403", description = "Caller is not an administrator")
+    })
+    /*
+     * ADMIN ONLY, deliberately, and it is not an oversight that the corrector cannot reach it. The
+     * 2026-08-14 widening opened exactly what a correction needs — the list and the document. This
+     * belongs to the approval decision, which is the administrator's, and a corrector who could see
+     * it would be reading a signal they have no act to take on.
+     *
+     * A GET rather than a field on the list row: the comparison is a vector query per protocol, and
+     * folding it into the paged list would run it five times per page for four protocols nobody is
+     * about to approve.
+     */
+    ProtocolSimilarityService.SimilarityReport similar(@PathVariable UUID id) {
+        return approvals.similarTo(id);
     }
 
     @GetMapping("/deleted")

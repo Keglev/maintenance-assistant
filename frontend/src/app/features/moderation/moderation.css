@@ -295,6 +295,68 @@
   color: var(--c-ink-hint);
 }
 
+/* ------------------------------------------------------------------------------------------
+   Duplicate detection — the review palette, and nothing that reads as danger
+   ------------------------------------------------------------------------------------------
+   The cards use the SURFACE tokens rather than --c-review-*, and that is deliberate: the review
+   colour appears exactly once in this dialog, on the sentence at the top that explains why the
+   list is there. Tinting every card as well would make three ordinary protocols look like three
+   problems, when being similar is normal in this corpus — four legitimate E-47 protocols describe
+   four different root causes behind one fault code. */
+.duplicate-list {
+  list-style: none;
+  margin: 0 0 var(--s-3);
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+}
+
+.duplicate-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--s-2);
+  padding: var(--s-3);
+  border: 1px solid var(--c-line);
+  border-radius: var(--r-md);
+  /* Recessed inside the dialog's own surface. --c-sunken is the token that steps the RIGHT way in
+     both palettes — it is lighter than the card in light and darker than it in dark — which is the
+     defect the dark palette carried before it was fixed and the reason not to invent a value here. */
+  background: var(--c-sunken);
+}
+
+/* The title and the score share a line and separate at narrow widths, because the score is what
+   the eye scans down the list and a title long enough to push it off screen is common here. */
+.duplicate-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--s-2) var(--s-3);
+  width: 100%;
+}
+
+.duplicate-title {
+  font-weight: 600;
+}
+
+/* Tabular figures so a column of percentages lines up rather than shimmying by a digit's width. */
+.duplicate-score {
+  flex: none;
+  font-size: var(--t-sm);
+  font-variant-numeric: tabular-nums;
+  color: var(--c-ink-muted);
+}
+
+.duplicate-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2) var(--s-3);
+  font-size: var(--t-sm);
+  color: var(--c-ink-muted);
+}
+
 /* Visible to a screen reader, not to the eye: the actions column has no heading worth showing, and
    an empty <th> reads as an unlabelled column rather than as no label. */
 .sr-only {

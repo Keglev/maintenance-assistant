@@ -120,6 +120,54 @@ export interface Approval {
 }
 
 /**
+ * A protocol on the same machine that says close to what the one being approved says, from
+ * `GET /api/moderation/protocols/{id}/similar`.
+ *
+ * `approval` is the candidate's OWN state, and it is the reason a card is worth reading rather than
+ * a detail on it: "nearly the same as a protocol an administrator already vouched for" is a
+ * merge-or-reject question, while "nearly the same as one nobody has reviewed" may simply be two
+ * people describing one fault from different angles — which this corpus wants both of.
+ */
+export interface SimilarProtocol {
+  readonly id: string;
+  readonly title: string;
+  /** The day of the incident, not of the upload — what a duplicate would duplicate. */
+  readonly incidentDate: string;
+  readonly uploadedBy: string;
+  readonly uploadedAt: string;
+  /** Cosine similarity of the two protocols' chunk centroids, 0..1. Shown as a percentage. */
+  readonly similarity: number;
+  readonly approval: Approval;
+}
+
+/**
+ * What the approver is shown before they decide. **Information, never a gate.**
+ *
+ * No field here is capable of refusing an approval and no code path treats it as though it were: the
+ * four E-47 protocols on PR-03 are four different root causes behind one fault code, every one of
+ * them legitimate, and a threshold sensitive enough to catch a genuine duplicate would report them
+ * as copies of each other.
+ */
+export interface SimilarityReport {
+  /**
+   * False when the protocol has no vectors yet — filed seconds ago, or its indexing failed.
+   *
+   * A different fact from "nothing similar", and typed separately so the two cannot arrive as the
+   * same empty list. The view treats both as "no dialog", because neither is something an approver
+   * can act on; the distinction exists so the API does not have to lie.
+   */
+  readonly comparable: boolean;
+  /** The most similar first, at most three. */
+  readonly candidates: readonly SimilarProtocol[];
+  /** How many cleared the threshold in all — so a long tail is visible rather than cut silently. */
+  readonly total: number;
+  /** Every id above the threshold. The ledger's field; the interface reads `candidates`. */
+  readonly allIds: readonly string[];
+  /** The threshold in force, sent by the backend so no screen hard-codes a configurable number. */
+  readonly threshold: number;
+}
+
+/**
  * What the corpus list is narrowed to. Every field is a form value, so "" means "not filled in".
  *
  * The machine is not optional in practice: the backend refuses a title or date filter without one

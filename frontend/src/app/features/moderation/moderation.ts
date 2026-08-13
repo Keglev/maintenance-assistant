@@ -7,6 +7,8 @@ import {
   ModeratedProtocol,
   NO_FILTER,
   ProtocolFilter,
+  SimilarProtocol,
+  SimilarityReport,
 } from '../../core/api/api.types';
 import { ApiFailure, MaintenanceApiService, classify } from '../../core/api/maintenance-api.service';
 import { AuthService } from '../../core/auth/auth.service';
@@ -45,6 +47,15 @@ const PAGE_SIZE = 5;
  * and nobody holds both — so the row's buttons now depend on the reader's role rather than on the
  * view they are standing in. See {@link canCorrect} and {@link canApprove} for what that means here
  * and for the routing question it exposes.
+ *
+ * <p><b>Duplicate detection, 2026-08-14, and the one rule it follows: it WARNS, it never blocks.</b>
+ * Approving now asks first whether this machine already holds a protocol saying close to the same
+ * thing, and shows up to three if it does — with their dates, their similarity and, decisively,
+ * their OWN approval state. Nothing on this screen can refuse an approval on that basis, the
+ * approve button in the dialog is never disabled, and a failed similarity call approves anyway
+ * ({@link approve}). Four legitimate E-47 protocols on PR-03 describe four different root causes
+ * behind one fault code, and a feature that could turn "similar" into "refused" would have removed
+ * exactly the knowledge that makes the demo answer good.
  */
 @Component({
   selector: 'app-moderation',
@@ -145,6 +156,42 @@ export class Moderation {
    * a sentence at the top of the page about "this protocol" names none of them.
    */
   protected readonly approvalFailure = signal<{ id: string; reason: ApiFailure } | null>(null);
+
+  // -------------------------------------------------------------------------------------------
+  // Duplicate detection — INFORMATION, never a gate
+  // -------------------------------------------------------------------------------------------
+
+  /** Which protocol's similarity check is in flight, so its button can say it is working. */
+  protected readonly checkingDuplicates = signal<string | null>(null);
+  /** The protocol about to be approved, held while its similar siblings are on screen. */
+  protected readonly duplicatesOf = signal<ModeratedProtocol | null>(null);
+  /** What the check found. Null means no dialog — there is nothing to compare. */
+  protected readonly duplicates = signal<SimilarityReport | null>(null);
+  /** A candidate open in the read-only viewer, or null. */
+  protected readonly viewingCandidate = signal<SimilarProtocol | null>(null);
+
+  /**
+   * Whether the duplicate list is on screen.
+   *
+   * <p>It steps aside while a candidate is open in the viewer instead of stacking two modals: two
+   * focus traps in one page fight over Tab and Escape, and the alternative — closing this dialog to
+   * open the viewer — would throw away the list the reviewer is in the middle of comparing. Closing
+   * the viewer brings it straight back, with its state intact.
+   */
+  protected readonly duplicatesOpen = computed(
+    () => this.duplicates() !== null && this.viewingCandidate() === null,
+  );
+
+  /** The threshold as a whole percentage, for the one sentence that explains the numbers. */
+  protected readonly duplicateThresholdPercent = computed(() =>
+    Math.round((this.duplicates()?.threshold ?? 0) * 100),
+  );
+
+  /** How many cleared the threshold beyond the three shown. Zero renders nothing. */
+  protected readonly duplicatesBeyondShown = computed(() => {
+    const report = this.duplicates();
+    return report ? report.total - report.candidates.length : 0;
+  });
 
   /** The protocol being corrected, or null. */
   protected readonly editing = signal<ModeratedProtocol | null>(null);
@@ -426,8 +473,86 @@ export class Moderation {
   // -------------------------------------------------------------------------------------------
 
   /**
-   * Approves a protocol. No confirmation and no comment field: approving affirms the text as it
-   * stands, and the reader has just read it.
+   * Starts an approval by asking what the corpus already says.
+   *
+   * <p><b>The dialog appears only when there is something to look at.</b> If nothing on this machine
+   * is similar, this is still the #54 behaviour — one click, no confirmation, because approving
+   * affirms text the reader has just read. A dialog that opened every time to announce "nothing
+   * found" would tax the common case to serve the rare one, and a permanently empty section is how a
+   * reader learns to click straight past a section that will one day be full.
+   *
+   * <p><b>It fails OPEN, deliberately.</b> A failed similarity call approves anyway rather than
+   * stopping the reviewer, and nothing is lost by it: the backend recomputes the same comparison
+   * inside the approval and writes what it found into the ledger, so the audit record is correct
+   * whether or not this call succeeded. The check here is an aid to a decision; it is not the
+   * decision, and it is not the record. Blocking an approval on a failed *warning* would invert the
+   * governing rule of the whole feature.
+   */
+  protected approve(protocol: ModeratedProtocol): void {
+    if (this.approving() || this.checkingDuplicates()) {
+      return;
+    }
+    this.checkingDuplicates.set(protocol.id);
+    this.approvalFailure.set(null);
+
+    this.api.similarProtocols(protocol.id).subscribe({
+      next: (report) => {
+        this.checkingDuplicates.set(null);
+        if (report.candidates.length === 0) {
+          this.commitApproval(protocol);
+          return;
+        }
+        this.duplicatesOf.set(protocol);
+        this.duplicates.set(report);
+      },
+      error: () => {
+        this.checkingDuplicates.set(null);
+        this.commitApproval(protocol);
+      },
+    });
+  }
+
+  /** Approves the protocol whose similar siblings the reviewer has just been shown. */
+  protected approveFromDialog(): void {
+    const target = this.duplicatesOf();
+    if (!target) {
+      return;
+    }
+    this.closeDuplicates();
+    this.commitApproval(target);
+  }
+
+  /**
+   * A cosine similarity as a whole percentage.
+   *
+   * <p>Rounded to no decimals deliberately: 93.05 % beside 92.87 % invites a reviewer to treat the
+   * difference as meaningful, and it is not — the decision this number informs is "open both and
+   * read them", which 93 % and 93 % answer identically.
+   */
+  protected percent(similarity: number): number {
+    return Math.round(similarity * 100);
+  }
+
+  protected closeDuplicates(): void {
+    this.duplicatesOf.set(null);
+    this.duplicates.set(null);
+    this.viewingCandidate.set(null);
+  }
+
+  /**
+   * Opens one candidate in the read-only viewer.
+   *
+   * <p>The duplicate dialog steps aside rather than stacking a second modal on top of itself — see
+   * {@link duplicatesOpen}. Two focus traps in one page is a bug looking for a keyboard, and closing
+   * this one would lose the list the reviewer is halfway through comparing. It comes back when the
+   * viewer does.
+   */
+  protected openCandidate(candidate: SimilarProtocol): void {
+    this.viewingCandidate.set(candidate);
+  }
+
+  /**
+   * Performs the approval itself.
    *
    * <p><b>The refusal is handled explicitly, and that is the point of this method.</b> The backend
    * answers 400 `FOUR_EYES_REQUIRED` when the caller filed or last corrected the protocol. Leaving
@@ -435,12 +560,8 @@ export class Moderation {
    * would leave an administrator staring at a control that does not work for a reason they cannot
    * discover. The rule is explained in a sentence, beside the row it applies to.
    */
-  protected approve(protocol: ModeratedProtocol): void {
-    if (this.approving()) {
-      return;
-    }
+  private commitApproval(protocol: ModeratedProtocol): void {
     this.approving.set(protocol.id);
-    this.approvalFailure.set(null);
 
     this.api.setApproval(protocol.id, true).subscribe({
       next: () => {

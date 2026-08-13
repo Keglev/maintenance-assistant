@@ -185,6 +185,9 @@ rather than given one afterwards.
    The admin KEEPS edit, so four eyes is enforced on the ACT — an
    approval is refused for a protocol the same person filed or last
    corrected — rather than by the role split alone.
+   (SUPERSEDED 2026-08-15: #54 removed the admin's edit and the act
+   check became unreachable; it was removed and replaced by
+   RoleMatrixIT. See the PR 6 entry above.)
    PROGRESS 2026-08-13 — PR 2 of 3 IS OPEN (feat/approval-ui): THE
    INTERFACE, plus ONE PERMISSION CARLOS REVERSED after reviewing #53.
    OPTION B: THE ADMIN STOPS EDITING. Techniker writes, Schichtleiter
@@ -379,6 +382,59 @@ rather than given one afterwards.
    Regeneration is byte-deterministic in the pinned container, so git
    status afterwards is an exact list of what really moved — here,
    exactly two files, with the other fourteen byte-identical.
+   PROGRESS 2026-08-15 — PR 6 (refactor/four-eyes-by-roles), FROM
+   CARLOS'S DRILL OF #57 AND THE LAST BEFORE THE TAG. He was refused an
+   approval on "Fehlercode x-99": a red banner citing the four-eyes
+   rule, which NOBODY HAD BROKEN. That protocol carries an EDIT whose
+   actor is admin, written during a drill BEFORE #54 removed the
+   admin's edit right. The check was applying today's rule to
+   yesterday's data — and permanently, since approval is the only thing
+   an admin can do to a protocol.
+   THE SEQUENCE IS THE LESSON: a guard that was RIGHT when written and
+   became WRONG because the design around it changed. #53 added it while
+   the admin still held the edit, so "the same human did both" was
+   reachable. #54 split the roles and it stopped being able to fire on
+   anything a live role can produce. It was kept anyway as the belt to
+   the split's braces — a reasonable call, recorded at the time — and
+   then the only thing it ever fired on was legacy rows. A BACKSTOP HAS
+   TO BE RE-READ AGAINST THE DESIGN IT BACKS UP; this one went three PRs
+   without that.
+   CARLOS'S DECISION: SIMPLIFY. The four-eyes property is carried by the
+   ROLE SPLIT and nothing else. requireFourEyes, the FOUR_EYES_REQUIRED
+   code, the classify() case, the ApiFailure member, both dictionary
+   strings and the banner branch are all gone — no dead code, no
+   unreachable error path, no UI handling a response the backend cannot
+   produce. Every javadoc arguing for the check is DELETED rather than
+   softened (the ADR-006 collision this project already hit once).
+   THE GUARD MOVED RATHER THAN DROPPED: RoleMatrixIT asserts that no
+   role holds both a corpus-write authority and the approve authority,
+   so a widened @PreAuthorize fails the BUILD instead of showing a
+   banner to one user — earlier, louder, and for every endpoint rather
+   than one pair.
+   THE MATRIX IS MEASURED, NOT PARSED: one real request per cell through
+   the full filter chain, 403 = refused. Reading the annotations would
+   mean re-implementing hasRole/hasAnyRole semantics AND would miss that
+   ModerationController's class-level rule is REPLACED by its
+   method-level ones — a request sees that, reflection does not.
+   Reflection is used for the one job it is good at: walking Spring's
+   handler mapping so a NEW ROUTE cannot be added without a matrix row.
+   A DEFECT IN THE TEST ITSELF, caught because it failed for the wrong
+   reason: the upload probe sent machineNo/protocolType where the
+   controller declares machine/type. MVC RESOLVES HANDLER ARGUMENTS
+   BEFORE THE SECURITY INTERCEPTOR, so the missing parameter gave 400
+   for every role — and 400 is "not 403", which read as ALLOWED. The
+   matrix claimed all four roles could upload. Fixed, plus a soundness
+   test: an endpoint answering every role with the same non-403 4xx is
+   reported as a BROKEN PROBE rather than trusted.
+   PROVEN TO BITE by actually widening the approval endpoint to the
+   Schichtleiter and capturing the failure, then reverting.
+   LEGACY DATA IS NOT MIGRATED. The old EDIT rows stay exactly as they
+   are: they are the record of what happened under the rules of the day,
+   and rewriting history to match current rules is the opposite of what
+   this ledger is for. Measured on the dev DB: 12 EDIT rows carry admin
+   as actor, all orphaned by the archive cap. An IT reproduces the x-99
+   shape and proves it now approves.
+
    EIGHTEEN BASELINES — nine surfaces x two palettes. The NINTH is the
    viewer's history section, scoped to the section and
    unmasked because every value in it is stubbed. It could not reuse the

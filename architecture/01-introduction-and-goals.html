@@ -266,9 +266,10 @@
         archives protocols, and since v1.2 <strong>approves</strong>
         them. <strong>Does not correct</strong> (2026-08-13): the
         approver is never the corrector, so nobody holds two jobs in the
-        chain. A ledger check additionally refuses an approval by
-        whoever filed or last corrected the protocol — the role split is
-        the rule, that check is the belt.</td>
+        chain. Since 2026-08-15 the role split is the <em>whole</em>
+        rule — the runtime check that compared usernames is gone, and
+        <code>RoleMatrixIT</code> fails the build if any role ever gains
+        both a corpus-write authority and the approve authority.</td>
         </tr>
         <tr class="odd">
         <td><strong>Project owner / developer</strong></td>

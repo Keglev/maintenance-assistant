@@ -213,10 +213,13 @@
         <tr class="odd">
         <td><strong>Four eyes</strong></td>
         <td>Author, corrector and approver are three different people.
-        Enforced by the ROLE SPLIT — nobody holds two of the three jobs
-        (2026-08-13) — with a ledger check as the belt: an approval is
-        refused for a protocol the same person filed or last
-        corrected.</td>
+        Enforced by the ROLE SPLIT and nothing else: nobody holds two of
+        the three jobs (2026-08-13). A ledger check compared usernames
+        at runtime until 2026-08-15; it became unreachable when the
+        split landed, fired only on data written before it, and was
+        replaced by <code>RoleMatrixIT</code> — a test that measures who
+        may reach each endpoint and fails the build if any role gains
+        both a corpus-write authority and the approve authority.</td>
         </tr>
         <tr class="even">
         <td><strong>Escalation chain</strong></td>

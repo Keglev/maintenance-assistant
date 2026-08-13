@@ -759,6 +759,7 @@ neither side reads naturally.</p>
     search: &#x27;Suche&#x27;,
     upload: &#x27;Protokoll hochladen&#x27;,
     moderation: &#x27;Protokollverwaltung&#x27;,
+    corrections: &#x27;Korrekturen&#x27;,
     signOut: &#x27;Abmelden&#x27;,
     language: &#x27;Sprache&#x27;,
     help: &#x27;Hilfe&#x27;,
@@ -949,6 +950,11 @@ neither side reads naturally.</p>
     heading: &#x27;Protokollverwaltung&#x27;,
     intro:
       &#x27;Alle Protokolle im Bestand. Öffnen zum Prüfen, entfernen was nicht hineingehört.&#x27;,
+    headingCorrector: &#x27;Protokolle korrigieren&#x27;,
+    introCorrector:
+      &#x27;Alle Protokolle im Bestand. Öffnen zum Nachlesen, korrigieren was fachlich falsch ist — mit Begründung und sofortiger Neuindexierung.&#x27;,
+    editResetsApproval:
+      &#x27;Dieses Protokoll ist freigegeben. Mit der Korrektur verliert es die Freigabe und muss erneut geprüft werden.&#x27;,
     uploadedBy: &#x27;Hochgeladen von&#x27;,
     actions: &#x27;Aktionen&#x27;,
     open: &#x27;Öffnen&#x27;,
@@ -1160,6 +1166,7 @@ DECISIONS.txt, which is what the two modes are called throughout the project&#39
     search: &#x27;Search&#x27;,
     upload: &#x27;Upload protocol&#x27;,
     moderation: &#x27;Protocol management&#x27;,
+    corrections: &#x27;Corrections&#x27;,
     signOut: &#x27;Sign out&#x27;,
     language: &#x27;Language&#x27;,
     help: &#x27;Help&#x27;,
@@ -1351,6 +1358,11 @@ DECISIONS.txt, which is what the two modes are called throughout the project&#39
   moderation: {
     heading: &#x27;Protocol management&#x27;,
     intro: &#x27;Every protocol in the records. Open one to review it, remove what does not belong.&#x27;,
+    headingCorrector: &#x27;Correct protocols&#x27;,
+    introCorrector:
+      &#x27;Every protocol in the records. Open one to read it, correct what is technically wrong — with a reason and an immediate re-index.&#x27;,
+    editResetsApproval:
+      &#x27;This protocol is approved. Correcting it withdraws that approval, and it has to be reviewed again.&#x27;,
     uploadedBy: &#x27;Uploaded by&#x27;,
     actions: &#x27;Actions&#x27;,
     open: &#x27;Open&#x27;,
@@ -2216,10 +2228,21 @@ form should have prevented.</div>
   {
     path: &#x27;moderation&#x27;,
     loadComponent: () &#x3D;&gt; &quot;import(&#x27;./features/moderation/moderation&#x27;).then((m) &#x3D;&gt; m.Moderation)&quot;,
-    // The admin&#x27;s first shop-floor route. Guarded here and, decisively, on every endpoint it calls:
-    // hiding a route is presentation, and the backend refuses the calls regardless (NFR-3).
-    canActivate: [&quot;roleGuard(&#x27;admin&#x27;)&quot;],
-    title: &#x27;Protokollverwaltung · Wartungsassistent&#x27;,
+    // TWO ROLES, ONE ROUTE, AND THEY SEE DIFFERENT VIEWS OF IT.
+    //
+    // The admin reviews, approves and archives. The Schichtleiter corrects — and until 2026-08-14
+    // could not reach this screen at all, which meant the correction endpoint they had held alone
+    // since 2026-08-13 had no interface for anybody: the admin had the screen without the
+    // permission, the corrector the permission without the screen.
+    //
+    // Opening the route does NOT hand the Schichtleiter the admin&#x27;s view. The component renders the
+    // controls each role may actually use (see &#x60;Moderation.canCorrect&#x60; / &#x60;canApprove&#x60; / &#x60;canArchive&#x60;)
+    // and the backend refuses the rest regardless — hiding a control is presentation, and the
+    // decision counts only server-side (NFR-3).
+    canActivate: [&quot;roleGuard(&#x27;admin&#x27;, &#x27;schichtleiter&#x27;)&quot;],
+    // Two roles, two jobs, and the browser tab should say which one is on screen. The heading in the
+    // view is chosen the same way — see the component&#x27;s &#x60;heading&#x60;.
+    title: &#x27;Protokolle · Wartungsassistent&#x27;,
   },
   // &#x60;/home&#x60; is the OIDC redirect URI registered in the Keycloak realm, so the path has to keep
   // resolving — but the Phase 1 identity page it used to show is gone. Someone arriving from a

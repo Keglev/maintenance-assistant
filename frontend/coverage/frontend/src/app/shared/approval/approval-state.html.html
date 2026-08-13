@@ -25,14 +25,14 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">100% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>21/21</span>
+                <span class='fraction'>16/16</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">100% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>4/4</span>
+                <span class='fraction'>2/2</span>
             </div>
         
             
@@ -46,7 +46,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">100% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>16/16</span>
+                <span class='fraction'>11/11</span>
             </div>
         
             
@@ -93,36 +93,34 @@
 <a name='L28'></a><a href='#L28'>28</a>
 <a name='L29'></a><a href='#L29'>29</a>
 <a name='L30'></a><a href='#L30'>30</a>
-<a name='L31'></a><a href='#L31'>31</a>
-<a name='L32'></a><a href='#L32'>32</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L31'></a><a href='#L31'>31</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">170x</span>
-<span class="cline-any cline-yes">106x</span>
-<span class="cline-any cline-yes">106x</span>
-<span class="cline-any cline-yes">106x</span>
+<span class="cline-any cline-yes">176x</span>
+<span class="cline-any cline-yes">109x</span>
+<span class="cline-any cline-yes">109x</span>
+<span class="cline-any cline-yes">109x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">106x</span>
-<span class="cline-any cline-yes">146x</span>
-<span class="cline-any cline-yes">146x</span>
+<span class="cline-any cline-yes">109x</span>
+<span class="cline-any cline-yes">149x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">53x</span>
-<span class="cline-any cline-yes">59x</span>
-<span class="cline-any cline-yes">53x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">106x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">23x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">23x</span>
-<span class="cline-any cline-yes">23x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">23x</span>
-<span class="cline-any cline-yes">24x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">26x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">26x</span>
+<span class="cline-any cline-yes">26x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">26x</span>
+<span class="cline-any cline-yes">27x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">&lt;!-- One element per state rather than one element with two classes: the icon differs, and a shared
@@ -134,14 +132,13 @@
       &lt;path d="M8 12.4l2.6 2.6L16 9.6" /&gt;
     &lt;/svg&gt;
     &lt;span class="approval-label"&gt;{{ t().approval.approved }}&lt;/span&gt;
-    @if (showActor() &amp;&amp; approval().approvedBy) {
-      &lt;!-- WHO and WHEN, because an approval without an actor is not an audit record — the same rule
-           the database constraint states. The day, not the minute: a reviewer asks whether this was
-           signed off before or after last week's change, never at which second. --&gt;
-      &lt;span class="approval-actor" data-testid="approval-actor"&gt;
-        {{ approval().approvedBy }} · {{ approval().approvedAt | appDate: language() }}
-      &lt;/span&gt;
-    }
+    &lt;!-- THE ACTOR AND DATE ARE GONE FROM THIS BADGE (2026-08-14), and they were removed rather than
+         hidden behind a flag. This component renders in a table cell, a source card and a dialog
+         head; the longest of the three — "Freigegeben system:corpus-seed · 12.08.2026" in the
+         Verwaltung column — truncated in production and ran under the action buttons. WHO and WHEN
+         are provenance, they belong in the record rather than in every list that mentions it, and
+         the protocol viewer's history section is where they are now. What this badge says is the
+         STATE, in every one of its three homes. --&gt;
   &lt;/span&gt;
 } @else {
   &lt;span class="approval approval-unapproved" data-testid="approval-state" data-approval="UNAPPROVED"&gt;
@@ -163,7 +160,7 @@
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-08-13T12:39:13.985Z
+                at 2026-08-13T17:41:19.980Z
             </div>
         <script src="../../../../../prettify.js"></script>
         <script>

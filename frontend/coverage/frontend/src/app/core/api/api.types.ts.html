@@ -343,7 +343,77 @@
 <a name='L278'></a><a href='#L278'>278</a>
 <a name='L279'></a><a href='#L279'>279</a>
 <a name='L280'></a><a href='#L280'>280</a>
-<a name='L281'></a><a href='#L281'>281</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L281'></a><a href='#L281'>281</a>
+<a name='L282'></a><a href='#L282'>282</a>
+<a name='L283'></a><a href='#L283'>283</a>
+<a name='L284'></a><a href='#L284'>284</a>
+<a name='L285'></a><a href='#L285'>285</a>
+<a name='L286'></a><a href='#L286'>286</a>
+<a name='L287'></a><a href='#L287'>287</a>
+<a name='L288'></a><a href='#L288'>288</a>
+<a name='L289'></a><a href='#L289'>289</a>
+<a name='L290'></a><a href='#L290'>290</a>
+<a name='L291'></a><a href='#L291'>291</a>
+<a name='L292'></a><a href='#L292'>292</a>
+<a name='L293'></a><a href='#L293'>293</a>
+<a name='L294'></a><a href='#L294'>294</a>
+<a name='L295'></a><a href='#L295'>295</a>
+<a name='L296'></a><a href='#L296'>296</a>
+<a name='L297'></a><a href='#L297'>297</a>
+<a name='L298'></a><a href='#L298'>298</a>
+<a name='L299'></a><a href='#L299'>299</a>
+<a name='L300'></a><a href='#L300'>300</a>
+<a name='L301'></a><a href='#L301'>301</a>
+<a name='L302'></a><a href='#L302'>302</a>
+<a name='L303'></a><a href='#L303'>303</a>
+<a name='L304'></a><a href='#L304'>304</a>
+<a name='L305'></a><a href='#L305'>305</a>
+<a name='L306'></a><a href='#L306'>306</a>
+<a name='L307'></a><a href='#L307'>307</a>
+<a name='L308'></a><a href='#L308'>308</a>
+<a name='L309'></a><a href='#L309'>309</a>
+<a name='L310'></a><a href='#L310'>310</a>
+<a name='L311'></a><a href='#L311'>311</a>
+<a name='L312'></a><a href='#L312'>312</a>
+<a name='L313'></a><a href='#L313'>313</a>
+<a name='L314'></a><a href='#L314'>314</a>
+<a name='L315'></a><a href='#L315'>315</a>
+<a name='L316'></a><a href='#L316'>316</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -745,6 +815,41 @@ export interface Approval {
 }
 &nbsp;
 /**
+ * The vocabulary the moderation ledger can spell, matching the schema's own check constraint.
+ *
+ * `UNAPPROVE` rather than `WITHDRAW` — the verb the database has recorded since #53. The interface
+ * says "Freigabe zurückgezogen"; renaming the stored value would be a data migration and a sweep of
+ * three services to change a word no user reads.
+ */
+export type ModerationAction = 'EDIT' | 'DELETE' | 'APPROVE' | 'UNAPPROVE';
+&nbsp;
+/** One act on one protocol: what happened, who did it, when, and why. */
+export interface ModerationEvent {
+  readonly action: ModerationAction;
+  readonly actor: string;
+  /** Never blank — the table's own constraint requires a reason on every row. */
+  readonly comment: string;
+  readonly at: string;
+}
+&nbsp;
+/**
+ * A protocol's recent history, from `GET /api/moderation/protocols/{id}/history`.
+ *
+ * `events` is capped SERVER-side; `total` is how many exist. The pair is what lets the viewer say
+ * that older entries exist rather than presenting the newest three as though they were everything.
+ *
+ * **An empty list is a true answer, not a missing one.** The 150 seeded protocols were approved by
+ * the V5 migration itself — `system:corpus-seed`, no human act — so they have no ledger rows and
+ * never will. The viewer falls back to the approval columns on the protocol for exactly that case.
+ */
+export interface ProtocolHistory {
+  readonly events: readonly ModerationEvent[];
+  readonly total: number;
+  /** The server-side cap, sent so no screen hard-codes a number the backend is free to change. */
+  readonly limit: number;
+}
+&nbsp;
+/**
  * A protocol on the same machine that says close to what the one being approved says, from
  * `GET /api/moderation/protocols/{id}/similar`.
  *
@@ -910,7 +1015,7 @@ export interface HealthStatus {
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-08-13T12:39:13.985Z
+                at 2026-08-13T17:41:19.980Z
             </div>
         <script src="../../../../../prettify.js"></script>
         <script>

@@ -30,7 +30,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.awaitility.Awaitility.await;
 
 /**
- * The trust chain, against a real database: approve, withdraw, four eyes, and the reset on edit.
+ * The trust chain, against a real database: approve, withdraw, and the reset on edit.
  *
  * <p><b>Why a container rather than a unit test.</b> Every claim here is about a row and about the
  * ledger beside it — that an approval carries an actor, that an edit clears one, that the audit
@@ -60,6 +60,8 @@ class ProtocolApprovalIT {
     ProtocolEditService edits;
     @Autowired
     ProtocolApprovalService approvals;
+    @Autowired
+    ProtocolModerationService moderation;
 
     @BeforeEach
     void reset() {
@@ -163,43 +165,52 @@ class ProtocolApprovalIT {
     }
 
     // ---------------------------------------------------------------------------------------
-    // Four eyes
+    // Four eyes — carried by the ROLES since 2026-08-15, not by comparing usernames here
     // ---------------------------------------------------------------------------------------
 
     @Test
-    @DisplayName("the author may not approve their own protocol")
-    void theAuthorMayNotApproveTheirOwn() {
-        UUID id = upload("Presse steht");
+    @DisplayName("legacy data no longer refuses an approval: an admin's own old EDIT does not block them")
+    void aPreOptionBEditDoesNotBlockTheApproval() {
+        /*
+         * THE DEFECT THIS PR CLOSES, reproduced.
+         *
+         * Until #54 an administrator could correct a protocol. Some did, during drills. The
+         * act-based four-eyes check then compared the approver's username against the newest EDIT
+         * actor — so from #54 onwards, those old rows made their own protocols permanently
+         * unapprovable by the only role that may approve. Carlos hit exactly this in production on
+         * "Fehlercode x-99": a red banner citing a rule nobody had broken, on data written when the
+         * rule did not yet apply.
+         *
+         * The EDIT row is written directly here because the API can no longer produce one with an
+         * administrator's name — which is the point. This is what the table already contains.
+         */
+        UUID id = upload("Fehlercode x-99");
+        moderation.recordEvent(id, "EDIT", "admin", "Drill-Korrektur vor Option B");
 
-        assertThatThrownBy(() -> approvals.setApproval(id, true, "schichtleiter", null))
-                .isInstanceOf(ProtocolModerationService.InvalidModerationRequestException.class)
-                .satisfies(e -> assertThat(
-                        ((ProtocolModerationService.InvalidModerationRequestException) e).code())
-                        .isEqualTo(ProtocolApprovalService.FOUR_EYES_REQUIRED));
+        Optional<ProtocolApprovalService.Approval> result =
+                approvals.setApproval(id, true, "admin", null);
 
-        assertThat(approvalState(id)).isEqualTo("UNAPPROVED");
+        assertThat(result).isPresent();
+        assertThat(approvalState(id)).isEqualTo("APPROVED");
+        assertThat(approvedBy(id)).isEqualTo("admin");
+        // AND THE HISTORY IS NOT REWRITTEN. The old EDIT row stays exactly as it was: it is the
+        // record of what happened under the rules of the day, and editing it to fit today's rules
+        // is the opposite of what this ledger is for.
+        assertThat(events(id)).containsExactly("EDIT", "APPROVE");
     }
 
     @Test
-    @DisplayName("the corrector may not approve what they corrected — even as an admin")
-    void theCorrectorMayNotApprove() {
-        // The half of four-eyes that roles cannot express. An administrator may edit and may
-        // approve; what they may not do is both, to the same protocol. Checked against the ledger
-        // rather than against the role, because the rule is about the same human.
+    @DisplayName("an approval still refuses to be written without an actor")
+    void anApprovalStillNeedsAnActor() {
+        // The one guard that survived the removal, and it is not about four eyes: an approval with
+        // no name on it is not an audit record. The database says so with a check constraint; this
+        // says so before the row is attempted.
         UUID id = upload("Presse steht");
-        edits.edit(id, correction("Presse steht", "Symptom:\nPresse steht.\nUrsache: Sicherung.\n"),
-                "admin");
 
-        assertThatThrownBy(() -> approvals.setApproval(id, true, "admin", null))
-                .isInstanceOf(ProtocolModerationService.InvalidModerationRequestException.class)
-                .satisfies(e -> assertThat(
-                        ((ProtocolModerationService.InvalidModerationRequestException) e).code())
-                        .isEqualTo(ProtocolApprovalService.FOUR_EYES_REQUIRED));
+        assertThatThrownBy(() -> approvals.setApproval(id, true, "  ", null))
+                .isInstanceOf(IllegalStateException.class);
 
-        // A different administrator can. That is the whole point: the corpus is not blocked, it
-        // just needs a second person.
-        assertThat(approvals.setApproval(id, true, "admin2", null)).isPresent();
-        assertThat(approvalState(id)).isEqualTo("APPROVED");
+        assertThat(approvalState(id)).isEqualTo("UNAPPROVED");
     }
 
     // ---------------------------------------------------------------------------------------

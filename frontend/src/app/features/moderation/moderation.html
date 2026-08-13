@@ -386,9 +386,6 @@
                   <td colspan="8">
                     <p class="notice notice-error" role="alert" data-testid="approval-failure">
                       @switch (reason) {
-                        @case ('fourEyesRequired') {
-                          {{ t().approval.fourEyes }}
-                        }
                         @case ('archived') {
                           {{ t().approval.archived }}
                         }

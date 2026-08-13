@@ -11,7 +11,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 /**
- * Approval: a reviewer vouching for a protocol, and the four-eyes rule that keeps it meaningful.
+ * Approval: a reviewer vouching for a protocol.
  *
  * <p><b>What approval is, and what it is not.</b> It is a statement that a named person read this
  * protocol and stands behind it. It is <em>not</em> a gate on retrieval: an unapproved protocol is
@@ -27,17 +27,25 @@ import java.util.UUID;
  * worlds: NFR-2's citation discipline makes a cited claim look checked, and this flag is what keeps
  * that impression honest.
  *
- * <p><b>FOUR EYES: THE ROLE SPLIT IS THE RULE, THIS CHECK IS THE BELT.</b> Decision 3 of 2026-08-11
- * reads: author is never the corrector, corrector is never the approver. Since Carlos's decision of
- * 2026-08-13 the roles say it outright — the Techniker files, the Schichtleiter corrects, the Admin
- * approves, and <em>nobody holds two of those jobs</em> — so the primary guard is the
- * {@code @PreAuthorize} on each endpoint.
+ * <p><b>FOUR EYES IS CARRIED BY THE ROLE SPLIT, and there is no runtime check here (2026-08-15).</b>
+ * Decision 3 of 2026-08-11 reads: author is never the corrector, corrector is never the approver.
+ * Since Carlos's decision of 2026-08-13 the roles say it outright — the Techniker files, the
+ * Schichtleiter corrects, the Admin approves, and <em>nobody holds two of those jobs</em> — so the
+ * three {@code @PreAuthorize} annotations are the guard, and they are disjoint by construction.
  *
- * <p>This check stays anyway, and deliberately. It is the only guard that can express "the same
- * HUMAN filed and approved this", which a role cannot; it is the only one that survives a future
- * role widening, and a rule enforced in exactly one place is one annotation edit away from being
- * gone. Whoever filed a protocol, and whoever last corrected it, may not be the one who approves it
- * — checked against the protocol's own history. The cost is one query on an act that happens rarely.
+ * <p>An act-based check used to sit in this class as a second line, comparing the approver's username
+ * against {@code uploaded_by} and against the newest EDIT actor. It was right when it was written
+ * (#53, while the admin still held the edit) and it became wrong when Option B removed that (#54):
+ * from then on it could not fire on anything a live role could produce, and the only thing it did
+ * fire on was PRE-#54 DATA — a protocol an administrator had corrected back when they were allowed
+ * to. Carlos hit exactly that in production on "Fehlercode x-99" and saw a refusal for a rule nobody
+ * had broken.
+ *
+ * <p>The property it was protecting has not been dropped; it moved from a runtime comparison to a
+ * structural test. {@code RoleMatrixTest} reads the {@code @PreAuthorize} annotations off the
+ * controllers and fails the build if any role gains both a corpus-write authority and the approve
+ * authority — so the widening that used to be caught by a banner shown to one user is now caught in
+ * CI, before it ships, and it is caught for every endpoint rather than for one pair.
  *
  * <p><b>DUPLICATE DETECTION WARNS AND NEVER BLOCKS (2026-08-14).</b> Approving runs
  * {@link ProtocolSimilarityService} against the same machine's protocols and records what it found
@@ -55,8 +63,6 @@ public class ProtocolApprovalService {
     public static final String APPROVED = "APPROVED";
     public static final String UNAPPROVED = "UNAPPROVED";
 
-    /** The caller wrote or last corrected this protocol, so they may not also vouch for it. */
-    public static final String FOUR_EYES_REQUIRED = "FOUR_EYES_REQUIRED";
     /** Approving something that is in the archive. */
     public static final String PROTOCOL_ARCHIVED = ProtocolEditService.PROTOCOL_ARCHIVED;
 
@@ -119,9 +125,13 @@ public class ProtocolApprovalService {
             return Optional.of(target.asApproval());
         }
 
-        if (approve) {
-            requireFourEyes(protocolId, target, actor);
-        } else {
+        if (actor == null || actor.isBlank()) {
+            // An approval without an actor is not an audit record. The database says the same thing
+            // with a check constraint; this catches it before the row is attempted.
+            throw new IllegalStateException("an approval must carry an actor");
+        }
+
+        if (!approve) {
             // Withdrawing trust is a change to how the corpus reads, and it is the direction that
             // needs explaining.
             comment = ProtocolModerationService.requireComment(comment);
@@ -213,52 +223,6 @@ public class ProtocolApprovalService {
      */
     public ProtocolSimilarityService.SimilarityReport similarTo(UUID protocolId) {
         return similarity.findSimilar(protocolId);
-    }
-
-    /**
-     * Refuses an approval by the person who wrote or last corrected the protocol.
-     *
-     * <p>Checked against the ledger rather than against a role, because roles cannot express it:
-     * the rule is about the same HUMAN doing both to the same protocol. {@code uploaded_by} covers
-     * the author; the newest EDIT event covers the corrector. Both are Keycloak usernames, which is
-     * why the two columns were written in one alphabet in the first place.
-     *
-     * <p><b>NEITHER BRANCH IS REACHABLE THROUGH THE API AS IT STANDS TODAY, and that is the role
-     * split working rather than dead code.</b> Approval is admin-only; upload is Techniker and
-     * Schichtleiter; correction has been Schichtleiter-only since 2026-08-13. An administrator can
-     * therefore never be the author and never be the corrector, so no request this API accepts can
-     * make either condition true. (Checked while looking for a way to demonstrate the refusal by
-     * clicking — see the 2026-08-14 note in ADR-006; there is none, and adding a second demo
-     * administrator would not create one.)
-     *
-     * <p>It is KEPT rather than deleted. It is the belt to the role split's braces: it is the only
-     * guard that could ever express "the same HUMAN did both", it is the one that survives a future
-     * widening of any of those three annotations, and a rule enforced in exactly one place is one
-     * edit away from being gone. See the class javadoc.
-     */
-    private void requireFourEyes(UUID protocolId, Target target, String actor) {
-        if (actor == null || actor.isBlank()) {
-            throw new IllegalStateException("an approval must carry an actor");
-        }
-        if (actor.equalsIgnoreCase(target.uploadedBy())) {
-            throw new ProtocolModerationService.InvalidModerationRequestException(FOUR_EYES_REQUIRED,
-                    "you filed this protocol, so you cannot also approve it: approval is a second "
-                            + "pair of eyes, and it has to belong to someone else");
-        }
-        Optional<String> lastEditor = jdbc.sql("""
-                        SELECT actor FROM moderation_event
-                        WHERE protocol_id = :id AND action = 'EDIT'
-                        ORDER BY created_at DESC, id
-                        LIMIT 1
-                        """)
-                .param("id", protocolId)
-                .query(String.class)
-                .optional();
-        if (lastEditor.filter(actor::equalsIgnoreCase).isPresent()) {
-            throw new ProtocolModerationService.InvalidModerationRequestException(FOUR_EYES_REQUIRED,
-                    "you corrected this protocol, so you cannot also approve it: the corrector is "
-                            + "never the approver");
-        }
     }
 
     /** The approval state of one protocol, for the read paths. */

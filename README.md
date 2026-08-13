@@ -106,7 +106,8 @@ An answer is only as trustworthy as the protocol under it, so the corpus has a r
 - **[Documentation site](https://keglev.github.io/maintenance-assistant/)** — everything below, published by CI.
 - **[Architecture (arc42)](https://keglev.github.io/maintenance-assistant/architecture/)** — context, building blocks, runtime views, deployment topology, crosscutting concepts.
 - **[Decision records](https://keglev.github.io/maintenance-assistant/adr/)** — seven ADRs, several with dated revisions recording where a decision was later reversed and why.
-- **[API reference](https://keglev.github.io/maintenance-assistant/backend/api-docs/)** — from the OpenAPI specification; the live Swagger UI is public at [`/swagger-ui`](https://maintenance.smartsupply.com.de/swagger-ui).
+- **[API reference](https://keglev.github.io/maintenance-assistant/backend/api-docs/)** — the REST API rendered from the OpenAPI specification: endpoints, schemas and the bearer-token security scheme.
+- **[Live API (Swagger UI)](https://maintenance.smartsupply.com.de/swagger-ui)** — the same API on the running deployment, interactive and public: expand an endpoint and send a request.
 - **Coverage** — [backend](https://keglev.github.io/maintenance-assistant/backend/coverage/) (JaCoCo) and [frontend](https://keglev.github.io/maintenance-assistant/frontend/coverage/) (vitest).
 - **[AI-USAGE.md](AI-USAGE.md)** — which parts of this repository were written with AI assistance, and how they were verified.
 

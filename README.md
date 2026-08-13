@@ -26,9 +26,10 @@ The product ships to users as **Wartungsassistent**; the interface is bilingual 
 6. [Documentation](#documentation)
 7. [Tech stack](#tech-stack)
 8. [Testing](#testing)
-9. [CI/CD and deployment](#cicd-and-deployment)
-10. [Roadmap](#roadmap)
-11. [License](#license)
+9. [AI-assisted development](#ai-assisted-development)
+10. [CI/CD and deployment](#cicd-and-deployment)
+11. [Roadmap](#roadmap)
+12. [License](#license)
 
 ---
 
@@ -133,6 +134,18 @@ An answer is only as trustworthy as the protocol under it, so the corpus has a r
 - **Visual regression** — 18 baselines over nine surfaces in both palettes, generated and compared in one pinned container, because font rendering is a property of the machine.
 
 The rendered layers exist because the two best-caught defects of v1.0–v1.1 were invisible to jsdom and to API checks: a source link that answered 401 on a real click while `curl` with a token passed, and a login heading that measured 1.09:1 while every token in the stylesheet was correct.
+
+---
+
+## AI-assisted development
+
+This project is built with AI assistance, and says so plainly (NFR-6).
+
+The division of labour is the point. The design documents, the seven decision records and the reasoning in them are mine, as are the problem statement, the role model and the operator-safety rule — those come from my own experience with maintenance documentation in US and German manufacturing. AI assisted with the repository scaffold, implementation, test scaffolding, documentation prose and the synthetic corpus. The rule of thumb is that AI writes prose and boilerplate and humans make decisions; where a model proposed a decision, it is recorded as an ADR and I own it.
+
+The controls are what make that checkable rather than a claim. Every pull request is read before merge and merged by hand, so nothing lands on `main` unread. CI gates both suites on every push. Anything the browser performs itself is verified in a browser, which is why the rendered and visual layers above exist rather than jsdom alone. Each pull request states what was verified and what was left unverified.
+
+[AI-USAGE.md](AI-USAGE.md) records it per session: what was generated, what it was given as the source of truth, how it was checked, and the defects that only running it found.
 
 ---
 

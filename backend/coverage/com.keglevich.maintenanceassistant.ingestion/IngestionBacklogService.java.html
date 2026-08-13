@@ -88,12 +88,12 @@ public class IngestionBacklogService {
      * pick them up.
      */
     public List&lt;StatusCount&gt; statusCounts() {
-<span class="nc" id="L91">        return jdbc.sql(&quot;&quot;&quot;</span>
+<span class="pc" id="L91">        return jdbc.sql(&quot;&quot;&quot;</span>
                         SELECT status, count(*) AS n FROM protocol
                         WHERE deleted_at IS NULL
                         GROUP BY status ORDER BY status
                         &quot;&quot;&quot;)
-<span class="nc" id="L96">                .query((rs, rowNum) -&gt; new StatusCount(rs.getString(&quot;status&quot;), rs.getLong(&quot;n&quot;)))</span>
+<span class="pc" id="L96">                .query((rs, rowNum) -&gt; new StatusCount(rs.getString(&quot;status&quot;), rs.getLong(&quot;n&quot;)))</span>
 <span class="nc" id="L97">                .list();</span>
     }
 

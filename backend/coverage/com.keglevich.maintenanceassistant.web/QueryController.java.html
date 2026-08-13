@@ -88,8 +88,8 @@ class QueryController {
 <span class="fc" id="L88">        var authorities = authentication.getAuthorities().stream()</span>
 <span class="fc" id="L89">                .map(GrantedAuthority::getAuthority)</span>
 <span class="fc" id="L90">                .toList();</span>
-<span class="pc bpc" id="L91" title="1 of 2 branches missed.">        if (authorities.contains(&quot;ROLE_SCHICHTLEITER&quot;)) {</span>
-<span class="nc" id="L92">            return QueryRole.SCHICHTLEITER;</span>
+<span class="fc bfc" id="L91" title="All 2 branches covered.">        if (authorities.contains(&quot;ROLE_SCHICHTLEITER&quot;)) {</span>
+<span class="fc" id="L92">            return QueryRole.SCHICHTLEITER;</span>
         }
 <span class="fc bfc" id="L94" title="All 2 branches covered.">        if (authorities.contains(&quot;ROLE_TECHNIKER&quot;)) {</span>
 <span class="fc" id="L95">            return QueryRole.TECHNIKER;</span>
@@ -172,7 +172,7 @@ class QueryController {
     @ExceptionHandler(QueryService.ProviderUnavailableException.class)
     @ResponseStatus(HttpStatus.SERVICE_UNAVAILABLE)
     Map&lt;String, String&gt; onProviderUnavailable(QueryService.ProviderUnavailableException e) {
-<span class="nc" id="L175">        return Map.of(&quot;reason&quot;, &quot;PROVIDER_UNAVAILABLE&quot;, &quot;error&quot;, e.getMessage());</span>
+<span class="fc" id="L175">        return Map.of(&quot;reason&quot;, &quot;PROVIDER_UNAVAILABLE&quot;, &quot;error&quot;, e.getMessage());</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

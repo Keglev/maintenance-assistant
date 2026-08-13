@@ -103,8 +103,8 @@ public class QueryService {
 <span class="fc" id="L103">            return cached.get();</span>
         }
 
-<span class="pc bpc" id="L106" title="1 of 2 branches missed.">        if (!chatClient.isConfigured()) {</span>
-<span class="nc" id="L107">            throw new ProviderUnavailableException(</span>
+<span class="fc bfc" id="L106" title="All 2 branches covered.">        if (!chatClient.isConfigured()) {</span>
+<span class="fc" id="L107">            throw new ProviderUnavailableException(</span>
                     &quot;the answer service is not configured (no LLM_API_KEY); retrieval works, answering does not&quot;);
         }
 <span class="fc bfc" id="L110" title="All 2 branches covered.">        if (!retriever.machineExists(machineId)) {</span>
@@ -279,8 +279,8 @@ public class QueryService {
     /** Answering is impossible right now — no key, or the provider is unreachable. Becomes a 503. */
     public static class ProviderUnavailableException extends RuntimeException {
         ProviderUnavailableException(String message) {
-<span class="nc" id="L282">            super(message);</span>
-<span class="nc" id="L283">        }</span>
+<span class="fc" id="L282">            super(message);</span>
+<span class="fc" id="L283">        }</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

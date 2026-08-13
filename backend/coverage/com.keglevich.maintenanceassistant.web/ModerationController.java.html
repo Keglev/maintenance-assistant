@@ -263,13 +263,13 @@ class ModerationController {
      * distinct people, one job each — and the cleanest way to say &quot;nobody does two jobs&quot; is that
      * nobody HOLDS two jobs. Carlos's decision after reviewing #53: the admin stops editing.
      *
-     * THE ROLE SPLIT IS THE RULE; THE LEDGER CHECK IS THE BELT. ProtocolApprovalService still
-     * refuses an approval by whoever filed or last corrected the protocol, and that check is
-     * deliberately KEPT even though no administrator can now reach the edit path at all. It costs
-     * one query on an act that happens rarely, it is the only guard that survives a future role
-     * widening, and it is the only one that could ever catch &quot;the same human did both&quot; — a role
-     * cannot express that. A rule enforced in one place only is a rule one @PreAuthorize edit away
-     * from being gone.
+     * THE ROLE SPLIT IS THE WHOLE RULE (2026-08-15). A ledger check in ProtocolApprovalService used
+     * to sit behind it as a second line; it was removed once it became clear it could no longer fire
+     * on anything a live role can produce, and that the only thing it did fire on was pre-#54 data.
+     * What replaced it is RoleMatrixTest, which reads the @PreAuthorize annotations on these methods
+     * and fails the build if any role gains both a corpus-write authority and the approve authority.
+     * A rule enforced in one place only is a rule one annotation edit away from being gone — so the
+     * annotation edit is what is now guarded, in CI, rather than its consequence at runtime.
      */
     @PreAuthorize(&quot;hasRole('SCHICHTLEITER')&quot;)
     ResponseEntity&lt;Map&lt;String, String&gt;&gt; edit(@PathVariable UUID id,
@@ -320,8 +320,10 @@ class ModerationController {
             description = &quot;Approval is a STATEMENT, not a gate: an unapproved protocol stays &quot;
                     + &quot;searchable and citable, because the administrator may not review at a &quot;
                     + &quot;weekend and the factory does not stop. What approval changes is what the &quot;
-                    + &quot;interface can say about a source. FOUR EYES: whoever filed the protocol, and &quot;
-                    + &quot;whoever last corrected it, cannot approve it. Idempotent — approving &quot;
+                    + &quot;interface can say about a source. FOUR EYES is carried by the ROLE SPLIT — &quot;
+                    + &quot;the Techniker files, the Schichtleiter corrects, the Admin approves, and no &quot;
+                    + &quot;role holds two of those jobs — rather than by comparing usernames here. &quot;
+                    + &quot;Idempotent — approving &quot;
                     + &quot;something already approved succeeds and writes no second audit row. A &quot;
                     + &quot;comment is required to WITHDRAW approval and optional to grant it: taking &quot;
                     + &quot;back something a named person vouched for is the direction that needs &quot;
@@ -329,8 +331,7 @@ class ModerationController {
     @ApiResponses({
             @ApiResponse(responseCode = &quot;200&quot;, description = &quot;The resulting approval state&quot;),
             @ApiResponse(responseCode = &quot;400&quot;,
-                    description = &quot;Withdrawing without a comment (`MODERATION_COMMENT_REQUIRED`), or &quot;
-                            + &quot;the caller wrote or corrected this protocol (`FOUR_EYES_REQUIRED`)&quot;),
+                    description = &quot;Withdrawing without a comment (`MODERATION_COMMENT_REQUIRED`)&quot;),
             @ApiResponse(responseCode = &quot;403&quot;, description = &quot;Caller is not an administrator&quot;),
             @ApiResponse(responseCode = &quot;404&quot;, description = &quot;No such protocol&quot;),
             @ApiResponse(responseCode = &quot;409&quot;, description = &quot;The protocol is archived (`PROTOCOL_ARCHIVED`)&quot;)
@@ -339,23 +340,23 @@ class ModerationController {
             @PathVariable UUID id,
             @RequestBody ApprovalRequest request,
             @AuthenticationPrincipal Jwt jwt) {
-<span class="pc bpc" id="L342" title="2 of 4 branches missed.">        return approvals.setApproval(id, request != null &amp;&amp; request.approved(),</span>
-<span class="fc" id="L343">                        jwt.getClaimAsString(&quot;preferred_username&quot;),</span>
-<span class="pc bpc" id="L344" title="1 of 2 branches missed.">                        request == null ? null : request.comment())</span>
-<span class="fc" id="L345">                .map(ResponseEntity::ok)</span>
-<span class="pc" id="L346">                .orElseGet(() -&gt; ResponseEntity.notFound().build());</span>
+<span class="pc bpc" id="L343" title="2 of 4 branches missed.">        return approvals.setApproval(id, request != null &amp;&amp; request.approved(),</span>
+<span class="fc" id="L344">                        jwt.getClaimAsString(&quot;preferred_username&quot;),</span>
+<span class="pc bpc" id="L345" title="1 of 2 branches missed.">                        request == null ? null : request.comment())</span>
+<span class="fc" id="L346">                .map(ResponseEntity::ok)</span>
+<span class="fc" id="L347">                .orElseGet(() -&gt; ResponseEntity.notFound().build());</span>
     }
 
     /**
      * @param approved the state being asserted, not a verb. PUT of a state rather than
      *                 POST /approve + POST /unapprove, because &quot;make this approved&quot; is idempotent
-     *                 by construction and two endpoints would be two places to keep the four-eyes
-     *                 rule in step.
+     *                 by construction and two endpoints would be two places to keep one rule in
+     *                 step.
      * @param comment  required to withdraw, optional to grant. In the body rather than a query
      *                 parameter for the same reason the delete comment is: it can name a
      *                 colleague's mistake, and a query string lands in access logs.
      */
-<span class="fc" id="L358">    record ApprovalRequest(boolean approved, String comment) {</span>
+<span class="fc" id="L359">    record ApprovalRequest(boolean approved, String comment) {</span>
     }
 
     @GetMapping(&quot;/{id}/similar&quot;)
@@ -389,7 +390,7 @@ class ModerationController {
      * about to approve.
      */
     ProtocolSimilarityService.SimilarityReport similar(@PathVariable UUID id) {
-<span class="fc" id="L392">        return approvals.similarTo(id);</span>
+<span class="fc" id="L393">        return approvals.similarTo(id);</span>
     }
 
     @GetMapping(&quot;/deleted&quot;)
@@ -408,7 +409,7 @@ class ModerationController {
             @RequestParam(defaultValue = &quot;10&quot;) int size) {
         // No machine-first rule here, unlike the live list: there is one optional filter rather than
         // four, so there is no combination that could answer with noise.
-<span class="fc" id="L411">        return moderation.listDeleted(machineNo, page, size);</span>
+<span class="fc" id="L412">        return moderation.listDeleted(machineNo, page, size);</span>
     }
 
     @GetMapping(&quot;/deleted/{id}/document&quot;)
@@ -423,9 +424,9 @@ class ModerationController {
                     description = &quot;No such archived protocol — a live one is not served here either&quot;)
     })
     ResponseEntity&lt;Resource&gt; archivedDocument(@PathVariable UUID id) {
-<span class="fc" id="L426">        return documents.findArchived(id)</span>
-<span class="fc" id="L427">                .map(ModerationController::inline)</span>
-<span class="pc" id="L428">                .orElseGet(() -&gt; ResponseEntity.notFound().build());</span>
+<span class="fc" id="L427">        return documents.findArchived(id)</span>
+<span class="fc" id="L428">                .map(ModerationController::inline)</span>
+<span class="fc" id="L429">                .orElseGet(() -&gt; ResponseEntity.notFound().build());</span>
     }
 
     /**
@@ -454,10 +455,10 @@ class ModerationController {
     @ExceptionHandler(ProtocolModerationService.InvalidModerationRequestException.class)
     ResponseEntity&lt;Map&lt;String, String&gt;&gt; onInvalidRequest(
             ProtocolModerationService.InvalidModerationRequestException e) {
-<span class="fc bfc" id="L457" title="All 2 branches covered.">        HttpStatus status = ProtocolEditService.PROTOCOL_ARCHIVED.equals(e.code())</span>
-<span class="fc" id="L458">                ? HttpStatus.CONFLICT</span>
-<span class="fc" id="L459">                : HttpStatus.BAD_REQUEST;</span>
-<span class="fc" id="L460">        return ResponseEntity.status(status).body(Map.of(&quot;reason&quot;, e.code(), &quot;error&quot;, e.getMessage()));</span>
+<span class="fc bfc" id="L458" title="All 2 branches covered.">        HttpStatus status = ProtocolEditService.PROTOCOL_ARCHIVED.equals(e.code())</span>
+<span class="fc" id="L459">                ? HttpStatus.CONFLICT</span>
+<span class="fc" id="L460">                : HttpStatus.BAD_REQUEST;</span>
+<span class="fc" id="L461">        return ResponseEntity.status(status).body(Map.of(&quot;reason&quot;, e.code(), &quot;error&quot;, e.getMessage()));</span>
     }
 
     /**
@@ -474,7 +475,7 @@ class ModerationController {
     @ExceptionHandler(ProtocolIntakeService.InvalidProtocolException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     Map&lt;String, String&gt; onInvalidContent(ProtocolIntakeService.InvalidProtocolException e) {
-<span class="fc" id="L477">        return Map.of(&quot;reason&quot;, &quot;INVALID_CONTENT&quot;, &quot;error&quot;, e.getMessage());</span>
+<span class="fc" id="L478">        return Map.of(&quot;reason&quot;, &quot;INVALID_CONTENT&quot;, &quot;error&quot;, e.getMessage());</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

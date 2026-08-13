@@ -27,16 +27,14 @@ import {
  * one release — the Schichtleiter held the permission while the administrator held the screen — and
  * became a click again on 2026-08-14, when the route opened to the role that owns the act.
  *
- * <p><b>THE FOUR-EYES REFUSAL IS NOT REACHABLE FROM HERE, and 2026-08-14 sharpened why: it is not
- * reachable AT ALL, by anybody, and that is the role split working.</b> The rule refuses an approval
- * by whoever filed or last corrected the protocol. Only an admin may approve; only a Techniker or
- * Schichtleiter may file; since 2026-08-13 only a Schichtleiter may correct. An administrator can
- * therefore never be the author and never be the corrector, so no request this API accepts can make
- * either condition true — this is not "no demo account holds two roles", it is "no account can",
- * and adding a second demo administrator would not change it (see the 2026-08-14 note in ADR-006).
- * The check is kept as the belt to the split's braces and is covered by `ProtocolApprovalIT` against
- * a database and by the moderation spec against a stubbed 400. This comment is here so the next
- * reader does not conclude it was forgotten.
+ * <p><b>THERE IS NO FOUR-EYES REFUSAL TO REACH ANY MORE (2026-08-15), and its absence is the
+ * feature.</b> The runtime check that compared the approver's username against the author and the
+ * last corrector is gone: the role split carries the property on its own — only an admin approves,
+ * only a Techniker or Schichtleiter files, only a Schichtleiter corrects — so no request this API
+ * accepts could make either condition true, and the only thing the check still fired on was data
+ * written before #54. What guards the property now is `RoleMatrixIT`, which fails the build if any
+ * role gains both a corpus-write authority and the approve authority. This comment is here so the
+ * next reader does not go looking for a refusal that no longer exists.
  *
  * <p>CLEANUP IS PART OF THE TEST, as everywhere in this suite: what this creates it archives,
  * through the application, with a reason. Never SQL.

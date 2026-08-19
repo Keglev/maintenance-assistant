@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Decisions ·
+ADR-008-retrieval-measurement · maintenance-assistant Docs</title>
+
+  <!-- Set the theme before the stylesheet paints, otherwise the page flashes
+       the default theme for one frame before the saved choice applies. -->
+  <script>
+    (function () {
+      try {
+        var t = localStorage.getItem("maintenance-assistant-theme") ||
+          (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+        document.documentElement.setAttribute("data-theme", t);
+      } catch (e) {
+        document.documentElement.setAttribute("data-theme", "light");
+      }
+    })();
+  </script>
+
+  <link rel="stylesheet" href="/maintenance-assistant/assets/docs.css" />
+</head>
+
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <header class="topbar">
+    <div class="topbar-inner">
+      <button class="menu-btn" aria-label="Toggle navigation">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="18" x2="21" y2="18" />
+        </svg>
+      </button>
+
+      <a href="/maintenance-assistant/" class="brand">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <path d="M14.7 6.3a5 5 0 0 0-6.6 6.6l-5 5a2 2 0 1 0 2.8 2.8l5-5a5 5 0 0 0 6.6-6.6l-2.9 2.9-2.1-2.1 2.2-3.6z" />
+        </svg>
+        maintenance-assistant Docs
+      </a>
+
+      <div class="topbar-tools">
+        <span class="lang-switch">
+          <a href="/maintenance-assistant/" aria-current="true">EN</a>
+          <a href="/maintenance-assistant/index-de.html">DE</a>
+        </span>
+        <button class="theme-toggle" aria-label="Toggle light or dark theme">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <circle cx="12" cy="12" r="9" /><path d="M12 3a9 9 0 0 0 0 18z" fill="currentColor" stroke="none" />
+          </svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <div class="layout">
+    <!-- Sidebar navigation, included by app-docs.html as a Pandoc partial. One
+         sidebar serves the whole site: this repository has a single arc42 tree and a
+         single decision log, so the per-tier sidebars the sibling repositories need
+         would be three copies of the same list here. The active link is marked at
+         runtime by docs.js. Do not put template syntax in this comment - a partial
+         is itself a template. -->
+    <aside class="sidebar">
+      <p class="nav-title">Docs</p>
+      <ul>
+        <li><a href="/maintenance-assistant/">Docs home</a></li>
+        <li><a href="/maintenance-assistant/overview.html">Overview</a></li>
+        <li><a href="/maintenance-assistant/overview-de.html">&Uuml;berblick (DE)</a></li>
+        <li><a href="/maintenance-assistant/llm-approach.html">AI &amp; LLM approach</a></li>
+      </ul>
+
+      <p class="nav-title">Requirements</p>
+      <ul>
+        <li><a href="/maintenance-assistant/REQUIREMENTS.html">Requirements &amp; NFRs</a></li>
+        <li><a href="/maintenance-assistant/DOMAIN-MODEL.html">Domain model</a></li>
+      </ul>
+
+      <details class="nav-group">
+        <summary>Architecture (arc42)</summary>
+        <ul>
+          <li><a href="/maintenance-assistant/architecture/index.html">Architecture index</a></li>
+          <li><a href="/maintenance-assistant/architecture/01-introduction-and-goals.html">1 &middot; Introduction &amp; Goals</a></li>
+          <li><a href="/maintenance-assistant/architecture/02-architecture-constraints.html">2 &middot; Constraints</a></li>
+          <li><a href="/maintenance-assistant/architecture/03-context-and-scope.html">3 &middot; Context &amp; Scope</a></li>
+          <li><a href="/maintenance-assistant/architecture/04-solution-strategy.html">4 &middot; Solution Strategy</a></li>
+          <li><a href="/maintenance-assistant/architecture/05-building-block-view.html">5 &middot; Building Blocks</a></li>
+          <li><a href="/maintenance-assistant/architecture/06-runtime-view.html">6 &middot; Runtime View</a></li>
+          <li><a href="/maintenance-assistant/architecture/07-deployment-view.html">7 &middot; Deployment</a></li>
+          <li><a href="/maintenance-assistant/architecture/08-crosscutting-concepts.html">8 &middot; Concepts</a></li>
+          <li><a href="/maintenance-assistant/architecture/09-architecture-decisions.html">9 &middot; Decisions</a></li>
+          <li><a href="/maintenance-assistant/architecture/10-quality-requirements.html">10 &middot; Quality Requirements</a></li>
+          <li><a href="/maintenance-assistant/architecture/11-risks-and-technical-debt.html">11 &middot; Risks &amp; Debt</a></li>
+          <li><a href="/maintenance-assistant/architecture/12-glossary.html">12 &middot; Glossary</a></li>
+        </ul>
+      </details>
+
+      <details class="nav-group">
+        <summary>Decisions (ADRs)</summary>
+        <ul>
+          <li><a href="/maintenance-assistant/adr/index.html">Decision index</a></li>
+          <li><a href="/maintenance-assistant/adr/ADR-001-modular-monolith-first.html">ADR-001 Modular monolith</a></li>
+          <li><a href="/maintenance-assistant/adr/ADR-002-eu-hosted-llm-provider.html">ADR-002 EU LLM provider</a></li>
+          <li><a href="/maintenance-assistant/adr/ADR-003-keycloak-for-iam.html">ADR-003 Keycloak as IdP</a></li>
+          <li><a href="/maintenance-assistant/adr/ADR-004-pgvector-for-vector-search.html">ADR-004 pgvector</a></li>
+        </ul>
+      </details>
+
+      <p class="nav-title">Frontend</p>
+      <ul>
+        <li><a href="/maintenance-assistant/frontend-architecture.html">Frontend architecture</a></li>
+      </ul>
+
+      <p class="nav-title">Quality</p>
+      <ul>
+        <li><a href="/maintenance-assistant/backend/api-docs/index.html">Backend API</a></li>
+        <li><a href="/maintenance-assistant/frontend/api-docs/index.html">Frontend API</a></li>
+        <li><a href="/maintenance-assistant/backend/coverage/index.html">Backend coverage</a></li>
+        <li><a href="/maintenance-assistant/frontend/coverage/index.html">Frontend coverage</a></li>
+      </ul>
+    </aside>
+    <main class="content" id="main">
+      <article class="doc-body">
+        <h1
+        id="adr-008-measure-retrieval-against-a-golden-question-set-before-changing-it">ADR-008:
+        Measure retrieval against a golden question set before changing
+        it</h1>
+        <table>
+        <colgroup>
+        <col style="width: 50%" />
+        <col style="width: 50%" />
+        </colgroup>
+        <tbody>
+        <tr class="odd">
+        <td><strong>Status</strong></td>
+        <td>Proposed — the golden set is <strong>not
+        ratified</strong></td>
+        </tr>
+        <tr class="even">
+        <td><strong>Date</strong></td>
+        <td>2026-08-19</td>
+        </tr>
+        <tr class="odd">
+        <td><strong>Deciders</strong></td>
+        <td>Carlos Keglevich</td>
+        </tr>
+        <tr class="even">
+        <td><strong>Related</strong></td>
+        <td>ADR-002 (LLM provider, the 0.55 threshold), ADR-004
+        (pgvector), ADR-006 (duplicate detection, the 0.92 threshold),
+        ADR-007 (test the rendered application), NFR-2 (grounded
+        answers), PR #56</td>
+        </tr>
+        </tbody>
+        </table>
+        <h2 id="context">Context</h2>
+        <p>v1.3.0 is “retrieval quality”: hybrid keyword + semantic
+        search, then a decision on a reranker, then a revalidation of
+        the similarity threshold. Every one of those is a change to the
+        thing that decides what a technician is told about a machine
+        that is down, and the project had <strong>no way to tell whether
+        any of them made retrieval better.</strong></p>
+        <p>What existed was three demo cases in
+        <code>QueryDemoVerificationIT</code> — E-47 on PR-03, the DE→EN
+        conveyor question, and the deliberate dosing gap on AB-02. They
+        are real measurements against the real provider and they earn
+        their place, but three cases chosen because they demo well
+        cannot answer “did this change help”, and two of the three are
+        the cases every previous change was already tuned against.</p>
+        <p>Two configured thresholds also rest on numbers that were true
+        when taken and had not been re-taken:</p>
+        <ul>
+        <li><strong>the query threshold, 0.55</strong> (ADR-002) —
+        question-to-chunk, measured 2026-08-07 against a corpus of 150
+        protocols, before the 15 that v1.2 added;</li>
+        <li><strong>the duplicate threshold, 0.92</strong> (ADR-006, PR
+        #56) — document-to-document, with a measured usable window only
+        <strong>0.0154 wide</strong>. A window that narrow is a standing
+        invitation to re-measure.</li>
+        </ul>
+        <h2 id="decision">Decision</h2>
+        <p><strong>Build the instrument before making the change, and
+        keep the instrument’s inputs as data.</strong></p>
+        <h3 id="a-golden-question-set-as-data-ratified-by-a-human">1. A
+        golden question set, as data, ratified by a human</h3>
+        <p><code>backend/src/test/resources/retrieval/golden-questions.json</code>
+        holds 19 questions. Each carries the question, its language, the
+        machine it is asked on, the protocol(s) that are a
+        <strong>correct</strong> citation, a case label, and one line
+        saying why that protocol is the right answer.</p>
+        <p>It is data rather than a Java array for three reasons. It is
+        reviewed by a person who should not have to read Java to rule on
+        a question. It is diffed question by question across PRs, the
+        way the protocol corpus is. And a metric computed from a fixture
+        living inside the test that reports it is a number with no
+        independent existence.</p>
+        <p><strong>Every entry is <code>ratified: false</code> until
+        Carlos rules on it,</strong> and the harness asserts that they
+        all are. A set that the same agent both wrote and graded
+        measures nothing: choosing which protocol is the right answer to
+        “the gearbox is hot and there is oil on the floor” is a
+        judgement about the domain, and it is exactly the judgement a
+        measurement cannot supply for itself.</p>
+        <p>The labelled cases, and why each is in the set:</p>
+        <table>
+        <colgroup>
+        <col style="width: 33%" />
+        <col style="width: 33%" />
+        <col style="width: 33%" />
+        </colgroup>
+        <thead>
+        <tr class="header">
+        <th>case</th>
+        <th>n</th>
+        <th>why</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr class="odd">
+        <td><code>plain</code></td>
+        <td>8</td>
+        <td>the ordinary case, and the bulk of it — one question, one
+        clearly right protocol</td>
+        </tr>
+        <tr class="even">
+        <td><code>e47-set</code></td>
+        <td>1</td>
+        <td>one fault code, four legitimate root causes. <strong>All
+        four are correct</strong>, so this measures whether the SET is
+        retrieved, not which member ranks first</td>
+        </tr>
+        <tr class="odd">
+        <td><code>cross-lingual</code></td>
+        <td>2</td>
+        <td>a German question whose protocol is English, and the
+        reverse. A headline claim of this project (bge-m3, no
+        translation step) that had never been measured on a question
+        set</td>
+        </tr>
+        <tr class="even">
+        <td><code>exact-term</code></td>
+        <td>3</td>
+        <td>a bare alarm code, a rare code, a part number. The case
+        hybrid search exists to fix, and expected to be weak at
+        baseline</td>
+        </tr>
+        <tr class="odd">
+        <td><code>mode-b</code></td>
+        <td>2</td>
+        <td>questions the corpus genuinely cannot answer. Correct
+        behaviour is a labelled ungrounded answer; a citation here is
+        wrong however plausible it reads</td>
+        </tr>
+        <tr class="even">
+        <td><code>v12-seed</code></td>
+        <td>3</td>
+        <td>the easier-fault protocols v1.2 added to give the approval
+        queue something real. Nothing had measured them</td>
+        </tr>
+        </tbody>
+        </table>
+        <p>Retrieval is scoped to <strong>one machine</strong>
+        (<code>ChunkRetriever</code> filters
+        <code>chunk.machine_id</code> before ranking), so every entry
+        names one. A question without a machine is not a question this
+        system can be asked.</p>
+        <h3 id="a-harness-that-measures-and-does-not-judge">2. A harness
+        that measures and does not judge</h3>
+        <p><code>RetrievalBaselineIT</code> runs every question through
+        the unchanged retrieval path against the real provider and the
+        real indexed corpus, key-gated on <code>LLM_API_KEY</code>
+        exactly like the two manual ITs that precede it, so CI never
+        runs it and it never spends money by accident.</p>
+        <p>It reports per question the rank of the expected protocol,
+        its similarity, the answer mode and whether the expected
+        protocol was actually cited; then recall@1/3/5, MRR and mode
+        correctness, <strong>each also broken down by case
+        label.</strong> The breakdown is not a nicety: an aggregate that
+        hides “every cross-lingual question failed” is worse than no
+        aggregate.</p>
+        <p><strong>It contains no assertion about quality, and must
+        never be given one.</strong> Its three assertions are about the
+        instrument — that the fixture still matches the corpus, that
+        every question names a machine that exists, that nothing is
+        marked ratified, and that the stored vectors belong to the
+        embedding model configured now. Recall may fall to zero and this
+        test stays green, because a falling number is news for a person
+        to read, not a build to break. The moment someone adds
+        <code>assertThat(recall).isGreaterThan(…)</code>, the set stops
+        being a measurement and becomes a target.</p>
+        <h3 id="the-results-are-a-committed-file">3. The results are a
+        committed file</h3>
+        <p>The harness rewrites
+        <code>backend/src/test/resources/retrieval/baseline.md</code> on
+        every run and that file is committed. PR 2 and PR 3 are judged
+        by its <strong>diff</strong>. A report that only ever existed in
+        a build directory cannot be diffed by anyone who did not run
+        it.</p>
+        <h2 id="baseline-measured-2026-08-19">Baseline, measured
+        2026-08-19</h2>
+        <p>bge-m3, 1024 dims, top-k 5, query threshold 0.55, 166 live
+        protocols in the measured database.</p>
+        <table>
+        <colgroup>
+        <col style="width: 50%" />
+        <col style="width: 50%" />
+        </colgroup>
+        <thead>
+        <tr class="header">
+        <th>metric</th>
+        <th>value</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr class="odd">
+        <td>recall@1</td>
+        <td>14/17 (82%)</td>
+        </tr>
+        <tr class="even">
+        <td>recall@3</td>
+        <td>14/17 (82%)</td>
+        </tr>
+        <tr class="odd">
+        <td>recall@5</td>
+        <td>14/17 (82%)</td>
+        </tr>
+        <tr class="even">
+        <td>MRR</td>
+        <td>0.8235</td>
+        </tr>
+        <tr class="odd">
+        <td>Mode A/B decision correct</td>
+        <td>16/19 (84%)</td>
+        </tr>
+        <tr class="even">
+        <td>Mode B questions correctly ungrounded</td>
+        <td>2/2 (100%)</td>
+        </tr>
+        <tr class="odd">
+        <td>Fully correct (right mode, and for Mode A the right
+        citation)</td>
+        <td>15/19 (79%)</td>
+        </tr>
+        </tbody>
+        </table>
+        <table>
+        <thead>
+        <tr class="header">
+        <th>case</th>
+        <th>recall@1</th>
+        <th>mode correct</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr class="odd">
+        <td><code>plain</code></td>
+        <td>8/8 (100%)</td>
+        <td>8/8</td>
+        </tr>
+        <tr class="even">
+        <td><code>e47-set</code></td>
+        <td>1/1 (100%)</td>
+        <td>1/1</td>
+        </tr>
+        <tr class="odd">
+        <td><code>cross-lingual</code></td>
+        <td>2/2 (100%)</td>
+        <td>2/2</td>
+        </tr>
+        <tr class="even">
+        <td><code>exact-term</code></td>
+        <td>3/3 (100%)</td>
+        <td>2/3</td>
+        </tr>
+        <tr class="odd">
+        <td><code>mode-b</code></td>
+        <td>n/a</td>
+        <td>2/2</td>
+        </tr>
+        <tr class="even">
+        <td><code>v12-seed</code></td>
+        <td>0/3 (0%)</td>
+        <td>1/3</td>
+        </tr>
+        </tbody>
+        </table>
+        <p>Three readings are worth carrying forward:</p>
+        <p><strong>Recall@1 equals recall@5.</strong> Not one question
+        had its expected protocol at rank 2–5. Retrieval either puts the
+        right protocol first or does not return it at all, which means a
+        reranker (PR 3) has nothing to reorder on this set — it would be
+        solving a problem this corpus does not have. That is a finding
+        about the <em>roadmap</em>, taken before the work rather than
+        after it.</p>
+        <p><strong>Cross-lingual retrieval works in both
+        directions,</strong> and this is the first time it has been
+        measured as anything other than one demo: 2/2 at rank 1,
+        German→English at 0.7027 and English→German at 0.5582. The
+        second is the weaker direction and it clears 0.55 by 0.0082 — a
+        real margin, and a thin one.</p>
+        <p><strong>The exact-term problem is a scoring problem, not a
+        ranking problem.</strong> All three exact-term questions put the
+        right protocol at rank 1. One of them, the bare rare code
+        <code>KOM-04</code>, scores 0.4288 — rank 1, and <em>below the
+        threshold</em>, so the answer is Mode B and the reader is told
+        nothing while the right protocol sits at the top of the
+        retrieved list. This sharpens what PR 2 has to do: hybrid search
+        must lift the <em>score</em> of an exact-term match, not its
+        rank.</p>
+        <h2 id="the-two-thresholds">The two thresholds</h2>
+        <h3 id="query-threshold-recommendation-not-a-change">Query
+        threshold — recommendation, not a change</h3>
+        <p>The sweep is recomputed from the retrieved similarities, so
+        the whole curve costs nothing. Three ways a threshold can be
+        wrong are counted separately, because a single accuracy number
+        hides two of them.</p>
+        <table>
+        <colgroup>
+        <col style="width: 25%" />
+        <col style="width: 25%" />
+        <col style="width: 25%" />
+        <col style="width: 25%" />
+        </colgroup>
+        <thead>
+        <tr class="header">
+        <th>threshold</th>
+        <th>Mode A</th>
+        <th>answerable lost to Mode B</th>
+        <th>Mode B wrongly grounded</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr class="odd">
+        <td>0.43–0.45</td>
+        <td>18</td>
+        <td>1</td>
+        <td>2</td>
+        </tr>
+        <tr class="even">
+        <td>0.46–0.47</td>
+        <td>17</td>
+        <td>1</td>
+        <td>1</td>
+        </tr>
+        <tr class="odd">
+        <td><strong>0.48–0.53</strong></td>
+        <td><strong>16</strong></td>
+        <td><strong>1</strong></td>
+        <td><strong>0</strong></td>
+        </tr>
+        <tr class="even">
+        <td>0.55 (configured)</td>
+        <td>15</td>
+        <td>2</td>
+        <td>0</td>
+        </tr>
+        <tr class="odd">
+        <td>0.58</td>
+        <td>13</td>
+        <td>4</td>
+        <td>0</td>
+        </tr>
+        <tr class="even">
+        <td>0.67</td>
+        <td>3</td>
+        <td>14</td>
+        <td>0</td>
+        </tr>
+        </tbody>
+        </table>
+        <p><strong>The windows overlap, and that is the
+        finding.</strong> The lowest answerable question scores 0.4288
+        (<code>KOM-04</code>); the lower of the two Mode B questions
+        scores 0.4588. There is therefore <strong>no threshold that both
+        keeps <code>KOM-04</code> grounded and keeps the unanswerable
+        questions ungrounded.</strong> <code>KOM-04</code> cannot be
+        fixed by moving this number, which is precisely why PR 2 is a
+        retrieval change and not a config change.</p>
+        <p><strong>Recommendation: leave 0.55 as it is, and re-measure
+        after PR 2.</strong> 0.48–0.53 is the widest interval with no
+        wrongly-grounded Mode B question, but its only advantage over
+        0.55 on this set is one question whose expectation is invalid
+        (see below), and 0.55 keeps 0.02 more margin above the highest
+        unanswerable question. <strong>Nothing is changed in this PR by
+        design:</strong> a threshold moved in the PR that built the
+        instrument would be a number tuned against 19 questions before
+        anyone had ratified them.</p>
+        <h3 id="duplicate-threshold-re-measured-still-open">Duplicate
+        threshold — re-measured, still open</h3>
+        <p>Re-taken on the current corpus with the existing
+        <code>DuplicateSimilarityCalibrationIT</code>, which is the
+        instrument for it and was deliberately not reimplemented.</p>
+        <table>
+        <colgroup>
+        <col style="width: 25%" />
+        <col style="width: 25%" />
+        <col style="width: 25%" />
+        <col style="width: 25%" />
+        </colgroup>
+        <thead>
+        <tr class="header">
+        <th></th>
+        <th>2026-08-14 (PR #56)</th>
+        <th>2026-08-19</th>
+        <th></th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr class="odd">
+        <td>Highest legitimate pair</td>
+        <td>0.9151</td>
+        <td><strong>0.9151</strong></td>
+        <td>PR-07, Halbjahres- vs Jahreswartung</td>
+        </tr>
+        <tr class="even">
+        <td>Realistic duplicate (re-narration)</td>
+        <td>0.9305</td>
+        <td><strong>0.9305</strong></td>
+        <td></td>
+        </tr>
+        <tr class="odd">
+        <td>Verbatim re-file</td>
+        <td>0.9778</td>
+        <td><strong>0.9778</strong></td>
+        <td></td>
+        </tr>
+        <tr class="even">
+        <td>Window width</td>
+        <td>0.0154</td>
+        <td><strong>0.0154</strong></td>
+        <td>unchanged</td>
+        </tr>
+        <tr class="odd">
+        <td>Configured 0.92</td>
+        <td>inside</td>
+        <td><strong>inside</strong></td>
+        <td>+0.0049 above the ceiling, −0.0105 below the floor</td>
+        </tr>
+        </tbody>
+        </table>
+        <p><strong>The window has not closed and 0.92 still sits in
+        it.</strong> No change is proposed. The measurement is
+        reproducible to four decimal places, which is itself worth
+        recording: the corpus, the chunker and the model between them
+        are stable.</p>
+        <p>One documentation defect found while re-measuring:
+        <code>application.yml</code> names the highest legitimate pair
+        as “PR-07, the 4000 h and 8000 h services”. The pair is PR-07’s
+        <strong>Halbjahreswartung and Jahreswartung</strong>; the 4000 h
+        and 8000 h services are KP-01’s, and they are not the top pair.
+        <code>PROJECT-PHASES.txt</code> has it right. Corrected in this
+        PR.</p>
+        <h2 id="consequences">Consequences</h2>
+        <p><strong>Positive.</strong> Every later retrieval change is
+        judged against a fixed set instead of against whichever demo the
+        author remembered. The case breakdown makes a regression in one
+        behaviour visible even when the aggregate improves. Two of the
+        three roadmap items for v1.3 already have evidence pointing at
+        them before any code was written — hybrid search has a precise
+        target, and the reranker has a reason to be questioned.</p>
+        <p><strong>Negative, and accepted.</strong></p>
+        <ul>
+        <li><strong>19 questions over 165 synthetic protocols measure
+        direction, not quality.</strong> A four-point move in recall is
+        one question. Nothing in this ADR should be quoted as an
+        accuracy figure for the system.</li>
+        <li><strong>The set can be over-fitted to.</strong> It is small,
+        it is visible, and it will be sitting in the repository while
+        someone tunes a retrieval change. <strong>PR 2 must not tune
+        against it beyond the threshold recommendation above</strong>;
+        if a change helps only these 19 questions, it has not helped
+        retrieval. The defence is that the set is versioned and
+        reviewed, so growing it to fit a result is a visible diff and
+        not a quiet edit.</li>
+        <li><strong>The set inherits the blind spots of the reading that
+        produced it.</strong> It was drafted by reading the corpus, so a
+        fault the corpus covers in a way the drafter did not notice is
+        not represented. This is the ratification’s job to catch.</li>
+        <li><strong>It costs a funded key and about three
+        minutes</strong> to re-take, so it is a deliberate act rather
+        than something CI does. Cost is dominated by 19 chat calls out
+        of the 400/day budget; the embedding half is EUR 0.000005.</li>
+        </ul>
+        <h2
+        id="what-this-measurement-found-that-nothing-else-could">What
+        this measurement found, that nothing else could</h2>
+        <p>The first run reported 0/3 on the <code>v12-seed</code> case,
+        with the expected protocols not merely low-ranked but
+        <strong>absent</strong>. Their true similarity to a question
+        describing exactly the fault they document was 0.0174, −0.0083
+        and 0.0263 — orthogonal, not weak.</p>
+        <p>The cause is not retrieval. The 15 protocols v1.2 added carry
+        vectors written by a <strong>different embedding model</strong>
+        than the one queries are embedded with: re-embedding a chunk’s
+        own stored text with the configured model and comparing with the
+        stored vector gives ~1.0 for the corpus and ≤0.04 for these 15.
+        They are all-positive and mutually similar at ~0.54, which is
+        the signature of the e2e provider stub’s L2-normalised trigram
+        counts, not of bge-m3.</p>
+        <p><strong>This class of defect is invisible to everything else
+        the project has.</strong> The rows exist, <code>status</code> is
+        <code>INDEXED</code>, the vectors are the right width and unit
+        length, the ingestion counters are correct, and every functional
+        and integration test passes. The protocols simply can never be
+        retrieved. So the harness grew a fourth check,
+        <code>theIndexIsInTheModelsSpace</code>, which re-embeds sampled
+        stored text and compares — and the generated report leads with a
+        warning when it fails, so the document can never be read as a
+        clean measurement.</p>
+        <p>The finding is <strong>reported and not fixed</strong>, per
+        the scope of the PR that took the baseline: repairing the index
+        would have destroyed the evidence and changed what the baseline
+        was measured against. It is recorded on the local development
+        database only. <strong>Whether production is affected is not
+        verified</strong> and is the first thing to settle — the check
+        now exists and is one run against that database away from an
+        answer.</p>
+      </article>
+    </main>
+
+        <nav class="toc" aria-label="On this page">
+      <p class="toc-title">On this page</p>
+      <ul>
+      <li><a
+      href="#adr-008-measure-retrieval-against-a-golden-question-set-before-changing-it"
+      id="toc-adr-008-measure-retrieval-against-a-golden-question-set-before-changing-it">ADR-008:
+      Measure retrieval against a golden question set before changing
+      it</a>
+      <ul>
+      <li><a href="#context" id="toc-context">Context</a></li>
+      <li><a href="#decision" id="toc-decision">Decision</a>
+      <ul>
+      <li><a href="#a-golden-question-set-as-data-ratified-by-a-human"
+      id="toc-a-golden-question-set-as-data-ratified-by-a-human">1. A
+      golden question set, as data, ratified by a human</a></li>
+      <li><a href="#a-harness-that-measures-and-does-not-judge"
+      id="toc-a-harness-that-measures-and-does-not-judge">2. A harness
+      that measures and does not judge</a></li>
+      <li><a href="#the-results-are-a-committed-file"
+      id="toc-the-results-are-a-committed-file">3. The results are a
+      committed file</a></li>
+      </ul></li>
+      <li><a href="#baseline-measured-2026-08-19"
+      id="toc-baseline-measured-2026-08-19">Baseline, measured
+      2026-08-19</a></li>
+      <li><a href="#the-two-thresholds" id="toc-the-two-thresholds">The
+      two thresholds</a>
+      <ul>
+      <li><a href="#query-threshold-recommendation-not-a-change"
+      id="toc-query-threshold-recommendation-not-a-change">Query
+      threshold — recommendation, not a change</a></li>
+      <li><a href="#duplicate-threshold-re-measured-still-open"
+      id="toc-duplicate-threshold-re-measured-still-open">Duplicate
+      threshold — re-measured, still open</a></li>
+      </ul></li>
+      <li><a href="#consequences"
+      id="toc-consequences">Consequences</a></li>
+      <li><a href="#what-this-measurement-found-that-nothing-else-could"
+      id="toc-what-this-measurement-found-that-nothing-else-could">What
+      this measurement found, that nothing else could</a></li>
+      </ul></li>
+      </ul>
+    </nav>
+      </div>
+
+  <footer class="footer">
+    maintenance-assistant · Generated by the docs pipeline
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <script src="/maintenance-assistant/assets/docs.js"></script>
+</body>
+</html>

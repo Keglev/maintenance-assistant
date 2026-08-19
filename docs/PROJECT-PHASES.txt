@@ -584,6 +584,48 @@ rather than given one afterwards.
    0.4288 and suppressed to Mode B — the reader is told nothing while the
    right protocol sits on top of the list.
 
+   PROGRESS 2026-08-19 — (fix/docs-absolute-links) TWO PUBLISHED LINKS WERE
+   404ing AND NO CHECK COULD SEE IT. The site build's Lua filter rewrote
+   .md -> .html in EVERY link target, absolute URLs included, so ADR-002's
+   and arc42 §9's links to spike/*/RESULTS.md on github.com were published
+   pointing at .html paths GitHub does not serve. ADR-002 is the strongest
+   document in the repo and a recruiter following that link hit nothing.
+   THE RULE, now written beside the filter: RELATIVE LINKS ARE THE FILTER'S
+   BUSINESS, ABSOLUTE LINKS ARE NOT. A source page becomes a page on the
+   site; a link to github.com points at a file in the repository, which is
+   never published and never becomes .html. Anything carrying a scheme or
+   protocol-relative passes through untouched.
+   THE DIFF IS THE PROOF: rebuilding changed exactly 2 files and exactly 2
+   links, .html -> .md. No internal link moved.
+   WHY NOTHING CAUGHT IT: lychee runs with offline = true, which SKIPS
+   external URLs — so a link to github.com is never fetched and a rewritten
+   one never fails. The build was green while the page was dead. The guard
+   is in build-docs.sh rather than in one workflow, because both the PR gate
+   and the publish build go through that script: it greps the BUILT output
+   for a github.com URL ending in .html — this repo publishes no .html to
+   GitHub, so every match is the filter having eaten a .md — and fails the
+   build. Demonstrated both ways: exit 1 naming both URLs with the bug
+   reintroduced, clean with the fix.
+   PANDOC IS PINNED AND NO LONGER COMES FROM apt, from the live failure of
+   the same day: a docs-pr-check run sat ~14 MINUTES inside "apt-get install
+   pandoc" against azure.archive.ubuntu.com and had to be cancelled. Every
+   docs PR and every docs deploy was gambling on Ubuntu mirror health for a
+   tool whose version nobody had chosen. Both workflows now fetch ONE .deb,
+   pinned at 3.1.3 — the version Ubuntu 24.04 was serving, so the output is
+   unchanged — with a connect timeout and one retry. MEASURED: a dead host
+   now fails in 35 s and a typo in the pin fails in 0 s with a 404, against
+   a 14-minute stall that never finished. VERIFIED BYTE-IDENTICAL: the site
+   built with apt's pandoc and with the pinned .deb in a runner-equivalent
+   container differ in 0 files and 0 lines, so this hardening cannot be the
+   thing that changed a page. The pin is a line someone must bump on
+   purpose and both workflows say so.
+   A CAVEAT FOUND WHILE VERIFYING, worth keeping: the two builds differed on
+   the FIRST comparison, in the <title> of every page, and it was the
+   CONTAINER LOCALE and not pandoc — apt's pandoc mojibakes a UTF-8 middle
+   dot under the POSIX locale while the pinned static binary does not.
+   Setting LANG=C.UTF-8, which is what the runner sets, made them identical.
+   A byte-comparison across two environments measures the environment too.
+
 3. v1.3.0 — RETRIEVAL QUALITY
    - HYBRID KEYWORD + SEMANTIC SEARCH (deferred 2026-08-10; the
      interim answer is the search help panel).

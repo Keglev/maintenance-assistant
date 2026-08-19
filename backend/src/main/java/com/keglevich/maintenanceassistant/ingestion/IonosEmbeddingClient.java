@@ -42,6 +42,9 @@ class IonosEmbeddingClient implements EmbeddingClient {
     private final EmbeddingBudget budget;
     private final RestClient restClient;
 
+    /** Latched, so a mismatch is stated once per process rather than once per batch. */
+    private volatile boolean modelMismatchUnreported = true;
+
     // RestClient.builder() rather than the auto-configured builder bean: this client talks to one
     // external provider with its own timeouts and its own auth header, and should not inherit
     // interceptors or converters added for the application's own HTTP calls.
@@ -85,6 +88,7 @@ class IonosEmbeddingClient implements EmbeddingClient {
         for (int from = 0; from < texts.size(); from += properties.batchSize()) {
             List<String> batch = texts.subList(from, Math.min(from + properties.batchSize(), texts.size()));
             EmbeddingResponse response = callWithRetry(batch);
+            warnIfAnotherModelAnswered(response);
             calls++;
             tokens += response.promptTokens();
             vectors.addAll(extractVectors(response, batch.size()));
@@ -190,7 +194,7 @@ class IonosEmbeddingClient implements EmbeddingClient {
      * shared by both, so {@code @JsonIgnoreProperties} is safe here.
      */
     @JsonIgnoreProperties(ignoreUnknown = true)
-    record EmbeddingResponse(List<Item> data, Usage usage) {
+    record EmbeddingResponse(List<Item> data, Usage usage, String model) {
 
         @JsonIgnoreProperties(ignoreUnknown = true)
         record Item(List<Double> embedding) {
@@ -210,6 +214,40 @@ class IonosEmbeddingClient implements EmbeddingClient {
             }
             return usage.total_tokens() == null ? 0L : usage.total_tokens();
         }
+    }
+
+    /**
+     * Says so, once, when the answer did not come from the model that was asked for.
+     *
+     * <p>Two real failures share this shape and neither announces itself any other way.
+     *
+     * <ul>
+     *   <li><b>The IONOS {@code *-migration} aliases</b> (ADR-002 caveat): the catalogue carries ids
+     *       that silently resolve to a different model. The vectors come back the right width and
+     *       are simply not in the space the stored index is in.</li>
+     *   <li><b>A stub answering instead of the provider.</b> The e2e provider stub is reached by
+     *       pointing {@code LLM_BASE_URL} at it, which is a supported configuration change and
+     *       therefore leaves no other trace. Fifteen protocols reached the development database that
+     *       way and were unretrievable for a week — every row healthy, every test green (ADR-008).</li>
+     * </ul>
+     *
+     * <p>A warning rather than a refusal: this client cannot know which of the two it is looking at,
+     * and refusing to embed would turn a provider's harmless rename into an outage. What it can do
+     * is make sure the fact is never absent from the log of the run that wrote the rows.
+     *
+     * <p>Once per process, because this is called per batch and a corpus seeding run would otherwise
+     * print it 6 times and a re-index of everything hundreds.
+     */
+    private void warnIfAnotherModelAnswered(EmbeddingResponse response) {
+        String answered = response.model();
+        if (answered == null || answered.equals(properties.model()) || !modelMismatchUnreported) {
+            return;
+        }
+        modelMismatchUnreported = false;
+        log.warn("Embedding provider answered as model '{}' but '{}' was requested at {}. "
+                        + "Vectors written now may not be comparable with vectors already stored — "
+                        + "verify with maintenance.ops.verify-embeddings before trusting retrieval.",
+                answered, properties.model(), properties.baseUrl());
     }
 
     /** One provider request, counted whether or not its response could be used. */

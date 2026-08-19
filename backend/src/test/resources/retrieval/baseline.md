@@ -12,31 +12,10 @@ the class javadoc) and commit the diff.
 | top-k | 5 |
 | Embedding model | bge-m3, 1024 dims |
 
-> ## WARNING — PART OF THIS INDEX IS NOT IN THE QUERY MODEL'S SPACE
->
-> 15 of 25 sampled chunks disagree with a fresh embedding of their own text. A stored
-> vector written by a different embedding model is orthogonal to every question: the
-> protocol is present, `INDEXED`, unit-length and well-formed, and **cannot be retrieved
-> at all**. Any row below that expects one of these protocols is measuring the accident,
-> not retrieval.
+## Index health
 
-| agreement | protocol |
-|---|---|
-| -0.0102 | presse aus, kein strom am pult |
-| 0.0083 | Anlage läuft leer, keine Flaschen |
-| 0.0092 | Conveyor stops without warning |
-| 0.0136 | Machine does not start after maintenance |
-| -0.0242 | geht nicht an |
-| 0.0059 | Maschine geht nicht an, Schlüsselschalter |
-| 0.0259 | Roboter fährt nicht in Grundstellung |
-| 0.0294 | Presse stoppt sporadisch ohne Fehler |
-| 0.0389 | Band läuft nicht an, Motor brummt |
-| 0.0175 | Kompressor startet nicht nach Wochenende |
-| 0.0342 | Maschine läuft, produziert aber nichts |
-| -0.0282 | Starttaste ohne Funktion |
-| 0.0370 | Display bleibt dunkel, Maschine läuft aber |
-| 0.0201 | Anlage bleibt ohne Meldung stehen |
-| -0.0082 | Maschine startet nicht, keine Reaktion beim Einschalten |
+182 sampled chunks re-embedded with the configured model and compared with their stored
+vector: all agree (>= 0.95). The index is in the query model's space.
 
 ## Per question
 
@@ -62,9 +41,9 @@ not in the top 5 at all.
 | G14 | exact-term | de | FB-04 | 1 | 0.6000 | 0.6000 | A | expected | OK |
 | G15 | mode-b | de | AB-02 | - | 0.4588 | - | B | none (right) | OK |
 | G16 | mode-b | de | SP-05 | - | 0.4771 | - | B | none (right) | OK |
-| G17 | v12-seed | de | PR-03 | - | 0.6036 | - | B | other/none | **MISS** |
-| G18 | v12-seed | de | FB-04 | - | 0.5771 | - | A | other/none | **MISS** |
-| G19 | v12-seed | de | VP-01 | - | 0.5385 | - | B | other/none | **MISS** |
+| G17 | v12-seed | de | PR-03 | 1 | 0.6412 | 0.6412 | A | expected | OK |
+| G18 | v12-seed | de | FB-04 | 5 | 0.5771 | 0.5503 | A | expected | OK |
+| G19 | v12-seed | de | VP-01 | 1 | 0.7033 | 0.7033 | A | expected | OK |
 
 ## Aggregates
 
@@ -74,13 +53,13 @@ reported on their own terms.
 
 | metric | value |
 |---|---|
-| recall@1 | 14/17 (82%) |
-| recall@3 | 14/17 (82%) |
-| recall@5 | 14/17 (82%) |
-| MRR | 0.8235 |
-| Mode A/B decision correct | 16/19 (84%) |
+| recall@1 | 16/17 (94%) |
+| recall@3 | 16/17 (94%) |
+| recall@5 | 17/17 (100%) |
+| MRR | 0.9529 |
+| Mode A/B decision correct | 18/19 (95%) |
 | Mode B questions answered ungrounded | 2/2 (100%) |
-| Answered fully correctly | 15/19 (79%) |
+| Answered fully correctly | 18/19 (95%) |
 
 ## By case
 
@@ -94,7 +73,7 @@ worse than no aggregate.
 | cross-lingual | 2 | 2/2 (100%) | 2/2 (100%) | 2/2 (100%) | 1.0000 | 2/2 (100%) |
 | exact-term | 3 | 3/3 (100%) | 3/3 (100%) | 3/3 (100%) | 1.0000 | 2/3 (67%) |
 | mode-b | 2 | n/a | n/a | n/a | n/a | 2/2 (100%) |
-| v12-seed | 3 | 0/3 (0%) | 0/3 (0%) | 0/3 (0%) | 0.0000 | 1/3 (33%) |
+| v12-seed | 3 | 2/3 (67%) | 2/3 (67%) | 3/3 (100%) | 0.7333 | 3/3 (100%) |
 
 ## Misses in detail
 
@@ -111,36 +90,6 @@ it really scored, whether or not it was returned.
   - `0.3287  Ausgang bleibt gesetzt, Auswerfer fährt nicht zurück`
   - `0.3104  Alarm Drive 2 - DC bus undervoltage im Leitsystem`
 
-**G17** (v12-seed, PR-03) — Presse reagiert beim Einschalten überhaupt nicht, nichts leuchtet
-
-- mode B, best retrieved 0.6036, true similarity of the expected protocol 0.0174
-- retrieved instead:
-  - `0.6036  Presse bleibt sporadisch stehen, keine Meldung`
-  - `0.5735  Presse startet nicht, Lichtvorhang`
-  - `0.4709  E-47 Druckabfall im Presshub`
-  - `0.4676  Öl unter der Presse`
-  - `0.4676  Not-Halt löst ohne Betätigung aus`
-
-**G18** (v12-seed, FB-04) — Band bleibt ohne Vorwarnung stehen
-
-- mode A, best retrieved 0.5771, true similarity of the expected protocol -0.0083
-- retrieved instead:
-  - `0.5771  Band steht, Motorschutz`
-  - `0.5615  Band bleibt beim Anlauf unter Last stehen`
-  - `0.5537  Sicherheitssensor an der Übergabe meldet dauernd`
-  - `0.5409  Nasses Material verschmiert das Band`
-  - `0.5144  Reißleine ausgelöst`
-
-**G19** (v12-seed, VP-01) — Anlage bleibt einfach stehen, keine Meldung am Display
-
-- mode B, best retrieved 0.5385, true similarity of the expected protocol 0.0263
-- retrieved instead:
-  - `0.5385  Anlage lief nicht an, Hauptschalter`
-  - `0.5195  Meldung Sensor defekt an der Einlaufkontrolle`
-  - `0.5120  VP-22 erneut, diesmal Sensor wirklich defekt`
-  - `0.4934  Labels applied crooked after a roll change`
-  - `0.4918  Rezeptdaten kommen nicht mehr vom Leitsystem`
-
 ## Query threshold sweep (M1.3a)
 
 Recomputed from the retrieved similarities; no provider call. `expected above t` counts
@@ -150,37 +99,37 @@ so a protocol below the line cannot be cited even when the question stays Mode A
 
 | threshold | Mode A questions | answerable lost to Mode B | Mode B wrongly grounded | expected above t | |
 |---|---|---|---|---|---|
-| 0.40 | 19 | 0 | 2 | 14 / 17 |  |
-| 0.41 | 19 | 0 | 2 | 14 / 17 |  |
-| 0.42 | 19 | 0 | 2 | 14 / 17 |  |
-| 0.43 | 18 | 1 | 2 | 13 / 17 |  |
-| 0.44 | 18 | 1 | 2 | 13 / 17 |  |
-| 0.45 | 18 | 1 | 2 | 13 / 17 |  |
-| 0.46 | 17 | 1 | 1 | 13 / 17 |  |
-| 0.47 | 17 | 1 | 1 | 13 / 17 |  |
-| 0.48 | 16 | 1 | 0 | 13 / 17 |  |
-| 0.49 | 16 | 1 | 0 | 13 / 17 |  |
-| 0.50 | 16 | 1 | 0 | 13 / 17 |  |
-| 0.51 | 16 | 1 | 0 | 13 / 17 |  |
-| 0.52 | 16 | 1 | 0 | 13 / 17 |  |
-| 0.53 | 16 | 1 | 0 | 13 / 17 |  |
-| 0.54 | 15 | 2 | 0 | 13 / 17 |  |
-| 0.55 | 15 | 2 | 0 | 13 / 17 | **configured** |
-| 0.56 | 14 | 3 | 0 | 12 / 17 |  |
-| 0.57 | 14 | 3 | 0 | 12 / 17 |  |
-| 0.58 | 13 | 4 | 0 | 12 / 17 |  |
-| 0.59 | 12 | 5 | 0 | 11 / 17 |  |
-| 0.60 | 9 | 8 | 0 | 8 / 17 |  |
-| 0.61 | 8 | 9 | 0 | 8 / 17 |  |
-| 0.62 | 8 | 9 | 0 | 8 / 17 |  |
-| 0.63 | 8 | 9 | 0 | 8 / 17 |  |
-| 0.64 | 8 | 9 | 0 | 8 / 17 |  |
-| 0.65 | 7 | 10 | 0 | 7 / 17 |  |
-| 0.66 | 6 | 11 | 0 | 6 / 17 |  |
-| 0.67 | 3 | 14 | 0 | 3 / 17 |  |
-| 0.68 | 3 | 14 | 0 | 3 / 17 |  |
-| 0.69 | 3 | 14 | 0 | 3 / 17 |  |
-| 0.70 | 3 | 14 | 0 | 3 / 17 |  |
+| 0.40 | 19 | 0 | 2 | 17 / 17 |  |
+| 0.41 | 19 | 0 | 2 | 17 / 17 |  |
+| 0.42 | 19 | 0 | 2 | 17 / 17 |  |
+| 0.43 | 18 | 1 | 2 | 16 / 17 |  |
+| 0.44 | 18 | 1 | 2 | 16 / 17 |  |
+| 0.45 | 18 | 1 | 2 | 16 / 17 |  |
+| 0.46 | 17 | 1 | 1 | 16 / 17 |  |
+| 0.47 | 17 | 1 | 1 | 16 / 17 |  |
+| 0.48 | 16 | 1 | 0 | 16 / 17 |  |
+| 0.49 | 16 | 1 | 0 | 16 / 17 |  |
+| 0.50 | 16 | 1 | 0 | 16 / 17 |  |
+| 0.51 | 16 | 1 | 0 | 16 / 17 |  |
+| 0.52 | 16 | 1 | 0 | 16 / 17 |  |
+| 0.53 | 16 | 1 | 0 | 16 / 17 |  |
+| 0.54 | 16 | 1 | 0 | 16 / 17 |  |
+| 0.55 | 16 | 1 | 0 | 16 / 17 | **configured** |
+| 0.56 | 15 | 2 | 0 | 14 / 17 |  |
+| 0.57 | 15 | 2 | 0 | 14 / 17 |  |
+| 0.58 | 14 | 3 | 0 | 14 / 17 |  |
+| 0.59 | 13 | 4 | 0 | 13 / 17 |  |
+| 0.60 | 10 | 7 | 0 | 10 / 17 |  |
+| 0.61 | 10 | 7 | 0 | 10 / 17 |  |
+| 0.62 | 10 | 7 | 0 | 10 / 17 |  |
+| 0.63 | 10 | 7 | 0 | 10 / 17 |  |
+| 0.64 | 10 | 7 | 0 | 10 / 17 |  |
+| 0.65 | 8 | 9 | 0 | 8 / 17 |  |
+| 0.66 | 7 | 10 | 0 | 7 / 17 |  |
+| 0.67 | 4 | 13 | 0 | 4 / 17 |  |
+| 0.68 | 4 | 13 | 0 | 4 / 17 |  |
+| 0.69 | 4 | 13 | 0 | 4 / 17 |  |
+| 0.70 | 4 | 13 | 0 | 4 / 17 |  |
 | 0.71 | 0 | 17 | 0 | 0 / 17 |  |
 | 0.72 | 0 | 17 | 0 | 0 / 17 |  |
 | 0.73 | 0 | 17 | 0 | 0 / 17 |  |
@@ -197,7 +146,7 @@ here.
 | | |
 |---|---|
 | Same-machine pairs | 1393 |
-| Mean over all pairs | 0.5547 |
+| Mean over all pairs | 0.6612 |
 | Configured threshold | 0.920 |
 | **Highest legitimate pair** | **0.9151** |
 | Margin, threshold - ceiling | 0.0049 |
@@ -208,19 +157,19 @@ Top pairs:
 |---|---|---|---|
 | 0.9151 | PR-07 | Halbjahreswartung Presse 7 | Jahreswartung Presse 7 |
 | 0.8787 | VP-01 | Meldung Sensor defekt an der Einlaufkontrolle | VP-22 erneut, diesmal Sensor wirklich defekt |
+| 0.8740 | VP-01 | Anlage lief nicht an, Hauptschalter | geht nicht an |
+| 0.8713 | SP-05 | Maschine steht, Trichter leer | Maschine läuft, produziert aber nichts |
 | 0.8622 | SP-05 | Heizband Zone 3 ausgefallen, Übergangslösung bis Ersatz da ist | Heizband Zone 3 getauscht, Provisorium beendet |
 | 0.8485 | RB-02 | Quartalswartung Schweißzelle | Absaugung und Zellenreinigung |
 | 0.8443 | VP-01 | Vakuum wird nicht erreicht, Behelfslösung über reduzierte Taktzahl | Vakuumpumpe getauscht, Behelfslösung beendet |
 | 0.8397 | FR-01 | SV0410 Schleppfehler X-Achse, angeblich Servomotor defekt | SV0410 erneut, diesmal Verstärker |
-| 0.8388 | FR-01 | Werkzeugwechsler bleibt stehen, vorläufig von Hand gewechselt | Werkzeugwechsler greift daneben |
-| 0.8329 | PR-03 | E-47 Druckabfall im Presshub | E-47 sporadisch, Druckbegrenzungsventil klemmt |
 
 ## Runtime and cost of one run
 
 | | |
 |---|---|
-| Wall clock | 152 s |
-| Embedding provider calls | 63 (268 prompt tokens) |
+| Wall clock | 133 s |
+| Embedding provider calls | 220 (268 prompt tokens) |
 | Embedding cost | EUR 0.000005 |
 | Chat calls | 19, one answer per question (a Mode A fall-through would add one) |
 

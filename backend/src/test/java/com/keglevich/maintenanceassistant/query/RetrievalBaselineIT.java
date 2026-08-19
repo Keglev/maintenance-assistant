@@ -3,6 +3,7 @@ package com.keglevich.maintenanceassistant.query;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.keglevich.maintenanceassistant.ingestion.EmbeddingClient;
+import com.keglevich.maintenanceassistant.ingestion.EmbeddingProvenanceVerifier;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
@@ -79,9 +80,18 @@ class RetrievalBaselineIT {
     /** IONOS bge-m3, EUR per 1M input tokens — ADR-002's price sheet, used for the cost line. */
     private static final double EMBEDDING_EUR_PER_MILLION_TOKENS = 0.02;
 
+    /**
+     * 0 = every chunk.
+     *
+     * <p>A full scan of this corpus is 182 chunks in 6 batched calls, which is cheaper than the 19
+     * answers this run already buys. Sampling here would trade a real guarantee for nothing.
+     */
+    private static final int PROVENANCE_SAMPLE = 0;
+
     @Autowired QueryService queries;
     @Autowired ChunkRetriever retriever;
     @Autowired EmbeddingClient embeddingClient;
+    @Autowired EmbeddingProvenanceVerifier provenance;
     @Autowired QueryProperties queryProperties;
     @Autowired JdbcClient jdbc;
 
@@ -134,8 +144,8 @@ class RetrievalBaselineIT {
         }
         Duration elapsed = Duration.between(started, Instant.now());
 
-        List<Probe> health = probeIndexHealth();
-        embeddingCalls += health.size();
+        EmbeddingProvenanceVerifier.Report health = provenance.verify(PROVENANCE_SAMPLE);
+        embeddingCalls += health.probes().size();
 
         String md = header(corpus, questions.size())
                 + indexHealth(health)
@@ -210,80 +220,14 @@ class RetrievalBaselineIT {
     @Test
     @DisplayName("index health — stored vectors belong to the currently configured embedding model")
     void theIndexIsInTheModelsSpace() {
-        List<Probe> probes = probeIndexHealth();
-        System.out.println("\n=== index health: stored vector vs. a fresh embedding of its own text");
-        probes.forEach(p -> System.out.println(fmt("  %.4f  %s", p.agreement(), p.title())));
+        EmbeddingProvenanceVerifier.Report report = provenance.verify(PROVENANCE_SAMPLE);
+        System.out.println("\n" + report.describe());
 
-        List<String> stale = probes.stream().filter(Probe::foreign)
-                .map(p -> fmt("%.4f  %s  (%s)", p.agreement(), p.title(), p.protocolId()))
-                .toList();
-
-        assertThat(stale)
+        assertThat(report.foreign())
                 .as("these chunks were embedded by a different model than the one configured now, so "
                         + "they are orthogonal to every question and cannot be retrieved at all:\n%s",
-                        String.join("\n", stale))
+                        report.describe())
                 .isEmpty();
-    }
-
-    /**
-     * Re-embeds a sample of stored chunks with the model configured now and compares.
-     *
-     * <p>Newest first, so a batch written later than the rest of the corpus is in the sample by
-     * construction — that is the shape this failure takes. A tail sample of the oldest rows is added
-     * so the probe cannot report health from one end of the table alone.
-     */
-    private List<Probe> probeIndexHealth() {
-        List<StoredChunk> sample = jdbc.sql("""
-                        SELECT c.id, c.protocol_id, c.content, p.title
-                        FROM chunk c JOIN protocol p ON p.id = c.protocol_id
-                        WHERE p.deleted_at IS NULL
-                        ORDER BY p.created_at DESC, c.id
-                        """)
-                .query((rs, i) -> new StoredChunk(rs.getObject("id", UUID.class),
-                        rs.getObject("protocol_id", UUID.class), rs.getString("content"),
-                        rs.getString("title")))
-                .list();
-
-        List<StoredChunk> chosen = new ArrayList<>(sample.subList(0, Math.min(20, sample.size())));
-        if (sample.size() > 20) {
-            chosen.addAll(sample.subList(sample.size() - 5, sample.size()));
-        }
-
-        List<Probe> probes = new ArrayList<>();
-        for (StoredChunk chunk : chosen) {
-            float[] fresh = embeddingClient.embed(List.of(chunk.content())).vectors().get(0);
-            probes.add(new Probe(chunk.protocolId(), chunk.title(),
-                    similarityToStored(chunk.id(), fresh)));
-        }
-        return probes;
-    }
-
-    private double similarityToStored(UUID chunkId, float[] fresh) {
-        StringBuilder literal = new StringBuilder("[");
-        for (int i = 0; i < fresh.length; i++) {
-            literal.append(i > 0 ? "," : "").append(fresh[i]);
-        }
-        return jdbc.sql("SELECT 1 - (embedding <=> CAST(:v AS vector)) FROM chunk WHERE id = :id")
-                .param("v", literal.append(']').toString())
-                .param("id", chunkId)
-                .query(Double.class).single();
-    }
-
-    private record StoredChunk(UUID id, UUID protocolId, String content, String title) {
-    }
-
-    /**
-     * One chunk's agreement with a fresh embedding of its own text.
-     *
-     * <p>0.95 rather than 1.0 because a provider is allowed to be slightly non-deterministic across
-     * calls, and because the comparison runs through a float column. The distinction being drawn is
-     * not fine: agreement is either ~1.0 or it is ~0.0, and there is nothing in between.
-     */
-    private record Probe(UUID protocolId, String title, double agreement) {
-
-        boolean foreign() {
-            return agreement < 0.95;
-        }
     }
 
     // ===========================================================================================
@@ -316,8 +260,9 @@ class RetrievalBaselineIT {
      * <p>A reader who takes the tables below as a reading of retrieval, when some of the index is not
      * in the query model's space, has been misled by this file. So the file says so itself, first.
      */
-    private String indexHealth(List<Probe> probes) {
-        List<Probe> foreign = probes.stream().filter(Probe::foreign).toList();
+    private String indexHealth(EmbeddingProvenanceVerifier.Report report) {
+        List<EmbeddingProvenanceVerifier.Probe> foreign = report.foreign();
+        int checked = report.probes().size();
         if (foreign.isEmpty()) {
             return fmt("""
                     ## Index health
@@ -325,7 +270,7 @@ class RetrievalBaselineIT {
                     %d sampled chunks re-embedded with the configured model and compared with their stored
                     vector: all agree (>= 0.95). The index is in the query model's space.
 
-                    """, probes.size());
+                    """, checked);
         }
         StringBuilder out = new StringBuilder(fmt("""
                 > ## WARNING — PART OF THIS INDEX IS NOT IN THE QUERY MODEL'S SPACE
@@ -338,7 +283,7 @@ class RetrievalBaselineIT {
 
                 | agreement | protocol |
                 |---|---|
-                """, foreign.size(), probes.size()));
+                """, foreign.size(), checked));
         foreign.forEach(p -> out.append(fmt("| %.4f | %s |\n", p.agreement(), p.title())));
         return out.append('\n').toString();
     }

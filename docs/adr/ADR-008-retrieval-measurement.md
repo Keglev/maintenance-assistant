@@ -224,3 +224,94 @@ the index would have destroyed the evidence and changed what the baseline was me
 recorded on the local development database only. **Whether production is affected is not verified**
 and is the first thing to settle — the check now exists and is one run against that database away
 from an answer.
+
+---
+
+## Revision 2026-08-19 (PR #62) — the defect closed, and what it changed
+
+Carlos checked production: it holds **150 protocols**. The 15 v1.2 added never reached it — **v1.2
+shipped as code and not as data** — so there were no corrupt vectors there to find, and the repair
+was a local matter. The consequence that mattered more is that production has no `UNAPPROVED`
+protocol at all, so the v1.2 trust chain cannot be demonstrated by clicking.
+`seed-v12-protocols.md`, in
+[`docs/runbooks/`](https://github.com/Keglev/maintenance-assistant/tree/main/docs/runbooks), is the
+procedure for that, and it is a proposal until Carlos runs it. (Runbooks are repository documents
+and are not published to the site. The link points at the *directory* on purpose: the site build's
+Lua filter rewrites every link ending in `.md` to `.html`, including absolute ones, so a GitHub URL
+naming a Markdown file is published pointing at a page GitHub does not have — see the note in
+PROJECT-PHASES, two such links are already live.)
+
+### The lesson worth keeping
+
+**A vector's shape says nothing about its provenance.** Width, norm, `status = 'INDEXED'`, a
+non-null `indexed_at` and a green test suite are all satisfied by a vector from the wrong model.
+The only thing that distinguishes it is re-embedding the text and comparing, which is what
+`EmbeddingProvenanceVerifier` now does.
+
+**The e2e provider stub wrote into a database shared with development.** The stub exists for a good
+reason — #51 made `reindex.e2e.ts` runnable without a funded key, and a test that never runs is
+worth nothing — and it is reached exactly the way ADR-002 requires a provider to be swappable, by
+pointing `LLM_BASE_URL` somewhere else. That is a supported configuration change, which is precisely
+why it left no trace: nothing in the system distinguished "the provider answered" from "something
+answered". The stub now names itself in every response (`e2e-provider-stub-not-a-real-model`) and
+`IonosEmbeddingClient` warns when the model that answered is not the model it asked for — which also
+covers the unrelated ADR-002 trap of the IONOS `*-migration` aliases resolving to another model.
+
+**The detector was placed as a one-shot runner, not an endpoint.** An HTTP endpoint would be a
+permanent surface on a public deployment that spends provider money when called and needs a role
+rule, a rate limit and a controller test — for a diagnostic run perhaps twice a year. See
+`EmbeddingProvenanceRunner`.
+
+### The baseline after the repair — the first real use of it as a reference
+
+| | #61 (corrupt index) | #62 (repaired) |
+|---|---|---|
+| recall@1 | 14/17 (82%) | **16/17 (94%)** |
+| recall@3 | 14/17 (82%) | **16/17 (94%)** |
+| recall@5 | 14/17 (82%) | **17/17 (100%)** |
+| MRR | 0.8235 | **0.9529** |
+| Mode A/B correct | 16/19 (84%) | **18/19 (95%)** |
+| Fully correct | 15/19 (79%) | **18/19 (95%)** |
+| `v12-seed` recall@1 | 0/3 (0%) | **2/3 (67%)** |
+
+**No retrieval code changed between those two columns.** The entire difference is 15 protocols
+becoming findable. That is the clearest possible demonstration of what the baseline is for, and of
+how badly a corrupted index misrepresents retrieval quality.
+
+The single remaining miss is `G13` (`KOM-04`), unchanged at rank 1 and 0.4288 — the exact-term
+scoring problem, which is hybrid search's target.
+
+### A correction to this ADR's own reading of the evidence
+
+The section above records, from #61, that *recall@1 equals recall@5, so nothing lands at rank 2–5
+and a reranker has nothing to reorder*. **That reading was taken on the corrupt index and does not
+survive the repair.** After it, `G18` lands at **rank 5** — one question of 17 — so the literal claim
+is now false and should not be quoted.
+
+The conclusion nevertheless holds, for a reason that had to be checked rather than assumed:
+
+- the one question that lands at rank 2–5 is **already answered correctly** — Mode A, citing the
+  expected protocol. Re-ordering its sources would change no answer.
+- the one question that is answered **wrongly**, `G13`, is at rank 1 already. A reranker reorders
+  candidates; it cannot lift a similarity through the Mode A/B threshold, so it cannot fix that one
+  either.
+
+So **no question on this set is answered wrongly because of ordering**, which is the claim the
+decision actually needs.
+
+### Decision — the reranker leaves v1.3
+
+**Carlos's decision, 2026-08-19: Qwen3-VL-Reranker-8B is dropped from v1.3.0.** v1.3 becomes
+measurement (#61, #62) and hybrid search. The evidence is the corrected statement above: a reranker
+would be a second model, a second latency budget and a second provider dependency, bought to fix a
+failure mode this corpus does not currently exhibit.
+
+**It returns to the roadmap when the measurement says so**, and the condition is written down here so
+that the decision is re-openable on evidence rather than on taste:
+
+- questions appear that are answered **wrongly** while the right protocol sits at rank 2–5 — that is,
+  `recall@5` meaningfully above `recall@1` **with wrong answers attached to the gap**; or
+- the corpus grows enough that top-k truncation starts hiding correct protocols, which the same
+  harness measures by raising `top-k` and watching recall move.
+
+Neither is true at 165 protocols. Re-read this note before the reranker is picked up again.

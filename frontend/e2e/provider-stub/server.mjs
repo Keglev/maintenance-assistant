@@ -31,6 +31,14 @@ const PORT = Number(process.argv.includes('--port')
   ? process.argv[process.argv.indexOf('--port') + 1]
   : (process.env.PORT ?? 8099));
 
+/**
+ * What this stub calls itself, in every response it serves.
+ *
+ * <p>Deliberately not a plausible model id: it has to be unmistakable in a log line, in a database
+ * forensics session, and to a person reading a response by hand.
+ */
+const STUB_MODEL_ID = 'e2e-provider-stub-not-a-real-model';
+
 /** bge-m3's width. The backend asserts it on every response, so a wrong value must fail loudly. */
 const DIMENSIONS = 1024;
 
@@ -180,7 +188,18 @@ const server = createServer(async (request, response) => {
     const inputs = Array.isArray(payload.input) ? payload.input : [payload.input ?? ''];
     return send(200, {
       object: 'list',
-      model: payload.model ?? 'BAAI/bge-m3',
+      // NOT an echo of payload.model, and this is the whole point of the field.
+      //
+      // Until PR #62 this answered with whatever model the caller asked for, so a response from
+      // this stub was indistinguishable from the provider's in every field. Fifteen protocols were
+      // embedded by it into the development database and nobody noticed for a week: the rows were
+      // INDEXED, the vectors were the right width and unit length, every test was green, and the
+      // protocols could not be retrieved at all because these vectors are orthogonal to bge-m3's.
+      //
+      // Naming ourselves costs nothing and makes that silent. The backend warns when the model it
+      // gets back is not the model it asked for, so the first seeding run against this stub now
+      // says so in the log.
+      model: STUB_MODEL_ID,
       data: inputs.map((text, index) => ({
         object: 'embedding',
         index,
@@ -195,7 +214,10 @@ const server = createServer(async (request, response) => {
     return send(200, {
       id: 'stub-completion',
       object: 'chat.completion',
-      model: payload.model ?? 'stub',
+      // Self-identifying for the same reason as the embeddings response above, though the stakes
+      // are lower here: a chat answer is read once and stored nowhere, while an embedding is
+      // written into the index and outlives the run that produced it.
+      model: STUB_MODEL_ID,
       choices: [{ index: 0, message: { role: 'assistant', content }, finish_reason: 'stop' }],
       usage: { prompt_tokens: 0, completion_tokens: 0, total_tokens: 0 },
     });

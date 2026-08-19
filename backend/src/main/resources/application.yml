@@ -128,6 +128,20 @@ maintenance:
     # restart. 400 answers a day at Llama-3.3-70B pricing is under EUR 0.35.
     daily-call-budget: ${LLM_CHAT_DAILY_CALL_BUDGET:400}
 
+  ops:
+    # ONE-SHOT DIAGNOSTICS. Off in every deployment, and the beans do not exist unless set — a
+    # normal restart does no provider work because of anything here.
+    #
+    # verify-embeddings re-embeds stored chunk text and compares it with the stored vector, which
+    # is the only way to tell which model wrote a row: a vector's width, norm and status column say
+    # nothing about its provenance. See ADR-008 and docs/runbooks/seed-v12-protocols.md.
+    #
+    # Sample 0 = every chunk. A full scan of the present corpus is 182 chunks in 6 batched calls
+    # (~EUR 0.0007), so there is no reason to sample it today; the setting is for the corpus this
+    # becomes later.
+    verify-embeddings: ${MAINTENANCE_OPS_VERIFY_EMBEDDINGS:false}
+    verify-embeddings-sample: ${MAINTENANCE_OPS_VERIFY_EMBEDDINGS_SAMPLE:0}
+
   duplicates:
     # DUPLICATE DETECTION ON APPROVAL — a WARNING, never a gate. See ADR-006's
     # 2026-08-14 revision and DuplicateSimilarityCalibrationIT, which re-takes every

@@ -492,6 +492,44 @@ rather than given one afterwards.
        approver. This is the four-eyes rule applied twice rather than
        once, and it is what makes the chain a chain.
 
+   PROGRESS 2026-08-19 — v1.3.0 PR 1 of 3 IS OPEN (test/retrieval-baseline),
+   THE INSTRUMENT BEFORE THE CHANGE. A 19-question golden set as DATA with
+   every entry ratified:false — Carlos rules on the expectations, because a
+   set the robot both wrote and graded measures nothing — a key-gated harness
+   that runs each question through the UNCHANGED retrieval path against the
+   real provider, and a committed baseline.md that PR 2 and PR 3 are judged
+   by the DIFF of. NO RETRIEVAL BEHAVIOUR AND NO THRESHOLD DEFAULT CHANGED,
+   deliberately: a number tuned in the PR that built the instrument is a
+   number tuned against 19 questions nobody has ratified yet.
+   BASELINE: recall@1 0.82, MRR 0.8235, 15/19 fully correct. Plain,
+   cross-lingual and E-47 all 100% at rank 1. RECALL@1 EQUALS RECALL@5 — not
+   one question had its protocol at rank 2-5, so a RERANKER HAS NOTHING TO
+   REORDER on this corpus, which is a finding about the roadmap taken before
+   the work. CROSS-LINGUAL MEASURED FOR THE FIRST TIME as more than a demo,
+   2/2 both directions; EN->DE is the weaker one and clears 0.55 by 0.0082.
+   THE EXACT-TERM PROBLEM IS A SCORING PROBLEM, NOT A RANKING ONE: all three
+   put the right protocol at rank 1, and the bare code KOM-04 scores 0.4288 —
+   rank 1 and below the threshold, so the reader is told nothing while the
+   right answer sits on top of the list. PR 2 must lift the SCORE.
+   THRESHOLDS: 0.55 recommended UNCHANGED. The sweep shows the windows
+   OVERLAP — the lowest answerable question is 0.4288 and the lower Mode B
+   question is 0.4588, so no threshold both keeps KOM-04 grounded and keeps
+   the unanswerable ones ungrounded. It is not a config problem. The
+   DUPLICATE window re-measured identical to four decimals (0.9151 /
+   0.9305 / 0.9778, 0.92 still inside, 0.0154 wide) — not closed, no change.
+   THE DEFECT THIS FOUND, REPORTED AND DELIBERATELY NOT FIXED: the 15
+   protocols v1.2 added carry vectors from a DIFFERENT EMBEDDING MODEL than
+   queries use — orthogonal, so they can NEVER be retrieved. Re-embedding
+   their own stored text gives ~1.0 for the corpus and <=0.04 for these; the
+   all-positive ~0.54 mutual similarity is the e2e provider stub's trigram
+   signature, not bge-m3's. Rows present, status INDEXED, vectors unit-length
+   and the right width, every functional test green — INVISIBLE TO EVERYTHING
+   THE PROJECT HAD. The harness grew a fourth check for it and baseline.md
+   leads with a warning when it fires. Measured on the LOCAL dev database;
+   WHETHER PRODUCTION IS AFFECTED IS NOT VERIFIED and is the first thing to
+   settle. Fixing it inside the baseline PR would have destroyed the evidence
+   and changed what the baseline was measured against.
+
 3. v1.3.0 — RETRIEVAL QUALITY
    - HYBRID KEYWORD + SEMANTIC SEARCH (deferred 2026-08-10; the
      interim answer is the search help panel).

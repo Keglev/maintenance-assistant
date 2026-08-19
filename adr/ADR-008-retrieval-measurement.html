@@ -616,6 +616,160 @@ ADR-008-retrieval-measurement · maintenance-assistant Docs</title>
         verified</strong> and is the first thing to settle — the check
         now exists and is one run against that database away from an
         answer.</p>
+        <hr />
+        <h2
+        id="revision-2026-08-19-pr-62-the-defect-closed-and-what-it-changed">Revision
+        2026-08-19 (PR #62) — the defect closed, and what it
+        changed</h2>
+        <p>Carlos checked production: it holds <strong>150
+        protocols</strong>. The 15 v1.2 added never reached it —
+        <strong>v1.2 shipped as code and not as data</strong> — so there
+        were no corrupt vectors there to find, and the repair was a
+        local matter. The consequence that mattered more is that
+        production has no <code>UNAPPROVED</code> protocol at all, so
+        the v1.2 trust chain cannot be demonstrated by clicking.
+        <code>seed-v12-protocols.md</code>, in <a
+        href="https://github.com/Keglev/maintenance-assistant/tree/main/docs/runbooks"><code>docs/runbooks/</code></a>,
+        is the procedure for that, and it is a proposal until Carlos
+        runs it. (Runbooks are repository documents and are not
+        published to the site. The link points at the <em>directory</em>
+        on purpose: the site build’s Lua filter rewrites every link
+        ending in <code>.md</code> to <code>.html</code>, including
+        absolute ones, so a GitHub URL naming a Markdown file is
+        published pointing at a page GitHub does not have — see the note
+        in PROJECT-PHASES, two such links are already live.)</p>
+        <h3 id="the-lesson-worth-keeping">The lesson worth keeping</h3>
+        <p><strong>A vector’s shape says nothing about its
+        provenance.</strong> Width, norm,
+        <code>status = 'INDEXED'</code>, a non-null
+        <code>indexed_at</code> and a green test suite are all satisfied
+        by a vector from the wrong model. The only thing that
+        distinguishes it is re-embedding the text and comparing, which
+        is what <code>EmbeddingProvenanceVerifier</code> now does.</p>
+        <p><strong>The e2e provider stub wrote into a database shared
+        with development.</strong> The stub exists for a good reason —
+        #51 made <code>reindex.e2e.ts</code> runnable without a funded
+        key, and a test that never runs is worth nothing — and it is
+        reached exactly the way ADR-002 requires a provider to be
+        swappable, by pointing <code>LLM_BASE_URL</code> somewhere else.
+        That is a supported configuration change, which is precisely why
+        it left no trace: nothing in the system distinguished “the
+        provider answered” from “something answered”. The stub now names
+        itself in every response
+        (<code>e2e-provider-stub-not-a-real-model</code>) and
+        <code>IonosEmbeddingClient</code> warns when the model that
+        answered is not the model it asked for — which also covers the
+        unrelated ADR-002 trap of the IONOS <code>*-migration</code>
+        aliases resolving to another model.</p>
+        <p><strong>The detector was placed as a one-shot runner, not an
+        endpoint.</strong> An HTTP endpoint would be a permanent surface
+        on a public deployment that spends provider money when called
+        and needs a role rule, a rate limit and a controller test — for
+        a diagnostic run perhaps twice a year. See
+        <code>EmbeddingProvenanceRunner</code>.</p>
+        <h3
+        id="the-baseline-after-the-repair-the-first-real-use-of-it-as-a-reference">The
+        baseline after the repair — the first real use of it as a
+        reference</h3>
+        <table>
+        <thead>
+        <tr class="header">
+        <th></th>
+        <th>#61 (corrupt index)</th>
+        <th>#62 (repaired)</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr class="odd">
+        <td>recall@1</td>
+        <td>14/17 (82%)</td>
+        <td><strong>16/17 (94%)</strong></td>
+        </tr>
+        <tr class="even">
+        <td>recall@3</td>
+        <td>14/17 (82%)</td>
+        <td><strong>16/17 (94%)</strong></td>
+        </tr>
+        <tr class="odd">
+        <td>recall@5</td>
+        <td>14/17 (82%)</td>
+        <td><strong>17/17 (100%)</strong></td>
+        </tr>
+        <tr class="even">
+        <td>MRR</td>
+        <td>0.8235</td>
+        <td><strong>0.9529</strong></td>
+        </tr>
+        <tr class="odd">
+        <td>Mode A/B correct</td>
+        <td>16/19 (84%)</td>
+        <td><strong>18/19 (95%)</strong></td>
+        </tr>
+        <tr class="even">
+        <td>Fully correct</td>
+        <td>15/19 (79%)</td>
+        <td><strong>18/19 (95%)</strong></td>
+        </tr>
+        <tr class="odd">
+        <td><code>v12-seed</code> recall@1</td>
+        <td>0/3 (0%)</td>
+        <td><strong>2/3 (67%)</strong></td>
+        </tr>
+        </tbody>
+        </table>
+        <p><strong>No retrieval code changed between those two
+        columns.</strong> The entire difference is 15 protocols becoming
+        findable. That is the clearest possible demonstration of what
+        the baseline is for, and of how badly a corrupted index
+        misrepresents retrieval quality.</p>
+        <p>The single remaining miss is <code>G13</code>
+        (<code>KOM-04</code>), unchanged at rank 1 and 0.4288 — the
+        exact-term scoring problem, which is hybrid search’s target.</p>
+        <h3 id="a-correction-to-this-adrs-own-reading-of-the-evidence">A
+        correction to this ADR’s own reading of the evidence</h3>
+        <p>The section above records, from #61, that <em>recall@1 equals
+        recall@5, so nothing lands at rank 2–5 and a reranker has
+        nothing to reorder</em>. <strong>That reading was taken on the
+        corrupt index and does not survive the repair.</strong> After
+        it, <code>G18</code> lands at <strong>rank 5</strong> — one
+        question of 17 — so the literal claim is now false and should
+        not be quoted.</p>
+        <p>The conclusion nevertheless holds, for a reason that had to
+        be checked rather than assumed:</p>
+        <ul>
+        <li>the one question that lands at rank 2–5 is <strong>already
+        answered correctly</strong> — Mode A, citing the expected
+        protocol. Re-ordering its sources would change no answer.</li>
+        <li>the one question that is answered <strong>wrongly</strong>,
+        <code>G13</code>, is at rank 1 already. A reranker reorders
+        candidates; it cannot lift a similarity through the Mode A/B
+        threshold, so it cannot fix that one either.</li>
+        </ul>
+        <p>So <strong>no question on this set is answered wrongly
+        because of ordering</strong>, which is the claim the decision
+        actually needs.</p>
+        <h3 id="decision-the-reranker-leaves-v1.3">Decision — the
+        reranker leaves v1.3</h3>
+        <p><strong>Carlos’s decision, 2026-08-19: Qwen3-VL-Reranker-8B
+        is dropped from v1.3.0.</strong> v1.3 becomes measurement (#61,
+        #62) and hybrid search. The evidence is the corrected statement
+        above: a reranker would be a second model, a second latency
+        budget and a second provider dependency, bought to fix a failure
+        mode this corpus does not currently exhibit.</p>
+        <p><strong>It returns to the roadmap when the measurement says
+        so</strong>, and the condition is written down here so that the
+        decision is re-openable on evidence rather than on taste:</p>
+        <ul>
+        <li>questions appear that are answered <strong>wrongly</strong>
+        while the right protocol sits at rank 2–5 — that is,
+        <code>recall@5</code> meaningfully above <code>recall@1</code>
+        <strong>with wrong answers attached to the gap</strong>; or</li>
+        <li>the corpus grows enough that top-k truncation starts hiding
+        correct protocols, which the same harness measures by raising
+        <code>top-k</code> and watching recall move.</li>
+        </ul>
+        <p>Neither is true at 165 protocols. Re-read this note before
+        the reranker is picked up again.</p>
       </article>
     </main>
 
@@ -659,6 +813,27 @@ ADR-008-retrieval-measurement · maintenance-assistant Docs</title>
       <li><a href="#what-this-measurement-found-that-nothing-else-could"
       id="toc-what-this-measurement-found-that-nothing-else-could">What
       this measurement found, that nothing else could</a></li>
+      <li><a
+      href="#revision-2026-08-19-pr-62-the-defect-closed-and-what-it-changed"
+      id="toc-revision-2026-08-19-pr-62-the-defect-closed-and-what-it-changed">Revision
+      2026-08-19 (PR #62) — the defect closed, and what it changed</a>
+      <ul>
+      <li><a href="#the-lesson-worth-keeping"
+      id="toc-the-lesson-worth-keeping">The lesson worth
+      keeping</a></li>
+      <li><a
+      href="#the-baseline-after-the-repair-the-first-real-use-of-it-as-a-reference"
+      id="toc-the-baseline-after-the-repair-the-first-real-use-of-it-as-a-reference">The
+      baseline after the repair — the first real use of it as a
+      reference</a></li>
+      <li><a
+      href="#a-correction-to-this-adrs-own-reading-of-the-evidence"
+      id="toc-a-correction-to-this-adrs-own-reading-of-the-evidence">A
+      correction to this ADR’s own reading of the evidence</a></li>
+      <li><a href="#decision-the-reranker-leaves-v1.3"
+      id="toc-decision-the-reranker-leaves-v1.3">Decision — the reranker
+      leaves v1.3</a></li>
+      </ul></li>
       </ul></li>
       </ul>
     </nav>

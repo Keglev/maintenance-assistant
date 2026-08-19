@@ -530,6 +530,60 @@ rather than given one afterwards.
    settle. Fixing it inside the baseline PR would have destroyed the evidence
    and changed what the baseline was measured against.
 
+   PROGRESS 2026-08-19 — v1.3.0 PR 2 of 3 IS OPEN (fix/embedding-provenance),
+   THE DETECTOR AND THE REPAIR. CARLOS CHECKED PRODUCTION: it holds 150
+   protocols, so the 15 v1.2 added NEVER REACHED IT — v1.2 shipped as code
+   and not as data. No corrupt vectors in production because there is nothing
+   there to be wrong; the repair was local. The bigger consequence is that
+   PRODUCTION HAS NO UNAPPROVED PROTOCOL AT ALL, so the v1.2 trust chain
+   cannot be demonstrated by clicking. docs/runbooks/seed-v12-protocols.md is
+   the procedure, ordered around the #52/#53 race (both runners are
+   ApplicationRunners and NEITHER DECLARES AN ORDER, so seeding and indexing
+   are two separate startups with a verification between them). A PROPOSAL
+   UNTIL CARLOS RUNS IT — no robot touched production.
+   THE DETECTOR: re-embed a chunk's own stored text and compare with the
+   stored vector — 0.9999 for the configured model, <=0.04 for a foreign one,
+   so there is nothing to tune. ONE implementation, two front doors: an ops
+   ApplicationRunner behind maintenance.ops.verify-embeddings (off in every
+   deployment, the bean does not exist unless set, exits 0 clean / 1 foreign
+   so a scrollback cannot be misread) and the key-gated baseline IT. NOT an
+   endpoint: a permanent public surface that spends provider money, needs a
+   role rule and a rate limit, for a check run twice a year.
+   THE STUB NAMES ITSELF NOW. It answered with whatever model was asked for,
+   so its response was indistinguishable from the provider's in every field;
+   it returns e2e-provider-stub-not-a-real-model, and the embedding client
+   warns once when the model that answered is not the model requested — which
+   also covers ADR-002's *-migration aliases, an unrelated trap of the same
+   shape. THE LESSON: A VECTOR'S SHAPE SAYS NOTHING ABOUT ITS PROVENANCE.
+   REPAIR, measured: 15 protocols set back to RECEIVED and re-indexed through
+   the EXISTING backlog path (delete-then-write, no second mechanism
+   invented); detector 182 chunks / 15 foreign before, 182 / 0 after.
+   THE BASELINE'S FIRST REAL USE, AND NO RETRIEVAL CODE CHANGED BETWEEN THE
+   TWO COLUMNS: recall@1 0.82 -> 0.94, recall@5 0.82 -> 1.00, MRR 0.8235 ->
+   0.9529, fully correct 15/19 -> 18/19, v12-seed 0/3 -> 2/3 at rank 1.
+   RERANKER DROPPED FROM v1.3 (Carlos, 2026-08-19) — AND THE EVIDENCE FOR IT
+   HAD TO BE CORRECTED: #61's "recall@1 == recall@5, nothing lands at rank
+   2-5" was measured on the CORRUPT index and is now false, G18 sits at rank
+   5. The decision holds on the claim it actually needs: the one question at
+   rank 2-5 is ALREADY ANSWERED CORRECTLY, and the one wrong answer (G13) is
+   at rank 1 already, so no question is answered wrongly because of ordering
+   and a reranker cannot lift a similarity through the Mode A/B threshold.
+   The condition for its return is written into ADR-008.
+   FOUND WHILE WRITING THE DOCS, REPORTED AND NOT FIXED: the site build's
+   Lua filter rewrites EVERY link ending in .md to .html, including ABSOLUTE
+   GitHub URLs. Two such links are already live and 404 for a reader —
+   spike/adr-002/RESULTS.html and spike/spring-ai-boot4/RESULTS.html, from
+   ADR-002 and arc42 §9. lychee cannot catch them: offline = true skips
+   external URLs, so the build is green while the published page is broken.
+   The fix is one condition in the filter (leave a target alone when it
+   starts with a scheme) and belongs in its own docs PR with a re-render;
+   this PR only avoided ADDING a third instance, by linking the runbooks
+   DIRECTORY instead of the file.
+   NEXT IS HYBRID SEARCH, and its target is precise: LIFT THE SCORE of
+   exact-term matches that already rank first. G13 (KOM-04) is rank 1 at
+   0.4288 and suppressed to Mode B — the reader is told nothing while the
+   right protocol sits on top of the list.
+
 3. v1.3.0 — RETRIEVAL QUALITY
    - HYBRID KEYWORD + SEMANTIC SEARCH (deferred 2026-08-10; the
      interim answer is the search help panel).

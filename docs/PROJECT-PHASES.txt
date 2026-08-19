@@ -584,6 +584,56 @@ rather than given one afterwards.
    0.4288 and suppressed to Mode B — the reader is told nothing while the
    right protocol sits on top of the list.
 
+   PROGRESS 2026-08-19 — THE RUNBOOK WAS EXECUTED AGAINST PRODUCTION,
+   AND THE RULE THAT SAYS IT SHOULD NOT HAVE BEEN STILL STANDS.
+   "Robots never touch production" was OVERRIDDEN ONCE, on Carlos's
+   explicit instruction, to run docs/runbooks/seed-v12-protocols.md. The
+   override was for that runbook and that occasion only. THE RULE IS
+   UNCHANGED for everything else: robots never merge, never tag, never
+   deploy, and Carlos still does every browser click that decides
+   anything. Recorded here because an exception that is not written down
+   becomes a precedent by accident.
+   THE OUTCOME WAS CLEAN. Production went 150 -> 165 protocols, 166 ->
+   181 chunks, 0 -> 15 UNAPPROVED, 0 FAILED; the provenance scan reported
+   181 chunks checked and 0 foreign — the detector's first run against
+   production, and it says the whole live index including the 150
+   originals is in the configured model's space. Measured cost of the
+   15: 2,322 prompt tokens, EUR 0.000046. The approve queue is real now
+   and the v1.2 trust chain can finally be demonstrated by clicking:
+   the answer carries "2 der Quellen sind noch nicht freigegeben" and the
+   source cards are badged, on production data, for the first time. The
+   E-47 demo was re-checked afterwards and is intact — the 150 were not
+   disturbed, proven three ways (the loader logged "150 already present",
+   chunks rose by exactly 15, the provenance scan covered all 181).
+   FOUR DEFECTS IN THE RUNBOOK, FOUND ONLY BY RUNNING IT, all corrected
+   in docs/runbook-corrections:
+     (1) NOT ONE compose command carried --env-file .env.prod. Compose
+         auto-loads only a file named .env, so as written the first
+         "up -d --force-recreate backend" would have recreated the
+         backend with a BLANK DATABASE PASSWORD, blank hostnames and no
+         provider key. An outage, in step 2, in a document reviewed and
+         merged. CI had always done it correctly, which is what made the
+         omission invisible to a reader who knew the deploy worked.
+     (2) The two flags did not EXIST in .env.prod; the runbook described
+         editing them. sed -i on an absent line exits 0 and changes
+         nothing — the OPS RULE 3 silent-no-op wearing a new costume.
+     (3) The cost table said one provider call; it is FIFTEEN. The
+         indexer embeds PER PROTOCOL and the batch size of 32 applies
+         within one protocol's chunk list, never across protocols. The
+         token estimate was within 3%, so the number that is billed was
+         right and the number that explains it was wrong.
+     (4) The provenance and browser checks ran BEFORE the flags were
+         turned off, so they verified an intermediate state and the ops
+         container inherited an armed backlog flag.
+   THE LESSON, and it is the one worth keeping: THE RUNBOOK'S OWN
+   PRECONDITIONS STEP PRINTED THE WARNINGS THAT PREVENTED THE OUTAGE —
+   a wall of "variable is not set" from a command whose only job was to
+   report the deployed image. Nothing told the operator to read them.
+   READING THE WARNINGS IS NOW A WRITTEN STEP, at the top of the
+   document, with the exact text to stop on. A runbook that produces
+   diagnostic noise must say which noise is a stop signal; otherwise it
+   is relying on the operator being suspicious that day.
+
    PROGRESS 2026-08-19 — (fix/docs-absolute-links) TWO PUBLISHED LINKS WERE
    404ing AND NO CHECK COULD SEE IT. The site build's Lua filter rewrote
    .md -> .html in EVERY link target, absolute URLs included, so ADR-002's

@@ -30,11 +30,28 @@ SCRIPTS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # ---------------------------------------------------------------------------
 # Lua filter — owned here to avoid duplication across sibling scripts.
 # Converts .md links to .html and wraps mermaid blocks in a div for the browser.
+#
+# THE RULE: relative links are the filter's business, absolute links are not.
+# A source page becomes a page on the site, so a link to a sibling .md has to
+# follow it to .html. A link to github.com points at a file in the repository,
+# which is not published and never becomes .html — rewriting it produces a URL
+# GitHub does not serve. Two such links were live and 404ing before this rule
+# existed; see PROJECT-PHASES 2026-08-19.
 # ---------------------------------------------------------------------------
 write_lua_filter() {
   mkdir -p "$(dirname "$LUA_FILTER")"
   cat > "$LUA_FILTER" << 'LUA'
+-- Anything carrying a scheme (http:, https:, mailto:, …) or protocol-relative
+-- (//host/…) belongs to whoever it points at, and leaves this filter untouched.
+local function is_absolute(target)
+  return target:match("^%a[%w+.%-]*:") ~= nil
+      or target:match("^//") ~= nil
+end
+
 function Link(el)
+  if is_absolute(el.target) then
+    return el
+  end
   el.target = el.target:gsub("%.md#", ".html#")
   el.target = el.target:gsub("%.md$", ".html")
   return el
@@ -121,6 +138,38 @@ copy_report() {
   fi
 }
 
+# ---------------------------------------------------------------------------
+# The guard for the defect class "build green, published link dead".
+#
+# lychee cannot see this one: `offline = true` skips external URLs, so a link to
+# github.com is never fetched and a rewritten one never fails a check. The build
+# stays green while the page 404s for a reader — which is how two of them
+# survived on the published site.
+#
+# It looks for the exact signature rather than for broken links in general: an
+# absolute github.com URL ending in .html in the BUILT output. This repository
+# publishes no .html to GitHub, so every match is the filter having rewritten a
+# link that was .md in the source. Cheap (one grep over 41 files), needs no
+# network, and runs in both workflows because both build through this script.
+#
+# If a genuine link to a .html file on GitHub is ever needed, this will refuse
+# it — and that is the moment to add the exception deliberately, here.
+# ---------------------------------------------------------------------------
+verify_absolute_links_survived() {
+  local offenders
+  offenders="$(grep -rhoE 'https?://[^"'"'"' ]*github\.com/[^"'"'"' ]+\.html' "$OUTPUT_DIR" \
+    | sort -u || true)"
+
+  if [ -n "$offenders" ]; then
+    echo ""
+    echo "✗ absolute GitHub links were rewritten to .html — the Lua filter must leave" >&2
+    echo "  absolute URLs alone. GitHub does not serve these paths:" >&2
+    printf '    %s\n' $offenders >&2
+    return 1
+  fi
+  echo "✓ absolute links intact — no github.com URL was rewritten to .html"
+}
+
 echo "==> [build-docs] Starting (PROJECT_DIR=$PROJECT_DIR)"
 mkdir -p "$OUTPUT_DIR"
 
@@ -134,6 +183,7 @@ bash "$SCRIPTS_DIR/build-openapi-docs.sh"  "$PROJECT_DIR"
 copy_report backend-coverage  backend/coverage
 copy_report frontend-coverage frontend/coverage
 copy_report frontend-api-docs frontend/api-docs
+verify_absolute_links_survived
 
 echo ""
 echo "✓ Docs build complete — $(find "$OUTPUT_DIR" -type f | wc -l) files, $(du -sh "$OUTPUT_DIR" | cut -f1)"

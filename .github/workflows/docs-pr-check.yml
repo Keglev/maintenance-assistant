@@ -63,8 +63,28 @@ jobs:
       # Pandoc is the only toolchain the site build needs that the runner lacks. Redocly is not
       # installed: a PR has no OpenAPI artifact, so build-openapi-docs.sh skips, and lychee excludes
       # the API path for exactly that reason.
+      #
+      # FROM PANDOC'S OWN RELEASE, NOT FROM apt. On 2026-08-19 a run of this job sat ~14 minutes
+      # inside `apt-get install pandoc` waiting on azure.archive.ubuntu.com and had to be cancelled:
+      # every docs pull request and every docs deploy was gambling on Ubuntu mirror health for a
+      # tool whose version nobody had chosen. One .deb from the host this workflow already talks to
+      # removes the mirror from the path entirely, and the timeouts turn a bad day into a fast,
+      # loud failure instead of a silent stall.
+      #
+      # PIN — BUMP THIS DELIBERATELY. 3.1.3 is the version the published site has been built with
+      # (it is what Ubuntu 24.04's archive served), and the rendered output is byte-identical
+      # between apt's build and this one, verified page by page in a runner-equivalent container.
+      # A different pandoc may render differently, so changing this number is a content change and
+      # deserves its own pull request with the output diffed.
       - name: Install Pandoc
-        run: sudo apt-get update -qq && sudo apt-get install -y pandoc
+        env:
+          PANDOC_VERSION: '3.1.3'
+        run: |
+          curl -fsSL --connect-timeout 15 --max-time 180 --retry 1 --retry-delay 5 \
+            -o /tmp/pandoc.deb \
+            "https://github.com/jgm/pandoc/releases/download/${PANDOC_VERSION}/pandoc-${PANDOC_VERSION}-1-amd64.deb"
+          sudo dpkg -i /tmp/pandoc.deb
+          pandoc --version | head -1
 
       # The same script docs.yml publishes with, so this gate cannot pass on a site that the
       # publishing build would fail to produce. Keep the Node version in step with that workflow.

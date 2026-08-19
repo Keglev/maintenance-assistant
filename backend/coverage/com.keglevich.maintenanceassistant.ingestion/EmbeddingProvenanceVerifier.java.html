@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>EmbeddingProvenanceVerifier.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">maintenance-assistant</a> &gt; <a href="index.source.html" class="el_package">com.keglevich.maintenanceassistant.ingestion</a> &gt; <span class="el_source">EmbeddingProvenanceVerifier.java</span></div><h1>EmbeddingProvenanceVerifier.java</h1><pre class="source lang-java linenums">package com.keglevich.maintenanceassistant.ingestion;
+
+import org.springframework.jdbc.core.simple.JdbcClient;
+import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.UUID;
+
+/**
+ * Does the stored index belong to the embedding model that answers questions against it?
+ *
+ * &lt;p&gt;&lt;b&gt;The defect this exists for.&lt;/b&gt; A vector's shape says nothing about its provenance. A row
+ * written by a different embedding model is the right width, unit length, well-formed, and carries
+ * {@code status = 'INDEXED'} — and it is orthogonal to every question, so the protocol simply can
+ * never be retrieved. No count, no health endpoint, no functional test and no integration test can
+ * see it. The 15 protocols v1.2 added sat in the development database in exactly that state until
+ * the retrieval baseline (ADR-008) measured 0/3 on them and asked why.
+ *
+ * &lt;p&gt;&lt;b&gt;The check is direct rather than statistical.&lt;/b&gt; Re-embed a chunk's own stored text with the
+ * model configured right now and compare with the vector stored beside it. The same model over the
+ * same text agrees at ~0.9999; a foreign vector scores ≤0.04. There is nothing in between, so this
+ * needs no tuning and no threshold argument — {@link #AGREEMENT_FLOOR} is set at 0.95 only to leave
+ * room for a provider that is not bit-deterministic across calls.
+ *
+ * &lt;p&gt;&lt;b&gt;It costs provider calls, so nothing calls it per request.&lt;/b&gt; It has exactly two front
+ * doors, and deliberately one implementation behind them: {@code EmbeddingProvenanceRunner} for an
+ * operator with a database, and the key-gated {@code RetrievalBaselineIT} for a developer with a
+ * corpus. Two instruments for one number is how two numbers start disagreeing.
+ */
+@Service
+public class EmbeddingProvenanceVerifier {
+
+    /**
+     * Below this, a stored vector did not come from the configured model.
+     *
+     * &lt;p&gt;Not a tuned threshold. The two populations sit at ~0.9999 and ~0.02, so any value in the
+     * wide middle gives the same answer; this one is close to 1.0 because the question being asked
+     * is &quot;is this the same model&quot;, not &quot;is this similar&quot;.
+     */
+    public static final double AGREEMENT_FLOOR = 0.95;
+
+    private final JdbcClient jdbc;
+    private final EmbeddingClient embeddingClient;
+
+<span class="fc" id="L48">    EmbeddingProvenanceVerifier(JdbcClient jdbc, EmbeddingClient embeddingClient) {</span>
+<span class="fc" id="L49">        this.jdbc = jdbc;</span>
+<span class="fc" id="L50">        this.embeddingClient = embeddingClient;</span>
+<span class="fc" id="L51">    }</span>
+
+    /**
+     * Verifies a sample of the index.
+     *
+     * @param sampleSize how many chunks to check; &lt;b&gt;zero or less means every chunk&lt;/b&gt;. A full scan
+     *                   of the present corpus is 182 chunks in 6 batched provider calls, so &quot;all&quot; is
+     *                   affordable today and the sample exists for the corpus this becomes later
+     * @return the report, with every probe in it — the passing ones too, because a report that lists
+     *         only failures cannot be told apart from a report that failed to look
+     */
+    public Report verify(int sampleSize) {
+<span class="fc" id="L63">        List&lt;StoredChunk&gt; chunks = sample(sampleSize);</span>
+<span class="pc bpc" id="L64" title="1 of 2 branches missed.">        if (chunks.isEmpty()) {</span>
+<span class="nc" id="L65">            return new Report(List.of());</span>
+        }
+
+        // One call for the whole sample: EmbeddingClient batches internally and the provider bills
+        // per request, so probing chunk by chunk would turn a 182-chunk scan into 182 round trips.
+        // Order is preserved, which is what lets the results be paired back up by index.
+<span class="fc" id="L71">        List&lt;float[]&gt; fresh = embeddingClient.embed(chunks.stream().map(StoredChunk::content).toList())</span>
+<span class="fc" id="L72">                .vectors();</span>
+
+<span class="fc" id="L74">        List&lt;Probe&gt; probes = new ArrayList&lt;&gt;(chunks.size());</span>
+<span class="fc bfc" id="L75" title="All 2 branches covered.">        for (int i = 0; i &lt; chunks.size(); i++) {</span>
+<span class="fc" id="L76">            StoredChunk chunk = chunks.get(i);</span>
+<span class="fc" id="L77">            probes.add(new Probe(chunk.protocolId(), chunk.title(),</span>
+<span class="fc" id="L78">                    agreementWithStored(chunk.id(), fresh.get(i))));</span>
+        }
+<span class="fc" id="L80">        return new Report(probes);</span>
+    }
+
+    /**
+     * A time-stratified sample: the newest, the oldest, and an even spread between them.
+     *
+     * &lt;p&gt;Stratified by {@code created_at} because &lt;b&gt;this defect travels in batches&lt;/b&gt; — one run of
+     * one wrongly configured provider writes many rows at once, so the population that is wrong is
+     * almost always contiguous in time. A uniformly random sample of 24 out of 182 would have had
+     * roughly even odds of missing a 15-row batch entirely; taking the newest rows first cannot miss
+     * the most recent one, which is the batch a deployment or a seeding run just wrote.
+     *
+     * &lt;p&gt;The spread is by even spacing rather than {@code random()} so that two runs against an
+     * unchanged database probe the same rows and can be compared.
+     */
+    private List&lt;StoredChunk&gt; sample(int sampleSize) {
+<span class="fc" id="L96">        List&lt;StoredChunk&gt; all = jdbc.sql(&quot;&quot;&quot;</span>
+                        SELECT c.id, c.protocol_id, c.content, p.title
+                        FROM chunk c
+                        JOIN protocol p ON p.id = c.protocol_id
+                        WHERE p.deleted_at IS NULL AND c.embedding IS NOT NULL
+                        ORDER BY p.created_at DESC, c.id
+                        &quot;&quot;&quot;)
+<span class="fc" id="L103">                .query((rs, rowNum) -&gt; new StoredChunk(rs.getObject(&quot;id&quot;, UUID.class),</span>
+<span class="fc" id="L104">                        rs.getObject(&quot;protocol_id&quot;, UUID.class), rs.getString(&quot;content&quot;),</span>
+<span class="fc" id="L105">                        rs.getString(&quot;title&quot;)))</span>
+<span class="fc" id="L106">                .list();</span>
+
+<span class="pc bpc" id="L108" title="3 of 4 branches missed.">        if (sampleSize &lt;= 0 || sampleSize &gt;= all.size()) {</span>
+<span class="fc" id="L109">            return all;</span>
+        }
+
+        // A LinkedHashSet because the three strata overlap on a small table, and a chunk probed
+        // twice would be paid for twice and counted twice.
+<span class="nc" id="L114">        LinkedHashSet&lt;StoredChunk&gt; chosen = new LinkedHashSet&lt;&gt;();</span>
+<span class="nc" id="L115">        int third = Math.max(1, sampleSize / 3);</span>
+<span class="nc bnc" id="L116" title="All 2 branches missed.">        for (int i = 0; i &lt; third; i++) {</span>
+<span class="nc" id="L117">            chosen.add(all.get(i));</span>
+<span class="nc" id="L118">            chosen.add(all.get(all.size() - 1 - i));</span>
+        }
+<span class="nc" id="L120">        int remaining = sampleSize - chosen.size();</span>
+<span class="nc bnc" id="L121" title="All 2 branches missed.">        if (remaining &gt; 0) {</span>
+<span class="nc" id="L122">            int stride = Math.max(1, all.size() / (remaining + 1));</span>
+<span class="nc bnc" id="L123" title="All 4 branches missed.">            for (int i = stride; i &lt; all.size() &amp;&amp; chosen.size() &lt; sampleSize; i += stride) {</span>
+<span class="nc" id="L124">                chosen.add(all.get(i));</span>
+            }
+        }
+<span class="nc" id="L127">        return List.copyOf(chosen);</span>
+    }
+
+    private double agreementWithStored(UUID chunkId, float[] fresh) {
+<span class="fc" id="L131">        StringBuilder literal = new StringBuilder(fresh.length * 12 + 2).append('[');</span>
+<span class="fc bfc" id="L132" title="All 2 branches covered.">        for (int i = 0; i &lt; fresh.length; i++) {</span>
+<span class="fc bfc" id="L133" title="All 2 branches covered.">            if (i &gt; 0) {</span>
+<span class="fc" id="L134">                literal.append(',');</span>
+            }
+<span class="fc" id="L136">            literal.append(fresh[i]);</span>
+        }
+        // CAST(... AS vector) rather than ::vector — the named-parameter parser reads `::` as a
+        // parameter marker, the trap ProtocolIndexWriter and ChunkRetriever both carry a note about.
+<span class="fc" id="L140">        return jdbc.sql(&quot;SELECT 1 - (embedding &lt;=&gt; CAST(:v AS vector)) FROM chunk WHERE id = :id&quot;)</span>
+<span class="fc" id="L141">                .param(&quot;v&quot;, literal.append(']').toString())</span>
+<span class="fc" id="L142">                .param(&quot;id&quot;, chunkId)</span>
+<span class="fc" id="L143">                .query(Double.class)</span>
+<span class="fc" id="L144">                .single();</span>
+    }
+
+<span class="fc" id="L147">    private record StoredChunk(UUID id, UUID protocolId, String content, String title) {</span>
+    }
+
+    /** One chunk's agreement between its stored vector and a fresh embedding of its own text. */
+<span class="fc" id="L151">    public record Probe(UUID protocolId, String title, double agreement) {</span>
+
+        public boolean foreign() {
+<span class="fc bfc" id="L154" title="All 2 branches covered.">            return agreement &lt; AGREEMENT_FLOOR;</span>
+        }
+    }
+
+    /** What the scan found. */
+<span class="fc" id="L159">    public record Report(List&lt;Probe&gt; probes) {</span>
+
+        public List&lt;Probe&gt; foreign() {
+<span class="fc" id="L162">            return probes.stream().filter(Probe::foreign).toList();</span>
+        }
+
+        public boolean clean() {
+<span class="fc" id="L166">            return foreign().isEmpty();</span>
+        }
+
+        /** Operator-readable, and the same text in the runner's output and a test's failure. */
+        public String describe() {
+<span class="fc" id="L171">            StringBuilder out = new StringBuilder(String.format(Locale.ROOT,</span>
+                    &quot;embedding provenance: %d chunks checked, %d foreign%n&quot;,
+<span class="fc" id="L173">                    probes.size(), foreign().size()));</span>
+<span class="fc bfc" id="L174" title="All 2 branches covered.">            for (Probe probe : probes) {</span>
+<span class="fc" id="L175">                out.append(String.format(Locale.ROOT, &quot;  %s  %.4f  %s%n&quot;,</span>
+<span class="fc bfc" id="L176" title="All 2 branches covered.">                        probe.foreign() ? &quot;FOREIGN&quot; : &quot;ok     &quot;, probe.agreement(), probe.title()));</span>
+<span class="fc" id="L177">            }</span>
+<span class="fc bfc" id="L178" title="All 2 branches covered.">            if (!clean()) {</span>
+<span class="fc" id="L179">                out.append(&quot;&quot;&quot;</span>
+
+                        These chunks were written by a DIFFERENT embedding model than the one
+                        configured now. They are orthogonal to every question, so their protocols
+                        cannot be retrieved at all — the rows look healthy and the search is blind
+                        to them. Re-index the affected protocols through the configured provider.
+                        &quot;&quot;&quot;);
+            }
+<span class="fc" id="L187">            return out.toString();</span>
+        }
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

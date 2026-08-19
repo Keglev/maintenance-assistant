@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>EmbeddingProvenanceRunner.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">maintenance-assistant</a> &gt; <a href="index.source.html" class="el_package">com.keglevich.maintenanceassistant.ingestion</a> &gt; <span class="el_source">EmbeddingProvenanceRunner.java</span></div><h1>EmbeddingProvenanceRunner.java</h1><pre class="source lang-java linenums">package com.keglevich.maintenanceassistant.ingestion;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.boot.ApplicationArguments;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.ApplicationRunner;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.context.ApplicationContext;
+import org.springframework.core.annotation.Order;
+import org.springframework.stereotype.Component;
+
+/**
+ * The operator's front door to {@link EmbeddingProvenanceVerifier} — a one-shot check, off by
+ * default.
+ *
+ * &lt;p&gt;&lt;b&gt;Why a runner and not an endpoint.&lt;/b&gt; An HTTP endpoint would be a permanent surface on a
+ * public deployment that spends provider money when it is called, needs a role rule, a rate limit
+ * and a controller test, and would be reachable by anyone holding an administrator token — all of
+ * that for a diagnostic run perhaps twice a year. A runner is reached only by someone who can
+ * already start a container on the host, which is the same person the runbook is written for, and it
+ * adds nothing to the running application: the bean does not exist unless the property is set.
+ *
+ * &lt;pre&gt;
+ *   docker compose -f docker-compose.prod.yml run --rm \
+ *     -e MAINTENANCE_OPS_VERIFY_EMBEDDINGS=true backend
+ * &lt;/pre&gt;
+ *
+ * &lt;p&gt;It exits non-zero when the index is not the configured model's, so it can be read by a script
+ * and cannot be mistaken for success in a scrollback. See {@code docs/runbooks/} for the procedure
+ * this belongs to.
+ *
+ * &lt;p&gt;&lt;b&gt;It never runs in the serving application.&lt;/b&gt; The property is absent from every deployed
+ * configuration, and this runs at startup rather than per request, so a normal restart does no
+ * provider work.
+ */
+@Component
+@ConditionalOnProperty(prefix = &quot;maintenance.ops&quot;, name = &quot;verify-embeddings&quot;, havingValue = &quot;true&quot;)
+// After the seed and backlog runners: run in the same startup as a seeding operation and the useful
+// answer is about what they just wrote, not about what was there before them.
+@Order(100)
+class EmbeddingProvenanceRunner implements ApplicationRunner {
+
+<span class="nc" id="L45">    private static final Logger log = LoggerFactory.getLogger(EmbeddingProvenanceRunner.class);</span>
+
+    private final EmbeddingProvenanceVerifier verifier;
+    private final ApplicationContext context;
+    private final int sampleSize;
+
+    EmbeddingProvenanceRunner(
+            EmbeddingProvenanceVerifier verifier,
+            ApplicationContext context,
+<span class="nc" id="L54">            @Value(&quot;${maintenance.ops.verify-embeddings-sample:0}&quot;) int sampleSize) {</span>
+<span class="nc" id="L55">        this.verifier = verifier;</span>
+<span class="nc" id="L56">        this.context = context;</span>
+<span class="nc" id="L57">        this.sampleSize = sampleSize;</span>
+<span class="nc" id="L58">    }</span>
+
+    @Override
+    public void run(ApplicationArguments args) {
+<span class="nc" id="L62">        EmbeddingProvenanceVerifier.Report report = verifier.verify(sampleSize);</span>
+        // System.out rather than the logger: this is a report a person asked for and reads, not an
+        // event in the application's life, and it must survive whatever the log level is set to.
+<span class="nc" id="L65">        System.out.println(report.describe());</span>
+
+<span class="nc bnc" id="L67" title="All 2 branches missed.">        if (report.clean()) {</span>
+<span class="nc" id="L68">            log.info(&quot;Embedding provenance: {} chunks checked, all written by the configured model&quot;,</span>
+<span class="nc" id="L69">                    report.probes().size());</span>
+        } else {
+<span class="nc" id="L71">            log.error(&quot;Embedding provenance: {} of {} chunks were written by a different embedding &quot;</span>
+<span class="nc" id="L72">                    + &quot;model&quot;, report.foreign().size(), report.probes().size());</span>
+        }
+
+        // STOP, in both outcomes. This is a command, not a server: the operator runs it as
+        // `docker compose run --rm` and needs the container to end and to carry a status. The first
+        // draft only ended on failure — because an exception stops the context — so a HEALTHY index
+        // left the container running forever, which is the one outcome nobody watches. A diagnostic
+        // that hangs when it has good news is a diagnostic people stop running.
+        //
+        // The exit code is the answer: 0 clean, 1 foreign vectors found, so the runbook's step can
+        // be read by a script and cannot be mistaken for success in a scrollback.
+<span class="nc bnc" id="L83" title="All 2 branches missed.">        int code = report.clean() ? 0 : 1;</span>
+<span class="nc" id="L84">        System.exit(SpringApplication.exit(context, () -&gt; code));</span>
+<span class="nc" id="L85">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

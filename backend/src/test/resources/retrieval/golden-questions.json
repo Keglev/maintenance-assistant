@@ -1,0 +1,232 @@
+{
+  "_about": [
+    "THE GOLDEN QUESTION SET — data, not code, and NOT YET RATIFIED.",
+    "",
+    "Every entry carries ratified:false until Carlos rules on it. A set the robot both wrote and",
+    "graded measures nothing: the expectations below are a proposal about what the RIGHT answer is,",
+    "and that judgement is the one thing a measurement cannot supply for itself.",
+    "",
+    "It is data rather than a Java array for three reasons. It is reviewed by a person who should not",
+    "have to read Java to rule on a question; it is diffed question by question across PRs, the way",
+    "the protocol corpus is; and a metric computed from a fixture that lives inside the test that",
+    "reports it is a number with no independent existence.",
+    "",
+    "SCOPE NOTE, and it shapes every entry: retrieval is scoped to ONE MACHINE (ChunkRetriever",
+    "filters chunk.machine_id before ranking). There is no corpus-wide search, so a question without",
+    "a machine is not a question this system can be asked. Every entry names one.",
+    "",
+    "FIELDS",
+    "  id         stable, referenced by the results file and by later PRs",
+    "  question   the user's own words, as a shop-floor user would type them",
+    "  language   de | en — the language of the QUESTION, never of the expected protocol",
+    "  machineNo  the machine the question is asked on; retrieval is scoped to it",
+    "  expected   protocol ids that are a CORRECT citation. Empty for mode-b entries.",
+    "  case       plain | e47-set | cross-lingual | exact-term | mode-b | v12-seed",
+    "  note       one line: why that protocol is the right answer",
+    "  ratified   false until Carlos rules"
+  ],
+  "corpus": "backend/src/main/resources/corpus/protocols.ndjson — 165 protocols",
+  "questions": [
+    {
+      "id": "G01",
+      "question": "Unter der Presse steht jede Schicht wieder eine Öllache, wo kommt das her?",
+      "language": "de",
+      "machineNo": "PR-03",
+      "expected": ["0f9c5b02-0000-4000-8000-000000000004"],
+      "case": "plain",
+      "note": "Protocol 004 is exactly this fault: a hand-sized oil puddle returning every shift, from a worn rod seal.",
+      "ratified": false
+    },
+    {
+      "id": "G02",
+      "question": "Es kommt kein Kühlschmierstoff am Werkzeug an, die Pumpe läuft aber",
+      "language": "de",
+      "machineNo": "FR-01",
+      "expected": ["0f9c5b02-0000-4000-8000-000000000048"],
+      "case": "plain",
+      "note": "Protocol 048 carries the same symptom in substance — pump running, no coolant at the spindle, blocked rotary union.",
+      "ratified": false
+    },
+    {
+      "id": "G03",
+      "question": "Wasser in der Druckluft, an den Wartungseinheiten steht Kondensat",
+      "language": "de",
+      "machineNo": "KP-01",
+      "expected": ["0f9c5b02-0000-4000-8000-000000000094"],
+      "case": "plain",
+      "note": "Protocol 094 is the only water-in-the-air protocol on this compressor; the cause was a blocked condensate drain.",
+      "ratified": false
+    },
+    {
+      "id": "G04",
+      "question": "Produkte stauen sich am Einlauf und werden zerdrückt",
+      "language": "de",
+      "machineNo": "VP-01",
+      "expected": ["0f9c5b02-0000-4000-8000-000000000079"],
+      "case": "plain",
+      "note": "Protocol 079 (VP-11) is the infeed jam after a format change, with crushed packs named in the symptom.",
+      "ratified": false
+    },
+    {
+      "id": "G05",
+      "question": "Poren in fast jeder Naht, Oberfläche matt — Schutzgasproblem?",
+      "language": "de",
+      "machineNo": "RB-02",
+      "expected": ["0f9c5b02-0000-4000-8000-000000000061"],
+      "case": "plain",
+      "note": "Protocol 061 is porosity from too little shielding gas — flow at 8 instead of 14 l/min and a spattered nozzle.",
+      "ratified": false
+    },
+    {
+      "id": "G06",
+      "question": "One cavity is filling incompletely, the other seven are fine",
+      "language": "en",
+      "machineNo": "SP-05",
+      "expected": ["0f9c5b02-0000-4000-8000-000000000141"],
+      "case": "plain",
+      "note": "Protocol 141 is short shots on cavity 3 only, from a partly blocked hot runner nozzle. English question, English protocol.",
+      "ratified": false
+    },
+    {
+      "id": "G07",
+      "question": "Der Rauch zieht nicht ab, die Sicht in der Kabine ist schlecht",
+      "language": "de",
+      "machineNo": "LS-01",
+      "expected": ["0f9c5b02-0000-4000-8000-000000000130"],
+      "case": "plain",
+      "note": "Protocol 130 is weak extraction with smoke standing in the cabin; the filter change had been overrun.",
+      "ratified": false
+    },
+    {
+      "id": "G08",
+      "question": "Getriebe wird heiß und es liegt Öl auf dem Boden",
+      "language": "de",
+      "machineNo": "FB-04",
+      "expected": ["0f9c5b02-0000-4000-8000-000000000119"],
+      "case": "plain",
+      "note": "Protocol 119 is the hot, leaking drive gearbox. It is a sparse, messily written protocol, which is part of what makes it a fair test.",
+      "ratified": false
+    },
+    {
+      "id": "G09",
+      "question": "Presse baut keinen Druck auf, E-47 steht an — woran kann das liegen?",
+      "language": "de",
+      "machineNo": "PR-03",
+      "expected": [
+        "0f9c5b02-0000-4000-8000-000000000001",
+        "0f9c5b02-0000-4000-8000-000000000002",
+        "0f9c5b02-0000-4000-8000-000000000003",
+        "0f9c5b02-0000-4000-8000-000000000013"
+      ],
+      "case": "e47-set",
+      "note": "Four legitimate root causes behind one fault code. ALL FOUR are correct answers, so this measures whether the SET is retrieved, not which one ranks first — any ordering among them is acceptable.",
+      "ratified": false
+    },
+    {
+      "id": "G10",
+      "question": "Kompressor schaltet nach einer halben Stunde wegen zu hoher Temperatur ab",
+      "language": "de",
+      "machineNo": "KP-01",
+      "expected": ["0f9c5b02-0000-4000-8000-000000000095"],
+      "case": "cross-lingual",
+      "note": "German question, ENGLISH protocol (K-11 high-temperature shutdown, blocked ventilation grille). There is no translation step — bge-m3 shares one space for both languages, and that is the claim being measured.",
+      "ratified": false
+    },
+    {
+      "id": "G11",
+      "question": "The milling cutter broke twice at the same point in the program, it ran fine for months before",
+      "language": "en",
+      "machineNo": "FR-01",
+      "expected": ["0f9c5b02-0000-4000-8000-000000000044"],
+      "case": "cross-lingual",
+      "note": "English question, GERMAN protocol (044: tool breakage in roughing, material delivered at 240 HB instead of 180-200). The other direction of G10, which has never been measured.",
+      "ratified": false
+    },
+    {
+      "id": "G12",
+      "question": "SV0410",
+      "language": "de",
+      "machineNo": "FR-01",
+      "expected": [
+        "0f9c5b02-0000-4000-8000-000000000040",
+        "0f9c5b02-0000-4000-8000-000000000052"
+      ],
+      "case": "exact-term",
+      "note": "A bare alarm code, typed the way a technician reads it off the display. Two protocols carry it (cable break, then amplifier) and both are correct. EXPECTED TO BE WEAK at baseline: a code is a token, and a dense embedding of a five-character string carries little meaning. This is the case hybrid search exists to fix.",
+      "ratified": false
+    },
+    {
+      "id": "G13",
+      "question": "Was bedeutet KOM-04?",
+      "language": "de",
+      "machineNo": "PR-07",
+      "expected": ["0f9c5b02-0000-4000-8000-000000000023"],
+      "case": "exact-term",
+      "note": "A rare code appearing exactly once in the corpus (Profinet cable chafed through, press greyed out in the control room). The question carries almost no semantic content beyond the code itself.",
+      "ratified": false
+    },
+    {
+      "id": "G14",
+      "question": "Wurde am Band schon einmal eine gummierte Antriebstrommel 400 mm getauscht?",
+      "language": "de",
+      "machineNo": "FB-04",
+      "expected": ["0f9c5b02-0000-4000-8000-000000000108"],
+      "case": "exact-term",
+      "note": "A part rather than a fault: 'Antriebstrommel gummiert 400 mm' appears in the parts list of protocol 108 (FB-30 slip under load). Tests whether a part in parts_used is reachable at all.",
+      "ratified": false
+    },
+    {
+      "id": "G15",
+      "question": "Die Dosierung ist ungenau, die Füllmenge schwankt",
+      "language": "de",
+      "machineNo": "AB-02",
+      "expected": [],
+      "case": "mode-b",
+      "note": "THE DELIBERATE GAP. No protocol on AB-02 covers dosing accuracy. Correct behaviour is a labelled ungrounded answer; a citation here is WRONG however plausible the text reads. Measured at 0.502 in ADR-002 and carried here so the set owns its own Mode B case.",
+      "ratified": false
+    },
+    {
+      "id": "G16",
+      "question": "Wie wird die Anlage über den Betriebsurlaub eingelagert und wieder in Betrieb genommen?",
+      "language": "de",
+      "machineNo": "SP-05",
+      "expected": [],
+      "case": "mode-b",
+      "note": "The corpus contains faults and services, and no decommissioning or storage procedure for any machine. A second Mode B case, and one ADR-002 did not tune against.",
+      "ratified": false
+    },
+    {
+      "id": "G17",
+      "question": "Presse reagiert beim Einschalten überhaupt nicht, nichts leuchtet",
+      "language": "de",
+      "machineNo": "PR-03",
+      "expected": [
+        "0f9c5b03-0000-4000-8000-000000000001",
+        "0f9c5b03-0000-4000-8000-000000000015"
+      ],
+      "case": "v12-seed",
+      "note": "Two of the v1.2 easier-fault seeds answer this on PR-03: 'Maschine startet nicht, keine Reaktion beim Einschalten' and the deliberately messy 'presse aus, kein strom am pult'. Either is a correct citation. Nothing has measured those 15 protocols since they were added.",
+      "ratified": false
+    },
+    {
+      "id": "G18",
+      "question": "Band bleibt ohne Vorwarnung stehen",
+      "language": "de",
+      "machineNo": "FB-04",
+      "expected": ["0f9c5b03-0000-4000-8000-000000000013"],
+      "case": "v12-seed",
+      "note": "The second headline v1.2 seed, and it is ALSO cross-lingual: the question is German and 'Conveyor stops without warning' is English. Counted under v12-seed so the seed breakdown stays honest; the cross-lingual property is called out in the results.",
+      "ratified": false
+    },
+    {
+      "id": "G19",
+      "question": "Anlage bleibt einfach stehen, keine Meldung am Display",
+      "language": "de",
+      "machineNo": "VP-01",
+      "expected": ["0f9c5b03-0000-4000-8000-000000000002"],
+      "case": "v12-seed",
+      "note": "Third v1.2 seed ('Anlage bleibt ohne Meldung stehen'). VP-01 also carries the very sparse 'geht nicht an' (seed 011), a plausible second answer that is deliberately NOT listed — whether it should be is a question for the ratification.",
+      "ratified": false
+    }
+  ]
+}

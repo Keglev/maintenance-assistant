@@ -13,6 +13,7 @@ than an edit to history.
 | [ADR-005](ADR-005-spa-token-handling.md) | Keep the public-client SPA, harden it, and document the BFF | Accepted |
 | [ADR-006](ADR-006-insider-threat-and-protocol-moderation.md) | Answer the insider threat with traceability and moderation | Accepted |
 | [ADR-007](ADR-007-end-to-end-testing-strategy.md) | Test the rendered application in a browser | Accepted |
+| [ADR-008](ADR-008-retrieval-measurement.md) | Measure retrieval against a golden question set before changing it | Proposed |
 
 New records start from [ADR-TEMPLATE.md](ADR-TEMPLATE.md). Numbering is sequential and never
 reused. Planned: the Phase 5 extraction of the ingestion service and Kafka takes the next free

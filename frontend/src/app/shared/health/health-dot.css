@@ -1,9 +1,16 @@
+/* --t-sm -> --t-base, TRACKING .footer-links a RATHER THAN CHANGING INDEPENDENTLY.
+ *
+ * This label and the footer links are the same thing on the same line: --c-ink-muted chrome on a
+ * baseline-aligned row. They were both --t-sm; raising one and not the other would have put two
+ * type sizes on one baseline, which is a new defect rather than the fix for an old one. The DOT is
+ * untouched — its 0.6rem size, its ring, its three state colours and its polling are exactly as
+ * they were, and only the label it carries changes size. */
 .health {
   display: inline-flex;
   align-items: center;
   gap: var(--s-2);
   margin: 0;
-  font-size: var(--t-sm);
+  font-size: var(--t-base);
   color: var(--c-ink-muted);
 }
 

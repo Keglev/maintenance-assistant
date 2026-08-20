@@ -1,10 +1,21 @@
 {
   "_about": [
-    "THE GOLDEN QUESTION SET — data, not code, and NOT YET RATIFIED.",
+    "THE GOLDEN QUESTION SET — data, not code, and RATIFIED 2026-08-20 by Carlos.",
     "",
-    "Every entry carries ratified:false until Carlos rules on it. A set the robot both wrote and",
-    "graded measures nothing: the expectations below are a proposal about what the RIGHT answer is,",
-    "and that judgement is the one thing a measurement cannot supply for itself.",
+    "Until that date every entry carried ratified:false, because a set the robot both wrote and",
+    "graded measures nothing: the expectations below were a proposal about what the RIGHT answer is,",
+    "and that judgement is the one thing a measurement cannot supply for itself. It has now been",
+    "made. Every expectation here is the owner's, and the metrics computed against it are metrics",
+    "against a ruled set rather than against a draft.",
+    "",
+    "WHAT RATIFICATION DID NOT CHANGE: not one question, expectation or case label was altered. Five",
+    "entries were flagged as uncertain when the set was proposed (G09, G12, G14, G16, G19) and all",
+    "five were ruled to KEEP; their notes carry the reasoning, which is the part worth reading,",
+    "because it records why an expectation that looks arguable is right.",
+    "",
+    "TWO STANDING CONDITIONS travel with the ratification and are written in the entries themselves:",
+    "  G16 flips to a Mode A case the day Einlagerung protocols are seeded — same PR, not later.",
+    "  G19 stays single-answer on purpose; see its note before 'fixing' it.",
     "",
     "It is data rather than a Java array for three reasons. It is reviewed by a person who should not",
     "have to read Java to rule on a question; it is diffed question by question across PRs, the way",
@@ -22,9 +33,12 @@
     "  machineNo  the machine the question is asked on; retrieval is scoped to it",
     "  expected   protocol ids that are a CORRECT citation. Empty for mode-b entries.",
     "  case       plain | e47-set | cross-lingual | exact-term | mode-b | v12-seed",
-    "  note       one line: why that protocol is the right answer",
-    "  ratified   false until Carlos rules"
+    "  note       why that protocol is the right answer; on the five flagged entries, also the ruling",
+    "  ratified   true — every entry; the owner and the date are top-level fields below, recorded",
+    "             once rather than nineteen times because one act ratified the whole set"
   ],
+  "ratifiedBy": "Carlos",
+  "ratifiedOn": "2026-08-20",
   "corpus": "backend/src/main/resources/corpus/protocols.ndjson — 165 protocols",
   "questions": [
     {
@@ -35,7 +49,7 @@
       "expected": ["0f9c5b02-0000-4000-8000-000000000004"],
       "case": "plain",
       "note": "Protocol 004 is exactly this fault: a hand-sized oil puddle returning every shift, from a worn rod seal.",
-      "ratified": false
+      "ratified": true
     },
     {
       "id": "G02",
@@ -45,7 +59,7 @@
       "expected": ["0f9c5b02-0000-4000-8000-000000000048"],
       "case": "plain",
       "note": "Protocol 048 carries the same symptom in substance — pump running, no coolant at the spindle, blocked rotary union.",
-      "ratified": false
+      "ratified": true
     },
     {
       "id": "G03",
@@ -55,7 +69,7 @@
       "expected": ["0f9c5b02-0000-4000-8000-000000000094"],
       "case": "plain",
       "note": "Protocol 094 is the only water-in-the-air protocol on this compressor; the cause was a blocked condensate drain.",
-      "ratified": false
+      "ratified": true
     },
     {
       "id": "G04",
@@ -65,7 +79,7 @@
       "expected": ["0f9c5b02-0000-4000-8000-000000000079"],
       "case": "plain",
       "note": "Protocol 079 (VP-11) is the infeed jam after a format change, with crushed packs named in the symptom.",
-      "ratified": false
+      "ratified": true
     },
     {
       "id": "G05",
@@ -75,7 +89,7 @@
       "expected": ["0f9c5b02-0000-4000-8000-000000000061"],
       "case": "plain",
       "note": "Protocol 061 is porosity from too little shielding gas — flow at 8 instead of 14 l/min and a spattered nozzle.",
-      "ratified": false
+      "ratified": true
     },
     {
       "id": "G06",
@@ -85,7 +99,7 @@
       "expected": ["0f9c5b02-0000-4000-8000-000000000141"],
       "case": "plain",
       "note": "Protocol 141 is short shots on cavity 3 only, from a partly blocked hot runner nozzle. English question, English protocol.",
-      "ratified": false
+      "ratified": true
     },
     {
       "id": "G07",
@@ -95,7 +109,7 @@
       "expected": ["0f9c5b02-0000-4000-8000-000000000130"],
       "case": "plain",
       "note": "Protocol 130 is weak extraction with smoke standing in the cabin; the filter change had been overrun.",
-      "ratified": false
+      "ratified": true
     },
     {
       "id": "G08",
@@ -105,7 +119,7 @@
       "expected": ["0f9c5b02-0000-4000-8000-000000000119"],
       "case": "plain",
       "note": "Protocol 119 is the hot, leaking drive gearbox. It is a sparse, messily written protocol, which is part of what makes it a fair test.",
-      "ratified": false
+      "ratified": true
     },
     {
       "id": "G09",
@@ -119,8 +133,8 @@
         "0f9c5b02-0000-4000-8000-000000000013"
       ],
       "case": "e47-set",
-      "note": "Four legitimate root causes behind one fault code. ALL FOUR are correct answers, so this measures whether the SET is retrieved, not which one ranks first — any ordering among them is acceptable.",
-      "ratified": false
+      "note": "Four legitimate root causes behind one fault code. ALL FOUR are correct answers, so this measures whether the SET is retrieved, not which one ranks first — any ordering among them is acceptable. RATIFIED AS-IS (Carlos, 2026-08-20): all four E-47 protocols are correct and no fifth exists, so the expectation is complete rather than merely generous.",
+      "ratified": true
     },
     {
       "id": "G10",
@@ -130,7 +144,7 @@
       "expected": ["0f9c5b02-0000-4000-8000-000000000095"],
       "case": "cross-lingual",
       "note": "German question, ENGLISH protocol (K-11 high-temperature shutdown, blocked ventilation grille). There is no translation step — bge-m3 shares one space for both languages, and that is the claim being measured.",
-      "ratified": false
+      "ratified": true
     },
     {
       "id": "G11",
@@ -140,7 +154,7 @@
       "expected": ["0f9c5b02-0000-4000-8000-000000000044"],
       "case": "cross-lingual",
       "note": "English question, GERMAN protocol (044: tool breakage in roughing, material delivered at 240 HB instead of 180-200). The other direction of G10, which has never been measured.",
-      "ratified": false
+      "ratified": true
     },
     {
       "id": "G12",
@@ -152,8 +166,8 @@
         "0f9c5b02-0000-4000-8000-000000000052"
       ],
       "case": "exact-term",
-      "note": "A bare alarm code, typed the way a technician reads it off the display. Two protocols carry it (cable break, then amplifier) and both are correct. EXPECTED TO BE WEAK at baseline: a code is a token, and a dense embedding of a five-character string carries little meaning. This is the case hybrid search exists to fix.",
-      "ratified": false
+      "note": "A bare alarm code, typed the way a technician reads it off the display. Two protocols carry it (cable break, then amplifier) and both are correct. EXPECTED TO BE WEAK at baseline: a code is a token, and a dense embedding of a five-character string carries little meaning. This is the case hybrid search exists to fix. RATIFIED (Carlos, 2026-08-20): BOTH protocols are correct BY DESIGN, not as a hedge. A bare code cannot localise the defect — the same code was a broken encoder cable once and a failed amplifier the next time — so the code's FULL HISTORY is the right answer and the technician decides which incident matches what is in front of them.",
+      "ratified": true
     },
     {
       "id": "G13",
@@ -163,7 +177,7 @@
       "expected": ["0f9c5b02-0000-4000-8000-000000000023"],
       "case": "exact-term",
       "note": "A rare code appearing exactly once in the corpus (Profinet cable chafed through, press greyed out in the control room). The question carries almost no semantic content beyond the code itself.",
-      "ratified": false
+      "ratified": true
     },
     {
       "id": "G14",
@@ -172,8 +186,8 @@
       "machineNo": "FB-04",
       "expected": ["0f9c5b02-0000-4000-8000-000000000108"],
       "case": "exact-term",
-      "note": "A part rather than a fault: 'Antriebstrommel gummiert 400 mm' appears in the parts list of protocol 108 (FB-30 slip under load). Tests whether a part in parts_used is reachable at all.",
-      "ratified": false
+      "note": "A part rather than a fault: 'Antriebstrommel gummiert 400 mm' appears in the parts list of protocol 108 (FB-30 slip under load). Tests whether a part in parts_used is reachable at all. RATIFIED — KEEP (Carlos, 2026-08-20): part questions are real, and they come AFTER troubleshooting rather than instead of it. 'Was this part ever changed on this machine?' is a history check a technician makes once the fault is understood. Rare but real, and the corpus should keep answering it — so it stays in the set rather than being re-labelled as out of scope.",
+      "ratified": true
     },
     {
       "id": "G15",
@@ -183,7 +197,7 @@
       "expected": [],
       "case": "mode-b",
       "note": "THE DELIBERATE GAP. No protocol on AB-02 covers dosing accuracy. Correct behaviour is a labelled ungrounded answer; a citation here is WRONG however plausible the text reads. Measured at 0.502 in ADR-002 and carried here so the set owns its own Mode B case.",
-      "ratified": false
+      "ratified": true
     },
     {
       "id": "G16",
@@ -192,8 +206,8 @@
       "machineNo": "SP-05",
       "expected": [],
       "case": "mode-b",
-      "note": "The corpus contains faults and services, and no decommissioning or storage procedure for any machine. A second Mode B case, and one ADR-002 did not tune against.",
-      "ratified": false
+      "note": "The corpus contains faults and services, and no decommissioning or storage procedure for any machine. A second Mode B case, and one ADR-002 did not tune against. RATIFIED (Carlos, 2026-08-20): the QUESTION is realistic — machines are shut down for upgrades, repositioning, audits, calibration and plain economic reasons, so an operator asking how to lay one up is asking something ordinary. The corpus genuinely holds no storage procedure, so Mode B is the CORRECT answer TODAY. STANDING CONDITION: if Einlagerung protocols are ever seeded, this stops being a Mode B case — G16 becomes a Mode A case with expected ids, and it MUST be updated IN THE SAME PR that seeds them, or the set will report a correct answer as a failure.",
+      "ratified": true
     },
     {
       "id": "G17",
@@ -206,7 +220,7 @@
       ],
       "case": "v12-seed",
       "note": "Two of the v1.2 easier-fault seeds answer this on PR-03: 'Maschine startet nicht, keine Reaktion beim Einschalten' and the deliberately messy 'presse aus, kein strom am pult'. Either is a correct citation. Nothing has measured those 15 protocols since they were added.",
-      "ratified": false
+      "ratified": true
     },
     {
       "id": "G18",
@@ -216,7 +230,7 @@
       "expected": ["0f9c5b03-0000-4000-8000-000000000013"],
       "case": "v12-seed",
       "note": "The second headline v1.2 seed, and it is ALSO cross-lingual: the question is German and 'Conveyor stops without warning' is English. Counted under v12-seed so the seed breakdown stays honest; the cross-lingual property is called out in the results.",
-      "ratified": false
+      "ratified": true
     },
     {
       "id": "G19",
@@ -225,8 +239,8 @@
       "machineNo": "VP-01",
       "expected": ["0f9c5b03-0000-4000-8000-000000000002"],
       "case": "v12-seed",
-      "note": "Third v1.2 seed ('Anlage bleibt ohne Meldung stehen'). VP-01 also carries the very sparse 'geht nicht an' (seed 011), a plausible second answer that is deliberately NOT listed — whether it should be is a question for the ratification.",
-      "ratified": false
+      "note": "Third v1.2 seed ('Anlage bleibt ohne Meldung stehen'). VP-01 also carries the very sparse 'geht nicht an' (seed 011), a plausible second answer that is deliberately NOT listed. RATIFIED — 002 ONLY (Carlos, 2026-08-20): 'bleibt stehen' and 'geht nicht an' are DIFFERENT MACHINE STATES. One was running and stopped; the other never started. An operator may well confuse the two at the panel, and that is exactly why the benchmark must not: a set that accepts either answer stops being able to tell a system that understands the distinction from one that does not. Do not add 011 here without re-reading this.",
+      "ratified": true
     }
   ]
 }

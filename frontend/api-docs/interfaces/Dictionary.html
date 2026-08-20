@@ -392,7 +392,7 @@
 
                             <tr>
                                 <td class="col-md-4">
-                                    <div class="io-line">Defined in <a href="" data-line="366" class="link-to-prism">src/app/core/i18n/dictionary.ts:366</a></div>
+                                    <div class="io-line">Defined in <a href="" data-line="374" class="link-to-prism">src/app/core/i18n/dictionary.ts:374</a></div>
                                 </td>
                             </tr>
 
@@ -700,7 +700,7 @@ keeps a technician-facing word out of an admin-facing section.</p>
 
                             <tr>
                                 <td class="col-md-4">
-                                    <div class="io-line">Defined in <a href="" data-line="394" class="link-to-prism">src/app/core/i18n/dictionary.ts:394</a></div>
+                                    <div class="io-line">Defined in <a href="" data-line="402" class="link-to-prism">src/app/core/i18n/dictionary.ts:402</a></div>
                                 </td>
                             </tr>
 
@@ -795,7 +795,7 @@ protocols on one machine are the reason: being similar is normal in this corpus.
 
                             <tr>
                                 <td class="col-md-4">
-                                    <div class="io-line">Defined in <a href="" data-line="263" class="link-to-prism">src/app/core/i18n/dictionary.ts:263</a></div>
+                                    <div class="io-line">Defined in <a href="" data-line="271" class="link-to-prism">src/app/core/i18n/dictionary.ts:271</a></div>
                                 </td>
                             </tr>
 
@@ -1231,7 +1231,7 @@ state of this system, and dressing it as a fault would make the feature look bro
                         </tr>
                         <tr>
                             <td class="col-md-4">
-                                <code>modeB:     <code>{ badge: string; explanation: string; steps: string }</code>
+                                <code>modeB:     <code>{ badge: string; explanation: string; tip: string; steps: string }</code>
 </code>
                             </td>
                         </tr>
@@ -1239,7 +1239,7 @@ state of this system, and dressing it as a fault would make the feature look bro
 
                             <tr>
                                 <td class="col-md-4">
-                                    <i>Type : </i>    <code>{ badge: string; explanation: string; steps: string }</code>
+                                    <i>Type : </i>    <code>{ badge: string; explanation: string; tip: string; steps: string }</code>
 
                                 </td>
                             </tr>
@@ -1256,6 +1256,15 @@ state of this system, and dressing it as a fault would make the feature look bro
                                                 <li>
                                                     <span class="io-nested-property-name"><code>explanation:         <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
 </code></span>
+                                                </li>
+                                                <li>
+                                                    <span class="io-nested-property-name"><code>tip:         <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+</code></span>
+                                                        <div class="io-description"><p>One quiet line under the explanation: name the code if you have one.</p>
+<p>Mode B is the moment a lazy query announces itself, so it is the one place where telling the
+reader what would have worked costs nothing and arrives in time. Deliberately NOT a
+validation gate — see SearchHelp&#39;s class comment for why that was rejected.</p>
+</div>
                                                 </li>
                                                 <li>
                                                     <span class="io-nested-property-name"><code>steps:         <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
@@ -1555,7 +1564,7 @@ approved, and nobody should discover it from the list afterwards.</p>
 
                             <tr>
                                 <td class="col-md-4">
-                                    <div class="io-line">Defined in <a href="" data-line="282" class="link-to-prism">src/app/core/i18n/dictionary.ts:282</a></div>
+                                    <div class="io-line">Defined in <a href="" data-line="290" class="link-to-prism">src/app/core/i18n/dictionary.ts:290</a></div>
                                 </td>
                             </tr>
 
@@ -1716,7 +1725,7 @@ legible from the screen.</p>
 
                             <tr>
                                 <td class="col-md-4">
-                                    <div class="io-line">Defined in <a href="" data-line="411" class="link-to-prism">src/app/core/i18n/dictionary.ts:411</a></div>
+                                    <div class="io-line">Defined in <a href="" data-line="419" class="link-to-prism">src/app/core/i18n/dictionary.ts:419</a></div>
                                 </td>
                             </tr>
 
@@ -2358,7 +2367,7 @@ fault happening right now has to be findable before anyone signs it off.</p>
 
                             <tr>
                                 <td class="col-md-4">
-                                    <div class="io-line">Defined in <a href="" data-line="418" class="link-to-prism">src/app/core/i18n/dictionary.ts:418</a></div>
+                                    <div class="io-line">Defined in <a href="" data-line="426" class="link-to-prism">src/app/core/i18n/dictionary.ts:426</a></div>
                                 </td>
                             </tr>
 
@@ -2736,6 +2745,14 @@ export interface Dictionary {
   readonly modeB: {
     readonly badge: string;
     readonly explanation: string;
+    /**
+     * One quiet line under the explanation: name the code if you have one.
+     *
+     * Mode B is the moment a lazy query announces itself, so it is the one place where telling the
+     * reader what would have worked costs nothing and arrives in time. Deliberately NOT a
+     * validation gate — see SearchHelp&#x27;s class comment for why that was rejected.
+     */
+    readonly tip: string;
     readonly steps: string;
   };
   readonly errors: {
@@ -3089,15 +3106,18 @@ export const DE: Dictionary &#x3D; {
     helpMeaning:
       &#x27;Der Assistent sucht nach der BEDEUTUNG Ihrer Fehlerbeschreibung — nicht nach Titeln und nicht nach exakten Wörtern. Ein Protokoll wird auch dann gefunden, wenn darin andere Wörter stehen als in Ihrer Frage.&#x27;,
     helpContext:
-      &#x27;Maschine, Fehlercode und Titel stehen in jedem indexierten Abschnitt. Nennen Sie den Fehlercode, wenn Sie ihn haben — das ist der stärkste einzelne Hinweis.&#x27;,
+      &#x27;Maschine, Fehlercode und Titel stehen in jedem indexierten Abschnitt. Fehlercodes und Teilenummern sucht der Assistent zusätzlich wortgenau — erkennbar daran, dass sie Buchstaben UND Ziffern enthalten. &quot;E-47&quot; oder &quot;SV0410&quot; allein genügt.&#x27;,
     helpSentences:
-      &#x27;Ganze kurze Sätze schlagen einzelne Wörter. Ein Wort beschreibt keinen Fehler, und die Suche hat nichts, womit sie vergleichen kann.&#x27;,
+      &#x27;Für alles andere gilt: ganze kurze Sätze schlagen einzelne Wörter. &quot;Druck&quot; oder &quot;Band&quot; allein beschreibt keinen Fehler — darauf gibt es nur einen allgemeinen Vorschlag.&#x27;,
     helpExamplesHeading: &#x27;Beispiele&#x27;,
     helpGood: &#x27;Gut&#x27;,
     helpWeak: &#x27;Schwach&#x27;,
     helpExamples: [
-      { good: &#x27;Kompressor startet nicht, Fehlercode X-99&#x27;, weak: &#x27;frei&#x27; },
       { good: &#x27;Presse kommt nicht auf Druck, E-47 steht an&#x27;, weak: &#x27;Druck&#x27; },
+      // THE PAIR THAT CARRIES THE NEW RULE, and the reason it is a pair rather than a fourth
+      // bullet: both halves are a single word, one works and one does not, and the difference is
+      // visible in the strings themselves. A code has letters and digits; &quot;frei&quot; has neither.
+      { good: &#x27;E-47&#x27;, weak: &#x27;frei&#x27; },
       { good: &#x27;Band läuft schief nach dem Rollenwechsel&#x27;, weak: &#x27;Band&#x27; },
     ],
     approvedOnly: &#x27;Nur freigegebene Protokolle&#x27;,
@@ -3148,6 +3168,7 @@ export const DE: Dictionary &#x3D; {
     badge: &#x27;Allgemeiner Vorschlag — keine Quelle im Bestand&#x27;,
     explanation:
       &#x27;Zu dieser Frage gibt es kein Protokoll im Bestand. Die folgenden Schritte sind allgemeines Erfahrungswissen und NICHT durch ein Protokoll dieser Anlage belegt.&#x27;,
+    tip: &#x27;Tipp: Wenn Sie einen Fehlercode haben, nennen Sie ihn — die Suche findet Codes wortgenau.&#x27;,
     steps: &#x27;Vorgeschlagene Schritte&#x27;,
   },
   errors: {
@@ -3462,15 +3483,17 @@ export const EN: Dictionary &#x3D; {
     helpMeaning:
       &#x27;The assistant searches by the MEANING of your fault description — not by title and not by exact words. A protocol is found even when it uses different words than your question does.&#x27;,
     helpContext:
-      &#x27;Machine, fault code and title are part of every indexed passage. Name the fault code when you have it: it is the single strongest hint you can give.&#x27;,
+      &#x27;Machine, fault code and title are part of every indexed passage. Fault codes and part numbers are matched word for word as well — you can spot one by the letters AND digits it contains. &quot;E-47&quot; or &quot;SV0410&quot; on its own is enough.&#x27;,
     helpSentences:
-      &#x27;Whole short sentences beat single words. One word does not describe a fault, and the search has nothing to compare it against.&#x27;,
+      &#x27;For everything else: whole short sentences beat single words. &quot;pressure&quot; or &quot;belt&quot; on its own describes no fault, and earns only a general suggestion.&#x27;,
     helpExamplesHeading: &#x27;Examples&#x27;,
     helpGood: &#x27;Good&#x27;,
     helpWeak: &#x27;Weak&#x27;,
     helpExamples: [
-      { good: &#x27;Compressor does not start, fault code X-99&#x27;, weak: &#x27;free&#x27; },
       { good: &#x27;Press does not build up pressure, E-47 showing&#x27;, weak: &#x27;pressure&#x27; },
+      // See the German list: the pair that teaches the code rule by showing two single words, one
+      // of which works.
+      { good: &#x27;E-47&#x27;, weak: &#x27;free&#x27; },
       { good: &#x27;Belt mistracks after the roller change&#x27;, weak: &#x27;belt&#x27; },
     ],
     approvedOnly: &#x27;Approved protocols only&#x27;,
@@ -3521,6 +3544,7 @@ export const EN: Dictionary &#x3D; {
     badge: &#x27;General suggestion — no source in the records&#x27;,
     explanation:
       &#x27;No protocol in the records covers this question. The steps below are general engineering knowledge and are NOT backed by a protocol for this machine.&#x27;,
+    tip: &#x27;Tip: if you have a fault code, name it — the search matches codes word for word.&#x27;,
     steps: &#x27;Suggested steps&#x27;,
   },
   errors: {

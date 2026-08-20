@@ -1804,6 +1804,10 @@ export class App {
   background: var(--c-surface);
 }
 
+/* --s-5 down the sides and --s-4 across, where it used to be --s-4 on all four.
+   The type below went up a step and the bar had been sized for the smaller one: at the old padding
+   the larger text sat against the top rule with no room to read as a band of its own. Vertical
+   only — the horizontal inset lines up with .page and must not move. */
 .app-footer-inner {
   display: flex;
   flex-wrap: wrap;
@@ -1812,7 +1816,7 @@ export class App {
   gap: var(--s-2) var(--s-5);
   max-width: var(--page-max);
   margin: 0 auto;
-  padding: var(--s-4);
+  padding: var(--s-5) var(--s-4);
 }
 
 .footer-links {
@@ -1833,9 +1837,21 @@ app-health-dot {
   }
 }
 
+/* SIZE, NOT COLOUR — and the distinction is the whole point of this rule.
+ *
+ * #68 measured the footer&#x27;s ink and raised it to AA. The 2026-08-20 drill found it still hard to
+ * read on a 16-inch laptop, which is a different defect with the same symptom: 14px chrome at the
+ * bottom of a 1.5-metre-away shop-floor screen is small before it is faint. The colours here are
+ * therefore UNTOUCHED, deliberately — a size fix that also nudged a token would smuggle a change
+ * past the ratios #68 put on record.
+ *
+ * --t-sm -&gt; --t-base, with the line-height stated rather than inherited: these links wrap onto a
+ * second row on a narrow footer, and body-size text on the header&#x27;s tighter leading closes the gap
+ * between the rows enough that two links read as one block. */
 .footer-links a {
   color: var(--c-ink-muted);
-  font-size: var(--t-sm);
+  font-size: var(--t-base);
+  line-height: var(--lh-normal);
   text-decoration: underline;
   text-underline-offset: 2px;
 }
@@ -1844,9 +1860,13 @@ app-health-dot {
   color: var(--c-brand);
 }
 
+/* --t-xs -&gt; --t-sm. One step, like the links above, so the footer keeps its internal order: the
+   demo notice stays a size below the links that sit beside it, rather than becoming their equal.
+   Colour untouched — see the note on .footer-links a. */
 .footer-note {
   margin: 0;
-  font-size: var(--t-xs);
+  font-size: var(--t-sm);
+  line-height: var(--lh-normal);
   color: var(--c-ink-faint);
 }
 

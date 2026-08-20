@@ -156,12 +156,21 @@
     </p>
     <p class="comment">
         <p>&quot;Wie suche ich?&quot; — the panel in the empty right half of the search view.</p>
-<p><b>It is the designed answer to the lazy-query problem, not decoration.</b> Retrieval here is
-semantic only, by architecture (ADR-004): there is no keyword index to fall back on, so a
-one-word question is not a narrower search, it is a worse one — the embedding of "frei" is close
-to nothing in particular. A user who does not know that types one word, gets Mode B, and
-concludes the assistant is broken. Explaining the rule beside the field costs a paragraph; the
-alternative is building a keyword search that was deliberately not built.<p>Its own component because the styling is a third of the search view's stylesheet and none of
+<p><b>It is the designed answer to the lazy-query problem, not decoration.</b> A user who does
+not know how retrieval behaves types one word, gets Mode B, and concludes the assistant is
+broken. Explaining the rule beside the field costs a paragraph.<p><b>THE PANEL TRACKS RETRIEVAL BEHAVIOUR, AND IT HAS BEEN WRONG ONCE.</b> Until 2026-08-20 it
+taught that "ein Wort beschreibt keinen Fehler, und die Suche hat nichts, womit sie vergleichen
+kann". That was true while retrieval was semantic only (ADR-004) and was FALSIFIED BY THE RUNNING
+SYSTEM once ADR-009 added the lexical signal: a bare "E-47" now returns a grounded Mode A answer,
+because {@code LexicalTerms} matches codes literally. Carlos's v1.3.0 drill typed it and watched
+it work while this panel said it would not.<p>The text now states the rule the code actually implements: a term needs at least one LETTER
+and at least one DIGIT to be matched literally. That is why "E-47" and "SV0410" work on their own
+while "frei", "Druck" and "Band" still do not — and it is why a change to {@code LexicalTerms} is
+also a change to this file. A help panel that contradicts observable behaviour is worse than none:
+it teaches the reader to distrust the one thing on screen meant to orient them.<p><b>No validation gate</b>, decided 2026-08-20 and not to be re-proposed. Refusing to search
+until a question "looks complete" would block "e-47" — a lazy query that WORKS — in order to
+prevent "was bedeutet", which Mode B already handles gracefully. The cure costs more than the
+disease.<p>Its own component because the styling is a third of the search view's stylesheet and none of
 it is about answers. That also keeps `search.css` inside the per-component budget, which the
 combined file had just exceeded.<p><b>Subordinate by construction</b>: no card, no shadow, helper-grey text behind a left rule.
 Once an answer arrives it must not compete with it — the answer is what the reader came for.
@@ -334,7 +343,7 @@ Once an answer arrives it must not compete with it — the answer is what the re
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="28" class="link-to-prism">src/app/features/search/search-help.ts:28</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="43" class="link-to-prism">src/app/features/search/search-help.ts:43</a></div>
                         </td>
                     </tr>
 
@@ -367,7 +376,7 @@ Once an answer arrives it must not compete with it — the answer is what the re
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="39" class="link-to-prism">src/app/features/search/search-help.ts:39</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="54" class="link-to-prism">src/app/features/search/search-help.ts:54</a></div>
                         </td>
                     </tr>
 
@@ -409,7 +418,7 @@ explains costs a click and buys nothing. Closed by default, so a phone shows the
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="30" class="link-to-prism">src/app/features/search/search-help.ts:30</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="45" class="link-to-prism">src/app/features/search/search-help.ts:45</a></div>
                         </td>
                     </tr>
 
@@ -429,12 +438,27 @@ import { I18nService } from &#x27;../../core/i18n/i18n.service&#x27;;
 /**
  * &quot;Wie suche ich?&quot; — the panel in the empty right half of the search view.
  *
- * &lt;p&gt;&lt;b&gt;It is the designed answer to the lazy-query problem, not decoration.&lt;/b&gt; Retrieval here is
- * semantic only, by architecture (ADR-004): there is no keyword index to fall back on, so a
- * one-word question is not a narrower search, it is a worse one — the embedding of &quot;frei&quot; is close
- * to nothing in particular. A user who does not know that types one word, gets Mode B, and
- * concludes the assistant is broken. Explaining the rule beside the field costs a paragraph; the
- * alternative is building a keyword search that was deliberately not built.
+ * &lt;p&gt;&lt;b&gt;It is the designed answer to the lazy-query problem, not decoration.&lt;/b&gt; A user who does
+ * not know how retrieval behaves types one word, gets Mode B, and concludes the assistant is
+ * broken. Explaining the rule beside the field costs a paragraph.
+ *
+ * &lt;p&gt;&lt;b&gt;THE PANEL TRACKS RETRIEVAL BEHAVIOUR, AND IT HAS BEEN WRONG ONCE.&lt;/b&gt; Until 2026-08-20 it
+ * taught that &quot;ein Wort beschreibt keinen Fehler, und die Suche hat nichts, womit sie vergleichen
+ * kann&quot;. That was true while retrieval was semantic only (ADR-004) and was FALSIFIED BY THE RUNNING
+ * SYSTEM once ADR-009 added the lexical signal: a bare &quot;E-47&quot; now returns a grounded Mode A answer,
+ * because {@code LexicalTerms} matches codes literally. Carlos&#x27;s v1.3.0 drill typed it and watched
+ * it work while this panel said it would not.
+ *
+ * &lt;p&gt;The text now states the rule the code actually implements: a term needs at least one LETTER
+ * and at least one DIGIT to be matched literally. That is why &quot;E-47&quot; and &quot;SV0410&quot; work on their own
+ * while &quot;frei&quot;, &quot;Druck&quot; and &quot;Band&quot; still do not — and it is why a change to {@code LexicalTerms} is
+ * also a change to this file. A help panel that contradicts observable behaviour is worse than none:
+ * it teaches the reader to distrust the one thing on screen meant to orient them.
+ *
+ * &lt;p&gt;&lt;b&gt;No validation gate&lt;/b&gt;, decided 2026-08-20 and not to be re-proposed. Refusing to search
+ * until a question &quot;looks complete&quot; would block &quot;e-47&quot; — a lazy query that WORKS — in order to
+ * prevent &quot;was bedeutet&quot;, which Mode B already handles gracefully. The cure costs more than the
+ * disease.
  *
  * &lt;p&gt;Its own component because the styling is a third of the search view&#x27;s stylesheet and none of
  * it is about answers. That also keeps &#x60;search.css&#x60; inside the per-component budget, which the

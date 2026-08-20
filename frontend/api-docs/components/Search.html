@@ -1649,6 +1649,10 @@ export class Search {
   align-items: start;
 }
 
+/* 64rem is a PAIRED boundary: search-help.css drops the panel into its narrow form at
+   max-width: 63.999rem, so the layout gains its second column on exactly the pixel the panel stops
+   being a stacked, collapsible one. They were 64rem and 60rem, and the band between them rendered a
+   desktop panel inside a stacked layout. Change one, change the other. */
 @media (min-width: 64rem) {
   .search-layout {
     /* &#x60;minmax(0, 1fr)&#x60; and not &#x60;1fr&#x60;: a grid track&#x27;s default minimum is its content, so a long

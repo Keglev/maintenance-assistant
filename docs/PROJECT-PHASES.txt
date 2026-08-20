@@ -676,6 +676,70 @@ rather than given one afterwards.
    Setting LANG=C.UTF-8, which is what the runner sets, made them identical.
    A byte-comparison across two environments measures the environment too.
 
+   PROGRESS 2026-08-20 — v1.3.0 PR 3 (feat/hybrid-search), THE LAST FEATURE.
+   ADR-009. The baseline left exactly one failing question and characterised
+   it: G13 "Was bedeutet KOM-04?" retrieved the right protocol at RANK 1 and
+   scored 0.4288, below the 0.55 gate — the reader was told nothing while the
+   answer sat on top of the list. EXACT-TERM QUERIES ALREADY WIN THE RANKING;
+   THEIR SCORE IS TOO LOW TO CLEAR THE GATE.
+   THE SIGNAL: a term is extracted from the question when it carries AT LEAST
+   ONE LETTER AND ONE DIGIT, and the retrieval SQL counts how many appear
+   literally in each chunk. Still ONE statement — relational filter, vector
+   and lexical in one pass, so ADR-004's argument stands.
+   THE LETTER-AND-DIGIT RULE IS THE WHOLE SAFETY ARGUMENT, and it was
+   MEASURED BEFORE ANY CODE WAS WRITTEN: prose cannot satisfy it, so of the
+   19 golden questions exactly 3 produce terms (E-47, SV0410, KOM-04), the
+   expected protocol is among the matches in all three, and BOTH MODE B
+   QUESTIONS PRODUCE NONE. The anti-hallucination property is preserved by
+   construction rather than by tuning, and the harness now ASSERTS it.
+   THE GATE DECISION, and both options worked: similarity OR an exact term,
+   NOT a fused score. 0.55 is a MEASURED number meaning question-to-chunk
+   cosine; fusing a lexical component into it would re-calibrate that number
+   for EVERY question to fix ONE. The override is also the explainable rule
+   ("the code you typed is literally in this protocol") and can only turn B
+   into A, never the reverse — so the 16 questions carrying no term are
+   provably untouched. 0.55 IS UNCHANGED; the measurement did not force it.
+   A REGRESSION THE REORDERING WOULD HAVE INTRODUCED SILENTLY, caught by
+   reasoning and closed: the gate used to read hits.get(0).similarity(),
+   which was the maximum only because the list was ordered by similarity.
+   With a fused ORDER BY the head can be a LESS similar chunk, which would
+   have handed the gate a lower number and turned long-standing Mode A
+   questions into Mode B. The gate reads the MAX now, and so does the report.
+   MEASURED, real provider, real corpus: fully correct 18/19 -> 19/19, mode
+   correct 18/19 -> 19/19, exact-term 2/3 -> 3/3, Mode B still 2/2, and
+   RECALL AND MRR IDENTICAL (16/17, 17/17, 0.9529) — nothing that was right
+   became wrong. Latency by EXPLAIN ANALYZE: 0.699 ms before, 0.588 ms with
+   terms, 0.604 ms without, all noise-level and four orders inside NFR-4.
+   A FINDING ON THE INDEX: both plans are a seq scan with a top-N heapsort
+   BEFORE AND AFTER — the HNSW index was never serving this query, because
+   the machine filter makes a filtered scan cheaper across 182 chunks. So the
+   expression ORDER BY costs no index that was in use AT THIS SIZE, and that
+   is exactly the limit at which this design must be re-taken.
+   ALTERNATIVES REJECTED WITH MEASUREMENTS, not with taste. Postgres
+   full-text SPLITS THE CODE: to_tsvector('german', ...) makes KOM-04 into
+   'kom' + '-04', and plainto_tsquery ANDs in 'bedeutet', so it matches
+   NOTHING and G13 fails outright. Worse for this corpus, "Antriebstrommeln"
+   does not match "Antriebstrommel" through the German stemmer — compound
+   plurals are unrelated to their singular, and this corpus is made of
+   compounds. pg_trgm needs an extension and a migration and answers "how
+   similar are these strings", which is not the question. RRF discards score
+   MAGNITUDE, which is the one thing the gate reads.
+   THE HONEST RESIDUAL: retrieval and the gate are DETERMINISTIC — 10
+   consecutive runs of G13 opened the gate every time with identical numbers
+   — but the GENERATION step declined on 2 of 17 observed calls, returning no
+   claims for a definitional question backed by one weak source. Two of three
+   harness runs during this work therefore showed G13 as a MISS and the third
+   as OK. 19/19 is a TYPICAL result, not a guaranteed one, and the variance
+   is generation at temperature 0.1, not retrieval.
+   A MEASUREMENT THAT WAS WRONG AND WAS CAUGHT: the first stability probe
+   reported 10/10 and was measuring THE CACHE — QueryCache normalises the
+   question by stripping whitespace, so ten padded variants shared one key,
+   one real call and nine hits. The tell was the gate logging once instead of
+   ten times. Re-measured with the cache disabled.
+   REMAINING FOR v1.3.0: the threshold decision (the sweep now shows
+   0.48-0.55 as a flat plateau with no wrongly-grounded Mode B question) and
+   the tag. RERANKER STAYS DROPPED — #62's corrected evidence still holds.
+
 3. v1.3.0 — RETRIEVAL QUALITY
    - HYBRID KEYWORD + SEMANTIC SEARCH (deferred 2026-08-10; the
      interim answer is the search help panel).

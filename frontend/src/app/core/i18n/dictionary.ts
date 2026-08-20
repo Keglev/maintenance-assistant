@@ -258,6 +258,14 @@ export interface Dictionary {
   readonly modeB: {
     readonly badge: string;
     readonly explanation: string;
+    /**
+     * One quiet line under the explanation: name the code if you have one.
+     *
+     * Mode B is the moment a lazy query announces itself, so it is the one place where telling the
+     * reader what would have worked costs nothing and arrives in time. Deliberately NOT a
+     * validation gate — see SearchHelp's class comment for why that was rejected.
+     */
+    readonly tip: string;
     readonly steps: string;
   };
   readonly errors: {
@@ -611,15 +619,18 @@ export const DE: Dictionary = {
     helpMeaning:
       'Der Assistent sucht nach der BEDEUTUNG Ihrer Fehlerbeschreibung — nicht nach Titeln und nicht nach exakten Wörtern. Ein Protokoll wird auch dann gefunden, wenn darin andere Wörter stehen als in Ihrer Frage.',
     helpContext:
-      'Maschine, Fehlercode und Titel stehen in jedem indexierten Abschnitt. Nennen Sie den Fehlercode, wenn Sie ihn haben — das ist der stärkste einzelne Hinweis.',
+      'Maschine, Fehlercode und Titel stehen in jedem indexierten Abschnitt. Fehlercodes und Teilenummern sucht der Assistent zusätzlich wortgenau — erkennbar daran, dass sie Buchstaben UND Ziffern enthalten. "E-47" oder "SV0410" allein genügt.',
     helpSentences:
-      'Ganze kurze Sätze schlagen einzelne Wörter. Ein Wort beschreibt keinen Fehler, und die Suche hat nichts, womit sie vergleichen kann.',
+      'Für alles andere gilt: ganze kurze Sätze schlagen einzelne Wörter. "Druck" oder "Band" allein beschreibt keinen Fehler — darauf gibt es nur einen allgemeinen Vorschlag.',
     helpExamplesHeading: 'Beispiele',
     helpGood: 'Gut',
     helpWeak: 'Schwach',
     helpExamples: [
-      { good: 'Kompressor startet nicht, Fehlercode X-99', weak: 'frei' },
       { good: 'Presse kommt nicht auf Druck, E-47 steht an', weak: 'Druck' },
+      // THE PAIR THAT CARRIES THE NEW RULE, and the reason it is a pair rather than a fourth
+      // bullet: both halves are a single word, one works and one does not, and the difference is
+      // visible in the strings themselves. A code has letters and digits; "frei" has neither.
+      { good: 'E-47', weak: 'frei' },
       { good: 'Band läuft schief nach dem Rollenwechsel', weak: 'Band' },
     ],
     approvedOnly: 'Nur freigegebene Protokolle',
@@ -670,6 +681,7 @@ export const DE: Dictionary = {
     badge: 'Allgemeiner Vorschlag — keine Quelle im Bestand',
     explanation:
       'Zu dieser Frage gibt es kein Protokoll im Bestand. Die folgenden Schritte sind allgemeines Erfahrungswissen und NICHT durch ein Protokoll dieser Anlage belegt.',
+    tip: 'Tipp: Wenn Sie einen Fehlercode haben, nennen Sie ihn — die Suche findet Codes wortgenau.',
     steps: 'Vorgeschlagene Schritte',
   },
   errors: {
@@ -984,15 +996,17 @@ export const EN: Dictionary = {
     helpMeaning:
       'The assistant searches by the MEANING of your fault description — not by title and not by exact words. A protocol is found even when it uses different words than your question does.',
     helpContext:
-      'Machine, fault code and title are part of every indexed passage. Name the fault code when you have it: it is the single strongest hint you can give.',
+      'Machine, fault code and title are part of every indexed passage. Fault codes and part numbers are matched word for word as well — you can spot one by the letters AND digits it contains. "E-47" or "SV0410" on its own is enough.',
     helpSentences:
-      'Whole short sentences beat single words. One word does not describe a fault, and the search has nothing to compare it against.',
+      'For everything else: whole short sentences beat single words. "pressure" or "belt" on its own describes no fault, and earns only a general suggestion.',
     helpExamplesHeading: 'Examples',
     helpGood: 'Good',
     helpWeak: 'Weak',
     helpExamples: [
-      { good: 'Compressor does not start, fault code X-99', weak: 'free' },
       { good: 'Press does not build up pressure, E-47 showing', weak: 'pressure' },
+      // See the German list: the pair that teaches the code rule by showing two single words, one
+      // of which works.
+      { good: 'E-47', weak: 'free' },
       { good: 'Belt mistracks after the roller change', weak: 'belt' },
     ],
     approvedOnly: 'Approved protocols only',
@@ -1043,6 +1057,7 @@ export const EN: Dictionary = {
     badge: 'General suggestion — no source in the records',
     explanation:
       'No protocol in the records covers this question. The steps below are general engineering knowledge and are NOT backed by a protocol for this machine.',
+    tip: 'Tip: if you have a fault code, name it — the search matches codes word for word.',
     steps: 'Suggested steps',
   },
   errors: {

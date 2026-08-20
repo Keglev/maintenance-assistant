@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Decisions ·
+ADR-009-hybrid-retrieval · maintenance-assistant Docs</title>
+
+  <!-- Set the theme before the stylesheet paints, otherwise the page flashes
+       the default theme for one frame before the saved choice applies. -->
+  <script>
+    (function () {
+      try {
+        var t = localStorage.getItem("maintenance-assistant-theme") ||
+          (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+        document.documentElement.setAttribute("data-theme", t);
+      } catch (e) {
+        document.documentElement.setAttribute("data-theme", "light");
+      }
+    })();
+  </script>
+
+  <link rel="stylesheet" href="/maintenance-assistant/assets/docs.css" />
+</head>
+
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <header class="topbar">
+    <div class="topbar-inner">
+      <button class="menu-btn" aria-label="Toggle navigation">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="18" x2="21" y2="18" />
+        </svg>
+      </button>
+
+      <a href="/maintenance-assistant/" class="brand">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <path d="M14.7 6.3a5 5 0 0 0-6.6 6.6l-5 5a2 2 0 1 0 2.8 2.8l5-5a5 5 0 0 0 6.6-6.6l-2.9 2.9-2.1-2.1 2.2-3.6z" />
+        </svg>
+        maintenance-assistant Docs
+      </a>
+
+      <div class="topbar-tools">
+        <span class="lang-switch">
+          <a href="/maintenance-assistant/" aria-current="true">EN</a>
+          <a href="/maintenance-assistant/index-de.html">DE</a>
+        </span>
+        <button class="theme-toggle" aria-label="Toggle light or dark theme">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <circle cx="12" cy="12" r="9" /><path d="M12 3a9 9 0 0 0 0 18z" fill="currentColor" stroke="none" />
+          </svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <div class="layout">
+    <!-- Sidebar navigation, included by app-docs.html as a Pandoc partial. One
+         sidebar serves the whole site: this repository has a single arc42 tree and a
+         single decision log, so the per-tier sidebars the sibling repositories need
+         would be three copies of the same list here. The active link is marked at
+         runtime by docs.js. Do not put template syntax in this comment - a partial
+         is itself a template. -->
+    <aside class="sidebar">
+      <p class="nav-title">Docs</p>
+      <ul>
+        <li><a href="/maintenance-assistant/">Docs home</a></li>
+        <li><a href="/maintenance-assistant/overview.html">Overview</a></li>
+        <li><a href="/maintenance-assistant/overview-de.html">&Uuml;berblick (DE)</a></li>
+        <li><a href="/maintenance-assistant/llm-approach.html">AI &amp; LLM approach</a></li>
+      </ul>
+
+      <p class="nav-title">Requirements</p>
+      <ul>
+        <li><a href="/maintenance-assistant/REQUIREMENTS.html">Requirements &amp; NFRs</a></li>
+        <li><a href="/maintenance-assistant/DOMAIN-MODEL.html">Domain model</a></li>
+      </ul>
+
+      <details class="nav-group">
+        <summary>Architecture (arc42)</summary>
+        <ul>
+          <li><a href="/maintenance-assistant/architecture/index.html">Architecture index</a></li>
+          <li><a href="/maintenance-assistant/architecture/01-introduction-and-goals.html">1 &middot; Introduction &amp; Goals</a></li>
+          <li><a href="/maintenance-assistant/architecture/02-architecture-constraints.html">2 &middot; Constraints</a></li>
+          <li><a href="/maintenance-assistant/architecture/03-context-and-scope.html">3 &middot; Context &amp; Scope</a></li>
+          <li><a href="/maintenance-assistant/architecture/04-solution-strategy.html">4 &middot; Solution Strategy</a></li>
+          <li><a href="/maintenance-assistant/architecture/05-building-block-view.html">5 &middot; Building Blocks</a></li>
+          <li><a href="/maintenance-assistant/architecture/06-runtime-view.html">6 &middot; Runtime View</a></li>
+          <li><a href="/maintenance-assistant/architecture/07-deployment-view.html">7 &middot; Deployment</a></li>
+          <li><a href="/maintenance-assistant/architecture/08-crosscutting-concepts.html">8 &middot; Concepts</a></li>
+          <li><a href="/maintenance-assistant/architecture/09-architecture-decisions.html">9 &middot; Decisions</a></li>
+          <li><a href="/maintenance-assistant/architecture/10-quality-requirements.html">10 &middot; Quality Requirements</a></li>
+          <li><a href="/maintenance-assistant/architecture/11-risks-and-technical-debt.html">11 &middot; Risks &amp; Debt</a></li>
+          <li><a href="/maintenance-assistant/architecture/12-glossary.html">12 &middot; Glossary</a></li>
+        </ul>
+      </details>
+
+      <details class="nav-group">
+        <summary>Decisions (ADRs)</summary>
+        <ul>
+          <li><a href="/maintenance-assistant/adr/index.html">Decision index</a></li>
+          <li><a href="/maintenance-assistant/adr/ADR-001-modular-monolith-first.html">ADR-001 Modular monolith</a></li>
+          <li><a href="/maintenance-assistant/adr/ADR-002-eu-hosted-llm-provider.html">ADR-002 EU LLM provider</a></li>
+          <li><a href="/maintenance-assistant/adr/ADR-003-keycloak-for-iam.html">ADR-003 Keycloak as IdP</a></li>
+          <li><a href="/maintenance-assistant/adr/ADR-004-pgvector-for-vector-search.html">ADR-004 pgvector</a></li>
+        </ul>
+      </details>
+
+      <p class="nav-title">Frontend</p>
+      <ul>
+        <li><a href="/maintenance-assistant/frontend-architecture.html">Frontend architecture</a></li>
+      </ul>
+
+      <p class="nav-title">Quality</p>
+      <ul>
+        <li><a href="/maintenance-assistant/backend/api-docs/index.html">Backend API</a></li>
+        <li><a href="/maintenance-assistant/frontend/api-docs/index.html">Frontend API</a></li>
+        <li><a href="/maintenance-assistant/backend/coverage/index.html">Backend coverage</a></li>
+        <li><a href="/maintenance-assistant/frontend/coverage/index.html">Frontend coverage</a></li>
+      </ul>
+    </aside>
+    <main class="content" id="main">
+      <article class="doc-body">
+        <h1
+        id="adr-009-ground-an-answer-on-an-exact-term-without-re-calibrating-the-threshold">ADR-009:
+        Ground an answer on an exact term, without re-calibrating the
+        threshold</h1>
+        <table>
+        <colgroup>
+        <col style="width: 50%" />
+        <col style="width: 50%" />
+        </colgroup>
+        <tbody>
+        <tr class="odd">
+        <td><strong>Status</strong></td>
+        <td>Accepted</td>
+        </tr>
+        <tr class="even">
+        <td><strong>Date</strong></td>
+        <td>2026-08-20</td>
+        </tr>
+        <tr class="odd">
+        <td><strong>Deciders</strong></td>
+        <td>Carlos Keglevich</td>
+        </tr>
+        <tr class="even">
+        <td><strong>Related</strong></td>
+        <td>ADR-002 (LLM provider, the 0.55 threshold), ADR-004
+        (pgvector, one query), ADR-008 (retrieval measurement), NFR-2
+        (grounded answers), NFR-4 (latency), PR #61, PR #62</td>
+        </tr>
+        </tbody>
+        </table>
+        <h2 id="context">Context</h2>
+        <p>The baseline (ADR-008, taken in #61 and re-taken on the
+        repaired index in #62) left exactly one question failing out of
+        nineteen, and characterised it precisely enough that this
+        decision is about a known defect rather than about “improving
+        search”.</p>
+        <p><strong>G13 — “Was bedeutet KOM-04?” on PR-07.</strong> The
+        right protocol is retrieved at <strong>rank 1</strong>, scoring
+        <strong>0.4288</strong>. The Mode A/B gate is 0.55. So the
+        reader was told <em>nothing</em> while the answer sat at the top
+        of the retrieved list.</p>
+        <p>The shape of the problem is the finding: <strong>exact-term
+        queries already win the ranking; their score is too low to clear
+        the gate.</strong> A dense vector encodes meaning, and
+        <code>KOM-04</code> has almost none — five characters that a
+        technician reads off a display carry certainty rather than
+        semantics. The other two exact-term questions
+        (<code>SV0410</code>, a part number) clear the gate on the
+        vector alone, so this is a narrow gap and not a broken
+        retriever.</p>
+        <h2 id="decision">Decision</h2>
+        <h3
+        id="the-lexical-signal-literal-term-containment-in-the-same-sql-statement">1.
+        The lexical signal: literal term containment, in the same SQL
+        statement</h3>
+        <p>A term is extracted from the question when it carries
+        <strong>at least one letter and at least one digit</strong>. The
+        retrieval query counts, per chunk, how many of those terms
+        appear in the chunk text, and adds a bounded fraction of that
+        count to the cosine similarity <strong>for ordering
+        only</strong>.</p>
+        <p>ADR-004’s argument survives intact: relational filter, vector
+        distance and lexical match are still <strong>one statement, one
+        round trip, one store</strong>.</p>
+        <div class="sourceCode" id="cb1"><pre
+        class="sourceCode sql"><code class="sourceCode sql"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>(<span class="kw">SELECT</span> <span class="fu">count</span>(<span class="op">*</span>) <span class="kw">FROM</span> unnest(string_to_array(<span class="ch">:terms</span>, <span class="st">&#39; &#39;</span>)) <span class="kw">AS</span> term</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">WHERE</span> term <span class="op">&lt;&gt;</span> <span class="st">&#39;&#39;</span> <span class="kw">AND</span> c.content ILIKE <span class="st">&#39;%&#39;</span> <span class="op">||</span> term <span class="op">||</span> <span class="st">&#39;%&#39;</span>)          <span class="kw">AS</span> lexical_matches</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="op">..</span>.</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="kw">ORDER</span> <span class="kw">BY</span> (<span class="dv">1</span> <span class="op">-</span> (c.embedding <span class="op">&lt;=&gt;</span> <span class="fu">CAST</span>(<span class="ch">:vector</span> <span class="kw">AS</span> vector)))</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>         <span class="op">+</span> <span class="ch">:lexicalWeight</span> <span class="op">*</span> (<span class="fu">CAST</span>(<span class="op">&lt;</span><span class="kw">the</span> same <span class="fu">count</span><span class="op">&gt;</span> <span class="kw">AS</span> float8) <span class="op">/</span> <span class="ch">:termCount</span>) <span class="kw">DESC</span></span></code></pre></div>
+        <p><strong>Why letter-AND-digit is the whole safety
+        argument.</strong> Ordinary German or English prose cannot
+        satisfy it: <code>Dosierung</code>, <code>Füllmenge</code>,
+        <code>Betriebsurlaub</code> carry no digits, and
+        <code>400</code>, <code>250</code>, <code>30</code> carry no
+        letters. Measured across the golden set <em>before the code was
+        written</em>: <strong>3 of 19 questions produce terms</strong>
+        (<code>E-47</code>, <code>SV0410</code>, <code>KOM-04</code>),
+        in all three the expected protocol is among the matches, and
+        <strong>both Mode B questions produce none.</strong> The
+        anti-hallucination property is preserved by construction, not by
+        tuning.</p>
+        <p>Bare numbers are excluded deliberately. <code>400</code> is a
+        drum diameter in one protocol and a pressure, a duration and a
+        year in others; matching it would fire the signal on any
+        question mentioning a quantity. The cost is that a pure
+        part-number question is answered by the vector alone — which it
+        already is, G14 clearing the gate at 0.6000 unaided.</p>
+        <h3
+        id="the-gate-vector-similarity-keeps-its-meaning-the-term-is-a-separate-override">2.
+        The gate: vector similarity keeps its meaning; the term is a
+        separate override</h3>
+        <p><strong>This is the decision that mattered most, and both
+        options worked.</strong></p>
+        <pre><code>grounded  =  max(similarity) &gt;= threshold   OR   any retrieved chunk contains a question term</code></pre>
+        <p>The alternative was to fuse the two into one score and
+        compare <em>that</em> with 0.55. It was rejected for a reason
+        that is about the gate’s purpose rather than about elegance:
+        <strong>0.55 is a measured number</strong> (ADR-002,
+        re-validated in #61), and it means “question-to-chunk cosine”.
+        Fusing a lexical component into it would silently re-calibrate
+        that number <strong>for every question in the system, to fix
+        one</strong> — and the calibration evidence would no longer
+        describe the thing being compared.</p>
+        <p>The override is also the more explainable rule, which matters
+        at a machine at 3 a.m.: <em>“the code you typed is literally in
+        this protocol”</em> is a sentence a technician can check. A
+        fused score is a number nobody can decompose.</p>
+        <p>It has a third property worth stating because it is what
+        makes the change safe: <strong>an override can only turn Mode B
+        into Mode A, never the reverse.</strong> The sixteen questions
+        that carry no term are provably untouched by it.</p>
+        <p><strong>The gate reads the MAXIMUM similarity, not the first
+        hit’s.</strong> Before this change they were the same thing,
+        because the list was ordered by similarity. Now the lexical
+        weight can order a chunk first that is not the most similar one,
+        and reading the head would hand the gate a <em>lower</em> number
+        than before — turning a question that has always been Mode A
+        into Mode B. That is a regression the ordering change would have
+        introduced silently, and it is closed in
+        <code>QueryService</code> and mirrored in the harness.</p>
+        <p><strong>The source list obeys the same rule as the
+        gate.</strong> A question grounded only by its code would
+        otherwise be routed to Mode A, offered no sources, produce no
+        citation and fall through to Mode B anyway. The gate and the
+        source list have to agree on what counts as evidence.</p>
+        <p><strong>The 0.55 default is unchanged</strong>, and the
+        measurement did not force it.</p>
+        <h3
+        id="the-two-components-are-reported-separately-never-fused">3.
+        The two components are reported separately, never fused</h3>
+        <p><code>RetrievedChunk</code>, <code>LabelledSource</code>, the
+        API’s <code>Citation</code> and the harness report all carry
+        <code>similarity</code> and <code>lexicalMatches</code> side by
+        side. A single fused number would be one nobody can decompose,
+        and the interface needs the second component to say <em>why</em>
+        a weak-scoring protocol was cited.</p>
+        <h3 id="configuration">4. Configuration</h3>
+        <table>
+        <colgroup>
+        <col style="width: 33%" />
+        <col style="width: 33%" />
+        <col style="width: 33%" />
+        </colgroup>
+        <thead>
+        <tr class="header">
+        <th>property</th>
+        <th>default</th>
+        <th>argued from</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr class="odd">
+        <td><code>maintenance.query.lexical-weight</code></td>
+        <td><code>0.15</code></td>
+        <td>the measured spread of this corpus (below)</td>
+        </tr>
+        <tr class="even">
+        <td><code>maintenance.query.similarity-threshold</code></td>
+        <td><code>0.55</code></td>
+        <td><strong>unchanged</strong>, ADR-002</td>
+        </tr>
+        </tbody>
+        </table>
+        <p><code>0.15</code> is a <strong>ceiling on how much certainty
+        an exact code may buy</strong>. Same-machine chunk similarities
+        for a real question run about 0.30 at the bottom of a top-5 to
+        about 0.71 at the top, so 0.15 lifts an exact match several
+        places — enough to carry it into a top-k it would otherwise miss
+        — while a chunk at 0.30 still lands at 0.45 and cannot displace
+        a strong semantic match at 0.60+. Zero disables the signal and
+        restores pure-vector retrieval, which is what the regression
+        test uses to prove the two paths agree when a question carries
+        no term.</p>
+        <h2
+        id="alternatives-rejected-with-the-measurements">Alternatives
+        rejected, with the measurements</h2>
+        <h3
+        id="a-postgres-full-text-search-rejected-and-measured-rather-than-assumed">(a)
+        Postgres full-text search — rejected, and measured rather than
+        assumed</h3>
+        <p>Run against the real corpus on the development database:</p>
+        <div class="sourceCode" id="cb3"><pre
+        class="sourceCode sql"><code class="sourceCode sql"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>to_tsvector(<span class="st">&#39;german&#39;</span>, <span class="st">&#39;… KOM-04 …&#39;</span>)  <span class="op">-&gt;</span>  <span class="st">&#39;kom&#39;</span><span class="ch">:7</span> <span class="st">&#39;-04&#39;</span><span class="ch">:8</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>plainto_tsquery(<span class="st">&#39;german&#39;</span>,<span class="st">&#39;Was bedeutet KOM-04?&#39;</span>)  <span class="op">-&gt;</span>  <span class="st">&#39;bedeutet&#39;</span> &amp; <span class="st">&#39;kom&#39;</span> &amp; <span class="st">&#39;-04&#39;</span></span></code></pre></div>
+        <p><strong>The stemmer splits the code into two
+        lexemes</strong>, and <code>plainto_tsquery</code> ANDs in
+        <code>bedeutet</code>, which the protocol does not contain — so
+        the query matches <strong>nothing at all</strong>, and G13 fails
+        outright. <code>websearch_to_tsquery('german','KOM-04')</code>
+        does match the right protocol and only it — but only when the
+        query is reduced to the bare code first, which requires the same
+        term extraction this decision performs anyway. Full-text then
+        adds a stemmer between the reader and an exact string.</p>
+        <p>A second measurement made it worse:
+        <code>to_tsvector('german','Die Antriebstrommeln …')</code> does
+        <strong>not</strong> match
+        <code>plainto_tsquery('german','Antriebstrommel')</code>. German
+        compound plurals are not related to their singular by the
+        snowball stemmer, and this corpus is made of compounds. For
+        <em>exact-term</em> matching a stemmer is a liability, not an
+        asset.</p>
+        <p>It also costs a <code>tsvector</code> column or index and a
+        migration, for a worse answer.</p>
+        <h3 id="b-pg_trgm-rejected">(b) <code>pg_trgm</code> —
+        rejected</h3>
+        <p>Available (1.6) but not installed, so it needs an extension
+        and a migration. Trigram similarity on a five-character code is
+        noisy — <code>KOM-04</code> and <code>KOM-05</code> differ by
+        one trigram — and it answers “how similar are these strings”,
+        which is not the question being asked. Containment of a term the
+        user literally typed is exact, needs no extension, and is
+        trivially explainable.</p>
+        <h3 id="c-reciprocal-rank-fusion-rejected-on-the-gate">(c)
+        Reciprocal Rank Fusion — rejected on the gate</h3>
+        <p>RRF needs no calibrated weights, which is its attraction. It
+        also <strong>discards score magnitude</strong>, and magnitude is
+        precisely what the Mode A/B gate reads. Adopting RRF would have
+        meant inventing a new gate — a far larger change than this one —
+        and would have thrown away ADR-002’s calibration to solve a
+        ranking problem the corpus does not have: recall@1 was already
+        94%, and G13’s protocol was already first.</p>
+        <h2 id="results-measured-on-the-golden-set">Results, measured on
+        the golden set</h2>
+        <p>Real provider, real corpus, <code>RetrievalBaselineIT</code>.
+        Before is #62’s committed baseline.</p>
+        <table>
+        <thead>
+        <tr class="header">
+        <th>metric</th>
+        <th>before</th>
+        <th>after</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr class="odd">
+        <td>recall@1</td>
+        <td>16/17 (94%)</td>
+        <td>16/17 (94%)</td>
+        </tr>
+        <tr class="even">
+        <td>recall@3</td>
+        <td>16/17 (94%)</td>
+        <td>16/17 (94%)</td>
+        </tr>
+        <tr class="odd">
+        <td>recall@5</td>
+        <td>17/17 (100%)</td>
+        <td>17/17 (100%)</td>
+        </tr>
+        <tr class="even">
+        <td>MRR</td>
+        <td>0.9529</td>
+        <td>0.9529</td>
+        </tr>
+        <tr class="odd">
+        <td>Mode A/B decision correct</td>
+        <td>18/19 (95%)</td>
+        <td><strong>19/19 (100%)</strong></td>
+        </tr>
+        <tr class="even">
+        <td>Mode B correctly ungrounded</td>
+        <td>2/2</td>
+        <td><strong>2/2</strong></td>
+        </tr>
+        <tr class="odd">
+        <td><strong>Answered fully correctly</strong></td>
+        <td><strong>18/19 (95%)</strong></td>
+        <td><strong>19/19 (100%)</strong></td>
+        </tr>
+        </tbody>
+        </table>
+        <table>
+        <thead>
+        <tr class="header">
+        <th>case</th>
+        <th>before, mode correct</th>
+        <th>after, mode correct</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr class="odd">
+        <td>plain</td>
+        <td>8/8</td>
+        <td>8/8</td>
+        </tr>
+        <tr class="even">
+        <td>e47-set</td>
+        <td>1/1</td>
+        <td>1/1</td>
+        </tr>
+        <tr class="odd">
+        <td>cross-lingual</td>
+        <td>2/2</td>
+        <td>2/2</td>
+        </tr>
+        <tr class="even">
+        <td><strong>exact-term</strong></td>
+        <td><strong>2/3</strong></td>
+        <td><strong>3/3</strong></td>
+        </tr>
+        <tr class="odd">
+        <td>mode-b</td>
+        <td>2/2</td>
+        <td><strong>2/2</strong></td>
+        </tr>
+        <tr class="even">
+        <td>v12-seed</td>
+        <td>3/3</td>
+        <td>3/3</td>
+        </tr>
+        </tbody>
+        </table>
+        <p><strong>Recall and MRR are identical</strong> — the ranking
+        did not move, which is the intended result: the weight is a
+        ceiling, and on this corpus the exact matches were already
+        first. Nothing that was correct became incorrect.</p>
+        <p><strong>Latency.</strong> <code>EXPLAIN ANALYZE</code> on the
+        development corpus, machine-filtered:</p>
+        <table>
+        <thead>
+        <tr class="header">
+        <th>query shape</th>
+        <th>execution</th>
+        <th>planning</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr class="odd">
+        <td>before (pure vector)</td>
+        <td>0.699 ms</td>
+        <td>0.288 ms</td>
+        </tr>
+        <tr class="even">
+        <td>after, with terms</td>
+        <td>0.588 ms</td>
+        <td>0.436 ms</td>
+        </tr>
+        <tr class="odd">
+        <td>after, no terms (16 of 19 questions)</td>
+        <td>0.604 ms</td>
+        <td>0.542 ms</td>
+        </tr>
+        </tbody>
+        </table>
+        <p>Indistinguishable at this corpus size — run-to-run noise
+        exceeds the difference — and four orders of magnitude inside
+        NFR-4’s 30 s. <strong>A finding worth recording: both plans are
+        a sequential scan with a top-N heapsort, before and
+        after.</strong> The HNSW index was not serving this query even
+        before the change, because the machine filter makes a filtered
+        scan cheaper across 182 chunks. So the expression
+        <code>ORDER BY</code> costs no index that was in use — <em>at
+        this size</em>. On a corpus large enough for HNSW to win, an
+        expression <code>ORDER BY</code> cannot use it, and that is the
+        limit at which this design must be re-taken.</p>
+        <h2 id="honest-limits">Honest limits</h2>
+        <ul>
+        <li><strong>The gate widened, and that is a real trade.</strong>
+        An answer can now be grounded on a chunk scoring 0.4288 — text
+        the embedding considers weakly related — because the reader’s
+        own code is in it. The defence is that the term is the user’s,
+        and that the two components are shown separately so the
+        interface can say which one grounded the answer.</li>
+        <li><strong>One question, one corpus.</strong> G13 is a single
+        case in a 19-question set over 165 synthetic protocols, and
+        every expectation in that set is still
+        <code>ratified: false</code> (ADR-008). This decision is
+        evidenced, not proven.</li>
+        <li><strong>The generation layer is the remaining variance, not
+        retrieval.</strong> Retrieval and the gate are deterministic:
+        measured 10 consecutive runs of G13, the gate opened every time
+        with identical numbers (0.4288, one lexical match). The
+        <em>answer</em> step declined on 2 of 17 observed calls,
+        returning no claims and falling through to Mode B — the model
+        applying its own rule 4 (“if the sources do not answer the
+        question, return an empty list”) to a definitional question
+        backed by a single weak source. Committed baselines therefore
+        show G13 as OK in some runs and MISS in others; two of three
+        harness runs during this work showed MISS. <strong>This is
+        generation variance at temperature 0.1 and is outside ADR-009’s
+        scope</strong>, but it is the honest reason the “19/19” figure
+        above is a typical result rather than a guaranteed one.</li>
+        <li><strong>Substring, not word-boundary, matching.</strong>
+        <code>E-47</code> would match a hypothetical <code>E-470</code>.
+        No such pair exists in this corpus, and the failure mode is a
+        spurious <em>grounding</em>, never a spurious refusal.</li>
+        <li><strong>A question mentioning a code that the corpus only
+        mentions in passing</strong> will now ground on it. That is the
+        intended behaviour and also its sharpest edge.</li>
+        </ul>
+        <h2 id="consequences">Consequences</h2>
+        <p>The exact-term gap the baseline identified is closed on the
+        measured set, at the cost of one bounded config property, one
+        SQL sub-select and a widened gate whose widening direction is
+        provably one-way. <code>0.55</code> still means what ADR-002
+        measured. The reranker stays dropped (#62): recall@1 is 94% and
+        the one question at rank 2–5 is already answered correctly, so
+        there is still nothing for it to reorder.</p>
+        <p>Remaining for v1.3.0: the threshold decision — the sweep in
+        <code>baseline.md</code> now shows
+        <code>0.48</code>–<code>0.55</code> as a flat plateau with no
+        wrongly-grounded Mode B question — and the tag.</p>
+      </article>
+    </main>
+
+        <nav class="toc" aria-label="On this page">
+      <p class="toc-title">On this page</p>
+      <ul>
+      <li><a
+      href="#adr-009-ground-an-answer-on-an-exact-term-without-re-calibrating-the-threshold"
+      id="toc-adr-009-ground-an-answer-on-an-exact-term-without-re-calibrating-the-threshold">ADR-009:
+      Ground an answer on an exact term, without re-calibrating the
+      threshold</a>
+      <ul>
+      <li><a href="#context" id="toc-context">Context</a></li>
+      <li><a href="#decision" id="toc-decision">Decision</a>
+      <ul>
+      <li><a
+      href="#the-lexical-signal-literal-term-containment-in-the-same-sql-statement"
+      id="toc-the-lexical-signal-literal-term-containment-in-the-same-sql-statement">1.
+      The lexical signal: literal term containment, in the same SQL
+      statement</a></li>
+      <li><a
+      href="#the-gate-vector-similarity-keeps-its-meaning-the-term-is-a-separate-override"
+      id="toc-the-gate-vector-similarity-keeps-its-meaning-the-term-is-a-separate-override">2.
+      The gate: vector similarity keeps its meaning; the term is a
+      separate override</a></li>
+      <li><a
+      href="#the-two-components-are-reported-separately-never-fused"
+      id="toc-the-two-components-are-reported-separately-never-fused">3.
+      The two components are reported separately, never fused</a></li>
+      <li><a href="#configuration" id="toc-configuration">4.
+      Configuration</a></li>
+      </ul></li>
+      <li><a href="#alternatives-rejected-with-the-measurements"
+      id="toc-alternatives-rejected-with-the-measurements">Alternatives
+      rejected, with the measurements</a>
+      <ul>
+      <li><a
+      href="#a-postgres-full-text-search-rejected-and-measured-rather-than-assumed"
+      id="toc-a-postgres-full-text-search-rejected-and-measured-rather-than-assumed">(a)
+      Postgres full-text search — rejected, and measured rather than
+      assumed</a></li>
+      <li><a href="#b-pg_trgm-rejected" id="toc-b-pg_trgm-rejected">(b)
+      <code>pg_trgm</code> — rejected</a></li>
+      <li><a href="#c-reciprocal-rank-fusion-rejected-on-the-gate"
+      id="toc-c-reciprocal-rank-fusion-rejected-on-the-gate">(c)
+      Reciprocal Rank Fusion — rejected on the gate</a></li>
+      </ul></li>
+      <li><a href="#results-measured-on-the-golden-set"
+      id="toc-results-measured-on-the-golden-set">Results, measured on
+      the golden set</a></li>
+      <li><a href="#honest-limits" id="toc-honest-limits">Honest
+      limits</a></li>
+      <li><a href="#consequences"
+      id="toc-consequences">Consequences</a></li>
+      </ul></li>
+      </ul>
+    </nav>
+      </div>
+
+  <footer class="footer">
+    maintenance-assistant · Generated by the docs pipeline
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <script src="/maintenance-assistant/assets/docs.js"></script>
+</body>
+</html>

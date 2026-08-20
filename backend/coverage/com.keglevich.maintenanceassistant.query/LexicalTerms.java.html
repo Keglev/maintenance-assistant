@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>LexicalTerms.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">maintenance-assistant</a> &gt; <a href="index.source.html" class="el_package">com.keglevich.maintenanceassistant.query</a> &gt; <span class="el_source">LexicalTerms.java</span></div><h1>LexicalTerms.java</h1><pre class="source lang-java linenums">package com.keglevich.maintenanceassistant.query;
+
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Locale;
+
+/**
+ * The exact terms in a question — alarm codes, part numbers — that a dense vector cannot carry.
+ *
+ * &lt;p&gt;&lt;b&gt;The rule: a term must contain at least one letter AND at least one digit.&lt;/b&gt; That single
+ * condition is what makes the lexical signal safe to add, and it is worth stating why rather than
+ * treating it as a heuristic.
+ *
+ * &lt;p&gt;Ordinary German or English prose cannot satisfy it. {@code Dosierung}, {@code Füllmenge},
+ * {@code Betriebsurlaub} carry no digits; {@code 400}, {@code 250}, {@code 30} carry no letters. So
+ * a question that is merely a description — the shape of every question the corpus deliberately
+ * cannot answer — produces no terms at all, gets no lexical signal, and is routed exactly as it is
+ * today. &lt;b&gt;Measured on the golden set before this class existed: of 19 questions, 3 produce terms
+ * ({@code E-47}, {@code SV0410}, {@code KOM-04}), and both Mode B questions produce none.&lt;/b&gt; The
+ * anti-hallucination guarantee is preserved by construction rather than by tuning.
+ *
+ * &lt;p&gt;Bare numbers are excluded on purpose even though {@code &quot;Antriebstrommel 400 mm&quot;} is a real
+ * part reference: {@code 400} also appears as a pressure, a duration, a count and a year across this
+ * corpus, so matching it would fire the signal on questions that merely mention a quantity. The cost
+ * is that a pure part-number question is answered by the vector alone, which is what it already
+ * does — G14 clears the gate at 0.6000 without help.
+ *
+ * &lt;p&gt;The character set is restricted to letters, digits and {@code -}, which also makes the terms
+ * safe to hand to {@code ILIKE}: neither {@code %} nor {@code _} can survive extraction, so no term
+ * can become a wildcard. The retrieval query still binds them as a parameter; this is the second
+ * line of defence, not the first.
+ */
+final class LexicalTerms {
+
+    /** Below three characters a &quot;code&quot; is noise; above 32 it is not a code. */
+    private static final int MIN_LENGTH = 3;
+    private static final int MAX_LENGTH = 32;
+
+    /**
+     * At most this many terms per question.
+     *
+     * &lt;p&gt;A bound rather than a limit anyone should hit: it stops a pasted log line from turning one
+     * question into a scan with fifty {@code ILIKE}s, and the retrieval cost stays predictable.
+     */
+    private static final int MAX_TERMS = 5;
+
+    private LexicalTerms() {
+    }
+
+    /**
+     * The code-like terms of a question, lower-cased, de-duplicated, in the order they appear.
+     *
+     * @return possibly empty — and empty is the common case, which is why the retrieval query has to
+     *         reduce exactly to its pre-hybrid form when it happens
+     */
+    static List&lt;String&gt; extract(String question) {
+<span class="fc bfc" id="L57" title="All 4 branches covered.">        if (question == null || question.isBlank()) {</span>
+<span class="fc" id="L58">            return List.of();</span>
+        }
+<span class="fc" id="L60">        LinkedHashSet&lt;String&gt; terms = new LinkedHashSet&lt;&gt;();</span>
+<span class="fc bfc" id="L61" title="All 2 branches covered.">        for (String raw : question.split(&quot;[^\\p{L}\\p{N}-]+&quot;)) {</span>
+<span class="fc" id="L62">            String term = trimSeparators(raw);</span>
+<span class="fc bfc" id="L63" title="All 2 branches covered.">            if (isCodeLike(term)) {</span>
+<span class="fc" id="L64">                terms.add(term.toLowerCase(Locale.ROOT));</span>
+            }
+<span class="fc bfc" id="L66" title="All 2 branches covered.">            if (terms.size() == MAX_TERMS) {</span>
+<span class="fc" id="L67">                break;</span>
+            }
+        }
+<span class="fc" id="L70">        return List.copyOf(terms);</span>
+    }
+
+    /**
+     * Joined by a space for the retrieval query, which splits it again with {@code string_to_array}.
+     *
+     * &lt;p&gt;A space is unambiguous because extraction cannot produce one, and passing a single bound
+     * String avoids handing the driver an array type — the terms never become part of the statement
+     * text.
+     */
+    static String joined(List&lt;String&gt; terms) {
+<span class="fc" id="L81">        return String.join(&quot; &quot;, terms);</span>
+    }
+
+    private static String trimSeparators(String raw) {
+<span class="fc" id="L85">        int from = 0;</span>
+<span class="fc" id="L86">        int to = raw.length();</span>
+<span class="pc bpc" id="L87" title="1 of 4 branches missed.">        while (from &lt; to &amp;&amp; raw.charAt(from) == '-') {</span>
+<span class="nc" id="L88">            from++;</span>
+        }
+<span class="pc bpc" id="L90" title="1 of 4 branches missed.">        while (to &gt; from &amp;&amp; raw.charAt(to - 1) == '-') {</span>
+<span class="nc" id="L91">            to--;</span>
+        }
+<span class="fc" id="L93">        return raw.substring(from, to);</span>
+    }
+
+    private static boolean isCodeLike(String term) {
+<span class="pc bpc" id="L97" title="1 of 4 branches missed.">        if (term.length() &lt; MIN_LENGTH || term.length() &gt; MAX_LENGTH) {</span>
+<span class="fc" id="L98">            return false;</span>
+        }
+<span class="fc" id="L100">        boolean letter = false;</span>
+<span class="fc" id="L101">        boolean digit = false;</span>
+<span class="fc bfc" id="L102" title="All 2 branches covered.">        for (int i = 0; i &lt; term.length(); i++) {</span>
+<span class="fc" id="L103">            char c = term.charAt(i);</span>
+<span class="fc" id="L104">            letter |= Character.isLetter(c);</span>
+<span class="fc" id="L105">            digit |= Character.isDigit(c);</span>
+        }
+<span class="fc bfc" id="L107" title="All 4 branches covered.">        return letter &amp;&amp; digit;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

@@ -154,6 +154,28 @@
   color: var(--c-mode-b-ink);
 }
 
+/*
+ * "Name the code if you have one" — SUBORDINATE, and every property here is chosen to keep it so.
+ *
+ * The hint ink rather than --c-mode-b-ink: the amber above it is a claim about the ANSWER, and a
+ * tip about how to phrase the next question is not part of that claim. Borrowing the amber would
+ * fold a piece of advice into the warning and make the block say two things in one voice. The hint
+ * token is also a deliberate neutral for exactly this reason (see styles.css), so it cannot be
+ * mistaken for the mode semantics NFR-2 rests on.
+ *
+ * Normal weight against the explanation's 600, --t-sm, and no icon: three signals that this is an
+ * aside. Measured on --c-mode-b-soft, which is the ground it actually sits on rather than the page:
+ * 5.54:1 light, 6.19:1 dark, both clear of AA.
+ */
+.answer-tip {
+  /* No top margin of its own: the explanation's --s-4 above it already sets the gap, and adding a
+     second one here would be two rules describing one distance. */
+  margin: 0 0 var(--s-4);
+  font-size: var(--t-sm);
+  line-height: var(--lh-normal);
+  color: var(--c-ink-hint);
+}
+
 .steps {
   margin: 0;
   padding-left: var(--s-5);

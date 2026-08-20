@@ -876,6 +876,13 @@ rather than given one afterwards.
    - All three MEASURED, NOT GUESSED, in the ADR-002 tradition.
 
 4. REFACTOR PHASE — maintenance track, no release
+   SURVEY FIRST, FIX SECOND (Carlos, 2026-08-20). Nothing in this
+   phase is repaired before it is measured and written down. The
+   review runs in three parts — test coverage, structure and code,
+   configuration and docs — each producing a READ-ONLY survey that
+   fixes nothing, and only then a list of small PRs. A refactor that
+   starts with an edit is a preference; one that starts with a
+   measurement is maintenance.
    - Structure, code and test review for BACKEND AND FRONTEND with
      explicit metrics: file line counts, methods per class/component,
      lines per method, comment coverage and quality (javadoc on the
@@ -885,6 +892,78 @@ rather than given one afterwards.
      here.
    - ZERO BEHAVIOUR CHANGE. Real refactors found here become their own
      small PRs rather than riding along with the review.
+   THE TARGET IS 85% on statements, branches (INCLUDING missed
+   branches) and functions, both stacks. The figure that counts is the
+   one CI publishes to gh-pages, not a local run.
+   THE GROUND RULE: docs/REFACTOR-STANDARDS.txt lives in the repo
+   before the first fix PR opens, so that "what good looks like" is
+   reviewable rather than remembered.
+   BACK-TO-DOCS NAVIGATION belongs to this phase: every published
+   surface carries the same anchor home.
+
+   CORRECTION 2026-08-20 — AN EARLIER VERSION OF THIS PLAN WAS WRONG
+   ABOUT THE LIVE API. It said to record the ABSENCE of back-to-docs
+   navigation on the deployed Swagger UI. IT IS PRESENT, and has been
+   since docs/swagger-visibility (2026-08-13): the OpenAPI
+   info.description carries "← Back to the application" and
+   "Documentation site", verified on the production /v3/api-docs, with
+   /swagger-ui answering 200. The live API needs nothing. Errors in
+   the record get corrected in the record, not quietly dropped.
+
+   PART 1 — TEST COVERAGE SURVEY, 2026-08-20, measured on 09d8b57 (#69)
+   from the CI-published reports. Frontend: statements 94.63, lines
+   95.52, branches 86.76 — PASSING — and functions 84.38, MISSING THE
+   TARGET BY THREE COVERED FUNCTIONS. Backend: instructions 74.95,
+   lines 75.72, methods 83.21, branches 54.34.
+   THE BACKEND IS TWO PROBLEMS, NOT ONE. Excluding the five classes
+   that no CI test can reach — the two IONOS provider clients with
+   their response records, and the three flag-gated runners — the same
+   figures read 88.52 / 89.19 / 93.33, and only branches stay bad at
+   66.30. So the headline number is dominated by code CI never
+   executes, and the real campaign underneath it is BRANCHES: 184
+   missed in tested code, 150 of them in fourteen classes, led by
+   ProtocolChunker at 26 of 42. The merge/split/overlap rules are the
+   retrieval-critical logic in this project and half their branches
+   are unexercised.
+   THE FRONTEND GAP IS ONE VIEW: moderation.ts and its template hold
+   32 of the 65 missed functions and 36 missed branches. Covering that
+   view alone clears the target with margin.
+
+   CARLOS'S RULINGS ON THE SURVEY, 2026-08-20:
+   - THE PROVIDER CLIENTS GET REAL TESTS, not a reporting exclusion.
+     Their coverage today lives entirely behind key-gated ITs that CI
+     skips, which means the most surprising measured behaviour in the
+     project — the Jackson-3 typed-record binding, the error mapping,
+     the Qwen reasoning_effort and encoding_format rules — is
+     invisible to every published figure. Offline HTTP stubs assert
+     all of it without a provider. Worth ~980 of the 2,343 missed
+     instructions.
+   - CORPUS SEED RUNNER GETS A TEST; its idempotency is a claim, and a
+     claim is worth a test. The other two runners (69 and 23
+     instructions) ARE THIN WIRING and are waived, with entries in the
+     waiver register rather than a silent exclusion.
+   - THRESHOLDS BECOME A RATCHET GATE once the targets are met —
+     jacoco check and vitest thresholds at the achieved numbers, so a
+     regression fails the build. NOT BEFORE: 85% is advisory today,
+     and arming the gate first would only break CI. Today neither
+     stack enforces anything, which is worth saying plainly.
+
+   THE PR LIST, IN ORDER:
+   PR-0 the standards files and this plan text (blocks the rest),
+   PR-1 the back-to-docs anchor on the three gh-pages surfaces that
+   lack it (backend coverage, frontend coverage, Compodoc — the
+   Redocly API docs already have it, injected at build time),
+   PR-2 the frontend moderation view, which clears that stack alone,
+   PR-3 the offline provider-client tests,
+   PR-4 the branch campaign, probably two or three PRs, starting at
+   ProtocolChunker,
+   PR-5 the seed-runner test and the two waiver entries,
+   PR-6 the ratchet gate.
+
+   CARRIED OUT OF PART 1, NOT LOST: the live OpenAPI advertises
+   servers[0].url as http://maintenance.smartsupply.com.de — springdoc
+   deriving the server behind the proxy, not a deployment fault.
+   Belongs to the Part 3 configuration audit.
 
 5. PHASE 5 — EVOLUTION CANDIDATES (unchanged list, optional):
    similar-machine search, OCR, downtime stats, PDF export (generation,

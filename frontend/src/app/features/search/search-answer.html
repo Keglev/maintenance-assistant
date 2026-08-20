@@ -95,6 +95,15 @@
       </p>
       <p class="answer-explanation">{{ t().modeB.explanation }}</p>
 
+      <!-- ONE LINE, AND IT MEETS THE LAZY QUERY AT THE MOMENT IT HAPPENS.
+           Mode B is exactly when a reader has typed too little and is looking at the consequence,
+           so this is the cheapest place in the application to say what would have worked. It is
+           not a warning and not a gate: no role, no icon, hint ink rather than the amber around
+           it, so it reads as an aside from the interface rather than a second complaint about the
+           answer. A validation gate was considered and rejected (2026-08-20) — it would refuse
+           "e-47", which works. -->
+      <p class="answer-tip" data-testid="mode-b-tip">{{ t().modeB.tip }}</p>
+
       @if (approvedOnly()) {
         <!-- THE "EMPTY STATE" OF THE FACET, and it is a Mode B answer rather than an empty list:
              narrowing retrieval to approved protocols can leave nothing above the threshold, and the

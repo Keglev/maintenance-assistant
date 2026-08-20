@@ -621,14 +621,60 @@ describe('Search', () => {
     expect(element.querySelector('[data-testid="question-hint"]')).toBeNull();
 
     // It lives here now, worked out as good/weak pairs and beside the form rather than inside it.
+    // 'Kompressor startet nicht' was the first good example until 2026-08-20, when the list was
+    // rebuilt around the code rule; the full-sentence category it stood for is still here.
     const examples = element.querySelector('[data-testid="search-help-examples"]');
-    expect(examples?.textContent).toContain('Kompressor startet nicht');
+    expect(examples?.textContent).toContain('Presse kommt nicht auf Druck');
     expect(examples?.textContent).toContain('frei');
 
     // The textarea keeps its placeholder, which is a different job: an example of the SHAPE of a
     // question, in the field, gone at the first keystroke.
     const question = element.querySelector('[data-testid="question-input"]') as HTMLTextAreaElement;
     expect(question.getAttribute('placeholder')).toContain('E-47');
+  });
+
+  /**
+   * THE PANEL MUST STATE THE RULE THE RETRIEVAL CODE ACTUALLY IMPLEMENTS.
+   *
+   * Until 2026-08-20 it taught that a single word can never work. ADR-009 falsified that — a bare
+   * "E-47" returns a grounded answer, because LexicalTerms matches any term carrying at least one
+   * letter AND one digit — and Carlos's v1.3.0 drill found the panel contradicting the running
+   * system. This test exists so the panel cannot drift out of agreement again silently: it pins the
+   * BOTH halves of the distinction, because a panel that mentions codes but drops the generic-word
+   * half would teach that any single word works, which is the opposite error.
+   */
+  it('teaches that a bare code works and a bare generic word does not, in both languages', async () => {
+    const fixture = await render();
+    const element = fixture.nativeElement as HTMLElement;
+    const panel = element.querySelector('[data-testid="search-help"]');
+
+    // The code half — stated as the rule, and shown as an example a reader can copy.
+    expect(panel?.textContent).toContain('wortgenau');
+    expect(panel?.textContent).toContain('Buchstaben UND Ziffern');
+    expect(panel?.textContent).toContain('SV0410');
+    expect(element.querySelector('[data-testid="search-help-examples"]')?.textContent).toContain(
+      'E-47',
+    );
+
+    // The generic-word half, still true and still the more common mistake.
+    expect(panel?.textContent).toContain('ganze kurze Sätze schlagen einzelne Wörter');
+
+    // And the claim the live system disproved is gone rather than merely softened.
+    expect(panel?.textContent).not.toContain('hat nichts, womit sie vergleichen kann');
+  });
+
+  it('teaches the same distinction in English', async () => {
+    TestBed.inject(I18nService).use('en');
+    const fixture = await render();
+    const panel = (fixture.nativeElement as HTMLElement).querySelector(
+      '[data-testid="search-help"]',
+    );
+
+    expect(panel?.textContent).toContain('word for word');
+    expect(panel?.textContent).toContain('letters AND digits');
+    expect(panel?.textContent).toContain('SV0410');
+    expect(panel?.textContent).toContain('whole short sentences beat single words');
+    expect(panel?.textContent).not.toContain('nothing to compare it against');
   });
 
   it('shows the similarity as a percentage a reader can compare', async () => {
@@ -753,6 +799,47 @@ describe('Search', () => {
     expect(element.querySelector('[data-testid="sources"]')).toBeNull();
     expect(element.querySelector('[data-testid="source-link"]')).toBeNull();
     expect(element.querySelector('[data-testid="citation-marker"]')).toBeNull();
+  });
+
+  /**
+   * THE TIP LINE, and why it is asserted rather than left to the eye.
+   *
+   * Mode B is the moment a lazy query shows its consequence, and after ADR-009 there is something
+   * useful to say at exactly that moment: name the code, because codes are matched literally. The
+   * line is deliberately quiet, which is also what makes it easy to delete by accident — a quiet
+   * line looks like decoration to anyone tidying this template later.
+   *
+   * It is asserted on the MODE B branch only. On a grounded answer the advice is noise: the reader
+   * already got what they came for, and telling them how to have asked better is a rebuke.
+   */
+  it('offers the code tip on an ungrounded answer, and only there', async () => {
+    const fixture = await render();
+    const element = await ask(fixture, MODE_B);
+
+    const tip = element.querySelector('[data-testid="mode-b-tip"]');
+    expect(tip?.textContent).toContain('Fehlercode');
+    expect(tip?.textContent).toContain('wortgenau');
+
+    // No role and no live region: this is an aside from the interface, not a second complaint about
+    // the answer, and a Mode B block already carries its own warning.
+    expect(tip?.getAttribute('role')).toBeNull();
+  });
+
+  it('does not offer the code tip on a grounded answer', async () => {
+    const fixture = await render();
+    const element = await ask(fixture, MODE_A);
+
+    expect(element.querySelector('[data-testid="mode-b-tip"]')).toBeNull();
+  });
+
+  it('translates the code tip', async () => {
+    TestBed.inject(I18nService).use('en');
+    const fixture = await render();
+    const element = await ask(fixture, MODE_B);
+
+    expect(element.querySelector('[data-testid="mode-b-tip"]')?.textContent).toContain(
+      'word for word',
+    );
   });
 
   it('renders the ungrounded steps as a numbered list', async () => {

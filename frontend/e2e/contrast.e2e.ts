@@ -291,35 +291,61 @@ for (const scheme of SCHEMES) {
     });
 
     /**
-     * A DEFECT THIS SUITE FOUND IN EXISTING CODE, on its first complete run.
+     * A DEFECT THIS SUITE FOUND IN EXISTING CODE, on its first complete run — AND CLOSED.
      *
-     * `.footer-note` — the "Demo, synthetic data" line at the foot of every signed-in page — uses
-     * `--c-ink-faint` (#7c8794), which measures 3.65:1 on the light surface. Below AA for body
-     * text. The dark palette is fine at 6.1:1, so this is the #47 shape exactly: one scheme correct,
-     * the other not, and nothing in the code to look at because the token is applied on purpose.
+     * `.footer-note` — the "Demo, synthetic data" line at the foot of every signed-in page —
+     * measured 3.65:1 on the light surface. It carried a `test.fail()` marker from the day it was
+     * found until the day it was fixed, so the ratio was measured on every run and the build was
+     * always one token change away from going red. That day was 2026-08-20 and the marker is gone:
+     * this is now a plain assertion, and a plain assertion is the only correct end state for one.
      *
-     * NOT FIXED HERE, DELIBERATELY. This PR builds the test foundation; changing `--c-ink-faint`
-     * touches the tagline, the eyebrow, `.optional` and disabled button text as well, and that is a
-     * design pass with its own drill — it is parked on the v1.1.1 list in PROJECT-PHASES.
+     * WHAT THE FIX TURNED OUT TO BE, and why this test grew rather than simply losing its marker:
+     * `.footer-note` was never one defect. `--c-ink-faint` is applied to five live-text surfaces
+     * and ALL FIVE were below AA in the light palette — the footer note at 3.65:1, the landing
+     * eyebrow at 3.34:1, the machine plate's labels at 3.05:1, `.optional` and `.example-machine`
+     * at 3.65:1. Measuring one of them and calling the token fixed is how the other four would have
+     * come back. So every consumer is measured here, on the ground it is actually painted on.
      *
-     * `test.fail()` rather than a skip, and this is the point: the test RUNS, the ratio is measured
-     * every time, and the run goes RED the day someone fixes the token. A known defect that cannot
-     * rot into a forgotten one, and a marker that deletes itself by failing.
+     * The disabled surfaces are NOT here, and that is the token split rather than an omission:
+     * `.btn[disabled]` and `input:disabled` moved to `--c-ink-disabled`, which is exempt under
+     * WCAG 2.2 SC 1.4.3 (inactive user interface components) and where low contrast is the message.
+     * Asserting AA on them would encode a requirement that does not exist and forbid one that does.
      */
-    test('KNOWN DEFECT: the footer demo notice is below AA in light', async ({ page }) => {
-      test.fail(
-        scheme === 'light',
-        '.footer-note is --c-ink-faint at 3.65:1 on the light surface. Parked as a v1.1.1 polish ' +
-          'candidate; when it is fixed this test starts passing and must be deleted.',
-      );
+    test('every faint-ink surface clears AA', async ({ page }) => {
+      // The landing page first: three of the five consumers are only reachable signed out.
+      await page.goto('/');
+      await expect(page.locator('.eyebrow')).toBeVisible();
 
+      for (const surface of [
+        { selector: '.eyebrow', what: 'the landing eyebrow (on the canvas)' },
+        { selector: '.plate-rows dt', what: 'a machine-plate label (on the plate gradient)' },
+        { selector: '.example-machine', what: 'an example card machine label (on a card)' },
+      ]) {
+        const measured = await contrastReport(page, surface.selector);
+        expect(
+          measured.ratio,
+          `${surface.what} (${surface.selector}) is ${measured.color} on ` +
+            `${measured.background} = ${measured.ratio.toFixed(2)}:1 in ${scheme}`,
+        ).toBeGreaterThanOrEqual(AA_NORMAL);
+      }
+
+      // Then the two that need a session: the footer note on every view, and the "(optional)" label
+      // that only the upload form renders.
       await signIn(page, 'techniker');
-      const measured = await contrastReport(page, '.footer-note');
-      expect(
-        measured.ratio,
-        `.footer-note is ${measured.color} on ${measured.background} = ` +
-          `${measured.ratio.toFixed(2)}:1 in ${scheme}`,
-      ).toBeGreaterThanOrEqual(AA_NORMAL);
+      await page.getByTestId('nav-upload').click();
+      await expect(page.locator('.optional')).toBeVisible();
+
+      for (const surface of [
+        { selector: '.footer-note', what: 'the footer demo notice (on the footer surface)' },
+        { selector: '.optional', what: 'the "(optional)" field label (on the form card)' },
+      ]) {
+        const measured = await contrastReport(page, surface.selector);
+        expect(
+          measured.ratio,
+          `${surface.what} (${surface.selector}) is ${measured.color} on ` +
+            `${measured.background} = ${measured.ratio.toFixed(2)}:1 in ${scheme}`,
+        ).toBeGreaterThanOrEqual(AA_NORMAL);
+      }
     });
   });
 }

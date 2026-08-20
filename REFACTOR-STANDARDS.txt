@@ -1,0 +1,270 @@
+SIZE, STYLE AND REFACTOR STANDARDS — maintenance-assistant
+Repo: https://github.com/Keglev/maintenance-assistant
+(This file, DECISIONS.txt and PROJECT-PHASES.txt are handed to every AI
+session as context. This one is NORMATIVE: where a review, a survey or a
+PR disagrees with it, this file wins until the owner rules otherwise.)
+
+PROVENANCE — adapted 2026-08-20 from the portable template distilled
+from the StockEase standards (rev 14 / template v2). The bands are
+adjusted to this project's stacks; the MECHANISMS are kept in substance,
+because the mechanisms are the part that earned their keep. The
+site-facing companion is docs/refactor-standards.md, which explains the
+mechanisms in prose and does NOT repeat the tables below — this file is
+the single place a band or a waiver is edited.
+
+=====================================================================
+CROSS-CUTTING PRINCIPLES
+=====================================================================
+- Size limits count CODE LINES ONLY: comments, doc comments and blanks
+  excluded. A shebang counts as code — it is functional, not
+  explanatory. A file under its code-line target is WITHIN regardless of
+  how much documentation it carries; the counting rule excludes prose
+  precisely so documentation never creates split pressure.
+- LINE COUNT IS THE LAST REASON TO SPLIT. Split on: more than one
+  responsibility, more than one abstraction level, unrelated
+  change-reasons, more than ~3 injected dependencies, 3+ repeated
+  patterns. Parallel operations (CRUD symmetry, one case per endpoint)
+  are NOT a split reason — cases that read alike because the operations
+  are genuinely parallel belong together.
+- Every band has a target range and an alarm. Above target, below alarm
+  = WATCHED (recorded, no action). Above alarm = a finding: split, or
+  waive.
+- WAIVER MECHANISM: an above-alarm file that survives the split criteria
+  is waived with an in-file comment stating why the length is the rule
+  working, plus an entry in the WAIVER REGISTER at the bottom of this
+  file (file, figure, band, date, reason). WAIVERS ARE GRANTED BY THE
+  OWNER, NEVER ASSUMED.
+- Comments explain WHY, never WHAT. Never comment self-evident code. A
+  header that restates obvious markup or code is a defect, not
+  documentation.
+- Deferred work: a TODO carries its backlog id at the site, tracked in a
+  backlog; the marker is removed by the PR that closes its entry.
+  Untracked bare TODOs are a finding.
+- Hard cap for NEW code: ~300 code lines per file. Retrofit old files
+  only when a pass already touches them.
+
+=====================================================================
+COUNTING METHODS (LOAD-BEARING)
+=====================================================================
+- Counters are VALIDATED before they are trusted: run every measuring
+  script against a known anchor whose answer is already established, and
+  report the validation next to the figure. Classic false counters:
+  substring greps that match a shorter token inside a longer one,
+  multi-line comments counted as code, comment markers inside strings,
+  regex literals read as strings.
+- Counts use exact tokens, not substrings; every stated total is
+  recomputed from its own parts; an empty grep also describes a command
+  that did not run — show the command.
+- Survey figures are provisional. THE PR THAT ACTS ON A SURVEY ROW
+  RE-MEASURES THAT ROW FIRST.
+- For coverage specifically, the anchor is the report's own headline: a
+  recomputation from the CSV or the lcov file is reported only after it
+  matches what index.html states.
+
+=====================================================================
+COVERAGE TARGETS
+=====================================================================
+- 85% on statements, branches (INCLUDING missed branches) and functions,
+  BOTH STACKS. Set by Carlos for the refactor phase, 2026-08-20.
+- "Statements" maps to istanbul statements on the frontend and to JaCoCo
+  INSTRUCTIONS AND LINES on the backend, both stated — JaCoCo has no
+  statement counter, and quoting only the friendlier of the two is how a
+  figure becomes a claim.
+- THE FIGURE THAT COUNTS IS THE ONE CI PUBLISHES TO gh-pages. A local
+  run is a working tool, not evidence.
+- Key-gated integration tests (LLM_API_KEY) DO NOT RUN IN CI and
+  therefore cover nothing as far as this target is concerned. Code whose
+  only tests are gated is UNCOVERED, and saying otherwise is the counter
+  lying about what it measured.
+- Enforcement is a RATCHET, armed only once the targets are met: jacoco
+  check and vitest thresholds at the achieved numbers, so a regression
+  fails the build. Arming it early would only break CI.
+
+=====================================================================
+BACKEND BANDS (JAVA / SPRING) — code lines, target (alarm)
+=====================================================================
+  Controller                   50-150  (>200); doc every endpoint past 200
+  Service                     100-250  (>300); service method <=20 (>30)
+  Repository                   20-80   (>150); native SQL for sanctioned
+                                       bypasses only; never repo-injects-repo
+  Entity                       30-100  (>150)
+  Config                       50-150  (>200)
+  Security                     50-200  (>300)
+  DTO / record                 20-80   (>120); mapping resolves in the service
+  Exception advice             10-50   (>100); status mapping concentrated
+                                       in ONE handler
+  Plain exception class         5-30   (>60)
+  Validation                   20-80   (>120)
+  Enum                         10-40   (>80)
+  Event listener               10-50   (>80)
+  Test: controller/integration    250  (>300)
+  Test: others                    150  (>200); test method <=20 code lines
+
+- Doc every public class and method; omit the author and version tags;
+  pick one exemplary file's prose as the register standard and raise
+  others TO it.
+- Test naming: method_state_expected. No doc comments on test methods.
+- Suppressions carry a same-line WHY; zero bare suppressions is the
+  enforced state.
+
+=====================================================================
+FRONTEND BANDS (TYPESCRIPT / ANGULAR) — code lines, target (alarm)
+=====================================================================
+  Component                    40-100  (>150)
+  Dialog                       50-120  (>160)
+  Page (routed view)           60-140  (>180)
+  Service                      40-120  (>160)
+  Signal store                 40-90   (>120)
+  Pipe / directive             10-40   (>80)
+  Guard / interceptor          10-50   (>80)
+  Utils                        20-80   (>120)
+  Template (.html)         soft 150    (>200); header comment at 40+ code lines
+  Function                     aim <40 (>75)
+  Spec: component/page        100-350  (>450)
+  Spec: service                40-150  (>200)
+  Fixtures modules             EXEMPT from bands
+
+- Class and service level doc (summary + WHY remark), not file headers,
+  because Compodoc publishes from the types.
+- Spec files carry a plain block comment naming the contract under test,
+  an out-of-scope note, and their SIBLING files when a suite is split.
+- Shell/card division: the shell owns fetches, derivations and error
+  surfacing; cards take inputs and emit only outputs that map to a shell
+  decision.
+- When a view grows past its band with per-domain state: extract
+  per-domain collaborators (component-provided injectables that die with
+  the view) rather than global stores — same lifecycle, no
+  refresh-semantics change.
+- i18n: one namespace per file per language, with a CI parity gate on
+  membership AND ordering. German is the review reference. NO IN-CODE
+  FALLBACKS.
+
+=====================================================================
+SCRIPTS AND WORKFLOWS
+=====================================================================
+- Shell scripts ~70 code lines; build-and-gate scripts (Node or shell,
+  invoked by CI, living inside the project they serve) 70-150 (>200);
+  the header states what it produces, how CI invokes it, and its failure
+  mode.
+- Workflow YAML ~150 code lines. Inline shell in a workflow longer than
+  five lines becomes a script.
+- EVERY PATH MUST BE GATED by the workflow that actually exercises it.
+  If branch protection requires a named check, a path ignored by the
+  main gate must be claimed by another workflow reporting that same
+  check name — a no-op job is the honest gate for a change that cannot
+  break anything. Maintain the paths and paths-ignore lists as
+  documented pairs, with the reasoning in the trigger comment.
+- CHECKS MUST FAIL LOUDLY. A check that passes for the wrong reason
+  (wrong directory, line-ending-blind comparison, a probe that never
+  ran) is discarded, not read as green.
+
+=====================================================================
+TEST CONDUCT
+=====================================================================
+- ZERO assertion changes on any spec move; bodies move verbatim. When a
+  split forces threading (a fixture parameter), prove identity: extract
+  every test body before and after, compare byte for byte, and report
+  the count.
+- NEW TESTS NEED VACUITY PROOFS: break the mechanism under test and
+  watch the test fail, then restore. One break proving two claims is
+  complete; a probe breaking something nothing claims proves nothing. An
+  absence assertion is paired with proof the intended path ran, or it
+  can pass for the wrong reason.
+- Storage and state isolation is EACH test file's own responsibility.
+  Accepted mechanisms: a clear registered inside the suite block; a
+  per-test setup helper that clears; a shared fixture whose clear counts
+  for all its consumers. Entry clears defend the file that owns them;
+  exit clears are the only cleanup the next file gets — a file that
+  writes shared state and never clears on exit is a finding even when
+  green. Do NOT trust root-level global hooks under coverage or shared
+  workers.
+- Fixtures modules: shared helpers earn membership at two or more
+  consuming files; a fixtures module may ALSO exist at a single consumer
+  solely to relieve an above-alarm spec of scaffolding (stubs,
+  constants, TestBed config) — but never tests, assertions, or helpers
+  that decide what a case asserts. Fixtures never depend on their
+  consumers. Shared mutable or uniqueness-bearing state (counters,
+  sequences) is mandatory fixtures content when tests commit data.
+- Integration-test splits keep IDENTICAL context configuration across
+  the new files so Spring's context cache serves them all. On this
+  project that includes the Testcontainers configuration: a differing
+  container definition is a second context and a second startup.
+- MESSAGE ASSERTIONS FOLLOW LAYER OWNERSHIP. Service-level tests assert
+  the exception type and its message (where the error handler passes
+  messages through, the sentence IS the wire contract; elsewhere it is
+  the only observable a unit test has). Web-slice tests own the
+  envelope: HTTP status, the message exactly as the wire carries it
+  (including any handler prefix), and the machine code where one exists
+  — on this project the machine codes are real contract
+  (PROTOCOL_IDENTITY_LOCKED, EMPTY_FILE, UNSUPPORTED_TYPE, NOT_TEXT) and
+  a test that pins only the status is under-asserting. Neither "never
+  assert message text" nor "the message is never part of the contract"
+  survives contact with a handler that passes messages through — READ
+  THE HANDLER BEFORE WRITING THE RULE. Where an exception SUBTYPE
+  carries contract weight, at least one test pins the subtype, not a
+  parent that a type check would also accept.
+- Named or reflective access from tests (helpers reaching members by
+  string) is a SEAM: when members move, rewrite the helper as a routing
+  map so every test body stays untouched; the invariant that matters is
+  that what every case asserts never changes.
+- E2E and visual suites are a SEPARATE LEDGER and are deliberately
+  outside the coverage figures above. Their promotion condition is
+  ADR-007's, not this file's.
+
+=====================================================================
+DOCS
+=====================================================================
+- 150-250 lines max per markdown file; one file, one topic. Short is
+  fine; the rule flags filler, not brevity. The plain-text planning
+  documents (this file, DECISIONS.txt, PROJECT-PHASES.txt) are ledgers
+  and are EXEMPT — they grow by append and are read by search.
+- Mermaid over ASCII art; diagrams at or under 15-20 nodes.
+- PUBLISHED PROSE STATES ONLY WHAT THE CHECKOUT SHOWS. Figures carry
+  provenance. No aspirational content. A claim needing a survey is
+  omitted, not generalised.
+- Cite by stable keys (property names, method names), never by line
+  numbers — line citations break on the next edit.
+- Decision records are IMMUTABLE once merged and their working session
+  closes: corrections go in a new record or a dated amendment block; the
+  decision, status and alternatives are never edited. Number them, index
+  them, and keep the nav in step.
+- EVERY PUBLISHED SURFACE CARRIES THE SAME ANCHOR HOME. A report tree
+  reached from the docs site must offer the way back to it.
+
+=====================================================================
+WORKING PRACTICES (the process rules that paid for themselves)
+=====================================================================
+1. READ FIRST: verify every premise against the checkout before
+   designing a change. A prompt or a plan states what its author
+   verified and marks what it did not.
+2. One mission in flight at a time; no manual edits alongside an
+   automated one.
+3. Surveys deliver findings tables BEFORE any fix is designed; findings
+   carry evidence and proposed severity (FIX / WATCH / ACCEPT).
+4. Main is confirmed by CONTENT, not commit titles; re-fetch before
+   concluding a merge failed.
+5. STOP-AND-REPORT BEATS GUESSING: when a member resists classification
+   or a rule conflicts, the executor stops with evidence and options;
+   the owner rules.
+6. One logical change per PR; squash merges; commit messages explain WHY
+   to a future reader, never internal ticket codes.
+7. THE GATE IS CI, NOT LOCAL RUNS: run only what you touched locally;
+   the full suite gates the merge. CI-shaped proofs need CI-shaped
+   environments, with provenance stated. This project has the lesson on
+   record: local green is not commit green — a package-private
+   constructor passed from the working tree and failed in CI (#39).
+8. NO PREDICTED OUTCOME NUMBERS IN INSTRUCTIONS — measure, then report
+   what you observed; never tune a result to meet an expectation.
+9. Errors in the record get corrected in the record (PR bodies,
+   comments, ADRs, this file), not silently left because the code moved
+   on.
+10. ROBOTS NEVER TAG, and robots never grant themselves a waiver.
+
+=====================================================================
+WAIVER REGISTER
+=====================================================================
+Columns: file | figure | band | date | reason | granted by
+
+No entries yet. The register is created empty ON PURPOSE rather than
+after the first waiver, so that the first one has somewhere to go and
+cannot become a comment nobody collected.

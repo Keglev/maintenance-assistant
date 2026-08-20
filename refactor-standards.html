@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Docs · refactor-standards · maintenance-assistant Docs</title>
+
+  <!-- Set the theme before the stylesheet paints, otherwise the page flashes
+       the default theme for one frame before the saved choice applies. -->
+  <script>
+    (function () {
+      try {
+        var t = localStorage.getItem("maintenance-assistant-theme") ||
+          (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+        document.documentElement.setAttribute("data-theme", t);
+      } catch (e) {
+        document.documentElement.setAttribute("data-theme", "light");
+      }
+    })();
+  </script>
+
+  <link rel="stylesheet" href="/maintenance-assistant/assets/docs.css" />
+</head>
+
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <header class="topbar">
+    <div class="topbar-inner">
+      <button class="menu-btn" aria-label="Toggle navigation">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="18" x2="21" y2="18" />
+        </svg>
+      </button>
+
+      <a href="/maintenance-assistant/" class="brand">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <path d="M14.7 6.3a5 5 0 0 0-6.6 6.6l-5 5a2 2 0 1 0 2.8 2.8l5-5a5 5 0 0 0 6.6-6.6l-2.9 2.9-2.1-2.1 2.2-3.6z" />
+        </svg>
+        maintenance-assistant Docs
+      </a>
+
+      <div class="topbar-tools">
+        <span class="lang-switch">
+          <a href="/maintenance-assistant/" aria-current="true">EN</a>
+          <a href="/maintenance-assistant/index-de.html">DE</a>
+        </span>
+        <button class="theme-toggle" aria-label="Toggle light or dark theme">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <circle cx="12" cy="12" r="9" /><path d="M12 3a9 9 0 0 0 0 18z" fill="currentColor" stroke="none" />
+          </svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <div class="layout">
+    <!-- Sidebar navigation, included by app-docs.html as a Pandoc partial. One
+         sidebar serves the whole site: this repository has a single arc42 tree and a
+         single decision log, so the per-tier sidebars the sibling repositories need
+         would be three copies of the same list here. The active link is marked at
+         runtime by docs.js. Do not put template syntax in this comment - a partial
+         is itself a template. -->
+    <aside class="sidebar">
+      <p class="nav-title">Docs</p>
+      <ul>
+        <li><a href="/maintenance-assistant/">Docs home</a></li>
+        <li><a href="/maintenance-assistant/overview.html">Overview</a></li>
+        <li><a href="/maintenance-assistant/overview-de.html">&Uuml;berblick (DE)</a></li>
+        <li><a href="/maintenance-assistant/llm-approach.html">AI &amp; LLM approach</a></li>
+      </ul>
+
+      <p class="nav-title">Requirements</p>
+      <ul>
+        <li><a href="/maintenance-assistant/REQUIREMENTS.html">Requirements &amp; NFRs</a></li>
+        <li><a href="/maintenance-assistant/DOMAIN-MODEL.html">Domain model</a></li>
+      </ul>
+
+      <details class="nav-group">
+        <summary>Architecture (arc42)</summary>
+        <ul>
+          <li><a href="/maintenance-assistant/architecture/index.html">Architecture index</a></li>
+          <li><a href="/maintenance-assistant/architecture/01-introduction-and-goals.html">1 &middot; Introduction &amp; Goals</a></li>
+          <li><a href="/maintenance-assistant/architecture/02-architecture-constraints.html">2 &middot; Constraints</a></li>
+          <li><a href="/maintenance-assistant/architecture/03-context-and-scope.html">3 &middot; Context &amp; Scope</a></li>
+          <li><a href="/maintenance-assistant/architecture/04-solution-strategy.html">4 &middot; Solution Strategy</a></li>
+          <li><a href="/maintenance-assistant/architecture/05-building-block-view.html">5 &middot; Building Blocks</a></li>
+          <li><a href="/maintenance-assistant/architecture/06-runtime-view.html">6 &middot; Runtime View</a></li>
+          <li><a href="/maintenance-assistant/architecture/07-deployment-view.html">7 &middot; Deployment</a></li>
+          <li><a href="/maintenance-assistant/architecture/08-crosscutting-concepts.html">8 &middot; Concepts</a></li>
+          <li><a href="/maintenance-assistant/architecture/09-architecture-decisions.html">9 &middot; Decisions</a></li>
+          <li><a href="/maintenance-assistant/architecture/10-quality-requirements.html">10 &middot; Quality Requirements</a></li>
+          <li><a href="/maintenance-assistant/architecture/11-risks-and-technical-debt.html">11 &middot; Risks &amp; Debt</a></li>
+          <li><a href="/maintenance-assistant/architecture/12-glossary.html">12 &middot; Glossary</a></li>
+        </ul>
+      </details>
+
+      <details class="nav-group">
+        <summary>Decisions (ADRs)</summary>
+        <ul>
+          <li><a href="/maintenance-assistant/adr/index.html">Decision index</a></li>
+          <li><a href="/maintenance-assistant/adr/ADR-001-modular-monolith-first.html">ADR-001 Modular monolith</a></li>
+          <li><a href="/maintenance-assistant/adr/ADR-002-eu-hosted-llm-provider.html">ADR-002 EU LLM provider</a></li>
+          <li><a href="/maintenance-assistant/adr/ADR-003-keycloak-for-iam.html">ADR-003 Keycloak as IdP</a></li>
+          <li><a href="/maintenance-assistant/adr/ADR-004-pgvector-for-vector-search.html">ADR-004 pgvector</a></li>
+        </ul>
+      </details>
+
+      <p class="nav-title">Frontend</p>
+      <ul>
+        <li><a href="/maintenance-assistant/frontend-architecture.html">Frontend architecture</a></li>
+      </ul>
+
+      <p class="nav-title">Quality</p>
+      <ul>
+        <li><a href="/maintenance-assistant/refactor-standards.html">Refactor standards</a></li>
+        <li><a href="/maintenance-assistant/backend/api-docs/index.html">Backend API</a></li>
+        <li><a href="/maintenance-assistant/frontend/api-docs/index.html">Frontend API</a></li>
+        <li><a href="/maintenance-assistant/backend/coverage/index.html">Backend coverage</a></li>
+        <li><a href="/maintenance-assistant/frontend/coverage/index.html">Frontend coverage</a></li>
+      </ul>
+    </aside>
+    <main class="content" id="main">
+      <article class="doc-body">
+        <h1 id="refactor-standards">Refactor Standards</h1>
+        <p>What “good” looks like in this repository, and the mechanisms
+        that keep it honest.</p>
+        <p>The normative document is <a
+        href="/maintenance-assistant/REFACTOR-STANDARDS.txt"><code>REFACTOR-STANDARDS.txt</code></a>
+        — it holds the size bands for every file type, the test-conduct
+        rules and the waiver register, and it is the single place any of
+        those is edited. This page does not repeat the tables. It
+        explains the <strong>mechanisms</strong>, which are the
+        transferable part, and records the <strong>measured
+        state</strong> the refactor phase started from.</p>
+        <p>The standards were adapted on 2026-08-20 from a portable
+        template distilled from a sibling project’s standards. The bands
+        were retuned for this project’s stacks; the mechanisms were
+        kept, because the mechanisms are what earned their keep.</p>
+        <h2 id="why-a-standards-file-at-all">Why a standards file at
+        all</h2>
+        <p>A refactor that starts with an edit is a preference. A
+        refactor that starts with a measurement is maintenance. The
+        difference only survives if “what good looks like” is written
+        down somewhere reviewable — otherwise every session re-derives
+        it, and the re-derivation drifts toward whatever the current
+        file happens to look like.</p>
+        <p>So the phase has a ground rule: <strong>the standards file is
+        in the repository before the first fix pull request
+        opens.</strong> This page and its normative sibling are that
+        file.</p>
+        <h2 id="the-mechanisms">The mechanisms</h2>
+        <h3 id="line-count-is-the-last-reason-to-split">Line count is
+        the last reason to split</h3>
+        <p>Bands exist, but a file over its band is not automatically
+        wrong. The split criteria are about <em>reasons</em>, not
+        length: more than one responsibility, more than one abstraction
+        level, unrelated change-reasons, more than about three injected
+        dependencies, three or more repeated patterns.</p>
+        <p>The corollary matters as much: <strong>parallel operations
+        are not a split reason.</strong> A controller with one case per
+        endpoint reads repetitively because the operations genuinely are
+        parallel. Splitting it produces two files that must now be read
+        together.</p>
+        <h3 id="the-watched-band">The watched band</h3>
+        <p>Every band has a target range and an alarm. Between them a
+        file is <strong>watched</strong> — recorded in the survey, no
+        action taken. Only above the alarm does a file become a
+        finding.</p>
+        <p>This is what stops a standards document from generating
+        busywork. Most files that drift past target are fine; the band
+        records the drift without demanding a pull request for it.</p>
+        <h3 id="waivers-are-granted-never-assumed">Waivers are granted,
+        never assumed</h3>
+        <p>An above-alarm file that survives the split criteria is
+        <strong>waived</strong>: an in-file comment saying why the
+        length is the rule working, plus an entry in the waiver register
+        naming the file, the figure, the band, the date, the reason and
+        who granted it.</p>
+        <p>Two properties make this work. A waiver is visible where the
+        code is <em>and</em> collected in one list, so nobody has to
+        grep for the exceptions. And a waiver is granted by the owner —
+        a robot that waives its own finding has simply deleted the
+        finding.</p>
+        <p>The register is created empty on purpose, so the first waiver
+        has somewhere to go rather than becoming a comment nobody
+        collected.</p>
+        <h3 id="counters-are-validated-before-they-are-trusted">Counters
+        are validated before they are trusted</h3>
+        <p>Every measuring script runs first against an anchor whose
+        answer is already known, and the validation is reported next to
+        the figure.</p>
+        <p>This is not ceremony. The classic failures are all silent: a
+        substring grep matching a shorter token inside a longer one,
+        multi-line comments counted as code, a comment marker inside a
+        string literal, a regex read as a string. Each produces a
+        plausible number. For coverage the anchor is the report’s own
+        headline — a recomputation from the CSV or the lcov file is only
+        reported once it matches what <code>index.html</code>
+        states.</p>
+        <p>An empty grep also describes a command that never ran, which
+        is why the command is shown alongside the result.</p>
+        <h3 id="survey-figures-are-provisional">Survey figures are
+        provisional</h3>
+        <p>Surveys are read-only and produce findings tables with
+        evidence and a proposed severity — FIX, WATCH or ACCEPT. Nothing
+        is repaired inside a survey.</p>
+        <p>And the pull request that acts on a survey row
+        <strong>re-measures that row first.</strong> A survey is a
+        snapshot; the code moves.</p>
+        <h3 id="vacuity-proofs">Vacuity proofs</h3>
+        <p>A new test earns its place by failing. Break the mechanism
+        under test, watch the test go red, restore it. One break proving
+        two claims is complete; a break of something no test claims
+        proves nothing.</p>
+        <p>Absence assertions get special treatment — a test asserting
+        that something did <em>not</em> happen is paired with proof that
+        the intended path ran at all, or it passes for the wrong reason
+        forever.</p>
+        <h3 id="message-assertions-follow-layer-ownership">Message
+        assertions follow layer ownership</h3>
+        <p>The rule that took the longest to get right, because both
+        simple versions are wrong.</p>
+        <p>Service-level tests assert the exception type <em>and</em>
+        its message: where the error handler passes messages through,
+        the sentence is the wire contract, and where it does not, the
+        message is still the only observable a unit test has. Web-slice
+        tests own the envelope — the HTTP status, the message exactly as
+        the wire carries it including any handler prefix, and the
+        machine code where one exists.</p>
+        <p>On this project the machine codes are real contract:
+        <code>PROTOCOL_IDENTITY_LOCKED</code>, <code>EMPTY_FILE</code>,
+        <code>UNSUPPORTED_TYPE</code>, <code>NOT_TEXT</code>. A test
+        that pins only the status is under-asserting.</p>
+        <p>Neither “never assert message text” nor “the message is never
+        part of the contract” survives contact with a handler that
+        passes messages through. Read the handler before writing the
+        rule.</p>
+        <h3 id="errors-in-the-record-get-corrected-in-the-record">Errors
+        in the record get corrected in the record</h3>
+        <p>Not silently dropped because the code moved on. The refactor
+        phase opened with an example: its own plan text asserted that
+        the deployed Swagger UI lacked navigation back to the
+        documentation site. It has had that navigation since 2026-08-13.
+        The plan carries a dated correction rather than a quiet
+        edit.</p>
+        <h2 id="coverage-targets">Coverage targets</h2>
+        <p><strong>85% on statements, branches — including missed
+        branches — and functions, on both stacks.</strong></p>
+        <p>Two clarifications the standards insist on, because both are
+        places a figure quietly turns into a claim:</p>
+        <p><em>Statements</em> maps to istanbul statements on the
+        frontend, and on the backend to JaCoCo <strong>instructions and
+        lines, both stated.</strong> JaCoCo has no statement counter,
+        and quoting only the friendlier of the two would be a choice
+        presented as a measurement.</p>
+        <p><em>The figure that counts is the one CI publishes.</em> A
+        local run is a working tool, not evidence. It follows that
+        key-gated integration tests — the ones needing a provider API
+        key, which CI skips — cover nothing as far as this target is
+        concerned. Code whose only tests are gated is uncovered, however
+        green it looks on a laptop with the key set.</p>
+        <p>Enforcement is a <strong>ratchet, armed last</strong>: once
+        the targets are met, <code>jacoco:check</code> and Vitest
+        thresholds are set at the achieved numbers so a regression fails
+        the build. Arming it before the targets are met would only break
+        CI.</p>
+        <h2 id="the-measured-starting-point">The measured starting
+        point</h2>
+        <p>Surveyed 2026-08-20 against commit <code>09d8b57</code>, from
+        the reports CI published to gh-pages. The backend report was
+        published for <code>9dc8d4d</code>; the backend tree is
+        unchanged between that commit and <code>09d8b57</code>, so it is
+        current. Both recomputations were validated against their
+        report’s own headline before being used.</p>
+        <table>
+        <thead>
+        <tr class="header">
+        <th>Stack</th>
+        <th>Statements</th>
+        <th>Lines</th>
+        <th>Branches</th>
+        <th>Functions / Methods</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr class="odd">
+        <td>Frontend (istanbul)</td>
+        <td>94.63%</td>
+        <td>95.52%</td>
+        <td>86.76%</td>
+        <td><strong>84.38%</strong></td>
+        </tr>
+        <tr class="even">
+        <td>Backend (JaCoCo)</td>
+        <td>74.95% instr.</td>
+        <td>75.72%</td>
+        <td><strong>54.34%</strong></td>
+        <td>83.21%</td>
+        </tr>
+        </tbody>
+        </table>
+        <p>The frontend misses the target on functions alone, by three
+        covered functions, and the gap is concentrated in a single view:
+        the moderation screen and its template hold 32 of the 65
+        uncovered functions.</p>
+        <p>The backend headline is two different problems wearing one
+        number. Five classes cannot be reached by any test CI runs — the
+        two provider clients with their response records, and three
+        flag-gated startup runners. Excluding them, the same report
+        reads 88.52% instructions, 89.19% lines and 93.33% methods, with
+        branches still the outlier at 66.30%.</p>
+        <p>So the real campaign underneath the headline is
+        <strong>branches</strong>: 184 missed in code that tests do
+        reach, 150 of them in fourteen classes. The largest single gap
+        is the protocol chunker at 26 of 42 — the merge, split and
+        overlap rules are the retrieval-critical logic in this project,
+        and half their branches are unexercised.</p>
+        <p>Neither stack enforces any threshold today. The reports are
+        published; nothing fails on them. That is worth stating plainly
+        rather than leaving 85% to read as if it were a gate.</p>
+        <h2 id="where-the-rest-lives">Where the rest lives</h2>
+        <p>The phase plan, its rulings and the pull-request order are in
+        <code>PROJECT-PHASES.txt</code> under the refactor phase. The
+        bands, the full test-conduct rules and the waiver register are
+        in <a
+        href="/maintenance-assistant/REFACTOR-STANDARDS.txt"><code>REFACTOR-STANDARDS.txt</code></a>.</p>
+      </article>
+    </main>
+
+        <nav class="toc" aria-label="On this page">
+      <p class="toc-title">On this page</p>
+      <ul>
+      <li><a href="#refactor-standards"
+      id="toc-refactor-standards">Refactor Standards</a>
+      <ul>
+      <li><a href="#why-a-standards-file-at-all"
+      id="toc-why-a-standards-file-at-all">Why a standards file at
+      all</a></li>
+      <li><a href="#the-mechanisms" id="toc-the-mechanisms">The
+      mechanisms</a>
+      <ul>
+      <li><a href="#line-count-is-the-last-reason-to-split"
+      id="toc-line-count-is-the-last-reason-to-split">Line count is the
+      last reason to split</a></li>
+      <li><a href="#the-watched-band" id="toc-the-watched-band">The
+      watched band</a></li>
+      <li><a href="#waivers-are-granted-never-assumed"
+      id="toc-waivers-are-granted-never-assumed">Waivers are granted,
+      never assumed</a></li>
+      <li><a href="#counters-are-validated-before-they-are-trusted"
+      id="toc-counters-are-validated-before-they-are-trusted">Counters
+      are validated before they are trusted</a></li>
+      <li><a href="#survey-figures-are-provisional"
+      id="toc-survey-figures-are-provisional">Survey figures are
+      provisional</a></li>
+      <li><a href="#vacuity-proofs" id="toc-vacuity-proofs">Vacuity
+      proofs</a></li>
+      <li><a href="#message-assertions-follow-layer-ownership"
+      id="toc-message-assertions-follow-layer-ownership">Message
+      assertions follow layer ownership</a></li>
+      <li><a href="#errors-in-the-record-get-corrected-in-the-record"
+      id="toc-errors-in-the-record-get-corrected-in-the-record">Errors
+      in the record get corrected in the record</a></li>
+      </ul></li>
+      <li><a href="#coverage-targets" id="toc-coverage-targets">Coverage
+      targets</a></li>
+      <li><a href="#the-measured-starting-point"
+      id="toc-the-measured-starting-point">The measured starting
+      point</a></li>
+      <li><a href="#where-the-rest-lives"
+      id="toc-where-the-rest-lives">Where the rest lives</a></li>
+      </ul></li>
+      </ul>
+    </nav>
+      </div>
+
+  <footer class="footer">
+    maintenance-assistant · Generated by the docs pipeline
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <script src="/maintenance-assistant/assets/docs.js"></script>
+</body>
+</html>

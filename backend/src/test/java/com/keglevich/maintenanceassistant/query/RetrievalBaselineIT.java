@@ -60,8 +60,12 @@ import static org.assertj.core.api.Assertions.assertThat;
  *
  * <p><b>What it cannot tell you</b>, stated here because a number in a table looks more certain than
  * it is: 19 questions over 165 synthetic protocols measure DIRECTION, not quality. The set was
- * drafted by reading the corpus, so it inherits whatever that reading missed, and every expectation
- * in it is {@code ratified: false} until a human rules. See ADR-008.
+ * drafted by reading the corpus, so it inherits whatever that reading missed.
+ *
+ * <p>What it no longer inherits is doubt about the expectations themselves: the set was
+ * <b>ratified by Carlos on 2026-08-20</b>, so every number below is measured against a ruled set
+ * rather than against a draft. The limits above are about the set's SIZE and SOURCE, which
+ * ratification does not change. See ADR-008.
  */
 @SpringBootTest
 @ActiveProfiles("demo")
@@ -201,9 +205,16 @@ class RetrievalBaselineIT {
         CorpusFingerprint corpus = fingerprintCorpus();
 
         assertThat(questions).as("a golden set of nothing measures nothing").isNotEmpty();
+
+        // FLIPPED 2026-08-20, when Carlos ratified the set. It asserted isFalse() before: the set was
+        // a proposal, and a robot marking its own expectations as ruled would have been the exact
+        // failure ADR-008 was written to prevent. Now the assertion guards the other direction — a
+        // question added later must be ruled on before the metrics can quote it, because a set that
+        // is half proposal and half ruling reports one number for two different kinds of claim.
         assertThat(questions).allSatisfy(q -> assertThat(q.ratified())
-                .as("%s is marked ratified — the set is Carlos's to ratify, not this test's", q.id())
-                .isFalse());
+                .as("%s is not ratified — a new question is a proposal until its owner rules on it, "
+                        + "and the aggregates must not silently include one", q.id())
+                .isTrue());
 
         for (Question q : questions) {
             assertThat(machineId(q.machineNo()))
@@ -263,7 +274,7 @@ class RetrievalBaselineIT {
 
                 | | |
                 |---|---|
-                | Questions | %d, all `ratified: false` |
+                | Questions | %d, all ratified (Carlos, 2026-08-20) |
                 | Corpus in the database | %d live protocols, %d chunks |
                 | Corpus file | %d protocols |
                 | Query threshold (configured) | %.3f |

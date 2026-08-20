@@ -51,8 +51,13 @@ class ChunkRetriever {
      *                       never quietly become the default.
      */
     List<RetrievedChunk> retrieve(UUID machineId, float[] questionVector, int topK,
-                                  boolean approvedOnly) {
+                                  boolean approvedOnly, List<String> lexicalTerms,
+                                  double lexicalWeight) {
         String vector = toVectorLiteral(questionVector);
+        // Divisor, never zero: with no terms every match count is 0, so the boost is 0 * anything
+        // and the ORDER BY collapses to the pure vector ordering this query had before ADR-009.
+        int termCount = Math.max(1, lexicalTerms.size());
+
         return jdbc.sql("""
                         SELECT c.id                                                AS chunk_id,
                                c.protocol_id                                       AS protocol_id,
@@ -62,22 +67,35 @@ class ChunkRetriever {
                                p.language                                          AS language,
                                p.incident_date                                     AS incident_date,
                                p.approval_state                                    AS approval_state,
-                               1 - (c.embedding <=> CAST(:vector AS vector))       AS similarity
+                               1 - (c.embedding <=> CAST(:vector AS vector))       AS similarity,
+                               (SELECT count(*)
+                                  FROM unnest(string_to_array(:terms, ' ')) AS term
+                                 WHERE term <> '' AND c.content ILIKE '%' || term || '%')
+                                                                                   AS lexical_matches
                         FROM chunk c
                         JOIN protocol p ON p.id = c.protocol_id
                         WHERE c.machine_id = :machineId
                           AND c.embedding IS NOT NULL
                           AND p.deleted_at IS NULL
                           AND (NOT :approvedOnly OR p.approval_state = 'APPROVED')
-                        ORDER BY c.embedding <=> CAST(:vector AS vector)
+                        ORDER BY (1 - (c.embedding <=> CAST(:vector AS vector)))
+                                 + :lexicalWeight * (CAST((SELECT count(*)
+                                        FROM unnest(string_to_array(:terms, ' ')) AS term
+                                       WHERE term <> '' AND c.content ILIKE '%' || term || '%')
+                                     AS float8) / :termCount)
+                                 DESC
                         LIMIT :topK
                         """)
                 // CAST(... AS vector) rather than the ::vector shorthand, because the named-parameter
                 // parser reads `::` as a parameter marker — the same trap ProtocolIndexWriter hit.
+                // Every cast in this statement is spelled the long way for that reason.
                 .param("vector", vector)
                 .param("machineId", machineId)
                 .param("topK", topK)
                 .param("approvedOnly", approvedOnly)
+                .param("terms", LexicalTerms.joined(lexicalTerms))
+                .param("lexicalWeight", lexicalWeight)
+                .param("termCount", termCount)
                 .query((rs, rowNum) -> new RetrievedChunk(
                         rs.getObject("chunk_id", UUID.class),
                         rs.getObject("protocol_id", UUID.class),
@@ -87,6 +105,7 @@ class ChunkRetriever {
                         rs.getString("language"),
                         rs.getObject("incident_date", LocalDate.class),
                         rs.getDouble("similarity"),
+                        rs.getInt("lexical_matches"),
                         "APPROVED".equals(rs.getString("approval_state"))))
                 .list();
     }

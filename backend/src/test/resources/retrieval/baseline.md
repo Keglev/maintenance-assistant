@@ -23,27 +23,31 @@ vector: all agree (>= 0.95). The index is in the query model's space.
 by protocol (chunk is the search unit, protocol is the citation unit). `-` means it was
 not in the top 5 at all.
 
-| id | case | lang | machine | rank | best sim | sim of expected | mode | citation | ok |
-|---|---|---|---|---|---|---|---|---|---|
-| G01 | plain | de | PR-03 | 1 | 0.5935 | 0.5935 | A | expected | OK |
-| G02 | plain | de | FR-01 | 1 | 0.6628 | 0.6628 | A | expected | OK |
-| G03 | plain | de | KP-01 | 1 | 0.7040 | 0.7040 | A | expected | OK |
-| G04 | plain | de | VP-01 | 1 | 0.6688 | 0.6688 | A | expected | OK |
-| G05 | plain | de | RB-02 | 1 | 0.7076 | 0.7076 | A | expected | OK |
-| G06 | plain | en | SP-05 | 1 | 0.5958 | 0.5958 | A | expected | OK |
-| G07 | plain | de | LS-01 | 1 | 0.6525 | 0.6525 | A | expected | OK |
-| G08 | plain | de | FB-04 | 1 | 0.6688 | 0.6688 | A | expected | OK |
-| G09 | e47-set | de | PR-03 | 1 | 0.6401 | 0.6401 | A | expected | OK |
-| G10 | cross-lingual | de | KP-01 | 1 | 0.7027 | 0.7027 | A | expected | OK |
-| G11 | cross-lingual | en | FR-01 | 1 | 0.5582 | 0.5582 | A | expected | OK |
-| G12 | exact-term | de | FR-01 | 1 | 0.5843 | 0.5843 | A | expected | OK |
-| G13 | exact-term | de | PR-07 | 1 | 0.4288 | 0.4288 | B | other/none | **MISS** |
-| G14 | exact-term | de | FB-04 | 1 | 0.6000 | 0.6000 | A | expected | OK |
-| G15 | mode-b | de | AB-02 | - | 0.4588 | - | B | none (right) | OK |
-| G16 | mode-b | de | SP-05 | - | 0.4771 | - | B | none (right) | OK |
-| G17 | v12-seed | de | PR-03 | 1 | 0.6412 | 0.6412 | A | expected | OK |
-| G18 | v12-seed | de | FB-04 | 5 | 0.5771 | 0.5503 | A | expected | OK |
-| G19 | v12-seed | de | VP-01 | 1 | 0.7033 | 0.7033 | A | expected | OK |
+The two score components are reported separately, never fused: `best sim` is pure cosine
+and `lexical` is the exact terms the question carried and how many retrieved chunks
+contain them. A question is grounded by either.
+
+| id | case | lang | machine | rank | best sim | sim of expected | lexical | mode | citation | ok |
+|---|---|---|---|---|---|---|---|---|---|---|
+| G01 | plain | de | PR-03 | 1 | 0.5935 | 0.5935 | - | A | expected | OK |
+| G02 | plain | de | FR-01 | 1 | 0.6628 | 0.6628 | - | A | expected | OK |
+| G03 | plain | de | KP-01 | 1 | 0.7040 | 0.7040 | - | A | expected | OK |
+| G04 | plain | de | VP-01 | 1 | 0.6688 | 0.6688 | - | A | expected | OK |
+| G05 | plain | de | RB-02 | 1 | 0.7076 | 0.7076 | - | A | expected | OK |
+| G06 | plain | en | SP-05 | 1 | 0.5958 | 0.5958 | - | A | expected | OK |
+| G07 | plain | de | LS-01 | 1 | 0.6525 | 0.6525 | - | A | expected | OK |
+| G08 | plain | de | FB-04 | 1 | 0.6688 | 0.6688 | - | A | expected | OK |
+| G09 | e47-set | de | PR-03 | 1 | 0.6401 | 0.6401 | `e-47` in 5 | A | expected | OK |
+| G10 | cross-lingual | de | KP-01 | 1 | 0.7027 | 0.7027 | - | A | expected | OK |
+| G11 | cross-lingual | en | FR-01 | 1 | 0.5582 | 0.5582 | - | A | expected | OK |
+| G12 | exact-term | de | FR-01 | 1 | 0.5843 | 0.5843 | `sv0410` in 3 | A | expected | OK |
+| G13 | exact-term | de | PR-07 | 1 | 0.4288 | 0.4288 | `kom-04` in 1 | A | expected | OK |
+| G14 | exact-term | de | FB-04 | 1 | 0.6000 | 0.6000 | - | A | expected | OK |
+| G15 | mode-b | de | AB-02 | - | 0.4588 | - | - | B | none (right) | OK |
+| G16 | mode-b | de | SP-05 | - | 0.4771 | - | - | B | none (right) | OK |
+| G17 | v12-seed | de | PR-03 | 1 | 0.6412 | 0.6412 | - | A | expected | OK |
+| G18 | v12-seed | de | FB-04 | 5 | 0.5771 | 0.5503 | - | A | expected | OK |
+| G19 | v12-seed | de | VP-01 | 1 | 0.7033 | 0.7033 | - | A | expected | OK |
 
 ## Aggregates
 
@@ -57,9 +61,9 @@ reported on their own terms.
 | recall@3 | 16/17 (94%) |
 | recall@5 | 17/17 (100%) |
 | MRR | 0.9529 |
-| Mode A/B decision correct | 18/19 (95%) |
+| Mode A/B decision correct | 19/19 (100%) |
 | Mode B questions answered ungrounded | 2/2 (100%) |
-| Answered fully correctly | 18/19 (95%) |
+| Answered fully correctly | 19/19 (100%) |
 
 ## By case
 
@@ -71,24 +75,13 @@ worse than no aggregate.
 | plain | 8 | 8/8 (100%) | 8/8 (100%) | 8/8 (100%) | 1.0000 | 8/8 (100%) |
 | e47-set | 1 | 1/1 (100%) | 1/1 (100%) | 1/1 (100%) | 1.0000 | 1/1 (100%) |
 | cross-lingual | 2 | 2/2 (100%) | 2/2 (100%) | 2/2 (100%) | 1.0000 | 2/2 (100%) |
-| exact-term | 3 | 3/3 (100%) | 3/3 (100%) | 3/3 (100%) | 1.0000 | 2/3 (67%) |
+| exact-term | 3 | 3/3 (100%) | 3/3 (100%) | 3/3 (100%) | 1.0000 | 3/3 (100%) |
 | mode-b | 2 | n/a | n/a | n/a | n/a | 2/2 (100%) |
 | v12-seed | 3 | 2/3 (67%) | 2/3 (67%) | 3/3 (100%) | 0.7333 | 3/3 (100%) |
 
-## Misses in detail
+## Misses
 
-`true similarity` is the expected protocol's best chunk score with no top-k limit — what
-it really scored, whether or not it was returned.
-
-**G13** (exact-term, PR-07) — Was bedeutet KOM-04?
-
-- mode B, best retrieved 0.4288, true similarity of the expected protocol 0.4288
-- retrieved instead:
-  - `0.4288  Presse 7 in der Leitwarte ausgegraut, Anlage steht`
-  - `0.3340  Sammelstörung nach Reinigung, Anlage lief nicht an`
-  - `0.3312  Software update to V4.14 and parameter backup`
-  - `0.3287  Ausgang bleibt gesetzt, Auswerfer fährt nicht zurück`
-  - `0.3104  Alarm Drive 2 - DC bus undervoltage im Leitsystem`
+None.
 
 ## Query threshold sweep (M1.3a)
 
@@ -102,39 +95,39 @@ so a protocol below the line cannot be cited even when the question stays Mode A
 | 0.40 | 19 | 0 | 2 | 17 / 17 |  |
 | 0.41 | 19 | 0 | 2 | 17 / 17 |  |
 | 0.42 | 19 | 0 | 2 | 17 / 17 |  |
-| 0.43 | 18 | 1 | 2 | 16 / 17 |  |
-| 0.44 | 18 | 1 | 2 | 16 / 17 |  |
-| 0.45 | 18 | 1 | 2 | 16 / 17 |  |
-| 0.46 | 17 | 1 | 1 | 16 / 17 |  |
-| 0.47 | 17 | 1 | 1 | 16 / 17 |  |
-| 0.48 | 16 | 1 | 0 | 16 / 17 |  |
-| 0.49 | 16 | 1 | 0 | 16 / 17 |  |
-| 0.50 | 16 | 1 | 0 | 16 / 17 |  |
-| 0.51 | 16 | 1 | 0 | 16 / 17 |  |
-| 0.52 | 16 | 1 | 0 | 16 / 17 |  |
-| 0.53 | 16 | 1 | 0 | 16 / 17 |  |
-| 0.54 | 16 | 1 | 0 | 16 / 17 |  |
-| 0.55 | 16 | 1 | 0 | 16 / 17 | **configured** |
-| 0.56 | 15 | 2 | 0 | 14 / 17 |  |
-| 0.57 | 15 | 2 | 0 | 14 / 17 |  |
-| 0.58 | 14 | 3 | 0 | 14 / 17 |  |
-| 0.59 | 13 | 4 | 0 | 13 / 17 |  |
-| 0.60 | 10 | 7 | 0 | 10 / 17 |  |
-| 0.61 | 10 | 7 | 0 | 10 / 17 |  |
-| 0.62 | 10 | 7 | 0 | 10 / 17 |  |
-| 0.63 | 10 | 7 | 0 | 10 / 17 |  |
-| 0.64 | 10 | 7 | 0 | 10 / 17 |  |
-| 0.65 | 8 | 9 | 0 | 8 / 17 |  |
-| 0.66 | 7 | 10 | 0 | 7 / 17 |  |
-| 0.67 | 4 | 13 | 0 | 4 / 17 |  |
-| 0.68 | 4 | 13 | 0 | 4 / 17 |  |
-| 0.69 | 4 | 13 | 0 | 4 / 17 |  |
-| 0.70 | 4 | 13 | 0 | 4 / 17 |  |
-| 0.71 | 0 | 17 | 0 | 0 / 17 |  |
-| 0.72 | 0 | 17 | 0 | 0 / 17 |  |
-| 0.73 | 0 | 17 | 0 | 0 / 17 |  |
-| 0.74 | 0 | 17 | 0 | 0 / 17 |  |
-| 0.75 | 0 | 17 | 0 | 0 / 17 |  |
+| 0.43 | 19 | 0 | 2 | 16 / 17 |  |
+| 0.44 | 19 | 0 | 2 | 16 / 17 |  |
+| 0.45 | 19 | 0 | 2 | 16 / 17 |  |
+| 0.46 | 18 | 0 | 1 | 16 / 17 |  |
+| 0.47 | 18 | 0 | 1 | 16 / 17 |  |
+| 0.48 | 17 | 0 | 0 | 16 / 17 |  |
+| 0.49 | 17 | 0 | 0 | 16 / 17 |  |
+| 0.50 | 17 | 0 | 0 | 16 / 17 |  |
+| 0.51 | 17 | 0 | 0 | 16 / 17 |  |
+| 0.52 | 17 | 0 | 0 | 16 / 17 |  |
+| 0.53 | 17 | 0 | 0 | 16 / 17 |  |
+| 0.54 | 17 | 0 | 0 | 16 / 17 |  |
+| 0.55 | 17 | 0 | 0 | 16 / 17 | **configured** |
+| 0.56 | 16 | 1 | 0 | 14 / 17 |  |
+| 0.57 | 16 | 1 | 0 | 14 / 17 |  |
+| 0.58 | 15 | 2 | 0 | 14 / 17 |  |
+| 0.59 | 15 | 2 | 0 | 13 / 17 |  |
+| 0.60 | 12 | 5 | 0 | 10 / 17 |  |
+| 0.61 | 12 | 5 | 0 | 10 / 17 |  |
+| 0.62 | 12 | 5 | 0 | 10 / 17 |  |
+| 0.63 | 12 | 5 | 0 | 10 / 17 |  |
+| 0.64 | 12 | 5 | 0 | 10 / 17 |  |
+| 0.65 | 11 | 6 | 0 | 8 / 17 |  |
+| 0.66 | 10 | 7 | 0 | 7 / 17 |  |
+| 0.67 | 7 | 10 | 0 | 4 / 17 |  |
+| 0.68 | 7 | 10 | 0 | 4 / 17 |  |
+| 0.69 | 7 | 10 | 0 | 4 / 17 |  |
+| 0.70 | 7 | 10 | 0 | 4 / 17 |  |
+| 0.71 | 3 | 14 | 0 | 0 / 17 |  |
+| 0.72 | 3 | 14 | 0 | 0 / 17 |  |
+| 0.73 | 3 | 14 | 0 | 0 / 17 |  |
+| 0.74 | 3 | 14 | 0 | 0 / 17 |  |
+| 0.75 | 3 | 14 | 0 | 0 / 17 |  |
 
 ## Duplicate threshold — the legitimate ceiling (M1.3b)
 
@@ -168,7 +161,7 @@ Top pairs:
 
 | | |
 |---|---|
-| Wall clock | 133 s |
+| Wall clock | 153 s |
 | Embedding provider calls | 220 (268 prompt tokens) |
 | Embedding cost | EUR 0.000005 |
 | Chat calls | 19, one answer per question (a Mode A fall-through would add one) |

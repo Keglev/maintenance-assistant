@@ -770,6 +770,116 @@ ADR-008-retrieval-measurement · maintenance-assistant Docs</title>
         </ul>
         <p>Neither is true at 165 protocols. Re-read this note before
         the reranker is picked up again.</p>
+        <hr />
+        <h2
+        id="revision-2026-08-19-v1.3.0-close-out-the-query-threshold-stays-0.55">Revision
+        2026-08-19 (v1.3.0 close-out) — the query threshold stays
+        0.55</h2>
+        <p><strong>Carlos’s decision: no change.</strong> The number
+        this ADR set out to revalidate has been revalidated and keeps
+        its value, which is a result and not an absence of one.</p>
+        <h3 id="the-evidence">The evidence</h3>
+        <p>The sweep in <code>baseline.md</code>, re-measured after
+        hybrid retrieval (ADR-009), is <strong>flat across
+        0.48–0.55</strong>. Every row is identical:</p>
+        <table>
+        <colgroup>
+        <col style="width: 20%" />
+        <col style="width: 20%" />
+        <col style="width: 20%" />
+        <col style="width: 20%" />
+        <col style="width: 20%" />
+        </colgroup>
+        <thead>
+        <tr class="header">
+        <th>threshold</th>
+        <th>Mode A questions</th>
+        <th>answerable lost</th>
+        <th>Mode B wrongly grounded</th>
+        <th>expected above t</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr class="odd">
+        <td>0.48 … 0.55</td>
+        <td>17</td>
+        <td>0</td>
+        <td><strong>0</strong></td>
+        <td>16 / 17</td>
+        </tr>
+        <tr class="even">
+        <td>0.56</td>
+        <td>16</td>
+        <td><strong>1</strong></td>
+        <td>0</td>
+        <td>14 / 17</td>
+        </tr>
+        </tbody>
+        </table>
+        <p><strong>Moving the threshold anywhere inside that plateau
+        changes nothing observable on the golden set.</strong> A
+        configuration change with no effect is documentation debt: it
+        invalidates the history attached to the old number and buys
+        nothing measurable, so the measured value keeps its provenance.
+        0.55 also sits at the <em>top</em> of the plateau, where the
+        margin above the highest unanswerable question is largest — 0.55
+        against 0.4771 — and one step further (0.56) is where the first
+        answerable question starts being lost.</p>
+        <h3 id="what-removed-the-argument-for-lowering-it">What removed
+        the argument for lowering it</h3>
+        <p>The exact-term case was the only thing pushing downward: G13
+        scored 0.4288 and needed a lower gate to be answered at all.
+        <strong>ADR-009’s term override solved that at every
+        threshold</strong>, by grounding on the code the reader typed
+        rather than by loosening the number for all nineteen questions.
+        The pressure to lower the threshold is gone, not
+        accommodated.</p>
+        <h3 id="the-floor-stated-so-nobody-optimises-toward-it">The
+        floor, stated so nobody optimises toward it</h3>
+        <p>Below the plateau the anti-hallucination guarantee starts
+        failing, and the measured boundary is <strong>0.48, not
+        lower</strong>:</p>
+        <ul>
+        <li><strong>0.46–0.47</strong> — one Mode B question acquires a
+        citation (G16, scoring 0.4771).</li>
+        <li><strong>0.45 and below</strong> — both do (G15 joins at
+        0.4588).</li>
+        </ul>
+        <p>So 0.48 is the floor of NFR-2’s guarantee on this corpus, and
+        the plateau is bounded <em>below</em> by correctness rather than
+        by preference. Any future proposal to lower the threshold has to
+        clear that line first. (A separate column moves earlier —
+        <code>expected above t</code> drops from 17/17 to 16/17 at 0.43
+        — but that is about which protocols may still be offered as
+        sources, not about unanswerable questions acquiring citations.
+        The two are easy to confuse and mean different things.)</p>
+        <h3 id="the-known-thin-spot-stays-known-and-stays-measured">The
+        known thin spot stays known, and stays measured</h3>
+        <p><strong>The EN→DE cross-lingual question clears the threshold
+        by 0.0082</strong> (G11 at 0.5582). That is a real margin and a
+        thin one, and the response is deliberately <em>not</em> a
+        preemptive nudge downward: moving the gate to buy headroom for
+        one question would trade a measured number for a guess, and the
+        plateau above shows it would change nothing else anyway.</p>
+        <p><strong>The response is measurement.</strong> The baseline
+        harness re-measures that margin on every run and the figure is
+        in the committed report, so a narrowing is visible as a diff
+        rather than as a surprise.</p>
+        <p><strong>Revisit the threshold when the harness says the
+        margin is closing</strong> — most plausibly when the corpus
+        gains a substantial number of English protocols and
+        cross-lingual questions start landing near or below the gate.
+        That is the condition; a single run showing G11 below 0.55, or
+        the cross-lingual case dropping in <code>mode correct</code>, is
+        the trigger to re-open this decision with fresh numbers rather
+        than to adjust the number quietly.</p>
+        <h3 id="still-open-and-not-this-decisions-to-close">Still open,
+        and not this decision’s to close</h3>
+        <p>The golden set remains
+        <strong><code>ratified: false</code></strong> in every entry.
+        The threshold decision above rests on a set no human has ruled
+        on yet, which is the honest caveat on all of it — ratification
+        is Carlos’s and is still outstanding.</p>
       </article>
     </main>
 
@@ -833,6 +943,26 @@ ADR-008-retrieval-measurement · maintenance-assistant Docs</title>
       <li><a href="#decision-the-reranker-leaves-v1.3"
       id="toc-decision-the-reranker-leaves-v1.3">Decision — the reranker
       leaves v1.3</a></li>
+      </ul></li>
+      <li><a
+      href="#revision-2026-08-19-v1.3.0-close-out-the-query-threshold-stays-0.55"
+      id="toc-revision-2026-08-19-v1.3.0-close-out-the-query-threshold-stays-0.55">Revision
+      2026-08-19 (v1.3.0 close-out) — the query threshold stays 0.55</a>
+      <ul>
+      <li><a href="#the-evidence" id="toc-the-evidence">The
+      evidence</a></li>
+      <li><a href="#what-removed-the-argument-for-lowering-it"
+      id="toc-what-removed-the-argument-for-lowering-it">What removed
+      the argument for lowering it</a></li>
+      <li><a href="#the-floor-stated-so-nobody-optimises-toward-it"
+      id="toc-the-floor-stated-so-nobody-optimises-toward-it">The floor,
+      stated so nobody optimises toward it</a></li>
+      <li><a href="#the-known-thin-spot-stays-known-and-stays-measured"
+      id="toc-the-known-thin-spot-stays-known-and-stays-measured">The
+      known thin spot stays known, and stays measured</a></li>
+      <li><a href="#still-open-and-not-this-decisions-to-close"
+      id="toc-still-open-and-not-this-decisions-to-close">Still open,
+      and not this decision’s to close</a></li>
       </ul></li>
       </ul></li>
       </ul>

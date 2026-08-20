@@ -740,6 +740,54 @@ rather than given one afterwards.
    0.48-0.55 as a flat plateau with no wrongly-grounded Mode B question) and
    the tag. RERANKER STAYS DROPPED — #62's corrected evidence still holds.
 
+   PROGRESS 2026-08-19 — v1.3.0 IS FEATURE-COMPLETE AND READY TO TAG,
+   PENDING CARLOS'S DRILL (chore/release-1.3.0). Five PRs, and the wave's
+   shape is worth stating: it BUILT THE INSTRUMENT FIRST and then let the
+   instrument decide what the work was.
+     #61 test/retrieval-baseline — the golden set as DATA (19 questions,
+         every one ratified:false) and the key-gated harness that reads it.
+     #62 fix/embedding-provenance — the detector for vectors written by
+         another model, and the repair of the 15 protocols it caught.
+     #63 docs/runbook-corrections — the production seeding runbook,
+         executed and then corrected against what running it revealed.
+     #64 fix/docs-absolute-links — the Lua filter that was publishing two
+         dead links, plus the pinned pandoc that ended the mirror stalls.
+     #65 feat/hybrid-search — ADR-009, grounding on an exact term.
+   THE HEADLINE NUMBERS, all measured against the real provider and the real
+   corpus: fully correct 18/19 -> 19/19 (TYPICAL, not guaranteed — the
+   residual is generation variance at temperature 0.1, not retrieval, and
+   the ADR says so), exact-term 2/3 -> 3/3, Mode B still 2/2 ungrounded, and
+   RECALL AND MRR UNCHANGED at 16/17, 17/17 and 0.9529 — nothing that was
+   right became wrong.
+   THE PROVENANCE DETECTOR IS NOW OPS TOOLING, not just a test: one command
+   against a database, exits 0 clean / 1 foreign, and it has been run once
+   against production (181 chunks, 0 foreign).
+   THE RERANKER IS DROPPED, on measured evidence and with its return
+   condition written into ADR-008 — recall@5 meaningfully above recall@1
+   WITH WRONG ANSWERS attached to the gap, or a corpus large enough that
+   top-k truncation starts hiding correct protocols.
+   THE THRESHOLD DECISION, CARLOS, 2026-08-19: 0.55 STAYS. The sweep is FLAT
+   from 0.48 to 0.55 — identical grounded counts, zero wrongly-grounded Mode
+   B questions on every row — so moving it inside the plateau changes nothing
+   observable and would only cost the number its measured history. The one
+   argument for lowering it (G13 at 0.4288) was removed by #65's term
+   override rather than accommodated. The floor is MEASURED AND NAMED so
+   nobody optimises toward it: at 0.46-0.47 one Mode B question acquires a
+   citation and at 0.45 and below both do, which makes 0.48 the floor of
+   NFR-2's guarantee on this corpus. The known thin spot stays known — EN->DE
+   clears 0.55 by 0.0082 — and the response is measurement, not a preemptive
+   nudge: the harness re-measures that margin on every run and ADR-008 names
+   the condition for revisiting it.
+   RATIFICATION OF THE GOLDEN SET REMAINS OPEN. Every expectation is still
+   ratified:false, so all of the above rests on a set no human has ruled on.
+   That is Carlos's and it is not closed by this release.
+   A RELEASE-PROCESS DEFECT FOUND WHILE BUMPING: v1.2.0 WAS TAGGED WITH
+   package.json STILL AT 1.1.0. The Settings dialog has been reporting 1.1.0
+   for the whole v1.2 wave, which is exactly the obligation #35 recorded when
+   it put the version on screen. The bump in this PR goes 1.1.0 -> 1.3.0 and
+   1.2.0 is simply skipped; the honest fix is the drill checking the dialog
+   AFTER deploy, not a retro-tag.
+
 3. v1.3.0 — RETRIEVAL QUALITY
    - HYBRID KEYWORD + SEMANTIC SEARCH (deferred 2026-08-10; the
      interim answer is the search help panel).

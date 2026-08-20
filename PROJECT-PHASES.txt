@@ -830,6 +830,42 @@ rather than given one afterwards.
    synthetic protocols still measure DIRECTION, not quality, and the set can
    still be over-fitted to.
 
+   PROGRESS 2026-08-20 — TWO FINDINGS FROM THE COMBINED v1.3.0 DRILL, fixed
+   in fix/footer-and-help-refresh. Both were found by Carlos opening the
+   running application on a 16-inch laptop, which is again the check that
+   found them and not a test.
+   (1) THE FOOTER IS HARD TO READ, and it is a SIZE defect rather than the
+       contrast one #68 closed three hours earlier. The ink stays exactly as
+       #68 measured it — no colour and no token moved, deliberately, so a
+       size change cannot smuggle a colour change past those ratios. Links
+       --t-sm -> --t-base, the demo notice --t-xs -> --t-sm, the bar --s-4 ->
+       --s-5 top and bottom. The health dot's LABEL went up with the links
+       because the two sit on one baseline-aligned row and raising one alone
+       leaves two type sizes on one line; the dot itself is untouched.
+   (2) THE HELP PANEL WAS FALSIFIED BY THE RUNNING SYSTEM, and this is the
+       finding worth carrying. It taught that "ein Wort beschreibt keinen
+       Fehler, und die Suche hat nichts, womit sie vergleichen kann" — TRUE
+       when retrieval was semantic only, and UNTRUE since ADR-009. A bare
+       "e-47" now returns a grounded Mode A answer, and Carlos typed it and
+       watched it work while the panel beside the field said it would not.
+       Nothing was broken and no test was red: the panel is prose, and prose
+       does not fail a build when the system underneath it changes.
+       THE STANDING RULE THAT FOLLOWS: THE HELP PANEL IS PART OF RETRIEVAL'S
+       CONTRACT WITH THE READER, so a change to LexicalTerms is a change to
+       the panel. It now states the rule the code actually implements — a
+       term needs at least one LETTER and at least one DIGIT to be matched
+       literally — which is why "E-47" and "SV0410" work alone and "frei",
+       "Druck" and "Band" still do not. Two vitest specs pin BOTH halves,
+       because a panel that mentioned codes and dropped the generic-word half
+       would teach the opposite error.
+       A quiet tip line joins the Mode B box: name the code if you have one.
+       It meets the lazy query at the moment it happens.
+   NO VALIDATION GATE, ruled out by Carlos and not to be re-proposed. The
+   drill is the argument: "e-47" is a lazy query that WORKS and "was
+   bedeutet" is a lazy query Mode B already handles gracefully, so a
+   completeness check would block the good one to prevent the harmless one.
+   NO ADR: this is content and type scale, not a decision of record.
+
 3. v1.3.0 — RETRIEVAL QUALITY
    - HYBRID KEYWORD + SEMANTIC SEARCH (deferred 2026-08-10; the
      interim answer is the search help panel).

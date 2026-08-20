@@ -41,7 +41,7 @@ class QueryServiceTest {
 
     @BeforeEach
     void setUp() {
-        properties = new QueryProperties(0.55, 5, 10, Duration.ofMinutes(10), 100);
+        properties = new QueryProperties(0.55, 5, 10, Duration.ofMinutes(10), 100, 0.15);
         chat = new FakeChatClient();
         retriever = new StubRetriever();
         budget = new CountingBudget();
@@ -392,6 +392,8 @@ class QueryServiceTest {
         return new RetrievedChunk(UUID.randomUUID(), protocolId,
                 "PR-03 · E-47 · Druckabfall\nSymptom: Presse kommt nicht auf Druck.",
                 "E-47 Druckabfall im Presshub", "E-47", "de", LocalDate.of(2024, 10, 8), similarity,
+                // No exact term in these fixtures: the vector path is what they exercise.
+                0,
                 // Approved, like the seeded corpus these fixtures imitate.
                 true);
     }
@@ -432,7 +434,8 @@ class QueryServiceTest {
 
         @Override
         List<RetrievedChunk> retrieve(UUID machineId, float[] questionVector, int topK,
-                                      boolean approvedOnly) {
+                                      boolean approvedOnly, List<String> lexicalTerms,
+                                      double lexicalWeight) {
             this.lastApprovedOnly = approvedOnly;
             return hits.stream()
                     .filter(hit -> !approvedOnly || hit.approved())

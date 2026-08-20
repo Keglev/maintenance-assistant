@@ -49,6 +49,20 @@ E2E_LLM=1 npm run e2e
 Against a **real** provider instead, set `LLM_API_KEY` and leave `LLM_BASE_URL` alone. Both were
 exercised; the re-index test passes in ~33 s against IONOS and ~11 s against the stub.
 
+> **WARNING — running this against the local dev stack WRITES STUB VECTORS INTO THE DEVELOPMENT
+> DATABASE.** `CORPUS_SEED_ENABLED=true INGESTION_BACKLOG_ON_STARTUP=true` with `LLM_BASE_URL`
+> pointed at the stub indexes protocols with hashed trigrams instead of bge-m3. Those vectors are
+> orthogonal to every real question, so the affected protocols become **unretrievable** while every
+> row still reads `INDEXED` — the defect ADR-008 found and #62 repaired, which reached the database
+> exactly this way. If you run the suite locally, afterwards run the provenance check and re-index
+> anything it names:
+>
+> ```bash
+> MAINTENANCE_OPS_VERIFY_EMBEDDINGS=true mvn spring-boot:run    # exits 1 when the index is mixed
+> ```
+>
+> CI is unaffected: `.github/actions/e2e-stack` brings up a throwaway database per run.
+
 > **The threshold override is not a cheat.** `application.yml` records that 0.55 is *bge-m3-specific*
 > and that any embedding-model change invalidates it. The stub is a different embedding model, so it
 > gets its own calibration — measured at 0.42–0.45 for a relevant question and 0.10–0.13 for an

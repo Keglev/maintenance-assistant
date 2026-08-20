@@ -123,8 +123,11 @@ class QueryDemoVerificationIT {
         // Retrieval is run once on its own first, so the similarity reported below is the number
         // the threshold was compared against rather than one inferred from the outcome.
         float[] vector = embeddingClient.embed(List.of(question)).vectors().get(0);
-        List<RetrievedChunk> hits = retriever.retrieve(machineId, vector, queryProperties.topK(), false);
-        double best = hits.isEmpty() ? 0.0 : hits.get(0).similarity();
+        List<RetrievedChunk> hits = retriever.retrieve(machineId, vector, queryProperties.topK(), false,
+                LexicalTerms.extract(question), queryProperties.lexicalWeight());
+        // MAX, matching QueryService: the list is ordered by the fused score since ADR-009, so the
+        // head is no longer guaranteed to be the most similar chunk.
+        double best = hits.stream().mapToDouble(RetrievedChunk::similarity).max().orElse(0.0);
 
         long startedAt = System.nanoTime();
         // A fresh subject per call, so the rate limiter never shapes a measurement.

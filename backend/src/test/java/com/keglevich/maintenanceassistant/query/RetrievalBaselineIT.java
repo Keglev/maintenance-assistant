@@ -125,7 +125,8 @@ class RetrievalBaselineIT {
             embeddingCalls += batch.providerCalls();
             embeddingTokens += batch.promptTokens();
             List<RetrievedChunk> hits =
-                    retriever.retrieve(machineId, batch.vectors().get(0), queryProperties.topK(), false);
+                    retriever.retrieve(machineId, batch.vectors().get(0), queryProperties.topK(), false,
+                            LexicalTerms.extract(q.question()), queryProperties.lexicalWeight());
 
             // The whole path, unchanged, including the Mode A -> Mode B fall-through that a
             // similarity number alone cannot predict.
@@ -160,6 +161,25 @@ class RetrievalBaselineIT {
 
         Files.createDirectories(REPORT.getParent());
         Files.writeString(REPORT, md);
+
+        // THE ONE RESULT THIS HARNESS IS ALLOWED TO ASSERT, added with ADR-009's gate change.
+        //
+        // Everything else here measures and reports; a falling recall is news, not a build failure.
+        // This is different in kind: the gate exists to keep an unanswerable question from acquiring
+        // a citation (NFR-2), and ADR-009 widened it. A widening that let a Mode B question through
+        // would not be a worse number, it would be the anti-hallucination guarantee gone — so it
+        // fails here rather than being noticed in a table by whoever reads carefully.
+        assertThat(results.stream().filter(r -> r.question().isModeB()).toList())
+                .as("a question the corpus cannot answer must stay ungrounded and cite nothing")
+                .allSatisfy(r -> {
+                    assertThat(r.mode()).as("%s mode", r.question().id())
+                            .isEqualTo(QueryAnswer.AnswerMode.B);
+                    assertThat(r.citedAnything()).as("%s citations", r.question().id()).isFalse();
+                    assertThat(r.lexicallyGrounded())
+                            .as("%s acquired an exact-term match, which is how this could break",
+                                    r.question().id())
+                            .isFalse();
+                });
         System.out.println("\n" + md);
         System.out.println("written: " + REPORT.toAbsolutePath());
     }
@@ -296,16 +316,22 @@ class RetrievalBaselineIT {
                 by protocol (chunk is the search unit, protocol is the citation unit). `-` means it was
                 not in the top 5 at all.
 
-                | id | case | lang | machine | rank | best sim | sim of expected | mode | citation | ok |
-                |---|---|---|---|---|---|---|---|---|---|
+                The two score components are reported separately, never fused: `best sim` is pure cosine
+                and `lexical` is the exact terms the question carried and how many retrieved chunks
+                contain them. A question is grounded by either.
+
+                | id | case | lang | machine | rank | best sim | sim of expected | lexical | mode | citation | ok |
+                |---|---|---|---|---|---|---|---|---|---|---|
                 """);
         for (Result r : results) {
-            out.append(fmt("| %s | %s | %s | %s | %s | %.4f | %s | %s | %s | %s |\n",
+            out.append(fmt("| %s | %s | %s | %s | %s | %.4f | %s | %s | %s | %s | %s |\n",
                     r.question().id(), r.question().caseLabel(), r.question().language(),
                     r.question().machineNo(),
                     r.rank() == 0 ? "-" : String.valueOf(r.rank()),
                     r.bestSimilarity(),
                     r.expectedSimilarity() == null ? "-" : fmt("%.4f", r.expectedSimilarity()),
+                    r.lexicalTerms().isEmpty() ? "-"
+                            : fmt("`%s` in %d", String.join(",", r.lexicalTerms()), r.lexicalChunks()),
                     r.mode(),
                     r.question().isModeB()
                             ? (r.citedAnything() ? "cited (wrong)" : "none (right)")
@@ -430,9 +456,15 @@ class RetrievalBaselineIT {
 
         for (int i = 0; i <= SWEEP_STEPS; i++) {
             final double t = SWEEP_FROM + (SWEEP_TO - SWEEP_FROM) * i / SWEEP_STEPS;
-            long grounded = results.stream().filter(r -> r.bestSimilarity() >= t).count();
-            long lost = answerable.stream().filter(r -> r.bestSimilarity() < t).count();
-            long wronglyGrounded = modeB.stream().filter(r -> r.bestSimilarity() >= t).count();
+            // The gate as it actually is since ADR-009: similarity OR an exact term. A question
+            // grounded by its code is Mode A at every threshold, and a sweep that ignored that would
+            // describe a system this is not.
+            long grounded = results.stream()
+                    .filter(r -> r.bestSimilarity() >= t || r.lexicallyGrounded()).count();
+            long lost = answerable.stream()
+                    .filter(r -> r.bestSimilarity() < t && !r.lexicallyGrounded()).count();
+            long wronglyGrounded = modeB.stream()
+                    .filter(r -> r.bestSimilarity() >= t || r.lexicallyGrounded()).count();
             long expectedAbove = answerable.stream().filter(r -> r.expectedSimilarity() != null
                     && r.expectedSimilarity() >= t).count();
             out.append(fmt("| %.2f | %d | %d | %d | %d / %d | %s |\n", t, grounded, lost,
@@ -712,7 +744,13 @@ class RetrievalBaselineIT {
      */
     private record Result(Question question, int rank, double bestSimilarity, Double expectedSimilarity,
                           QueryAnswer.AnswerMode mode, boolean citedExpected, boolean citedAnything,
-                          Double trueExpectedSimilarity, List<String> retrievedTitles) {
+                          Double trueExpectedSimilarity, List<String> retrievedTitles,
+                          List<String> lexicalTerms, long lexicalChunks) {
+
+        /** The second component, reported beside the similarity rather than folded into it. */
+        boolean lexicallyGrounded() {
+            return lexicalChunks > 0;
+        }
 
         static Result of(Question q, List<RetrievedChunk> hits, QueryAnswer answer,
                          Double trueExpectedSimilarity, List<String> retrievedTitles) {
@@ -735,9 +773,15 @@ class RetrievalBaselineIT {
             Set<UUID> cited = new LinkedHashSet<>(
                     answer.citations().stream().map(QueryAnswer.Citation::protocolId).toList());
             boolean citedExpected = cited.stream().anyMatch(q.expected()::contains);
-            return new Result(q, rank, hits.isEmpty() ? 0.0 : hits.get(0).similarity(),
+            // MAX, not the head. Since ADR-009 the list is ordered by the fused score, so the first
+            // element is not necessarily the most similar one — reading it would make the report
+            // disagree with the gate, which asks the same question of the whole set.
+            double best = hits.stream().mapToDouble(RetrievedChunk::similarity).max().orElse(0.0);
+            return new Result(q, rank, best,
                     expectedSimilarity, answer.mode(), citedExpected, !cited.isEmpty(),
-                    trueExpectedSimilarity, retrievedTitles);
+                    trueExpectedSimilarity, retrievedTitles,
+                    LexicalTerms.extract(q.question()),
+                    hits.stream().filter(h -> h.lexicalMatches() > 0).count());
         }
 
         /** Mode B questions are right when they stay ungrounded; the rest when they do not. */

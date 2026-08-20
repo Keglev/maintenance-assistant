@@ -77,7 +77,7 @@ class QueryControllerIT {
                 .thenReturn(new QueryAnswer(QueryAnswer.AnswerMode.A, "Belegt. [P1]", "de",
                         List.of(new QueryAnswer.Claim("Belegt.", "P1")),
                         List.of(new QueryAnswer.Citation("P1", UUID.randomUUID(),
-                                "E-47 Druckabfall im Presshub", "E-47", LocalDate.of(2024, 10, 8), 0.695, true))));
+                                "E-47 Druckabfall im Presshub", "E-47", LocalDate.of(2024, 10, 8), 0.695, 0, true))));
 
         mockMvc.perform(ask("operator", "operator"))
                 .andExpect(status().isOk())

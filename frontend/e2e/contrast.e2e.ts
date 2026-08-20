@@ -330,8 +330,9 @@ for (const scheme of SCHEMES) {
       }
 
       // Then the two that need a session: the footer note on every view, and the "(optional)" label
-      // that only the upload form renders.
-      await signIn(page, 'techniker');
+      // that only the upload form renders. SCHICHTLEITER and not techniker, because filing a
+      // protocol is the Schichtleiter's by decision — a technician has no upload view to measure.
+      await signIn(page, 'schichtleiter');
       await page.getByTestId('nav-upload').click();
       await expect(page.locator('.optional')).toBeVisible();
 

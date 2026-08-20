@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **Status** | Proposed — the golden set is **not ratified** |
+| **Status** | Accepted — the golden set was ratified 2026-08-20 (see the revision at the end) |
 | **Date** | 2026-08-19 |
 | **Deciders** | Carlos Keglevich |
 | **Related** | ADR-002 (LLM provider, the 0.55 threshold), ADR-004 (pgvector), ADR-006 (duplicate detection, the 0.92 threshold), ADR-007 (test the rendered application), NFR-2 (grounded answers), PR #56 |
@@ -382,3 +382,54 @@ numbers rather than to adjust the number quietly.
 The golden set remains **`ratified: false`** in every entry. The threshold decision above rests on a
 set no human has ruled on yet, which is the honest caveat on all of it — ratification is Carlos's and
 is still outstanding.
+
+---
+
+## Revision 2026-08-20 — the golden set is ratified
+
+**Carlos ratified the golden question set on 2026-08-20.** Every expectation the set proposed now
+carries an owner's ruling, and the file records it: `ratified: true` on all nineteen entries, with
+`ratifiedBy` and `ratifiedOn` at the top level — one act, recorded once, rather than nineteen times.
+
+**The metrics in this ADR now rest on owner-ratified expectations.** That sentence is the point of
+the whole exercise. Until now every number here was measured against a set the same agent had both
+written and graded, which is why this ADR's status line said *Proposed* and why the harness asserted
+that nothing was marked ratified. A recall figure against a draft is a claim about the draft; a
+recall figure against a ruled set is a claim about retrieval.
+
+**Nothing was re-expected.** Not one question, expected id, machine or case label changed —
+verified by diffing the set field by field. Five entries were flagged as uncertain when the set was
+proposed, and all five were ruled to KEEP. Their notes now carry the reasoning, which is the part
+worth reading: it records why an expectation that looks arguable is in fact right.
+
+| flagged | ruling |
+|---|---|
+| **G09** (the E-47 four) | as-is — all four are correct and **no fifth exists**, so the expectation is complete rather than generous |
+| **G12** (`SV0410`, two protocols) | both correct **by design**: a bare code cannot localise the defect, so the code's full history is the right answer and the technician decides which incident matches |
+| **G14** (a part number) | keep — part questions are real and come **after** troubleshooting ("was this part ever changed?"); rare but real, and the corpus should keep answering it |
+| **G16** (storage procedure) | ratified Mode B — the question is realistic and the corpus genuinely holds no storage procedure, so refusing is **correct today** |
+| **G19** (`bleibt stehen` vs `geht nicht an`) | 002 only — different machine states; an operator may confuse them, the benchmark must not |
+
+### Two standing conditions
+
+These travel with the ratification and are written into the entries themselves, so they are found by
+whoever edits the data rather than only by whoever reads this ADR.
+
+1. **G16 flips the day the corpus gains Einlagerung protocols.** It stops being a Mode B case and
+   becomes a Mode A case with expected ids, and it **must be updated in the same PR that seeds
+   them** — otherwise the harness reports a correct answer as a failure and the set starts lying in
+   the safest-looking direction.
+2. **G19 stays single-answer on purpose.** Adding `geht nicht an` would make the question accept
+   either of two distinct machine states, and a set that accepts either can no longer tell a system
+   that understands the distinction from one that does not.
+
+### What ratification did not settle
+
+The honest limits in this ADR are unchanged, because they were never about the expectations:
+**19 questions over 165 synthetic protocols still measure direction, not quality**, and the set can
+still be over-fitted to. Ratification removes doubt about *what the right answer is*; it does not
+make the set bigger, and it does not make a four-point move in recall mean more than one question.
+
+The harness assertion is flipped rather than deleted: it now requires every entry to be ratified, so
+a question added later is caught as a **proposal** before the aggregates can quote it. A set that is
+half proposal and half ruling would report one number for two different kinds of claim.

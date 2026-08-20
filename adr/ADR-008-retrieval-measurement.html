@@ -134,8 +134,8 @@ ADR-008-retrieval-measurement · maintenance-assistant Docs</title>
         <tbody>
         <tr class="odd">
         <td><strong>Status</strong></td>
-        <td>Proposed — the golden set is <strong>not
-        ratified</strong></td>
+        <td>Accepted — the golden set was ratified 2026-08-20 (see the
+        revision at the end)</td>
         </tr>
         <tr class="even">
         <td><strong>Date</strong></td>
@@ -880,6 +880,107 @@ ADR-008-retrieval-measurement · maintenance-assistant Docs</title>
         The threshold decision above rests on a set no human has ruled
         on yet, which is the honest caveat on all of it — ratification
         is Carlos’s and is still outstanding.</p>
+        <hr />
+        <h2 id="revision-2026-08-20-the-golden-set-is-ratified">Revision
+        2026-08-20 — the golden set is ratified</h2>
+        <p><strong>Carlos ratified the golden question set on
+        2026-08-20.</strong> Every expectation the set proposed now
+        carries an owner’s ruling, and the file records it:
+        <code>ratified: true</code> on all nineteen entries, with
+        <code>ratifiedBy</code> and <code>ratifiedOn</code> at the top
+        level — one act, recorded once, rather than nineteen times.</p>
+        <p><strong>The metrics in this ADR now rest on owner-ratified
+        expectations.</strong> That sentence is the point of the whole
+        exercise. Until now every number here was measured against a set
+        the same agent had both written and graded, which is why this
+        ADR’s status line said <em>Proposed</em> and why the harness
+        asserted that nothing was marked ratified. A recall figure
+        against a draft is a claim about the draft; a recall figure
+        against a ruled set is a claim about retrieval.</p>
+        <p><strong>Nothing was re-expected.</strong> Not one question,
+        expected id, machine or case label changed — verified by diffing
+        the set field by field. Five entries were flagged as uncertain
+        when the set was proposed, and all five were ruled to KEEP.
+        Their notes now carry the reasoning, which is the part worth
+        reading: it records why an expectation that looks arguable is in
+        fact right.</p>
+        <table>
+        <colgroup>
+        <col style="width: 50%" />
+        <col style="width: 50%" />
+        </colgroup>
+        <thead>
+        <tr class="header">
+        <th>flagged</th>
+        <th>ruling</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr class="odd">
+        <td><strong>G09</strong> (the E-47 four)</td>
+        <td>as-is — all four are correct and <strong>no fifth
+        exists</strong>, so the expectation is complete rather than
+        generous</td>
+        </tr>
+        <tr class="even">
+        <td><strong>G12</strong> (<code>SV0410</code>, two
+        protocols)</td>
+        <td>both correct <strong>by design</strong>: a bare code cannot
+        localise the defect, so the code’s full history is the right
+        answer and the technician decides which incident matches</td>
+        </tr>
+        <tr class="odd">
+        <td><strong>G14</strong> (a part number)</td>
+        <td>keep — part questions are real and come
+        <strong>after</strong> troubleshooting (“was this part ever
+        changed?”); rare but real, and the corpus should keep answering
+        it</td>
+        </tr>
+        <tr class="even">
+        <td><strong>G16</strong> (storage procedure)</td>
+        <td>ratified Mode B — the question is realistic and the corpus
+        genuinely holds no storage procedure, so refusing is
+        <strong>correct today</strong></td>
+        </tr>
+        <tr class="odd">
+        <td><strong>G19</strong> (<code>bleibt stehen</code> vs
+        <code>geht nicht an</code>)</td>
+        <td>002 only — different machine states; an operator may confuse
+        them, the benchmark must not</td>
+        </tr>
+        </tbody>
+        </table>
+        <h3 id="two-standing-conditions">Two standing conditions</h3>
+        <p>These travel with the ratification and are written into the
+        entries themselves, so they are found by whoever edits the data
+        rather than only by whoever reads this ADR.</p>
+        <ol type="1">
+        <li><strong>G16 flips the day the corpus gains Einlagerung
+        protocols.</strong> It stops being a Mode B case and becomes a
+        Mode A case with expected ids, and it <strong>must be updated in
+        the same PR that seeds them</strong> — otherwise the harness
+        reports a correct answer as a failure and the set starts lying
+        in the safest-looking direction.</li>
+        <li><strong>G19 stays single-answer on purpose.</strong> Adding
+        <code>geht nicht an</code> would make the question accept either
+        of two distinct machine states, and a set that accepts either
+        can no longer tell a system that understands the distinction
+        from one that does not.</li>
+        </ol>
+        <h3 id="what-ratification-did-not-settle">What ratification did
+        not settle</h3>
+        <p>The honest limits in this ADR are unchanged, because they
+        were never about the expectations: <strong>19 questions over 165
+        synthetic protocols still measure direction, not
+        quality</strong>, and the set can still be over-fitted to.
+        Ratification removes doubt about <em>what the right answer
+        is</em>; it does not make the set bigger, and it does not make a
+        four-point move in recall mean more than one question.</p>
+        <p>The harness assertion is flipped rather than deleted: it now
+        requires every entry to be ratified, so a question added later
+        is caught as a <strong>proposal</strong> before the aggregates
+        can quote it. A set that is half proposal and half ruling would
+        report one number for two different kinds of claim.</p>
       </article>
     </main>
 
@@ -963,6 +1064,16 @@ ADR-008-retrieval-measurement · maintenance-assistant Docs</title>
       <li><a href="#still-open-and-not-this-decisions-to-close"
       id="toc-still-open-and-not-this-decisions-to-close">Still open,
       and not this decision’s to close</a></li>
+      </ul></li>
+      <li><a href="#revision-2026-08-20-the-golden-set-is-ratified"
+      id="toc-revision-2026-08-20-the-golden-set-is-ratified">Revision
+      2026-08-20 — the golden set is ratified</a>
+      <ul>
+      <li><a href="#two-standing-conditions"
+      id="toc-two-standing-conditions">Two standing conditions</a></li>
+      <li><a href="#what-ratification-did-not-settle"
+      id="toc-what-ratification-did-not-settle">What ratification did
+      not settle</a></li>
       </ul></li>
       </ul></li>
       </ul>

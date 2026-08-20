@@ -788,6 +788,48 @@ rather than given one afterwards.
    1.2.0 is simply skipped; the honest fix is the drill checking the dialog
    AFTER deploy, not a retro-tag.
 
+   PROGRESS 2026-08-20 — THE GOLDEN SET IS RATIFIED (docs/golden-set-
+   ratification), and with it the last thing v1.3.0 left open. Carlos ruled
+   on every expectation the robot proposed in #61; the file records it as
+   ratified:true on all 19 entries with ratifiedBy/ratifiedOn once at the
+   top level, because one act ratified the whole set rather than nineteen.
+   THE POINT, and it is worth saying plainly: THE METRICS NOW REST ON
+   OWNER-RATIFIED EXPECTATIONS. Every number quoted since #61 was measured
+   against a set the same agent had written and graded — a recall figure
+   against a draft is a claim about the draft. ADR-008 moves to Accepted.
+   NOTHING WAS RE-EXPECTED. Not one question, expected id, machine or case
+   label changed, verified by diffing the set field by field: 0 substantive
+   changes, 5 notes extended. All five flagged entries were ruled KEEP, and
+   the reasoning is now in the data where an editor will find it:
+     G09 as-is — all four E-47 protocols are correct and NO FIFTH EXISTS,
+         so the expectation is complete rather than generous.
+     G12 both correct BY DESIGN — a bare code cannot localise the defect,
+         so the code's FULL HISTORY is the answer and the technician picks
+         the incident that matches.
+     G14 keep — part questions are real and come AFTER troubleshooting
+         ("was this part ever changed?"); rare but real.
+     G16 Mode B is CORRECT TODAY — the question is realistic (upgrades,
+         repositioning, audits, calibration, economics) and the corpus holds
+         no storage procedure.
+     G19 002 only — "bleibt stehen" (was running) and "geht nicht an"
+         (never started) are DIFFERENT MACHINE STATES. An operator may
+         confuse them; THE BENCHMARK MUST NOT, or it can no longer tell a
+         system that understands the distinction from one that does not.
+   TWO STANDING CONDITIONS, written into the entries themselves so they are
+   found by whoever edits the data: G16 FLIPS to a Mode A case the day
+   Einlagerung protocols are seeded and must be updated IN THE SAME PR, or
+   the harness reports a correct answer as a failure; and G19 stays
+   single-answer on purpose.
+   THE HARNESS ASSERTION IS FLIPPED, NOT DELETED. It required ratified:false
+   — the guard against a robot marking its own homework — and now requires
+   ratified:true, so a question added later is caught as a PROPOSAL before
+   the aggregates can quote it. A set half proposal and half ruling reports
+   one number for two kinds of claim.
+   WHAT RATIFICATION DID NOT SETTLE: the honest limits are unchanged,
+   because they were never about the expectations. 19 questions over 165
+   synthetic protocols still measure DIRECTION, not quality, and the set can
+   still be over-fitted to.
+
 3. v1.3.0 — RETRIEVAL QUALITY
    - HYBRID KEYWORD + SEMANTIC SEARCH (deferred 2026-08-10; the
      interim answer is the search help panel).
@@ -814,6 +856,19 @@ rather than given one afterwards.
    PDF/scan/.docx ingestion. The section at the bottom of this file is
    the older version of this list; where the two disagree, THIS ONE
    WINS (see the superseded note there).
+   ADDED 2026-08-20 from Carlos's ratification of the golden set, CORPUS
+   CANDIDATE ONLY — nothing built, nothing seeded: PER-MACHINE START-UP AND
+   MATERIAL-PLACEMENT PROTOCOLS, covering the states an operator confuses.
+   The worked example is a machine waiting for material that is already
+   placed: operator error and a real sensor defect present identically at
+   the panel, and the corpus currently has nothing that separates them. It
+   comes from the same ruling as G19 — "bleibt stehen" and "geht nicht an"
+   are different machine states — and it is the constructive half of that
+   reasoning: the benchmark must keep the states apart, and the corpus
+   should eventually give a technician the protocols that tell them apart.
+   NOTE FOR WHOEVER SEEDS ANYTHING HERE: if storage/Einlagerung protocols
+   arrive with it, G16 stops being a Mode B case and MUST be updated in the
+   same PR (ADR-008's standing condition).
 
 6. v2.0 — ARCHITECTURE EVOLUTION, GATE FIRST
    - THE KAFKA EXTRACTION (the ADR-001 seam) AND THE SPRING MODULITH

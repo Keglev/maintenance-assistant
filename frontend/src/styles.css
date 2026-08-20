@@ -29,7 +29,29 @@
   --c-field: #ffffff;
   --c-ink: #1b2430;
   --c-ink-muted: #55616f;
-  --c-ink-faint: #7c8794;
+  /* MEASURED, NOT CHOSEN. The previous value (#7c8794) was 3.65:1 on --c-surface, and every one of
+     the five LIVE-TEXT surfaces using this token failed AA in this palette — not only the footer
+     note the e2e suite named: the landing eyebrow at 3.34:1 on --c-canvas, the machine plate's
+     labels at 3.05:1 on the dark end of their gradient, .optional and .example-machine at 3.65:1.
+     One token, one ground set, one defect wearing five faces.
+
+     This value is the LIGHTEST that clears 4.5:1 on the darkest ground the token is ever painted
+     on — the --c-plate-to end of the landing plate (#e7ebf0), where it lands at 4.64:1. Picked that
+     way on purpose: "faint" is a rank in the hierarchy below --c-ink-muted, and every step darker
+     than AA requires spends that rank for nothing. */
+  --c-ink-faint: #616973;
+  /* WHAT IS DISABLED IS NOT WHAT IS FAINT, and this token exists because darkening the one above
+     would otherwise have dragged disabled text along with it.
+
+     WCAG 2.2 SC 1.4.3 exempts text that is part of an INACTIVE user interface component, so the
+     disabled button and the disabled input were never part of the defect above. They are also the
+     one place where low contrast IS the message: a disabled control that reads as crisply as an
+     enabled one has stopped saying it is disabled. Pushing them to 4.82:1 would have bought a
+     requirement nobody has, at the price of a property this interface actually relies on. So they
+     keep the value that was already there, under a name that says why it does not move.
+
+     Identical to --c-ink-faint in the dark palette, where nothing failed and nothing changes. */
+  --c-ink-disabled: #7c8794;
   /* Helper text under a label: examples, hints, the sentence that tells a first-time user what to
      put in a field. Its own token rather than a reuse of --c-ink-muted, because it has to stay
      readable while reading as secondary in BOTH palettes — and deliberately a neutral, so it can
@@ -189,7 +211,13 @@ html[data-theme='dark'] {
   --c-field: #18212c;
   --c-ink: #e7ecf2;
   --c-ink-muted: #a6b3c1;
+  /* Unchanged, and measured to confirm it: the faint ink clears AA on every ground it lands on in
+     this palette, 5.02:1 at its worst (on --c-surface). The light palette's defect was one-sided —
+     the #47 shape exactly — so the fix is one-sided too. */
   --c-ink-faint: #94a1ae;
+  /* The same value as the faint ink here. The split exists for the light palette, where the two
+     have to part; it is declared in both so the token is defined wherever it is used. */
+  --c-ink-disabled: #94a1ae;
   --c-ink-hint: #9dabbb;
   --c-line: #3a4856;
   --c-line-strong: #5f6e7b;
@@ -554,7 +582,7 @@ h3 {
 .btn[disabled] {
   background: var(--c-sunken);
   border-color: var(--c-line);
-  color: var(--c-ink-faint);
+  color: var(--c-ink-disabled);
   cursor: not-allowed;
 }
 
@@ -666,7 +694,7 @@ input:disabled,
 select:disabled,
 textarea:disabled {
   background: var(--c-sunken);
-  color: var(--c-ink-faint);
+  color: var(--c-ink-disabled);
 }
 
 /* --- Notices ------------------------------------------------------------ */

@@ -109,8 +109,27 @@
 }
 
 /* Narrow: the panel sits below the form and hides behind its own toggle, so the field a user came
-   for is the first thing on the screen. */
-@media (max-width: 60rem) {
+   for is the first thing on the screen.
+ *
+ * THE BOUNDARY IS 64rem AND IT IS SHARED WITH search.css, which is the whole point of this number.
+ *
+ * It was 60rem, and search.css turns the layout into two columns at 64rem, so between them lay a
+ * four-rem band where NEITHER treatment applied: the layout was still a single stacked column, and
+ * the panel had already dropped its narrow form — no toggle, body permanently open, a left border
+ * with nothing to its left, and no --read-max to hold the measure. Found in #46 and parked; this
+ * closes it.
+ *
+ * ALIGNED UPWARDS, on 64rem rather than down on 60rem, and the two-column layout is why: its track
+ * list is `minmax(0, 1fr) 22rem` with a 3 rem gutter, so at a 60rem viewport the answer column
+ * would be handed roughly 35 rem minus the page padding — narrower than the 44 rem measure the
+ * whole reading layout is built around. Moving the panel's breakpoint costs nothing at any width,
+ * because it hands the four-rem band the treatment it was already getting at 60rem. Moving the
+ * layout's would have introduced a cramped two-column state that has never existed.
+ *
+ * 63.999rem and not 64rem so the two never both apply on the same pixel: at exactly 64rem the
+ * grid's min-width rule takes over, and there is no width where the panel is narrow AND columned.
+ * Tablet portrait is untouched — it sits far below either number and reads the same rules it did. */
+@media (max-width: 63.999rem) {
   :host {
     flex-basis: 100%;
     max-width: var(--read-max);

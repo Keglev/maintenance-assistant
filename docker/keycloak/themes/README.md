@@ -89,6 +89,23 @@ Two rules follow from that, and neither is optional:
    standalone error page render different markup). One scheme reading correctly proves nothing about
    the other: the heading was fine in dark purely by accident, for as long as the defect existed.
 
+**A rule for markup the parent never renders is dead, and it looks exactly like a rule that works.**
+This theme carried `.pf-v5-c-alert.pf-m-danger, .pf-v5-c-alert.pf-m-error` — a styled error banner —
+for as long as it existed. Keycloak 26.7 renders a wrong password as **inline helper text under the
+field**, not as an alert, so nothing on the login flow ever matched it. Nothing was broken and
+nothing looked broken; the rule simply never applied, which is why it survived a review. Deleted
+2026-08-20, together with the three `--wa-danger-*` declarations per palette that had no other
+consumer.
+
+The check that catches this class — a rule aimed at markup that is not there, or an element the
+parent started rendering that this theme does not name — is **the contrast sweep of a rendered
+page**, the same one rule 2 above already requires. It is not a linter and it is not a diff: a
+sweep enumerates what the browser actually painted, so an element with no rule of ours shows up as a
+measurement (which is how the realm heading was found) and a rule of ours with no element shows up
+as a selector that never appears in the sweep's output. If a future Keycloak release starts
+rendering alerts on the login flow again, that is the check that will say so — and the fix is to
+re-add the rule with a measured pair of colours, not to restore this one from history.
+
 `!important` is used exactly once, on the realm heading, because the parent used it first and
 nothing else overrides an `!important` declaration. Redefining the PatternFly variable behind it
 (`--pf-v5-global--Color--light-100`) was rejected: it would repaint every element that legitimately

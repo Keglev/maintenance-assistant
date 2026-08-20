@@ -47,8 +47,15 @@ public record QueryAnswer(
      * A cited protocol.
      *
      * @param label      the {@code P1}..{@code P5} label used in the answer text and in claims
-     * @param similarity what the retrieval scored it, kept so the demo can show why a case is
-     *                   Mode A and the next one is Mode B rather than asserting it
+     * @param similarity     the cosine similarity the retrieval scored it, kept so the demo can show
+     *                       why a case is Mode A and the next one is Mode B rather than asserting it.
+     *                       Still pure cosine after ADR-009 — the lexical signal never edits it
+     * @param lexicalMatches how many of the question's exact terms — an alarm code, a part number —
+     *                       appear literally in this protocol. THE SECOND COMPONENT, REPORTED
+     *                       SEPARATELY ON PURPOSE: a single fused number would be one nobody can
+     *                       decompose, and this is the field that lets an interface say "the code you
+     *                       typed is in this protocol" rather than showing a score that moved for
+     *                       reasons the reader cannot see. Zero for most questions
      */
     public record Citation(
             String label,
@@ -57,6 +64,7 @@ public record QueryAnswer(
             String errorCode,
             LocalDate incidentDate,
             double similarity,
+            int lexicalMatches,
             /*
              * Whether an administrator has vouched for the protocol behind this citation.
              *

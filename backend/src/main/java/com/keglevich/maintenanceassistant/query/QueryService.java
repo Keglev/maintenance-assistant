@@ -120,14 +120,25 @@ public class QueryService {
         }
 
         float[] questionVector = embed(question);
-        List<RetrievedChunk> hits = retriever.retrieve(machineId, questionVector, properties.topK(), approvedOnly);
+        List<String> lexicalTerms = LexicalTerms.extract(question);
+        List<RetrievedChunk> hits = retriever.retrieve(machineId, questionVector, properties.topK(),
+                approvedOnly, lexicalTerms, properties.lexicalWeight());
 
-        double best = hits.isEmpty() ? 0.0 : hits.get(0).similarity();
-        boolean grounded = !hits.isEmpty() && best >= properties.similarityThreshold();
+        // MAX, not hits.get(0). Before ADR-009 the two were the same thing, because the list was
+        // ordered by similarity; now the lexical weight can order a chunk first that is not the most
+        // similar one. Reading the head would then hand the gate a LOWER number than before and turn
+        // a question that has always been Mode A into Mode B — a regression caused entirely by
+        // re-ordering. The gate asks "is anything here similar enough", which is a property of the
+        // set and not of its first element.
+        double best = hits.stream().mapToDouble(RetrievedChunk::similarity).max().orElse(0.0);
+        boolean exactTermPresent = hits.stream().anyMatch(hit -> hit.lexicalMatches() > 0);
+        boolean grounded = best >= properties.similarityThreshold() || exactTermPresent;
 
-        log.info("Query on machine {} as {}: {} hits, best similarity {}, threshold {} -> Mode {}",
+        log.info("Query on machine {} as {}: {} hits, best similarity {}, threshold {}, "
+                        + "terms {} matched-in {} chunk(s) -> Mode {}",
                 machineId, role, hits.size(), String.format(java.util.Locale.ROOT, "%.4f", best),
-                properties.similarityThreshold(), grounded ? "A" : "B");
+                properties.similarityThreshold(), lexicalTerms,
+                hits.stream().filter(hit -> hit.lexicalMatches() > 0).count(), grounded ? "A" : "B");
 
         QueryAnswer answer;
         try {
@@ -186,21 +197,30 @@ public class QueryService {
     private List<GroundedPrompt.LabelledSource> labelByProtocol(List<RetrievedChunk> hits) {
         LinkedHashMap<UUID, List<RetrievedChunk>> byProtocol = new LinkedHashMap<>();
         for (RetrievedChunk hit : hits) {
-            if (hit.similarity() >= properties.similarityThreshold()) {
+            // Above the threshold, OR carrying an exact term the question asked for. The second
+            // clause has to be here as well as at the gate: a question grounded ONLY by its code —
+            // "Was bedeutet KOM-04?", whose protocol scores 0.4288 — would otherwise be routed to
+            // Mode A and then offered no sources at all, produce no citation, and fall through to
+            // Mode B anyway. The gate and the source list must agree on what counts as evidence.
+            if (hit.similarity() >= properties.similarityThreshold() || hit.lexicalMatches() > 0) {
                 byProtocol.computeIfAbsent(hit.protocolId(), key -> new ArrayList<>()).add(hit);
             }
         }
         List<GroundedPrompt.LabelledSource> sources = new ArrayList<>();
         int label = 1;
         for (List<RetrievedChunk> chunks : byProtocol.values()) {
-            // The first is the best: the retrieval query returns them in rank order and grouping
-            // preserves it, so this is the similarity the threshold was compared against.
-            RetrievedChunk best = chunks.get(0);
+            // The head carries the protocol's identity — title, code, date and approval are the same
+            // on every chunk of one protocol — but NOT its score. Since ADR-009 the list is ordered
+            // by the fused score, so the two numbers a reader decomposes are taken across the
+            // protocol's chunks rather than off whichever one happened to rank first.
+            RetrievedChunk head = chunks.get(0);
+            double similarity = chunks.stream().mapToDouble(RetrievedChunk::similarity).max().orElseThrow();
+            int lexicalMatches = chunks.stream().mapToInt(RetrievedChunk::lexicalMatches).max().orElse(0);
             sources.add(new GroundedPrompt.LabelledSource(
-                    "P" + label++, best.protocolId(), best.title(), best.errorCode(),
-                    best.incidentDate(), best.similarity(),
+                    "P" + label++, head.protocolId(), head.title(), head.errorCode(),
+                    head.incidentDate(), similarity, lexicalMatches,
                     chunks.stream().map(RetrievedChunk::content).toList(),
-                    best.approved()));
+                    head.approved()));
         }
         return sources;
     }

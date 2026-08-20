@@ -186,6 +186,24 @@ maintenance:
     max-candidates: ${DUPLICATE_MAX_CANDIDATES:3}
 
   query:
+    # HYBRID RETRIEVAL (ADR-009). How far an exact-term match may move a chunk in the
+    # RANKING — added to the cosine similarity to order candidates, and NEVER compared
+    # with similarity-threshold below. The two are in the same units by coincidence, not
+    # by meaning: fusing them would re-calibrate a number ADR-002 measured, for every
+    # question, to fix one.
+    #
+    # 0.15 is a CEILING on how much certainty an exact code may buy, chosen against the
+    # measured spread of this corpus rather than by taste. Same-machine chunk
+    # similarities for a real question run about 0.30 at the bottom of a top-5 to about
+    # 0.71 at the top, so 0.15 lifts an exact match several places — enough to carry it
+    # into the top-k it would otherwise miss — while a chunk at 0.30 still lands at 0.45
+    # and cannot displace a strong semantic match at 0.60+. It buys position, never a
+    # verdict: the Mode A/B decision is a separate rule (see ADR-009 §Gate).
+    #
+    # 0 disables the lexical signal and restores pure-vector retrieval, which is what the
+    # regression test uses to prove the two paths agree when a question carries no code.
+    lexical-weight: ${QUERY_LEXICAL_WEIGHT:0.15}
+
     # The Mode A / Mode B switch (NFR-2). MEASURED against the real corpus on
     # 2026-08-07, not inherited from the 10-protocol spike: the E-47 demo scores
     # 0.695 and the DE->EN demo 0.577, both of which must be Mode A, while the

@@ -93,7 +93,8 @@ class AnswerAssembler {
             GroundedPrompt.LabelledSource source = entry.getValue();
             citations.add(new QueryAnswer.Citation(
                     entry.getKey(), source.protocolId(), source.title(), source.errorCode(),
-                    source.incidentDate(), round(source.similarity()), source.approved()));
+                    source.incidentDate(), round(source.similarity()), source.lexicalMatches(),
+                    source.approved()));
         }
 
         String prose = claims.stream()

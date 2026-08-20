@@ -11,9 +11,16 @@ import java.util.UUID;
  * points at {@link #protocolId()}. Title, error code and date come from the protocol row rather than
  * from the chunk text, so a citation says the same thing whichever chunk of a protocol was matched.
  *
- * @param similarity cosine similarity in {@code [-1, 1]}, {@code 1 - (embedding <=> question)}.
- *                   This is the number the Mode A / Mode B threshold is compared against, and the
- *                   number ADR-002's measured demo cases are quoted in.
+ * @param similarity     cosine similarity in {@code [-1, 1]}, {@code 1 - (embedding <=> question)}.
+ *                       This is the number the Mode A / Mode B threshold is compared against, and
+ *                       the number ADR-002's measured demo cases are quoted in. <b>It stays pure
+ *                       cosine after ADR-009's hybrid retrieval</b> — the lexical signal orders
+ *                       candidates and grounds an answer, and never edits this number, so 0.55 keeps
+ *                       the meaning it was measured with.
+ * @param lexicalMatches how many of the question's exact terms (alarm codes, part numbers) appear
+ *                       literally in this chunk. Reported <b>beside</b> the similarity rather than
+ *                       folded into it, so a reader can always decompose why a chunk was returned;
+ *                       zero for every question that carries no such term, which is most of them
  */
 record RetrievedChunk(
         UUID chunkId,
@@ -24,6 +31,7 @@ record RetrievedChunk(
         String language,
         LocalDate incidentDate,
         double similarity,
+        int lexicalMatches,
         /*
          * Whether an administrator has vouched for the protocol this chunk came from.
          *

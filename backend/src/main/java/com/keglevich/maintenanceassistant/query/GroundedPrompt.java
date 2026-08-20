@@ -196,7 +196,13 @@ final class GroundedPrompt {
      * whose whole claim is that its answers are traceable. Measured on the E-47 demo, where the
      * top 5 chunks come from 4 protocols.
      *
-     * @param similarity the best of this protocol's chunks — what the threshold was compared against
+     * @param similarity     the highest cosine similarity among this protocol's retrieved chunks.
+     *                       The MAXIMUM rather than the first, because since ADR-009 the list is
+     *                       ordered by the fused score and the head is no longer guaranteed to be
+     *                       the most similar chunk
+     * @param lexicalMatches how many of the question's exact terms appear literally in this
+     *                       protocol's retrieved chunks — the second component, kept beside the
+     *                       similarity so a reader can decompose the ranking rather than trust it
      * @param contents   its retrieved chunks, in rank order
      */
     record LabelledSource(
@@ -206,6 +212,7 @@ final class GroundedPrompt {
             String errorCode,
             LocalDate incidentDate,
             double similarity,
+            int lexicalMatches,
             List<String> contents,
             /** Whether an administrator has vouched for this protocol. Travels to the citation. */
             boolean approved) {

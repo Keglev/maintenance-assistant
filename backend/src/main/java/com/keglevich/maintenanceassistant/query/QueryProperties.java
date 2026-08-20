@@ -16,6 +16,12 @@ import java.time.Duration;
  * @param rateLimitPerMinute  questions per user per minute (NFR-7)
  * @param cacheTtl            how long an identical question keeps its answer
  * @param cacheMaxEntries     cache bound, so a spray of distinct questions cannot grow the heap
+ * @param lexicalWeight       how far an exact-term match may move a chunk in the RANKING (ADR-009).
+ *                            Added to the cosine similarity to order candidates, and <b>never</b>
+ *                            compared with {@link #similarityThreshold()}: the two are in the same
+ *                            units by coincidence rather than by meaning, and fusing them would
+ *                            silently re-calibrate a number ADR-002 measured against the corpus.
+ *                            Zero disables the lexical signal and restores pure-vector retrieval
  */
 @ConfigurationProperties(prefix = "maintenance.query")
 public record QueryProperties(
@@ -23,5 +29,6 @@ public record QueryProperties(
         int topK,
         int rateLimitPerMinute,
         Duration cacheTtl,
-        int cacheMaxEntries) {
+        int cacheMaxEntries,
+        double lexicalWeight) {
 }

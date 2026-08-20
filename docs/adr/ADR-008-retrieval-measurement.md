@@ -315,3 +315,70 @@ that the decision is re-openable on evidence rather than on taste:
   harness measures by raising `top-k` and watching recall move.
 
 Neither is true at 165 protocols. Re-read this note before the reranker is picked up again.
+
+---
+
+## Revision 2026-08-19 (v1.3.0 close-out) — the query threshold stays 0.55
+
+**Carlos's decision: no change.** The number this ADR set out to revalidate has been revalidated and
+keeps its value, which is a result and not an absence of one.
+
+### The evidence
+
+The sweep in `baseline.md`, re-measured after hybrid retrieval (ADR-009), is **flat across
+0.48–0.55**. Every row is identical:
+
+| threshold | Mode A questions | answerable lost | Mode B wrongly grounded | expected above t |
+|---|---|---|---|---|
+| 0.48 … 0.55 | 17 | 0 | **0** | 16 / 17 |
+| 0.56 | 16 | **1** | 0 | 14 / 17 |
+
+**Moving the threshold anywhere inside that plateau changes nothing observable on the golden set.**
+A configuration change with no effect is documentation debt: it invalidates the history attached to
+the old number and buys nothing measurable, so the measured value keeps its provenance. 0.55 also
+sits at the *top* of the plateau, where the margin above the highest unanswerable question is
+largest — 0.55 against 0.4771 — and one step further (0.56) is where the first answerable question
+starts being lost.
+
+### What removed the argument for lowering it
+
+The exact-term case was the only thing pushing downward: G13 scored 0.4288 and needed a lower gate to
+be answered at all. **ADR-009's term override solved that at every threshold**, by grounding on the
+code the reader typed rather than by loosening the number for all nineteen questions. The pressure
+to lower the threshold is gone, not accommodated.
+
+### The floor, stated so nobody optimises toward it
+
+Below the plateau the anti-hallucination guarantee starts failing, and the measured boundary is
+**0.48, not lower**:
+
+- **0.46–0.47** — one Mode B question acquires a citation (G16, scoring 0.4771).
+- **0.45 and below** — both do (G15 joins at 0.4588).
+
+So 0.48 is the floor of NFR-2's guarantee on this corpus, and the plateau is bounded *below* by
+correctness rather than by preference. Any future proposal to lower the threshold has to clear that
+line first. (A separate column moves earlier — `expected above t` drops from 17/17 to 16/17 at 0.43 —
+but that is about which protocols may still be offered as sources, not about unanswerable questions
+acquiring citations. The two are easy to confuse and mean different things.)
+
+### The known thin spot stays known, and stays measured
+
+**The EN→DE cross-lingual question clears the threshold by 0.0082** (G11 at 0.5582). That is a real
+margin and a thin one, and the response is deliberately *not* a preemptive nudge downward: moving the
+gate to buy headroom for one question would trade a measured number for a guess, and the plateau
+above shows it would change nothing else anyway.
+
+**The response is measurement.** The baseline harness re-measures that margin on every run and the
+figure is in the committed report, so a narrowing is visible as a diff rather than as a surprise.
+
+**Revisit the threshold when the harness says the margin is closing** — most plausibly when the
+corpus gains a substantial number of English protocols and cross-lingual questions start landing
+near or below the gate. That is the condition; a single run showing G11 below 0.55, or the
+cross-lingual case dropping in `mode correct`, is the trigger to re-open this decision with fresh
+numbers rather than to adjust the number quietly.
+
+### Still open, and not this decision's to close
+
+The golden set remains **`ratified: false`** in every entry. The threshold decision above rests on a
+set no human has ruled on yet, which is the honest caveat on all of it — ratification is Carlos's and
+is still outstanding.

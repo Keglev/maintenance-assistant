@@ -352,3 +352,82 @@ Status: end of Phase 2 (data + ingestion live in production), 2026-08-07
 - AI-USAGE.md in every repo (tools used, generated vs. self-written, verification process)
 - Fix stockease (login + API docs) BEFORE/parallel to new project; send recruiter the fixes
   + AI-USAGE.md early as fast-feedback signal
+
+== RETRIEVAL QUALITY, RATIFIED (v1.3.0, 2026-08-20) ==
+- GOLDEN SET RATIFIED (#67): all 19 expectations ruled KEEP by Carlos, ratified:true with
+  ratifiedBy/ratifiedOn once at the top level — ONE act ratified the set, not nineteen. Nothing was
+  re-expected: 0 substantive changes, 5 notes extended, verified field by field. THE METRICS NOW
+  REST ON OWNER-RATIFIED EXPECTATIONS; every recall figure quoted before this was measured against
+  a set the same agent had written and graded. ADR-008 moves to Accepted.
+- THE HARNESS ASSERTION IS FLIPPED, NOT DELETED: it required ratified:false — the guard against a
+  robot marking its own homework — and now requires ratified:true, so a question added later is
+  caught as a PROPOSAL before the aggregates can quote it. A set half proposal and half ruling
+  reports one number for two kinds of claim.
+- TWO STANDING CONDITIONS, written into the data rather than left in a session's head: G16 FLIPS to
+  a Mode A case IN THE SAME PR that seeds Einlagerung protocols, or the harness reports a correct
+  answer as a failure; and G19 stays single-answer, because "bleibt stehen" (was running) and "geht
+  nicht an" (never started) are DIFFERENT MACHINE STATES — an operator may confuse them, the
+  benchmark must not, or it can no longer tell a system that understands the distinction from one
+  that does not.
+- What ratification did NOT settle: 19 questions over 165 synthetic protocols still measure
+  DIRECTION, not quality, and the set can still be over-fitted to.
+- QUERY THRESHOLD STAYS 0.55 (#66, Carlos 2026-08-19). The sweep is FLAT from 0.48 to 0.55 —
+  identical grounded counts, zero wrongly-grounded Mode B questions on every row — so moving it
+  inside the plateau changes nothing observable and would only cost the number its measured
+  history. THE FLOOR IS MEASURED AND NAMED so nobody optimises toward it: at 0.46-0.47 one Mode B
+  question acquires a citation and at 0.45 and below both do, which makes 0.48 the floor of NFR-2's
+  guarantee on this corpus. The one argument for lowering it (G13 at 0.4288) was REMOVED by #65's
+  term override, not accommodated. Known thin spot unchanged: EN->DE clears 0.55 by 0.0082, and the
+  response is measurement on every harness run, not a preemptive nudge.
+- THE HELP PANEL IS PART OF RETRIEVAL'S CONTRACT WITH THE READER (#69), so A CHANGE TO LexicalTerms
+  IS A CHANGE TO THE PANEL. It taught that a single word cannot be matched — true when retrieval was
+  semantic only, untrue since ADR-009 — and nothing was red, because prose does not fail a build when
+  the system underneath it changes. The panel now states the rule the code implements (a term needs
+  at least one LETTER and one DIGIT to be matched literally, which is why "E-47" and "SV0410" work
+  alone and "frei", "Druck" and "Band" do not), and TWO vitest specs pin BOTH halves: a panel that
+  mentioned codes and dropped the generic-word half would teach the opposite error.
+- QUERY COMPLETENESS-GATING REJECTED (Carlos, #69 drill) and NOT TO BE RE-PROPOSED: "e-47" is a lazy
+  query that WORKS and "was bedeutet" is a lazy query Mode B already handles gracefully, so a
+  completeness check would block the good one to prevent the harmless one.
+
+== UI (v1.1.1 close-out, 2026-08-20) ==
+- THE v1.1.1 POLISH LIST IS CLOSED (#68): three fixed, one parked PERMANENTLY. Fixed: the 60-64rem
+  dead band, where both breakpoints now meet on ONE boundary at 64rem — ALIGNED UPWARDS, because
+  pulling the layout down to 60rem would have left the answer column narrower than the 44rem measure
+  the reading layout is built on; the dead Keycloak alert rule, deleted with the three orphaned
+  --wa-danger-* declarations per palette (KC 26.7 renders a wrong password as inline helper text, so
+  nothing ever matched it); and .footer-note below AA in light, WHICH WAS NEVER ONE DEFECT.
+- MEASURING EVERY CONSUMER OF A TOKEN BEFORE TOUCHING IT is the lesson from that third fix: all FIVE
+  light-palette surfaces painting --c-ink-faint were below AA, not one. Fixed with a single token
+  move (#7c8794 -> #616973, the lightest value clearing 4.5:1 on the darkest ground it is painted
+  on); dark untouched at 5.02:1 worst. ONE token was split off — --c-ink-disabled keeps the old
+  value, because WCAG 2.2 SC 1.4.3 exempts inactive controls and low contrast IS the message there.
+- PARKED PERMANENTLY: the dark locale-select cosmetic (PatternFly's #36373a rather than --wa-field).
+  It passes AA at 9.02:1, it sits INSIDE the card where nothing depends on it matching, and the file
+  is HAND-DEPLOYED — shipping it costs a server login, a force-recreate and a private-window drill in
+  exchange for a shade of grey. THE REASONING IS RECORDED SO THE ITEM IS NOT RE-LITIGATED EVERY
+  SESSION: reopen it only riding along with a theme change that is being hand-deployed anyway.
+- The v1.3.0 drill raised the footer's TYPE SIZE, not its colour (#69): no token and no ratio moved,
+  deliberately, so that a size change could not smuggle a colour change past #68's measurements.
+
+== REFACTOR PHASE (2026-08-20) ==
+- SURVEY FIRST, FIX SECOND (#70). The review is READ-ONLY and produces findings tables that fix
+  nothing — test coverage, then structure and code, with configuration and DOCS AUDITED LAST. Real
+  refactors found there become their own small PRs rather than riding along with the review. ZERO
+  BEHAVIOUR CHANGE. A refactor that starts with an edit is a preference; one that starts with a
+  measurement is maintenance.
+- THE STANDARDS ARE IN THE REPO BEFORE THE FIRST FIX PR OPENS, so "what good looks like" is
+  reviewable rather than remembered. docs/REFACTOR-STANDARDS.txt is NORMATIVE — bands, counting
+  methods, test conduct, coverage targets and the waiver register, and the single place any of them
+  is edited. docs/refactor-standards.md is the published page and repeats none of the tables, so the
+  two cannot drift.
+- WAIVERS ARE GRANTED BY THE OWNER, NEVER ASSUMED, and the register was created EMPTY on purpose so
+  the first waiver has somewhere to go instead of becoming a comment nobody collected.
+- COVERAGE TARGET 85% on statements, branches (INCLUDING missed branches) and functions, BOTH
+  STACKS, and THE FIGURE THAT COUNTS IS THE ONE CI PUBLISHES — a local run is a working tool, not
+  evidence. It follows that KEY-GATED ITs COVER NOTHING: CI skips them for want of LLM_API_KEY, so
+  code whose only tests are gated is uncovered however green it looks on a laptop with the key set.
+- ENFORCEMENT IS A RATCHET, ARMED ONLY ONCE THE TARGETS ARE MET — jacoco check and vitest thresholds
+  at the achieved numbers, so a regression fails the build. Authored in #70's standards file and
+  ratified by its merge. Arming it first would only break CI; today neither stack enforces anything,
+  which is why 85% is written down as a target rather than left to read as a gate.

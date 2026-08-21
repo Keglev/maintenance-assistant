@@ -148,20 +148,52 @@ class IonosChatClientFailureTest {
     }
 
     @Test
-    void complete_malformedResponseBody_isRetriedAndCountedNowhere() {
-        provider.enqueue(200, "application/json", "{ not json at all ");
+    void complete_malformedResponseBody_isTerminalAndCounted() {
         provider.enqueue(200, "application/json", "{ not json at all ");
 
         assertThatThrownBy(() -> clientFor(provider, budget, LLAMA).complete(prompt()))
-                .isInstanceOf(ChatException.class);
+                .isInstanceOf(ChatException.class)
+                .hasMessageContaining("cannot read the provider response");
 
-        // FINDING, PINNED AS IT IS RATHER THAN AS IT READS — the same one the embedding client has.
-        // There is a terminal branch for this, "cannot read the provider response", counted and
-        // never retried. A body that will not parse does not reach it: Spring reports it as a plain
-        // RestClientException ("Error while extracting response"), not as an
-        // HttpMessageConversionException, so it lands in the TRANSIENT catch. The served calls are
-        // therefore invisible to the budget, and the unreadable answer is bought twice.
-        assertThat(provider.requests()).hasSize(2);
+        // A RESPONSE THAT ARRIVED WAS SERVED, and the provider bills for serving it. So it counts
+        // against the budget even though nothing could be read out of it, and it is NOT retried:
+        // the same unreadable answer would be bought a second time, and here a person is waiting
+        // for it inside NFR-4's ceiling, so the second purchase costs them the wait as well.
+        //
+        // Until 2026-08-21 the branch meant to prevent this never ran — Spring wraps a read failure
+        // in a plain RestClientException, which landed beside a connection reset. See
+        // IonosChatClient#isUnreadableResponse for the measured exception shapes.
+        assertThat(provider.requests()).hasSize(1);
+        verify(budget).record(1, 0L, 0L);
+    }
+
+    @Test
+    void complete_bodyThatIsNotJsonAtAll_isTerminalAndCounted() {
+        provider.enqueue(200, "text/html", "<html>gateway timeout</html>");
+
+        // What a proxy in front of the provider produces: an HTML page served as 200. No converter
+        // can read it, which Spring reports as UnknownContentTypeException rather than through a
+        // cause — hence two type checks in the classifier, not one.
+        assertThatThrownBy(() -> clientFor(provider, budget, LLAMA).complete(prompt()))
+                .isInstanceOf(ChatException.class)
+                .hasMessageContaining("cannot read the provider response");
+        assertThat(provider.requests()).hasSize(1);
+        verify(budget).record(1, 0L, 0L);
+    }
+
+    @Test
+    void complete_noResponseAtAll_isRetriedAndCountedNowhere() {
+        // Nothing is listening: the stub is closed before the call, so the connection is refused.
+        String deadBaseUrl = provider.baseUrl();
+        provider.close();
+
+        assertThatThrownBy(() -> ChatClientFixtures.clientForBaseUrl(deadBaseUrl, budget, LLAMA)
+                .complete(prompt()))
+                .isInstanceOf(ChatException.class)
+                .hasMessageContaining("chat provider unavailable after 2 attempts");
+
+        // THE OTHER HALF OF THE RULE. No response arrived, so nothing was served and nothing is
+        // owed — retrying is free of charge and is what a refused connection deserves.
         verifyNoInteractions(budget);
     }
 }

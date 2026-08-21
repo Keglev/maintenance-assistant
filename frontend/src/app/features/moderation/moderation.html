@@ -328,7 +328,7 @@
                         data-testid="row-withdraw"
                         [attr.aria-haspopup]="'dialog'"
                         [attr.aria-label]="t().approval.withdraw + ': ' + protocol.title"
-                        (click)="withdrawing.set(protocol)"
+                        (click)="beginWithdraw(protocol)"
                       >
                         <!-- The short label in the row, the full one in its accessible name and in
                              the dialog it opens: three buttons per row have to fit beside six
@@ -539,7 +539,7 @@
           class="btn btn-secondary btn-sm"
           data-testid="viewer-withdraw"
           [attr.aria-haspopup]="'dialog'"
-          (click)="withdrawing.set(target); viewing.set(null)"
+          (click)="beginWithdraw(target); viewing.set(null)"
         >
           {{ t().approval.withdraw }}
         </button>

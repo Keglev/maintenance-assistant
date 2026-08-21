@@ -51,9 +51,14 @@ npx --yes @redocly/cli build-docs "$SPEC" -o "$API_OUT/index.html"
 # point at.
 cp "$SPEC" "$API_OUT/openapi.json"
 
-# Inject a fixed-position "back to docs" link into the self-contained Redocly
-# page, which has no place for the site chrome. Applied at build time because
-# this file is regenerated on every docs build.
-sed -i 's|<body[^>]*>|&<a id="back-to-docs" href="/maintenance-assistant/" style="position:fixed;top:8px;right:12px;z-index:9999;font:14px sans-serif;padding:6px 12px;background:#0d9488;color:#fff;text-decoration:none;border-radius:4px;box-shadow:0 1px 4px rgba(0,0,0,0.2);">\&larr; Back to docs</a>|' "$API_OUT/index.html"
+# The self-contained Redocly page has no place for the site chrome, so the way
+# back to the documentation site is injected at build time — this file is
+# regenerated on every docs build, so nothing is hand-edited.
+#
+# The markup and the assertion moved into the shared injector when the coverage
+# and Compodoc trees needed the same anchor. It reports its own success, and it
+# FAILS THE BUILD if the anchor is not there afterwards, which is why the line
+# below no longer claims the injection happened.
+bash "$(dirname "${BASH_SOURCE[0]}")/inject-back-to-docs.sh" "$API_OUT/index.html"
 
-echo "✓ Redocly HTML generated at backend/api-docs/index.html (back-to-docs link injected)"
+echo "✓ Redocly HTML generated at backend/api-docs/index.html"

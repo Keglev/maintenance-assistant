@@ -126,12 +126,23 @@ copy_plain_text_docs() {
 # JaCoCo HTML, downloaded by the workflow to target/reports/backend-coverage.
 # Absent on docs-only builds, in which case the deploy step preserves the
 # published report.
+#
+# CI NEVER REACHES THIS FUNCTION WITH ANYTHING TO COPY, and that is worth
+# knowing before reading it: the site job downloads no artifacts, and the job
+# that does download them publishes each tree straight from target/reports/
+# without calling this script. So the copy — and the anchor injection below —
+# serve a LOCAL full build, whose whole purpose is to look like the deployed
+# site. The anchor is injected here for that reason and no other; in CI it is
+# injected in docs.yml's reports job, immediately before those publish steps.
 copy_report() {
   local SRC="$PROJECT_DIR/target/reports/$1"
   local DEST="$OUTPUT_DIR/$2"
   if [ -d "$SRC" ] && [ "$(ls -A "$SRC")" ]; then
     mkdir -p "$DEST"
     cp -R "$SRC/." "$DEST/"
+    if [ -f "$DEST/index.html" ]; then
+      bash "$SCRIPTS_DIR/inject-back-to-docs.sh" "$DEST/index.html"
+    fi
     echo "✓ $1 copied to $2"
   else
     echo "ℹ️  No $1 found — skipping"

@@ -10,12 +10,19 @@ name: docs-pr-check
 # required name, so a docs PR is gated by something that can actually be wrong about it.
 #
 # The paths below and backend-ci.yml's pull_request paths-ignore are maintained as a pair. Every
-# content path in this list is ignored there, and everything else falls through to the backend job.
+# CONTENT path in this list is ignored there, and everything else falls through to the backend job.
 # A path that ended up in neither would produce a PR with no `build-and-test` check at all, which is
 # unmergeable — see the comment on that trigger.
 #
-# This workflow's own file is deliberately NOT ignored by backend-ci.yml. Editing the docs gate
-# should run both checks, because getting it wrong is how the repository loses its ability to merge.
+# THE GATE-ADJACENT PATHS ARE THE EXCEPTION, AND THEY ARE DOUBLE-GATED ON PURPOSE. This workflow's
+# own file and `.github/scripts/docs/**` are triggers here and are deliberately NOT ignored by
+# backend-ci.yml, so editing the docs gate or the scripts it runs reports under `build-and-test`
+# twice. Getting either wrong is how the repository loses its ability to merge, and one check that
+# has to be right is worth less than two.
+#
+# `.github/scripts/docs/**` was added 2026-08-21 because it was gated by `mvn verify` — a check that
+# never executes a single one of those scripts. It could not fail on a broken docs build, so it
+# passed for reasons that had nothing to do with the change.
 
 on:
   pull_request:
@@ -24,6 +31,7 @@ on:
       - 'docs/**'
       - '.github/workflows/docs.yml'
       - '.github/workflows/docs-pr-check.yml'
+      - '.github/scripts/docs/**'
   workflow_dispatch:
 
 permissions:
@@ -85,6 +93,19 @@ jobs:
             "https://github.com/jgm/pandoc/releases/download/${PANDOC_VERSION}/pandoc-${PANDOC_VERSION}-1-amd64.deb"
           sudo dpkg -i /tmp/pandoc.deb
           pandoc --version | head -1
+
+      # A pull request has no coverage artifact and no OpenAPI spec, so NOTHING in the build below
+      # ever calls the back-to-docs injector — adding its directory to this workflow's paths gates
+      # the docs build, not the injector itself. This runs it against a throwaway page instead, so
+      # a change to it is gated by the thing it claims to do.
+      #
+      # Twice on purpose: the script asserts on every run that the file ends with exactly one anchor
+      # and a surviving <body>, so a second pass that stacked a duplicate would fail here.
+      - name: Verify the back-to-docs injector
+        run: |
+          printf '%s' '<!doctype html><html><body><p>fixture</p></body></html>' > "$RUNNER_TEMP/anchor.html"
+          bash .github/scripts/docs/inject-back-to-docs.sh "$RUNNER_TEMP/anchor.html"
+          bash .github/scripts/docs/inject-back-to-docs.sh "$RUNNER_TEMP/anchor.html"
 
       # The same script docs.yml publishes with, so this gate cannot pass on a site that the
       # publishing build would fail to produce. Keep the Node version in step with that workflow.

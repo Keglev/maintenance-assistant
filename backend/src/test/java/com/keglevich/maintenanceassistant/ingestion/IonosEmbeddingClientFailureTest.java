@@ -96,36 +96,68 @@ class IonosEmbeddingClientFailureTest {
     }
 
     @Test
-    void embed_malformedResponseBody_isRetriedAndCountedNowhere() {
-        provider.enqueue(200, "application/json", "{ this is not json ");
+    void embed_malformedResponseBody_isTerminalAndCounted() {
         provider.enqueue(200, "application/json", "{ this is not json ");
 
         assertThatThrownBy(() -> clientFor(provider, budget, MODEL, 2).embed(List.of("eins")))
-                .isInstanceOf(EmbeddingException.class);
+                .isInstanceOf(EmbeddingException.class)
+                .hasMessageContaining("cannot read the provider response");
 
-        // FINDING, PINNED AS IT IS RATHER THAN AS IT READS. The client has a terminal branch for
-        // exactly this — "cannot read the provider response", counted and never retried, written
-        // after the 150-paid-calls incident. A body that will not parse does not reach it: Spring
-        // reports it as a plain RestClientException ("Error while extracting response"), not as an
-        // HttpMessageConversionException, so it lands in the TRANSIENT catch instead.
+        // A RESPONSE THAT ARRIVED WAS SERVED, and the provider bills for serving it. So it counts
+        // against the budget even though nothing could be read out of it, and it is NOT retried:
+        // the same unreadable answer would simply be bought a second time.
         //
-        // Two consequences, both the original incident: the served calls are invisible to the
-        // budget, and the request is retried, so the same unreadable answer is bought twice.
-        assertThat(provider.requests()).hasSize(2);
-        verifyNoInteractions(budget);
+        // This was the 2026-08 incident — 150 paid calls the budget never saw — and until
+        // 2026-08-21 the branch meant to prevent it never ran, because Spring wraps a read failure
+        // in a plain RestClientException that landed beside a connection reset. See
+        // IonosEmbeddingClient#isUnreadableResponse for the measured exception shapes.
+        assertThat(provider.requests()).hasSize(1);
+        verify(budget).record(1, 0L);
     }
 
     @Test
-    void embed_base64Vector_failsRatherThanWritingNonsense() {
-        provider.enqueueJson(200, EmbeddingClientFixtures.base64Vector(MODEL));
+    void embed_base64Vector_isTerminalRatherThanWritingNonsense() {
         provider.enqueueJson(200, EmbeddingClientFixtures.base64Vector(MODEL));
 
-        // ADR-002's first caveat arriving anyway: a string where the array belongs. What must never
-        // happen is a row of vectors built from it, and that much holds. It travels the same
-        // transient path as the malformed body above, for the same reason and with the same finding.
+        // ADR-002's first caveat arriving anyway: a string where the array belongs. Valid JSON of
+        // the wrong shape, so it fails on binding rather than on parsing — a different cause, the
+        // same rule. What must never happen is a row of vectors built from it.
         assertThatThrownBy(() -> clientFor(provider, budget, MODEL, 2).embed(List.of("eins")))
-                .isInstanceOf(EmbeddingException.class);
-        assertThat(provider.requests()).hasSize(2);
+                .isInstanceOf(EmbeddingException.class)
+                .hasMessageContaining("cannot read the provider response");
+        assertThat(provider.requests()).hasSize(1);
+        verify(budget).record(1, 0L);
+    }
+
+    @Test
+    void embed_bodyThatIsNotJsonAtAll_isTerminalAndCounted() {
+        provider.enqueue(200, "text/html", "<html>gateway timeout</html>");
+
+        // The third measured shape, and the one a proxy in front of the provider produces: an HTML
+        // page served as 200. No converter can read it, which Spring reports as
+        // UnknownContentTypeException rather than through a cause — hence two type checks, not one.
+        assertThatThrownBy(() -> clientFor(provider, budget, MODEL, 2).embed(List.of("eins")))
+                .isInstanceOf(EmbeddingException.class)
+                .hasMessageContaining("cannot read the provider response");
+        assertThat(provider.requests()).hasSize(1);
+        verify(budget).record(1, 0L);
+    }
+
+    @Test
+    void embed_noResponseAtAll_isRetriedAndCountedNowhere() {
+        // Nothing is listening: the stub is closed before the call, so the connection is refused.
+        String deadBaseUrl = provider.baseUrl();
+        provider.close();
+
+        assertThatThrownBy(() -> EmbeddingClientFixtures.clientForBaseUrl(deadBaseUrl, budget, MODEL)
+                .embed(List.of("eins")))
+                .isInstanceOf(EmbeddingException.class)
+                .hasMessageContaining("embedding provider unavailable after 2 attempts");
+
+        // THE OTHER HALF OF THE RULE, and the reason the tests above are not simply "never retry".
+        // No response arrived, so nothing was served and nothing is owed — retrying is free of
+        // charge and is exactly what a reset connection deserves.
+        verifyNoInteractions(budget);
     }
 
     @Test

@@ -25,11 +25,20 @@ final class ChatClientFixtures {
     private ChatClientFixtures() {
     }
 
+    /** A client pointed at any base URL — including one nothing is listening on. */
+    static IonosChatClient clientForBaseUrl(String baseUrl, ChatBudget budget, String model) {
+        return build(baseUrl, budget, model);
+    }
+
     /** A client pointed at the stub, with the small, fast settings every consumer wants. */
     static IonosChatClient clientFor(ProviderStub provider, ChatBudget budget, String model) {
+        return build(provider.baseUrl(), budget, model);
+        }
+
+    private static IonosChatClient build(String baseUrl, ChatBudget budget, String model) {
         return new IonosChatClient(
                 new ChatProperties(
-                        provider.baseUrl(), "test-key", model, 1200, 0.2,
+                        baseUrl, "test-key", model, 1200, 0.2,
                         Duration.ofSeconds(5),
                         // One retry and a 1 ms backoff: the retry POLICY is what these tests are
                         // about, and its timing would only buy a slow test and a flaky one.

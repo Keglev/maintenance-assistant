@@ -143,13 +143,46 @@ class IonosEmbeddingClient implements EmbeddingClient {
                 throw new EmbeddingException(
                         "embedding request rejected: %s %s".formatted(e.getStatusCode(), firstLine(e.getResponseBodyAsString())), e);
             } catch (RestClientException e) {
-                // 5xx, read timeout, connection reset — all worth another attempt.
+                if (isUnreadableResponse(e)) {
+                    recordUsage(0L);
+                    throw new EmbeddingException("cannot read the provider response: " + e.getMessage(), e);
+                }
+                // No response arrived — connect refused, read timeout, connection reset. Nothing
+                // was served, so nothing is counted, and another attempt is worth making.
                 last = e;
             }
         }
         throw new EmbeddingException(
                 "embedding provider unavailable after %d attempts: %s"
                         .formatted(properties.maxRetries() + 1, last == null ? "unknown" : last.getMessage()), last);
+    }
+
+    /**
+     * Whether a {@link RestClientException} means "the answer arrived and could not be read".
+     *
+     * <p><b>Why this is not simply a {@code catch} of the conversion exception.</b> It was, and the
+     * branch never ran. Spring's {@code RestClient} wraps a failure to read the body in a plain
+     * {@code RestClientException} — "Error while extracting response for type […]" — so an
+     * unreadable 200 landed in the transient catch beside a connection reset. The response was
+     * therefore retried, buying the same unreadable answer a second time, and never counted. That
+     * is the 2026-08 incident this code was written to prevent, alive inside the fix for it:
+     * 150 paid calls that the daily budget never saw.
+     *
+     * <p><b>Measured, not read off documentation</b> (2026-08-21, against a stubbed provider):
+     * <ul>
+     *   <li>a body that is not JSON → cause {@code HttpMessageNotReadableException} → {@code StreamReadException}</li>
+     *   <li>JSON of the wrong shape, e.g. base64 where the array belongs → cause
+     *       {@code HttpMessageNotReadableException} → {@code MismatchedInputException}</li>
+     *   <li>a body that is not JSON at all, e.g. an HTML gateway page → {@code UnknownContentTypeException}</li>
+     * </ul>
+     *
+     * <p>Both are matched by TYPE rather than by the message text, so a reworded Spring message
+     * cannot silently turn this back off. {@code HttpMessageNotReadableException} is itself an
+     * {@code HttpMessageConversionException}, which is why the cause check is the narrow one.
+     */
+    private static boolean isUnreadableResponse(RestClientException e) {
+        return e instanceof org.springframework.web.client.UnknownContentTypeException
+                || e.getCause() instanceof org.springframework.http.converter.HttpMessageConversionException;
     }
 
     /**

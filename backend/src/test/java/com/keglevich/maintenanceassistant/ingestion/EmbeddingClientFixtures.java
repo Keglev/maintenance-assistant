@@ -38,11 +38,20 @@ final class EmbeddingClientFixtures {
         return appender;
     }
 
+    /** A client pointed at any base URL — including one nothing is listening on. */
+    static IonosEmbeddingClient clientForBaseUrl(String baseUrl, EmbeddingBudget budget, String model) {
+        return build(baseUrl, budget, model, 2);
+    }
+
     /** A client pointed at the stub, with the small, fast settings every consumer wants. */
     static IonosEmbeddingClient clientFor(ProviderStub provider, EmbeddingBudget budget, String model, int batchSize) {
+        return build(provider.baseUrl(), budget, model, batchSize);
+    }
+
+    private static IonosEmbeddingClient build(String baseUrl, EmbeddingBudget budget, String model, int batchSize) {
         return new IonosEmbeddingClient(
                 new EmbeddingProperties(
-                        provider.baseUrl(), "test-key", model, DIMENSIONS, batchSize,
+                        baseUrl, "test-key", model, DIMENSIONS, batchSize,
                         // One retry and a 1 ms backoff: the retry POLICY is what these tests are
                         // about, and its timing would only buy a slow test and a flaky one.
                         1, Duration.ofMillis(1), Duration.ofSeconds(5), 1000),

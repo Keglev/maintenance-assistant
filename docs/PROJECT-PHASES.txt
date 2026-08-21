@@ -878,8 +878,8 @@ rather than given one afterwards.
 4. REFACTOR PHASE — maintenance track, no release
    SURVEY FIRST, FIX SECOND (Carlos, 2026-08-20). Nothing in this
    phase is repaired before it is measured and written down. The
-   review runs in three parts — test coverage, structure and code,
-   configuration and docs — each producing a READ-ONLY survey that
+   review runs in SIX ORDERED PARTS, enumerated in the 2026-08-21
+   correction below — each producing a READ-ONLY survey that
    fixes nothing, and only then a list of small PRs. A refactor that
    starts with an edit is a preference; one that starts with a
    measurement is maintenance.
@@ -909,6 +909,49 @@ rather than given one afterwards.
    "Documentation site", verified on the production /v3/api-docs, with
    /swagger-ui answering 200. The live API needs nothing. Errors in
    the record get corrected in the record, not quietly dropped.
+
+   CORRECTION 2026-08-21 — THIS PLAN WAS RECORDED AS THREE PARTS AND
+   CARLOS DICTATED SIX. The compression was not a shorter wording of
+   the same plan: it silently dropped two whole missions, the DEAD
+   CODE audit and the COMMENT audit, and they are the two nobody would
+   have missed until the phase ended without them. Carlos ruled
+   2026-08-21 that six is right and the record is wrong. The six, in
+   order, each a READ-ONLY survey:
+
+   1. TEST COVERAGE, frontend and backend: >=85% on statements,
+      branches including missed branches, and functions, both stacks.
+      DONE 2026-08-20 — the results are in the PART 1 entry below and
+      are not restated here.
+   2. CODE STRUCTURE: file names and directory placement audited
+      across frontend, backend, spike, infra, the workflow files and
+      docs/ itself — Carlos states some .md files are in the wrong
+      place, so the survey maps CURRENT against CORRECT placement
+      rather than only listing what looks wrong.
+   3. CONFIG AND ROOT FILES — backend, frontend, docs, the repository
+      root, spike and workflows: in the right place AND correctly
+      configured. No misconfiguration, and no useless or redundant
+      setting either; a setting that does nothing is a claim that it
+      does something.
+   4. DEAD AND REDUNDANT CODE across the workflow files, the scripts,
+      production and test code in BOTH STACKS, spike, infra, and
+      docs/_theme (.html/.css/.js): dead code, useless files, unused
+      methods and unused parameters. EXPECT THE WORST OF IT IN TESTS,
+      and audit everywhere regardless — an expectation is where to
+      look first, not where to stop.
+   5. CODE COMMENTS AGAINST docs/REFACTOR-STANDARDS.txt: header and
+      inline comments across config files, root files, _theme, the
+      workflows, spike, infra and the scripts (.lua, .sh and the
+      rest), and production plus test code in both stacks. THE
+      BACKEND CARRIES ONE MORE OBLIGATION: the Swagger/OpenAPI
+      annotations are verified ACCURATE against what the code
+      actually does, not merely verified present. An annotation that
+      describes an older behaviour is worse than a missing one,
+      because the published API documentation repeats it.
+   6. DOCS — LAST, AND DELIBERATELY LAST: sizes, meaningfulness,
+      accuracy. Every mission before this one changes what the docs
+      must describe, so auditing docs first audits a moving target.
+
+   Errors in the record get corrected in the record.
 
    PART 1 — TEST COVERAGE SURVEY, 2026-08-20, measured on 09d8b57 (#69)
    from the CI-published reports. Frontend: statements 94.63, lines

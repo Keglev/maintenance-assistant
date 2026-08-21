@@ -28,10 +28,11 @@ import static org.mockito.Mockito.verifyNoInteractions;
  * <p>The other half is which failures are worth another attempt. A 4xx that is not a 429 is the
  * caller's own fault — a revoked key, a bad model id — and retrying spends the same error again.
  *
- * <p><b>TWO TESTS HERE PIN BEHAVIOUR THAT IS A FINDING RATHER THAN A DESIGN.</b> They are named and
- * commented as such: writing them to assert what the code SHOULD do would have produced two red
- * tests and no record of what it actually does. See {@code malformedResponseBody} and
- * {@code unauthorized}.
+ * <p><b>ONE TEST HERE PINS BEHAVIOUR THAT IS A FINDING RATHER THAN A DESIGN</b>, named and
+ * commented as such: writing it to assert what the code SHOULD do would have produced a red test
+ * and no record of what it actually does. See {@code malformedResponseBody}. There were two. The
+ * other, {@code unauthorized}, pinned a swallowed 401 body until the transport under this client
+ * was replaced; it now asserts the fix and carries the decision record.
  *
  * <p>MESSAGE ASSERTIONS: this is the service layer, so the exception type and its message are both
  * asserted. The message is the only observable a caller has here, and it is what lands in the
@@ -204,6 +205,28 @@ class IonosEmbeddingClientFailureTest {
                 // The provider's own sentence, on the one rejection that used to lose it.
                 .hasMessageContaining("invalid api key")
                 .hasMessageNotContaining("(no body)");
+
+        assertThat(provider.requests()).hasSize(1);
+        verifyNoInteractions(budget);
+    }
+
+    /**
+     * A rejection that genuinely carries no body still names its status.
+     *
+     * <p>Added with the transport swap, and not padding: {@code "(no body)"} used to be reached
+     * only by the swallowed 401 above, so fixing that defect left the fallback with nothing
+     * exercising it. It still has work to do — a gateway in front of the provider can reject with
+     * an empty body of its own — and the message must stay readable when it does, rather than
+     * trailing off after the status code.
+     */
+    @Test
+    void embed_rejectionWithNoBodyAtAll_stillNamesTheStatus() {
+        provider.enqueue(400, "application/json", "");
+
+        assertThatThrownBy(() -> clientFor(provider, budget, MODEL, 2).embed(List.of("eins")))
+                .isInstanceOf(EmbeddingException.class)
+                .hasMessageContaining("embedding request rejected: 400")
+                .hasMessageContaining("(no body)");
 
         assertThat(provider.requests()).hasSize(1);
         verifyNoInteractions(budget);

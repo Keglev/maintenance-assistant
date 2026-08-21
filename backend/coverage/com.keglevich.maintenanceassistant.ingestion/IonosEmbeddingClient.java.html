@@ -5,11 +5,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
-import org.springframework.http.client.SimpleClientHttpRequestFactory;
+import org.springframework.http.client.JdkClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
 
+import java.net.http.HttpClient;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
@@ -36,64 +37,82 @@ import java.util.Map;
 @Component
 class IonosEmbeddingClient implements EmbeddingClient {
 
-<span class="fc" id="L39">    private static final Logger log = LoggerFactory.getLogger(IonosEmbeddingClient.class);</span>
+<span class="fc" id="L40">    private static final Logger log = LoggerFactory.getLogger(IonosEmbeddingClient.class);</span>
 
     private final EmbeddingProperties properties;
     private final EmbeddingBudget budget;
     private final RestClient restClient;
 
     /** Latched, so a mismatch is stated once per process rather than once per batch. */
-<span class="fc" id="L46">    private volatile boolean modelMismatchUnreported = true;</span>
+<span class="fc" id="L47">    private volatile boolean modelMismatchUnreported = true;</span>
 
     // RestClient.builder() rather than the auto-configured builder bean: this client talks to one
     // external provider with its own timeouts and its own auth header, and should not inherit
     // interceptors or converters added for the application's own HTTP calls.
-<span class="fc" id="L51">    IonosEmbeddingClient(EmbeddingProperties properties, EmbeddingBudget budget) {</span>
-<span class="fc" id="L52">        this.properties = properties;</span>
-<span class="fc" id="L53">        this.budget = budget;</span>
+<span class="fc" id="L52">    IonosEmbeddingClient(EmbeddingProperties properties, EmbeddingBudget budget) {</span>
+<span class="fc" id="L53">        this.properties = properties;</span>
+<span class="fc" id="L54">        this.budget = budget;</span>
 
-<span class="fc" id="L55">        SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();</span>
-<span class="fc" id="L56">        requestFactory.setConnectTimeout((int) Duration.ofSeconds(10).toMillis());</span>
+        // java.net.http rather than HttpURLConnection. Not a modernisation: HttpURLConnection
+        // discards the response body of a 401 as part of its own authentication handling, so a
+        // revoked or mistyped key — the 4xx most likely in production — was the ONE failure whose
+        // provider explanation never reached failure_reason. Measured, by status, against the
+        // stubbed provider: 400, 403, 404, 429 and 500 all delivered a body; 401 alone did not.
+        //
+        // The timeout contract is unchanged, only split across two objects, because
+        // JdkClientHttpRequestFactory has no setConnectTimeout: connect belongs to the HttpClient
+        // (Duration), read stays on the factory. Verified against spring-web 7.0.8 on the
+        // classpath, not read off documentation.
+        //
+        // The one thing this costs, measured the same way: a refused connection now arrives as
+        // ConnectException with a null message (java.net.http, cause ClosedChannelException) where
+        // HttpURLConnection said &quot;Connection refused&quot;. Same Spring type — ResourceAccessException —
+        // so the retry rule and the budget rule are untouched; only the sentence is poorer. A read
+        // timeout keeps its message (HttpTimeoutException, &quot;Request cancelled&quot;).
+<span class="fc" id="L72">        HttpClient httpClient = HttpClient.newBuilder()</span>
+<span class="fc" id="L73">                .connectTimeout(Duration.ofSeconds(10))</span>
+<span class="fc" id="L74">                .build();</span>
+<span class="fc" id="L75">        JdkClientHttpRequestFactory requestFactory = new JdkClientHttpRequestFactory(httpClient);</span>
         // Generous: a batch of 32 texts through bge-m3 took ~4 s in the spike, and a slow
         // response is worth waiting for rather than retrying into a second charge.
-<span class="fc" id="L59">        requestFactory.setReadTimeout((int) properties.timeout().toMillis());</span>
+<span class="fc" id="L78">        requestFactory.setReadTimeout(properties.timeout());</span>
 
-<span class="fc" id="L61">        this.restClient = RestClient.builder()</span>
-<span class="fc" id="L62">                .baseUrl(properties.baseUrl())</span>
-<span class="fc" id="L63">                .defaultHeader(HttpHeaders.AUTHORIZATION, &quot;Bearer &quot; + properties.apiKey())</span>
-<span class="fc" id="L64">                .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)</span>
-<span class="fc" id="L65">                .requestFactory(requestFactory)</span>
-<span class="fc" id="L66">                .build();</span>
-<span class="fc" id="L67">        log.info(&quot;Embedding provider: {} model={} dims={} batch={} dailyCallBudget={}&quot;,</span>
-<span class="fc" id="L68">                properties.baseUrl(), properties.model(), properties.dimensions(),</span>
-<span class="fc" id="L69">                properties.batchSize(), properties.dailyCallBudget());</span>
-<span class="fc" id="L70">    }</span>
+<span class="fc" id="L80">        this.restClient = RestClient.builder()</span>
+<span class="fc" id="L81">                .baseUrl(properties.baseUrl())</span>
+<span class="fc" id="L82">                .defaultHeader(HttpHeaders.AUTHORIZATION, &quot;Bearer &quot; + properties.apiKey())</span>
+<span class="fc" id="L83">                .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)</span>
+<span class="fc" id="L84">                .requestFactory(requestFactory)</span>
+<span class="fc" id="L85">                .build();</span>
+<span class="fc" id="L86">        log.info(&quot;Embedding provider: {} model={} dims={} batch={} dailyCallBudget={}&quot;,</span>
+<span class="fc" id="L87">                properties.baseUrl(), properties.model(), properties.dimensions(),</span>
+<span class="fc" id="L88">                properties.batchSize(), properties.dailyCallBudget());</span>
+<span class="fc" id="L89">    }</span>
 
     @Override
     public int dimensions() {
-<span class="fc" id="L74">        return properties.dimensions();</span>
+<span class="fc" id="L93">        return properties.dimensions();</span>
     }
 
     @Override
     public EmbeddingBatch embed(List&lt;String&gt; texts) {
-<span class="fc bfc" id="L79" title="All 2 branches covered.">        if (texts.isEmpty()) {</span>
-<span class="fc" id="L80">            return new EmbeddingBatch(List.of(), 0, 0L);</span>
+<span class="fc bfc" id="L98" title="All 2 branches covered.">        if (texts.isEmpty()) {</span>
+<span class="fc" id="L99">            return new EmbeddingBatch(List.of(), 0, 0L);</span>
         }
-<span class="fc" id="L82">        List&lt;float[]&gt; vectors = new ArrayList&lt;&gt;(texts.size());</span>
-<span class="fc" id="L83">        int calls = 0;</span>
-<span class="fc" id="L84">        long tokens = 0L;</span>
+<span class="fc" id="L101">        List&lt;float[]&gt; vectors = new ArrayList&lt;&gt;(texts.size());</span>
+<span class="fc" id="L102">        int calls = 0;</span>
+<span class="fc" id="L103">        long tokens = 0L;</span>
 
         // Batched because the provider bills and rate-limits per request, and one request per
         // chunk would turn a 150-protocol corpus into hundreds of round trips.
-<span class="fc bfc" id="L88" title="All 2 branches covered.">        for (int from = 0; from &lt; texts.size(); from += properties.batchSize()) {</span>
-<span class="fc" id="L89">            List&lt;String&gt; batch = texts.subList(from, Math.min(from + properties.batchSize(), texts.size()));</span>
-<span class="fc" id="L90">            EmbeddingResponse response = callWithRetry(batch);</span>
-<span class="fc" id="L91">            warnIfAnotherModelAnswered(response);</span>
-<span class="fc" id="L92">            calls++;</span>
-<span class="fc" id="L93">            tokens += response.promptTokens();</span>
-<span class="fc" id="L94">            vectors.addAll(extractVectors(response, batch.size()));</span>
+<span class="fc bfc" id="L107" title="All 2 branches covered.">        for (int from = 0; from &lt; texts.size(); from += properties.batchSize()) {</span>
+<span class="fc" id="L108">            List&lt;String&gt; batch = texts.subList(from, Math.min(from + properties.batchSize(), texts.size()));</span>
+<span class="fc" id="L109">            EmbeddingResponse response = callWithRetry(batch);</span>
+<span class="fc" id="L110">            warnIfAnotherModelAnswered(response);</span>
+<span class="fc" id="L111">            calls++;</span>
+<span class="fc" id="L112">            tokens += response.promptTokens();</span>
+<span class="fc" id="L113">            vectors.addAll(extractVectors(response, batch.size()));</span>
         }
-<span class="fc" id="L96">        return new EmbeddingBatch(vectors, calls, tokens);</span>
+<span class="fc" id="L115">        return new EmbeddingBatch(vectors, calls, tokens);</span>
     }
 
     /**
@@ -101,60 +120,60 @@ class IonosEmbeddingClient implements EmbeddingClient {
      * fault — a bad model id, a revoked key — and retrying it just spends the same error again.
      */
     private EmbeddingResponse callWithRetry(List&lt;String&gt; batch) {
-<span class="fc" id="L104">        Duration backoff = properties.retryBackoff();</span>
-<span class="fc" id="L105">        RuntimeException last = null;</span>
+<span class="fc" id="L123">        Duration backoff = properties.retryBackoff();</span>
+<span class="fc" id="L124">        RuntimeException last = null;</span>
 
-<span class="fc bfc" id="L107" title="All 2 branches covered.">        for (int attempt = 0; attempt &lt;= properties.maxRetries(); attempt++) {</span>
-<span class="fc bfc" id="L108" title="All 2 branches covered.">            if (last != null) {</span>
-<span class="fc" id="L109">                log.warn(&quot;Embedding call failed ({}), retry {} of {} in {}&quot;,</span>
-<span class="fc" id="L110">                        last.getMessage(), attempt, properties.maxRetries(), backoff);</span>
-<span class="fc" id="L111">                sleep(backoff);</span>
-<span class="fc" id="L112">                backoff = backoff.multipliedBy(2);</span>
+<span class="fc bfc" id="L126" title="All 2 branches covered.">        for (int attempt = 0; attempt &lt;= properties.maxRetries(); attempt++) {</span>
+<span class="fc bfc" id="L127" title="All 2 branches covered.">            if (last != null) {</span>
+<span class="fc" id="L128">                log.warn(&quot;Embedding call failed ({}), retry {} of {} in {}&quot;,</span>
+<span class="fc" id="L129">                        last.getMessage(), attempt, properties.maxRetries(), backoff);</span>
+<span class="fc" id="L130">                sleep(backoff);</span>
+<span class="fc" id="L131">                backoff = backoff.multipliedBy(2);</span>
             }
             try {
-<span class="fc" id="L115">                EmbeddingResponse body = restClient.post()</span>
-<span class="fc" id="L116">                        .uri(&quot;/embeddings&quot;)</span>
-<span class="fc" id="L117">                        .body(Map.of(</span>
-<span class="fc" id="L118">                                &quot;model&quot;, properties.model(),</span>
+<span class="fc" id="L134">                EmbeddingResponse body = restClient.post()</span>
+<span class="fc" id="L135">                        .uri(&quot;/embeddings&quot;)</span>
+<span class="fc" id="L136">                        .body(Map.of(</span>
+<span class="fc" id="L137">                                &quot;model&quot;, properties.model(),</span>
                                 &quot;input&quot;, batch,
                                 // Not a default anywhere: the gateway 500s on base64 (ADR-002).
                                 &quot;encoding_format&quot;, &quot;float&quot;))
-<span class="fc" id="L122">                        .retrieve()</span>
-<span class="fc" id="L123">                        .body(EmbeddingResponse.class);</span>
+<span class="fc" id="L141">                        .retrieve()</span>
+<span class="fc" id="L142">                        .body(EmbeddingResponse.class);</span>
                 // Counted here, not by the caller. The money is spent when the provider serves the
                 // request, whatever happens to the response afterwards. Recording it upstream is
                 // how the first real run of this pipeline made 150 paid calls that the budget
                 // never saw: every one of them failed while converting the response, and the
                 // counter only ran on success.
-<span class="pc bpc" id="L129" title="1 of 2 branches missed.">                recordUsage(body == null ? 0L : body.promptTokens());</span>
-<span class="pc bpc" id="L130" title="1 of 2 branches missed.">                if (body == null) {</span>
-<span class="nc" id="L131">                    throw new EmbeddingException(&quot;provider returned an empty body&quot;);</span>
+<span class="pc bpc" id="L148" title="1 of 2 branches missed.">                recordUsage(body == null ? 0L : body.promptTokens());</span>
+<span class="pc bpc" id="L149" title="1 of 2 branches missed.">                if (body == null) {</span>
+<span class="nc" id="L150">                    throw new EmbeddingException(&quot;provider returned an empty body&quot;);</span>
                 }
-<span class="fc" id="L133">                return body;</span>
-<span class="nc" id="L134">            } catch (org.springframework.http.converter.HttpMessageConversionException e) {</span>
+<span class="fc" id="L152">                return body;</span>
+<span class="nc" id="L153">            } catch (org.springframework.http.converter.HttpMessageConversionException e) {</span>
                 // The provider answered and billed for it; we simply could not read the answer.
                 // Terminal, because retrying produces the same unreadable response.
-<span class="nc" id="L137">                recordUsage(0L);</span>
-<span class="nc" id="L138">                throw new EmbeddingException(&quot;cannot read the provider response: &quot; + e.getMessage(), e);</span>
-<span class="fc" id="L139">            } catch (org.springframework.web.client.HttpClientErrorException.TooManyRequests e) {</span>
-<span class="fc" id="L140">                last = e;</span>
-<span class="fc" id="L141">            } catch (org.springframework.web.client.HttpClientErrorException e) {</span>
+<span class="nc" id="L156">                recordUsage(0L);</span>
+<span class="nc" id="L157">                throw new EmbeddingException(&quot;cannot read the provider response: &quot; + e.getMessage(), e);</span>
+<span class="fc" id="L158">            } catch (org.springframework.web.client.HttpClientErrorException.TooManyRequests e) {</span>
+<span class="fc" id="L159">                last = e;</span>
+<span class="fc" id="L160">            } catch (org.springframework.web.client.HttpClientErrorException e) {</span>
                 // Terminal: retrying a 401 or a 404 model id only wastes time.
-<span class="fc" id="L143">                throw new EmbeddingException(</span>
-<span class="fc" id="L144">                        &quot;embedding request rejected: %s %s&quot;.formatted(e.getStatusCode(), firstLine(e.getResponseBodyAsString())), e);</span>
-<span class="fc" id="L145">            } catch (RestClientException e) {</span>
-<span class="fc bfc" id="L146" title="All 2 branches covered.">                if (isUnreadableResponse(e)) {</span>
-<span class="fc" id="L147">                    recordUsage(0L);</span>
-<span class="fc" id="L148">                    throw new EmbeddingException(&quot;cannot read the provider response: &quot; + e.getMessage(), e);</span>
+<span class="fc" id="L162">                throw new EmbeddingException(</span>
+<span class="fc" id="L163">                        &quot;embedding request rejected: %s %s&quot;.formatted(e.getStatusCode(), firstLine(e.getResponseBodyAsString())), e);</span>
+<span class="fc" id="L164">            } catch (RestClientException e) {</span>
+<span class="fc bfc" id="L165" title="All 2 branches covered.">                if (isUnreadableResponse(e)) {</span>
+<span class="fc" id="L166">                    recordUsage(0L);</span>
+<span class="fc" id="L167">                    throw new EmbeddingException(&quot;cannot read the provider response: &quot; + e.getMessage(), e);</span>
                 }
                 // No response arrived — connect refused, read timeout, connection reset. Nothing
                 // was served, so nothing is counted, and another attempt is worth making.
-<span class="fc" id="L152">                last = e;</span>
-<span class="fc" id="L153">            }</span>
+<span class="fc" id="L171">                last = e;</span>
+<span class="fc" id="L172">            }</span>
         }
-<span class="fc" id="L155">        throw new EmbeddingException(</span>
+<span class="fc" id="L174">        throw new EmbeddingException(</span>
                 &quot;embedding provider unavailable after %d attempts: %s&quot;
-<span class="pc bpc" id="L157" title="1 of 2 branches missed.">                        .formatted(properties.maxRetries() + 1, last == null ? &quot;unknown&quot; : last.getMessage()), last);</span>
+<span class="pc bpc" id="L176" title="1 of 2 branches missed.">                        .formatted(properties.maxRetries() + 1, last == null ? &quot;unknown&quot; : last.getMessage()), last);</span>
     }
 
     /**
@@ -181,8 +200,8 @@ class IonosEmbeddingClient implements EmbeddingClient {
      * {@code HttpMessageConversionException}, which is why the cause check is the narrow one.
      */
     private static boolean isUnreadableResponse(RestClientException e) {
-<span class="fc bfc" id="L184" title="All 2 branches covered.">        return e instanceof org.springframework.web.client.UnknownContentTypeException</span>
-<span class="fc bfc" id="L185" title="All 2 branches covered.">                || e.getCause() instanceof org.springframework.http.converter.HttpMessageConversionException;</span>
+<span class="fc bfc" id="L203" title="All 2 branches covered.">        return e instanceof org.springframework.web.client.UnknownContentTypeException</span>
+<span class="fc bfc" id="L204" title="All 2 branches covered.">                || e.getCause() instanceof org.springframework.http.converter.HttpMessageConversionException;</span>
     }
 
     /**
@@ -191,29 +210,29 @@ class IonosEmbeddingClient implements EmbeddingClient {
      * half-indexed; failing here keeps the failure atomic and names the actual cause.
      */
     private List&lt;float[]&gt; extractVectors(EmbeddingResponse response, int expectedCount) {
-<span class="fc" id="L194">        List&lt;EmbeddingResponse.Item&gt; data = response.data();</span>
-<span class="pc bpc" id="L195" title="1 of 4 branches missed.">        if (data == null || data.size() != expectedCount) {</span>
-<span class="fc" id="L196">            throw new EmbeddingException(&quot;expected %d embeddings, provider returned %d&quot;</span>
-<span class="pc bpc" id="L197" title="1 of 2 branches missed.">                    .formatted(expectedCount, data == null ? 0 : data.size()));</span>
+<span class="fc" id="L213">        List&lt;EmbeddingResponse.Item&gt; data = response.data();</span>
+<span class="pc bpc" id="L214" title="1 of 4 branches missed.">        if (data == null || data.size() != expectedCount) {</span>
+<span class="fc" id="L215">            throw new EmbeddingException(&quot;expected %d embeddings, provider returned %d&quot;</span>
+<span class="pc bpc" id="L216" title="1 of 2 branches missed.">                    .formatted(expectedCount, data == null ? 0 : data.size()));</span>
         }
-<span class="fc" id="L199">        List&lt;float[]&gt; vectors = new ArrayList&lt;&gt;(expectedCount);</span>
-<span class="fc bfc" id="L200" title="All 2 branches covered.">        for (EmbeddingResponse.Item item : data) {</span>
-<span class="fc" id="L201">            List&lt;Double&gt; values = item.embedding();</span>
-<span class="pc bpc" id="L202" title="2 of 4 branches missed.">            if (values == null || values.isEmpty()) {</span>
-<span class="nc" id="L203">                throw new EmbeddingException(&quot;embedding is not an array — is encoding_format still float?&quot;);</span>
+<span class="fc" id="L218">        List&lt;float[]&gt; vectors = new ArrayList&lt;&gt;(expectedCount);</span>
+<span class="fc bfc" id="L219" title="All 2 branches covered.">        for (EmbeddingResponse.Item item : data) {</span>
+<span class="fc" id="L220">            List&lt;Double&gt; values = item.embedding();</span>
+<span class="pc bpc" id="L221" title="2 of 4 branches missed.">            if (values == null || values.isEmpty()) {</span>
+<span class="nc" id="L222">                throw new EmbeddingException(&quot;embedding is not an array — is encoding_format still float?&quot;);</span>
             }
-<span class="fc bfc" id="L205" title="All 2 branches covered.">            if (values.size() != properties.dimensions()) {</span>
-<span class="fc" id="L206">                throw new EmbeddingException(</span>
+<span class="fc bfc" id="L224" title="All 2 branches covered.">            if (values.size() != properties.dimensions()) {</span>
+<span class="fc" id="L225">                throw new EmbeddingException(</span>
                         &quot;model %s returned %d dimensions, the chunk.embedding column is vector(%d)&quot;
-<span class="fc" id="L208">                                .formatted(properties.model(), values.size(), properties.dimensions()));</span>
+<span class="fc" id="L227">                                .formatted(properties.model(), values.size(), properties.dimensions()));</span>
             }
-<span class="fc" id="L210">            float[] vector = new float[values.size()];</span>
-<span class="fc bfc" id="L211" title="All 2 branches covered.">            for (int i = 0; i &lt; values.size(); i++) {</span>
-<span class="fc" id="L212">                vector[i] = values.get(i).floatValue();</span>
+<span class="fc" id="L229">            float[] vector = new float[values.size()];</span>
+<span class="fc bfc" id="L230" title="All 2 branches covered.">            for (int i = 0; i &lt; values.size(); i++) {</span>
+<span class="fc" id="L231">                vector[i] = values.get(i).floatValue();</span>
             }
-<span class="fc" id="L214">            vectors.add(vector);</span>
-<span class="fc" id="L215">        }</span>
-<span class="fc" id="L216">        return vectors;</span>
+<span class="fc" id="L233">            vectors.add(vector);</span>
+<span class="fc" id="L234">        }</span>
+<span class="fc" id="L235">        return vectors;</span>
     }
 
     /**
@@ -227,25 +246,25 @@ class IonosEmbeddingClient implements EmbeddingClient {
      * shared by both, so {@code @JsonIgnoreProperties} is safe here.
      */
     @JsonIgnoreProperties(ignoreUnknown = true)
-<span class="fc" id="L230">    record EmbeddingResponse(List&lt;Item&gt; data, Usage usage, String model) {</span>
+<span class="fc" id="L249">    record EmbeddingResponse(List&lt;Item&gt; data, Usage usage, String model) {</span>
 
         @JsonIgnoreProperties(ignoreUnknown = true)
-<span class="fc" id="L233">        record Item(List&lt;Double&gt; embedding) {</span>
+<span class="fc" id="L252">        record Item(List&lt;Double&gt; embedding) {</span>
         }
 
         @JsonIgnoreProperties(ignoreUnknown = true)
-<span class="fc" id="L237">        record Usage(Long prompt_tokens, Long total_tokens) {</span>
+<span class="fc" id="L256">        record Usage(Long prompt_tokens, Long total_tokens) {</span>
         }
 
         /** Absent usage counts as zero: it costs a metric, not a protocol. */
         long promptTokens() {
-<span class="fc bfc" id="L242" title="All 2 branches covered.">            if (usage == null) {</span>
-<span class="fc" id="L243">                return 0L;</span>
+<span class="fc bfc" id="L261" title="All 2 branches covered.">            if (usage == null) {</span>
+<span class="fc" id="L262">                return 0L;</span>
             }
-<span class="pc bpc" id="L245" title="1 of 4 branches missed.">            if (usage.prompt_tokens() != null &amp;&amp; usage.prompt_tokens() &gt; 0) {</span>
-<span class="fc" id="L246">                return usage.prompt_tokens();</span>
+<span class="pc bpc" id="L264" title="1 of 4 branches missed.">            if (usage.prompt_tokens() != null &amp;&amp; usage.prompt_tokens() &gt; 0) {</span>
+<span class="fc" id="L265">                return usage.prompt_tokens();</span>
             }
-<span class="pc bpc" id="L248" title="1 of 2 branches missed.">            return usage.total_tokens() == null ? 0L : usage.total_tokens();</span>
+<span class="pc bpc" id="L267" title="1 of 2 branches missed.">            return usage.total_tokens() == null ? 0L : usage.total_tokens();</span>
         }
     }
 
@@ -272,39 +291,39 @@ class IonosEmbeddingClient implements EmbeddingClient {
      * print it 6 times and a re-index of everything hundreds.
      */
     private void warnIfAnotherModelAnswered(EmbeddingResponse response) {
-<span class="fc" id="L275">        String answered = response.model();</span>
-<span class="pc bpc" id="L276" title="1 of 6 branches missed.">        if (answered == null || answered.equals(properties.model()) || !modelMismatchUnreported) {</span>
-<span class="fc" id="L277">            return;</span>
+<span class="fc" id="L294">        String answered = response.model();</span>
+<span class="pc bpc" id="L295" title="1 of 6 branches missed.">        if (answered == null || answered.equals(properties.model()) || !modelMismatchUnreported) {</span>
+<span class="fc" id="L296">            return;</span>
         }
-<span class="fc" id="L279">        modelMismatchUnreported = false;</span>
-<span class="fc" id="L280">        log.warn(&quot;Embedding provider answered as model '{}' but '{}' was requested at {}. &quot;</span>
+<span class="fc" id="L298">        modelMismatchUnreported = false;</span>
+<span class="fc" id="L299">        log.warn(&quot;Embedding provider answered as model '{}' but '{}' was requested at {}. &quot;</span>
                         + &quot;Vectors written now may not be comparable with vectors already stored — &quot;
                         + &quot;verify with maintenance.ops.verify-embeddings before trusting retrieval.&quot;,
-<span class="fc" id="L283">                answered, properties.model(), properties.baseUrl());</span>
-<span class="fc" id="L284">    }</span>
+<span class="fc" id="L302">                answered, properties.model(), properties.baseUrl());</span>
+<span class="fc" id="L303">    }</span>
 
     /** One provider request, counted whether or not its response could be used. */
     private void recordUsage(long promptTokens) {
-<span class="fc" id="L288">        budget.record(1, promptTokens);</span>
-<span class="fc" id="L289">    }</span>
+<span class="fc" id="L307">        budget.record(1, promptTokens);</span>
+<span class="fc" id="L308">    }</span>
 
     private static String firstLine(String body) {
-<span class="pc bpc" id="L292" title="1 of 4 branches missed.">        if (body == null || body.isBlank()) {</span>
-<span class="fc" id="L293">            return &quot;(no body)&quot;;</span>
+<span class="pc bpc" id="L311" title="1 of 4 branches missed.">        if (body == null || body.isBlank()) {</span>
+<span class="fc" id="L312">            return &quot;(no body)&quot;;</span>
         }
-<span class="fc" id="L295">        String trimmed = body.strip();</span>
-<span class="fc" id="L296">        int newline = trimmed.indexOf('\n');</span>
-<span class="pc bpc" id="L297" title="1 of 2 branches missed.">        String line = newline &lt; 0 ? trimmed : trimmed.substring(0, newline);</span>
-<span class="pc bpc" id="L298" title="1 of 2 branches missed.">        return line.length() &gt; 300 ? line.substring(0, 300) + &quot;…&quot; : line;</span>
+<span class="fc" id="L314">        String trimmed = body.strip();</span>
+<span class="fc" id="L315">        int newline = trimmed.indexOf('\n');</span>
+<span class="pc bpc" id="L316" title="1 of 2 branches missed.">        String line = newline &lt; 0 ? trimmed : trimmed.substring(0, newline);</span>
+<span class="pc bpc" id="L317" title="1 of 2 branches missed.">        return line.length() &gt; 300 ? line.substring(0, 300) + &quot;…&quot; : line;</span>
     }
 
     private static void sleep(Duration duration) {
         try {
-<span class="fc" id="L303">            Thread.sleep(duration.toMillis());</span>
-<span class="nc" id="L304">        } catch (InterruptedException e) {</span>
-<span class="nc" id="L305">            Thread.currentThread().interrupt();</span>
-<span class="nc" id="L306">            throw new EmbeddingException(&quot;interrupted while backing off&quot;, e);</span>
-<span class="fc" id="L307">        }</span>
-<span class="fc" id="L308">    }</span>
+<span class="fc" id="L322">            Thread.sleep(duration.toMillis());</span>
+<span class="nc" id="L323">        } catch (InterruptedException e) {</span>
+<span class="nc" id="L324">            Thread.currentThread().interrupt();</span>
+<span class="nc" id="L325">            throw new EmbeddingException(&quot;interrupted while backing off&quot;, e);</span>
+<span class="fc" id="L326">        }</span>
+<span class="fc" id="L327">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

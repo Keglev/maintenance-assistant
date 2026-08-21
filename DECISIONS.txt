@@ -412,10 +412,12 @@ Status: v1.3.0 released; refactor phase (read-only survey), 2026-08-21
 
 == REFACTOR PHASE (2026-08-20) ==
 - SURVEY FIRST, FIX SECOND (#70). The review is READ-ONLY and produces findings tables that fix
-  nothing — test coverage, then structure and code, with configuration and DOCS AUDITED LAST. Real
-  refactors found there become their own small PRs rather than riding along with the review. ZERO
-  BEHAVIOUR CHANGE. A refactor that starts with an edit is a preference; one that starts with a
-  measurement is maintenance.
+  nothing — SIX ORDERED PARTS (test coverage, code structure, config and root files, dead and
+  redundant code, comments against the standards, and DOCS AUDITED LAST), enumerated canonically in
+  PROJECT-PHASES.txt step 4 under CORRECTION 2026-08-21; the count and the detail live there and not
+  here, so the two cannot drift again. Real refactors found there become their own small PRs rather
+  than riding along with the review. ZERO BEHAVIOUR CHANGE. A refactor that starts with an edit is a
+  preference; one that starts with a measurement is maintenance.
 - THE STANDARDS ARE IN THE REPO BEFORE THE FIRST FIX PR OPENS, so "what good looks like" is
   reviewable rather than remembered. docs/REFACTOR-STANDARDS.txt is NORMATIVE — bands, counting
   methods, test conduct, coverage targets and the waiver register, and the single place any of them

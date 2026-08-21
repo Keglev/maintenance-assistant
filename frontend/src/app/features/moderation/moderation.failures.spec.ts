@@ -142,7 +142,13 @@ describe('Moderation — when a call fails', () => {
   it('starts blank for a DIFFERENT protocol after a failed withdrawal', async () => {
     const rendered = await renderModeration(
       http,
-      page([protocol({ id: 'p-1', title: 'Erstes Protokoll' }), protocol({ id: 'p-2', title: 'Zweites Protokoll' })], 2),
+      page(
+        [
+          protocol({ id: 'p-1', title: 'Erstes Protokoll' }),
+          protocol({ id: 'p-2', title: 'Zweites Protokoll' }),
+        ],
+        2,
+      ),
     );
 
     await withdrawFromRow(rendered, 0);

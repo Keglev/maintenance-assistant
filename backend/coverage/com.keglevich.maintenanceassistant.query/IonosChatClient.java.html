@@ -180,18 +180,45 @@ class IonosChatClient implements ChatClient {
 <span class="fc" id="L180">                throw new ChatException(&quot;chat request rejected: %s %s&quot;</span>
 <span class="fc" id="L181">                        .formatted(e.getStatusCode(), firstLine(e.getResponseBodyAsString())), e);</span>
 <span class="fc" id="L182">            } catch (RestClientException e) {</span>
-<span class="fc" id="L183">                last = e;</span>
-<span class="fc" id="L184">            }</span>
+<span class="fc bfc" id="L183" title="All 2 branches covered.">                if (isUnreadableResponse(e)) {</span>
+<span class="fc" id="L184">                    budget.record(1, 0L, 0L);</span>
+<span class="fc" id="L185">                    throw new ChatException(&quot;cannot read the provider response: &quot; + e.getMessage(), e);</span>
+                }
+                // No response arrived — connect refused, read timeout, connection reset. Nothing
+                // was served, so nothing is counted, and another attempt is worth making.
+<span class="fc" id="L189">                last = e;</span>
+<span class="fc" id="L190">            }</span>
         }
-<span class="fc" id="L186">        throw new ChatException(&quot;chat provider unavailable after %d attempts: %s&quot;</span>
-<span class="pc bpc" id="L187" title="1 of 2 branches missed.">                .formatted(properties.maxRetries() + 1, last == null ? &quot;unknown&quot; : last.getMessage()), last);</span>
+<span class="fc" id="L192">        throw new ChatException(&quot;chat provider unavailable after %d attempts: %s&quot;</span>
+<span class="pc bpc" id="L193" title="1 of 2 branches missed.">                .formatted(properties.maxRetries() + 1, last == null ? &quot;unknown&quot; : last.getMessage()), last);</span>
+    }
+
+    /**
+     * Whether a {@link RestClientException} means &quot;the answer arrived and could not be read&quot;.
+     *
+     * &lt;p&gt;&lt;b&gt;Why this is not simply a {@code catch} of the conversion exception.&lt;/b&gt; It was, and the
+     * branch never ran. Spring's {@code RestClient} wraps a failure to read the body in a plain
+     * {@code RestClientException} — &quot;Error while extracting response for type […]&quot; — so an
+     * unreadable 200 landed in the transient catch beside a connection reset: retried, buying the
+     * same unreadable answer again, and never counted. On the chat path a person is waiting, so the
+     * second purchase also costs them the wait.
+     *
+     * &lt;p&gt;&lt;b&gt;Measured, not read off documentation&lt;/b&gt; (2026-08-21, against a stubbed provider): a
+     * body that is not JSON and JSON of the wrong shape both arrive with an
+     * {@code HttpMessageNotReadableException} cause; a body that is not JSON at all, such as an
+     * HTML gateway page, arrives as {@code UnknownContentTypeException}. Matched by TYPE rather
+     * than by message text, so a reworded Spring message cannot silently turn this back off.
+     */
+    private static boolean isUnreadableResponse(RestClientException e) {
+<span class="fc bfc" id="L213" title="All 2 branches covered.">        return e instanceof org.springframework.web.client.UnknownContentTypeException</span>
+<span class="fc bfc" id="L214" title="All 2 branches covered.">                || e.getCause() instanceof org.springframework.http.converter.HttpMessageConversionException;</span>
     }
 
     private void recordUsage(ChatResponse response) {
-<span class="fc" id="L191">        budget.record(1,</span>
-<span class="pc bpc" id="L192" title="1 of 2 branches missed.">                response == null ? 0L : response.promptTokens(),</span>
-<span class="pc bpc" id="L193" title="1 of 2 branches missed.">                response == null ? 0L : response.completionTokens());</span>
-<span class="fc" id="L194">    }</span>
+<span class="fc" id="L218">        budget.record(1,</span>
+<span class="pc bpc" id="L219" title="1 of 2 branches missed.">                response == null ? 0L : response.promptTokens(),</span>
+<span class="pc bpc" id="L220" title="1 of 2 branches missed.">                response == null ? 0L : response.completionTokens());</span>
+<span class="fc" id="L221">    }</span>
 
     /**
      * The provider's response, typed rather than navigated as a tree — see the class javadoc for
@@ -199,38 +226,38 @@ class IonosChatClient implements ChatClient {
      * Jackson generations, so {@code @JsonIgnoreProperties} binds under either.
      */
     @JsonIgnoreProperties(ignoreUnknown = true)
-<span class="fc" id="L202">    record ChatResponse(List&lt;Choice&gt; choices, Usage usage) {</span>
+<span class="fc" id="L229">    record ChatResponse(List&lt;Choice&gt; choices, Usage usage) {</span>
 
         @JsonIgnoreProperties(ignoreUnknown = true)
-<span class="fc" id="L205">        record Choice(Message message, String finish_reason) {</span>
+<span class="fc" id="L232">        record Choice(Message message, String finish_reason) {</span>
         }
 
         @JsonIgnoreProperties(ignoreUnknown = true)
-<span class="fc" id="L209">        record Message(String content) {</span>
+<span class="fc" id="L236">        record Message(String content) {</span>
         }
 
         @JsonIgnoreProperties(ignoreUnknown = true)
-<span class="fc" id="L213">        record Usage(Long prompt_tokens, Long completion_tokens) {</span>
+<span class="fc" id="L240">        record Usage(Long prompt_tokens, Long completion_tokens) {</span>
         }
 
         String content() {
-<span class="pc bpc" id="L217" title="2 of 6 branches missed.">            if (choices == null || choices.isEmpty() || choices.get(0).message() == null) {</span>
-<span class="fc" id="L218">                return null;</span>
+<span class="pc bpc" id="L244" title="2 of 6 branches missed.">            if (choices == null || choices.isEmpty() || choices.get(0).message() == null) {</span>
+<span class="fc" id="L245">                return null;</span>
             }
-<span class="fc" id="L220">            return choices.get(0).message().content();</span>
+<span class="fc" id="L247">            return choices.get(0).message().content();</span>
         }
 
         String finishReason() {
-<span class="pc bpc" id="L224" title="1 of 4 branches missed.">            return choices == null || choices.isEmpty() ? &quot;none&quot; : choices.get(0).finish_reason();</span>
+<span class="pc bpc" id="L251" title="1 of 4 branches missed.">            return choices == null || choices.isEmpty() ? &quot;none&quot; : choices.get(0).finish_reason();</span>
         }
 
         /** Absent usage counts as zero: it costs a metric, not an answer. */
         long promptTokens() {
-<span class="pc bpc" id="L229" title="1 of 4 branches missed.">            return usage == null || usage.prompt_tokens() == null ? 0L : usage.prompt_tokens();</span>
+<span class="pc bpc" id="L256" title="1 of 4 branches missed.">            return usage == null || usage.prompt_tokens() == null ? 0L : usage.prompt_tokens();</span>
         }
 
         long completionTokens() {
-<span class="pc bpc" id="L233" title="1 of 4 branches missed.">            return usage == null || usage.completion_tokens() == null ? 0L : usage.completion_tokens();</span>
+<span class="pc bpc" id="L260" title="1 of 4 branches missed.">            return usage == null || usage.completion_tokens() == null ? 0L : usage.completion_tokens();</span>
         }
     }
 
@@ -241,30 +268,30 @@ class IonosChatClient implements ChatClient {
      * to say, and the two need opposite fixes.
      */
     private static String preview(String content) {
-<span class="pc bpc" id="L244" title="2 of 4 branches missed.">        if (content == null || content.isBlank()) {</span>
-<span class="nc" id="L245">            return &quot;(empty)&quot;;</span>
+<span class="pc bpc" id="L271" title="2 of 4 branches missed.">        if (content == null || content.isBlank()) {</span>
+<span class="nc" id="L272">            return &quot;(empty)&quot;;</span>
         }
-<span class="fc" id="L247">        String collapsed = content.replaceAll(&quot;\\s+&quot;, &quot; &quot;).strip();</span>
-<span class="pc bpc" id="L248" title="1 of 2 branches missed.">        return collapsed.length() &lt;= 200 ? collapsed : collapsed.substring(0, 200) + &quot;…&quot;;</span>
+<span class="fc" id="L274">        String collapsed = content.replaceAll(&quot;\\s+&quot;, &quot; &quot;).strip();</span>
+<span class="pc bpc" id="L275" title="1 of 2 branches missed.">        return collapsed.length() &lt;= 200 ? collapsed : collapsed.substring(0, 200) + &quot;…&quot;;</span>
     }
 
     private static String firstLine(String body) {
-<span class="pc bpc" id="L252" title="2 of 4 branches missed.">        if (body == null || body.isBlank()) {</span>
-<span class="nc" id="L253">            return &quot;(no body)&quot;;</span>
+<span class="pc bpc" id="L279" title="2 of 4 branches missed.">        if (body == null || body.isBlank()) {</span>
+<span class="nc" id="L280">            return &quot;(no body)&quot;;</span>
         }
-<span class="fc" id="L255">        String trimmed = body.strip();</span>
-<span class="fc" id="L256">        int newline = trimmed.indexOf('\n');</span>
-<span class="pc bpc" id="L257" title="1 of 2 branches missed.">        String line = newline &lt; 0 ? trimmed : trimmed.substring(0, newline);</span>
-<span class="pc bpc" id="L258" title="1 of 2 branches missed.">        return line.length() &gt; 300 ? line.substring(0, 300) + &quot;…&quot; : line;</span>
+<span class="fc" id="L282">        String trimmed = body.strip();</span>
+<span class="fc" id="L283">        int newline = trimmed.indexOf('\n');</span>
+<span class="pc bpc" id="L284" title="1 of 2 branches missed.">        String line = newline &lt; 0 ? trimmed : trimmed.substring(0, newline);</span>
+<span class="pc bpc" id="L285" title="1 of 2 branches missed.">        return line.length() &gt; 300 ? line.substring(0, 300) + &quot;…&quot; : line;</span>
     }
 
     private static void sleep(Duration duration) {
         try {
-<span class="fc" id="L263">            Thread.sleep(duration.toMillis());</span>
-<span class="nc" id="L264">        } catch (InterruptedException e) {</span>
-<span class="nc" id="L265">            Thread.currentThread().interrupt();</span>
-<span class="nc" id="L266">            throw new ChatException(&quot;interrupted while backing off&quot;, e);</span>
-<span class="fc" id="L267">        }</span>
-<span class="fc" id="L268">    }</span>
+<span class="fc" id="L290">            Thread.sleep(duration.toMillis());</span>
+<span class="nc" id="L291">        } catch (InterruptedException e) {</span>
+<span class="nc" id="L292">            Thread.currentThread().interrupt();</span>
+<span class="nc" id="L293">            throw new ChatException(&quot;interrupted while backing off&quot;, e);</span>
+<span class="fc" id="L294">        }</span>
+<span class="fc" id="L295">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

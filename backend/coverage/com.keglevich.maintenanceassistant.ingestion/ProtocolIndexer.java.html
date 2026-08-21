@@ -66,14 +66,14 @@ class ProtocolIndexer {
 <span class="nc" id="L66">            log.error(&quot;Cannot load protocol {}&quot;, protocolId, e);</span>
 <span class="nc" id="L67">            return false;</span>
 <span class="fc" id="L68">        }</span>
-<span class="pc bpc" id="L69" title="1 of 2 branches missed.">        if (protocol == null) {</span>
+<span class="fc bfc" id="L69" title="All 2 branches covered.">        if (protocol == null) {</span>
             // Covers &quot;deleted while queued&quot; as well as &quot;never existed&quot;. An indexing run that
             // rebuilt an archived protocol's chunks would put it back into retrieval without
             // anyone asking — the one way a soft delete could be undone, and there is no undo by
             // design (ADR-006 revision). The load query is where that is prevented, because it is
             // the single door every indexing path comes through.
-<span class="nc" id="L75">            log.warn(&quot;Protocol {} disappeared before indexing (unknown or archived)&quot;, protocolId);</span>
-<span class="nc" id="L76">            return false;</span>
+<span class="fc" id="L75">            log.warn(&quot;Protocol {} disappeared before indexing (unknown or archived)&quot;, protocolId);</span>
+<span class="fc" id="L76">            return false;</span>
         }
 
         try {

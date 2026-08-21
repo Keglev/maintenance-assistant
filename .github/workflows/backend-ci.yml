@@ -13,8 +13,10 @@ on:
     # permanently blocked from merging, so this list is not a matter of taste.
     #
     # Two workflows earn entries. frontend/** is covered by frontend-ci.yml. The
-    # docs paths are covered by docs-pr-check.yml; they are exactly that
-    # workflow's trigger paths and must stay in step with them. Everything else
+    # docs paths are covered by docs-pr-check.yml; they are that workflow's
+    # CONTENT trigger paths and must stay in step with them. Its gate-adjacent
+    # paths — its own file and .github/scripts/docs/** — are deliberately absent
+    # below, so those run both gates (see that workflow's header). Everything else
     # falls through to this job — including README.md, .gitignore, AI-USAGE.md,
     # LICENSE and docker/**, which deliberately stay here rather than joining the
     # docs list: they are outside docs/, so the docs build never reads them and

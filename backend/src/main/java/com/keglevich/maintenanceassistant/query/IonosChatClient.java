@@ -5,11 +5,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
-import org.springframework.http.client.SimpleClientHttpRequestFactory;
+import org.springframework.http.client.JdkClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
 
+import java.net.http.HttpClient;
 import java.time.Duration;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -49,9 +50,16 @@ class IonosChatClient implements ChatClient {
         this.properties = properties;
         this.budget = budget;
 
-        SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
-        requestFactory.setConnectTimeout((int) Duration.ofSeconds(10).toMillis());
-        requestFactory.setReadTimeout((int) properties.timeout().toMillis());
+        // java.net.http rather than HttpURLConnection, for the reason recorded on the embedding
+        // client: HttpURLConnection swallows the body of a 401, so a revoked key was the one
+        // rejection whose provider sentence never reached the person reading the failure. Same
+        // timeout contract, split because JdkClientHttpRequestFactory has no setConnectTimeout —
+        // connect on the HttpClient, read on the factory (spring-web 7.0.8, checked).
+        HttpClient httpClient = HttpClient.newBuilder()
+                .connectTimeout(Duration.ofSeconds(10))
+                .build();
+        JdkClientHttpRequestFactory requestFactory = new JdkClientHttpRequestFactory(httpClient);
+        requestFactory.setReadTimeout(properties.timeout());
 
         this.restClient = RestClient.builder()
                 .baseUrl(properties.baseUrl() == null ? "" : properties.baseUrl())

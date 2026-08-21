@@ -121,6 +121,32 @@ class IonosChatClientFailureTest {
         verifyNoInteractions(budget);
     }
 
+    /**
+     * The 401 body — the ingestion side's twin, added rather than flipped.
+     *
+     * <p>The finding was pinned on the embedding client only, but the defect was never specific to
+     * ingestion: it lived in the transport both clients shared. {@code HttpURLConnection}, under
+     * the {@code SimpleClientHttpRequestFactory} this client used to build its {@code RestClient}
+     * on, discards the error body of a 401, so a revoked key reached the person waiting for an
+     * answer as a bare status. On {@code JdkClientHttpRequestFactory} the provider's sentence
+     * arrives, and this test holds that half of the swap down the way the flipped ingestion test
+     * holds the other.
+     */
+    @Test
+    void complete_unauthorized_failsTerminallyCarryingTheProvidersReason() {
+        provider.enqueueJson(401, ChatClientFixtures.error("invalid api key"));
+
+        assertThatThrownBy(() -> clientFor(provider, budget, LLAMA).complete(prompt()))
+                .isInstanceOf(ChatException.class)
+                .hasMessageContaining("chat request rejected: 401")
+                .hasMessageContaining("invalid api key")
+                .hasMessageNotContaining("(no body)");
+
+        // Terminal like any other non-429 rejection, and unbilled for the same reason.
+        assertThat(provider.requests()).hasSize(1);
+        verifyNoInteractions(budget);
+    }
+
     @Test
     void complete_serverError_retriesOnceAndThenFails() {
         provider.enqueueJson(500, ChatClientFixtures.error("upstream unavailable"));

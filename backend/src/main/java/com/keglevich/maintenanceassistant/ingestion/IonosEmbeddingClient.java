@@ -5,11 +5,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
-import org.springframework.http.client.SimpleClientHttpRequestFactory;
+import org.springframework.http.client.JdkClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
 
+import java.net.http.HttpClient;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
@@ -52,11 +53,29 @@ class IonosEmbeddingClient implements EmbeddingClient {
         this.properties = properties;
         this.budget = budget;
 
-        SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
-        requestFactory.setConnectTimeout((int) Duration.ofSeconds(10).toMillis());
+        // java.net.http rather than HttpURLConnection. Not a modernisation: HttpURLConnection
+        // discards the response body of a 401 as part of its own authentication handling, so a
+        // revoked or mistyped key — the 4xx most likely in production — was the ONE failure whose
+        // provider explanation never reached failure_reason. Measured, by status, against the
+        // stubbed provider: 400, 403, 404, 429 and 500 all delivered a body; 401 alone did not.
+        //
+        // The timeout contract is unchanged, only split across two objects, because
+        // JdkClientHttpRequestFactory has no setConnectTimeout: connect belongs to the HttpClient
+        // (Duration), read stays on the factory. Verified against spring-web 7.0.8 on the
+        // classpath, not read off documentation.
+        //
+        // The one thing this costs, measured the same way: a refused connection now arrives as
+        // ConnectException with a null message (java.net.http, cause ClosedChannelException) where
+        // HttpURLConnection said "Connection refused". Same Spring type — ResourceAccessException —
+        // so the retry rule and the budget rule are untouched; only the sentence is poorer. A read
+        // timeout keeps its message (HttpTimeoutException, "Request cancelled").
+        HttpClient httpClient = HttpClient.newBuilder()
+                .connectTimeout(Duration.ofSeconds(10))
+                .build();
+        JdkClientHttpRequestFactory requestFactory = new JdkClientHttpRequestFactory(httpClient);
         // Generous: a batch of 32 texts through bge-m3 took ~4 s in the spike, and a slow
         // response is worth waiting for rather than retrying into a second charge.
-        requestFactory.setReadTimeout((int) properties.timeout().toMillis());
+        requestFactory.setReadTimeout(properties.timeout());
 
         this.restClient = RestClient.builder()
                 .baseUrl(properties.baseUrl())

@@ -213,6 +213,9 @@ customElements.define('compodoc-menu', class extends HTMLElement {
                                 <a href="interfaces/ModerationEvent.html" data-type="entity-link" >ModerationEvent</a>
                             </li>
                             <li class="link">
+                                <a href="interfaces/ModerationHarness.html" data-type="entity-link" >ModerationHarness</a>
+                            </li>
+                            <li class="link">
                                 <a href="interfaces/ProtocolCorrection.html" data-type="entity-link" >ProtocolCorrection</a>
                             </li>
                             <li class="link">

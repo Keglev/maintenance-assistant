@@ -176,20 +176,34 @@ class IonosEmbeddingClientFailureTest {
         verifyNoInteractions(budget);
     }
 
+    /**
+     * The 401 body, and why this test used to assert the opposite.
+     *
+     * <p>A revoked or mistyped key is the 4xx most likely to happen in production, and the one the
+     * ops runbook is written around. Until this transport swap it was also the ONLY status whose
+     * explanation never reached {@code failure_reason}: measured by status against this same stub,
+     * 400, 403, 404, 429 and 500 all delivered a body and 401 alone arrived empty, because
+     * {@code HttpURLConnection} — under the {@code SimpleClientHttpRequestFactory} both clients
+     * used to build their {@code RestClient} on — discards the error body of a 401 as part of its
+     * own authentication handling. The finding was pinned as {@code "(no body)"} rather than fixed,
+     * so the defect could not quietly change shape while it waited.
+     *
+     * <p>It no longer holds. On {@code JdkClientHttpRequestFactory} (java.net.http) the provider's
+     * own sentence arrives, so the assertion is inverted: the operator now reads
+     * <em>invalid api key</em> instead of <em>(no body)</em>. That inversion is the whole point of
+     * the swap, which makes this test its vacuity guard — revert the factory in either client and
+     * this is the assertion that fails.
+     */
     @Test
-    void embed_unauthorized_namesTheStatusButLosesTheProvidersReason() {
+    void embed_unauthorized_failsTerminallyCarryingTheProvidersReason() {
         provider.enqueueJson(401, EmbeddingClientFixtures.error("invalid api key"));
 
         assertThatThrownBy(() -> clientFor(provider, budget, MODEL, 2).embed(List.of("eins")))
                 .isInstanceOf(EmbeddingException.class)
                 .hasMessageContaining("embedding request rejected: 401")
-                // FINDING, PINNED. Every other status carries the provider's sentence through —
-                // 403 above proves it — and 401 alone arrives with an empty body, because
-                // HttpURLConnection under SimpleClientHttpRequestFactory swallows a 401 body as
-                // part of its own authentication handling. So the one 4xx most likely in
-                // production, a revoked or mistyped key, is the one whose explanation the operator
-                // never sees. Verified by status: 400, 403, 404, 429 and 500 all deliver a body.
-                .hasMessageContaining("(no body)");
+                // The provider's own sentence, on the one rejection that used to lose it.
+                .hasMessageContaining("invalid api key")
+                .hasMessageNotContaining("(no body)");
 
         assertThat(provider.requests()).hasSize(1);
         verifyNoInteractions(budget);

@@ -1,5 +1,12 @@
 package com.keglevich.maintenanceassistant.ingestion;
 
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
+import com.keglevich.maintenanceassistant.support.ProviderStub;
+import org.slf4j.LoggerFactory;
+
+import java.time.Duration;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -11,11 +18,35 @@ import java.util.stream.IntStream;
  * with the same records the client parses could not fail when those records are wrong, which is
  * exactly the class of defect these tests exist to catch.
  *
- * <p>Consumers: IonosEmbeddingClientTest.
+ * <p>Consumers: IonosEmbeddingClientTest, IonosEmbeddingClientFailureTest.
  */
-final class EmbeddingResponses {
+final class EmbeddingClientFixtures {
 
-    private EmbeddingResponses() {
+    private EmbeddingClientFixtures() {
+    }
+
+    /**
+     * Attaches a collecting appender to the client's own logger and returns it.
+     *
+     * <p>The provenance warning is the whole observable of the model-mismatch rule — it warns and
+     * deliberately does not refuse — so the log IS the behaviour under test there, not a side effect.
+     */
+    static ListAppender<ILoggingEvent> captureLog() {
+        ListAppender<ILoggingEvent> appender = new ListAppender<>();
+        appender.start();
+        ((Logger) LoggerFactory.getLogger(IonosEmbeddingClient.class)).addAppender(appender);
+        return appender;
+    }
+
+    /** A client pointed at the stub, with the small, fast settings every consumer wants. */
+    static IonosEmbeddingClient clientFor(ProviderStub provider, EmbeddingBudget budget, String model, int batchSize) {
+        return new IonosEmbeddingClient(
+                new EmbeddingProperties(
+                        provider.baseUrl(), "test-key", model, DIMENSIONS, batchSize,
+                        // One retry and a 1 ms backoff: the retry POLICY is what these tests are
+                        // about, and its timing would only buy a slow test and a flaky one.
+                        1, Duration.ofMillis(1), Duration.ofSeconds(5), 1000),
+                budget);
     }
 
     /** The configured width in these tests. Small, because the assertion is on the check, not the model. */

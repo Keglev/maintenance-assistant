@@ -114,7 +114,7 @@ describe('Moderation — when a call fails', () => {
     expect(get(rendered, 'moderation-table').textContent).toContain('E-47 Druckabfall');
   });
 
-  it('keeps the typed reason after a refusal, so a retry costs nothing', async () => {
+  it('keeps the typed reason for a retry of the SAME protocol, so a blip costs nothing', async () => {
     const rendered = await renderModeration(http);
 
     await click(rendered, 'row-withdraw');
@@ -127,13 +127,63 @@ describe('Moderation — when a call fails', () => {
 
     await click(rendered, 'row-withdraw');
 
-    // TWO THINGS, and both are about the reviewer's next thirty seconds. The reason survives the
-    // refusal, so reopening the dialog does not mean writing the sentence again — and `approving` is
-    // cleared on the error path, so the button works. Had it not been, one failed request would have
-    // disabled every approval control on the screen until a reload.
+    // TWO THINGS, and both are about the reviewer's next thirty seconds. The reason survives for
+    // THIS protocol, so reopening its dialog does not mean writing the sentence again — and
+    // `approving` is cleared on the error path, so the button works. Had it not been, one failed
+    // request would have disabled every approval control on the screen until a reload.
+    //
+    // The reason is scoped to the protocol it was written about; the test below is the other half.
     expect((get(rendered, 'withdraw-comment') as HTMLTextAreaElement).value).toBe('erster Versuch');
     expect((get(rendered, 'withdraw-confirm-button') as HTMLButtonElement).disabled).toBe(false);
 
     await click(rendered, 'withdraw-cancel');
   });
+
+  it('starts blank for a DIFFERENT protocol after a failed withdrawal', async () => {
+    const rendered = await renderModeration(
+      http,
+      page(
+        [
+          protocol({ id: 'p-1', title: 'Erstes Protokoll' }),
+          protocol({ id: 'p-2', title: 'Zweites Protokoll' }),
+        ],
+        2,
+      ),
+    );
+
+    await withdrawFromRow(rendered, 0);
+    await type(rendered, 'withdraw-comment', 'Massnahme passt nicht zur Ursache');
+    await click(rendered, 'withdraw-confirm-button');
+    http
+      .expectOne('/api/moderation/protocols/p-1/approval')
+      .flush('nope', { status: 500, statusText: 'Server Error' });
+    await rendered.whenStable();
+
+    await withdrawFromRow(rendered, 1);
+
+    // THE LEDGER IS WHY. A withdrawal reason is written into the moderation ledger and attributed as
+    // though it were meant about that protocol — permanently, since the archive has no restore. A
+    // sentence left over from the protocol above it would be one click from becoming a false record
+    // about this one, written by someone who never said it.
+    expect((get(rendered, 'withdraw-target') as HTMLElement).textContent).toContain(
+      'Zweites Protokoll',
+    );
+    expect((get(rendered, 'withdraw-comment') as HTMLTextAreaElement).value).toBe('');
+    // Blank means refused, not merely empty: the dialog asks for a reason before it will send.
+    expect(find(rendered, 'withdraw-reason-required')).not.toBeNull();
+
+    await click(rendered, 'withdraw-cancel');
+  });
+
+  /** Opens the withdrawal dialog from one particular row — the rows carry identical test ids. */
+  async function withdrawFromRow(
+    rendered: Awaited<ReturnType<typeof renderModeration>>,
+    index: number,
+  ): Promise<void> {
+    const rows = (rendered.nativeElement as HTMLElement).querySelectorAll(
+      '[data-testid="moderation-row"]',
+    );
+    (rows[index].querySelector('[data-testid="row-withdraw"]') as HTMLButtonElement).click();
+    await rendered.whenStable();
+  }
 });

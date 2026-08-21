@@ -580,6 +580,33 @@ export class Moderation {
     });
   }
 
+  /**
+   * Opens the withdrawal dialog on a protocol, carrying a reason over only when it belongs there.
+   *
+   * <p><b>Both entry points go through here — the row button and the viewer — and neither may set
+   * `withdrawing` directly again.</b> That is the whole fix: the reason is component state, so a
+   * dialog opened by assignment inherits whatever the last attempt left behind.
+   *
+   * <p>THE TWO HALVES ARE SEPARABLE, and only one of them was ever wanted. RETRYING THE SAME
+   * PROTOCOL KEEPS THE SENTENCE: a network blip must not cost a reviewer the paragraph they just
+   * wrote, and asking them to type it again is how a withdrawal ends up with a thinner reason than
+   * the one it deserved. OPENING ANOTHER PROTOCOL STARTS BLANK: the reason is written into the
+   * moderation ledger and attributed as if meant about that protocol, so a sentence left in the box
+   * is one click from being permanently attached to a protocol nobody wrote it about. Convenience on
+   * one side, an unfixable record on the other.
+   *
+   * <p>`approvalFailure` is the evidence of which protocol the retained reason belongs to — it
+   * already carries the failed target's id, for the refusal shown beside that row. A second signal
+   * tracking the same fact could disagree with it, and the two would then be right about different
+   * protocols.
+   */
+  protected beginWithdraw(protocol: ModeratedProtocol): void {
+    if (this.approvalFailure()?.id !== protocol.id) {
+      this.withdrawComment.set('');
+    }
+    this.withdrawing.set(protocol);
+  }
+
   /** Withdraws approval, with the reason the backend requires and the reader is owed. */
   protected confirmWithdraw(): void {
     const target = this.withdrawing();

@@ -1,9 +1,20 @@
 name: backend-ci
 
 # Runs on every pull request not claimed by another gate, and on main after merge.
-# `mvn verify` covers unit tests, integration tests, the JaCoCo report and the
-# OpenAPI export — no database or Keycloak is needed, because the test profile
-# disables datasource and Flyway auto-configuration and no token is validated.
+# `mvn verify` covers unit tests, integration tests, the JaCoCo report, THE JACOCO
+# COVERAGE GATE and the OpenAPI export — no database or Keycloak is needed, because
+# the test profile disables datasource and Flyway auto-configuration and no token is
+# validated.
+#
+# The gate is named here because this comment is where someone looks to find out what
+# this job can fail on, and since #83 it can fail on coverage: instructions, branches
+# and methods each below 0.85 at BUNDLE level halt the build. The floors and the
+# reasoning behind them live in backend/pom.xml beside the rule itself.
+#
+# ONE FAILURE MODE WORTH KNOWING BEFORE IT HAPPENS: this project's coverage depends on
+# the Testcontainers integration tests, so a runner that cannot start Docker fails the
+# COVERAGE rule rather than reporting a Docker problem. Measured with -DskipITs while
+# arming the gate: 44 / 60 / 41. If that shape appears, the ITs did not run.
 on:
   pull_request:
     branches: [main]

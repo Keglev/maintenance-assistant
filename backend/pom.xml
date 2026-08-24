@@ -256,6 +256,59 @@
               <goal>report</goal>
             </goals>
           </execution>
+          <execution>
+            <!--
+              THE RATCHET (docs/REFACTOR-STANDARDS.txt, "Enforcement is a RATCHET").
+              Armed 2026-08-24, once the targets were actually met, so that a regression
+              fails the build instead of eroding quietly over a series of green PRs.
+
+              THE FLOORS ARE THE TARGETS (0.85), NOT THE ACHIEVED FIGURES. When this was
+              armed the published report for a5b2343 read 92.31% instruction, 87.06%
+              branch, 94.43% method — and arming at those numbers would turn an ordinary
+              refactor red for deleting a covered line it no longer needs. A gate that
+              fires on harmless work is one people learn to bypass, and a bypassed gate
+              protects nothing. The margin above 0.85 is working headroom on purpose.
+
+              Bundle level, not per class: a single small class with an awkward branch
+              must not be able to fail the build on its own. What this defends is the
+              project figure, which is the thing the standards set a target for.
+
+              Ordering: this sits after `report` and after the failsafe plugin above, so
+              it runs on a jacoco.exec that already carries BOTH the unit tests and the
+              Testcontainers integration tests. Checking before failsafe would measure
+              half the suite and read as a coverage collapse.
+            -->
+            <id>check</id>
+            <phase>verify</phase>
+            <goals>
+              <goal>check</goal>
+            </goals>
+            <configuration>
+              <haltOnFailure>true</haltOnFailure>
+              <rules>
+                <rule>
+                  <element>BUNDLE</element>
+                  <limits>
+                    <limit>
+                      <counter>INSTRUCTION</counter>
+                      <value>COVEREDRATIO</value>
+                      <minimum>0.85</minimum>
+                    </limit>
+                    <limit>
+                      <counter>BRANCH</counter>
+                      <value>COVEREDRATIO</value>
+                      <minimum>0.85</minimum>
+                    </limit>
+                    <limit>
+                      <counter>METHOD</counter>
+                      <value>COVEREDRATIO</value>
+                      <minimum>0.85</minimum>
+                    </limit>
+                  </limits>
+                </rule>
+              </rules>
+            </configuration>
+          </execution>
         </executions>
       </plugin>
     </plugins>

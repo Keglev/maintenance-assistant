@@ -91,7 +91,30 @@
           "builder": "@angular/build:unit-test",
           "options": {
             "runner": "vitest",
-            "coverageReporters": ["html", "lcovonly", "text-summary"]
+            "coverageReporters": ["html", "lcovonly", "text-summary"],
+            // THE RATCHET (docs/REFACTOR-STANDARDS.txt, "Enforcement is a RATCHET").
+            // Armed 2026-08-24, once the targets were actually met, so a regression fails
+            // the build instead of eroding quietly over a series of green pull requests.
+            //
+            // THE FLOORS ARE THE TARGETS (85), NOT THE ACHIEVED FIGURES. When this was
+            // armed the published report read 97.61 statements, 89.88 branches, 96.31
+            // functions, 97.69 lines. Arming at those would turn an ordinary refactor red
+            // for deleting a covered line it no longer needs, and a gate that fires on
+            // harmless work is one people learn to bypass. The margin is working headroom.
+            //
+            // perFile is deliberately absent, so these are project totals: one small
+            // component with an awkward branch must not fail the build on its own.
+            //
+            // A first-class option of @angular/build:unit-test (22.1.3), read off the
+            // builder's own schema.json rather than assumed: "If thresholds are not met,
+            // the builder will exit with an error." There is no vitest.config file here,
+            // so this is the only mechanism in play.
+            "coverageThresholds": {
+              "statements": 85,
+              "branches": 85,
+              "functions": 85,
+              "lines": 85
+            }
           }
         }
       }

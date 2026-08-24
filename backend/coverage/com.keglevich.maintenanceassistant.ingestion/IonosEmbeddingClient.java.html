@@ -145,9 +145,9 @@ class IonosEmbeddingClient implements EmbeddingClient {
                 // how the first real run of this pipeline made 150 paid calls that the budget
                 // never saw: every one of them failed while converting the response, and the
                 // counter only ran on success.
-<span class="pc bpc" id="L148" title="1 of 2 branches missed.">                recordUsage(body == null ? 0L : body.promptTokens());</span>
-<span class="pc bpc" id="L149" title="1 of 2 branches missed.">                if (body == null) {</span>
-<span class="nc" id="L150">                    throw new EmbeddingException(&quot;provider returned an empty body&quot;);</span>
+<span class="fc bfc" id="L148" title="All 2 branches covered.">                recordUsage(body == null ? 0L : body.promptTokens());</span>
+<span class="fc bfc" id="L149" title="All 2 branches covered.">                if (body == null) {</span>
+<span class="fc" id="L150">                    throw new EmbeddingException(&quot;provider returned an empty body&quot;);</span>
                 }
 <span class="fc" id="L152">                return body;</span>
 <span class="nc" id="L153">            } catch (org.springframework.http.converter.HttpMessageConversionException e) {</span>
@@ -173,7 +173,7 @@ class IonosEmbeddingClient implements EmbeddingClient {
         }
 <span class="fc" id="L174">        throw new EmbeddingException(</span>
                 &quot;embedding provider unavailable after %d attempts: %s&quot;
-<span class="pc bpc" id="L176" title="1 of 2 branches missed.">                        .formatted(properties.maxRetries() + 1, last == null ? &quot;unknown&quot; : last.getMessage()), last);</span>
+<span class="fc bfc" id="L176" title="All 2 branches covered.">                        .formatted(properties.maxRetries() + 1, last == null ? &quot;unknown&quot; : last.getMessage()), last);</span>
     }
 
     /**
@@ -211,15 +211,15 @@ class IonosEmbeddingClient implements EmbeddingClient {
      */
     private List&lt;float[]&gt; extractVectors(EmbeddingResponse response, int expectedCount) {
 <span class="fc" id="L213">        List&lt;EmbeddingResponse.Item&gt; data = response.data();</span>
-<span class="pc bpc" id="L214" title="1 of 4 branches missed.">        if (data == null || data.size() != expectedCount) {</span>
+<span class="fc bfc" id="L214" title="All 4 branches covered.">        if (data == null || data.size() != expectedCount) {</span>
 <span class="fc" id="L215">            throw new EmbeddingException(&quot;expected %d embeddings, provider returned %d&quot;</span>
-<span class="pc bpc" id="L216" title="1 of 2 branches missed.">                    .formatted(expectedCount, data == null ? 0 : data.size()));</span>
+<span class="fc bfc" id="L216" title="All 2 branches covered.">                    .formatted(expectedCount, data == null ? 0 : data.size()));</span>
         }
 <span class="fc" id="L218">        List&lt;float[]&gt; vectors = new ArrayList&lt;&gt;(expectedCount);</span>
 <span class="fc bfc" id="L219" title="All 2 branches covered.">        for (EmbeddingResponse.Item item : data) {</span>
 <span class="fc" id="L220">            List&lt;Double&gt; values = item.embedding();</span>
-<span class="pc bpc" id="L221" title="2 of 4 branches missed.">            if (values == null || values.isEmpty()) {</span>
-<span class="nc" id="L222">                throw new EmbeddingException(&quot;embedding is not an array — is encoding_format still float?&quot;);</span>
+<span class="fc bfc" id="L221" title="All 4 branches covered.">            if (values == null || values.isEmpty()) {</span>
+<span class="fc" id="L222">                throw new EmbeddingException(&quot;embedding is not an array — is encoding_format still float?&quot;);</span>
             }
 <span class="fc bfc" id="L224" title="All 2 branches covered.">            if (values.size() != properties.dimensions()) {</span>
 <span class="fc" id="L225">                throw new EmbeddingException(</span>
@@ -261,10 +261,10 @@ class IonosEmbeddingClient implements EmbeddingClient {
 <span class="fc bfc" id="L261" title="All 2 branches covered.">            if (usage == null) {</span>
 <span class="fc" id="L262">                return 0L;</span>
             }
-<span class="pc bpc" id="L264" title="1 of 4 branches missed.">            if (usage.prompt_tokens() != null &amp;&amp; usage.prompt_tokens() &gt; 0) {</span>
+<span class="fc bfc" id="L264" title="All 4 branches covered.">            if (usage.prompt_tokens() != null &amp;&amp; usage.prompt_tokens() &gt; 0) {</span>
 <span class="fc" id="L265">                return usage.prompt_tokens();</span>
             }
-<span class="pc bpc" id="L267" title="1 of 2 branches missed.">            return usage.total_tokens() == null ? 0L : usage.total_tokens();</span>
+<span class="fc bfc" id="L267" title="All 2 branches covered.">            return usage.total_tokens() == null ? 0L : usage.total_tokens();</span>
         }
     }
 
@@ -292,7 +292,7 @@ class IonosEmbeddingClient implements EmbeddingClient {
      */
     private void warnIfAnotherModelAnswered(EmbeddingResponse response) {
 <span class="fc" id="L294">        String answered = response.model();</span>
-<span class="pc bpc" id="L295" title="1 of 6 branches missed.">        if (answered == null || answered.equals(properties.model()) || !modelMismatchUnreported) {</span>
+<span class="fc bfc" id="L295" title="All 6 branches covered.">        if (answered == null || answered.equals(properties.model()) || !modelMismatchUnreported) {</span>
 <span class="fc" id="L296">            return;</span>
         }
 <span class="fc" id="L298">        modelMismatchUnreported = false;</span>
@@ -313,8 +313,8 @@ class IonosEmbeddingClient implements EmbeddingClient {
         }
 <span class="fc" id="L314">        String trimmed = body.strip();</span>
 <span class="fc" id="L315">        int newline = trimmed.indexOf('\n');</span>
-<span class="pc bpc" id="L316" title="1 of 2 branches missed.">        String line = newline &lt; 0 ? trimmed : trimmed.substring(0, newline);</span>
-<span class="pc bpc" id="L317" title="1 of 2 branches missed.">        return line.length() &gt; 300 ? line.substring(0, 300) + &quot;…&quot; : line;</span>
+<span class="fc bfc" id="L316" title="All 2 branches covered.">        String line = newline &lt; 0 ? trimmed : trimmed.substring(0, newline);</span>
+<span class="fc bfc" id="L317" title="All 2 branches covered.">        return line.length() &gt; 300 ? line.substring(0, 300) + &quot;…&quot; : line;</span>
     }
 
     private static void sleep(Duration duration) {

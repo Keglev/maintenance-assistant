@@ -69,7 +69,7 @@ class QueryCache {
     }
 
     static String normalise(String question) {
-<span class="pc bpc" id="L72" title="1 of 2 branches missed.">        return question == null ? &quot;&quot; : question.strip().replaceAll(&quot;\\s+&quot;, &quot; &quot;).toLowerCase(Locale.ROOT);</span>
+<span class="fc bfc" id="L72" title="All 2 branches covered.">        return question == null ? &quot;&quot; : question.strip().replaceAll(&quot;\\s+&quot;, &quot; &quot;).toLowerCase(Locale.ROOT);</span>
     }
 
 <span class="fc" id="L75">    private record Key(String question, UUID machineId, QueryRole role, boolean approvedOnly) {</span>

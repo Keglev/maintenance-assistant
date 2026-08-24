@@ -532,13 +532,13 @@ public class ProtocolModerationService {
 <span class="fc" id="L532">                throw new InvalidModerationRequestException(MACHINE_REQUIRED,</span>
                         &quot;a title or date filter needs a machine: choose a machine first&quot;);
             }
-<span class="pc bpc" id="L535" title="1 of 2 branches missed.">            if (approvalState != null) {</span>
-<span class="nc" id="L536">                approvalState = approvalState.toUpperCase(java.util.Locale.ROOT);</span>
-<span class="nc bnc" id="L537" title="All 2 branches missed.">                if (!ProtocolApprovalService.APPROVED.equals(approvalState)</span>
-<span class="nc bnc" id="L538" title="All 2 branches missed.">                        &amp;&amp; !ProtocolApprovalService.UNAPPROVED.equals(approvalState)) {</span>
+<span class="fc bfc" id="L535" title="All 2 branches covered.">            if (approvalState != null) {</span>
+<span class="fc" id="L536">                approvalState = approvalState.toUpperCase(java.util.Locale.ROOT);</span>
+<span class="fc bfc" id="L537" title="All 2 branches covered.">                if (!ProtocolApprovalService.APPROVED.equals(approvalState)</span>
+<span class="fc bfc" id="L538" title="All 2 branches covered.">                        &amp;&amp; !ProtocolApprovalService.UNAPPROVED.equals(approvalState)) {</span>
                     // Refused rather than ignored. A typo silently answering with the unfiltered
                     // corpus would tell a reviewer their queue is the whole corpus.
-<span class="nc" id="L541">                    throw new InvalidModerationRequestException(UNKNOWN_APPROVAL_STATE,</span>
+<span class="fc" id="L541">                    throw new InvalidModerationRequestException(UNKNOWN_APPROVAL_STATE,</span>
                             &quot;approvalState must be APPROVED or UNAPPROVED, not '&quot;
                                     + approvalState + &quot;'&quot;);
                 }

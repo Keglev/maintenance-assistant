@@ -62,7 +62,7 @@ class IonosChatClient implements ChatClient {
 <span class="fc" id="L62">        requestFactory.setReadTimeout(properties.timeout());</span>
 
 <span class="fc" id="L64">        this.restClient = RestClient.builder()</span>
-<span class="pc bpc" id="L65" title="1 of 2 branches missed.">                .baseUrl(properties.baseUrl() == null ? &quot;&quot; : properties.baseUrl())</span>
+<span class="fc bfc" id="L65" title="All 2 branches covered.">                .baseUrl(properties.baseUrl() == null ? &quot;&quot; : properties.baseUrl())</span>
 <span class="fc" id="L66">                .defaultHeader(HttpHeaders.AUTHORIZATION, &quot;Bearer &quot; + properties.apiKey())</span>
 <span class="fc" id="L67">                .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)</span>
 <span class="fc" id="L68">                .requestFactory(requestFactory)</span>
@@ -173,8 +173,8 @@ class IonosChatClient implements ChatClient {
                 // Counted here, not by the caller: the money is spent when the provider serves the
                 // request, whatever happens to the response afterwards.
 <span class="fc" id="L175">                recordUsage(response);</span>
-<span class="pc bpc" id="L176" title="1 of 2 branches missed.">                if (response == null) {</span>
-<span class="nc" id="L177">                    throw new ChatException(&quot;provider returned an empty body&quot;);</span>
+<span class="fc bfc" id="L176" title="All 2 branches covered.">                if (response == null) {</span>
+<span class="fc" id="L177">                    throw new ChatException(&quot;provider returned an empty body&quot;);</span>
                 }
 <span class="fc" id="L179">                return response;</span>
 <span class="nc" id="L180">            } catch (org.springframework.http.converter.HttpMessageConversionException e) {</span>
@@ -198,7 +198,7 @@ class IonosChatClient implements ChatClient {
 <span class="fc" id="L198">            }</span>
         }
 <span class="fc" id="L200">        throw new ChatException(&quot;chat provider unavailable after %d attempts: %s&quot;</span>
-<span class="pc bpc" id="L201" title="1 of 2 branches missed.">                .formatted(properties.maxRetries() + 1, last == null ? &quot;unknown&quot; : last.getMessage()), last);</span>
+<span class="fc bfc" id="L201" title="All 2 branches covered.">                .formatted(properties.maxRetries() + 1, last == null ? &quot;unknown&quot; : last.getMessage()), last);</span>
     }
 
     /**
@@ -224,8 +224,8 @@ class IonosChatClient implements ChatClient {
 
     private void recordUsage(ChatResponse response) {
 <span class="fc" id="L226">        budget.record(1,</span>
-<span class="pc bpc" id="L227" title="1 of 2 branches missed.">                response == null ? 0L : response.promptTokens(),</span>
-<span class="pc bpc" id="L228" title="1 of 2 branches missed.">                response == null ? 0L : response.completionTokens());</span>
+<span class="fc bfc" id="L227" title="All 2 branches covered.">                response == null ? 0L : response.promptTokens(),</span>
+<span class="fc bfc" id="L228" title="All 2 branches covered.">                response == null ? 0L : response.completionTokens());</span>
 <span class="fc" id="L229">    }</span>
 
     /**
@@ -249,23 +249,23 @@ class IonosChatClient implements ChatClient {
         }
 
         String content() {
-<span class="pc bpc" id="L252" title="2 of 6 branches missed.">            if (choices == null || choices.isEmpty() || choices.get(0).message() == null) {</span>
+<span class="fc bfc" id="L252" title="All 6 branches covered.">            if (choices == null || choices.isEmpty() || choices.get(0).message() == null) {</span>
 <span class="fc" id="L253">                return null;</span>
             }
 <span class="fc" id="L255">            return choices.get(0).message().content();</span>
         }
 
         String finishReason() {
-<span class="pc bpc" id="L259" title="1 of 4 branches missed.">            return choices == null || choices.isEmpty() ? &quot;none&quot; : choices.get(0).finish_reason();</span>
+<span class="fc bfc" id="L259" title="All 4 branches covered.">            return choices == null || choices.isEmpty() ? &quot;none&quot; : choices.get(0).finish_reason();</span>
         }
 
         /** Absent usage counts as zero: it costs a metric, not an answer. */
         long promptTokens() {
-<span class="pc bpc" id="L264" title="1 of 4 branches missed.">            return usage == null || usage.prompt_tokens() == null ? 0L : usage.prompt_tokens();</span>
+<span class="fc bfc" id="L264" title="All 4 branches covered.">            return usage == null || usage.prompt_tokens() == null ? 0L : usage.prompt_tokens();</span>
         }
 
         long completionTokens() {
-<span class="pc bpc" id="L268" title="1 of 4 branches missed.">            return usage == null || usage.completion_tokens() == null ? 0L : usage.completion_tokens();</span>
+<span class="fc bfc" id="L268" title="All 4 branches covered.">            return usage == null || usage.completion_tokens() == null ? 0L : usage.completion_tokens();</span>
         }
     }
 
@@ -280,17 +280,17 @@ class IonosChatClient implements ChatClient {
 <span class="nc" id="L280">            return &quot;(empty)&quot;;</span>
         }
 <span class="fc" id="L282">        String collapsed = content.replaceAll(&quot;\\s+&quot;, &quot; &quot;).strip();</span>
-<span class="pc bpc" id="L283" title="1 of 2 branches missed.">        return collapsed.length() &lt;= 200 ? collapsed : collapsed.substring(0, 200) + &quot;…&quot;;</span>
+<span class="fc bfc" id="L283" title="All 2 branches covered.">        return collapsed.length() &lt;= 200 ? collapsed : collapsed.substring(0, 200) + &quot;…&quot;;</span>
     }
 
     private static String firstLine(String body) {
-<span class="pc bpc" id="L287" title="2 of 4 branches missed.">        if (body == null || body.isBlank()) {</span>
-<span class="nc" id="L288">            return &quot;(no body)&quot;;</span>
+<span class="pc bpc" id="L287" title="1 of 4 branches missed.">        if (body == null || body.isBlank()) {</span>
+<span class="fc" id="L288">            return &quot;(no body)&quot;;</span>
         }
 <span class="fc" id="L290">        String trimmed = body.strip();</span>
 <span class="fc" id="L291">        int newline = trimmed.indexOf('\n');</span>
-<span class="pc bpc" id="L292" title="1 of 2 branches missed.">        String line = newline &lt; 0 ? trimmed : trimmed.substring(0, newline);</span>
-<span class="pc bpc" id="L293" title="1 of 2 branches missed.">        return line.length() &gt; 300 ? line.substring(0, 300) + &quot;…&quot; : line;</span>
+<span class="fc bfc" id="L292" title="All 2 branches covered.">        String line = newline &lt; 0 ? trimmed : trimmed.substring(0, newline);</span>
+<span class="fc bfc" id="L293" title="All 2 branches covered.">        return line.length() &gt; 300 ? line.substring(0, 300) + &quot;…&quot; : line;</span>
     }
 
     private static void sleep(Duration duration) {

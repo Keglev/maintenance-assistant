@@ -38,7 +38,7 @@ import java.util.Locale;
 
     /** Answering is inert without a key rather than failing per question at call time. */
     public boolean isConfigured() {
-<span class="pc bpc" id="L41" title="3 of 8 branches missed.">        return apiKey != null &amp;&amp; !apiKey.isBlank() &amp;&amp; baseUrl != null &amp;&amp; !baseUrl.isBlank();</span>
+<span class="fc bfc" id="L41" title="All 8 branches covered.">        return apiKey != null &amp;&amp; !apiKey.isBlank() &amp;&amp; baseUrl != null &amp;&amp; !baseUrl.isBlank();</span>
     }
 
     /**
@@ -53,7 +53,7 @@ import java.util.Locale;
      * travels with the model: the same id on the Nebius fallback behaves the same way.
      */
     boolean isReasoningModel() {
-<span class="pc bpc" id="L56" title="1 of 4 branches missed.">        return model != null &amp;&amp; model.toLowerCase(Locale.ROOT).contains(&quot;qwen3.5&quot;);</span>
+<span class="fc bfc" id="L56" title="All 4 branches covered.">        return model != null &amp;&amp; model.toLowerCase(Locale.ROOT).contains(&quot;qwen3.5&quot;);</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

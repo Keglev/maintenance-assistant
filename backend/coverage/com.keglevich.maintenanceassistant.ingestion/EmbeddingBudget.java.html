@@ -66,8 +66,8 @@ class EmbeddingBudget {
      */
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void record(int calls, long promptTokens) {
-<span class="pc bpc" id="L69" title="1 of 2 branches missed.">        if (calls &lt;= 0) {</span>
-<span class="nc" id="L70">            return;</span>
+<span class="fc bfc" id="L69" title="All 2 branches covered.">        if (calls &lt;= 0) {</span>
+<span class="fc" id="L70">            return;</span>
         }
 <span class="fc" id="L72">        jdbc.sql(&quot;&quot;&quot;</span>
                         INSERT INTO embedding_budget (usage_date, calls, prompt_tokens, updated_at)

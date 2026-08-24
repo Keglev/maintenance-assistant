@@ -53,7 +53,7 @@ public final class UploadContentPolicy {
      * @throws RejectedUploadException with a stable code, if this is not something to store
      */
     public static void verify(String filename, byte[] bytes) {
-<span class="pc bpc" id="L56" title="1 of 4 branches missed.">        if (bytes == null || bytes.length == 0) {</span>
+<span class="fc bfc" id="L56" title="All 4 branches covered.">        if (bytes == null || bytes.length == 0) {</span>
 <span class="fc" id="L57">            throw new RejectedUploadException(&quot;EMPTY_FILE&quot;, &quot;the uploaded file is empty&quot;);</span>
         }
 <span class="fc bfc" id="L59" title="All 2 branches covered.">        if (!hasAcceptedExtension(filename)) {</span>
@@ -78,8 +78,8 @@ public final class UploadContentPolicy {
      * indistinguishable from a renamed binary at this point.
      */
     private static boolean hasAcceptedExtension(String filename) {
-<span class="pc bpc" id="L81" title="2 of 4 branches missed.">        if (filename == null || filename.isBlank()) {</span>
-<span class="nc" id="L82">            return false;</span>
+<span class="fc bfc" id="L81" title="All 4 branches covered.">        if (filename == null || filename.isBlank()) {</span>
+<span class="fc" id="L82">            return false;</span>
         }
 <span class="fc" id="L84">        return filename.toLowerCase(Locale.ROOT).endsWith(&quot;.txt&quot;);</span>
     }

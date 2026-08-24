@@ -308,6 +308,12 @@ class IonosEmbeddingClient implements EmbeddingClient {
     }
 
     private static String firstLine(String body) {
+        // COVERAGE WAIVER (2026-08-22, register in docs/REFACTOR-STANDARDS.txt; raised as F3 in
+        // #81), identical to the chat client's. The null side never runs: the only argument ever
+        // passed is getResponseBodyAsString(), which builds a String over a byte array that
+        // defaults to empty, so it returns "" and never null. The blank side IS covered, by the
+        // empty-body rejection test added with #80. The check stays because this helper runs while
+        // a failure_reason is being built, and that is the worst possible place to throw.
         if (body == null || body.isBlank()) {
             return "(no body)";
         }

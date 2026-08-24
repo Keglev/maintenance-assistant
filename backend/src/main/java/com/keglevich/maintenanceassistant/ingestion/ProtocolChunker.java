@@ -107,6 +107,13 @@ class ProtocolChunker {
         List<String> parts = new ArrayList<>();
         int from = 0;
 
+        // COVERAGE WAIVER U1 (2026-08-22, register in docs/REFACTOR-STANDARDS.txt). The false side
+        // of this condition never runs, and that is the loop being correct rather than a gap in the
+        // tests: every iteration that does not exit through the break below leaves `from` strictly
+        // inside the section, so the only way out is the break. Reaching the condition as false
+        // would mean an empty section arrived here, which the sole caller prevents by only calling
+        // this for sections longer than MAX_CHARS. Forcing it green would mean adding a caller that
+        // does not exist, purely to satisfy a counter.
         while (from < section.length()) {
             int to = Math.min(from + MAX_CHARS, section.length());
             if (to < section.length()) {
@@ -128,6 +135,12 @@ class ProtocolChunker {
     private static int lastSentenceEnd(String text, int from, int to) {
         for (int i = to - 1; i > from; i--) {
             char c = text.charAt(i);
+            // COVERAGE WAIVER U2 (2026-08-22, register in docs/REFACTOR-STANDARDS.txt). The false
+            // side of `i + 1 < text.length()` never runs because the only caller passes a window
+            // that stops short of the end, so `i` can never be the last character. It is kept as a
+            // bounds check on a method that reads one character past `i`: the guarantee lives in
+            // the caller, and a second caller written without it would otherwise read off the end.
+            // Deleting it to win a branch would trade a real safety property for a percentage.
             if ((c == '.' || c == '!' || c == '?') && i + 1 < text.length()
                     && Character.isWhitespace(text.charAt(i + 1))) {
                 return i + 1;

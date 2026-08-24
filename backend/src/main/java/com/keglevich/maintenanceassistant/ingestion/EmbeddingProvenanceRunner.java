@@ -34,6 +34,15 @@ import org.springframework.stereotype.Component;
  * <p><b>It never runs in the serving application.</b> The property is absent from every deployed
  * configuration, and this runs at startup rather than per request, so a normal restart does no
  * provider work.
+ *
+ * <p><b>COVERAGE WAIVER</b> (2026-08-22, register in docs/REFACTOR-STANDARDS.txt). This class is at
+ * 0% and stays there. What it contains is flag-gated wiring: read a report, log it, choose an exit
+ * code. The mechanism it invokes — {@link EmbeddingProvenanceVerifier} — is covered by
+ * EmbeddingProvenanceVerifierIT, so the part that can be wrong about vectors IS tested; what is
+ * untested here is a conditional bean and two log lines. Covering it would mean a context that
+ * enables an operational tool and then asserting on its console output, which tests the harness
+ * rather than the tool. It is exercised operationally instead: it was run against production on
+ * 2026-08-19, which is the evidence that matters for a runbook step.
  */
 @Component
 @ConditionalOnProperty(prefix = "maintenance.ops", name = "verify-embeddings", havingValue = "true")

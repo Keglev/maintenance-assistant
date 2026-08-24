@@ -1008,6 +1008,177 @@ rather than given one afterwards.
    deriving the server behind the proxy, not a deployment fault.
    Belongs to the Part 3 configuration audit.
 
+   PART 1 CLOSE-OUT — DONE, 2026-08-24. Fifteen pull requests, #70 to
+   #84. Both stacks are above every 85% target, enforcement is armed so
+   they stay there, and the survey's own list is finished: every PR-0 to
+   PR-6 item shipped.
+
+   (a) FINAL FIGURES, from the CI-PUBLISHED REPORTS, with the commit
+   each was published for. A local run is a working tool; these are the
+   figures the standards make authoritative.
+     BACKEND, gh-pages backend/coverage/index.html, published for
+     a5b2343 (#82) by gh-pages commit 8b9d44c:
+       instructions  8,682 of 9,405   92.31   (723 missed)
+       branches        592 of   680   87.06   ( 88 missed)
+       methods         373 of   395   94.43   ( 22 missed)
+       lines         1,681 of 1,826   92.06   (145 missed)
+     Published for #82 rather than for HEAD because nothing in
+     backend/src has changed since: #83 touched only pom.xml and #84
+     only frontend e2e files, so `git diff a5b2343..2b1e4b8 --
+     backend/src` is empty and the report still describes main.
+     FRONTEND, gh-pages frontend/coverage/index.html, published for
+     2b1e4b8 (#84) by gh-pages commit 016d00c:
+       statements  2,829 of 2,898   97.61
+       branches      755 of   840   89.88
+       functions     418 of   434   96.31
+       lines       2,118 of 2,168   97.69
+     Compare the Part 1 survey above, measured on 09d8b57: backend
+     branches went 54.34 -> 87.06 and instructions 74.95 -> 92.31;
+     frontend functions went 84.38 -> 96.31, which was the one metric
+     that missed the target.
+
+   (b) ENFORCEMENT ARMED (#83), and armed only after the targets were
+   met, which is what the standards mean by a ratchet. Backend: a jacoco
+   `check` execution bound to `verify`, BUNDLE level, INSTRUCTION,
+   BRANCH and METHOD at 0.85, haltOnFailure. Frontend: the
+   `coverageThresholds` option of @angular/build:unit-test — a
+   first-class builder option read off its own schema, not a vitest
+   passthrough — with all four metrics at 85 and perFile deliberately
+   absent.
+     THE FLOORS ARE THE TARGETS, NOT THE ACHIEVED FIGURES, and the
+     reasoning is repeated at both threshold blocks: arming at 92.31 or
+     97.61 would turn an ordinary refactor red for deleting a covered
+     line it no longer needs, and a gate that fires on harmless work is
+     one people learn to bypass. The margin is working headroom.
+     BOTH GATES WERE BITE-PROVEN before merge — a floor raised above the
+     achieved figure, the failure captured naming the counter, the floor
+     restored. A gate that cannot be shown to fail is decoration.
+     Measured while proving it, and worth carrying: with -DskipITs the
+     backend reads 44 / 60 / 41. This project's coverage DEPENDS on the
+     Testcontainers integration tests, so a runner without Docker fails
+     with a coverage message rather than a Docker one. The honest
+     diagnosis there is "the ITs did not run".
+
+   (c) THE CHAIN, one line each:
+     #70 the refactor standards in the repo before the first fix PR.
+     #71 the 2026-08-20 decisions recorded in DECISIONS.txt.
+     #72 the six-part restoration and the refreshed status line.
+     #73 RF0.4 — the refactor decision pointed at the six-part plan.
+     #74 back-to-docs anchors on the three published surfaces that
+         lacked one; corrected the survey's claim that copy_report was
+         the landing point.
+     #75 the frontend moderation view, the upload form and the
+         dictionary — the view that cleared that stack alone.
+     #76 withdrawComment scoped to the protocol it was written about.
+     #77 both provider clients covered offline against a stubbed
+         provider; found F1, F2 and F3.
+     #78 an unreadable provider response treated as served and terminal
+         — the fix for F1, and the 150 paid calls the budget never saw.
+     #79 branch tests for the ingestion side; raised U1 and U2.
+     #80 the 401-body transport swap: both clients moved from
+         SimpleClientHttpRequestFactory to JdkClientHttpRequestFactory,
+         because HttpURLConnection discards a 401's error body and a
+         revoked key was the one failure whose explanation never reached
+         failure_reason.
+     #81 branch tests for the query side, crossing 85 (85.44 at merge);
+         raised F1-of-#81, F2, F3 and F4.
+     #82 the corpus seed runner tested, and the waiver register filled.
+     #83 the ratchet armed on both stacks.
+     #84 approval-e2e determinism: approving goes through the
+         duplicates dialog instead of assuming one click.
+
+   (d) THE WAIVER SLATE, granted by Carlos 2026-08-22. Six coverage
+   waivers and one ACCEPT/WATCH ledger row. THE REGISTER IN
+   docs/REFACTOR-STANDARDS.txt IS CANONICAL — figures, reasons and the
+   grant all live there and are deliberately not copied here, because
+   two copies of a waiver is how one of them goes stale. Every waived
+   site also carries a comment saying why the miss is the rule working;
+   the register says which, the comment says why.
+     The 4a residue — 51 branches in nine classes that need integration
+     harnesses rather than a unit seam — is an ACCEPT/WATCH ledger row
+     and NOT a waiver: that code is reachable and testable, the targets
+     are met without it, and it still counts as uncovered in every
+     published figure. Revisit when one of those classes is next changed
+     for a feature, so the harness is paid for by work that needs it.
+     The full class list is carried in #79's pull request body.
+
+   (e) CORRECTIONS TO THE RECORD, 2026-08-24:
+     #80's report attributed one e2e first-attempt failure to "the
+     withdrawal-reason suite from #76". THAT IS WRONG. #76 contains no
+     e2e file at all — it changed moderation.failures.spec.ts, a vitest
+     spec, and moderation.ts. #84 pulled the traces from the failing CI
+     runs and all four occurrences are the same defect: the approve step
+     in approval.e2e.ts, at :194-195 and :313-314 on #80 and :314 on
+     #82, with the duplicates dialog in the DOM each time.
+     THE E2E STREAK LEDGER WAS RESET TO 0 on 2026-08-24, because a
+     first-attempt red is a failed run whatever a re-run then says.
+     frontend/e2e/README.md is canonical for that count.
+     NOT VERIFIABLE FROM THE RECORD, and recorded as such rather than
+     as fact: the post-merge live IONOS verification of #80 (reported as
+     2026-08-21, 239 calls) leaves no artifact anywhere in this
+     repository, in the pull request bodies or on gh-pages. It may well
+     have happened; nothing here can show it. A live verification that
+     the record cannot see is a verification the next reader has to take
+     on trust, so it needs a home — a dated line in this file at the
+     time it is run is enough.
+
+   (f) CARRIED FINDINGS, BY DESTINATION, so no later mission has to
+   rediscover them:
+     PART 3 (configuration and deployment audit)
+       - gh-pages is published in more than one step per run: docs.yml
+         has three peaceiris/actions-gh-pages@v4 steps, and every merge
+         produces two or more gh-pages commits. The agreed direction is
+         a single staged publish. KEEP_FILES MUST SURVIVE IT — all three
+         steps set keep_files: true today, and it is what stops each
+         publish deleting the trees the others wrote.
+       - prettier is a devDependency with NO format script and NO format
+         step in frontend-ci.yml. The formatting findings on
+         moderation.ts and moderation.html are still open, and the gate
+         that would have caught them does not exist.
+       - the live OpenAPI advertises servers[0].url over http — see the
+         CARRIED OUT OF PART 1 note above, same destination.
+     PART 4 (dead code)
+       - copy_report in .github/scripts/docs/build-docs.sh is dead on
+         the CI path; #74 traced it and left it deliberately.
+       - QueryServiceTest is 397 code lines against a 150 band. Its five
+         remaining branches were deferred WITH it in #81: reaching them
+         needs the four fakes extracted into a fixtures module, which is
+         a refactor carrying its own identity proof, not a coverage
+         test.
+       - QueryPipelineIT is WATCHED at 291 code lines (band 250, alarm
+         300). THE NEXT ADDITION TO IT MUST SPLIT IT.
+     PART 5 (error handling and diagnostics)
+       - a refused connection under the JDK transport arrives with a
+         NULL MESSAGE where HttpURLConnection said "Connection refused"
+         (#80). Same Spring type, so retry and budget rules are
+         untouched; only the operator's sentence is poorer.
+       - AnswerAssembler's "model returned a null answer object" can
+         never reach a caller (#81 F1): it is thrown inside the try that
+         catches RuntimeException and is re-wrapped by its own handler.
+         Pinned by a test that asserts the cause, so the branch is
+         covered and the defect is visible.
+     PART 6 (documentation)
+       - docs/_theme/templates/nav-docs.html lists ADR-001 to ADR-004.
+         There are NINE ADRs. Five are published and unreachable from
+         the navigation.
+
+   (g) OPEN TICKET, WITH A STANDING RULE — ProtocolApprovalIT
+   intermittent context-load failure. Seen once in five full backend
+   runs during #83: twelve errors in that class, all from a context that
+   would not load, root cause
+     java.lang.NullPointerException: Cannot invoke
+     "java.time.Duration.isNegative()" because "duration" is null
+       at ...query.QueryCache.<init>(QueryCache.java:45)
+   maintenance.query.cache-ttl bound as null in that one context though
+   application-it.yml sets it to 10m. It did not reproduce on the next
+   run, it did not appear at all during #84, and no change in either PR
+   could have caused it.
+     THE RULE: EVERY FUTURE BACKEND ROBOT SESSION THAT HITS THIS
+     PRESERVES target/failsafe-reports AND THE CONTEXT-LOAD STACK TRACE
+     AND ATTACHES THEM BEFORE DOING ANYTHING ELSE. An intermittent that
+     is only ever described is an intermittent nobody can fix; the one
+     run that captures it is worth more than ten that mention it.
+
 5. PHASE 5 — EVOLUTION CANDIDATES (unchanged list, optional):
    similar-machine search, OCR, downtime stats, PDF export (generation,
    not serving), structured Symptom/Ursache/Massnahme fields, and

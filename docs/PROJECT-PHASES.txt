@@ -1324,6 +1324,10 @@ rather than given one afterwards.
        WHAT WOULD CLOSE IT: a one-line convention in
          REFACTOR-STANDARDS.txt's DOCS section, whichever way it is
          ruled. The absence of the rule is the finding.
+       RULED 2026-08-24, ADR-010, #90: lowercase-kebab for explanatory
+         pages, SCREAMING kept for ledgers, ADRs and ADR-TEMPLATE;
+         DOMAIN-MODEL.md and REQUIREMENTS.md rename in a follow-up, and
+         the three migration comments citing them stay FROZEN.
 
    F3  docs/_theme/index.html and index-de.html — RULING NEEDED
        current: the site's two landing PAGES live in the theme tree,
@@ -1338,6 +1342,8 @@ rather than given one afterwards.
          needs a special case for them either way.
        no rule covers it and both readings are defensible, so it is not
          called a defect here.
+       RULED 2026-08-24, ADR-010, #90: they stay in docs/_theme/ — theme
+         HTML lives with the theme, markdown content lives in docs/.
 
    F4  frontend/e2e/ flat layout — WATCH
        current: nine *.e2e.ts specs, two test helpers (guard.ts,
@@ -1431,6 +1437,7 @@ rather than given one afterwards.
    convention or a defect, and either way write it down) and F3
    (the landing pages' home). Both are recorded above with both
    candidate readings and the cost of acting.
+   Both ruled — ADR-010.
 
    (e) SEEN, NOT SURVEYED — outside Part 2, with their destination:
      - docs/scripts/generate-diagrams.sh calls itself "a thin POSIX

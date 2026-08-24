@@ -433,3 +433,11 @@ Status: v1.3.0 released; refactor phase (read-only survey), 2026-08-21
   at the achieved numbers, so a regression fails the build. Authored in #70's standards file and
   ratified by its merge. Arming it first would only break CI; today neither stack enforces anything,
   which is why 85% is written down as a target rather than left to read as a gate.
+- DOCS TREE CONVENTIONS RULED 2026-08-24 (ADR-010), closing the two RULING NEEDED rows the Part 2
+  structure survey left open. Explanatory markdown under docs/ is lowercase-kebab while the ledgers,
+  the ADRs and ADR-TEMPLATE stay SCREAMING; the site's hand-written landing pages stay in _theme/
+  with the assets they reference. The part worth carrying is the second half: A CITATION INSIDE AN
+  APPLIED FLYWAY MIGRATION IS FROZEN and is deliberately NOT updated by the rename that follows,
+  because the checksum covers comments — editing V1 stops the application starting until a manual
+  repair against production. A stale comment there is the checksum rule working, and ADR-010 is
+  where that is written down so it is never "tidied".

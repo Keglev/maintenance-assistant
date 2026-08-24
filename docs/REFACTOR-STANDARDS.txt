@@ -230,6 +230,12 @@ DOCS
   them, and keep the nav in step.
 - EVERY PUBLISHED SURFACE CARRIES THE SAME ANCHOR HOME. A report tree
   reached from the docs site must offer the way back to it.
+- Explanatory markdown pages under docs/ are lowercase-kebab; the .txt
+  ledgers, the ADR files and ADR-TEMPLATE stay SCREAMING, because they
+  are normative or immutable records rather than prose — see ADR-010.
+- A citation inside an applied Flyway migration is FROZEN: it is not
+  updated when the file it names is renamed, because the checksum covers
+  comments and a repair is a production operation — see ADR-010.
 
 =====================================================================
 WORKING PRACTICES (the process rules that paid for themselves)

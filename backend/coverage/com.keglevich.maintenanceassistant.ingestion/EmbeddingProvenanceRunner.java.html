@@ -34,6 +34,15 @@ import org.springframework.stereotype.Component;
  * &lt;p&gt;&lt;b&gt;It never runs in the serving application.&lt;/b&gt; The property is absent from every deployed
  * configuration, and this runs at startup rather than per request, so a normal restart does no
  * provider work.
+ *
+ * &lt;p&gt;&lt;b&gt;COVERAGE WAIVER&lt;/b&gt; (2026-08-22, register in docs/REFACTOR-STANDARDS.txt). This class is at
+ * 0% and stays there. What it contains is flag-gated wiring: read a report, log it, choose an exit
+ * code. The mechanism it invokes — {@link EmbeddingProvenanceVerifier} — is covered by
+ * EmbeddingProvenanceVerifierIT, so the part that can be wrong about vectors IS tested; what is
+ * untested here is a conditional bean and two log lines. Covering it would mean a context that
+ * enables an operational tool and then asserting on its console output, which tests the harness
+ * rather than the tool. It is exercised operationally instead: it was run against production on
+ * 2026-08-19, which is the evidence that matters for a runbook step.
  */
 @Component
 @ConditionalOnProperty(prefix = &quot;maintenance.ops&quot;, name = &quot;verify-embeddings&quot;, havingValue = &quot;true&quot;)
@@ -42,7 +51,7 @@ import org.springframework.stereotype.Component;
 @Order(100)
 class EmbeddingProvenanceRunner implements ApplicationRunner {
 
-<span class="nc" id="L45">    private static final Logger log = LoggerFactory.getLogger(EmbeddingProvenanceRunner.class);</span>
+<span class="nc" id="L54">    private static final Logger log = LoggerFactory.getLogger(EmbeddingProvenanceRunner.class);</span>
 
     private final EmbeddingProvenanceVerifier verifier;
     private final ApplicationContext context;
@@ -51,25 +60,25 @@ class EmbeddingProvenanceRunner implements ApplicationRunner {
     EmbeddingProvenanceRunner(
             EmbeddingProvenanceVerifier verifier,
             ApplicationContext context,
-<span class="nc" id="L54">            @Value(&quot;${maintenance.ops.verify-embeddings-sample:0}&quot;) int sampleSize) {</span>
-<span class="nc" id="L55">        this.verifier = verifier;</span>
-<span class="nc" id="L56">        this.context = context;</span>
-<span class="nc" id="L57">        this.sampleSize = sampleSize;</span>
-<span class="nc" id="L58">    }</span>
+<span class="nc" id="L63">            @Value(&quot;${maintenance.ops.verify-embeddings-sample:0}&quot;) int sampleSize) {</span>
+<span class="nc" id="L64">        this.verifier = verifier;</span>
+<span class="nc" id="L65">        this.context = context;</span>
+<span class="nc" id="L66">        this.sampleSize = sampleSize;</span>
+<span class="nc" id="L67">    }</span>
 
     @Override
     public void run(ApplicationArguments args) {
-<span class="nc" id="L62">        EmbeddingProvenanceVerifier.Report report = verifier.verify(sampleSize);</span>
+<span class="nc" id="L71">        EmbeddingProvenanceVerifier.Report report = verifier.verify(sampleSize);</span>
         // System.out rather than the logger: this is a report a person asked for and reads, not an
         // event in the application's life, and it must survive whatever the log level is set to.
-<span class="nc" id="L65">        System.out.println(report.describe());</span>
+<span class="nc" id="L74">        System.out.println(report.describe());</span>
 
-<span class="nc bnc" id="L67" title="All 2 branches missed.">        if (report.clean()) {</span>
-<span class="nc" id="L68">            log.info(&quot;Embedding provenance: {} chunks checked, all written by the configured model&quot;,</span>
-<span class="nc" id="L69">                    report.probes().size());</span>
+<span class="nc bnc" id="L76" title="All 2 branches missed.">        if (report.clean()) {</span>
+<span class="nc" id="L77">            log.info(&quot;Embedding provenance: {} chunks checked, all written by the configured model&quot;,</span>
+<span class="nc" id="L78">                    report.probes().size());</span>
         } else {
-<span class="nc" id="L71">            log.error(&quot;Embedding provenance: {} of {} chunks were written by a different embedding &quot;</span>
-<span class="nc" id="L72">                    + &quot;model&quot;, report.foreign().size(), report.probes().size());</span>
+<span class="nc" id="L80">            log.error(&quot;Embedding provenance: {} of {} chunks were written by a different embedding &quot;</span>
+<span class="nc" id="L81">                    + &quot;model&quot;, report.foreign().size(), report.probes().size());</span>
         }
 
         // STOP, in both outcomes. This is a command, not a server: the operator runs it as
@@ -80,8 +89,8 @@ class EmbeddingProvenanceRunner implements ApplicationRunner {
         //
         // The exit code is the answer: 0 clean, 1 foreign vectors found, so the runbook's step can
         // be read by a script and cannot be mistaken for success in a scrollback.
-<span class="nc bnc" id="L83" title="All 2 branches missed.">        int code = report.clean() ? 0 : 1;</span>
-<span class="nc" id="L84">        System.exit(SpringApplication.exit(context, () -&gt; code));</span>
-<span class="nc" id="L85">    }</span>
+<span class="nc bnc" id="L92" title="All 2 branches missed.">        int code = report.clean() ? 0 : 1;</span>
+<span class="nc" id="L93">        System.exit(SpringApplication.exit(context, () -&gt; code));</span>
+<span class="nc" id="L94">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

@@ -276,30 +276,44 @@ class IonosChatClient implements ChatClient {
      * to say, and the two need opposite fixes.
      */
     private static String preview(String content) {
-<span class="pc bpc" id="L279" title="2 of 4 branches missed.">        if (content == null || content.isBlank()) {</span>
-<span class="nc" id="L280">            return &quot;(empty)&quot;;</span>
+        // COVERAGE WAIVER (2026-08-22, register in docs/REFACTOR-STANDARDS.txt; raised as F2 in
+        // #81). Neither side of this guard can be reached: complete() throws on null or blank
+        // content before it ever reaches the truncation branch that calls this, and that ordering
+        // is deliberate — an empty answer from a reasoning model is a configuration diagnosis, and
+        // it must not be reported as a truncation. The guard stays because this method is a
+        // message-formatting helper and formatting helpers must not throw while an exception
+        // message is being built; a NullPointerException here would replace a useful diagnosis
+        // with a useless one. The uncovered branch is that ordering working.
+<span class="pc bpc" id="L287" title="2 of 4 branches missed.">        if (content == null || content.isBlank()) {</span>
+<span class="nc" id="L288">            return &quot;(empty)&quot;;</span>
         }
-<span class="fc" id="L282">        String collapsed = content.replaceAll(&quot;\\s+&quot;, &quot; &quot;).strip();</span>
-<span class="fc bfc" id="L283" title="All 2 branches covered.">        return collapsed.length() &lt;= 200 ? collapsed : collapsed.substring(0, 200) + &quot;…&quot;;</span>
+<span class="fc" id="L290">        String collapsed = content.replaceAll(&quot;\\s+&quot;, &quot; &quot;).strip();</span>
+<span class="fc bfc" id="L291" title="All 2 branches covered.">        return collapsed.length() &lt;= 200 ? collapsed : collapsed.substring(0, 200) + &quot;…&quot;;</span>
     }
 
     private static String firstLine(String body) {
-<span class="pc bpc" id="L287" title="1 of 4 branches missed.">        if (body == null || body.isBlank()) {</span>
-<span class="fc" id="L288">            return &quot;(no body)&quot;;</span>
+        // COVERAGE WAIVER (2026-08-22, register in docs/REFACTOR-STANDARDS.txt; raised as F3 in
+        // #81). The null side never runs: the only argument ever passed is
+        // getResponseBodyAsString(), which builds a String over a byte array that defaults to
+        // empty, so it returns &quot;&quot; and never null. The blank side IS covered, by the empty-body
+        // rejection test. Keeping the null check costs nothing and keeps this helper safe to call
+        // from anywhere while an exception message is being assembled.
+<span class="pc bpc" id="L301" title="1 of 4 branches missed.">        if (body == null || body.isBlank()) {</span>
+<span class="fc" id="L302">            return &quot;(no body)&quot;;</span>
         }
-<span class="fc" id="L290">        String trimmed = body.strip();</span>
-<span class="fc" id="L291">        int newline = trimmed.indexOf('\n');</span>
-<span class="fc bfc" id="L292" title="All 2 branches covered.">        String line = newline &lt; 0 ? trimmed : trimmed.substring(0, newline);</span>
-<span class="fc bfc" id="L293" title="All 2 branches covered.">        return line.length() &gt; 300 ? line.substring(0, 300) + &quot;…&quot; : line;</span>
+<span class="fc" id="L304">        String trimmed = body.strip();</span>
+<span class="fc" id="L305">        int newline = trimmed.indexOf('\n');</span>
+<span class="fc bfc" id="L306" title="All 2 branches covered.">        String line = newline &lt; 0 ? trimmed : trimmed.substring(0, newline);</span>
+<span class="fc bfc" id="L307" title="All 2 branches covered.">        return line.length() &gt; 300 ? line.substring(0, 300) + &quot;…&quot; : line;</span>
     }
 
     private static void sleep(Duration duration) {
         try {
-<span class="fc" id="L298">            Thread.sleep(duration.toMillis());</span>
-<span class="nc" id="L299">        } catch (InterruptedException e) {</span>
-<span class="nc" id="L300">            Thread.currentThread().interrupt();</span>
-<span class="nc" id="L301">            throw new ChatException(&quot;interrupted while backing off&quot;, e);</span>
-<span class="fc" id="L302">        }</span>
-<span class="fc" id="L303">    }</span>
+<span class="fc" id="L312">            Thread.sleep(duration.toMillis());</span>
+<span class="nc" id="L313">        } catch (InterruptedException e) {</span>
+<span class="nc" id="L314">            Thread.currentThread().interrupt();</span>
+<span class="nc" id="L315">            throw new ChatException(&quot;interrupted while backing off&quot;, e);</span>
+<span class="fc" id="L316">        }</span>
+<span class="fc" id="L317">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

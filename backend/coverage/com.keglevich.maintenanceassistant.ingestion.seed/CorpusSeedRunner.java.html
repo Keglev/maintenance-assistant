@@ -48,7 +48,7 @@ import java.sql.Types;
 @ConditionalOnProperty(prefix = &quot;maintenance.corpus-seed&quot;, name = &quot;enabled&quot;, havingValue = &quot;true&quot;)
 class CorpusSeedRunner implements ApplicationRunner {
 
-<span class="nc" id="L51">    private static final Logger log = LoggerFactory.getLogger(CorpusSeedRunner.class);</span>
+<span class="fc" id="L51">    private static final Logger log = LoggerFactory.getLogger(CorpusSeedRunner.class);</span>
 
     /**
      * The approval columns are written HERE as well as backfilled by V5, and both are needed.
@@ -83,65 +83,65 @@ class CorpusSeedRunner implements ApplicationRunner {
     private final ResourceLoader resourceLoader;
     private final CorpusSeedProperties seedProperties;
     private final FileStorageProperties fileProperties;
-<span class="nc" id="L86">    private final ObjectMapper objectMapper = new ObjectMapper();</span>
+<span class="fc" id="L86">    private final ObjectMapper objectMapper = new ObjectMapper();</span>
 
     CorpusSeedRunner(JdbcClient jdbc, ResourceLoader resourceLoader,
-<span class="nc" id="L89">                     CorpusSeedProperties seedProperties, FileStorageProperties fileProperties) {</span>
-<span class="nc" id="L90">        this.jdbc = jdbc;</span>
-<span class="nc" id="L91">        this.resourceLoader = resourceLoader;</span>
-<span class="nc" id="L92">        this.seedProperties = seedProperties;</span>
-<span class="nc" id="L93">        this.fileProperties = fileProperties;</span>
-<span class="nc" id="L94">    }</span>
+<span class="fc" id="L89">                     CorpusSeedProperties seedProperties, FileStorageProperties fileProperties) {</span>
+<span class="fc" id="L90">        this.jdbc = jdbc;</span>
+<span class="fc" id="L91">        this.resourceLoader = resourceLoader;</span>
+<span class="fc" id="L92">        this.seedProperties = seedProperties;</span>
+<span class="fc" id="L93">        this.fileProperties = fileProperties;</span>
+<span class="fc" id="L94">    }</span>
 
     @Override
     public void run(ApplicationArguments args) throws IOException {
-<span class="nc" id="L98">        Resource resource = resourceLoader.getResource(seedProperties.resource());</span>
-<span class="nc bnc" id="L99" title="All 2 branches missed.">        if (!resource.exists()) {</span>
-<span class="nc" id="L100">            throw new IllegalStateException(&quot;Corpus not found: &quot; + seedProperties.resource());</span>
+<span class="fc" id="L98">        Resource resource = resourceLoader.getResource(seedProperties.resource());</span>
+<span class="fc bfc" id="L99" title="All 2 branches covered.">        if (!resource.exists()) {</span>
+<span class="fc" id="L100">            throw new IllegalStateException(&quot;Corpus not found: &quot; + seedProperties.resource());</span>
         }
-<span class="nc" id="L102">        Path base = Path.of(fileProperties.basePath()).toAbsolutePath().normalize();</span>
-<span class="nc" id="L103">        Files.createDirectories(base);</span>
+<span class="fc" id="L102">        Path base = Path.of(fileProperties.basePath()).toAbsolutePath().normalize();</span>
+<span class="fc" id="L103">        Files.createDirectories(base);</span>
 
-<span class="nc" id="L105">        log.info(&quot;Seeding corpus from {} into {}&quot;, seedProperties.resource(), base);</span>
+<span class="fc" id="L105">        log.info(&quot;Seeding corpus from {} into {}&quot;, seedProperties.resource(), base);</span>
 
-<span class="nc" id="L107">        int read = 0;</span>
-<span class="nc" id="L108">        int inserted = 0;</span>
-<span class="nc" id="L109">        int filesWritten = 0;</span>
+<span class="fc" id="L107">        int read = 0;</span>
+<span class="fc" id="L108">        int inserted = 0;</span>
+<span class="fc" id="L109">        int filesWritten = 0;</span>
 
-<span class="nc" id="L111">        try (BufferedReader reader = new BufferedReader(</span>
-<span class="nc" id="L112">                new InputStreamReader(resource.getInputStream(), StandardCharsets.UTF_8))) {</span>
+<span class="fc" id="L111">        try (BufferedReader reader = new BufferedReader(</span>
+<span class="fc" id="L112">                new InputStreamReader(resource.getInputStream(), StandardCharsets.UTF_8))) {</span>
             String line;
-<span class="nc" id="L114">            int lineNumber = 0;</span>
-<span class="nc bnc" id="L115" title="All 2 branches missed.">            while ((line = reader.readLine()) != null) {</span>
-<span class="nc" id="L116">                lineNumber++;</span>
-<span class="nc bnc" id="L117" title="All 2 branches missed.">                if (line.isBlank()) {</span>
-<span class="nc" id="L118">                    continue;</span>
+<span class="fc" id="L114">            int lineNumber = 0;</span>
+<span class="fc bfc" id="L115" title="All 2 branches covered.">            while ((line = reader.readLine()) != null) {</span>
+<span class="fc" id="L116">                lineNumber++;</span>
+<span class="fc bfc" id="L117" title="All 2 branches covered.">                if (line.isBlank()) {</span>
+<span class="fc" id="L118">                    continue;</span>
                 }
                 CorpusProtocol protocol;
                 try {
-<span class="nc" id="L122">                    JsonNode node = objectMapper.readTree(line);</span>
-<span class="nc" id="L123">                    protocol = CorpusProtocol.from(node);</span>
+<span class="fc" id="L122">                    JsonNode node = objectMapper.readTree(line);</span>
+<span class="fc" id="L123">                    protocol = CorpusProtocol.from(node);</span>
 <span class="nc" id="L124">                } catch (RuntimeException | IOException e) {</span>
                     // Line-oriented input earns a line-oriented error: the point of NDJSON here is
                     // that a bad record can be named rather than just failing the whole file.
 <span class="nc" id="L127">                    throw new IllegalStateException(</span>
 <span class="nc" id="L128">                            &quot;Invalid corpus record at line &quot; + lineNumber + &quot;: &quot; + e.getMessage(), e);</span>
-<span class="nc" id="L129">                }</span>
-<span class="nc" id="L130">                read++;</span>
+<span class="fc" id="L129">                }</span>
+<span class="fc" id="L130">                read++;</span>
 
-<span class="nc" id="L132">                Path document = documentPath(base, protocol);</span>
-<span class="nc bnc" id="L133" title="All 2 branches missed.">                if (writeDocument(document, protocol)) {</span>
-<span class="nc" id="L134">                    filesWritten++;</span>
+<span class="fc" id="L132">                Path document = documentPath(base, protocol);</span>
+<span class="fc bfc" id="L133" title="All 2 branches covered.">                if (writeDocument(document, protocol)) {</span>
+<span class="fc" id="L134">                    filesWritten++;</span>
                 }
-<span class="nc" id="L136">                inserted += insert(protocol, base.relativize(document));</span>
-<span class="nc" id="L137">            }</span>
+<span class="fc" id="L136">                inserted += insert(protocol, base.relativize(document));</span>
+<span class="fc" id="L137">            }</span>
         }
 
-<span class="nc" id="L140">        log.info(&quot;Corpus seed finished: {} records read, {} rows inserted, {} already present, &quot;</span>
+<span class="fc" id="L140">        log.info(&quot;Corpus seed finished: {} records read, {} rows inserted, {} already present, &quot;</span>
                         + &quot;{} documents written, {} already on disk&quot;,
-<span class="nc" id="L142">                read, inserted, read - inserted, filesWritten, read - filesWritten);</span>
-<span class="nc" id="L143">        logDistribution();</span>
-<span class="nc" id="L144">    }</span>
+<span class="fc" id="L142">                read, inserted, read - inserted, filesWritten, read - filesWritten);</span>
+<span class="fc" id="L143">        logDistribution();</span>
+<span class="fc" id="L144">    }</span>
 
     /**
      * One directory per machine. Grouping by machine keeps the volume browsable during a demo, and
@@ -149,18 +149,18 @@ class CorpusSeedRunner implements ApplicationRunner {
      * reworded.
      */
     private static Path documentPath(Path base, CorpusProtocol protocol) {
-<span class="nc" id="L152">        return base.resolve(protocol.machineNo()).resolve(protocol.id() + &quot;.txt&quot;);</span>
+<span class="fc" id="L152">        return base.resolve(protocol.machineNo()).resolve(protocol.id() + &quot;.txt&quot;);</span>
     }
 
     /** @return true if the document was written, false if it was already there */
     private static boolean writeDocument(Path path, CorpusProtocol protocol) {
-<span class="nc bnc" id="L157" title="All 2 branches missed.">        if (Files.exists(path)) {</span>
-<span class="nc" id="L158">            return false;</span>
+<span class="fc bfc" id="L157" title="All 2 branches covered.">        if (Files.exists(path)) {</span>
+<span class="fc" id="L158">            return false;</span>
         }
         try {
-<span class="nc" id="L161">            Files.createDirectories(path.getParent());</span>
-<span class="nc" id="L162">            Files.writeString(path, ProtocolDocumentRenderer.render(protocol), StandardCharsets.UTF_8);</span>
-<span class="nc" id="L163">            return true;</span>
+<span class="fc" id="L161">            Files.createDirectories(path.getParent());</span>
+<span class="fc" id="L162">            Files.writeString(path, ProtocolDocumentRenderer.render(protocol), StandardCharsets.UTF_8);</span>
+<span class="fc" id="L163">            return true;</span>
 <span class="nc" id="L164">        } catch (IOException e) {</span>
 <span class="nc" id="L165">            throw new UncheckedIOException(&quot;Cannot write protocol document &quot; + path, e);</span>
         }
@@ -168,37 +168,37 @@ class CorpusSeedRunner implements ApplicationRunner {
 
     /** @return 1 if the row was inserted, 0 if it was already present */
     private int insert(CorpusProtocol p, Path relativePath) {
-<span class="nc" id="L171">        return jdbc.sql(INSERT)</span>
-<span class="nc" id="L172">                .param(&quot;id&quot;, p.id())</span>
-<span class="nc" id="L173">                .param(&quot;machineId&quot;, p.machineId())</span>
-<span class="nc" id="L174">                .param(&quot;incidentDate&quot;, p.incidentDate())</span>
-<span class="nc" id="L175">                .param(&quot;protocolType&quot;, p.protocolType())</span>
-<span class="nc" id="L176">                .param(&quot;errorCode&quot;, p.errorCode(), Types.VARCHAR)</span>
-<span class="nc" id="L177">                .param(&quot;title&quot;, p.title())</span>
-<span class="nc" id="L178">                .param(&quot;symptom&quot;, p.symptom(), Types.VARCHAR)</span>
-<span class="nc" id="L179">                .param(&quot;cause&quot;, p.cause(), Types.VARCHAR)</span>
-<span class="nc" id="L180">                .param(&quot;action&quot;, p.action(), Types.VARCHAR)</span>
-<span class="nc" id="L181">                .param(&quot;partsUsed&quot;, p.partsUsed(), Types.VARCHAR)</span>
-<span class="nc" id="L182">                .param(&quot;downtimeMinutes&quot;, p.downtimeMinutes(), Types.INTEGER)</span>
-<span class="nc" id="L183">                .param(&quot;technicianInitials&quot;, p.technicianInitials(), Types.VARCHAR)</span>
-<span class="nc" id="L184">                .param(&quot;language&quot;, p.language())</span>
+<span class="fc" id="L171">        return jdbc.sql(INSERT)</span>
+<span class="fc" id="L172">                .param(&quot;id&quot;, p.id())</span>
+<span class="fc" id="L173">                .param(&quot;machineId&quot;, p.machineId())</span>
+<span class="fc" id="L174">                .param(&quot;incidentDate&quot;, p.incidentDate())</span>
+<span class="fc" id="L175">                .param(&quot;protocolType&quot;, p.protocolType())</span>
+<span class="fc" id="L176">                .param(&quot;errorCode&quot;, p.errorCode(), Types.VARCHAR)</span>
+<span class="fc" id="L177">                .param(&quot;title&quot;, p.title())</span>
+<span class="fc" id="L178">                .param(&quot;symptom&quot;, p.symptom(), Types.VARCHAR)</span>
+<span class="fc" id="L179">                .param(&quot;cause&quot;, p.cause(), Types.VARCHAR)</span>
+<span class="fc" id="L180">                .param(&quot;action&quot;, p.action(), Types.VARCHAR)</span>
+<span class="fc" id="L181">                .param(&quot;partsUsed&quot;, p.partsUsed(), Types.VARCHAR)</span>
+<span class="fc" id="L182">                .param(&quot;downtimeMinutes&quot;, p.downtimeMinutes(), Types.INTEGER)</span>
+<span class="fc" id="L183">                .param(&quot;technicianInitials&quot;, p.technicianInitials(), Types.VARCHAR)</span>
+<span class="fc" id="L184">                .param(&quot;language&quot;, p.language())</span>
                 // Stored with forward slashes so the value does not depend on the OS that seeded it.
-<span class="nc" id="L186">                .param(&quot;sourceFile&quot;, relativePath.toString().replace('\\', '/'))</span>
-<span class="nc" id="L187">                .param(&quot;uploadedBy&quot;, p.uploadedBy())</span>
-<span class="nc" id="L188">                .param(&quot;approved&quot;, p.approved())</span>
-<span class="nc" id="L189">                .update();</span>
+<span class="fc" id="L186">                .param(&quot;sourceFile&quot;, relativePath.toString().replace('\\', '/'))</span>
+<span class="fc" id="L187">                .param(&quot;uploadedBy&quot;, p.uploadedBy())</span>
+<span class="fc" id="L188">                .param(&quot;approved&quot;, p.approved())</span>
+<span class="fc" id="L189">                .update();</span>
     }
 
     /** Logged so a seeded environment can state its own distribution without a psql session. */
     private void logDistribution() {
-<span class="nc" id="L194">        jdbc.sql(&quot;&quot;&quot;</span>
+<span class="fc" id="L194">        jdbc.sql(&quot;&quot;&quot;</span>
                         SELECT language, protocol_type, count(*) AS n
                         FROM protocol GROUP BY language, protocol_type ORDER BY 1, 2
                         &quot;&quot;&quot;)
-<span class="nc" id="L198">                .query()</span>
-<span class="nc" id="L199">                .listOfRows()</span>
-<span class="nc" id="L200">                .forEach(row -&gt; log.info(&quot;  {} {}: {}&quot;,</span>
-<span class="nc" id="L201">                        row.get(&quot;language&quot;), row.get(&quot;protocol_type&quot;), row.get(&quot;n&quot;)));</span>
-<span class="nc" id="L202">    }</span>
+<span class="fc" id="L198">                .query()</span>
+<span class="fc" id="L199">                .listOfRows()</span>
+<span class="fc" id="L200">                .forEach(row -&gt; log.info(&quot;  {} {}: {}&quot;,</span>
+<span class="fc" id="L201">                        row.get(&quot;language&quot;), row.get(&quot;protocol_type&quot;), row.get(&quot;n&quot;)));</span>
+<span class="fc" id="L202">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

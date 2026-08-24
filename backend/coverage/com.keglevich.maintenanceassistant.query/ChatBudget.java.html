@@ -53,10 +53,10 @@ class ChatBudget {
      */
     void checkHeadroom(int estimatedCalls) {
 <span class="fc" id="L55">        int used = usedToday();</span>
-<span class="pc bpc" id="L56" title="1 of 2 branches missed.">        if (used + estimatedCalls &gt; properties.dailyCallBudget()) {</span>
-<span class="nc" id="L57">            throw new BudgetExhaustedException(</span>
+<span class="fc bfc" id="L56" title="All 2 branches covered.">        if (used + estimatedCalls &gt; properties.dailyCallBudget()) {</span>
+<span class="fc" id="L57">            throw new BudgetExhaustedException(</span>
                     &quot;daily chat budget reached: %d of %d calls used today&quot;
-<span class="nc" id="L59">                            .formatted(used, properties.dailyCallBudget()));</span>
+<span class="fc" id="L59">                            .formatted(used, properties.dailyCallBudget()));</span>
         }
 <span class="fc" id="L61">    }</span>
 

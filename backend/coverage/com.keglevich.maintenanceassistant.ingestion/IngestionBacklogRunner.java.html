@@ -17,23 +17,30 @@ import java.util.List;
  * {@code INDEXED} are not selected. This exists so that seeding a fresh environment is two flags
  * rather than a manual API call, and so the same operation is available as an admin endpoint for
  * everything after the first time.
+ *
+ * &lt;p&gt;&lt;b&gt;COVERAGE WAIVER&lt;/b&gt; (2026-08-22, register in docs/REFACTOR-STANDARDS.txt). This class is at
+ * 0% and stays there. It is a conditional bean that calls {@code enqueue} once and logs the count —
+ * it carries no branches of its own. The work it delegates to is covered where the work lives
+ * (IngestionBacklogService, IngestionPipelineIT), and the same operation is reachable through the
+ * admin endpoint, which is covered as a web slice. A test here could only assert that a startup
+ * hook calls a method, which is the wiring restating itself.
  */
 @Component
 @ConditionalOnProperty(prefix = &quot;maintenance.ingestion&quot;, name = &quot;backlog-on-startup&quot;, havingValue = &quot;true&quot;)
 class IngestionBacklogRunner implements ApplicationRunner {
 
-<span class="nc" id="L25">    private static final Logger log = LoggerFactory.getLogger(IngestionBacklogRunner.class);</span>
+<span class="nc" id="L32">    private static final Logger log = LoggerFactory.getLogger(IngestionBacklogRunner.class);</span>
 
     private final IngestionBacklogService backlog;
 
-<span class="nc" id="L29">    IngestionBacklogRunner(IngestionBacklogService backlog) {</span>
-<span class="nc" id="L30">        this.backlog = backlog;</span>
-<span class="nc" id="L31">    }</span>
+<span class="nc" id="L36">    IngestionBacklogRunner(IngestionBacklogService backlog) {</span>
+<span class="nc" id="L37">        this.backlog = backlog;</span>
+<span class="nc" id="L38">    }</span>
 
     @Override
     public void run(ApplicationArguments args) {
-<span class="nc" id="L35">        int enqueued = backlog.enqueue(List.of(&quot;RECEIVED&quot;), null);</span>
-<span class="nc" id="L36">        log.info(&quot;Startup backlog enqueued {} protocols; indexing continues in the background&quot;, enqueued);</span>
-<span class="nc" id="L37">    }</span>
+<span class="nc" id="L42">        int enqueued = backlog.enqueue(List.of(&quot;RECEIVED&quot;), null);</span>
+<span class="nc" id="L43">        log.info(&quot;Startup backlog enqueued {} protocols; indexing continues in the background&quot;, enqueued);</span>
+<span class="nc" id="L44">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

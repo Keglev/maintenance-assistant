@@ -1,4 +1,4 @@
-import { expect, Page, test as base } from '@playwright/test';
+import { expect, Locator, Page, test as base } from '@playwright/test';
 
 import { KEYCLOAK_URL } from './guard';
 
@@ -158,6 +158,62 @@ export async function openProtocolList(page: Page): Promise<void> {
   }
   await page.getByTestId('nav-moderation').click();
   await expect(list).toBeVisible();
+}
+
+/**
+ * Approves the protocol in `row` and waits for the approval to have actually happened.
+ *
+ * <p><b>Why this exists: approving is not reliably one click.</b> Duplicate detection runs when the
+ * button is pressed, and when the corpus holds something similar enough the application interposes
+ * the duplicates dialog instead of approving straight away. Whether it does is a property of the
+ * CORPUS at that moment — what else has been filed, and whether the new protocol's vectors have
+ * arrived yet — so it is not something the test controls, and it is not something the test should
+ * pretend it controls.
+ *
+ * <p><b>This is what made `approval.e2e.ts` intermittent</b> (#75 line 183, #80 and #82 line 305:
+ * first attempt red, identical commit green on re-run). Those tests clicked approve and asserted
+ * the notice on the next line. When the dialog appeared, the notice legitimately was not there yet
+ * and the assertion timed out against a screen that was behaving correctly.
+ *
+ * <p><b>WAITING FOR EITHER OUTCOME, NOT FOR A DURATION.</b> The wait is on "the dialog or the
+ * notice is visible" — the two states the application can be in after that click — so it settles as
+ * soon as the browser has decided and never on a timer. Adding a sleep here would have hidden the
+ * same race behind a slower suite.
+ *
+ * <p>Proceeding through the dialog is the product's own rule and not a convenience: duplicate
+ * detection WARNS, it never blocks (the E-47 demo case is four genuine protocols about one fault,
+ * which is why a threshold must never refuse). A helper that treated the dialog as an error would
+ * be asserting the opposite of the feature.
+ */
+export async function approveRow(
+  page: Page,
+  row: Locator,
+): Promise<{ viaDuplicatesDialog: boolean }> {
+  const dialog = page.getByTestId('duplicates-dialog');
+  const notice = page.getByTestId('approval-notice');
+
+  await row.getByTestId('row-approve').click();
+  // Safe as an either/or because the notice is CONDITIONALLY RENDERED rather than hidden: the
+  // trace #82's failure left behind says "element(s) not found" for it, not "not visible". If it
+  // sat in the DOM permanently, this line could resolve to the notice and then wait for a hidden
+  // element to appear while the dialog held the screen — the same hang under a different name.
+  await expect(dialog.or(notice).first()).toBeVisible();
+
+  const viaDuplicatesDialog = await dialog.isVisible();
+  if (viaDuplicatesDialog) {
+    // Enabled, not merely present: "warn, never block" is the rule, and a disabled button here
+    // would be the feature having quietly become a refusal.
+    await expect(page.getByTestId('duplicates-approve')).toBeEnabled();
+    await page.getByTestId('duplicates-approve').click();
+  }
+  await expect(notice).toBeVisible();
+
+  // WHICH ROUTE WAS TAKEN, reported rather than swallowed. Most callers do not care and must not
+  // — that is the point of the helper. The forced verbatim case does: it is the one test that can
+  // state "the dialog was definitely here", and without this it could not tell a run that went
+  // through the dialog from one that never met it, which is exactly the blindness that let the
+  // flake survive three occurrences.
+  return { viaDuplicatesDialog };
 }
 
 /** Signs out through the confirmation dialog, so a test leaves no session behind. */

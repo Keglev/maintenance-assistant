@@ -1,6 +1,7 @@
 import type { Page } from '@playwright/test';
 
 import {
+  approveRow,
   E2E_MACHINE,
   E2E_TITLE_PREFIX,
   expect,
@@ -140,9 +141,14 @@ test.describe('the approve workflow', () => {
     await expect(queued.locator('[data-testid="approval-state"] .approval-label')).not.toBeEmpty();
 
     // --- The approval ------------------------------------------------------------------------
-    // No confirmation dialog: approving affirms the text as it stands, and the reviewer has just
-    // read it. Withdrawing is the direction that needs a reason, and it has one below.
-    await queued.getByTestId('row-approve').click();
+    // NO CONFIRMATION is asked for: approving affirms the text as it stands and the reviewer has
+    // just read it. Withdrawing is the direction that needs a reason, and it has one below.
+    //
+    // Through `approveRow` rather than a bare click, because a confirmation is not the only thing
+    // that can come between the button and the notice: duplicate detection may interpose its
+    // dialog, depending on what else is in the corpus and whether this protocol's vectors have
+    // arrived. That is the whole of the flake this suite carried — see the helper.
+    await approveRow(page, queued);
     await expect(page.getByTestId('approval-notice')).toContainText(title);
 
     const approved = await findInCorpus(page, title);
@@ -191,8 +197,7 @@ test.describe('the approve workflow', () => {
 
     await signIn(page, 'admin');
     const row = await findInCorpus(page, title);
-    await row.getByTestId('row-approve').click();
-    await expect(page.getByTestId('approval-notice')).toBeVisible();
+    await approveRow(page, row);
     await expect((await findInCorpus(page, title)).getByTestId('approval-state')).toHaveAttribute(
       'data-approval',
       'APPROVED',
@@ -302,6 +307,76 @@ test.describe('the approve workflow', () => {
     );
   });
 
+  test('a verbatim re-file always opens the dialog, and the approval still goes through', async ({
+    page,
+  }) => {
+    // THE DETERMINISTIC GUARD FOR THE FLAKE, and the reason it is worth its own test.
+    //
+    // Every other approval in this file meets the duplicates dialog by accident: whether it opens
+    // depends on what is in the corpus and whether the new protocol's vectors have arrived, which
+    // is why this suite was intermittent (#75, #80, #82) rather than simply wrong. An intermittent
+    // failure cannot prove its own fix — a green run might just be a run that got lucky.
+    //
+    // A VERBATIM RE-FILE REMOVES THE LUCK. The same body under a second title scores far above the
+    // 0.92 threshold — measured at 99 % in the local reproduction of this defect and 98 % in the
+    // trace #82's CI failure left behind — so the dialog is guaranteed, on every run, on every
+    // machine. That makes this the one case that fails RELIABLY if `approveRow` ever loses its
+    // dialog awareness, and it is what lets that fix be verified rather than hoped about.
+    //
+    // It guards the product rule at the same time: duplicate detection WARNS, it never blocks.
+    test.skip(!process.env.E2E_LLM, 'needs indexed vectors; set E2E_LLM=1 (the stub is free)');
+
+    const original = `${throwawayTitle()} original`;
+    const reFiled = `${throwawayTitle()} verbatim`;
+
+    await fileProtocol(page, original);
+    await page.getByTestId('mode-text').click();
+    await page.getByTestId('upload-machine').selectOption(MACHINE);
+    await page.getByTestId('upload-title').fill(reFiled);
+    // The SAME body, character for character. That is what makes the score deterministic.
+    await page.getByTestId('text-input').fill(BODY);
+    await page.getByTestId('upload-button').click();
+    await expect(page.getByTestId('accepted')).toBeVisible();
+
+    // Both indexed before approving: the comparison runs on vectors, and vectors arrive
+    // asynchronously. Polled through the application's own refresh, never slept on — and this wait
+    // is precisely what the flaking tests could not have, because for them the dialog was an
+    // accident rather than the subject.
+    const originalRow = page.getByTestId('uploads-table').locator('tr').filter({ hasText: original });
+    const reFiledRow = page.getByTestId('uploads-table').locator('tr').filter({ hasText: reFiled });
+    await expect(async () => {
+      await page.getByTestId('refresh-button').click();
+      await expect(originalRow.locator('.status-indexed')).toHaveCount(1, { timeout: 2_000 });
+      await expect(reFiledRow.locator('.status-indexed')).toHaveCount(1, { timeout: 2_000 });
+    }).toPass({ timeout: 180_000, intervals: [3_000] });
+    await signOut(page);
+
+    await signIn(page, 'admin');
+    const row = await findInCorpus(page, reFiled);
+
+    // THROUGH THE HELPER, which is what makes this a guard on the fix rather than on the feature.
+    // Revert `approveRow` to a bare click and this line stops finding the notice — reliably, every
+    // run — which is the property an intermittent test could never provide.
+    const outcome = await approveRow(page, row);
+
+    // The one assertion here that is not on the painted page, and it earns the exception: it is a
+    // browser fact the helper observed at the moment it was true, and it is the only way for this
+    // test to say "the dialog was definitely here". Without it, a run where duplicate detection had
+    // silently stopped firing would look identical to a run that traversed the dialog correctly —
+    // and the guard would have gone quietly vacuous.
+    expect(outcome.viaDuplicatesDialog, 'a verbatim re-file must always raise the dialog').toBe(
+      true,
+    );
+
+    // WARN, NEVER BLOCK: the approval completes through the dialog rather than being refused by it.
+    await expect(page.getByTestId('approval-notice')).toContainText(reFiled);
+    const approved = await findInCorpus(page, reFiled);
+    await expect(approved.getByTestId('approval-state')).toHaveAttribute(
+      'data-approval',
+      'APPROVED',
+    );
+  });
+
   test('withdrawing an approval takes a reason before it takes effect', async ({ page }) => {
     const title = throwawayTitle();
 
@@ -310,8 +385,11 @@ test.describe('the approve workflow', () => {
 
     await signIn(page, 'admin');
     const row = await findInCorpus(page, title);
-    await row.getByTestId('row-approve').click();
-    await expect(page.getByTestId('approval-notice')).toBeVisible();
+    // The approval here is SETUP, not the subject — withdrawing is. It still has to go through the
+    // dialog-aware helper: this is the exact line that failed on #80 and #82 (approval.e2e.ts:314
+    // in both traces), where the duplicates dialog opened at "98 % agreement" and the notice this
+    // test waited for could not appear until somebody dismissed it.
+    await approveRow(page, row);
 
     const approved = await findInCorpus(page, title);
     await approved.getByTestId('row-withdraw').click();

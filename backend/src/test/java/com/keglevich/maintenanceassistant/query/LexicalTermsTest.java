@@ -116,4 +116,35 @@ class LexicalTermsTest {
         assertThat(LexicalTerms.joined(LexicalTerms.extract("A-1140 and OH0700")))
                 .isEqualTo("a-1140 oh0700");
     }
+
+    @Test
+    @DisplayName("a leading or trailing dash is trimmed off rather than becoming part of the term")
+    void trimsSeparatorsFromBothEnds() {
+        // A dash is a word character to the splitter, so a question written "Fehler -E-47- heute"
+        // reaches this code with the dashes attached. Left on, the term would never match the
+        // stored "e-47" and the lexical half of hybrid retrieval would silently do nothing.
+        assertThat(LexicalTerms.extract("Fehler -E-47- an der Presse")).containsExactly("e-47");
+        assertThat(LexicalTerms.extract("Code -A-1140")).containsExactly("a-1140");
+        assertThat(LexicalTerms.extract("Code OH0700-")).containsExactly("oh0700");
+    }
+
+    @Test
+    @DisplayName("a run of dashes is not a term")
+    void dashesAloneYieldNothing() {
+        // Trimming from both ends meets in the middle and leaves an empty string, which must not
+        // reach the query as a term that matches every row.
+        assertThat(LexicalTerms.extract("Presse --- defekt")).isEmpty();
+    }
+
+    @Test
+    @DisplayName("a term longer than the bound is ignored, not truncated")
+    void ignoresOverlongTerms() {
+        // The upper bound is what stops a base64 blob or a stack frame pasted into the question
+        // becoming an ILIKE against every chunk. Ignored rather than shortened, because half of an
+        // identifier is not an identifier.
+        String tooLong = "E-47" + "0".repeat(40);
+
+        assertThat(LexicalTerms.extract("Fehler " + tooLong)).isEmpty();
+        assertThat(LexicalTerms.extract("Fehler " + tooLong + " und E-47")).containsExactly("e-47");
+    }
 }

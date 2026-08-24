@@ -35,15 +35,15 @@ The product ships to users as **Wartungsassistent**; the interface is bilingual 
 
 ## Screenshots
 
-<img src="docs/assets/img/01-landing.png" alt="Landing page stating that maintenance knowledge sits in PDFs and folders, with the three trust guarantees and the demo sign-in" width="700"/>
+<img src="assets/img/01-landing.png" alt="Landing page stating that maintenance knowledge sits in PDFs and folders, with the three trust guarantees and the demo sign-in" width="700"/>
 
 **A sourced answer.** The question is in plain German; the answer carries inline markers back to the protocols it was built from, with the search help panel alongside.
 
-<img src="docs/assets/img/02-sourced-answer.png" alt="A German question about a press fault answered in green Mode A, with inline citation markers and the search help panel alongside" width="700"/>
+<img src="assets/img/02-sourced-answer.png" alt="A German question about a press fault answered in green Mode A, with inline citation markers and the search help panel alongside" width="700"/>
 
 **The sources behind one answer.** Four protocols for the same fault code, each with its own approval state — the corpus deliberately holds several legitimate causes for one error, and the answer cites all of them.
 
-<img src="docs/assets/img/03-sources-citations.png" alt="Source list showing four maintenance protocols for one error code, each with its date, similarity score and approval marker" width="700"/>
+<img src="assets/img/03-sources-citations.png" alt="Source list showing four maintenance protocols for one error code, each with its date, similarity score and approval marker" width="700"/>
 
 ---
 

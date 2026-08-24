@@ -1057,16 +1057,27 @@ rather than given one afterwards.
    (a) FINAL FIGURES, from the CI-PUBLISHED REPORTS, with the commit
    each was published for. A local run is a working tool; these are the
    figures the standards make authoritative.
-     BACKEND, gh-pages backend/coverage/index.html, published for
-     a5b2343 (#82) by gh-pages commit 8b9d44c:
+     BACKEND, gh-pages backend/coverage/index.html:
        instructions  8,682 of 9,405   92.31   (723 missed)
        branches        592 of   680   87.06   ( 88 missed)
        methods         373 of   395   94.43   ( 22 missed)
        lines         1,681 of 1,826   92.06   (145 missed)
-     Published for #82 rather than for HEAD because nothing in
-     backend/src has changed since: #83 touched only pom.xml and #84
-     only frontend e2e files, so `git diff a5b2343..2b1e4b8 --
-     backend/src` is empty and the report still describes main.
+     PROVENANCE, CORRECTED 2026-08-24. This entry first cited the
+     publish for a5b2343 (#82, gh-pages commit 8b9d44c) as the newest;
+     it was not. Three publishes carry these figures, and the current
+     one is the LAST:
+       8b9d44c  10:56  for a5b2343 (#82)
+       ae9a602  11:29  for 09d0d19 (#83)
+       19164ef  13:02  for 623ba65 (#85)   <- current
+     THEY DO NOT MERELY AGREE, THEY ARE THE SAME OBJECT: all three
+     index.html blobs hash to a99fee70, and the reason is one level
+     down — a5b2343, 09d0d19 and 623ba65 share the same backend/src
+     tree, b7850c99. Nothing in the backend source has changed since
+     #82, so every publish since has re-rendered an identical report.
+     The figures never moved; only the claim about which publish was
+     newest was wrong, and it was wrong because a byte-identical
+     publish leaves no trace in `git log -- <path>` and the first
+     check used exactly that.
      FRONTEND, gh-pages frontend/coverage/index.html, published for
      2b1e4b8 (#84) by gh-pages commit 016d00c:
        statements  2,829 of 2,898   97.61

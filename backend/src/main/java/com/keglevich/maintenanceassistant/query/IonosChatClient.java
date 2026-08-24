@@ -276,6 +276,14 @@ class IonosChatClient implements ChatClient {
      * to say, and the two need opposite fixes.
      */
     private static String preview(String content) {
+        // COVERAGE WAIVER (2026-08-22, register in docs/REFACTOR-STANDARDS.txt; raised as F2 in
+        // #81). Neither side of this guard can be reached: complete() throws on null or blank
+        // content before it ever reaches the truncation branch that calls this, and that ordering
+        // is deliberate — an empty answer from a reasoning model is a configuration diagnosis, and
+        // it must not be reported as a truncation. The guard stays because this method is a
+        // message-formatting helper and formatting helpers must not throw while an exception
+        // message is being built; a NullPointerException here would replace a useful diagnosis
+        // with a useless one. The uncovered branch is that ordering working.
         if (content == null || content.isBlank()) {
             return "(empty)";
         }
@@ -284,6 +292,12 @@ class IonosChatClient implements ChatClient {
     }
 
     private static String firstLine(String body) {
+        // COVERAGE WAIVER (2026-08-22, register in docs/REFACTOR-STANDARDS.txt; raised as F3 in
+        // #81). The null side never runs: the only argument ever passed is
+        // getResponseBodyAsString(), which builds a String over a byte array that defaults to
+        // empty, so it returns "" and never null. The blank side IS covered, by the empty-body
+        // rejection test. Keeping the null check costs nothing and keeps this helper safe to call
+        // from anywhere while an exception message is being assembled.
         if (body == null || body.isBlank()) {
             return "(no body)";
         }

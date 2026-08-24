@@ -26,6 +26,7 @@ import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * The query path against a real pgvector database.
@@ -199,6 +200,30 @@ class QueryPipelineIT {
                 .param("d", LocalDate.now()).query(Integer.class).single())
                 .as("a cache hit reaches no provider, so it must not appear in the day's spend")
                 .isEqualTo(1);
+    }
+
+    @Test
+    @DisplayName("the daily ceiling stops a question against the counter already in the database")
+    void theDailyCeilingStopsAQuestion() {
+        // The ceiling is only real if it survives a restart, which is why the counter lives in
+        // Postgres rather than in memory: ADR-002 records that the provider offers cost alerts and
+        // no hard cap, so this row IS the cap. Written straight into the table because that is
+        // exactly the state a restarted application would come up to find.
+        jdbc.sql("INSERT INTO chat_budget (usage_date, calls) VALUES (:d, :calls) "
+                        + "ON CONFLICT (usage_date) DO UPDATE SET calls = EXCLUDED.calls")
+                .param("d", LocalDate.now())
+                .param("calls", 1000)
+                .update();
+        int callsBefore = chat.calls();
+
+        assertThatThrownBy(() -> queries.ask("Presse kommt nicht auf Druck, Fehler E-47",
+                presse3, QueryRole.TECHNIKER, "sub-8", false))
+                .isInstanceOf(QueryService.BudgetExhaustedException.class)
+                .hasMessageContaining("daily chat budget");
+
+        assertThat(chat.calls())
+                .as("the guard has to stop the spend, not report it after paying for it")
+                .isEqualTo(callsBefore);
     }
 
     // ---------------------------------------------------------------------------------------

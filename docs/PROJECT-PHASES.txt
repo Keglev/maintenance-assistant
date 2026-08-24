@@ -5,7 +5,48 @@ Naming update overriding older docs: project = "maintenance-assistant",
 Keycloak realm = "maintenance". English repo name is intentional.)
 
 =====================================================================
-CURRENT STATUS — 2026-08-11 (v1.1.0 TAGGED AND RELEASED)
+CURRENT STATUS — 2026-08-24 (v1.3.0 TAGGED; REFACTOR PHASE, PART 1 DONE)
+=====================================================================
+v1.3.0 IS THE LATEST TAG, 2026-08-20. The release history, from the
+repository's own tags: v0.1.0 2026-08-06, v1.0.0 2026-08-08, v1.1.0
+2026-08-11, v1.2.0 2026-08-13, v1.3.0 2026-08-20.
+
+v1.2.0 IS TAGGED BUT NEVER APPEARED IN package.json, and that is
+recorded rather than tidied away: the tag was cut while package.json
+still read 1.1.0, so the Settings dialog reported 1.1.0 for the whole
+v1.2 wave. The bump went 1.1.0 -> 1.3.0 and 1.2.0 is simply skipped;
+the fix agreed at the time was the release drill checking the dialog
+AFTER deploy, not a retro-tag. The full note is in the v1.3.0 progress
+entry below.
+
+THE REFACTOR PHASE IS ACTIVE. Six read-only surveys in a fixed order,
+each fixing what it finds before the next begins, DOCS DELIBERATELY
+LAST because every mission before it changes what the docs must say.
+The six are enumerated under the 2026-08-21 correction below; they are
+not restated here, because a second copy of a plan is how the two
+disagree.
+
+  PART 1 — TEST COVERAGE: CLOSED 2026-08-24. Both stacks are above
+    every 85% target and the ratchet is armed, so a regression fails
+    the build rather than eroding quietly. Fifteen pull requests, #70
+    to #84, plus #85 which put this on the record.
+    THE FIGURES, THE CHAIN, THE WAIVERS AND THE CARRIED FINDINGS ARE
+    IN THE "PART 1 CLOSE-OUT" ENTRY BELOW and are deliberately not
+    duplicated here — one home per fact.
+  PARTS 2 to 6 — REMAINING: code structure, config and root files,
+    dead and redundant code, code comments against
+    docs/REFACTOR-STANDARDS.txt, and docs last.
+
+WHAT THIS HEADER IS FOR. It is the first thing every AI session reads,
+so it says where the project is TODAY and points at the detail rather
+than repeating it. It had been left at 2026-08-11 through three
+releases and a whole phase, which is how a new session starts from a
+picture that stopped being true two waves ago; #85 found it and Carlos
+ruled it replaced. THE BLOCKS BELOW ARE KEPT AS HISTORY, unchanged —
+this file keeps its record rather than overwriting it.
+
+=====================================================================
+SUPERSEDED STATUS — 2026-08-11 (v1.1.0 TAGGED AND RELEASED)
 =====================================================================
 v1.1.0 IS TAGGED AND LIVE, 2026-08-11. THE v1.1 WAVE IS CLOSED: every
 PR from #31 to #47 is merged and deployed, #48 is the release chore
@@ -1016,16 +1057,27 @@ rather than given one afterwards.
    (a) FINAL FIGURES, from the CI-PUBLISHED REPORTS, with the commit
    each was published for. A local run is a working tool; these are the
    figures the standards make authoritative.
-     BACKEND, gh-pages backend/coverage/index.html, published for
-     a5b2343 (#82) by gh-pages commit 8b9d44c:
+     BACKEND, gh-pages backend/coverage/index.html:
        instructions  8,682 of 9,405   92.31   (723 missed)
        branches        592 of   680   87.06   ( 88 missed)
        methods         373 of   395   94.43   ( 22 missed)
        lines         1,681 of 1,826   92.06   (145 missed)
-     Published for #82 rather than for HEAD because nothing in
-     backend/src has changed since: #83 touched only pom.xml and #84
-     only frontend e2e files, so `git diff a5b2343..2b1e4b8 --
-     backend/src` is empty and the report still describes main.
+     PROVENANCE, CORRECTED 2026-08-24. This entry first cited the
+     publish for a5b2343 (#82, gh-pages commit 8b9d44c) as the newest;
+     it was not. Three publishes carry these figures, and the current
+     one is the LAST:
+       8b9d44c  10:56  for a5b2343 (#82)
+       ae9a602  11:29  for 09d0d19 (#83)
+       19164ef  13:02  for 623ba65 (#85)   <- current
+     THEY DO NOT MERELY AGREE, THEY ARE THE SAME OBJECT: all three
+     index.html blobs hash to a99fee70, and the reason is one level
+     down — a5b2343, 09d0d19 and 623ba65 share the same backend/src
+     tree, b7850c99. Nothing in the backend source has changed since
+     #82, so every publish since has re-rendered an identical report.
+     The figures never moved; only the claim about which publish was
+     newest was wrong, and it was wrong because a byte-identical
+     publish leaves no trace in `git log -- <path>` and the first
+     check used exactly that.
      FRONTEND, gh-pages frontend/coverage/index.html, published for
      2b1e4b8 (#84) by gh-pages commit 016d00c:
        statements  2,829 of 2,898   97.61
@@ -1121,6 +1173,23 @@ rather than given one afterwards.
      the record cannot see is a verification the next reader has to take
      on trust, so it needs a home — a dated line in this file at the
      time it is run is enough.
+     ATTESTED 2026-08-24, Carlos: the #80 post-merge verification WAS
+     run, 2026-08-21, from the dev machine against the real IONOS
+     gateway — QueryDemoVerificationIT 4/4 and RetrievalBaselineIT 3/3
+     through the JDK transport, 239 provider calls (220 embedding + 19
+     chat), TLS, HTTP/2 and encoding_format exercised end-to-end,
+     provenance scan 182 chunks / 0 foreign, demo similarities matching
+     the recorded values to four decimals (E-47 0.6896, DE->EN 0.5566,
+     gap 0.4563), baseline diff metrics-identical and discarded per
+     procedure. Evidence: the owner's console transcript, outside the
+     repository; this line is its home in the record, as (e) asked.
+     THE PARAGRAPH ABOVE STAYS AS IT WAS WRITTEN. It was right when it
+     was written and deleting it now would hide the only part of this
+     worth keeping: the gap was found by the record's own rules, named
+     rather than papered over, and closed by the person who could close
+     it. An attestation that replaces the doubt it answers teaches the
+     next reader nothing; one that sits beneath it shows the mechanism
+     working.
 
    (f) CARRIED FINDINGS, BY DESTINATION, so no later mission has to
    rediscover them:

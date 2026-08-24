@@ -239,10 +239,22 @@ to a required check at **ten consecutive green runs with no infrastructure-cause
 
 | | |
 |---|---|
-| **Consecutive green runs of the CURRENT `e2e` job** | **2** — the count restarted on 2026-08-12 |
-| Green runs of the previous job shape | 4 (three on #50, one on main after merge) |
-| Why the count restarted | That job had no throwaway database, no provider stub, an unindexed corpus and skipped the re-index test. A streak counts runs of the same thing. |
+| **Consecutive green runs of the CURRENT `e2e` job** | **0** — reset 2026-08-24, see below |
+| Previous entry | 2, from the restart on 2026-08-12 |
+| Green runs of the job shape before that | 4 (three on #50, one on main after merge) |
+| Why the count restarted on 2026-08-12 | That job had no throwaway database, no provider stub, an unindexed corpus and skipped the re-index test. A streak counts runs of the same thing. |
+| **Why the count is 0 again on 2026-08-24** | `approval.e2e.ts` went red on its FIRST attempt on #75, #80 and #82, each time going green on a re-run of the identical commit. **A first-attempt red is a failed run.** The bar is ten consecutive green runs *with no infrastructure-caused failure*, and this was not infrastructure — it was a defect in the test, fixed in #84. Counting those runs as green because a second attempt passed would be the streak measuring our patience rather than the suite's reliability. |
 | **`visual` job** | Separate check, also advisory. **2 consecutive green runs** (2026-08-13). The set grew to 16 and then 18 on 2026-08-14; adding a surface does not restart the count, because the rest are compared against the same bytes they always were — a *shape* change does, as it did for `e2e` on 2026-08-12. |
+
+**The 2026-08-24 reset is a reset, not a restart.** The job's shape did not change: the same stack,
+the same throwaway database, the same stub. What changed is that `approval.e2e.ts` stopped depending
+on whether the duplicates dialog happened to open — so the runs being counted from here are runs of
+the same thing, and the count simply begins again from the last failure rather than from a new
+baseline. The first eligible run is the first green `e2e` on main after #84 merges.
+
+> **A re-run that passes does not advance this count, and it does not repair the one before it.**
+> The reason is written down here because the temptation is real and was acted on three times: a red
+> check that everyone re-runs by reflex is a check that will eventually wave a real failure through.
 
 The `visual` job is deliberately a **separate check**: a pixel diff and a broken flow are different
 news for different people, and a red `visual` beside a green `e2e` says exactly what it means — it

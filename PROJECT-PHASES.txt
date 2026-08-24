@@ -36,6 +36,10 @@ disagree.
   PARTS 2 to 6 — REMAINING: code structure, config and root files,
     dead and redundant code, code comments against
     docs/REFACTOR-STANDARDS.txt, and docs last.
+    PART 2 IS SURVEYED, 2026-08-24, AWAITING RULINGS — seven findings and
+    two RULING NEEDED items in the "PART 2 — CODE STRUCTURE SURVEY" entry
+    below. Nothing has been moved or renamed; the fixes are their own
+    small pull requests once ruled.
 
 WHAT THIS HEADER IS FOR. It is the first thing every AI session reads,
 so it says where the project is TODAY and points at the detail rather
@@ -1248,6 +1252,195 @@ rather than given one afterwards.
      AND ATTACHES THEM BEFORE DOING ANYTHING ELSE. An intermittent that
      is only ever described is an intermittent nobody can fix; the one
      run that captures it is worth more than ten that mention it.
+
+   PART 2 — CODE STRUCTURE SURVEY, 2026-08-24, measured on bafa3f5 (#87)
+   READ-ONLY. Nothing was moved, renamed or deleted. Seven findings, five
+   areas clean, two items needing a ruling.
+
+   (a) SCOPE AND METHOD. 396 tracked files, counted with
+   `git ls-files | wc -l` and split by top level with
+   `git ls-files | awk -F/ '{print $1}' | sort | uniq -c`:
+   frontend 150, backend 140, docs 55, docker 14, .github 14, spike 13,
+   infra 5, repository root 4, LICENSE 1 — recomputed, 396.
+   Every path below was confirmed present with `git ls-files`. Placement
+   was judged against, in order: an explicit rule in
+   docs/REFACTOR-STANDARDS.txt; the stack's own convention (Maven
+   src/main|test/java mirroring, Angular core/features/shared); or the
+   project's own established pattern, cited with an example path. Where
+   no rule exists and two readings are defensible, the item is a RULING
+   NEEDED row rather than a finding — instruction 4 of the survey brief.
+   THREE LEADS WERE DROPPED AFTER MEASUREMENT and are recorded here so
+   nobody re-opens them: EmbeddingProvenanceRunner's "see docs/runbooks/"
+   resolves (the procedure is step 8 of seed-v12-protocols.md);
+   refactor-standards.md beside REFACTOR-STANDARDS.txt is the casing
+   convention working, not a collision, once the convention is derived
+   (see F2); and AI-USAGE.md belongs at the repository root because
+   NFR-6 says "REPO contains AI-USAGE.md", not "the site publishes it".
+
+   (b) FINDINGS.
+
+   F1  docs/assets/img/ — FIX
+       current: docs/assets/img/{01-landing,02-sourced-answer,
+         03-sources-citations}.png
+       belongs: beside its only consumer, the repository-root README.md
+       rule: the project's own co-location pattern — an asset lives with
+         what it describes (backend/src/main/resources/corpus/README.md,
+         docker/keycloak/themes/README.md)
+       evidence: `git grep -l 01-landing` returns README.md and nothing
+         else, for all three images. The docs build never copies
+         docs/assets: build_theme_assets() writes $OUTPUT_DIR/assets from
+         docs/_theme/css and docs/_theme/js only. So docs/assets/ is a
+         source tree that reaches no page of the site it sits inside.
+       WHY IT IS MORE THAN TIDINESS: the built site serves /assets/, and
+         a reader will reasonably assume docs/assets/ is where it comes
+         from. It is not. The next person adding a site image has a trap
+         waiting. Cost of the fix: three files moved, three <img src> in
+         README.md.
+
+   F2  docs/ top-level .md casing — RULING NEEDED
+       current: 2 of 7 SCREAMING-KEBAB (DOMAIN-MODEL.md,
+         REQUIREMENTS.md), 5 lowercase-kebab (frontend-architecture,
+         llm-approach, overview, overview-de, refactor-standards)
+       counted: `git ls-files docs/ | awk -F/ 'NF==2 && /\.md$/'`
+       the other half of the pattern: all three .txt ledgers are
+         SCREAMING (DECISIONS, PROJECT-PHASES, REFACTOR-STANDARDS), 3 of
+         3 — so ".txt ledger = SCREAMING" is consistent and only the .md
+         pages are split.
+       THE CONFLICT: no naming convention is written down anywhere
+         (`grep -rniE "file naming|naming convention|kebab"` over
+         docs/*.txt and docs/*.md returns nothing), so two readings are
+         both available. Either the two are accidental outliers and
+         should be domain-model.md and requirements.md; or the casing
+         MEANS something — DOMAIN-MODEL and REQUIREMENTS are the two
+         normative specification pages and the lowercase five are
+         explanatory prose, which would make the split a convention
+         nobody wrote down rather than a defect.
+       COST IF RENAMED, measured so the ruling is made with it in view:
+         DOMAIN-MODEL is cited in 22 tracked files including Java javadoc
+         and two SQL migrations; REQUIREMENTS in 10 including
+         nav-docs.html. Both are published, so both URLs change.
+       WHAT WOULD CLOSE IT: a one-line convention in
+         REFACTOR-STANDARDS.txt's DOCS section, whichever way it is
+         ruled. The absence of the rule is the finding.
+
+   F3  docs/_theme/index.html and index-de.html — RULING NEEDED
+       current: the site's two landing PAGES live in the theme tree,
+         beside css/, js/ and templates/
+       candidates: stay in docs/_theme/ (they are hand-written HTML and
+         reference the theme assets they sit with), or move to docs/
+         (they are content, and docs/ is where content lives)
+       evidence: copy_landing_pages() in build-docs.sh copies them
+         verbatim to $OUTPUT_DIR/index.html and index-de.html, so they
+         are pages, not templates; but they are the only .html content in
+         a tree whose other members are all .md, which is why the build
+         needs a special case for them either way.
+       no rule covers it and both readings are defensible, so it is not
+         called a defect here.
+
+   F4  frontend/e2e/ flat layout — WATCH
+       current: nine *.e2e.ts specs, two test helpers (guard.ts,
+         support.ts) and two tooling scripts (host-bridge.mjs,
+         run-visual-docker.mjs) all at one level, while the provider stub
+         has its own folder (provider-stub/server.mjs)
+       belongs: if ruled, e2e/support/ for the helpers and e2e/tools/ for
+         the runners, matching the folder the stub already has
+       CORRECTNESS IS NOT AT RISK, and that is why this is WATCH and not
+         FIX: playwright.config.ts sets testMatch: /.*\.e2e\.ts$/, so no
+         helper can be collected as a spec. The inconsistency is that one
+         piece of tooling was given a folder and two were not.
+
+   F5  backend test doubles, three naming shapes — WATCH
+       current: FakeEmbeddingClient (Fake prefix), ProviderStub (Stub
+         suffix), *Fixtures ×3 (suffix)
+       defensible as written: they are different kinds — a fake
+         implements the production interface, the stub is an HTTP server,
+         fixtures build data — and REFACTOR-STANDARDS.txt names only the
+         fixtures kind ("Fixtures modules"), so the other two are
+         unruled. Recorded so a fourth double is named deliberately
+         rather than by whichever file its author read first.
+
+   F6  spike/adr-002 round naming — ACCEPT
+       current: round 1 is spike.py -> results.json; round 2 is
+         round2.py -> round2.json
+       the asymmetry is real: round 1 is not called round 1, so a reader
+         looking for it finds a file named for the whole spike.
+       ACCEPT because the spike is a closed, dated artefact and all four
+         names are cited in its own README.md and RESULTS.md; renaming
+         would edit the records of a decision that is already Accepted.
+
+   F7  lychee.toml at the repository root — ACCEPT
+       its only consumer is docs-pr-check.yml, which passes
+       `--config lychee.toml` explicitly, so nothing forces the root. The
+       root is the conventional home for a repository-scoped tool config
+       and the file documents its own placement, so it stays. Noted only
+       because the survey maps current against correct rather than
+       listing what looks wrong.
+
+   (c) AREAS FOUND CLEAN, each checked rather than assumed.
+     BACKEND PACKAGES: main 27 ingestion / 18 query / 14 web / 5
+       ingestion.seed / 1 root / 1 package-info; test 20 / 16 / 13 / 4 /
+       2 root / 1 support = 56, recomputed. The two root-package test
+       classes belong there: FlywayAutoConfigurationTest asserts a Spring
+       class is on the CLASSPATH and has no project package;
+       NoDatabaseTestConfig is a @Profile("test") @Configuration found by
+       component scan, not called by name. ProviderStub is in support/
+       because it is the one helper used from two packages (4 ingestion
+       files + 4 query files); the *Fixtures classes sit beside their
+       subject because each serves one package, which is the rule in
+       REFACTOR-STANDARDS.txt ("Fixtures never depend on their
+       consumers").
+     TEST-TO-SUBJECT MIRRORING: a mechanical check for a same-named class
+       in the mirrored main package flags 23 files, and all 23 are
+       correct — 20 are scenario-named ITs that cross classes by design
+       (IngestionPipelineIT, RoleMatrixIT), and 3 are unit tests whose
+       subject is not a top-level class: ProtocolFilterTest (a nested
+       record, ProtocolModerationService.java:519), CorpusIntegrityTest
+       (the corpus data file) and FlywayAutoConfigurationTest. No test
+       sits in a package its subject does not.
+     IT / Test SUFFIXES ARE TRUTHFUL: 24 *Test, 26 *IT, 6 unsuffixed
+       support classes = 56. No *IT lacks @Testcontainers, @SpringBootTest
+       or @WebMvcTest, and no *Test carries one — checked by grep over
+       every file, not by name.
+     BACKEND RESOURCES: standard Maven layout; test/resources/corpus
+       mirrors main/resources/corpus, and baseline.md is a generated
+       artefact written by RetrievalBaselineIT and committed for its
+       diff, so it belongs beside its generator and not in docs/.
+     FRONTEND src/: core/ (services) — features/ — shared/ (components),
+       every component's .ts/.html/.css co-located, every spec beside its
+       subject. core/theme holds theme.service and font-scale.service
+       while shared/theme holds the toggle component: that is the
+       core/shared split working, not a duplicated folder.
+       24 *.spec.ts and 0 *.test.ts — one suffix, no outliers.
+     .md OUTSIDE docs/: all nine are correctly co-located with what they
+       describe — README.md and AI-USAGE.md at the root, frontend/,
+       frontend/e2e/, docker/, docker/keycloak/themes/,
+       backend/src/main/resources/corpus/, and the two spike RESULTS.md.
+       None of them belongs in docs/.
+     .github/: workflows in workflows/, the composite action in
+       actions/e2e-stack/, the four docs scripts in scripts/docs/ — every
+       script sits where the workflow that invokes it looks for it, and
+       every name is kebab-case.
+     docker/, infra/, spike/: contents match each directory's declared
+       purpose. spike/spring-ai-boot4 carries its own pom.xml and is NOT
+       a module of backend/pom.xml and there is no root pom, so the spike
+       cannot be built into the product by accident.
+
+   (d) ITEMS NEEDING A RULING: F2 (docs .md casing — is the split a
+   convention or a defect, and either way write it down) and F3
+   (the landing pages' home). Both are recorded above with both
+   candidate readings and the cost of acting.
+
+   (e) SEEN, NOT SURVEYED — outside Part 2, with their destination:
+     - docs/scripts/generate-diagrams.sh calls itself "a thin POSIX
+       wrapper ... for CI steps", but no CI step invokes it: both
+       workflows and both citing docs pages call the .mjs directly.
+       PART 4 (dead and redundant code).
+     - docs/runbooks/ is never converted by the docs build, so
+       seed-v12-protocols.md is written and tracked but unpublished.
+       Whether it should be published is a content question. PART 6.
+     - nav-docs.html lists ADR-001 to ADR-004 of nine — already carried
+       to PART 6 by the PART 1 close-out; repeated here only because this
+       survey walked the same tree and confirmed it still holds.
 
 5. PHASE 5 — EVOLUTION CANDIDATES (unchanged list, optional):
    similar-machine search, OCR, downtime stats, PDF export (generation,

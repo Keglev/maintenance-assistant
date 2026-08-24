@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Decisions ·
+ADR-010-docs-tree-conventions · maintenance-assistant Docs</title>
+
+  <!-- Set the theme before the stylesheet paints, otherwise the page flashes
+       the default theme for one frame before the saved choice applies. -->
+  <script>
+    (function () {
+      try {
+        var t = localStorage.getItem("maintenance-assistant-theme") ||
+          (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+        document.documentElement.setAttribute("data-theme", t);
+      } catch (e) {
+        document.documentElement.setAttribute("data-theme", "light");
+      }
+    })();
+  </script>
+
+  <link rel="stylesheet" href="/maintenance-assistant/assets/docs.css" />
+</head>
+
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <header class="topbar">
+    <div class="topbar-inner">
+      <button class="menu-btn" aria-label="Toggle navigation">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="18" x2="21" y2="18" />
+        </svg>
+      </button>
+
+      <a href="/maintenance-assistant/" class="brand">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <path d="M14.7 6.3a5 5 0 0 0-6.6 6.6l-5 5a2 2 0 1 0 2.8 2.8l5-5a5 5 0 0 0 6.6-6.6l-2.9 2.9-2.1-2.1 2.2-3.6z" />
+        </svg>
+        maintenance-assistant Docs
+      </a>
+
+      <div class="topbar-tools">
+        <span class="lang-switch">
+          <a href="/maintenance-assistant/" aria-current="true">EN</a>
+          <a href="/maintenance-assistant/index-de.html">DE</a>
+        </span>
+        <button class="theme-toggle" aria-label="Toggle light or dark theme">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <circle cx="12" cy="12" r="9" /><path d="M12 3a9 9 0 0 0 0 18z" fill="currentColor" stroke="none" />
+          </svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <div class="layout">
+    <!-- Sidebar navigation, included by app-docs.html as a Pandoc partial. One
+         sidebar serves the whole site: this repository has a single arc42 tree and a
+         single decision log, so the per-tier sidebars the sibling repositories need
+         would be three copies of the same list here. The active link is marked at
+         runtime by docs.js. Do not put template syntax in this comment - a partial
+         is itself a template. -->
+    <aside class="sidebar">
+      <p class="nav-title">Docs</p>
+      <ul>
+        <li><a href="/maintenance-assistant/">Docs home</a></li>
+        <li><a href="/maintenance-assistant/overview.html">Overview</a></li>
+        <li><a href="/maintenance-assistant/overview-de.html">&Uuml;berblick (DE)</a></li>
+        <li><a href="/maintenance-assistant/llm-approach.html">AI &amp; LLM approach</a></li>
+      </ul>
+
+      <p class="nav-title">Requirements</p>
+      <ul>
+        <li><a href="/maintenance-assistant/REQUIREMENTS.html">Requirements &amp; NFRs</a></li>
+        <li><a href="/maintenance-assistant/DOMAIN-MODEL.html">Domain model</a></li>
+      </ul>
+
+      <details class="nav-group">
+        <summary>Architecture (arc42)</summary>
+        <ul>
+          <li><a href="/maintenance-assistant/architecture/index.html">Architecture index</a></li>
+          <li><a href="/maintenance-assistant/architecture/01-introduction-and-goals.html">1 &middot; Introduction &amp; Goals</a></li>
+          <li><a href="/maintenance-assistant/architecture/02-architecture-constraints.html">2 &middot; Constraints</a></li>
+          <li><a href="/maintenance-assistant/architecture/03-context-and-scope.html">3 &middot; Context &amp; Scope</a></li>
+          <li><a href="/maintenance-assistant/architecture/04-solution-strategy.html">4 &middot; Solution Strategy</a></li>
+          <li><a href="/maintenance-assistant/architecture/05-building-block-view.html">5 &middot; Building Blocks</a></li>
+          <li><a href="/maintenance-assistant/architecture/06-runtime-view.html">6 &middot; Runtime View</a></li>
+          <li><a href="/maintenance-assistant/architecture/07-deployment-view.html">7 &middot; Deployment</a></li>
+          <li><a href="/maintenance-assistant/architecture/08-crosscutting-concepts.html">8 &middot; Concepts</a></li>
+          <li><a href="/maintenance-assistant/architecture/09-architecture-decisions.html">9 &middot; Decisions</a></li>
+          <li><a href="/maintenance-assistant/architecture/10-quality-requirements.html">10 &middot; Quality Requirements</a></li>
+          <li><a href="/maintenance-assistant/architecture/11-risks-and-technical-debt.html">11 &middot; Risks &amp; Debt</a></li>
+          <li><a href="/maintenance-assistant/architecture/12-glossary.html">12 &middot; Glossary</a></li>
+        </ul>
+      </details>
+
+      <details class="nav-group">
+        <summary>Decisions (ADRs)</summary>
+        <ul>
+          <li><a href="/maintenance-assistant/adr/index.html">Decision index</a></li>
+          <li><a href="/maintenance-assistant/adr/ADR-001-modular-monolith-first.html">ADR-001 Modular monolith</a></li>
+          <li><a href="/maintenance-assistant/adr/ADR-002-eu-hosted-llm-provider.html">ADR-002 EU LLM provider</a></li>
+          <li><a href="/maintenance-assistant/adr/ADR-003-keycloak-for-iam.html">ADR-003 Keycloak as IdP</a></li>
+          <li><a href="/maintenance-assistant/adr/ADR-004-pgvector-for-vector-search.html">ADR-004 pgvector</a></li>
+          <li><a href="/maintenance-assistant/adr/ADR-010-docs-tree-conventions.html">ADR-010 Docs tree conventions</a></li>
+        </ul>
+      </details>
+
+      <p class="nav-title">Frontend</p>
+      <ul>
+        <li><a href="/maintenance-assistant/frontend-architecture.html">Frontend architecture</a></li>
+      </ul>
+
+      <p class="nav-title">Quality</p>
+      <ul>
+        <li><a href="/maintenance-assistant/refactor-standards.html">Refactor standards</a></li>
+        <li><a href="/maintenance-assistant/backend/api-docs/index.html">Backend API</a></li>
+        <li><a href="/maintenance-assistant/frontend/api-docs/index.html">Frontend API</a></li>
+        <li><a href="/maintenance-assistant/backend/coverage/index.html">Backend coverage</a></li>
+        <li><a href="/maintenance-assistant/frontend/coverage/index.html">Frontend coverage</a></li>
+      </ul>
+    </aside>
+    <main class="content" id="main">
+      <article class="doc-body">
+        <h1
+        id="adr-010-name-docs-pages-by-what-they-are-and-freeze-citations-that-a-checksum-guards">ADR-010:
+        Name docs pages by what they are, and freeze citations that a
+        checksum guards</h1>
+        <table>
+        <colgroup>
+        <col style="width: 50%" />
+        <col style="width: 50%" />
+        </colgroup>
+        <tbody>
+        <tr class="odd">
+        <td><strong>Status</strong></td>
+        <td>Accepted</td>
+        </tr>
+        <tr class="even">
+        <td><strong>Date</strong></td>
+        <td>2026-08-24</td>
+        </tr>
+        <tr class="odd">
+        <td><strong>Deciders</strong></td>
+        <td>Carlos Keglevich</td>
+        </tr>
+        <tr class="even">
+        <td><strong>Related</strong></td>
+        <td>PR #88 (Part 2 code structure survey, findings F2 and F3),
+        <code>docs/REFACTOR-STANDARDS.txt</code> DOCS section (decision
+        records are immutable; published prose states only what the
+        checkout shows), Flyway migrations
+        <code>V1__baseline_schema.sql</code> and
+        <code>R__seed_machines.sql</code></td>
+        </tr>
+        </tbody>
+        </table>
+        <h2 id="context">Context</h2>
+        <p>The Part 2 structure survey (#88) audited file names and
+        directory placement across the repository and left exactly two
+        rows unresolved, both because <strong>no rule was written down
+        and two readings were each defensible</strong>. A survey that
+        picks one anyway is a survey writing policy by fiat, so both
+        were recorded as RULING NEEDED. This is the ruling.</p>
+        <h3 id="f2-the-casing-of-docs-pages">F2 — the casing of docs
+        pages</h3>
+        <p><code>docs/</code> holds seven top-level markdown pages. Five
+        are lowercase-kebab (<code>frontend-architecture.md</code>,
+        <code>llm-approach.md</code>, <code>overview.md</code>,
+        <code>overview-de.md</code>, <code>refactor-standards.md</code>)
+        and two are SCREAMING-KEBAB (<code>DOMAIN-MODEL.md</code>,
+        <code>REQUIREMENTS.md</code>). The three <code>.txt</code>
+        ledgers are SCREAMING, three of three, so only the markdown
+        pages are split.</p>
+        <p>Both readings survived the evidence:</p>
+        <ul>
+        <li>the two are <strong>accidental outliers</strong> and should
+        match the other five; or</li>
+        <li>the casing <strong>means something</strong> — that these two
+        are normative specifications while the lowercase five are
+        explanatory prose.</li>
+        </ul>
+        <p>Nothing in the repository decides it. A search for a stated
+        naming convention across <code>docs/*.txt</code> and
+        <code>docs/*.md</code> returns nothing, so whichever reading a
+        future contributor picked would be a guess.</p>
+        <p>The casing is not invisible: it reaches the published site as
+        <code>/DOMAIN-MODEL.html</code> and
+        <code>/REQUIREMENTS.html</code> beside
+        <code>/overview.html</code>, so a reader sees the inconsistency
+        without opening the repository.</p>
+        <p><strong>The cost of renaming was measured before the
+        decision, not after.</strong> Excluding each page’s own file,
+        <code>DOMAIN-MODEL</code> is cited in <strong>22</strong>
+        tracked files and <code>REQUIREMENTS</code> in
+        <strong>10</strong>. (A naive grep today returns 23 and 11; the
+        extra hit in each is the #88 survey entry itself, which quotes
+        the names. The figures above are the citing files that would
+        actually need editing.)</p>
+        <p>Two of those citations are the reason this ADR exists rather
+        than a one-line convention:</p>
+        <pre><code>V1__baseline_schema.sql:3    -- Source of truth: docs/DOMAIN-MODEL.md and docs/DECISIONS.txt …
+V1__baseline_schema.sql:105  -- Not in DOMAIN-MODEL.md: position of the chunk within its protocol …
+R__seed_machines.sql:1       -- Repeatable seed — the 10 machines of the demo plant (docs/DOMAIN-MODEL.md §3).</code></pre>
+        <p><strong>Flyway checksums cover the whole file, comments
+        included.</strong> <code>V1</code> is a versioned migration that
+        has been applied to production, and <code>spring.flyway</code>
+        here sets neither <code>validate-on-migrate: false</code> nor
+        <code>clean-disabled</code>, so the default validation is in
+        force: editing that file — even one comment character — makes
+        the checksum disagree with the row in
+        <code>flyway_schema_history</code>, and the application refuses
+        to start until somebody runs a manual <code>flyway repair</code>
+        against production.</p>
+        <p><code>R__seed_machines.sql</code> is a repeatable migration,
+        so a changed checksum does not fail; it <strong>re-executes on
+        the next migrate</strong>. That seed is idempotent by
+        construction (fixed UUIDs plus
+        <code>ON CONFLICT (machine_no) DO UPDATE</code>), so re-running
+        it is safe rather than destructive — but it would overwrite any
+        hand-edit made to a machine row in production, and re-running a
+        production seed to correct a comment is disproportionate
+        whatever the blast radius.</p>
+        <h3 id="f3-where-the-sites-landing-pages-live">F3 — where the
+        site’s landing pages live</h3>
+        <p><code>docs/_theme/index.html</code> and
+        <code>index-de.html</code> are the published site’s two landing
+        pages, and they sit in the theme tree beside <code>css/</code>,
+        <code>js/</code> and <code>templates/</code>. They are
+        hand-written HTML, not generated from markdown, and
+        <code>copy_landing_pages()</code> in <code>build-docs.sh</code>
+        copies them verbatim to the site root.</p>
+        <p>The competing readings: they are <strong>content</strong> and
+        content lives in <code>docs/</code>; or they are <strong>part of
+        the theme</strong> and belong with the assets they reference.
+        Either way the build needs a special case for them, because
+        everything else under <code>docs/</code> is markdown that goes
+        through the converter.</p>
+        <h2 id="decision">Decision</h2>
+        <p><strong>1. Docs file names follow what the file IS, not what
+        it is about.</strong></p>
+        <ul>
+        <li>Explanatory markdown pages under <code>docs/</code> are
+        <strong>lowercase-kebab</strong>: <code>overview.md</code>,
+        <code>frontend-architecture.md</code>, and from the follow-up
+        rename, <code>domain-model.md</code> and
+        <code>requirements.md</code>.</li>
+        <li>The plain-text ledgers (<code>DECISIONS.txt</code>,
+        <code>PROJECT-PHASES.txt</code>,
+        <code>REFACTOR-STANDARDS.txt</code>), every
+        <code>ADR-NNN-*.md</code> and <code>ADR-TEMPLATE.md</code> stay
+        <strong>SCREAMING</strong>. They are normative or immutable
+        records rather than explanatory pages, and the standards already
+        treat decision records as immutable once merged.</li>
+        </ul>
+        <p><code>DOMAIN-MODEL.md</code> and <code>REQUIREMENTS.md</code>
+        are explanatory pages by this rule and <strong>will be
+        renamed</strong> to <code>domain-model.md</code> and
+        <code>requirements.md</code> in a follow-up pull request. This
+        ADR merges first; nothing is renamed here.</p>
+        <p><strong>2. Citations inside Flyway migrations are FROZEN and
+        are deliberately not updated by that rename.</strong></p>
+        <p>The three comment lines quoted above keep saying
+        <code>DOMAIN-MODEL.md</code> after the file is called
+        <code>domain-model.md</code>. That is not an oversight and must
+        not be “tidied”:</p>
+        <ul>
+        <li>editing <code>V1__baseline_schema.sql</code> breaks its
+        checksum against applied production history and stops the
+        application starting until a manual repair;</li>
+        <li>editing <code>R__seed_machines.sql</code> re-runs a seed
+        against production.</li>
+        </ul>
+        <p><strong>A stale comment in an applied migration is the
+        checksum rule working.</strong> Anyone who finds one and reaches
+        for a fix should read this ADR first. If a migration comment
+        ever must change, it changes in a NEW migration, never in an
+        applied one.</p>
+        <p><strong>3. Hand-written HTML that is part of the site theme
+        lives in <code>docs/_theme/</code>; markdown content lives in
+        <code>docs/</code>.</strong> The two landing pages stay where
+        they are. <code>copy_landing_pages()</code> is the
+        <em>consequence</em> of that split, not evidence against it: a
+        theme that owns a hand-written page needs a copy step whichever
+        directory the page sits in.</p>
+        <h2 id="consequences">Consequences</h2>
+        <p><strong>Positive</strong></p>
+        <ul>
+        <li>A contributor adding a docs page no longer has to guess:
+        prose is lowercase, records are SCREAMING, and the rule is one
+        line in the standards with this ADR behind it.</li>
+        <li>The migration comments stop being a recurring question. The
+        next person to notice <code>DOMAIN-MODEL.md</code> in
+        <code>V1</code> finds a written answer instead of an apparent
+        inconsistency.</li>
+        <li>F2 and F3 leave the survey’s open list, so Part 2’s
+        remaining findings are all actionable.</li>
+        </ul>
+        <p><strong>Negative</strong></p>
+        <ul>
+        <li><strong>Two published URLs change</strong>:
+        <code>/DOMAIN-MODEL.html</code> and
+        <code>/REQUIREMENTS.html</code> become
+        <code>/domain-model.html</code> and
+        <code>/requirements.html</code>. Any external bookmark breaks;
+        no redirect exists because GitHub Pages here serves a static
+        tree with no rewrite layer.</li>
+        <li><strong>The rename touches 32 citing files</strong> (22 +
+        10), including <code>nav-docs.html</code>, Java javadoc and
+        arc42 pages — a large mechanical diff for a cosmetic gain, and
+        one that has to be complete or it leaves dead links.</li>
+        <li><strong>Two migrations will be knowingly stale.</strong> The
+        repository will contain comments that name a file which no
+        longer exists under that name. That is a deliberate, documented
+        inconsistency, and deliberate inconsistencies cost every reader
+        who meets one for the first time.</li>
+        <li>The <code>_theme</code> ruling means
+        <code>docs/_theme/</code> holds both assets and two content
+        pages, so “everything in <code>_theme</code> is an asset” is not
+        quite true either.</li>
+        </ul>
+        <h2 id="alternatives-considered">Alternatives considered</h2>
+        <ul>
+        <li><strong>Rename everything, including the migration comments,
+        and run <code>flyway repair</code> on production.</strong>
+        Attractive because it leaves no inconsistency at all and the
+        repair command is one line. Rejected: it trades a comment’s
+        accuracy for a production migration-history edit, and
+        <code>flyway repair</code> rewrites the checksum of an applied
+        migration — a real operation on the live database, done to fix a
+        filename in a comment. The risk is small and entirely
+        unnecessary; the reward is cosmetic. <em>Rejected.</em></li>
+        <li><strong>Rename nothing, and declare SCREAMING to mean
+        “normative”.</strong> Attractive because it costs nothing today,
+        keeps two published URLs stable, and can be defended after the
+        fact. Rejected because <strong>two pages out of seven carrying
+        meaning by casing is a convention nobody would guess</strong> —
+        the survey could not distinguish it from an accident, and a
+        convention that has to be explained to be seen is not doing the
+        work a convention exists to do. <em>Rejected.</em></li>
+        <li><strong>Move the landing pages into <code>docs/</code> for
+        consistency with the other content.</strong> Attractive because
+        <code>docs/</code> would then hold all content and
+        <code>_theme/</code> only assets. Rejected: the pages are
+        hand-written HTML referencing theme assets, they would sit among
+        markdown sources that the converter walks, and the build would
+        still need the same special case — the same exception, in a less
+        obvious place. <em>Rejected.</em></li>
+        </ul>
+      </article>
+    </main>
+
+        <nav class="toc" aria-label="On this page">
+      <p class="toc-title">On this page</p>
+      <ul>
+      <li><a
+      href="#adr-010-name-docs-pages-by-what-they-are-and-freeze-citations-that-a-checksum-guards"
+      id="toc-adr-010-name-docs-pages-by-what-they-are-and-freeze-citations-that-a-checksum-guards">ADR-010:
+      Name docs pages by what they are, and freeze citations that a
+      checksum guards</a>
+      <ul>
+      <li><a href="#context" id="toc-context">Context</a>
+      <ul>
+      <li><a href="#f2-the-casing-of-docs-pages"
+      id="toc-f2-the-casing-of-docs-pages">F2 — the casing of docs
+      pages</a></li>
+      <li><a href="#f3-where-the-sites-landing-pages-live"
+      id="toc-f3-where-the-sites-landing-pages-live">F3 — where the
+      site’s landing pages live</a></li>
+      </ul></li>
+      <li><a href="#decision" id="toc-decision">Decision</a></li>
+      <li><a href="#consequences"
+      id="toc-consequences">Consequences</a></li>
+      <li><a href="#alternatives-considered"
+      id="toc-alternatives-considered">Alternatives considered</a></li>
+      </ul></li>
+      </ul>
+    </nav>
+      </div>
+
+  <footer class="footer">
+    maintenance-assistant · Generated by the docs pipeline
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <script src="/maintenance-assistant/assets/docs.js"></script>
+</body>
+</html>

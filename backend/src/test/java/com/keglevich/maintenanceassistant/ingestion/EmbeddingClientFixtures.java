@@ -133,6 +133,86 @@ final class EmbeddingClientFixtures {
                 """.formatted(model);
     }
 
+    /** A client whose retry count is negative — a misconfiguration, kept buildable on purpose. */
+    static IonosEmbeddingClient clientWithRetries(ProviderStub provider, EmbeddingBudget budget,
+                                                  String model, int maxRetries) {
+        return new IonosEmbeddingClient(
+                new EmbeddingProperties(provider.baseUrl(), "test-key", model, DIMENSIONS, 2,
+                        maxRetries, Duration.ofMillis(1), Duration.ofSeconds(5), 1000),
+                budget);
+    }
+
+    /** {@code data} present as JSON null rather than as an empty array. */
+    static String nullData(String model) {
+        return """
+                { "model": "%s", "data": null, "usage": { "prompt_tokens": 5, "total_tokens": 5 } }
+                """.formatted(model);
+    }
+
+    /** An item whose embedding is present but empty — the shape encoding_format trouble can take. */
+    static String emptyVector(String model) {
+        return """
+                {
+                  "model": "%s",
+                  "data": [ { "embedding": [] } ],
+                  "usage": { "prompt_tokens": 7, "total_tokens": 7 }
+                }
+                """.formatted(model);
+    }
+
+    /** An item whose embedding field is JSON null. */
+    static String nullVector(String model) {
+        return """
+                {
+                  "model": "%s",
+                  "data": [ { "embedding": null } ],
+                  "usage": { "prompt_tokens": 7, "total_tokens": 7 }
+                }
+                """.formatted(model);
+    }
+
+    /** A usage block reporting zero prompt tokens, with total_tokens to fall back to. */
+    static String zeroPromptTokens(String model) {
+        return """
+                {
+                  "model": "%s",
+                  "data": [ { "embedding": [0.1, 0.2, 0.3, 0.4] } ],
+                  "usage": { "prompt_tokens": 0, "total_tokens": 19 }
+                }
+                """.formatted(model);
+    }
+
+    /** A usage block that names neither count. */
+    static String emptyUsage(String model) {
+        return """
+                {
+                  "model": "%s",
+                  "data": [ { "embedding": [0.1, 0.2, 0.3, 0.4] } ],
+                  "usage": { }
+                }
+                """.formatted(model);
+    }
+
+    /** A response that does not say which model answered. */
+    static String withoutModelName() {
+        return """
+                {
+                  "data": [ { "embedding": [0.1, 0.2, 0.3, 0.4] } ],
+                  "usage": { "prompt_tokens": 11, "total_tokens": 11 }
+                }
+                """;
+    }
+
+    /** An error body on one line and with no trailing newline. */
+    static String errorOnOneLine(String message) {
+        return "{ \"error\": { \"message\": \"%s\" } }".formatted(message);
+    }
+
+    /** An error body whose first line alone runs past the 300-character message budget. */
+    static String errorWithAVeryLongFirstLine() {
+        return "{ \"error\": { \"message\": \"%s\" } }".formatted("gateway rejected the batch ".repeat(20));
+    }
+
     /** An error body in the provider's own shape, for the message the client surfaces. */
     static String error(String message) {
         return """

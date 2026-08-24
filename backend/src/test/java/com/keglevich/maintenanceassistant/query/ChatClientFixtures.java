@@ -106,6 +106,62 @@ final class ChatClientFixtures {
                 """;
     }
 
+    /** A client whose retry count is negative — a misconfiguration, kept buildable on purpose. */
+    static IonosChatClient clientWithRetries(ProviderStub provider, ChatBudget budget, int maxRetries) {
+        return new IonosChatClient(
+                new ChatProperties(provider.baseUrl(), "test-key", LLAMA, 1200, 0.2,
+                        Duration.ofSeconds(5), maxRetries, Duration.ofMillis(1), 200),
+                budget);
+    }
+
+    /** A client with no base URL at all, which is how an unconfigured deployment looks. */
+    static IonosChatClient clientWithoutBaseUrl(ChatBudget budget) {
+        return new IonosChatClient(
+                new ChatProperties(null, "test-key", LLAMA, 1200, 0.2,
+                        Duration.ofSeconds(5), 1, Duration.ofMillis(1), 200),
+                budget);
+    }
+
+    /** {@code choices} present as JSON null rather than as an empty array. */
+    static String nullChoices() {
+        return "{ \"choices\": null, \"usage\": { \"prompt_tokens\": 12 } }";
+    }
+
+    /** A choice with no message object — a gateway shape, not an OpenAI one. */
+    static String choiceWithoutMessage() {
+        return "{ \"choices\": [ { \"index\": 0, \"finish_reason\": \"stop\" } ] }";
+    }
+
+    /** A usage block that is present but names neither token count. */
+    static String answerWithEmptyUsage(String content) {
+        return """
+                {
+                  "choices": [ { "message": { "content": "%s" }, "finish_reason": "stop" } ],
+                  "usage": { }
+                }
+                """.formatted(content);
+    }
+
+    /** Cut off at the cap after a long run of content, so the preview has to be shortened. */
+    static String truncatedLongAnswer() {
+        return """
+                {
+                  "choices": [ { "message": { "content": "%s" }, "finish_reason": "length" } ],
+                  "usage": { "prompt_tokens": 812, "completion_tokens": 1200 }
+                }
+                """.formatted("Der Fehler E-47 bedeutet Druckabfall im Presshub. ".repeat(12));
+    }
+
+    /** An error body on one line and with no trailing newline. */
+    static String errorOnOneLine(String message) {
+        return "{ \"error\": { \"message\": \"%s\" } }".formatted(message);
+    }
+
+    /** An error body whose first line alone runs past the 300-character message budget. */
+    static String errorWithAVeryLongFirstLine() {
+        return "{ \"error\": { \"message\": \"%s\" } }".formatted("gateway rejected the request ".repeat(20));
+    }
+
     /** An error body in the provider's own shape. */
     static String error(String message) {
         return """

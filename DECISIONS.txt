@@ -476,3 +476,22 @@ Status: v1.3.0 released; refactor phase, Part 2 closed 2026-08-25, Part 3 next
   converted. FOUR DEAD .gitignore RULES WENT AND TWO STAYED: a rule that matches nothing today
   but is the only thing standing between a plausible artefact and a broader ignore is a GUARD,
   not dead code, and the two that stayed now carry the comment that says so.
+- SPRING BOOT 4.1.0 -> 4.1.1, 2026-08-25 (#96). A patch bump and nothing else: one line in
+  backend/pom.xml, no code change, no other dependency. 4.1.1 was confirmed the newest 4.1.x on
+  Maven Central before it was written down (the newer <latest> there is 4.2.0-M1, a milestone).
+  79 managed versions moved — Framework 7.0.9, Security 7.1.1, Tomcat 11.0.24, Jackson, Logback,
+  Micrometer, pgjdbc 42.7.13 — and every version this pom pins ITSELF held: testcontainers,
+  bucket4j and springdoc are untouched, so the parent managed nothing already decided here.
+  ONE RELEASE NOTE TOUCHES THIS PROJECT AND IT DOES NOT BITE IT: gh-50849 makes an empty
+  spring.security.oauth2.resourceserver.jwt.jwk-set-uri be treated as absent, which previously
+  could build two JWT decoders when issuer-uri was also set. This application never sets
+  jwk-set-uri anywhere, so the bug was unreachable — but the CLASS is one this repository has
+  already been bitten by twice under a different name (an empty string overriding a working
+  default, see the compose files), and the commented-out dev service C8 deletes passes an
+  undefaulted issuer-uri that would have been the other half of it. The Flyway note in the same
+  release is native-image only and this project builds no native image; nothing in the notes
+  touches JDBC, RestClient, springdoc or the actuator paths this application uses.
+  THE JSPECIFY NULL-SAFETY WARNINGS the IDE surfaces under Boot 4 / Framework 7 ARE A PART 4
+  SURVEY ROW — count them and classify them there. javac emits none on either side of this bump
+  (0 warnings over 66 source files, before and after), so they are an IDE analysis rather than a
+  build signal, and fixing them is not Part 3 work.

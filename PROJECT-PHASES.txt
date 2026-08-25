@@ -2144,6 +2144,24 @@ rather than given one afterwards.
        - arc42/07-deployment-view.md:109 carries the same mount line and
          will need the same answer.
 
+   (g) DEPENDENCY BUMPS — taken during the wave, recorded here so the
+   next survey does not re-derive what moved and when
+     2026-08-25: Spring Boot 4.1.0 -> 4.1.1, #96, 79 managed versions
+       moved, compiler warning baseline 0/0. One artifact ADDED and none
+       removed: org.checkerframework:checker-qual 3.55.1, arriving at
+       runtime scope under postgresql 42.7.13, which is a pgjdbc change
+       rather than a Boot one. Every explicitly pinned version held —
+       testcontainers 2.0.5, bucket4j 8.14.0, springdoc 3.1.0 — so the
+       parent managed nothing this pom had already decided. 246 unit and
+       242 integration tests before and after, 10 skipped both times,
+       jacoco check met both times, and the five coverage figures are
+       byte-identical. THE JSPECIFY NULL-SAFETY WARNINGS the IDE shows
+       under Boot 4 / Framework 7 ARE A PART 4 ROW — count and classify
+       them there. javac reports none (0 before, 0 after over 66 source
+       files), so they are an IDE analysis and not a build signal, and
+       nothing about them is a Part 3 fix. This bump moved jspecify
+       1.0.0 -> 1.0.1, which changes annotations and not the analysis.
+
 5. PHASE 5 — EVOLUTION CANDIDATES (unchanged list, optional):
    similar-machine search, OCR, downtime stats, PDF export (generation,
    not serving), structured Symptom/Ursache/Massnahme fields, and

@@ -551,3 +551,27 @@ Status: v1.3.0 released; refactor phase, Part 2 closed 2026-08-25, Part 3 next
   and the Angular dev-server proxy sets none — so the default profile needs no exception.
   DEPLOY REQUIRED: this is the first Part 3 change that alters production behaviour. CI green
   does not finish it; the backend image ships and the live servers URL is verified after.
+- TC-3 AMENDED AND THE HAND-DEPLOYED SET COUNTED, 2026-08-25 (#100), Part 3 C12 and C14.
+  TC-3 in arc42 02 read "every image is published for amd64 AND arm64, and CI builds
+  multi-arch", and its own rationale column said that was "kept after the move to x86 on
+  purpose". It had been untrue since the 2026-08-10 revision above removed the arm64 leg, so a
+  written CONSTRAINT was describing something the pipeline no longer did. Amended rather than
+  restored: published images are linux/amd64, base images stay multi-arch so the source builds
+  on either laptop, and an arm64 host is a build-platform change — one line per workflow, or a
+  native runner — not a code change. The deployment view is corrected in three places.
+  THE HAND-DEPLOYED SET IS SEVEN, NOT THREE AND NOT FOUR. Counted from the bind mounts in
+  docker-compose.prod.yml and corroborated on the host: the compose file, .env.prod,
+  caddy/Caddyfile, frontend-config.json, keycloak/realm-export.json, the wartungsassistent
+  theme directory and postgres/init-keycloak-db.sh. The ruling asked for "four"; writing four
+  would have repeated the original defect one number later. docker/README.md now carries the
+  list with the MOUNT KIND per row, because that is the part a count hides: OPS RULE 3 — the
+  inode trap that makes `mv` silently keep the old file live — applies to the four single-file
+  mounts and not to the theme directory.
+  frontend-config.json gets an .example carrying the SHAPE while the server copy carries the
+  value. Its three keys were compared against production before it was written: names only,
+  read over ssh, no value left the host — keycloakIssuer, keycloakClientId, apiBaseUrl, exactly
+  the RuntimeConfig interface and in the same order. NO DRIFT.
+  WORTH KNOWING BECAUSE IT FAILS QUIETLY: ConfigService falls back to the values compiled into
+  environment.ts when config.json is missing or malformed, so a broken file does not blank the
+  page — it silently points the browser at whatever was built in. Validate the JSON before the
+  force-recreate; the README has the command.

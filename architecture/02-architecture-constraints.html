@@ -160,12 +160,20 @@
         </tr>
         <tr class="odd">
         <td>TC-3</td>
-        <td><strong>Architecture-neutral container images</strong>:
-        every image is published for amd64 <strong>and</strong> arm64,
-        and CI builds multi-arch.</td>
-        <td>Originally a consequence of choosing ARM. Kept after the
-        move to x86 on purpose — it is what makes the host architecture
-        a procurement decision rather than a code one.</td>
+        <td><strong>Published images are
+        <code>linux/amd64</code>.</strong> The <em>base</em> images stay
+        multi-arch, so the source builds on a laptop of either
+        architecture; only the images CI publishes are
+        single-platform.</td>
+        <td>AMENDED 2026-08-25. The constraint used to read “every image
+        is published for amd64 <strong>and</strong> arm64” — untrue
+        since 2026-08-10, when both deploy workflows dropped the arm64
+        leg (DECISIONS.txt, “REVISED AGAIN 2026-08-10”): the arm64 image
+        had no consumer, and building it under QEMU emulation hung 13+
+        minutes before dying on <code>npm ci</code> with “qemu: uncaught
+        target signal 4 (Illegal instruction)”. Moving to an arm64 host
+        is therefore a build-platform change — one line per workflow, or
+        better a native arm64 runner — and still not a code change.</td>
         </tr>
         <tr class="even">
         <td>TC-4</td>

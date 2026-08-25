@@ -161,7 +161,9 @@
         <tr class="even">
         <td><strong>Images</strong></td>
         <td><code>ghcr.io/keglev/maintenance-assistant/{backend,frontend}</code>,
-        built multi-arch (amd64 + arm64)</td>
+        built <code>linux/amd64</code> only since 2026-08-10
+        (DECISIONS.txt, “REVISED AGAIN 2026-08-10”); the base images
+        stay multi-arch</td>
         </tr>
         <tr class="odd">
         <td><strong>Stack definition</strong></td>
@@ -179,8 +181,12 @@
         </table>
         <p>The host was planned as a CAX21 (arm64) and is a CX33
         (x86_64); the reasoning and date are recorded in DECISIONS.txt.
-        Because CI keeps publishing both architectures, that revision
-        changed a purchase order and nothing else.</p>
+        That revision changed a purchase order and nothing else — but
+        the follow-on did cost something, and the record says so: on
+        2026-08-10 the arm64 build leg was removed because it had no
+        consumer and was crashing under QEMU. Moving back to an arm64
+        host is now a purchase order PLUS restoring one line in each
+        deploy workflow, or adding a native arm64 runner.</p>
         <h2 id="containers">7.2 Containers</h2>
         <table>
         <colgroup>
@@ -416,9 +422,9 @@ drwxr-xr-x 2 0 0 …            touch: Permission denied</code></pre>
         <h2 id="delivery">7.5 Delivery</h2>
         <p>CI owns the rollout. When <code>backend-ci</code> or
         <code>frontend-ci</code> succeeds on <code>main</code>, the
-        matching deploy workflow builds a multi-arch image, pushes it to
-        GHCR, then connects to the host as the <code>deploy</code> user
-        and runs
+        matching deploy workflow builds a <code>linux/amd64</code>
+        image, pushes it to GHCR, then connects to the host as the
+        <code>deploy</code> user and runs
         <code>docker compose pull &lt;service&gt; &amp;&amp; docker compose up -d &lt;service&gt;</code>
         for that one service. Both workflows also accept a manual
         <code>workflow_dispatch</code>, which redeploys whatever tag

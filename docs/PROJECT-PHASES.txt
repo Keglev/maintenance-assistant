@@ -8,7 +8,8 @@ Keycloak realm = "maintenance". English repo name is intentional.)
 CURRENT STATUS — 2026-08-25 (v1.3.0; PART 3 SURVEYED, AWAITING RULINGS)
 =====================================================================
 v1.3.1 PENDING: #99 changes production behaviour; tag after deploy and
-live verification.
+live verification, and #100 corrects the hand-deployed-file count;
+CHANGELOG entry lists both.
 
 v1.3.0 IS THE LATEST TAG, 2026-08-20. The release history, from the
 repository's own tags: v0.1.0 2026-08-06, v1.0.0 2026-08-08, v1.1.0
@@ -1890,6 +1891,21 @@ rather than given one afterwards.
          "Kept after the move to x86 on purpose". The deploy workflows
          breach it. Either the arm64 leg comes back or TC-3 is amended, and
          a comment PR does not get to choose. RULING NEEDED.
+         CLOSED 2026-08-25, #100, ruled A (amend TC-3): README line,
+         TC-3 rewritten, deployment view corrected — its Images row, the
+         CAX21 paragraph and the §7.5 delivery sentence, which was a third
+         arc42 instance the earlier note had not counted.
+         ONE LIVE FALSEHOOD IS LEFT AND IT IS OUT OF SCOPE:
+         backend-deploy.yml:51-52 still says "the images stay multi-arch so
+         moving back to ARM is a server swap and not a code change" — which
+         the SAME FILE contradicts twenty lines later at 73-77. Workflows are
+         out of scope here; it wants a one-line comment fix in its own PR.
+         KEPT AS CORRECT: both Dockerfiles and docker-compose.yml say BASE
+         images are multi-arch, which is true and is why either laptop
+         builds; the DECISIONS 2026-08-06 entry says "CI keeps building
+         amd64+arm64" and is immediately followed by its own REVISED AGAIN
+         2026-08-10; TC-2, 04-solution-strategy and AI-USAGE describe the
+         CAX-to-CX33 purchase revision, which happened.
 
      C13 backend/Dockerfile:33 vs docker/postgres/init-keycloak-db.sh:9
          — THE HOST RUNS A DIFFERENT NUMBER OF CONTAINERS IN EACH FILE.
@@ -1926,6 +1942,35 @@ rather than given one afterwards.
          RULED 2026-08-25: add frontend-config.json.example, and correct
          "three hand-deployed files" to four everywhere it is written.
          Its own PR.
+         FIXED 2026-08-25, #100: example added with 3 keys, README,
+         .env.prod.example, backup.sh ALREADY COVERED; hand-deployed count
+         corrected in 1 place — and it is SEVEN, not four.
+         THE RULING SAID FOUR AND THE MEASUREMENT SAYS SEVEN. Counted from
+         the bind mounts in docker-compose.prod.yml and corroborated by an
+         `ls` on the host: docker-compose.prod.yml, .env.prod,
+         caddy/Caddyfile, frontend-config.json, keycloak/realm-export.json,
+         keycloak/themes/wartungsassistent/ and postgres/init-keycloak-db.sh.
+         Writing "four" would have repeated the original defect one number
+         later, so the README carries the measured seven with the mount kind
+         per row — OPS RULE 3 applies to the four SINGLE-FILE mounts and not
+         to the theme directory, which is the distinction a count alone
+         hides. THE HOST ALSO CARRIES the .bak copies OPS RULE 1 asks for
+         (three of the compose file, two of .env.prod, one of the Caddyfile),
+         which is the rule visibly working.
+         ONLY ONE LIVE PLACE NEEDED CORRECTING, and that is itself a finding:
+         `git grep -n "three hand"` returns two hits and BOTH are this
+         record. No published document ever enumerated the set — the survey
+         row said "every other passage says three hand-deployed files", and
+         that was an overstatement. What was actually missing was any list
+         at all. docker/README.md now has one.
+         KEY DRIFT: NONE. The three keys on the server (names only, read
+         over ssh with grep — no value left the host) are keycloakIssuer,
+         keycloakClientId, apiBaseUrl, exactly the RuntimeConfig interface
+         and in the same order.
+         BACKUPS, checked rather than assumed: infra/backup.sh archives the
+         database and the protocol-files volume and none of the seven, which
+         arc42 §7.6.2 covers deliberately — the nightly job protects the
+         data, the Hetzner snapshot protects the host. Nothing changed there.
 
      C15 infra/backup.sh:10 — a citation #91 missed. "(DOMAIN-MODEL.md:
          no BLOBs in Postgres)". #91's close-out records "19 citing files
@@ -3250,7 +3295,10 @@ PIPELINE ARCHITECTURE (.github/workflows/)
                       workflow_run success of the matching CI on main,
                       or manual workflow_dispatch for a redeploy without
                       a code change. Two jobs:
-                        image  - multi-arch docker build (amd64+arm64)
+                        image  - docker build -> GHCR. CORRECTION
+                                 2026-08-25 (#100): amd64 ONLY since
+                                 2026-08-10; the line below described a
+                                 multi-arch build that no longer happens.
                                  -> GHCR, tags :latest and :sha-<commit>
                         deploy - ssh to the Hetzner host as the deploy
                                  user, `compose pull <svc> && up -d <svc>`,

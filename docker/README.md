@@ -7,8 +7,10 @@ frontend on the Angular dev server, which is the stack
 [ADR-001](../docs/adr/ADR-001-modular-monolith-first.md) counts three containers for the
 DEPLOYED system; `docker-compose.prod.yml` is where all of them run together.
 
-All images are published for `linux/amd64` **and**
-`linux/arm64`, so this file runs unchanged on Apple Silicon and on the Hetzner CAX (arm64) target.
+The **base** images are published for `linux/amd64` **and** `linux/arm64`, so this file runs
+unchanged on a laptop of either architecture. The images CI publishes for production are
+`linux/amd64` only — the arm64 leg was removed on 2026-08-10 (DECISIONS.txt, "REVISED AGAIN
+2026-08-10") because production is a CX33 x86_64 and the emulated build was crashing.
 
 ## Start
 
@@ -92,6 +94,69 @@ docker compose cp keycloak:/tmp/export/maintenance-realm.json ./keycloak/realm-e
 ```
 
 Review the diff before committing — the export contains generated ids and timestamps that add noise.
+
+## Files the pipeline never deploys
+
+CI ships **images and nothing else**. Every file below lives on the host, is edited there by
+hand, and is invisible to a merge — a change committed here is not live until someone copies it
+across. This is OPS RULE 1 in DECISIONS.txt, and it has cost a failed deploy round more than
+once.
+
+SEVEN, MEASURED 2026-08-25 from the bind mounts in `docker-compose.prod.yml` and from the host
+itself — not three, and not the four the survey expected:
+
+| # | On the host, under `/opt/maintenance-assistant/` | What it is | Mount |
+|---|---|---|---|
+| 1 | `docker-compose.prod.yml` | the stack definition itself | — |
+| 2 | `.env.prod` | every secret and hostname | — |
+| 3 | `caddy/Caddyfile` | TLS, routes, security headers | single file |
+| 4 | `frontend-config.json` | the SPA runtime configuration | single file |
+| 5 | `keycloak/realm-export.json` | realm, roles, clients | single file |
+| 6 | `keycloak/themes/wartungsassistent/` | the login theme | directory |
+| 7 | `postgres/init-keycloak-db.sh` | runs once, on an empty data directory | single file |
+
+**OPS RULE 3 applies to all four single-file mounts (3, 4, 5, 7).** A single-file bind mount
+tracks the file's INODE, not its path: replacing the host file with `mv` gives it a new inode
+and the container keeps reading the old one, silently — `caddy validate` and `caddy reload` run
+INSIDE the container and both happily report success against stale content. **Always `cp` OVER
+the existing file**, or `up -d --force-recreate <service>`. Never `mv`. The theme (6) is a
+directory mount and does not carry the trap, though theme caching means it still needs a
+force-recreate to take effect.
+
+### frontend-config.json
+
+The frontend image is environment-agnostic on purpose: it is built once and deployed anywhere,
+so it cannot contain a hostname. `config.json` is bind-mounted over the built bundle and read
+once at startup by `ConfigService`, before the first route renders.
+
+`frontend-config.json.example` in this directory is **the shape**; the copy on the server is
+**the value**. Its three keys are exactly the `RuntimeConfig` interface
+(`frontend/src/app/core/config/runtime-config.ts`) — `keycloakIssuer`, `keycloakClientId`,
+`apiBaseUrl`. `apiBaseUrl` is `/api` in every environment, because the SPA and the API are
+same-origin behind Caddy; it is in the file so the shape is complete, not because it varies.
+`frontend/public/config.json` is the versioned development copy of the same shape.
+
+A missing or malformed file is **not** an error: `ConfigService` falls back to the values
+compiled into `environment.ts`, so a deployment that forgets the mount serves working defaults
+rather than a blank page. That is a safety net, not a licence — it also means a broken
+`config.json` fails **silently**, pointing the browser at whatever was compiled in. So:
+
+```bash
+# on the host, from /opt/maintenance-assistant
+cp frontend-config.json frontend-config.json.bak-$(date +%Y%m%d-%H%M%S)
+cp /path/to/new frontend-config.json      # cp OVER it — OPS RULE 3
+python3 -m json.tool frontend-config.json >/dev/null && echo "valid JSON"
+docker compose -f docker-compose.prod.yml --env-file .env.prod up -d --force-recreate frontend
+```
+
+`jq empty frontend-config.json` is the shorter check where `jq` is installed; it is not on this
+host, which is why the Python one-liner is written out.
+
+**Backups.** None of these seven are in the nightly `infra/backup.sh`, and that is deliberate
+rather than an omission: the script protects the *data* (a `pg_dump` and the protocol-files
+volume), while the *host* — these files included — is covered by the Hetzner snapshot. arc42
+§7.6.2 says so in as many words: "A snapshot protects the *host* — the compose files,
+`.env.prod`, Caddy's certificate store, the Keycloak database and the state of the OS itself."
 
 ## Reset
 

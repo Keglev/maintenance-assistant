@@ -28,7 +28,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * time on someone's laptop otherwise, which is late.
  *
  * <p>Deliberately not asserted: the exact distribution percentages. They are documented in
- * DOMAIN-MODEL.md and are a judgement call, not an invariant — pinning them here would turn every
+ * domain-model.md and are a judgement call, not an invariant — pinning them here would turn every
  * future corpus addition into a test edit for no benefit.
  */
 class CorpusIntegrityTest {

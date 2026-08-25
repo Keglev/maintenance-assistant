@@ -1552,6 +1552,16 @@ STANDING LIST — small, always visible, never a release of its own:
     because it rides along with a theme change that is being
     hand-deployed anyway, never on its own.
 
+    PARKED 2026-08-24 — THE COMPOSE COMMENT NOW REFERENCES
+    domain-model.md. docker/docker-compose.prod.yml is hand-deployed
+    (OPS RULE 3), and the change is one word inside a comment that no
+    running container reads. The repository is correct as of the ADR-010
+    rename; the deployed file keeps the old spelling until the compose
+    file is deployed for a reason that stands on its own. It rides along
+    with the next hand-deploy that has one, never on its own — a server
+    login and a force-recreate to correct a comment is the same trade
+    the locale-select entry above refuses.
+
     The original entries, kept as written:
   - v1.1.1 POLISH CANDIDATES, parked; they ride into v1.2 unless
     something promotes them: (1) the 60-64rem dead band where the

@@ -2,7 +2,7 @@
 
 | Quality goal (§1.2) | Solution approach | Decision |
 |---|---|---|
-| Verifiable answers | Retrieval-augmented generation over an indexed protocol corpus. Retrieval hits above a similarity threshold produce **Mode A** with a citation per claim; below the threshold the system states that nothing matched and may offer a labelled **Mode B** suggestion. The mode is runtime behaviour, not a stored attribute. | DOMAIN-MODEL §2, NFR-2 |
+| Verifiable answers | Retrieval-augmented generation over an indexed protocol corpus. Retrieval hits above a similarity threshold produce **Mode A** with a citation per claim; below the threshold the system states that nothing matched and may offer a labelled **Mode B** suggestion. The mode is runtime behaviour, not a stored attribute. | domain-model §2, NFR-2 |
 | Data residency | Every component is self-hosted on one EU VPS; the only outbound call is to an EU-hosted, OpenAI-compatible LLM endpoint — **IONOS AI Model Hub**, Berlin (`de-txl`), with Nebius Token Factory as the documented fallback. | [ADR-002](../adr/ADR-002-eu-hosted-llm-provider.md) |
 | Role-correct answers | Keycloak issues JWTs carrying realm roles; the backend validates them as an OAuth2 Resource Server and applies role-based **answer filtering** server-side — the role shapes the generated content, not just page access. | [ADR-003](../adr/ADR-003-keycloak-for-iam.md), NFR-3 |
 | Operability & solo delivery | One Spring Boot application, internally modularised into `ingestion` / `query` / `web`, with in-process Spring events for the asynchronous indexing flow. Three containers total. | [ADR-001](../adr/ADR-001-modular-monolith-first.md) |
@@ -43,7 +43,7 @@ Three entities — `MACHINE` → `PROTOCOL` → `CHUNK` — where the chunk is t
 protocol is the *citation* unit and the machine is the *filter* unit. Users are deliberately not in
 the database: identity and roles live in Keycloak and the application only reads token claims.
 `CHUNK` carries a denormalised `machine_id` and `error_code` so a filtered vector search is one
-query. Details and rationale: [DOMAIN-MODEL.md](../DOMAIN-MODEL.md).
+query. Details and rationale: [domain-model.md](../domain-model.md).
 
 ## 4.4 Delivery strategy
 

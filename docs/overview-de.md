@@ -55,4 +55,4 @@ Drei Container tragen den gesamten Stack — Anwendung, PostgreSQL, Keycloak —
 
 - [Architekturentscheidungen (ADRs)](adr/index.html) — warum diese Entscheidungen, und was verworfen wurde
 - [Architektur (arc42)](architecture/index.html) — die vollständige Dokumentation
-- [Anforderungen](REQUIREMENTS.html) — User Stories und die sieben nicht-funktionalen Anforderungen
+- [Anforderungen](requirements.html) — User Stories und die sieben nicht-funktionalen Anforderungen

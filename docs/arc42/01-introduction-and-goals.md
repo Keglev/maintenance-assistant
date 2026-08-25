@@ -14,7 +14,7 @@ site.
 exclusively in the EU. It is explicitly **not** a ticketing or CMMS system; the escalation chain is
 organisational context, not a system feature.
 
-Full requirements: [REQUIREMENTS.md](../REQUIREMENTS.md). Phase 1 scope covers user stories US-1 to
+Full requirements: [requirements.md](../requirements.md). Phase 1 scope covers user stories US-1 to
 US-8.
 
 ## 1.2 Quality goals

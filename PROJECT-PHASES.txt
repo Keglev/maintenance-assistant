@@ -1660,6 +1660,17 @@ rather than given one afterwards.
          GATED by the workflow that actually exercises it." The same
          reasoning that put .github/scripts/docs/** into docs-pr-check on
          2026-08-21. FIX.
+         FIXED 2026-08-25, #95. '.github/actions/e2e-stack/**' added to both
+         of frontend-e2e.yml's filter lists, in the visual workflow's own
+         position and quoting. Re-measured over 399 tracked files: gaps 0,
+         build-and-test overlaps 6 — UNCHANGED, and that is not a null
+         result but a correction. The overlap count only ever counted the
+         three workflows that report the required check; e2e and visual
+         report `e2e` and `visual` and were never in it. What did change is
+         the thing the finding was about: action.yml now measures
+         e2e=true visual=true, where it was visual-only. The only remaining
+         asymmetry between the two suites is each one's own file, which is
+         correct.
 
      C5  frontend-e2e-visual.yml:18 — names a script that does not
          exist. The header says baselines are generated with
@@ -1714,6 +1725,10 @@ rather than given one afterwards.
          judgement a survey gets to make.
          RULED 2026-08-25: delete the commented-out dev app: block and
          its five settings. Its own PR, with C9 and C10.
+         2026-08-25: docker-compose.yml:5 "Three containers per ADR-001"
+         must be made true in that same PR — the dev stack defines two
+         services with the third commented out, so deleting the block
+         without touching the line leaves a count describing nothing.
 
      C9  docker/.env.example:24-33 — five settings with no consumer.
          APP_PORT, KEYCLOAK_ISSUER_URI, LLM_BASE_URL, LLM_API_KEY,
@@ -1759,6 +1774,16 @@ rather than given one afterwards.
          REFACTOR-STANDARDS, DOCS + "Comments explain WHY, never WHAT" —
          a WHY that is no longer true is worse than no comment. FIX.
          FIXED 2026-08-25, #94.
+         2026-08-25: fourth instance docker/README.md:4-5 and THREE arc42
+         statements — 02-architecture-constraints.md TC-3,
+         07-deployment-view.md Images row, and 07 again at the deploy
+         narrative — still claim multi-arch. The README line is prose and
+         is corrected in the C14 PR. TC-3 IS NOT PROSE AND NEEDS A RULING:
+         it is a CONSTRAINT ("every image is published for amd64 and arm64,
+         and CI builds multi-arch") whose own rationale column says it was
+         "Kept after the move to x86 on purpose". The deploy workflows
+         breach it. Either the arm64 leg comes back or TC-3 is amended, and
+         a comment PR does not get to choose. RULING NEEDED.
 
      C13 backend/Dockerfile:33 vs docker/postgres/init-keycloak-db.sh:9
          — THE HOST RUNS A DIFFERENT NUMBER OF CONTAINERS IN EACH FILE.
@@ -1874,6 +1899,24 @@ rather than given one afterwards.
          here: "LF will be replaced by CRLF the next time Git touches
          it". no written rule. WATCH — a .gitattributes with
          `*.sh text eol=lf` is the cheap half.
+         FIXED 2026-08-25, #95. Both added at the root. EVERY SIZE WAS
+         MEASURED FIRST, so the config describes the repository rather
+         than imposing on it: java 4 (99 of 123 files), and ts/js/mjs,
+         json, yml, html, css all 2 and unanimous. Two sections the
+         original scope did not anticipate came out of that measurement —
+         sql 4 (5 of 6), and Caddyfile tab (97 tab-indented lines), which
+         `indent_style = space` would otherwise describe wrongly. TWO
+         THINGS WORTH KNOWING. frontend/.editorconfig already sets
+         root = true, so nothing in the new root file reaches frontend/;
+         .gitattributes settles line endings for both trees regardless,
+         because it knows nothing about editorconfig roots. And the tabs
+         in init-keycloak-db.sh are FUNCTIONAL — its heredoc opens `<<-SQL`
+         and `<<-` strips leading tabs only — so the file carries a written
+         guard against an editor converting them rather than a section that
+         would be just as wrong in the other direction.
+         `git add --renormalize .` changed NO tracked file: the repository
+         already stores LF throughout, so eol=lf ratifies the state rather
+         than converting it.
 
      C20 docker-compose.prod.yml:21-41,47-53,59-120 — HEALTH IS CHECKED
          ON THE HALF OF THE STACK THAT DID NOT NEED IT. postgres and
@@ -1933,6 +1976,24 @@ rather than given one afterwards.
          Six-part plan item 3 again. WATCH — an ignore rule that matches
          nothing is cheap noise, but it is noise that reads as a claim
          about what this repository contains.
+         FIXED 2026-08-25, #95 — but four deleted, not six, and the two
+         kept are the point. All six were re-measured and all six are dead
+         today. DELETED: bazel-out/ (no bazel toolchain anywhere, and
+         Angular dropped Bazel), spike/adr-002/.env (git check-ignore shows
+         the bare `.env` already covers it at any depth), !**/src/**/*.key
+         (a negation that WEAKENS the *.key secret guard — deleting it
+         strengthens the repository), and !.vscode/settings.json.example
+         (names a file with no precedent anywhere in the tree).
+         KEPT, AND GIVEN THE COMMENT THEY NEVER HAD:
+         !.mvn/wrapper/maven-wrapper.jar and !.vscode/extensions.json. Both
+         are GUARDS — the only lines that would let their file past `*.jar`
+         and `.vscode/*` — and `mvn wrapper:wrapper` is one command away
+         while the identical vscode file is already tracked at
+         frontend/.vscode/extensions.json. Deleting a guard to win a
+         tidiness point is the exact move the waiver register's own text
+         warns about ("leaves the next reader deleting a guard to win a
+         branch"), so they stay and now say why. `git status --ignored` is
+         byte-identical before and after: 18 paths, both times.
 
    (c) CLEAN — measured, nothing found
      - THE PATH PARTITION. 397 files, 0 gaps, 6 deliberate overlaps.

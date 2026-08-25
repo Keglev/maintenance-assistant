@@ -155,7 +155,7 @@ public class ProtocolEditService {
 <span class="fc" id="L155">                .param(&quot;id&quot;, protocolId)</span>
 <span class="fc" id="L156">                .param(&quot;title&quot;, title)</span>
 <span class="fc" id="L157">                .param(&quot;errorCode&quot;, blankToNull(correction.errorCode()), java.sql.Types.VARCHAR)</span>
-                // `symptom` holds the document text, as the upload path writes it (DOMAIN-MODEL.md).
+                // `symptom` holds the document text, as the upload path writes it (domain-model.md).
 <span class="fc" id="L159">                .param(&quot;content&quot;, content)</span>
 <span class="fc" id="L160">                .param(&quot;now&quot;, OffsetDateTime.now())</span>
 <span class="fc" id="L161">                .update();</span>

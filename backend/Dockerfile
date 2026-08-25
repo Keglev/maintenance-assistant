@@ -1,6 +1,8 @@
 # Multi-stage build for the maintenance-assistant backend.
 # Both base images are published for linux/amd64 and linux/arm64, so the same file
-# builds on an Apple Silicon laptop and for the Hetzner CAX (arm64) target host.
+# builds on a laptop of either architecture. The image CI publishes is amd64 only:
+# production is a Hetzner CX33 (x86_64) — see docs/arc42/07-deployment-view.md —
+# and backend-deploy.yml's build-push step records why the arm64 leg was dropped.
 
 # --- build ------------------------------------------------------------------
 FROM maven:3.9-eclipse-temurin-21 AS build
@@ -30,7 +32,8 @@ COPY --from=build --chown=app:app /build/target/*.jar /app/application.jar
 USER app
 EXPOSE 8080
 
-# Container-aware heap sizing; the VPS runs three containers in ~8 GB (NFR-5).
+# Container-aware heap sizing; the VPS runs five containers in ~8 GB (NFR-5) —
+# caddy, frontend, backend, keycloak and postgres, per docker/docker-compose.prod.yml.
 ENV JAVA_OPTS="-XX:MaxRAMPercentage=75.0"
 
 ENTRYPOINT ["sh", "-c", "exec java $JAVA_OPTS -jar /app/application.jar"]

@@ -4,7 +4,8 @@
 #
 # Three containers per ADR-001: the application, PostgreSQL + pgvector, and Keycloak.
 # All images below are published for linux/amd64 and linux/arm64, so the same file runs
-# on an Apple Silicon laptop and on the Hetzner CAX (arm64) target host.
+# on a laptop of either architecture. Production is a Hetzner CX33 (x86_64) and the
+# images CI publishes for it are amd64 only — see docs/arc42/07-deployment-view.md.
 
 name: maintenance-assistant
 

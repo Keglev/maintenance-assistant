@@ -1,6 +1,8 @@
 # Multi-stage build for the maintenance-assistant frontend.
 # Both base images are published for linux/amd64 and linux/arm64, so the same file
-# builds for a laptop and for the Hetzner CAX (arm64) target host.
+# builds on a laptop of either architecture. The image CI publishes is amd64 only:
+# production is a Hetzner CX33 (x86_64) — see docs/arc42/07-deployment-view.md —
+# and frontend-deploy.yml's build-push step records why the arm64 leg was dropped.
 
 # --- build ------------------------------------------------------------------
 FROM node:22-alpine AS build

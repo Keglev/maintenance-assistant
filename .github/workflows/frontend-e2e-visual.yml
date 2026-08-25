@@ -15,7 +15,7 @@ name: frontend-e2e-visual
 # PLAYWRIGHT RUNS INSIDE THE CONTAINER, not on the runner, and that is what makes the baselines
 # stable. Font rendering is a property of the machine: the same page screenshotted on Windows and on
 # a GitHub runner differs on nearly every glyph edge, which would make a committed baseline
-# permanently red. Baselines are generated locally with `npm run e2e:visual:update:docker` — the same
+# permanently red. Baselines are generated locally with `npm run e2e:visual:update` — the same
 # `mcr.microsoft.com/playwright:v1.56.0-noble` image this job uses — so the only environment that
 # ever produces or checks a baseline is that one image. See frontend/e2e/README.md.
 on:

@@ -449,3 +449,17 @@ Status: v1.3.0 released; refactor phase, Part 2 closed 2026-08-25, Part 3 next
   two Flyway migrations appear in no diff and their sha256 sums are unchanged, so three comment
   lines now name a file that no longer exists under that name — on purpose, and documented where a
   reader will look before reaching for a fix.
+- PART 3 (CONFIG AND DEPLOYMENT) SURVEYED 2026-08-25 (#93): 24 findings, and the five that
+  needed a ruling were ruled the same day. THE GHOST PAGES (C2) get a SINGLE STAGED PUBLISH —
+  gh-pages is checked out, the subtrees this run rebuilt are replaced wholesale, keep_files goes
+  off; its own PR, last in the wave, because an append-only site cannot express a deletion and
+  #91's rename proved it. THE COMMENTED-OUT DEV app: SERVICE (C8, C9, C10) IS DELETED with the
+  five .env.example settings that only it read, empty assignments included — a setting nothing
+  reads is a claim that something does. FRONTEND-CONFIG.JSON GETS AN .example (C14) and the
+  record stops saying three hand-deployed files where there are four: compose, .env.prod, the
+  Caddyfile and this one, which OPS RULE 3 already named in an aside nobody counted. EVERY ACTION
+  IS PINNED TO A SHA (C16) with a monthly grouped dependabot.yml, so the pins are maintained
+  rather than frozen — two of them are third-party and one holds contents: write on gh-pages.
+  THE SPIKE'S CITATIONS ARE FROZEN (C23): Part 2's F6 extends from the spike's own filenames to
+  the file paths it cites, so spike/adr-002/ is not edited by a rename that happened after the
+  decision it records was Accepted. C18, C20 and C21 are WATCH and earn no PR.

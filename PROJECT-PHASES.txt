@@ -5,7 +5,7 @@ Naming update overriding older docs: project = "maintenance-assistant",
 Keycloak realm = "maintenance". English repo name is intentional.)
 
 =====================================================================
-CURRENT STATUS — 2026-08-24 (v1.3.0 TAGGED; REFACTOR PHASE, PART 1 DONE)
+CURRENT STATUS — 2026-08-25 (v1.3.0 TAGGED; PART 2 CLOSED, PART 3 NEXT)
 =====================================================================
 v1.3.0 IS THE LATEST TAG, 2026-08-20. The release history, from the
 repository's own tags: v0.1.0 2026-08-06, v1.0.0 2026-08-08, v1.1.0
@@ -1205,6 +1205,11 @@ rather than given one afterwards.
          a single staged publish. KEEP_FILES MUST SURVIVE IT — all three
          steps set keep_files: true today, and it is what stops each
          publish deleting the trees the others wrote.
+         2026-08-25, after #91: gh-pages still serves DOMAIN-MODEL.html,
+         REQUIREMENTS.html and the two .md copies (HTTP 200) beside the
+         renamed pages; keep_files: true on all four publish steps makes
+         the site append-only, so every rename or deletion leaves a ghost.
+         Not hand-deleted, deliberately — the Part 3 survey measures this.
        - prettier is a devDependency with NO format script and NO format
          step in frontend-ci.yml. The formatting findings on
          moderation.ts and moderation.html are still open, and the gate
@@ -1526,6 +1531,11 @@ rather than given one afterwards.
        itself carries no version. #91 corrected the two file names in
        that line and left the dead pointer and the version alone —
        fixing them is a content edit, not a rename.
+       FIXED 2026-08-25, #92: the Status line now carries Part 2's close
+       and the details line reads "requirements.md, domain-model.md, adr/
+       — index in adr/README.md", so the dead pointer and the stale version
+       tag are both gone. Marked rather than deleted: this is where the
+       finding was raised.
 
 5. PHASE 5 — EVOLUTION CANDIDATES (unchanged list, optional):
    similar-machine search, OCR, downtime stats, PDF export (generation,

@@ -1,0 +1,51 @@
+# EditorConfig — https://editorconfig.org
+#
+# THIS FILE DESCRIBES THE REPOSITORY, IT DOES NOT IMPOSE ON IT. Every size below
+# was measured against the tracked files before it was written (the histograms
+# are in the pull request that added this file), so applying it reformats
+# nothing. A style rule invented here rather than measured would turn the next
+# save into a diff nobody asked for.
+#
+# SCOPE, AND IT IS NOT THE WHOLE REPOSITORY: frontend/.editorconfig also sets
+# `root = true`, which stops the lookup there. Nothing in this file reaches
+# frontend/, and nothing here needs to — that file already says 2-space, UTF-8,
+# final newline, no trailing whitespace. Git-side line endings are settled for
+# BOTH trees by .gitattributes, which knows nothing about editorconfig roots.
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+
+# 4, measured: 99 of the 123 tracked .java files indent their first level by 4.
+[*.java]
+indent_size = 4
+
+# 2, measured and unanimous across every tracked file of each type.
+[*.{ts,js,mjs,json,yml,yaml,html,css,scss}]
+indent_size = 2
+
+# 4, measured: 5 of the 6 tracked migrations and seed scripts.
+[*.sql]
+indent_size = 4
+
+# Two trailing spaces are a line break in Markdown, so trimming them edits the
+# rendered document rather than tidying the source.
+[*.md]
+trim_trailing_whitespace = false
+
+# The Caddyfile is tab-indented — 97 lines of it — and this section exists so
+# `indent_style = space` above does not describe it wrongly. Caddy accepts
+# either; the file is consistent and there is no reason to churn it.
+[Caddyfile]
+indent_style = tab
+
+# DO NOT LET AN EDITOR CONVERT THE TABS IN docker/postgres/init-keycloak-db.sh.
+# Its heredoc opens with `<<-SQL`, and `<<-` strips leading TABS ONLY: spaces
+# there leave the SQL body indented and the terminator unrecognised. The three
+# lines inside that heredoc are functional whitespace, not style. No section is
+# written for it, because forcing the whole file to tabs would be just as wrong
+# — this note is the guard.

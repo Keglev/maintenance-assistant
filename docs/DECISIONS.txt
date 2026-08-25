@@ -463,3 +463,16 @@ Status: v1.3.0 released; refactor phase, Part 2 closed 2026-08-25, Part 3 next
   THE SPIKE'S CITATIONS ARE FROZEN (C23): Part 2's F6 extends from the spike's own filenames to
   the file paths it cites, so spike/adr-002/ is not edited by a rename that happened after the
   decision it records was Accepted. C18, C20 and C21 are WATCH and earn no PR.
+- PART 3 WAVE, PR 2 (#95): THE PARTITION GAP AND THE ROOT HYGIENE FILES. frontend-e2e.yml now
+  lists '.github/actions/e2e-stack/**' among its trigger paths, so editing the composite action
+  that provisions the whole test stack runs the functional suite that depends on it and not
+  only the visual one — the same rule that put .github/scripts/docs/** into docs-pr-check in
+  August: EVERY PATH IS GATED BY THE WORKFLOW THAT ACTUALLY EXERCISES IT. The build-and-test
+  overlap count is unchanged at 6 and that is a correction, not a null result: it only ever
+  counted the three workflows reporting the required check. A root .editorconfig and
+  .gitattributes settle indentation and line endings in the repository instead of per machine;
+  `* text=auto eol=lf` overrides whatever core.autocrlf each clone happens to carry, and
+  `git add --renormalize .` proved the repository already stores LF throughout, so nothing was
+  converted. FOUR DEAD .gitignore RULES WENT AND TWO STAYED: a rule that matches nothing today
+  but is the only thing standing between a plausible artefact and a broader ignore is a GUARD,
+  not dead code, and the two that stayed now carry the comment that says so.

@@ -3,6 +3,9 @@
 # ---------------------------------------------------------------------------
 target/
 build/
+# KEPT DELIBERATELY THOUGH NOTHING MATCHES IT TODAY: this negation is the only
+# thing that would let a maven wrapper past `*.jar` below, and `mvn wrapper:wrapper`
+# is one command away. A guard is not dead code because it has not fired yet.
 !.mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/
@@ -25,7 +28,6 @@ node_modules/
 dist/
 tmp/
 out-tsc/
-bazel-out/
 npm-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
@@ -68,12 +70,11 @@ TEST-*.xml
 # not secrets; only the real .env.prod they are copied to stays out.
 !.env.*.example
 !**/.env.*.example
-# Provider API keys for the ADR-002 spike (spike/adr-002/.env.example is the
-# versioned template).
-spike/adr-002/.env
+# The ADR-002 spike keeps provider keys in spike/adr-002/.env, which the bare
+# `.env` above already covers at any depth; spike/adr-002/.env.example is the
+# versioned template and is un-ignored by the !**/.env.example line.
 *.pem
 *.key
-!**/src/**/*.key
 
 # ---------------------------------------------------------------------------
 # IDE / editor
@@ -83,8 +84,11 @@ spike/adr-002/.env
 *.ipr
 *.iws
 .vscode/*
+# Nothing matches this today either, and it stays for the same reason as the maven
+# wrapper above: the identical file is tracked at frontend/.vscode/extensions.json,
+# so a shared recommendation list at the root is a pattern this repository already
+# uses, and this line is what would let one be committed.
 !.vscode/extensions.json
-!.vscode/settings.json.example
 .settings/
 .project
 .classpath

@@ -6,7 +6,7 @@
 ## 8.1 Persistence and the database schema
 
 `MACHINE` → `PROTOCOL` → `CHUNK`: machine is the filter unit, protocol the citation unit, chunk
-the search unit. [DOMAIN-MODEL.md](../DOMAIN-MODEL.md) holds the conceptual model and the reasoning;
+the search unit. [domain-model.md](../domain-model.md) holds the conceptual model and the reasoning;
 this section records the schema as it actually exists in the database.
 
 The schema is owned by **Flyway**, not by JPA. `backend/src/main/resources/db/migration/` is the
@@ -67,7 +67,7 @@ schema change is a reviewable file in a pull request rather than a side effect o
 | `error_code` | `varchar(64)` | **denormalized** from protocol, nullable |
 | `created_at` | `timestamptz` | default `now()` |
 
-`chunk_index` is the one column not in DOMAIN-MODEL.md. It makes re-indexing a
+`chunk_index` is the one column not in domain-model.md. It makes re-indexing a
 delete-and-reinsert with a stable identity and gives citations a deterministic order.
 
 ### Three schema-level decisions

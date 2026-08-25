@@ -22,7 +22,7 @@ implementation phases land — an empty section here is an honest "not built yet
 | 11 | [Risks and Technical Debt](11-risks-and-technical-debt.md) | stub |
 | 12 | [Glossary](12-glossary.md) | written |
 
-**Sources of truth:** [REQUIREMENTS.md](../REQUIREMENTS.md), [DOMAIN-MODEL.md](../DOMAIN-MODEL.md),
+**Sources of truth:** [requirements.md](../requirements.md), [domain-model.md](../domain-model.md),
 [DECISIONS.txt](../DECISIONS.txt), [PROJECT-PHASES.txt](../PROJECT-PHASES.txt). Where this
 documentation and those files disagree, those files win.
 

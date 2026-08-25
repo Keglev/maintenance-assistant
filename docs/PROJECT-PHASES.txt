@@ -33,13 +33,14 @@ disagree.
     THE FIGURES, THE CHAIN, THE WAIVERS AND THE CARRIED FINDINGS ARE
     IN THE "PART 1 CLOSE-OUT" ENTRY BELOW and are deliberately not
     duplicated here — one home per fact.
-  PARTS 2 to 6 — REMAINING: code structure, config and root files,
-    dead and redundant code, code comments against
-    docs/REFACTOR-STANDARDS.txt, and docs last.
-    PART 2 IS SURVEYED, 2026-08-24, AWAITING RULINGS — seven findings and
-    two RULING NEEDED items in the "PART 2 — CODE STRUCTURE SURVEY" entry
-    below. Nothing has been moved or renamed; the fixes are their own
-    small pull requests once ruled.
+  PART 2 — CODE STRUCTURE: CLOSED 2026-08-24. Seven findings, all
+    dispositioned: F1 fixed in #89, F2 ruled by ADR-010 in #90 and fixed
+    in #91, F3 ruled in #90, F4 and F5 WATCH with no pull request, F6 and
+    F7 ACCEPT. Detail in the "PART 2 — CODE STRUCTURE SURVEY" entry and
+    its close-out below.
+  PARTS 3 to 6 — REMAINING: config and root files, dead and redundant
+    code, code comments against docs/REFACTOR-STANDARDS.txt, and docs
+    last.
 
 WHAT THIS HEADER IS FOR. It is the first thing every AI session reads,
 so it says where the project is TODAY and points at the detail rather
@@ -1328,6 +1329,9 @@ rather than given one afterwards.
          pages, SCREAMING kept for ledgers, ADRs and ADR-TEMPLATE;
          DOMAIN-MODEL.md and REQUIREMENTS.md rename in a follow-up, and
          the three migration comments citing them stay FROZEN.
+       FIXED 2026-08-24, #91: renamed; 19 citing files updated, 2 frozen
+         (migrations), 16 historical left as records (ADR-010 and this
+         survey entry), 5 in closed artefacts under spike/ and infra/.
 
    F3  docs/_theme/index.html and index-de.html — RULING NEEDED
        current: the site's two landing PAGES live in the theme tree,
@@ -1356,6 +1360,7 @@ rather than given one afterwards.
          FIX: playwright.config.ts sets testMatch: /.*\.e2e\.ts$/, so no
          helper can be collected as a spec. The inconsistency is that one
          piece of tooling was given a folder and two were not.
+       RULED 2026-08-24: WATCH, no PR.
 
    F5  backend test doubles, three naming shapes — WATCH
        current: FakeEmbeddingClient (Fake prefix), ProviderStub (Stub
@@ -1366,6 +1371,7 @@ rather than given one afterwards.
          fixtures kind ("Fixtures modules"), so the other two are
          unruled. Recorded so a fourth double is named deliberately
          rather than by whichever file its author read first.
+       RULED 2026-08-24: WATCH, no PR.
 
    F6  spike/adr-002 round naming — ACCEPT
        current: round 1 is spike.py -> results.json; round 2 is
@@ -1375,6 +1381,7 @@ rather than given one afterwards.
        ACCEPT because the spike is a closed, dated artefact and all four
          names are cited in its own README.md and RESULTS.md; renaming
          would edit the records of a decision that is already Accepted.
+       RULED 2026-08-24: ACCEPT.
 
    F7  lychee.toml at the repository root — ACCEPT
        its only consumer is docs-pr-check.yml, which passes
@@ -1383,6 +1390,7 @@ rather than given one afterwards.
        and the file documents its own placement, so it stays. Noted only
        because the survey maps current against correct rather than
        listing what looks wrong.
+       RULED 2026-08-24: ACCEPT.
 
    (c) AREAS FOUND CLEAN, each checked rather than assumed.
      BACKEND PACKAGES: main 27 ingestion / 18 query / 14 web / 5
@@ -1450,6 +1458,74 @@ rather than given one afterwards.
      - nav-docs.html lists ADR-001 to ADR-004 of nine — already carried
        to PART 6 by the PART 1 close-out; repeated here only because this
        survey walked the same tree and confirmed it still holds.
+
+   PART 2 CLOSE-OUT — DONE, 2026-08-24. Seven findings, three pull
+   requests, and four dispositions that needed none. The survey moved
+   nothing; every change below was its own small PR after a ruling,
+   which is the shape the six-part plan asks for.
+
+   (a) WHAT SHIPPED
+     #89 — F1: the three README screenshots moved from docs/assets/img/
+       to assets/img/, beside the repository-root README that is their
+       only consumer. The docs build never read docs/assets, while the
+       site serves an /assets/ built from docs/_theme — so the obvious
+       place to put a site image was the one place the build ignores.
+       Three renames at 100%, sha256 identical, three <img src> updated.
+     #90 — F2 and F3 ruled, as ADR-010. Explanatory markdown under docs/
+       is lowercase-kebab; the .txt ledgers, the ADR files and
+       ADR-TEMPLATE stay SCREAMING. The site's hand-written landing
+       pages stay in docs/_theme/ with the assets they reference. Two
+       lines in the standards point at the ADR rather than repeating it.
+     #91 — F2 implemented: DOMAIN-MODEL.md -> domain-model.md and
+       REQUIREMENTS.md -> requirements.md, 19 citing files updated, both
+       renames at 100% because neither file referenced itself or the
+       other. THE TWO FLYWAY MIGRATIONS WERE NOT TOUCHED and their
+       sha256 sums are unchanged: the checksum covers comments, so
+       editing V1 would stop the application starting until a manual
+       repair against production. Three comment lines now name a file
+       that no longer exists under that name, deliberately, and ADR-010
+       is where that is explained. THIS IS THE FIRST TIME THE FROZEN-
+       CITATION RULE HAS BEEN APPLIED; it worked, and the proof is that
+       the two migrations appear in no diff.
+
+   (b) WHAT WAS RULED AND NOT DONE, and why that is a result
+     F4 frontend/e2e/ flat layout — WATCH. Specs, helpers and two
+       tooling scripts share one level while the provider stub has a
+       folder. CORRECTNESS IS NOT AT RISK: playwright.config.ts sets
+       testMatch: /.*\.e2e\.ts$/, so no helper can be collected as a
+       spec. Cosmetic, recorded, not worth a PR today.
+     F5 backend test doubles, three naming shapes — WATCH. Fake* prefix,
+       *Stub suffix, *Fixtures suffix. They are different kinds and the
+       standards name only the fixtures kind, so the other two are
+       unruled rather than wrong. Recorded so a fourth double is named
+       deliberately rather than by whichever file its author read first.
+     F6 spike/adr-002 round naming — ACCEPT. Round 1 is spike.py ->
+       results.json while round 2 is round2.py -> round2.json. The
+       asymmetry is real and the spike is a closed, dated artefact whose
+       own README and RESULTS cite all four names; renaming would edit
+       the records of a decision that is already Accepted.
+     F7 lychee.toml at the repository root — ACCEPT. Its only consumer
+       passes --config explicitly, so nothing forces the root; the root
+       is the conventional home for a repository-scoped tool config and
+       the file documents its own placement.
+
+   (c) CARRIED TO LATER PARTS, unchanged from the survey's own list
+     PART 4 — docs/scripts/generate-diagrams.sh calls itself "a thin
+       POSIX wrapper ... for CI steps", but no CI step invokes it: both
+       workflows and both citing docs pages call the .mjs directly.
+     PART 6 — docs/runbooks/ is never converted by the docs build, so
+       seed-v12-protocols.md is tracked but unpublished. Whether it
+       should be published is a content question.
+     PART 6 — nav-docs.html lists ADR-001 to ADR-004 and now ADR-010.
+       There are ten ADRs; 005 to 009 remain unreachable from the
+       navigation. #90 added 010 and deliberately did not close the gap,
+       because the gap is this finding rather than that PR's mission.
+     ALSO SEEN WHILE RENAMING, PART 6: docs/DECISIONS.txt's header line
+       still points at ARCHITECTURE-RATIONALE.md, which does not exist
+       in this repository, and at "REQUIREMENTS.md v0.2" while the page
+       itself carries no version. #91 corrected the two file names in
+       that line and left the dead pointer and the version alone —
+       fixing them is a content edit, not a rename.
 
 5. PHASE 5 — EVOLUTION CANDIDATES (unchanged list, optional):
    similar-machine search, OCR, downtime stats, PDF export (generation,
@@ -1551,6 +1627,16 @@ STANDING LIST — small, always visible, never a release of its own:
     re-litigated every session. If it is ever reopened it must be
     because it rides along with a theme change that is being
     hand-deployed anyway, never on its own.
+
+    PARKED 2026-08-24 — THE COMPOSE COMMENT NOW REFERENCES
+    domain-model.md. docker/docker-compose.prod.yml is hand-deployed
+    (OPS RULE 3), and the change is one word inside a comment that no
+    running container reads. The repository is correct as of the ADR-010
+    rename; the deployed file keeps the old spelling until the compose
+    file is deployed for a reason that stands on its own. It rides along
+    with the next hand-deploy that has one, never on its own — a server
+    login and a force-recreate to correct a comment is the same trade
+    the locale-select entry above refuses.
 
     The original entries, kept as written:
   - v1.1.1 POLISH CANDIDATES, parked; they ride into v1.2 unless

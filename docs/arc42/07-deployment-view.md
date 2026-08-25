@@ -137,7 +137,7 @@ target — has exactly the same effect as `mv`.
 
 ### Protocol documents and the volume
 
-`protocol.source_file` stores a path, never the document (DOMAIN-MODEL.md keeps BLOBs out of
+`protocol.source_file` stores a path, never the document (domain-model.md keeps BLOBs out of
 Postgres), so the `protocol-files` volume *is* the documents. Two things have to line up, and both
 are now in the compose file:
 
@@ -258,7 +258,7 @@ and driven by a systemd timer at **03:15 UTC**. It writes two artefacts to
 
 **Both are needed, and neither is sufficient.** The database stores only the *path* of an uploaded
 protocol document (`protocol.source_file`); the document itself lives on the volume, because
-DOMAIN-MODEL.md keeps BLOBs out of Postgres. A database dump restored on its own gives you rows
+domain-model.md keeps BLOBs out of Postgres. A database dump restored on its own gives you rows
 whose `source_file` points at nothing.
 
 For the **synthetic corpus the volume archive is redundant** — those documents are regenerated from

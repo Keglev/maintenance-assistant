@@ -110,7 +110,7 @@ services:
       LLM_API_KEY: ${LLM_API_KEY:-}
     volumes:
       # Original uploaded documents. The database stores only the path
-      # (DOMAIN-MODEL.md: no BLOBs), so this volume is the documents.
+      # (domain-model.md: no BLOBs), so this volume is the documents.
       - protocol-files:/var/lib/maintenance/files
     depends_on:
       postgres:

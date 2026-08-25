@@ -55,10 +55,10 @@ The `V1` schema is frozen — none of it becomes a column.
 ```
 
 `meta.demo` is the one field worth grepping before changing anything: those protocols carry the
-demo scenarios described in `docs/DOMAIN-MODEL.md` §4, and rewording them can break a demo query.
+demo scenarios described in `docs/domain-model.md` §4, and rewording them can break a demo query.
 
 ## Distribution
 
-Documented and kept current in [docs/DOMAIN-MODEL.md](../../../../../../docs/DOMAIN-MODEL.md) §4.
+Documented and kept current in [docs/domain-model.md](../../../../../../docs/domain-model.md) §4.
 Verify it against the file rather than trusting this paragraph — the loader logs the same figures
 on startup.

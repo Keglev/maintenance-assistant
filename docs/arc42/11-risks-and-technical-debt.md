@@ -12,7 +12,7 @@
 | R-5 | **Mode B can still mislead**, even when labelled ungrounded. | An operator could act on a generic suggestion. | Visual distinction from Mode A; operator-safe steps and escalation advice only for Operators; never presented as fact. |
 | R-6 | **Single VPS, no redundancy.** | The demo is down if the host is down. | Accepted for a portfolio deployment; recovery is a fresh `docker compose up` from a snapshot. |
 | R-7 | **Keycloak realm drift.** A change made in the admin console but not re-exported disappears on the next fresh start. | Demo users or roles could vanish. | The realm export is versioned in the repository and imported at startup; re-export is part of any realm change. |
-| R-8 | **Free-text `error_code`** (no lookup table), and `downtime_minutes` captured but unused in Phase 1. | Minor inconsistency in the data model. | Accepted knowingly; both are open review points in [DOMAIN-MODEL.md](../DOMAIN-MODEL.md) §4. |
+| R-8 | **Free-text `error_code`** (no lookup table), and `downtime_minutes` captured but unused in Phase 1. | Minor inconsistency in the data model. | Accepted knowingly; both are open review points in [domain-model.md](../domain-model.md) §4. |
 
 ## 11.1 Upload abuse, quantified
 

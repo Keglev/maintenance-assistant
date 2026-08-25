@@ -55,5 +55,5 @@ one `docker compose up`.
 
 - [Architecture Decision Records](adr/index.html) — why each of those choices, and what was rejected
 - [Architecture (arc42)](architecture/index.html) — the full documentation
-- [Requirements](REQUIREMENTS.html) — user stories and the seven non-functional requirements
-- [Domain model](DOMAIN-MODEL.html) — the three entities and the reasoning behind them
+- [Requirements](requirements.html) — user stories and the seven non-functional requirements
+- [Domain model](domain-model.html) — the three entities and the reasoning behind them

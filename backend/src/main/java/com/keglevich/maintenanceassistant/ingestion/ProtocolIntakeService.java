@@ -108,7 +108,7 @@ public class ProtocolIntakeService {
                 .param("protocolType", type)
                 .param("errorCode", blankToNull(submission.errorCode()), java.sql.Types.VARCHAR)
                 .param("title", title)
-                // Extracted text lands in `symptom` per DOMAIN-MODEL.md: an uploaded document is
+                // Extracted text lands in `symptom` per domain-model.md: an uploaded document is
                 // raw observation, not the structured cause/action a form would separate.
                 .param("symptom", content)
                 .param("language", language)

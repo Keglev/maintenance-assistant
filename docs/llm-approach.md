@@ -45,5 +45,5 @@ Exhaustion degrades to a message rather than an error page. The measured cost ma
 acceptable: a full answer costs a fraction of a cent, and demo-volume spend lands in the low single
 digits of euros per month.
 
-Further reading: [Requirements](REQUIREMENTS.html) (NFR-1, NFR-2, NFR-7),
-[Domain model](DOMAIN-MODEL.html), [ADR-004 on pgvector](adr/ADR-004-pgvector-for-vector-search.html).
+Further reading: [Requirements](requirements.html) (NFR-1, NFR-2, NFR-7),
+[Domain model](domain-model.html), [ADR-004 on pgvector](adr/ADR-004-pgvector-for-vector-search.html).

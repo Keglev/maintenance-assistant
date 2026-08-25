@@ -5,7 +5,7 @@
 ## 10.1 Quality tree
 
 To be added. The top-level goals are listed in [§1.2](01-introduction-and-goals.md#12-quality-goals)
-and the full non-functional requirements in [REQUIREMENTS.md](../REQUIREMENTS.md) §4 (NFR-1 to
+and the full non-functional requirements in [requirements.md](../requirements.md) §4 (NFR-1 to
 NFR-7).
 
 ## 10.2 Quality scenarios

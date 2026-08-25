@@ -15,7 +15,7 @@ the difference does not matter.
 
 **Self-written (human):**
 
-- All design documents and the decisions in them: `docs/REQUIREMENTS.md`, `docs/DOMAIN-MODEL.md`,
+- All design documents and the decisions in them: `docs/requirements.md`, `docs/domain-model.md`,
   `docs/DECISIONS.txt`, `docs/PROJECT-PHASES.txt`.
 - Every architecture decision recorded in `docs/adr/` — the trade-offs, the rejected alternatives
   and the reasoning are mine; a model helped phrase them.
@@ -69,7 +69,7 @@ Dockerfile instead, and the PR says so rather than implying the registry holds i
 
 The Flyway baseline schema, the index set, the repeatable machine seed and the schema
 documentation in `docs/arc42/08-crosscutting-concepts.md` were AI-generated from
-`docs/DOMAIN-MODEL.md` and `docs/DECISIONS.txt`, which were handed over as the source of truth.
+`docs/domain-model.md` and `docs/DECISIONS.txt`, which were handed over as the source of truth.
 The domain model itself — three entities, users outside the database, files on a volume,
 denormalized `machine_id` on the chunk, `error_code` as free text — is mine and predates this
 session.
@@ -107,7 +107,7 @@ German and English — the seed loader, and the corpus documentation.
 
 **What it was given, and did not decide:** the ten machines, the fault taxonomy and its intended
 distribution, the demo scenarios, the quality mix, and the instruction that protocols must read
-like plant documentation rather than like a textbook. Those come from `docs/DOMAIN-MODEL.md` and
+like plant documentation rather than like a textbook. Those come from `docs/domain-model.md` and
 `docs/DECISIONS.txt`, and behind them from my own experience with maintenance documentation in US
 and German manufacturing — including the specific insistence that a real plant's faults are *not*
 all technician-level defects, that alarm codes routinely point at the wrong component, and that
@@ -122,7 +122,7 @@ documents.
 
 **How it was validated:**
 
-- *Distribution counted, not estimated.* Every figure in DOMAIN-MODEL.md §4 is counted from the
+- *Distribution counted, not estimated.* Every figure in domain-model.md §4 is counted from the
   file. The first pass came out at 79% clean prose against the ~60/30/10 quality mix that
   DECISIONS.txt calls for — measuring it is what caught that, and 40 protocols were rewritten into
   shift-note and short-unhelpful form before this was committed.

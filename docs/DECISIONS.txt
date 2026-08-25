@@ -528,3 +528,26 @@ Status: v1.3.0 released; refactor phase, Part 2 closed 2026-08-25, Part 3 next
   Closed with it: KEYCLOAK_REALM in docker/.env.example, a seventh dead setting of the family
   #97 removed. The realm name is fixed by docker/keycloak/realm-export.json and imported on
   every start; docker/README.md already says so twice, so nothing was added to replace it.
+- MISSING PROXY AWARENESS, fixed 2026-08-25 (#99), Part 3 C6 and the finding Part 1 carried.
+  Caddy terminates TLS and forwards plain HTTP to backend:8080 with X-Forwarded-Proto, -Host and
+  -For set. SPRING IGNORES THEM UNLESS TOLD, so every URL the application derived from a request
+  described the container rather than the client: http, and the internal host. The visible
+  symptom was /v3/api-docs advertising "url": "http://maintenance.smartsupply.com.de" over an
+  HTTPS-only site, but redirect Location headers and every other absolute link the application
+  builds were wrong the same way. THE FIX IS ONE PROPERTY —
+  server.forward-headers-strategy: framework — AND DELIBERATELY NOT a hardcoded springdoc
+  servers entry, which would have papered over the one symptom anybody had noticed and left the
+  class untouched. framework rather than native: native delegates to the servlet container's own
+  valve, which only Tomcat provides and which carries its own trusted-proxy configuration, while
+  framework is Spring's ForwardedHeaderFilter — container-independent, and it honours
+  X-Forwarded-Prefix too.
+  THE SECURITY CONSIDERATION, STATED RATHER THAN ASSUMED: in framework mode Spring trusts
+  X-Forwarded-* from whatever sent them. That is sound HERE and only here because the backend
+  PUBLISHES NO PORTS — docker-compose.prod.yml renders `ports: null` for it and for every
+  service except caddy, so the only thing that can reach the application is Caddy on the compose
+  network and no client can forge the headers. IF THE BACKEND IS EVER PUBLISHED DIRECTLY, this
+  becomes spoofable and needs a trusted-proxy filter; the property carries that warning at the
+  site. On a laptop the headers are simply absent — the filter falls back to the actual request,
+  and the Angular dev-server proxy sets none — so the default profile needs no exception.
+  DEPLOY REQUIRED: this is the first Part 3 change that alters production behaviour. CI green
+  does not finish it; the backend image ships and the live servers URL is verified after.

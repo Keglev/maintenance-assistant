@@ -7,6 +7,9 @@ Keycloak realm = "maintenance". English repo name is intentional.)
 =====================================================================
 CURRENT STATUS — 2026-08-25 (v1.3.0; PART 3 SURVEYED, AWAITING RULINGS)
 =====================================================================
+v1.3.1 PENDING: #99 changes production behaviour; tag after deploy and
+live verification.
+
 v1.3.0 IS THE LATEST TAG, 2026-08-20. The release history, from the
 repository's own tags: v0.1.0 2026-08-06, v1.0.0 2026-08-08, v1.1.0
 2026-08-11, v1.2.0 2026-08-13, v1.3.0 2026-08-20.
@@ -1701,6 +1704,26 @@ rather than given one afterwards.
          fault and not a springdoc bug: a missing property. FIX, and it
          is one line — but it changes what a published document says, so
          it is a ruling before it is an edit.
+         FIXED 2026-08-25, #99: property server.forward-headers-strategy:
+         framework added to application.yml, test ForwardedHeadersIT.
+         DEPLOY REQUIRED — backend image; verify the live servers URL after
+         deploy. THIS IS THE FIRST PART 3 CHANGE THAT ALTERS PRODUCTION
+         BEHAVIOUR; every earlier PR in the wave was comments, ledgers or
+         dev-only files, and CI green does not finish this one.
+         THE STOP CONDITION WAS CHECKED BY MEASUREMENT, NOT BY READING.
+         Before the property was added, the new test ran and failed with
+           expected: "https://maintenance.smartsupply.com.de"
+            but was: "http://localhost:54027"
+         which proves springdoc DERIVES servers from the request in this
+         version — so the fix is the property and a hardcoded servers entry
+         would have been the wrong shape. With the property: 2 of 2 pass.
+         framework over native: native delegates to the container valve,
+         which only Tomcat has and which needs its own trusted-proxy list;
+         framework is Spring's ForwardedHeaderFilter, container-independent,
+         and honours X-Forwarded-Prefix as well.
+         THE SPEC WAS ONLY THE VISIBLE SYMPTOM. Redirect Location headers
+         and every other absolute URL the application derives from a request
+         carried the same defect; one property fixes the class.
 
      C7  frontend/package.json — PRETTIER, RE-MEASURED, STILL OPEN.
          prettier ^3.8.1 in devDependencies and a tracked

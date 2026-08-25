@@ -512,3 +512,19 @@ Status: v1.3.0 released; refactor phase, Part 2 closed 2026-08-25, Part 3 next
   default rather than deferring to it. The dev stack now defines exactly what it runs: two
   services. ADR-001's three containers remain the DEPLOYED count, and the file says which is
   which instead of leaving the two numbers to contradict each other.
+- A PERSONAL-MACHINE OVERRIDE LEAKED INTO SHARED DOCUMENTATION, found and closed 2026-08-25
+  (#98). Name the class, because it is cheap to repeat: a value that exists to make ONE
+  machine work — here POSTGRES_PORT=5433, for a host that already ran Postgres on 5432 — was
+  copied out of an untracked docker/.env into two shared files as though it were the default.
+  Five files said 5432 (the compose port binding, .env.example, application.yml, the e2e stack
+  action, and docker/README.md, which documents 5433 correctly as the OVERRIDE); two said 5433,
+  and one of those two is the table a developer reads to start the stack. The tell is that the
+  minority files were the ones a person edited while their own machine was in front of them.
+  THE RULE THAT FOLLOWS: an override is written where the override lives — a shell, an untracked
+  .env, a placeholder like ${SPRING_DATASOURCE_URL:...} that already exists for the purpose —
+  and NEVER as the default in a file other people read. Shared documentation states the stock
+  configuration and names the override as an override, which is what docker/README.md already
+  did and is why it was the file that stayed right.
+  Closed with it: KEYCLOAK_REALM in docker/.env.example, a seventh dead setting of the family
+  #97 removed. The realm name is fixed by docker/keycloak/realm-export.json and imported on
+  every start; docker/README.md already says so twice, so nothing was added to replace it.

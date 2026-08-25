@@ -20,7 +20,7 @@ have). Everything below it is the stack a developer already runs:
 
 | Piece | How | Port |
 |---|---|---|
-| PostgreSQL + pgvector | `docker compose -f docker/docker-compose.yml up -d postgres` | 5433 (`docker/.env`) |
+| PostgreSQL + pgvector | `docker compose -f docker/docker-compose.yml up -d postgres` | 5432 by default; 5433 if `POSTGRES_PORT=5433` is set in `docker/.env` — see [docker/README.md](../../docker/README.md) |
 | Keycloak, realm `maintenance`, themed | `docker compose -f docker/docker-compose.yml up -d keycloak` | 8081 |
 | Backend | `cd backend && mvn spring-boot:run` | 8080 |
 | Frontend | started by Playwright | 4200 |

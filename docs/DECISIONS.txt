@@ -441,3 +441,11 @@ Status: v1.3.0 released; refactor phase (read-only survey), 2026-08-21
   because the checksum covers comments — editing V1 stops the application starting until a manual
   repair against production. A stale comment there is the checksum rule working, and ADR-010 is
   where that is written down so it is never "tidied".
+- PART 2 (CODE STRUCTURE) IS CLOSED 2026-08-24. Seven findings, three PRs, four dispositions that
+  needed none: the README screenshots moved beside the README (#89), ADR-010 ruled the two open
+  questions (#90), and the rename it decided shipped (#91) — DOMAIN-MODEL.md and REQUIREMENTS.md are
+  now domain-model.md and requirements.md, with 19 citing files updated. F4 and F5 are WATCH, F6 and
+  F7 ACCEPT; none earns a PR. THE FROZEN-CITATION RULE WAS APPLIED FOR THE FIRST TIME and held: the
+  two Flyway migrations appear in no diff and their sha256 sums are unchanged, so three comment
+  lines now name a file that no longer exists under that name — on purpose, and documented where a
+  reader will look before reaching for a fix.

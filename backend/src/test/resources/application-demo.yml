@@ -11,8 +11,14 @@
 #   mvn verify -Dit.test=QueryDemoVerificationIT
 spring:
   datasource:
-    # The local development stack publishes Postgres on 5433 (docker/.env).
-    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5433/maintenance}
+    # The dev stack publishes Postgres on 5432 — docker-compose.yml binds
+    # ${POSTGRES_PORT:-5432} and .env.example ships that value. A machine that took
+    # docker/README.md's documented override (POSTGRES_PORT=5433, for a host that
+    # already runs Postgres on 5432) sets SPRING_DATASOURCE_URL to match: the
+    # placeholder below already allows it, so the override belongs in that shell
+    # and not in this file. This default said 5433 until 2026-08-25, which made one
+    # machine's override the number every reader of this profile inherited.
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/maintenance}
     username: ${SPRING_DATASOURCE_USERNAME:maintenance}
     password: ${SPRING_DATASOURCE_PASSWORD:change-me-locally}
   flyway:

@@ -1789,6 +1789,54 @@ rather than given one afterwards.
          overrides rather than defers. The trap is documented where someone
          looking for a place to put a key will read it.
 
+     C25-C27  THREE FINDINGS #97 SURFACED WHILE DOING C8-C10, recorded
+         here rather than left in a pull request body, because a finding
+         that lives only in a merged PR is a finding the next survey
+         rediscovers.
+
+     C25 THE DEV POSTGRES PORT DISAGREED WITH ITSELF, and the failure is
+         worth naming: A PERSONAL-MACHINE OVERRIDE LEAKED INTO SHARED
+         DOCUMENTATION. POSTGRES_PORT=5433 belongs in one developer's
+         untracked docker/.env — docker/README.md documents it exactly
+         that way, as what to set when a host already runs Postgres on
+         5432 — and it had been copied into two shared files as though it
+         were the default. Measured, five files say 5432:
+           docker-compose.yml:30      "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
+           .env.example:11            POSTGRES_PORT=5432
+           application.yml:10         ...localhost:5432/maintenance
+           e2e-stack/action.yml:56    -p 5432:5432
+           docker/README.md:39-41     5433 named as the OVERRIDE only
+         Against them, frontend/e2e/README.md:23 and
+         application-demo.yml:14-15 stated 5433 as the default, so a
+         developer following the e2e README against a stock .env.example
+         got a port that nothing was listening on.
+         FIXED 2026-08-25, #98. The port table row now reads "5432 by
+         default; 5433 if POSTGRES_PORT=5433 is set in docker/.env" and
+         points at docker/README.md; the demo profile defaults to 5432 and
+         says that its ${SPRING_DATASOURCE_URL:...} placeholder is where an
+         override belongs. Every remaining 5433 in the repository is the
+         documented override, five hits, each one naming POSTGRES_PORT.
+
+     C26 docker/.env.example — KEYCLOAK_REALM=maintenance, a seventh dead
+         setting of the family C9 removed. Nothing in docker-compose.yml
+         read it, and it carried no comment of its own, so removing the
+         line orphaned nothing. THE REALM NAME IS NOT LOST AND WAS NEVER
+         THIS FILE'S TO SET: docker/keycloak/realm-export.json:2 carries
+         "realm": "maintenance" and the export is imported on every start,
+         which docker/README.md already states twice — in the Realm table
+         and under "Changing the realm" ("The export is the source of
+         truth"). No sentence was added anywhere, because none was missing.
+         FIXED 2026-08-25, #98.
+
+     C27 THE ONLY DESCRIPTION OF HOW TO RUN THE STACK LOCALLY lives in
+         frontend/e2e/README.md's "What it needs running" table. Neither
+         the repository README nor arc42 07 says how to start the
+         application on a laptop. #97 leaned on that table to verify its
+         own premise, which is exactly why the placement is worth a row:
+         the instructions are correct and nobody would look there first.
+         Not a defect and not this wave's to move.
+         -> Part 6 (docs), carried.
+
      C11 docker/.env.example:28-29 — "EU-hosted, OpenAI-compatible LLM
          endpoint — see ADR-002. Left empty on purpose: the provider is
          not decided yet". ADR-002 was ACCEPTED 2026-08-06 and decided

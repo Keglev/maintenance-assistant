@@ -1,0 +1,35 @@
+# Line endings, decided in the repository rather than per machine.
+#
+# WHY THIS FILE EXISTS: this project is edited on Windows and built on
+# ubuntu-latest, and it ships shell scripts that a CRLF byte breaks — `bash` reads
+# the carriage return as part of the last argument. Without a .gitattributes the
+# answer depends on each clone's core.autocrlf, which is a setting nobody reviews
+# and every machine gets to disagree about. REFACTOR-STANDARDS already records the
+# cost of the related class of bug: "a check that passes for the wrong reason
+# (wrong directory, line-ending-blind comparison, a probe that never ran) is
+# discarded, not read as green."
+#
+# `text=auto eol=lf` normalises to LF in the repository AND checks out LF in the
+# working tree, on every platform. It overrides core.autocrlf, which is the point:
+# the file wins over the machine.
+#
+# ON A WINDOWS CHECKOUT, and this is worth knowing before it surprises someone:
+# a clone with core.autocrlf=true has CRLF on disk today. `eol=lf` makes git want
+# LF there instead, so the first `git status` after this merges may list files as
+# modified. That is a working-tree refresh, not a content change — the repository
+# already stores LF for all of them, which the pull request that added this file
+# proved with `git add --renormalize .`. Check the local setting with
+#   git config --get core.autocrlf
+# and prefer `false` or `input`; either leaves this file in charge.
+* text=auto eol=lf
+
+# Explicit for the files where a CRLF is not a cosmetic problem but a broken
+# script or a broken heredoc.
+*.sh text eol=lf
+
+# Binary. Only the types this repository actually tracks are listed — a
+# .gitattributes naming formats that are not here is a claim about content that
+# does not exist. Measured with `git ls-files "*.<ext>"`: 21 png, 1 ico, and no
+# jpg, woff, woff2, ttf, jar or pdf anywhere.
+*.png -text
+*.ico -text

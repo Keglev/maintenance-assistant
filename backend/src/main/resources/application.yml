@@ -222,6 +222,33 @@ maintenance:
 
 server:
   port: ${SERVER_PORT:8080}
+  # CADDY TERMINATES TLS AND FORWARDS PLAIN HTTP to backend:8080, setting
+  # X-Forwarded-Proto, -Host and -For as it goes. Spring IGNORES those headers unless
+  # this property says otherwise, so without it every URL the application derives from
+  # the request is built from what the container saw: http, and the internal host. The
+  # symptom that surfaced it was the published API document advertising
+  # "url": "http://maintenance.smartsupply.com.de" over an HTTPS-only site — but the
+  # spec is only the visible case. Redirect Location headers and every other absolute
+  # link the application builds were wrong the same way, which is why the fix is this
+  # property and NOT a hardcoded springdoc servers entry: a literal URL would paper
+  # over one symptom and leave the rest.
+  #
+  # FRAMEWORK, NOT NATIVE. `native` delegates to the container's own valve — only
+  # Tomcat provides one, and it has to be told which proxies to trust. `framework`
+  # uses Spring's ForwardedHeaderFilter, is container-independent, and also honours
+  # X-Forwarded-Prefix. It is the documented choice when the proxy in front is not
+  # the servlet container itself.
+  #
+  # SAFE ON THE DEFAULT PROFILE, so it needs no profile of its own: the filter falls
+  # back to the actual request when the headers are absent, which is what a laptop
+  # sees. `mvn spring-boot:run` is reached directly, and the Angular dev-server proxy
+  # (frontend/proxy.conf.json) sets no X-Forwarded-* at all.
+  #
+  # WHY TRUSTING THEM UNCONDITIONALLY IS SOUND HERE: the backend publishes NO ports in
+  # docker-compose.prod.yml, so the only thing that can reach it is Caddy on the
+  # compose network. A client cannot send these headers to it. If the backend is ever
+  # published directly, this becomes spoofable and needs a trusted-proxy filter.
+  forward-headers-strategy: framework
 
 management:
   endpoints:

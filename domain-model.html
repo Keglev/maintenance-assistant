@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Docs · domain-model · maintenance-assistant Docs</title>
+
+  <!-- Set the theme before the stylesheet paints, otherwise the page flashes
+       the default theme for one frame before the saved choice applies. -->
+  <script>
+    (function () {
+      try {
+        var t = localStorage.getItem("maintenance-assistant-theme") ||
+          (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+        document.documentElement.setAttribute("data-theme", t);
+      } catch (e) {
+        document.documentElement.setAttribute("data-theme", "light");
+      }
+    })();
+  </script>
+
+  <link rel="stylesheet" href="/maintenance-assistant/assets/docs.css" />
+</head>
+
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <header class="topbar">
+    <div class="topbar-inner">
+      <button class="menu-btn" aria-label="Toggle navigation">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="18" x2="21" y2="18" />
+        </svg>
+      </button>
+
+      <a href="/maintenance-assistant/" class="brand">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <path d="M14.7 6.3a5 5 0 0 0-6.6 6.6l-5 5a2 2 0 1 0 2.8 2.8l5-5a5 5 0 0 0 6.6-6.6l-2.9 2.9-2.1-2.1 2.2-3.6z" />
+        </svg>
+        maintenance-assistant Docs
+      </a>
+
+      <div class="topbar-tools">
+        <span class="lang-switch">
+          <a href="/maintenance-assistant/" aria-current="true">EN</a>
+          <a href="/maintenance-assistant/index-de.html">DE</a>
+        </span>
+        <button class="theme-toggle" aria-label="Toggle light or dark theme">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <circle cx="12" cy="12" r="9" /><path d="M12 3a9 9 0 0 0 0 18z" fill="currentColor" stroke="none" />
+          </svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <div class="layout">
+    <!-- Sidebar navigation, included by app-docs.html as a Pandoc partial. One
+         sidebar serves the whole site: this repository has a single arc42 tree and a
+         single decision log, so the per-tier sidebars the sibling repositories need
+         would be three copies of the same list here. The active link is marked at
+         runtime by docs.js. Do not put template syntax in this comment - a partial
+         is itself a template. -->
+    <aside class="sidebar">
+      <p class="nav-title">Docs</p>
+      <ul>
+        <li><a href="/maintenance-assistant/">Docs home</a></li>
+        <li><a href="/maintenance-assistant/overview.html">Overview</a></li>
+        <li><a href="/maintenance-assistant/overview-de.html">&Uuml;berblick (DE)</a></li>
+        <li><a href="/maintenance-assistant/llm-approach.html">AI &amp; LLM approach</a></li>
+      </ul>
+
+      <p class="nav-title">Requirements</p>
+      <ul>
+        <li><a href="/maintenance-assistant/requirements.html">Requirements &amp; NFRs</a></li>
+        <li><a href="/maintenance-assistant/domain-model.html">Domain model</a></li>
+      </ul>
+
+      <details class="nav-group">
+        <summary>Architecture (arc42)</summary>
+        <ul>
+          <li><a href="/maintenance-assistant/architecture/index.html">Architecture index</a></li>
+          <li><a href="/maintenance-assistant/architecture/01-introduction-and-goals.html">1 &middot; Introduction &amp; Goals</a></li>
+          <li><a href="/maintenance-assistant/architecture/02-architecture-constraints.html">2 &middot; Constraints</a></li>
+          <li><a href="/maintenance-assistant/architecture/03-context-and-scope.html">3 &middot; Context &amp; Scope</a></li>
+          <li><a href="/maintenance-assistant/architecture/04-solution-strategy.html">4 &middot; Solution Strategy</a></li>
+          <li><a href="/maintenance-assistant/architecture/05-building-block-view.html">5 &middot; Building Blocks</a></li>
+          <li><a href="/maintenance-assistant/architecture/06-runtime-view.html">6 &middot; Runtime View</a></li>
+          <li><a href="/maintenance-assistant/architecture/07-deployment-view.html">7 &middot; Deployment</a></li>
+          <li><a href="/maintenance-assistant/architecture/08-crosscutting-concepts.html">8 &middot; Concepts</a></li>
+          <li><a href="/maintenance-assistant/architecture/09-architecture-decisions.html">9 &middot; Decisions</a></li>
+          <li><a href="/maintenance-assistant/architecture/10-quality-requirements.html">10 &middot; Quality Requirements</a></li>
+          <li><a href="/maintenance-assistant/architecture/11-risks-and-technical-debt.html">11 &middot; Risks &amp; Debt</a></li>
+          <li><a href="/maintenance-assistant/architecture/12-glossary.html">12 &middot; Glossary</a></li>
+        </ul>
+      </details>
+
+      <details class="nav-group">
+        <summary>Decisions (ADRs)</summary>
+        <ul>
+          <li><a href="/maintenance-assistant/adr/index.html">Decision index</a></li>
+          <li><a href="/maintenance-assistant/adr/ADR-001-modular-monolith-first.html">ADR-001 Modular monolith</a></li>
+          <li><a href="/maintenance-assistant/adr/ADR-002-eu-hosted-llm-provider.html">ADR-002 EU LLM provider</a></li>
+          <li><a href="/maintenance-assistant/adr/ADR-003-keycloak-for-iam.html">ADR-003 Keycloak as IdP</a></li>
+          <li><a href="/maintenance-assistant/adr/ADR-004-pgvector-for-vector-search.html">ADR-004 pgvector</a></li>
+          <li><a href="/maintenance-assistant/adr/ADR-010-docs-tree-conventions.html">ADR-010 Docs tree conventions</a></li>
+        </ul>
+      </details>
+
+      <p class="nav-title">Frontend</p>
+      <ul>
+        <li><a href="/maintenance-assistant/frontend-architecture.html">Frontend architecture</a></li>
+      </ul>
+
+      <p class="nav-title">Quality</p>
+      <ul>
+        <li><a href="/maintenance-assistant/refactor-standards.html">Refactor standards</a></li>
+        <li><a href="/maintenance-assistant/backend/api-docs/index.html">Backend API</a></li>
+        <li><a href="/maintenance-assistant/frontend/api-docs/index.html">Frontend API</a></li>
+        <li><a href="/maintenance-assistant/backend/coverage/index.html">Backend coverage</a></li>
+        <li><a href="/maintenance-assistant/frontend/coverage/index.html">Frontend coverage</a></li>
+      </ul>
+    </aside>
+    <main class="content" id="main">
+      <article class="doc-body">
+        <h1 id="domain-model-v0.1-draft-for-review">Domain Model — v0.1
+        (Draft for review)</h1>
+        <h2 id="entities">1. Entities</h2>
+        <div class="mermaid">
+        erDiagram
+            MACHINE ||--o{ PROTOCOL : has
+            PROTOCOL ||--o{ CHUNK : "split into"
+
+            MACHINE {
+                uuid id PK
+                string machine_no "e.g. PR-03"
+                string name "e.g. Presse 3"
+                string type "e.g. Hydraulikpresse"
+                string manufacturer
+                int year_built "legacy: 15-20 y possible"
+                string control_type "PLC | SCADA | CNC | TERMINAL"
+                string location "hall / line"
+            }
+
+            PROTOCOL {
+                uuid id PK
+                uuid machine_id FK
+                date incident_date
+                string protocol_type "STOERUNG | WARTUNG"
+                string error_code "e.g. E-47, nullable"
+                string title
+                text symptom "what was observed"
+                text cause "Ursache"
+                text action "Massnahme / fix"
+                text parts_used "Ersatzteile, nullable"
+                int downtime_minutes "nullable"
+                string technician_initials
+                string language "de | en"
+                string source_file "path on volume, nullable"
+                string status "RECEIVED | INDEXED | FAILED"
+                string uploaded_by "Keycloak username"
+                timestamp created_at
+            }
+
+            CHUNK {
+                uuid id PK
+                uuid protocol_id FK
+                text content
+                vector embedding "pgvector"
+                string language
+                uuid machine_id "denormalized for filtering"
+                string error_code "denormalized, nullable"
+            }
+        </div>
+        <h2 id="design-decisions-assumptions">2. Design decisions &amp;
+        assumptions</h2>
+        <ul>
+        <li><strong>Users are NOT in the database.</strong> Identity,
+        roles, and credentials live in Keycloak; the app only reads
+        token claims. <code>uploaded_by</code> stores the username
+        string for traceability, no FK.</li>
+        <li><strong>Original files on a Docker volume,</strong> path
+        stored in <code>PROTOCOL.source_file</code> — not as BLOBs in
+        Postgres. Keeps the DB small and backups simple. (Phase 2
+        option: object storage.)</li>
+        <li><strong>Denormalized <code>machine_id</code> /
+        <code>error_code</code> on CHUNK</strong> so vector search can
+        filter by machine (US-3) in one query:
+        <code>WHERE machine_id = ? ORDER BY embedding &lt;=&gt; :query_vector</code>.</li>
+        <li><strong>Structured fields (symptom/cause/action) instead of
+        one text blob.</strong> Real protocols are messy, but the
+        <em>system’s own</em> created protocols (Schichtleiter form) are
+        structured — a quality argument. Uploaded PDFs land in
+        <code>symptom</code>-like raw text after extraction.</li>
+        <li><strong>Answer-mode logic is not a table.</strong> Mode A
+        vs. Mode B (grounded/ungrounded) is runtime behavior: retrieval
+        returns hits above a similarity threshold → Mode A; below → Mode
+        B. Threshold configurable.</li>
+        <li><strong>No query logging of personal data.</strong> If query
+        logging is added for demo/metrics, it stores role + timestamp +
+        answer mode only, never username — a deliberate DSGVO talking
+        point (Datenminimierung).</li>
+        </ul>
+        <h2 id="synthetic-corpus-plan-150-protocols">3. Synthetic corpus
+        plan (~150 protocols)</h2>
+        <table>
+        <colgroup>
+        <col style="width: 50%" />
+        <col style="width: 50%" />
+        </colgroup>
+        <thead>
+        <tr class="header">
+        <th>Aspect</th>
+        <th>Plan</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr class="odd">
+        <td>Machines</td>
+        <td>8–10: e.g. 2 hydraulic presses (one 2005, one 2021 — same
+        type, different age), CNC mill, robot welding cell, packaging
+        line, compressor, conveyor. Mixed control types (PLC-only
+        legacy, SCADA, terminal).</td>
+        </tr>
+        <tr class="even">
+        <td>Languages</td>
+        <td>~70% German, ~30% English (US plant flavor for the EN
+        ones)</td>
+        </tr>
+        <tr class="odd">
+        <td>Quality mix</td>
+        <td>~60% structured, ~30% free-text/messy, ~10% short and
+        unhelpful (“repariert, läuft wieder”) — realistic</td>
+        </tr>
+        <tr class="even">
+        <td>Demo seeds</td>
+        <td>Error E-47 on Presse 3 appears 2–3x with consistent
+        cause/fix (US-1/US-2 demo). One machine has deliberately NO
+        protocol for a common error → Mode B demo. One DE query must
+        match an EN protocol (multilingual demo). Operator-safe cases:
+        sensor cleaning, material jam, program change.</td>
+        </tr>
+        <tr class="odd">
+        <td>Generation</td>
+        <td>Generated with Claude, structure based on my own experience
+        with maintenance documentation in US and German manufacturing.
+        Documented in AI-USAGE.md.</td>
+        </tr>
+        </tbody>
+        </table>
+        <h2 id="the-corpus-as-built-2026-08-07">4. The corpus as built
+        (2026-08-07)</h2>
+        <p>The plan above is what was intended; this section is what
+        exists. The corpus lives at
+        <code>backend/src/main/resources/corpus/protocols.ndjson</code>
+        — 150 records, ~140 KB, incidents dated 2024-09-11 to
+        2026-07-15. Figures below are counted from that file, not
+        estimated.</p>
+        <h3 id="fault-taxonomy">4.1 Fault taxonomy</h3>
+        <p>Every <code>STOERUNG</code> carries exactly one
+        <strong>root-cause class</strong>. This is corpus metadata
+        (<code>meta.cause_class</code> in the NDJSON) and deliberately
+        <strong>not</strong> a database column — the V1 schema is
+        frozen, and the class exists to control and verify the
+        distribution, not to be queried at runtime.</p>
+        <table style="width:100%;">
+        <colgroup>
+        <col style="width: 21%" />
+        <col style="width: 21%" />
+        <col style="width: 28%" />
+        <col style="width: 28%" />
+        </colgroup>
+        <thead>
+        <tr class="header">
+        <th>Class</th>
+        <th>Meaning</th>
+        <th style="text-align: right;">Count</th>
+        <th style="text-align: right;">Share of faults</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr class="odd">
+        <td><strong>MATERIAL</strong></td>
+        <td>The material was the problem: wrong or out-of-spec batch,
+        damp or contaminated stock, damage that jams the machine,
+        tolerances that push parts out of position</td>
+        <td style="text-align: right;">23</td>
+        <td style="text-align: right;">19%</td>
+        </tr>
+        <tr class="even">
+        <td><strong>BEDIENUNG</strong></td>
+        <td>Operator-induced and operator-fixable: wrong program or
+        offset, wrong clamping, a dirty photo-eye or reflector, skipped
+        cleaning, a blocked ventilation grille, a mistyped
+        parameter</td>
+        <td style="text-align: right;">29</td>
+        <td style="text-align: right;">24%</td>
+        </tr>
+        <tr class="odd">
+        <td><strong>TECHNIK</strong></td>
+        <td>Genuine technical defect, technician-only</td>
+        <td style="text-align: right;">68</td>
+        <td style="text-align: right;">57%</td>
+        </tr>
+        </tbody>
+        </table>
+        <p>The point of the split is that a real plant is
+        <strong>not</strong> all technician-level defects. Roughly two
+        in five faults here are things the shift caused or can fix,
+        which is what makes role-based answers (US: Operator gets
+        operator-safe steps) worth anything.</p>
+        <p><code>TECHNIK</code> is spread across subtypes rather than
+        being one bucket:</p>
+        <table>
+        <thead>
+        <tr class="header">
+        <th>Subtype</th>
+        <th style="text-align: right;">n</th>
+        <th></th>
+        <th>Subtype</th>
+        <th style="text-align: right;">n</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr class="odd">
+        <td>mechanisch</td>
+        <td style="text-align: right;">27</td>
+        <td></td>
+        <td>roboter (TCP, wire feed, tip, gas)</td>
+        <td style="text-align: right;">4</td>
+        </tr>
+        <tr class="even">
+        <td>elektrisch</td>
+        <td style="text-align: right;">14</td>
+        <td></td>
+        <td>software / PLC</td>
+        <td style="text-align: right;">3</td>
+        </tr>
+        <tr class="odd">
+        <td>hydraulisch</td>
+        <td style="text-align: right;">6</td>
+        <td></td>
+        <td>ungeklärt (never found)</td>
+        <td style="text-align: right;">2</td>
+        </tr>
+        <tr class="even">
+        <td>sensorik</td>
+        <td style="text-align: right;">6</td>
+        <td></td>
+        <td>pneumatisch</td>
+        <td style="text-align: right;">2</td>
+        </tr>
+        <tr class="odd">
+        <td>netzwerk (Profinet, SCADA)</td>
+        <td style="text-align: right;">4</td>
+        <td></td>
+        <td></td>
+        <td style="text-align: right;"></td>
+        </tr>
+        </tbody>
+        </table>
+        <p><code>WARTUNG</code> records carry no cause class: planned
+        work has no fault to classify.</p>
+        <h3 id="distribution">4.2 Distribution</h3>
+        <table>
+        <colgroup>
+        <col style="width: 50%" />
+        <col style="width: 50%" />
+        </colgroup>
+        <thead>
+        <tr class="header">
+        <th>Axis</th>
+        <th>Result</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr class="odd">
+        <td><strong>Language</strong></td>
+        <td>108 DE (72%) / 42 EN (28%). Stored <strong>as
+        written</strong> — nothing is translated anywhere.</td>
+        </tr>
+        <tr class="even">
+        <td><strong>Type</strong></td>
+        <td>120 <code>STOERUNG</code> / 30 <code>WARTUNG</code></td>
+        </tr>
+        <tr class="odd">
+        <td><strong>Quality</strong></td>
+        <td>90 structured (60%) / 45 messy shift-note style (30%) / 15
+        short and unhelpful (10%)</td>
+        </tr>
+        <tr class="even">
+        <td><strong>Resolution</strong></td>
+        <td>144 resolved / 4 workaround-only / 2 never explained</td>
+        </tr>
+        <tr class="odd">
+        <td><strong>Error code</strong></td>
+        <td>63 of 120 faults carry one; 87 records have none. Free text,
+        and sometimes pointing at the wrong component on purpose.</td>
+        </tr>
+        <tr class="even">
+        <td><strong>Per machine</strong></td>
+        <td>PR-03 22, FR-01 19, PR-07/RB-02/VP-01 17, FB-04 15,
+        KP-01/SP-05 13, LS-01 11, AB-02 6</td>
+        </tr>
+        </tbody>
+        </table>
+        <p>Twelve records deliberately avoid umlauts
+        (<code>meta.charset: ascii</code>) — the two terminal-only
+        legacy machines, where text was typed on a controller that never
+        had them. The rest is proper German.</p>
+        <p>Resolution realism is visible in the data rather than only
+        asserted: <code>TECHNIK</code> faults name a replaced part in 54
+        of 68 cases and average 193 minutes of downtime;
+        <code>BEDIENUNG</code> faults name a part in 5 of 29 and average
+        52 minutes.</p>
+        <h3 id="demo-scenarios-the-corpus-is-built-around">4.3 Demo
+        scenarios the corpus is built around</h3>
+        <p>Marked with <code>meta.demo</code> in the NDJSON, and guarded
+        by <code>CorpusIntegrityTest</code> so a reword cannot silently
+        break a demo.</p>
+        <ol type="1">
+        <li><strong>Recurring fault, three different root causes —
+        <code>E-47</code> on Presse 3.</strong> Three protocols share
+        the error code and have a <em>different</em> root-cause class
+        each: a worn piston seal (TECHNIK), a mistyped pressure setpoint
+        after a changeover (BEDIENUNG), and a contaminated oil batch
+        that jammed the relief valve (MATERIAL). A fourth, later E-47
+        turns out to be pump wear. This is both the recurring-fault demo
+        and the argument for why the error code is only a hint: four
+        occurrences, four causes.</li>
+        <li><strong>Mode B gap — <code>AB-02</code> Abfüllanlage
+        2.</strong> Its six protocols cover the feed screw, CIP
+        cleaning, labelling, capping torque, the infeed star and an
+        annual inspection. Nothing covers dosing or fill-volume
+        deviation. <em>Intended demo query:</em> „Abfüllanlage 2 dosiert
+        zu wenig, Füllmenge schwankt” → no source above threshold → Mode
+        B.</li>
+        <li><strong>German query, English protocol — <code>FB-04</code>
+        Förderband 4.</strong> Belt mistracking appears
+        <strong>only</strong> in English
+        (<code>Belt tracking off to the right, product falling off the edge</code>,
+        cause: carryback built up on the tail pulley). No German
+        protocol anywhere covers mistracking. <em>Intended demo
+        query:</em> „Förderband läuft schief, Material fällt seitlich
+        herunter” → the top hit must be the English protocol, which is
+        the multilingual-embedding argument in one screen.</li>
+        </ol>
+        <h3 id="realism-patterns">4.4 Realism patterns</h3>
+        <p>Deliberately present, with examples:</p>
+        <ul>
+        <li><strong>Same symptom, different cause on the same
+        machine.</strong> Pressure loss on Presse 3 resolves four
+        different ways (seal, parameter, contaminated oil, pump wear).
+        <code>SV0410</code> on the mill is a broken encoder cable once
+        and a failed servo amplifier the next year. <code>VP-70</code>
+        on the packaging line is a snapped chain once and a seizing
+        gearbox the next.</li>
+        <li><strong>The alarm points at the wrong component.</strong> A
+        servo following-error that was a damaged encoder cable; a
+        spindle over-temperature that was a failed cabinet fan; “sensor
+        defekt” that was a dirty reflector; “motor defekt” that was a
+        run capacitor; a leak-test rejecting good packs because the
+        tester itself had drifted.</li>
+        <li><strong>Cause never found.</strong> Two protocols close with
+        „nach Neustart i.O., Ursache unklar, beobachten” and no part
+        replaced — because that is what actually happens.</li>
+        <li><strong>Workaround only.</strong> Four protocols document a
+        deliberate interim state (manual tool change, reduced cycle
+        rate, a shifted weld program for one part variant, raised
+        neighbouring heater zones), each saying explicitly that it is
+        not a permanent fix.</li>
+        <li><strong>Mixed voice.</strong> Some protocols quote the
+        operator („Presse kommt nicht auf Druck”), some quote the alarm
+        text, some both. Five German protocols quote the controller’s
+        <strong>English</strong> alarm string verbatim inside German
+        prose — real controls throw English, and the retrieval has to
+        cope.</li>
+        </ul>
+        <h2 id="open-for-review">5. Open for review</h2>
+        <ol type="1">
+        <li><code>error_code</code> is free text, not a lookup table —
+        real plants rarely have a clean code catalog across machine
+        generations. Acceptable?</li>
+        <li><code>downtime_minutes</code> is captured but unused in
+        Phase 1 (no reporting). Keep (cheap, enables a future stats
+        view) or drop (YAGNI)?</li>
+        </ol>
+      </article>
+    </main>
+
+        <nav class="toc" aria-label="On this page">
+      <p class="toc-title">On this page</p>
+      <ul>
+      <li><a href="#domain-model-v0.1-draft-for-review"
+      id="toc-domain-model-v0.1-draft-for-review">Domain Model — v0.1
+      (Draft for review)</a>
+      <ul>
+      <li><a href="#entities" id="toc-entities">1. Entities</a></li>
+      <li><a href="#design-decisions-assumptions"
+      id="toc-design-decisions-assumptions">2. Design decisions &amp;
+      assumptions</a></li>
+      <li><a href="#synthetic-corpus-plan-150-protocols"
+      id="toc-synthetic-corpus-plan-150-protocols">3. Synthetic corpus
+      plan (~150 protocols)</a></li>
+      <li><a href="#the-corpus-as-built-2026-08-07"
+      id="toc-the-corpus-as-built-2026-08-07">4. The corpus as built
+      (2026-08-07)</a>
+      <ul>
+      <li><a href="#fault-taxonomy" id="toc-fault-taxonomy">4.1 Fault
+      taxonomy</a></li>
+      <li><a href="#distribution" id="toc-distribution">4.2
+      Distribution</a></li>
+      <li><a href="#demo-scenarios-the-corpus-is-built-around"
+      id="toc-demo-scenarios-the-corpus-is-built-around">4.3 Demo
+      scenarios the corpus is built around</a></li>
+      <li><a href="#realism-patterns" id="toc-realism-patterns">4.4
+      Realism patterns</a></li>
+      </ul></li>
+      <li><a href="#open-for-review" id="toc-open-for-review">5. Open
+      for review</a></li>
+      </ul></li>
+      </ul>
+    </nav>
+      </div>
+
+  <footer class="footer">
+    maintenance-assistant · Generated by the docs pipeline
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <script src="/maintenance-assistant/assets/docs.js"></script>
+</body>
+</html>

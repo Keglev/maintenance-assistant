@@ -73,8 +73,8 @@
 
       <p class="nav-title">Requirements</p>
       <ul>
-        <li><a href="/maintenance-assistant/REQUIREMENTS.html">Requirements &amp; NFRs</a></li>
-        <li><a href="/maintenance-assistant/DOMAIN-MODEL.html">Domain model</a></li>
+        <li><a href="/maintenance-assistant/requirements.html">Requirements &amp; NFRs</a></li>
+        <li><a href="/maintenance-assistant/domain-model.html">Domain model</a></li>
       </ul>
 
       <details class="nav-group">
@@ -362,7 +362,7 @@
         <h3 id="protocol-documents-and-the-volume">Protocol documents
         and the volume</h3>
         <p><code>protocol.source_file</code> stores a path, never the
-        document (DOMAIN-MODEL.md keeps BLOBs out of Postgres), so the
+        document (domain-model.md keeps BLOBs out of Postgres), so the
         <code>protocol-files</code> volume <em>is</em> the documents.
         Two things have to line up, and both are now in the compose
         file:</p>
@@ -552,7 +552,7 @@ drwxr-xr-x 2 0 0 …            touch: Permission denied</code></pre>
         <p><strong>Both are needed, and neither is sufficient.</strong>
         The database stores only the <em>path</em> of an uploaded
         protocol document (<code>protocol.source_file</code>); the
-        document itself lives on the volume, because DOMAIN-MODEL.md
+        document itself lives on the volume, because domain-model.md
         keeps BLOBs out of Postgres. A database dump restored on its own
         gives you rows whose <code>source_file</code> points at
         nothing.</p>

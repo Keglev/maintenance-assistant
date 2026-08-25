@@ -14,13 +14,15 @@ internet; everything else exists solely on the compose network.
 | **Host** | Hetzner CX33 — x86_64, 4 vCPU, 8 GB RAM, 75 GB disk, Ubuntu 26.04 LTS, Nuremberg |
 | **Application** | <https://maintenance.smartsupply.com.de> |
 | **Identity provider** | <https://auth.smartsupply.com.de> |
-| **Images** | `ghcr.io/keglev/maintenance-assistant/{backend,frontend}`, built multi-arch (amd64 + arm64) |
+| **Images** | `ghcr.io/keglev/maintenance-assistant/{backend,frontend}`, built `linux/amd64` only since 2026-08-10 (DECISIONS.txt, "REVISED AGAIN 2026-08-10"); the base images stay multi-arch |
 | **Stack definition** | [`docker/docker-compose.prod.yml`](https://github.com/Keglev/maintenance-assistant/blob/main/docker/docker-compose.prod.yml), deployed to `/opt/maintenance-assistant/` |
 | **Host preparation** | [`infra/provision.sh`](https://github.com/Keglev/maintenance-assistant/blob/main/infra/provision.sh), idempotent |
 
 The host was planned as a CAX21 (arm64) and is a CX33 (x86_64); the reasoning and date are recorded
-in DECISIONS.txt. Because CI keeps publishing both architectures, that revision changed a purchase
-order and nothing else.
+in DECISIONS.txt. That revision changed a purchase order and nothing else — but the follow-on did
+cost something, and the record says so: on 2026-08-10 the arm64 build leg was removed because it
+had no consumer and was crashing under QEMU. Moving back to an arm64 host is now a purchase
+order PLUS restoring one line in each deploy workflow, or adding a native arm64 runner.
 
 ## 7.2 Containers
 
@@ -180,7 +182,7 @@ docker run --rm -v maintenance-assistant_protocol-files:/d alpine chown -R 1001:
 ## 7.5 Delivery
 
 CI owns the rollout. When `backend-ci` or `frontend-ci` succeeds on `main`, the matching deploy
-workflow builds a multi-arch image, pushes it to GHCR, then connects to the host as the `deploy`
+workflow builds a `linux/amd64` image, pushes it to GHCR, then connects to the host as the `deploy`
 user and runs `docker compose pull <service> && docker compose up -d <service>` for that one
 service. Both workflows also accept a manual `workflow_dispatch`, which redeploys whatever tag
 `.env.prod` currently names — the button for a config change or a stuck container.

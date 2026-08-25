@@ -1,7 +1,13 @@
 # Local development stack
 
-Three containers per [ADR-001](../docs/adr/ADR-001-modular-monolith-first.md): the application,
-PostgreSQL + pgvector, and Keycloak. All images are published for `linux/amd64` **and**
+Two services: PostgreSQL + pgvector and Keycloak. The application is not one of them — the
+backend runs outside compose (`cd backend && mvn spring-boot:run`, or from the IDE) and the
+frontend on the Angular dev server, which is the stack
+[the e2e suite documents](../frontend/e2e/README.md#what-it-needs-running).
+[ADR-001](../docs/adr/ADR-001-modular-monolith-first.md) counts three containers for the
+DEPLOYED system; `docker-compose.prod.yml` is where all of them run together.
+
+All images are published for `linux/amd64` **and**
 `linux/arm64`, so this file runs unchanged on Apple Silicon and on the Hetzner CAX (arm64) target.
 
 ## Start
@@ -25,8 +31,10 @@ docker compose up
 
 Check status with `docker compose ps` — both services should read `healthy`.
 
-The `app` service is commented out on purpose: `backend/` holds no application yet. It is enabled
-in Phase 1 together with the Spring Boot skeleton.
+There is no `app` service here. A commented-out one survived until 2026-08-25 saying it would be
+"enabled in Phase 1, once backend/ contains a Spring Boot app" — which had been true for one
+week of this project and false ever since. Start the backend yourself against the two services
+above; `frontend/e2e/README.md` lists the ports.
 
 **If port 5432 is already taken** by a PostgreSQL installed on the host, the container fails to
 bind. Set `POSTGRES_PORT=5433` in `.env` — only the host-side port changes; inside the compose

@@ -495,3 +495,20 @@ Status: v1.3.0 released; refactor phase, Part 2 closed 2026-08-25, Part 3 next
   SURVEY ROW — count them and classify them there. javac emits none on either side of this bump
   (0 warnings over 66 source files, before and after), so they are an IDE analysis rather than a
   build signal, and fixing them is not Part 3 work.
+- THE DEV COMPOSE app: BLOCK IS DELETED, 2026-08-25 (#97), Part 3 C8/C9/C10 as ruled.
+  docker/docker-compose.yml loses 41 commented-out lines that promised the application would be
+  "enabled in Phase 1, once backend/ contains a Spring Boot app" — true for about one week of
+  this project and false ever since. The protocol-files volume goes with it, being mounted by
+  nothing else, and docker/.env.example loses six settings whose only consumer was that block.
+  THE PREMISE WAS VERIFIED BEFORE THE DELETION, because deleting the only description of how to
+  run the application would not have been a cleanup: frontend/e2e/README.md tabulates the real
+  flow — postgres and keycloak by compose, the backend by `mvn spring-boot:run` or the IDE, the
+  frontend on the dev server — so the block described nothing anyone did.
+  WHAT REPLACES THE SIX SETTINGS IS PROSE, NOT SETTINGS. docker/.env is read by `docker compose`
+  and by nothing else, and the backend does not run in compose, so no value here could ever have
+  reached it: a developer who filled in an API key got no error and no effect. The section now
+  says so, says application.yml already defaults every one of them, and repeats the rule this
+  repository keeps relearning — AN EMPTY ASSIGNMENT IS A SET VALUE and overrides a working
+  default rather than deferring to it. The dev stack now defines exactly what it runs: two
+  services. ADR-001's three containers remain the DEPLOYED count, and the file says which is
+  which instead of leaving the two numbers to contradict each other.

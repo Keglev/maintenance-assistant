@@ -7,7 +7,7 @@
 #   2. a tar.gz of the protocol-files volume
 #
 # Both are needed. The database stores only the *path* of an uploaded protocol
-# document (DOMAIN-MODEL.md: no BLOBs in Postgres); the file itself lives on the
+# document (domain-model.md: no BLOBs in Postgres); the file itself lives on the
 # volume. A database dump on its own restores rows whose source_file points at
 # nothing.
 #

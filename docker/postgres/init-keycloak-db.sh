@@ -6,8 +6,10 @@
 # is empty. On an existing volume it never runs again — so changing KC_DB_* here
 # after the first start has no effect, and the change has to be made in SQL.
 #
-# One Postgres instance serves both schemas: the VPS runs four containers in
-# 8 GB, and a second database server for one consumer would not earn its memory.
+# One Postgres instance serves both schemas: the VPS runs five containers in
+# 8 GB (caddy, frontend, backend, keycloak, postgres — see
+# docker/docker-compose.prod.yml), and a second database server for one
+# consumer would not earn its memory.
 # The two are still isolated by role — Keycloak's user owns only its own
 # database and cannot read the application's tables.
 # =============================================================================

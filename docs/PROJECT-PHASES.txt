@@ -1637,11 +1637,15 @@ rather than given one afterwards.
          no written rule — the expected convention is that a published
          site is what the build produces. RULING NEEDED, and (e) is the
          sketch it needs to rule on.
+         RULED 2026-08-25: single staged publish. Its own PR, last in
+         the wave, because every other fix should be on main before the
+         publisher changes shape.
 
      C3  docs.yml:10 — "Both publish steps use keep_files". There are
          four. The comment predates two of them and now understates the
          thing it exists to warn about. REFACTOR-STANDARDS, DOCS:
          "PUBLISHED PROSE STATES ONLY WHAT THE CHECKOUT SHOWS". FIX.
+         FIXED 2026-08-25, #94.
 
      C4  frontend-e2e.yml:26-37 — THE SHARED STACK ACTION IS NOT A
          TRIGGER HERE. The job uses ./.github/actions/e2e-stack at
@@ -1667,6 +1671,7 @@ rather than given one afterwards.
          A reader who follows the file's own instruction gets
          "Missing script". REFACTOR-STANDARDS, DOCS: prose states what
          the checkout shows. FIX.
+         FIXED 2026-08-25, #94.
 
      C6  application.yml — THE http SERVER URL, RE-MEASURED AND ITS CAUSE
          FOUND. Carried out of Part 1 as "springdoc deriving the server
@@ -1707,6 +1712,8 @@ rather than given one afterwards.
          nothing is a claim that it does something." RULING NEEDED —
          delete, or revive it as the dev stack's app service. Not a
          judgement a survey gets to make.
+         RULED 2026-08-25: delete the commented-out dev app: block and
+         its five settings. Its own PR, with C9 and C10.
 
      C9  docker/.env.example:24-33 — five settings with no consumer.
          APP_PORT, KEYCLOAK_ISSUER_URI, LLM_BASE_URL, LLM_API_KEY,
@@ -1715,6 +1722,7 @@ rather than given one afterwards.
          docker-compose.yml at lines 92-104, every one of them inside
          the comment block. A developer who fills them in gets no error
          and no effect. Ties to C8 — one ruling covers both. FIX with C8.
+         RULED 2026-08-25: deleted with C8, same PR.
 
      C10 docker/.env.example:30-33 — THE EMPTY-OVERRIDE LANDMINE, in the
          file that teaches it. LLM_BASE_URL=, LLM_API_KEY=,
@@ -1728,6 +1736,8 @@ rather than given one afterwards.
          because C8 keeps the service commented out — which means
          reviving that service reintroduces the exact defect #22 fixed.
          FIX with C8.
+         RULED 2026-08-25: deleted with C8, same PR — the four empty
+         assignments go with the block that was their only consumer.
 
      C11 docker/.env.example:28-29 — "EU-hosted, OpenAI-compatible LLM
          endpoint — see ADR-002. Left empty on purpose: the provider is
@@ -1735,6 +1745,7 @@ rather than given one afterwards.
          IONOS AI Model Hub, primary, with Nebius as the documented
          fallback; application.yml:83 carries the resolved URL as its
          default. The comment cites the ADR that refutes it. FIX.
+         FIXED 2026-08-25, #94.
 
      C12 backend/Dockerfile:2-3, frontend/Dockerfile:2-3,
          docker-compose.yml:6-7 — THE arm64 TARGET HOST IS GONE. All
@@ -1747,6 +1758,7 @@ rather than given one afterwards.
          only; the three comments still promise a host that was retired.
          REFACTOR-STANDARDS, DOCS + "Comments explain WHY, never WHAT" —
          a WHY that is no longer true is worse than no comment. FIX.
+         FIXED 2026-08-25, #94.
 
      C13 backend/Dockerfile:33 vs docker/postgres/init-keycloak-db.sh:9
          — THE HOST RUNS A DIFFERENT NUMBER OF CONTAINERS IN EACH FILE.
@@ -1757,6 +1769,7 @@ rather than given one afterwards.
          other, which is how a reader learns to trust neither.
          REFACTOR-STANDARDS, COUNTING METHODS: "every stated total is
          recomputed from its own parts". FIX.
+         FIXED 2026-08-25, #94.
 
      C14 docker-compose.prod.yml:52 — A FOURTH HAND-DEPLOYED FILE THAT
          THE RECORD DOES NOT COUNT. The frontend service bind-mounts
@@ -1779,6 +1792,9 @@ rather than given one afterwards.
          defaults. RULING NEEDED — the fix is a frontend-config.json
          .example plus one line in docker/README.md, but adding it means
          deciding whether the host copy and the template may drift.
+         RULED 2026-08-25: add frontend-config.json.example, and correct
+         "three hand-deployed files" to four everywhere it is written.
+         Its own PR.
 
      C15 infra/backup.sh:10 — a citation #91 missed. "(DOMAIN-MODEL.md:
          no BLOBs in Postgres)". #91's close-out records "19 citing files
@@ -1795,6 +1811,7 @@ rather than given one afterwards.
            1 in infra/backup.sh      — this finding
          FIX. One word, and it is the difference between a rename that
          finished and one that nearly did.
+         FIXED 2026-08-25, #94.
 
      C16 .github/workflows/*.yml — EVERY ACTION FLOATS, AND NOTHING
          WATCHES THEM. Twenty-odd uses:, all on a mutable major tag:
@@ -1811,6 +1828,9 @@ rather than given one afterwards.
          of those holds contents: write on gh-pages. no written rule.
          RULING NEEDED — pin the third-party two, or add dependabot, or
          accept both deliberately and say so.
+         RULED 2026-08-25: pin every action to a SHA, and add a monthly
+         grouped dependabot.yml so the pins are maintained rather than
+         frozen. Its own PR.
 
      C17 docs/scripts/generate-diagrams.mjs:8 and
          .github/scripts/docs/build-openapi-docs.sh:47 — TWO UNPINNED
@@ -1843,6 +1863,7 @@ rather than given one afterwards.
          Six-part plan item 3: a setting that does nothing is a claim
          that it does something. WATCH — it is also the honest home for
          a backend healthcheck, which is C20.
+         RULED 2026-08-25: WATCH, no PR.
 
      C19 repository root — no .editorconfig and no .gitattributes.
          Absent, both. This repository is edited from Windows and built
@@ -1865,6 +1886,7 @@ rather than given one afterwards.
          Survivable because Caddy retries and both deploy workflows poll
          the public URL twenty times before declaring success, which is
          the real gate. no written rule. WATCH.
+         RULED 2026-08-25: WATCH, no PR.
 
      C21 docker/postgres/init-keycloak-db.sh:17 — a password
          interpolated into an SQL literal. CREATE USER ${KC_DB_USER}
@@ -1875,6 +1897,7 @@ rather than given one afterwards.
          one, and the script runs once on an empty data directory from
          a file only the deploy user can read. It is a trap for whoever
          next sets that password by hand. WATCH.
+         RULED 2026-08-25: WATCH, no PR.
 
      C22 frontend/nginx.conf:33 — "The backend is reached through the
          reverse proxy in front of this container (Phase 4)." Phase 4 in
@@ -1882,6 +1905,7 @@ rather than given one afterwards.
          shipped and is docker/caddy/Caddyfile. The parenthesis points
          at a phase numbering that no longer means what it meant.
          REFACTOR-STANDARDS, DOCS: cite by stable keys. WATCH.
+         FIXED 2026-08-25, #94.
 
      C23 spike/adr-002/README.md:24, RESULTS.md:146, corpus.py:3,13 —
          four citations to DOMAIN-MODEL.md and REQUIREMENTS.md inside a
@@ -1894,6 +1918,8 @@ rather than given one afterwards.
          two readings give opposite answers. STOP-AND-REPORT.
          RULING NEEDED. (C15 is separate and not in doubt: backup.sh is
          a live operational script, not an artefact.)
+         RULED 2026-08-25: Part 2 F6 extends to citations inside the
+         spike. Frozen, no edit.
 
      C24 .gitignore:6,28,73,76,85-87 — six rules with nothing to match.
          `!.mvn/wrapper/maven-wrapper.jar` (no wrapper is tracked —
@@ -1980,6 +2006,11 @@ rather than given one afterwards.
      C6 is a sixth in a weaker sense: the fix is one property, but it
      changes a published document and the record says so before an
      edit does.
+     ALL FIVE RULED 2026-08-25. C2 single staged publish, C8+C9+C10
+     delete, C14 add the example and correct the count to four, C16 pin
+     to SHA plus a monthly grouped dependabot, C23 frozen per F6. Each
+     ruled item is its own PR except C23, which needs none. C6 was not
+     put to a ruling and stays a FIX awaiting its PR.
 
    (e) THE SINGLE STAGED PUBLISH — a sketch, not a design
      WHAT KEEP_FILES ACTUALLY BUYS, so the replacement keeps it: four

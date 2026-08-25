@@ -7,8 +7,10 @@ name: docs
 #   b) frontend-ci / backend-ci succeeded on main -> publish their coverage and
 #      API documentation into subfolders
 #
-# Both publish steps use keep_files, so the site never deletes the report
-# subfolders and the reports never delete the site.
+# FOUR publish steps are declared below and AT MOST TWO run in any one workflow
+# run: the site job's step, or the reports job's coverage step plus exactly one
+# of the two API-reference steps. All four set keep_files, so the site never
+# deletes the report subfolders and the reports never delete the site.
 on:
   push:
     branches: [main]

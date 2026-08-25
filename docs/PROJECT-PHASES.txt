@@ -1729,6 +1729,20 @@ rather than given one afterwards.
          must be made true in that same PR — the dev stack defines two
          services with the third commented out, so deleting the block
          without touching the line leaves a count describing nothing.
+         FIXED 2026-08-25, #97: 41 lines removed (the banner and block,
+         re-measured at 75-114 rather than the survey's 74-113 — #94 grew
+         the file header by one line), 6 variables removed, protocol-files
+         REMOVED. The volume was mounted only by the deleted block, so
+         nothing declares it now. The header line says two services and
+         names where the application actually runs; ADR-001's three
+         containers are the DEPLOYED count and the line now says which is
+         which instead of leaving a reader to guess.
+         THE RULING'S PREMISE WAS CHECKED BEFORE THE DELETION, because a
+         deletion that removes the only description of how to run the app
+         is not a cleanup: frontend/e2e/README.md "What it needs running"
+         tabulates postgres and keycloak by compose, the backend by
+         `cd backend && mvn spring-boot:run`, and the frontend on the dev
+         server. The flow is documented; the block described nothing.
 
      C9  docker/.env.example:24-33 — five settings with no consumer.
          APP_PORT, KEYCLOAK_ISSUER_URI, LLM_BASE_URL, LLM_API_KEY,
@@ -1738,6 +1752,16 @@ rather than given one afterwards.
          the comment block. A developer who fills them in gets no error
          and no effect. Ties to C8 — one ruling covers both. FIX with C8.
          RULED 2026-08-25: deleted with C8, same PR.
+         FIXED 2026-08-25, #97: 6 removed, not the 5 the row counted —
+         APP_PORT, KEYCLOAK_ISSUER_URI and the four LLM_* ones. THE PROOF
+         THAT MATTERS IS ONE LOCATION, not four: docker/.env is read by
+         `docker compose` and by nothing else (verified — no script sources
+         it), so only docker-compose.yml can make a variable in it live,
+         and all six measure 0 there. The hits elsewhere are the real
+         consumers reading a DIFFERENT env source — application.yml from
+         the backend's own shell, .github/ from the e2e action, and
+         docker-compose.prod.yml from .env.prod. APP_PORT alone measures 0
+         in every location in the repository.
 
      C10 docker/.env.example:30-33 — THE EMPTY-OVERRIDE LANDMINE, in the
          file that teaches it. LLM_BASE_URL=, LLM_API_KEY=,
@@ -1753,6 +1777,17 @@ rather than given one afterwards.
          FIX with C8.
          RULED 2026-08-25: deleted with C8, same PR — the four empty
          assignments go with the block that was their only consumer.
+         FIXED 2026-08-25, #97: all four empty assignments gone, and NO
+         assignment replaces them. The row allowed keeping a variable the
+         backend reads locally, with a comment and no `=` line; the measured
+         answer is that none of them can reach the backend from this file at
+         all, because the backend does not run in compose. So the section is
+         now prose only: it says where the LLM settings actually go (the
+         shell that starts the backend, per frontend/e2e/README.md), that
+         application.yml already carries a working default for every one of
+         them, and that an empty assignment anywhere is a set value that
+         overrides rather than defers. The trap is documented where someone
+         looking for a place to put a key will read it.
 
      C11 docker/.env.example:28-29 — "EU-hosted, OpenAI-compatible LLM
          endpoint — see ADR-002. Left empty on purpose: the provider is

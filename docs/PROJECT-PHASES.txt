@@ -17,6 +17,9 @@ written to be read.
 PART 3 CLOSED 2026-08-26 (#94-#108); DIAGNOSTICS WAVE NEXT, then feature
 'guided questions' (ADR-011), then docs landing page, then PART 4 SURVEY.
 
+Diagnostics wave: measurements recorded #PRNUM; R1 cap 2100 and R2
+fallback gpt-oss-120b ruled 2026-08-26; W-2 next.
+
 v1.3.0 IS THE LATEST TAG, 2026-08-20. The release history, from the
 repository's own tags: v0.1.0 2026-08-06, v1.0.0 2026-08-08, v1.1.0
 2026-08-11, v1.2.0 2026-08-13, v1.3.0 2026-08-20.
@@ -2913,6 +2916,9 @@ rather than given one afterwards.
         NOTE THE DEPENDENCY: (c) cannot start until (a) has been live
         long enough to have logged real traffic. This is the one place
         in the wave where waiting is the work.
+        SUPERSEDED 2026-08-26 BY W-2, W-3 AND W-4 under THE WAVE PLAN
+        below, after the measurements. Kept as written: it is the record
+        of what was planned before anything had been measured.
 
      D3 PROVIDER CATALOGUE CHECK — FIRST TASK OF THE WAVE, READ-ONLY,
         and it carries C31 forward. List IONOS's and Nebius's /v1/models
@@ -2935,6 +2941,431 @@ rather than given one afterwards.
         incident re-learns. Log redaction redacts IN PLACE and never
         drops a whole line; every incident time carries a zone and the
         host is UTC.
+
+   MEASUREMENTS — 2026-08-26. Two read-only sessions, no branch commit
+   and no pull request between them. Every figure below is TRANSCRIBED
+   from those reports; nothing here was recomputed, re-rounded or
+   re-measured while writing it down.
+
+     A1 D3 PROVIDER CATALOGUE — MEASURED 2026-08-26 16:31:30 UTC, from
+        the host, HTTP 200, 2071 bytes, 20 entries.
+        BOTH MODELS IN USE ARE PRESENT ON IONOS. Production is not at
+        risk: meta-llama/Llama-3.3-70B-Instruct PRESENT, BAAI/bge-m3
+        PRESENT. The full catalogue, ids only:
+          BAAI/bge-large-en-v1.5
+          BAAI/bge-m3                                    <- embedding
+          bge-large-en-v1.5-migration                    (ignore, caveat 2)
+          bge-m3-migration                               (ignore, caveat 2)
+          black-forest-labs/FLUX.1-schnell
+          black-forest-labs/FLUX.2-klein-4B
+          lightonai/LightOnOCR-2-1B
+          meta-llama/Llama-3.3-70B-Instruct              <- chat
+          meta-llama/Meta-Llama-3.1-405B-Instruct-FP8
+          meta-llama/Meta-Llama-3.1-8B-Instruct
+          mistralai/Mistral-Nemo-Instruct-2407
+          mistralai/Mistral-Small-24B-Instruct
+          openai/gpt-oss-120b
+          paraphrase-multilingual-mpnet-base-v2-migration (ignore)
+          Qwen/Qwen3-Coder-Next
+          Qwen/Qwen3-VL-Embedding-8B
+          Qwen/Qwen3-VL-Reranker-8B
+          Qwen/Qwen3.5-397B-A17B
+          Qwen/Qwen3.5-9B                                (ADR-002's fast swap)
+          sentence-transformers/paraphrase-multilingual-mpnet-base-v2
+        THE API CARRIES NO LIFECYCLE FIELD, and that is the finding
+        rather than an aside. The entry keys are exactly created, id,
+        object and owned_by — there is no deprecated, no retires_at, no
+        status. `created` reads 1787761890 for ALL TWENTY entries, i.e.
+        it is the response timestamp and not a per-model date. A model
+        going away is not something this endpoint can tell you.
+        THE ONLY LIFECYCLE SURFACE IONOS OFFERS IS A DOCUMENTATION PAGE,
+        whose columns are "Scheduled to Retire On", "Retired On" and
+        "Alternative". Llama 3.3 70B is listed Active with End of Life
+        "N/A", launched on IONOS 2025-03-15; bge-m3 appears in none of
+        the three status tables. Recorded so the next check reads the
+        right columns instead of re-deriving them.
+        NEBIUS RETIRES meta-llama/Llama-3.3-70B-Instruct ON 2026-08-31,
+        per its August 2026 deprecation notice, which names
+        nvidia/Nemotron-3_5-Lightning as the replacement. BAAI/bge-m3 is
+        in NO Nebius notice — not the March one (disable 2026-04-13),
+        not June (2026-06-22), not August. The March notice retired
+        meta_llama/llama_3.3_70b_instruct_fast, the FAST variant, which
+        is a different id from the one ADR-002 names; the August notice
+        is the one that hits us.
+        NO NEBIUS CREDENTIAL EXISTS ON THE HOST. The only LLM-family
+        variable names in .env.prod are LLM_BASE_URL, LLM_API_KEY,
+        LLM_CHAT_MODEL and LLM_EMBEDDING_MODEL. Nebius's own /v1/models
+        could therefore not be called, and every Nebius figure above is
+        from published documentation rather than from its API.
+        MEASURED WHILE READING .env.prod, AND IT IS A ROW OF ITS OWN:
+        three of those four variables carry EMPTY values (value-length
+        0 for LLM_BASE_URL, LLM_CHAT_MODEL and LLM_EMBEDDING_MODEL; only
+        the key has a value, 1712 characters, never printed). They are
+        INERT, because docker-compose.prod.yml spells every one of them
+        with `:-`, so the effective models are the repository defaults —
+        this is #22's fix visibly holding. But .env.prod carries the
+        exact empty-assignment shape C10 deleted from the development
+        example, in the file that is hand-deployed, while
+        .env.prod.example:51-54 says "If you do not need a value, delete
+        the line". See the WATCH row under the rulings.
+
+     A2 FALLBACK CANDIDATES — HARNESS RUNS AT THE DEFAULT CAP OF 1200,
+        2026-08-26. QueryDemoVerificationIT on the demo profile against
+        the real provider and the local indexed corpus, three runs per
+        model, four tests and five chat cases per run.
+        THE DECISION RULE WAS STATED BEFORE THE RESULTS, which is the
+        only way a rule is a rule: a candidate qualifies if all demo
+        cases pass on all three runs, no case exceeds 30 s, strict
+        json_schema is accepted first try, no reasoning-predicate code
+        change is needed, and the Mode B output is judged actionable.
+        BASELINE meta-llama/Llama-3.3-70B-Instruct — 3 of 3 runs green.
+        Completion tokens / latency ms:
+          case                 run 1        run 2        run 3
+          gap / AB-02  (B)     129 / 4166   149 / 5243   124 / 4812
+          E-47 / PR-03 (A)     525 / 12776  514 / 12190  540 / 12828
+          DE->EN / FB-04 (A)   135 / 6045   168 / 4581   135 / 5034
+          E-47 / operator (A)  145 / 4774   354 / 9905   149 / 5118
+          E-47 / techniker (A) 582 / 14637  570 / 14249  492 / 15449
+        Max 582 tokens, 49 % of the cap; max latency 15449 ms against
+        NFR-4's 30 s. Retrieval is identical across all nine runs —
+        0.4563, 0.6896, 0.5566 to four decimals.
+        CANDIDATE Qwen/Qwen3.5-397B-A17B — 0 of 3 runs green. Every chat
+        call returned HTTP 500 InternalServerError after the client's one
+        retry; no demo case produced an answer in any run. FOUR RAW
+        PROBES ISOLATE IT, and the combination is the defect:
+          reasoning_effort:"none" + strict json_schema   -> HTTP 500
+          the same body again                            -> HTTP 500
+          no reasoning_effort + strict json_schema       -> 200, but
+            finish_reason=length, content EMPTY, 1200 completion tokens
+          reasoning_effort:"none", no response_format    -> 200, stop,
+            content present, 271 completion tokens
+        So the model works and the strict schema works; the two together
+        do not. And the third row is ADR-002 CAVEAT 3 REPRODUCING
+        MECHANICALLY — the reasoning field eats the whole output budget.
+        The predicate already classifies this model correctly; it is the
+        provider that rejects the request the predicate produces.
+        CANDIDATE openai/gpt-oss-120b — 1 of 3 runs green.
+          case                 run 1        run 2        run 3
+          gap / AB-02  (B)     285 / 2488   353 / 2645   371 / 3765
+          E-47 / PR-03 (A)     FAIL         FAIL         1092 / 7250
+          DE->EN / FB-04 (A)   506 / 3800   759 / 4486   680 / 3785
+          E-47 / operator (A)  FAIL         FAIL         1121 / 6144
+          E-47 / techniker (A) FAIL         FAIL         833 / 5224
+        The failure message, verbatim: "answer truncated at the
+        max-tokens cap of 1200 after 1200 completion tokens". THIS IS D1
+        REPRODUCED IN THE LAB on a candidate model, on the grounded case.
+        Its one green run still measured 1092 and 1121 tokens — 91 % and
+        93 % of the cap. A model that clears the bar by eight tokens has
+        not cleared it.
+        VERDICT UNDER THE STATED RULE: NEITHER QUALIFIES AT 1200. Qwen on
+        the 500, gpt-oss on the truncation. Reported as a stop, and the
+        ruling that followed is R1/R2 below.
+        ONE RESULT THAT WAS NOT A FAILURE: the reasoning probe found that
+        gpt-oss-120b works with NO reasoning_effort (200, stop, valid
+        strict-schema JSON, 357 tokens) and returns HTTP 400 "Harmony does
+        not support reasoning_effort='none'" when it is sent. Widening
+        isReasoningModel() to cover gpt-oss would have turned a working
+        model into a 400. No code change was needed and none was made.
+
+     A3 CAP CALIBRATION AND RETEST — 2026-08-26, cap 3000 except where
+        stated. Same harness, same three-runs discipline.
+        M1 meta-llama/Llama-3.3-70B-Instruct AT 3000 — 3 of 3 green, no
+        finish_reason=length anywhere:
+          case                 run 1        run 2        run 3
+          gap / AB-02  (B)     132 / 3931   128 / 3599   126 / 4114
+          E-47 / PR-03 (A)     512 / 12349  586 / 13862  575 / 13628
+          DE->EN / FB-04 (A)   169 / 4222   135 / 3767   135 / 3735
+          E-47 / operator (A)  338 / 8257   149 / 4273   149 / 3711
+          E-47 / techniker (A) 485 / 10664  320 / 8087   575 / 14003
+        LIFTING THE CAP FROM 1200 TO 3000 CHANGED NOTHING — max 586, the
+        same ceiling it had at 1200. Llama does not want the room.
+        THE D1 CASE, SENT RAW, because the harness takes no ad-hoc
+        question: bge-m3 embedding of "sensor fehler", the retriever's own
+        SQL against FR-01 with terms=[], labelByProtocol's threshold
+        filter, and the Mode A system prompt reconstructed from
+        GroundedPrompt.java. RETRIEVAL REPRODUCES THE INCIDENT EXACTLY —
+        5 hits, best 0.5651, threshold 0.55, Mode A, three sources above
+        the line:
+          5c1b6293-6798-43f1-831f-2d1b633a9f31  0.5651  [SV0410] SV0410
+                                    erneut, diesmal Verstaerker
+          4a396d6f-61a1-47ef-b54c-21a3a77302c5  0.5524  [SV0410] SV0410
+                                    Schleppfehler X-Achse
+          c611f31d-1baf-48fc-99ff-76bb0a7bb26e  0.5517  [TC0210]
+                                    Werkzeugwechsler greift daneben
+          367c3ead-51b6-4be7-9e96-4044759b4374  0.5433  [PS0130] Programm
+                                    bricht mit Alarm ab
+          11286654-bcf2-48fd-be64-2e171bc6c2c4  0.5432  [OH0700] Spindle
+                                    overtemperature
+        AND THE INCUMBENT REFUSES IT IN TEN TOKENS, SIX TIMES OF SIX —
+        three runs as SCHICHTLEITER and three as TECHNIKER, at cap 3000
+        AND again at cap 1200, every one HTTP 200 finish_reason=stop,
+        completion tokens 10, prompt tokens 1461, 663 to 1996 ms. Ten
+        tokens is {"answer_language":"de","claims":[]}: rule 4 firing,
+        because none of the three sources is about a sensor fault.
+        SCHICHTLEITER and TECHNIKER share one roleBlock, so those are the
+        same request sent twice and are counted as two samples, not two
+        configurations.
+        LLAMA'S 95TH PERCENTILE = 575 TOKENS over 21 samples (15 harness
+        at cap 3000 plus the 6 D1 refusals), 578 over the 15 harness
+        samples alone, max observed 586.
+        THE RECONSTRUCTION IS NOT THE APPLICATION, and that is stated
+        rather than buried: the system prompt was hand-joined from
+        GroundedPrompt.java's text blocks. The assembled user message was
+        dumped and checked — the labelled sources arrive intact, each
+        chunk still carrying the ingestion context line. It is faithful as
+        far as it can be checked from outside.
+        M2 openai/gpt-oss-120b AT 3000 — 3 of 3 green:
+          case                 run 1        run 2        run 3
+          gap / AB-02  (B)     506 / 3250   498 / 4567   372 / 2720
+          E-47 / PR-03 (A)     866 / 4524   1075 / 6024  974 / 6028
+          DE->EN / FB-04 (A)   441 / 3140   700 / 4450   396 / 2787
+          E-47 / operator (A)  1584 / 8088  1717 / 8531  1631 / 9127
+          E-47 / techniker (A) 1642 / 8601  760 / 5827   701 / 5325
+        D1 case at 3000: 1197 / 832 / 555 / 514 / 857 / 769, all stop,
+        3.3 to 5.8 s. D1 CASE AT THE PRODUCTION CAP OF 1200: 566, 567,
+        551, 602, 1101 — and 1200 with finish_reason=length. ONE IN SIX.
+        The D1 incident reproduces on the same question and the same
+        sources, at the same cap, on gpt-oss-120b and not on Llama.
+        VERDICT: QUALIFIES AT 3000, and only at 3000. 21/21 stop, never
+        stopped at the new cap, max latency 9127 ms, p95 1642, max 1717.
+        It is roughly twice as verbose as the incumbent and roughly twice
+        as fast.
+        M3 mistralai/Mistral-Small-24B-Instruct AT 1200 — DISQUALIFIED ON
+        LATENCY, NOT ON THE CAP:
+          case                 run 1        run 2        run 3
+          gap / AB-02  (B)     161 / 10571  106 / 5997   152 / 10625
+          E-47 / PR-03 (A)     FAIL         571 / 33625  607 / 81866
+          DE->EN / FB-04 (A)   118 / 4883   130 / 6755   118 / 7998
+          E-47 / operator (A)  277 / 17012  720 / 43091  237 / 14643
+          E-47 / techniker (A) 535 / 30085  670 / 40044  307 / 64825
+        SIX OF FIFTEEN CASES BREACHED NFR-4's 30 s, the worst at 81866
+        ms. Run 1's failure is the client's own 45 s timeout firing
+        twice: "I/O error on POST ... Request cancelled", then "chat
+        provider unavailable after 2 attempts". Max completion length was
+        720 tokens, 60 % of the default cap — it never came close to
+        truncating, so M3's escalation clause does not apply and no 3000
+        run was made: a bigger cap cannot make a model faster.
+        ITS REASONING PROBE PASSED BOTH WAYS — 200/stop with no
+        reasoning_effort (152 tokens) and 200/stop with
+        reasoning_effort:"none" (188 tokens). Recorded because it is the
+        one measured model that tolerates the parameter either way.
+        META-LLAMA-3.1-405B-FP8 WAS SKIPPED, deliberately and with the
+        reason: the escalation required M2 and M3 both to fail, and M2
+        qualified. A 405B model is also the wrong direction for the
+        criterion that just disqualified a 24B one — ADR-002 already
+        records IONOS's 70B at a median ~11 s inside the 30 s ceiling.
+        M4 THE ZERO-CHUNK INDEXED STATE — NOT A DEFECT, AND THE EARLIER
+        ALARM IS WITHDRAWN HERE RATHER THAN LEFT TO EXPIRE.
+                                     production      local dev
+          protocols, total                 167            216
+          protocols, live                  165            166
+          chunks                           181            182
+          INDEXED with no chunk, all         2             50
+          INDEXED with no chunk, LIVE        0              0
+        Every one of those rows is SOFT-DELETED. The two in production
+        are both on KP-01, created 2026-08-10, UNAPPROVED, one carrying
+        the error code x-99 — moderation test uploads from the ADR-006
+        work, whose chunks were removed when they were deleted. The
+        retriever filters p.deleted_at IS NULL regardless, so a deleted
+        protocol is unreachable BY DESIGN. The first query omitted
+        deleted_at and read a working delete path as a broken index; that
+        was an error in the query, not in the application, and it is
+        corrected here because a withdrawn alarm that is not written down
+        gets raised again.
+        IT IS ALSO A CORPUS-PARITY CHECK THAT PASSED — 165 live / 181
+        chunks in production against 166 / 182 locally, which is why the
+        D1 retrieval reproduced to four decimals.
+        THE ONE COSMETIC RESIDUE: a soft delete leaves `status` at its
+        last real value, so a deleted protocol still reads INDEXED. One
+        sentence for Part 6; not a defect row.
+        M5 PRICING — USD, AND THE PAGE DOES NOT LOCALISE. cloud.ionos.com
+        /prices fetched with Accept-Language de and with en: HTTP 200
+        both times, BYTE-IDENTICAL at 1,285,509 bytes, the same $ figures
+        in the AI Model Hub table. Per million tokens, input / output:
+          meta-llama/Llama-3.3-70B-Instruct      $0.71 / $0.71
+          openai/gpt-oss-120b                    $0.17 / $0.71
+          Qwen/Qwen3.5-397B-A17B                 $0.67 / $4.00
+          mistralai/Mistral-Small-24B-Instruct   $0.11 / $0.33  ("New")
+          BAAI/bge-m3                            $0.02 / -
+        There are 28 euro glyphs elsewhere on that page, on other
+        products; the token table is not one of them. gpt-oss-120b is 24 %
+        cheaper on input and identical on output, but emits roughly 2.8x
+        the tokens, so a switch is close to cost-neutral rather than the
+        saving the input rate suggests.
+
+     A4 D1 AMENDMENT — HYPOTHESIS, 2026-08-26. The D1 entry above says
+        the chat call "finished with finish_reason=length at the
+        1200-token cap", and the natural reading of that sentence — a
+        long answer that ran out of room — IS PROBABLY WRONG.
+        WHAT THE MEASUREMENT SAYS: the incumbent, on this exact question,
+        this exact machine and this exact retrieved set, REFUSES IN TEN
+        TOKENS, six times of six, at 1200 and at 3000. It does not
+        produce a long answer here at all.
+        WHAT CARLOS READ IN THE PRODUCTION WARN: the content preview of
+        the truncated body BEGAN WITH THE SAME REFUSAL, `{"claims": []`.
+        Recorded as his reading of the production log; it is not in
+        either measurement report and was not re-read here.
+        THE HYPOTHESIS THOSE TWO FACTS SUGGEST: the 1200-token body was
+        never a long answer. It is most plausibly a CONSTRAINED-DECODING
+        DEGENERATION AFTER THE REFUSAL — under a strict json_schema the
+        JSON whitespace between tokens is unbounded, so a model that has
+        already emitted its empty claims list can run to the cap emitting
+        nothing but padding. Stochastic at temperature 0.1, which is why
+        the same question succeeded at 10:45 UTC and why six clean runs
+        here did not reproduce it.
+        LABELLED HYPOTHESIS ON PURPOSE. It is confirmed or killed by W-2,
+        which logs the TAIL of a truncated body and its WHITESPACE RATIO
+        — a ratio near 1 confirms it, a tail of real German kills it.
+        Nothing downstream should treat it as settled before then.
+        THE CONSEQUENCE IF IT HOLDS, and this is why it is worth writing
+        down before it is proven: THE FIX IS A DEGRADATION PATH, NOT A
+        BIGGER CAP. A cap of 2100 buys a degenerating answer 900 more
+        tokens of whitespace and still fails. R1's cap change serves the
+        FALLBACK MODEL, which genuinely needs the room; it is not a fix
+        for D1 and must not be recorded as one.
+
+     A5 IONOS SUPPORT TICKET — Qwen/Qwen3.5-397B-A17B HTTP 500.
+        DRAFTED 2026-08-26, NOT YET SENT. When it goes, this row carries
+        "SENT <date> by Carlos, reference <id>".
+        The draft, as measured: on the de-txl endpoint the model returns
+        HTTP 500 InternalServerError whenever a request carries BOTH
+        reasoning_effort:"none" AND response_format json_schema with
+        strict true. Request 18:05:28 UTC, response Date 18:05:32 GMT;
+        not intermittent — the same body failed on roughly twenty
+        requests including three full harness runs. Two controls isolate
+        it: the byte-identical body without reasoning_effort returns 200
+        with finish_reason length, content null and the budget spent in
+        the reasoning field (request 18:05:31, response Date 18:05:45);
+        the body with reasoning_effort and no response_format returns 200
+        with finish_reason stop (request 18:05:45, response Date
+        18:05:48, completion id chatcmpl-615e479a-bbad-9c70-9d8a-
+        8bd007320d8b). The ask is either that the combination works or
+        that it fails with a 4xx naming the parameter — which
+        openai/gpt-oss-120b already does, with "Harmony does not support
+        reasoning_effort='none'". IONOS returns no x-request-id, so the
+        response Date headers are the correlation handle.
+        WATCH: DO NOT RE-MEASURE Qwen UNTIL IONOS ANSWERS. Re-running a
+        deterministic 500 costs money and proves what is already proven.
+
+   RULINGS — Carlos, 2026-08-26
+
+     R1 THE OUTPUT CAP MOVES FROM 1200 TO 2100. The arithmetic, which is
+        the rule stated before the measurement rather than a number
+        chosen after it: the 95th percentile of the longest QUALIFYING
+        model, times 1.25, rounded to 100.
+          openai/gpt-oss-120b p95, 21 samples at cap 3000 : 1642
+          1642 x 1.25                                     : 2052.5
+          rounded to 100                                  : 2100
+        For comparison, the same arithmetic on the incumbent gives
+        575 x 1.25 = 718.75 -> 700, BELOW today's 1200 — which says the
+        current cap was already generous for the model actually deployed.
+        IT SHIPS WITH W-3, TOGETHER WITH THE TRUNCATION DEGRADATION, AND
+        NEVER ALONE. A larger cap without a degradation path moves the
+        cliff instead of removing it, and under A4's hypothesis it does
+        not even move it.
+
+     R2 THE DOCUMENTED FALLBACK IS PROVIDER IONOS, MODEL
+        openai/gpt-oss-120b, EFFECTIVE ONCE R1 IS DEPLOYED. The switch is
+        LLM_CHAT_MODEL in .env.prod plus a backend restart, per OPS RULE
+        3 — the same hand-deployed-file discipline as every other change
+        to that file.
+        IT IS CONDITIONAL ON R1 AND THE CONDITION IS NOT A FORMALITY:
+        gpt-oss-120b qualified at 3000 and FAILED at 1200. Naming it as
+        the fallback while the cap is still 1200 would document a plan
+        that has been measured not to work.
+        NEBIUS IS DROPPED, for three reasons and not one: its named chat
+        model retires 2026-08-31 (A1); no Nebius credential exists on the
+        host, so nothing about it can be verified; and its own suggested
+        replacements sit outside the isReasoningModel() predicate, so
+        adopting one would be a code change — which contradicts ADR-002's
+        "a base-url and model change, not a code change" in a second way.
+        THERE IS NO TESTED FALLBACK FOR A FULL IONOS OUTAGE, and the
+        ADR-002 revision in W-4 says so in those words. A single-provider
+        dependency that is written down is a risk; one that is implied by
+        an out-of-date fallback is a trap.
+
+     ALSO RULED OR RECORDED WITH THE ABOVE, 2026-08-26
+       - ADR-002's "EUR pricing" IS WRONG TODAY. IONOS quotes AI Model
+         Hub tokens in USD and does not localise the page (A3, M5).
+         The ADR cites EUR pricing among the reasons IONOS won over
+         Nebius; whatever was true on 2026-08-06, the correction goes
+         into the W-4 revision. It does not change the decision.
+       - THE THREE EMPTY LLM_*= LINES IN .env.prod — WATCH. Inert today
+         because compose spells them with `:-`. Deleted at the next
+         hand-deploy that has a reason of its own, per .env.prod.example
+         ("If you do not need a value, delete the line") and the same
+         ride-along rule the compose comment and the locale-select
+         cosmetic already follow. Never a server login on its own.
+       - isReasoningModel()'s SUBSTRING PREDICATE IS CORRECT for all
+         three measured models — WATCH, NO CHANGE. gpt-oss-120b rejects
+         reasoning_effort with a 400 and must not match; Mistral-Small
+         accepts it either way and does not need to; Qwen3.5 matches and
+         needs it. The row exists because the predicate is a substring
+         and the next model will not announce which side of it it belongs
+         on — it is measured per candidate, never assumed.
+       - A SOFT DELETE LEAVES `status` AT ITS LAST REAL VALUE, so a
+         deleted protocol still reads INDEXED. Cosmetic; one sentence for
+         Part 6. Not a defect row — see A3's M4 for why.
+
+   THE WAVE PLAN — D2 IS SUPERSEDED BY THE ROWS BELOW, 2026-08-26. D2
+   stays as written above because it is the record of what was planned
+   before anything was measured, and the difference between the two is
+   the value of having measured.
+
+     W-2 OBSERVABILITY, ZERO BEHAVIOUR CHANGE.
+        - A cause-carrying WARN at QueryService's catch site, with a KIND
+          on ChatException: TRUNCATED, TRANSPORT, REJECTED, EMPTY. The
+          kind is the point — today a cap hit and a dead provider are the
+          same 503 to everyone reading a log.
+        - ON TRUNCATION, log the completion-token count, THE LAST 200
+          CHARACTERS OF THE BODY, and ITS WHITESPACE RATIO. That triple
+          is what confirms or kills A4: a ratio near 1 with a tail of
+          padding confirms the degeneration; a tail of real German kills
+          it and the answer really was too long.
+        - Log lines at the two ProviderUnavailable throw sites that
+          currently throw silently.
+        - A request id issued by Caddy and echoed in the backend logs, so
+          one user-visible failure can be followed across the two.
+        DEPLOY, NO TAG. Nothing the application does changes; this PR
+        only makes the next incident readable.
+
+     W-3 BEHAVIOUR CHANGE — TRUNCATION DEGRADES INSTEAD OF FAILING.
+        - Parse the partial body. If it yields empty claims, or is
+          whitespace-dominated, route to THE EXISTING EMPTY-CLAIMS MODE B
+          PATH and log REFUSAL_LOOP — that path already exists and is
+          already tested, which is why A4's hypothesis has a cheap fix.
+        - Otherwise Mode B with reason TRUNCATED.
+        - Cap 2100 per R1, WITH THE ARITHMETIC IN THE COMMENT beside it,
+          so the next reader can recompute it rather than inherit it.
+        - A test that feeds a truncated body and asserts the ungrounded
+          response. The bug class needs a test that fails without the fix.
+        - LIVE CHECK: FR-01 "sensor fehler", ten times. One run proves
+          nothing about a stochastic failure.
+        TAG v1.3.2.
+
+     W-4 THE RECORD AND THE WATCH.
+        - ADR-002 dated revision: Nebius dropped, gpt-oss-120b as the
+          documented fallback citing A2 and A3 rather than repeating
+          their tables, the USD correction, the caveat count updated, and
+          the explicit sentence that an IONOS outage has no tested
+          fallback.
+        - application.yml:80-81 — the comment that still calls Nebius the
+          documented fallback and the swap "not a code change". Comment
+          only, no value change.
+        - .github/workflows/catalogue-watch.yml: monthly, watching THREE
+          ids — meta-llama/Llama-3.3-70B-Instruct, BAAI/bge-m3 and
+          openai/gpt-oss-120b — failing by name when one is missing. The
+          repository secret LLM_API_KEY does not exist yet and Carlos adds
+          it before merge; workflow_dispatch for a first run once it does.
+          It watches a catalogue and owns no repository paths, so the
+          Part 3 path partition is unaffected.
+        - The two WATCH rows above closed or carried, explicitly.
+
+     THEN, IN ORDER: the guided-questions feature (ADR-011, a reserved
+     number — there are ten ADRs today); the recruiter landing page; the
+     Playwright upgrade (the package, the two image pins and the
+     baselines, which ADR-007 makes one deliberate act); the PART 4
+     SURVEY.
 
 5. PHASE 5 — EVOLUTION CANDIDATES (unchanged list, optional):
    similar-machine search, OCR, downtime stats, PDF export (generation,

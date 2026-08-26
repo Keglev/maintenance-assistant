@@ -602,3 +602,28 @@ Status: v1.3.0 released; refactor phase, Part 2 closed 2026-08-25, Part 3 next
   for every line it touched. NOTE THE LIMIT: .git-blame-ignore-revs only takes effect for a
   reader who has set blame.ignoreRevsFile, so it is documented in REFACTOR-STANDARDS.txt rather
   than assumed to work.
+- SUPPLY CHAIN: EVERY ACTION PINNED TO A SHA, AND WATCHED, 2026-08-26 (#102), Part 3 C16 and C17
+  as ruled. Twelve external actions across 41 `uses:` lines now name a full commit SHA with the
+  version tag as a trailing comment; no version was bumped, so what changed is what is GUARANTEED
+  to run rather than what runs. A mutable tag is a promise the publisher can rewrite, and two of
+  these are third-party — one of them holds contents: write on gh-pages. THE PIN IS HALF THE
+  DECISION: pinned and unwatched is frozen, so .github/dependabot.yml watches github-actions, npm
+  (frontend) and maven (backend), MONTHLY and GROUPED, because Carlos reviews every pull request
+  personally and the cost of an update here is a review rather than a merge button. One batch a
+  month is a session; a trickle is an interruption, and an interruption is how dependency PRs
+  become a queue nobody reads. Dependabot PRs pass the same required checks as any other; nothing
+  is auto-merged, and there are no ignore rules — a dependency that must not move belongs in a
+  ledger entry, not in a config file nobody re-reads.
+  THE TWO npx RENDERERS ARE PINNED TOO (C17): mermaid-cli 11.16.0 and Redocly 2.41.1. Both produce
+  PUBLISHED pages, the pandoc pin two files away already carries this exact argument, and the .mmd
+  sources are versioned while the SVGs are not — so an unpinned renderer could have changed every
+  diagram on the site without one line of this repository changing. Worth knowing: the docs run log
+  records NEITHER version, because npx prints no resolved version, so until now the site could not
+  say what built it.
+  A BLAME-IGNORE FILE THAT QUIETLY DID NOTHING, found one PR after the rule was written. #101
+  recorded its reformat commit for git blame; Carlos squash-merges, so that SHA was unreachable
+  from main the moment it landed, and GIT IGNORES AN UNRESOLVABLE ENTRY WITHOUT SAYING SO. The
+  file existed, looked right, and guarded nothing. THE RULE, now in working practice 11: under
+  squash merge the entry is ALWAYS the merge commit on main, added in the PR after the reformat
+  lands. The general form is older than this instance — a guard that cannot report its own failure
+  has to be verified from outside, here with `git merge-base --is-ancestor`.

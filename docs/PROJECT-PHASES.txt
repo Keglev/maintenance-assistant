@@ -7,9 +7,12 @@ Keycloak realm = "maintenance". English repo name is intentional.)
 =====================================================================
 CURRENT STATUS — 2026-08-25 (v1.3.0; PART 3 SURVEYED, AWAITING RULINGS)
 =====================================================================
-v1.3.1 PENDING: #99 changes production behaviour; tag after deploy and
-live verification, and #100 corrects the hand-deployed-file count;
-CHANGELOG entry lists both.
+v1.3.1 TAGGED 2026-08-26 on ee5b814, carrying #99 (production behaviour:
+the forwarded-headers fix) and #100 (the hand-deployed-file count).
+THERE IS NO CHANGELOG FILE and the earlier wording here promised one:
+`git ls-files | grep -i changelog` is empty. Release notes are generated
+by release.yml from pull request titles, which is why the titles are
+written to be read.
 
 v1.3.0 IS THE LATEST TAG, 2026-08-20. The release history, from the
 repository's own tags: v0.1.0 2026-08-06, v1.0.0 2026-08-08, v1.1.0
@@ -1947,6 +1950,8 @@ rather than given one afterwards.
          amd64+arm64" and is immediately followed by its own REVISED AGAIN
          2026-08-10; TC-2, 04-solution-strategy and AI-USAGE describe the
          CAX-to-CX33 purchase revision, which happened.
+         backend-deploy.yml sentence corrected #102. It is the last live
+         instance, and frontend-deploy.yml never carried it — checked.
 
      C13 backend/Dockerfile:33 vs docker/postgres/init-keycloak-db.sh:9
          — THE HOST RUNS A DIFFERENT NUMBER OF CONTAINERS IN EACH FILE.
@@ -2048,6 +2053,28 @@ rather than given one afterwards.
          RULED 2026-08-25: pin every action to a SHA, and add a monthly
          grouped dependabot.yml so the pins are maintained rather than
          frozen. Its own PR.
+         FIXED 2026-08-26, #102: 12 actions pinned across 41 occurrences
+         in 10 files, dependabot.yml added.
+         TWELVE DISTINCT EXTERNAL ACTIONS, not the thirteen the row counted.
+         The thirteenth `uses:` target is ./.github/actions/e2e-stack, a
+         LOCAL composite action, which is read from the checkout and has no
+         SHA to pin — it is already exactly as trustworthy as the commit
+         being built. Left alone deliberately.
+         ELEVEN TAGS ARE LIGHTWEIGHT AND ONE IS ANNOTATED, which is the
+         detail that would have produced a wrong pin if it had been skipped:
+         peaceiris/actions-gh-pages@v4 resolves through git/ref/tags to a
+         TAG OBJECT (329bcc8f), and the commit is that object's target
+         (84c30a85). Pinning the tag object would have pinned something
+         `uses:` cannot check out. The other eleven answer object.type
+         "commit" directly.
+         NO VERSION WAS BUMPED. Every pin is the SHA the tag pointed at on
+         2026-08-26, so this PR changes what is GUARANTEED to run, not what
+         runs.
+         DEPENDABOT CARRIES `labels: []`, and that is a decision rather than
+         an omission: `gh label list` returns only GitHub's nine defaults,
+         none of which fits a dependency bump, and Dependabot CREATES a
+         `dependencies` label of its own when the key is absent. An empty
+         list is the only spelling that labels nothing and creates nothing.
 
      C17 docs/scripts/generate-diagrams.mjs:8 and
          .github/scripts/docs/build-openapi-docs.sh:47 — TWO UNPINNED
@@ -2064,6 +2091,22 @@ rather than given one afterwards.
          every run re-downloads mermaid-cli and a Chromium. FIX (pin),
          WATCH (cache) — the cache is a minute, the pin is a claim about
          what the site shows.
+         FIXED 2026-08-26, #102: mermaid-cli 11.16.0, redocly 2.41.1
+         pinned; cache NOT APPLICABLE — the three setup-node steps in
+         docs.yml and docs-pr-check.yml have no lockfile to cache against.
+         `ls package-lock.json docs/package-lock.json` finds nothing; the
+         only lockfile in the repository is frontend/package-lock.json, and
+         no docs job installs from it. `cache: npm` there would cache an
+         empty set and report success, which is the kind of green this
+         repository throws away rather than counts. The right fix, if the
+         minute is ever worth it, is npx's own cache or a lockfile of the
+         docs toolchain's own — a bigger change than a cache key.
+         THE VERSIONS WERE MEASURED, and note where they were NOT found:
+         `npx -y @mermaid-js/mermaid-cli --version` -> 11.16.0 and
+         `npx --yes @redocly/cli --version` -> 2.41.1, run locally. The
+         docs.yml run log records NEITHER — npx prints no resolved version,
+         so until now the published site could not say which renderer built
+         it. That absence is half the argument for the pin.
 
      C18 application.yml:226-231 — an exposure list nothing reads.
          management.endpoints.web.exposure.include: health,info exposes
@@ -2186,6 +2229,27 @@ rather than given one afterwards.
          warns about ("leaves the next reader deleting a guard to win a
          branch"), so they stay and now say why. `git status --ignored` is
          byte-identical before and after: 18 paths, both times.
+
+     C28 .git-blame-ignore-revs NAMED A COMMIT THAT DOES NOT EXIST ON MAIN,
+         found 2026-08-26, one pull request after the rule was written.
+         #101 shipped as three commits so the 38-file reformat was
+         reviewable apart from the gate, and its blame-ignore entry named
+         the reformat commit, c4965a4e. Carlos squash-merges. The moment
+         #101 landed, that SHA belonged to a branch and to nothing on main:
+           git merge-base --is-ancestor c4965a4e origin/main   -> exit 1
+           git branch -r --contains c4965a4e  -> origin/ci/prettier-gate
+         GIT IGNORES AN UNRESOLVABLE ENTRY WITHOUT SAYING SO. The file
+         existed, looked right, and did nothing — a guard that reports
+         success while guarding nothing, which is the failure class this
+         repository keeps a list of.
+         FIXED 2026-08-26, #102: the entry is f71aec49, the squash of
+         #101 on main, verified with `git merge-base --is-ancestor` exit 0.
+         The rule is in WP 11: under squash merge the entry is ALWAYS the
+         merge commit on main, added in the PR AFTER the reformat lands.
+         Cost of the shape: the recorded commit is no longer whitespace-only
+         — f71aec49 also carries one CI step and one ignore file. Blame will
+         look through those five lines too. That is the price of squash
+         merging, and it is smaller than the 38 files it hides.
 
    (c) CLEAN — measured, nothing found
      - THE PATH PARTITION. 397 files, 0 gaps, 6 deliberate overlaps.

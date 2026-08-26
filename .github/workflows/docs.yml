@@ -43,9 +43,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
-      - uses: actions/setup-node@v7
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
           node-version: 22
 
@@ -77,7 +77,7 @@ jobs:
         run: bash .github/scripts/docs/build-docs.sh .
 
       - name: Publish site to gh-pages
-        uses: peaceiris/actions-gh-pages@v4
+        uses: peaceiris/actions-gh-pages@84c30a85c19949d7eee79c4ff27748b70285e453 # v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./target/docs
@@ -100,7 +100,7 @@ jobs:
     steps:
       # The OpenAPI render needs the build script, so the repository is checked
       # out here as well as in the site job.
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
       - name: Identify the source project
         id: project
@@ -115,7 +115,7 @@ jobs:
       # CI uploads them only from main, so pull requests can never publish.
       # The paths match what build-openapi-docs.sh looks for.
       - name: Download coverage
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           name: ${{ steps.project.outputs.name }}-coverage
           path: target/reports/${{ steps.project.outputs.name }}-coverage
@@ -123,7 +123,7 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Download API documentation
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           name: ${{ steps.project.outputs.name }}-api-docs
           path: target/reports/${{ steps.project.outputs.name }}-api-docs
@@ -133,7 +133,7 @@ jobs:
       # The backend artifact is a raw OpenAPI document, which is not something a
       # reviewer reads. Redocly renders it through the same script the site build
       # calls, so the published page cannot drift from a local build.
-      - uses: actions/setup-node@v7
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         if: steps.project.outputs.name == 'backend'
         with:
           node-version: 22
@@ -162,7 +162,7 @@ jobs:
             target/reports/frontend-api-docs/index.html
 
       - name: Publish coverage to gh-pages
-        uses: peaceiris/actions-gh-pages@v4
+        uses: peaceiris/actions-gh-pages@84c30a85c19949d7eee79c4ff27748b70285e453 # v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: target/reports/${{ steps.project.outputs.name }}-coverage
@@ -175,7 +175,7 @@ jobs:
       # Compodoc tree the artifact already contains.
       - name: Publish backend API reference to gh-pages
         if: steps.project.outputs.name == 'backend'
-        uses: peaceiris/actions-gh-pages@v4
+        uses: peaceiris/actions-gh-pages@84c30a85c19949d7eee79c4ff27748b70285e453 # v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: target/docs/backend/api-docs
@@ -186,7 +186,7 @@ jobs:
 
       - name: Publish frontend API reference to gh-pages
         if: steps.project.outputs.name == 'frontend'
-        uses: peaceiris/actions-gh-pages@v4
+        uses: peaceiris/actions-gh-pages@84c30a85c19949d7eee79c4ff27748b70285e453 # v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: target/reports/frontend-api-docs

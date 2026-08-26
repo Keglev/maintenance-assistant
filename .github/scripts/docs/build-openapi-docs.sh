@@ -17,7 +17,7 @@
 # docs-only build legitimately has no spec, and the deploy step preserves the
 # published API page it did not regenerate.
 #
-# Prerequisites: redocly CLI (npx @redocly/cli), when a spec is present
+# Prerequisites: redocly CLI (npx @redocly/cli@<pinned>), when a spec is present
 # =============================================================================
 set -euo pipefail
 
@@ -44,7 +44,13 @@ fi
 echo "==> [build-openapi-docs] Rendering ${SPEC#"$PROJECT_DIR"/}"
 mkdir -p "$API_OUT"
 
-npx --yes @redocly/cli build-docs "$SPEC" -o "$API_OUT/index.html"
+# PIN — BUMP THIS DELIBERATELY, and look at the rendered page when you do. Same argument as
+# the pandoc pin in docs-pr-check.yml: this renders a page the site publishes, and a
+# different Redocly may render differently, so changing this number is a content change
+# and deserves its own pull request with the output diffed. Unpinned until 2026-08-26
+# (Part 3, C17); 2.41.1 is the version that was resolving at the time, measured with
+# `npx --yes @redocly/cli --version`.
+npx --yes @redocly/cli@2.41.1 build-docs "$SPEC" -o "$API_OUT/index.html"
 
 # The raw document stays downloadable next to the rendered page: a reader may
 # want to import it into a client, and the deployed URL is a stable place to

@@ -15,6 +15,12 @@
 #
 # One SHA per line, full length. Add only commits that changed no behaviour.
 
-# style(frontend): apply prettier to the thirty-eight files it had never touched
-# 2026-08-25, the reformat that followed the format gate landing in the same PR.
-c4965a4e8f5ef982f174391f5740463a560de031
+# ci(frontend): gate formatting, then apply it (#101)
+# 2026-08-26. THE SQUASH OF #101 ON main, not the reformat commit from its branch.
+# Carlos squash-merges, so the three-commit split that made the pull request
+# reviewable does not survive the merge: the branch SHA this line first carried
+# was unreachable from main the moment #101 landed, and git silently ignores an
+# unresolvable entry — a blame-ignore file that quietly does nothing.
+# Its non-whitespace content is one CI step and one ignore file; everything else
+# in it is the 38-file reformat this entry exists to look through.
+f71aec493539449bf382c03a3a1b7e558b942352

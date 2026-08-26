@@ -1,5 +1,5 @@
 PROJECT DECISIONS — Instandhaltungs-Assistent / Maintenance Protocol Assistant
-Status: v1.3.0 released; refactor phase, Part 2 closed 2026-08-25, Part 3 next
+Status: v1.3.1 released; refactor phase, Part 3 closed 2026-08-26; diagnostics wave in progress
 (Details in: requirements.md, domain-model.md, adr/ — index in adr/README.md)
 
 == PRODUCT ==
@@ -686,3 +686,77 @@ Status: v1.3.0 released; refactor phase, Part 2 closed 2026-08-25, Part 3 next
   diagnostics wave: check the IONOS catalogue for the same model, then either amend ADR-002's
   fallback or name a different model in it. A documented fallback that no longer exists is worse
   than none, because it is the plan someone reaches for during an incident.
+- PART 3 CLOSED 2026-08-26, thirty-one findings and thirteen merged pull requests (#94-#103,
+  #105, #107, #108) plus two Dependabot pull requests closed by design (#104, #106). The full
+  record is the "PART 3 CLOSE-OUT" entry in PROJECT-PHASES.txt and is deliberately not repeated
+  here — one home per fact. What belongs in a decisions file is the SHAPE THE WAVE CONFIRMED:
+  a survey rules before it fixes, each ruling is its own pull request, and a count in the record
+  is recomputed by the pull request that acts on it. Twenty-four rows fixed, five WATCH, one
+  frozen (C23, Part 2's F6 extended to citations inside the spike), one carried to Part 6 (C27).
+  THE CLOSE WAS HELD OPEN FOR A MEASUREMENT and not for a merge: #108 changed the docs publisher
+  in a way no pull request can exercise, so the wave stayed open until the first real publish was
+  read — gh-pages 52647a6, 549 files, zero legacy entries, .nojekyll present, the four report
+  roots still answering 200 and the two ghost pages answering 404. ONE THING IS STILL OPEN AND IS
+  RECORDED AS OPEN: no reports publish has run since #108, so invariant I2 ("a report publish
+  never touches the site or the other project") is a read of the workflow rather than a
+  measurement. The check that settles it is in the close-out.
+  ALSO CORRECTED DURING THE WAVE, indexed in the close-out's (e) so a correction is findable from
+  one place rather than only where the error was: the peaceiris publish-step count, Part 2's close
+  date, TC-3's multi-arch constraint, four hand-deployed files becoming seven, the CHANGELOG
+  wording in the status header, and a prettier counter that reported 127 CRLF-inflated failures
+  where the repository had 38.
+- THE ORDER OF WORK AFTER PART 3, decided 2026-08-26: DIAGNOSTICS AND PROVIDER WAVE first, then
+  the guided-questions feature (ADR-011, a reserved number — there are ten ADRs today), then the
+  docs landing page, then the PART 4 SURVEY. Part 4 is deliberately displaced. AN INCIDENT THAT
+  PRESENTS AS AN OUTAGE AND IS NOT ONE OUTRANKS A SURVEY OF DEAD CODE: on 2026-08-26 07:23 UTC a
+  borderline retrieval (best score 0.5651, above the threshold, so Mode A) met a vague question,
+  the answer ran into the 1200-token cap, and finish_reason=length surfaced to the user as
+  PROVIDER_UNAVAILABLE 503 — "nicht erreichbar" — while the provider was reachable throughout.
+  The same question at 10:45 UTC scored below 0.55, fell to Mode B, and succeeded.
+  THE WAVE'S OWN ORDER IS ALSO DECIDED AND IS NOT NEGOTIABLE, because nothing is calibrated before
+  it is measured: the provider catalogue check first (read-only, carrying C31 — Nebius has
+  deprecated the fallback chat model ADR-002 names); then observability with zero behaviour
+  change; then truncation degrading to Mode B with its own reason code, which is a behaviour
+  change and takes v1.3.2; then a max-tokens ceiling calibrated FROM THOSE LOGS and an ADR-008 row
+  for Mode A within 0.02 of the threshold. The last step cannot start until the first has been
+  live long enough to have logged real traffic, which is the one place in this wave where waiting
+  is the work.
+- THE OUTPUT CAP MOVES 1200 -> 2100, ruled 2026-08-26 (R1). The number is the rule stated before the
+  measurement rather than one chosen after it: the 95th percentile of the longest QUALIFYING model
+  times 1.25, rounded to 100 — openai/gpt-oss-120b measured p95 1642 over 21 samples, 1642 x 1.25 =
+  2052.5 -> 2100. The same arithmetic on the incumbent gives 700, BELOW today's 1200, which is the
+  part worth keeping: the cap was never too small for the model actually deployed. IT SHIPS WITH THE
+  TRUNCATION DEGRADATION AND NEVER ALONE (W-3, v1.3.2) — a larger cap without a degradation path
+  moves the cliff instead of removing it. The full tables are in PROJECT-PHASES.txt under the
+  diagnostics wave, A2 and A3; they are not repeated here.
+- THE DOCUMENTED FALLBACK IS IONOS + openai/gpt-oss-120b, ruled 2026-08-26 (R2), EFFECTIVE ONLY ONCE
+  THE CAP CHANGE IS DEPLOYED — and that condition is not a formality: the model qualified at a cap of
+  3000 and FAILED at 1200, so naming it while the cap is still 1200 would document a plan measured
+  not to work. The switch stays a base-url-and-model change: LLM_CHAT_MODEL in .env.prod plus a
+  backend restart, per OPS RULE 3. NEBIUS IS DROPPED for three reasons, not one: it retires
+  meta-llama/Llama-3.3-70B-Instruct on 2026-08-31, no Nebius credential exists on the host so nothing
+  about it can be verified, and its own suggested replacements fall outside the isReasoningModel()
+  predicate — which would make the swap a CODE change and contradict ADR-002 a second way. THERE IS
+  NO TESTED FALLBACK FOR A FULL IONOS OUTAGE and the ADR-002 revision (W-4) will say so in those
+  words: a single-provider dependency that is written down is a risk, one implied by an out-of-date
+  fallback is a trap.
+- THE D1 INCIDENT IS PROBABLY NOT WHAT ITS OWN ENTRY SAYS — HYPOTHESIS, 2026-08-26, labelled as one.
+  The incumbent, on the exact question, machine and retrieved set of 2026-08-26 07:23 UTC, REFUSES IN
+  TEN TOKENS six times of six, at cap 1200 and at cap 3000; retrieval reproduced the incident's
+  0.5651 to four decimals, so it is the same case. The production WARN's content preview began with
+  that same refusal. The likeliest reading is therefore that the 1200-token body was never a long
+  answer but a CONSTRAINED-DECODING DEGENERATION AFTER THE REFUSAL — JSON whitespace is unbounded
+  under a strict schema — stochastic at temperature 0.1, which is also why the same question
+  succeeded at 10:45 UTC. W-2 confirms or kills it by logging the tail of a truncated body and its
+  whitespace ratio. THE CONSEQUENCE, recorded before the proof because it changes what W-3 builds:
+  the fix is a DEGRADATION PATH, not a bigger cap. A cap of 2100 buys a degenerating answer 900 more
+  tokens of whitespace and still fails. R1 serves the fallback model, not D1, and must not be
+  recorded as a fix for it.
+- ADR-002's "EUR PRICING" IS WRONG TODAY, found 2026-08-26 while pricing the candidates. IONOS quotes
+  AI Model Hub tokens in USD, and the page does not localise: cloud.ionos.com/prices fetched with
+  Accept-Language de and with en came back byte-identical at 1,285,509 bytes with the same $ figures.
+  The ADR cites EUR pricing among the reasons IONOS won over Nebius on 2026-08-06. It does not change
+  the decision — the measured retrieval, the multilingual embedding requirement and the NFR-4 latency
+  all still point the same way — but a reason that is no longer true has to be corrected where it is
+  written, not left standing because the conclusion survives it. The correction goes into the W-4
+  revision.

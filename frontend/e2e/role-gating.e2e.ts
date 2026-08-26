@@ -14,8 +14,9 @@ test.describe('role gating', () => {
     await signIn(page, 'admin');
 
     await expect(page).toHaveURL(/\/moderation$/);
-    await expect(page.getByTestId('moderation-table').or(page.getByTestId('moderation-empty')))
-      .toBeVisible();
+    await expect(
+      page.getByTestId('moderation-table').or(page.getByTestId('moderation-empty')),
+    ).toBeVisible();
 
     // The live defect in one assertion: the admin must never see the machine-list error, because
     // the admin must never be sent to the view that asks for it.
@@ -65,8 +66,9 @@ test.describe('role gating', () => {
     await expect(page.getByTestId('nav-moderation')).toBeVisible();
     await page.getByTestId('nav-moderation').click();
     await expect(page).toHaveURL(/\/moderation$/);
-    await expect(page.getByTestId('moderation-table').or(page.getByTestId('moderation-empty')))
-      .toBeVisible();
+    await expect(
+      page.getByTestId('moderation-table').or(page.getByTestId('moderation-empty')),
+    ).toBeVisible();
   });
 
   test('the correction view gives the Schichtleiter no moderation powers', async ({ page }) => {
@@ -90,6 +92,8 @@ test.describe('role gating', () => {
 
     // And the screen says which job it is, because "Verwaltung" would describe powers just checked
     // to be absent.
-    await expect(page.locator('.page-title')).not.toHaveText(/Protokollverwaltung|Protocol management/);
+    await expect(page.locator('.page-title')).not.toHaveText(
+      /Protokollverwaltung|Protocol management/,
+    );
   });
 });

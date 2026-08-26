@@ -6,7 +6,12 @@
 
      Pressed tracks the theme actually on screen, not the stored choice: with no choice stored the
      operating system decides, and a control with neither half pressed would look broken. -->
-<div class="theme-switch" role="group" [attr.aria-label]="t().theme.label" data-testid="theme-toggle">
+<div
+  class="theme-switch"
+  role="group"
+  [attr.aria-label]="t().theme.label"
+  data-testid="theme-toggle"
+>
   <button
     type="button"
     data-testid="theme-light"

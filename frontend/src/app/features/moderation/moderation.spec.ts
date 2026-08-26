@@ -79,9 +79,7 @@ describe('Moderation', () => {
   /** Creates the component and answers the page and the machine list it loads on construction. */
   async function render(first: ProtocolPage = page([protocol()])) {
     const fixture = TestBed.createComponent(Moderation);
-    httpMock
-      .expectOne((request) => request.url === '/api/moderation/protocols')
-      .flush(first);
+    httpMock.expectOne((request) => request.url === '/api/moderation/protocols').flush(first);
     httpMock.expectOne('/api/machines').flush([
       { id: 'm-1', machineNo: 'PR-03', name: 'Presse 3', type: 'Presse', location: 'Halle 1' },
       { id: 'm-2', machineNo: 'AB-02', name: 'Abfüller 2', type: 'Abfüller', location: 'Halle 2' },
@@ -93,9 +91,7 @@ describe('Moderation', () => {
   /** Fills the filter form the way a user does, so the disabled rule is exercised for real. */
   function type(element: HTMLElement, testId: string, value: string): void {
     const field = element.querySelector(`[data-testid="${testId}"]`) as
-      | HTMLInputElement
-      | HTMLSelectElement
-      | HTMLTextAreaElement;
+      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
     field.value = value;
     field.dispatchEvent(new Event(field.tagName === 'SELECT' ? 'change' : 'input'));
   }
@@ -199,7 +195,8 @@ describe('Moderation', () => {
     expect(target).toContain('PR-03');
     // The copy is the ADR-006 revision in one sentence: gone for everyone at once, no restore, and
     // still readable in the archive.
-    const dialog = element.querySelector('[data-testid="delete-confirm-dialog"]')?.textContent ?? '';
+    const dialog =
+      element.querySelector('[data-testid="delete-confirm-dialog"]')?.textContent ?? '';
     expect(dialog).toContain('kein Wiederherstellen');
     expect(dialog).toContain('Gelöschte Protokolle');
     // httpMock.verify() in afterEach proves no DELETE was sent by opening the dialog.
@@ -215,7 +212,8 @@ describe('Moderation', () => {
     // Required here as well as on the server. A removal from the corpus with no reason is exactly
     // the unexplained change the audit trail exists to make visible.
     expect(
-      (element.querySelector('[data-testid="delete-confirm-button"]') as HTMLButtonElement).disabled,
+      (element.querySelector('[data-testid="delete-confirm-button"]') as HTMLButtonElement)
+        .disabled,
     ).toBe(true);
     expect(element.querySelector('[data-testid="delete-reason-required"]')).not.toBeNull();
 
@@ -223,7 +221,8 @@ describe('Moderation', () => {
     await fixture.whenStable();
 
     expect(
-      (element.querySelector('[data-testid="delete-confirm-button"]') as HTMLButtonElement).disabled,
+      (element.querySelector('[data-testid="delete-confirm-button"]') as HTMLButtonElement)
+        .disabled,
     ).toBe(false);
   });
 
@@ -289,8 +288,9 @@ describe('Moderation', () => {
     const fixture = await render(page([protocol()], 25, 0));
     const element = fixture.nativeElement as HTMLElement;
 
-    expect((element.querySelector('[data-testid="page-previous"]') as HTMLButtonElement).disabled)
-      .toBe(true);
+    expect(
+      (element.querySelector('[data-testid="page-previous"]') as HTMLButtonElement).disabled,
+    ).toBe(true);
     expect(element.querySelector('[data-testid="page-state"]')?.textContent).toContain('25');
 
     (element.querySelector('[data-testid="page-next"]') as HTMLButtonElement).click();
@@ -302,8 +302,9 @@ describe('Moderation', () => {
     expect(element.querySelector('[data-testid="moderation-table"]')?.textContent).toContain(
       'Zweite Seite',
     );
-    expect((element.querySelector('[data-testid="page-previous"]') as HTMLButtonElement).disabled)
-      .toBe(false);
+    expect(
+      (element.querySelector('[data-testid="page-previous"]') as HTMLButtonElement).disabled,
+    ).toBe(false);
   });
 
   it('renders protocol dates in the interface language', async () => {
@@ -341,8 +342,10 @@ describe('Moderation', () => {
     // The owner's noise rule, and the backend's 400: across ten machines a title fragment answers
     // with rows from machines the reviewer was not looking at.
     for (const id of ['filter-title', 'filter-from', 'filter-to']) {
-      expect((element.querySelector(`[data-testid="${id}"]`) as HTMLInputElement).disabled, id)
-        .toBe(true);
+      expect(
+        (element.querySelector(`[data-testid="${id}"]`) as HTMLInputElement).disabled,
+        id,
+      ).toBe(true);
     }
     // And a disabled field with no explanation reads as broken rather than as not-yet-applicable.
     expect(element.querySelector('[data-testid="filter-hint"]')?.textContent).toContain('Maschine');
@@ -351,8 +354,10 @@ describe('Moderation', () => {
     await fixture.whenStable();
 
     for (const id of ['filter-title', 'filter-from', 'filter-to']) {
-      expect((element.querySelector(`[data-testid="${id}"]`) as HTMLInputElement).disabled, id)
-        .toBe(false);
+      expect(
+        (element.querySelector(`[data-testid="${id}"]`) as HTMLInputElement).disabled,
+        id,
+      ).toBe(false);
     }
   });
 
@@ -434,8 +439,9 @@ describe('Moderation', () => {
     request.flush(page([protocol()]));
     await fixture.whenStable();
 
-    expect((element.querySelector('[data-testid="filter-machine"]') as HTMLSelectElement).value)
-      .toBe('');
+    expect(
+      (element.querySelector('[data-testid="filter-machine"]') as HTMLSelectElement).value,
+    ).toBe('');
   });
 
   it('says a filtered result is empty differently from an empty corpus, and offers the way back', async () => {
@@ -458,9 +464,7 @@ describe('Moderation', () => {
 
   it('loses the dropdown, not the page, when the machine list cannot be read', async () => {
     const fixture = TestBed.createComponent(Moderation);
-    httpMock
-      .expectOne((r) => r.url === '/api/moderation/protocols')
-      .flush(page([protocol()]));
+    httpMock.expectOne((r) => r.url === '/api/moderation/protocols').flush(page([protocol()]));
     httpMock.expectOne('/api/machines').flush({}, { status: 503, statusText: 'Unavailable' });
     await fixture.whenStable();
     const element = fixture.nativeElement as HTMLElement;
@@ -482,7 +486,10 @@ describe('Moderation', () => {
    * keep saying what they were always about — what the correction dialog does — rather than
    * repeating who is allowed to open it. That rule has its own test.
    */
-  async function openEdit(fixture: Awaited<ReturnType<typeof render>>, text = 'Anzugsmoment 90 Nm') {
+  async function openEdit(
+    fixture: Awaited<ReturnType<typeof render>>,
+    text = 'Anzugsmoment 90 Nm',
+  ) {
     const element = fixture.nativeElement as HTMLElement;
     roles.set(['schichtleiter']);
     await fixture.whenStable();
@@ -502,10 +509,12 @@ describe('Moderation', () => {
 
     // The thing being corrected is the document on the volume. A form pre-filled from anything
     // else would silently replace the text with whatever the row happened to know.
-    expect((element.querySelector('[data-testid="edit-content"]') as HTMLTextAreaElement).value)
-      .toContain('90 Nm');
-    expect((element.querySelector('[data-testid="edit-title"]') as HTMLInputElement).value)
-      .toBe('E-47 Druckabfall');
+    expect(
+      (element.querySelector('[data-testid="edit-content"]') as HTMLTextAreaElement).value,
+    ).toContain('90 Nm');
+    expect((element.querySelector('[data-testid="edit-title"]') as HTMLInputElement).value).toBe(
+      'E-47 Druckabfall',
+    );
   });
 
   it('shows machine and type as locked, and says why', async () => {
@@ -526,14 +535,16 @@ describe('Moderation', () => {
     const fixture = await render();
     const element = await openEdit(fixture);
 
-    expect((element.querySelector('[data-testid="edit-save"]') as HTMLButtonElement).disabled)
-      .toBe(true);
+    expect((element.querySelector('[data-testid="edit-save"]') as HTMLButtonElement).disabled).toBe(
+      true,
+    );
 
     type(element, 'edit-comment', 'Drehmoment korrigiert');
     await fixture.whenStable();
 
-    expect((element.querySelector('[data-testid="edit-save"]') as HTMLButtonElement).disabled)
-      .toBe(false);
+    expect((element.querySelector('[data-testid="edit-save"]') as HTMLButtonElement).disabled).toBe(
+      false,
+    );
   });
 
   it('sends the correction with the unchanged machine, and says it is being re-indexed', async () => {
@@ -555,7 +566,10 @@ describe('Moderation', () => {
       content: 'Anzugsmoment 120 Nm',
       comment: 'Drehmoment korrigiert',
     });
-    request.flush({ id: 'p-1', status: 'RECEIVED', message: 'ok' }, { status: 202, statusText: 'Accepted' });
+    request.flush(
+      { id: 'p-1', status: 'RECEIVED', message: 'ok' },
+      { status: 202, statusText: 'Accepted' },
+    );
 
     // The list is reloaded because the row's title may have changed with it.
     httpMock.expectOne((r) => r.url === '/api/moderation/protocols').flush(page([protocol()]));
@@ -575,10 +589,12 @@ describe('Moderation', () => {
     type(element, 'edit-comment', 'verschieben');
     await fixture.whenStable();
     (element.querySelector('[data-testid="edit-save"]') as HTMLButtonElement).click();
-    httpMock.expectOne('/api/moderation/protocols/p-1').flush(
-      { reason: 'PROTOCOL_IDENTITY_LOCKED', error: 'machine cannot be changed' },
-      { status: 400, statusText: 'Bad Request' },
-    );
+    httpMock
+      .expectOne('/api/moderation/protocols/p-1')
+      .flush(
+        { reason: 'PROTOCOL_IDENTITY_LOCKED', error: 'machine cannot be changed' },
+        { status: 400, statusText: 'Bad Request' },
+      );
     await fixture.whenStable();
 
     // Matched on the stable code rather than the English sentence, like every other guard.
@@ -594,10 +610,12 @@ describe('Moderation', () => {
     type(element, 'edit-comment', 'zu spaet');
     await fixture.whenStable();
     (element.querySelector('[data-testid="edit-save"]') as HTMLButtonElement).click();
-    httpMock.expectOne('/api/moderation/protocols/p-1').flush(
-      { reason: 'PROTOCOL_ARCHIVED', error: 'archived' },
-      { status: 409, statusText: 'Conflict' },
-    );
+    httpMock
+      .expectOne('/api/moderation/protocols/p-1')
+      .flush(
+        { reason: 'PROTOCOL_ARCHIVED', error: 'archived' },
+        { status: 409, statusText: 'Conflict' },
+      );
     await fixture.whenStable();
 
     expect(element.querySelector('[data-testid="edit-failure"]')?.textContent).toContain(
@@ -716,10 +734,12 @@ describe('Moderation', () => {
     await fixture.whenStable();
     noSimilar();
     await fixture.whenStable();
-    httpMock.expectOne('/api/moderation/protocols/p-1/approval').flush(
-      { reason: 'PROTOCOL_ARCHIVED', error: 'this protocol is in the archive' },
-      { status: 409, statusText: 'Conflict' },
-    );
+    httpMock
+      .expectOne('/api/moderation/protocols/p-1/approval')
+      .flush(
+        { reason: 'PROTOCOL_ARCHIVED', error: 'this protocol is in the archive' },
+        { status: 409, statusText: 'Conflict' },
+      );
     await fixture.whenStable();
 
     expect(element.querySelector('[data-testid="approval-failure"]')?.textContent).toContain(
@@ -1029,9 +1049,9 @@ describe('Moderation', () => {
     // a Schichtleiter does neither, and a title that claimed otherwise would contradict the buttons
     // directly underneath it.
     const admin = await render();
-    expect((admin.nativeElement as HTMLElement).querySelector('.page-title')?.textContent).toContain(
-      'Protokollverwaltung',
-    );
+    expect(
+      (admin.nativeElement as HTMLElement).querySelector('.page-title')?.textContent,
+    ).toContain('Protokollverwaltung');
 
     roles.set(['schichtleiter']);
     const corrector = await render();

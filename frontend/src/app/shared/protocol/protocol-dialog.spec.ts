@@ -199,7 +199,9 @@ describe('ProtocolDialog', () => {
     const fixture = await render();
     const element = await open(fixture, WELL_FORMED);
 
-    const download = element.querySelector('[data-testid="protocol-download"]') as HTMLButtonElement;
+    const download = element.querySelector(
+      '[data-testid="protocol-download"]',
+    ) as HTMLButtonElement;
     expect(download.disabled).toBe(false);
     download.click();
     await fixture.whenStable();
@@ -301,7 +303,10 @@ describe('ProtocolDialog — history', () => {
     };
   }
 
-  async function render(approval: Approval | null, source: 'moderation' | 'citation' = 'moderation') {
+  async function render(
+    approval: Approval | null,
+    source: 'moderation' | 'citation' = 'moderation',
+  ) {
     TestBed.resetTestingModule();
     await TestBed.configureTestingModule({
       imports: [HistoryHostComponent],
@@ -375,7 +380,11 @@ describe('ProtocolDialog — history', () => {
 
   it('caps at three and says how many it is not showing', async () => {
     const fixture = await render(null);
-    const element = await open(fixture, { events: [event(), event(), event()], total: 7, limit: 3 });
+    const element = await open(fixture, {
+      events: [event(), event(), event()],
+      total: 7,
+      limit: 3,
+    });
 
     expect(element.querySelectorAll('[data-testid="history-item"]').length).toBe(3);
     // ONE QUIET LINE, AND NO "SHOW ALL". The cap is a product decision — a full change history is a
@@ -482,14 +491,16 @@ describe('ProtocolDialog — history', () => {
 
     (element.querySelector('#opener') as HTMLButtonElement).click();
     await fixture.whenStable();
-    httpMock.expectOne(MODERATION_DOCUMENT_URL).flush(new Blob([WELL_FORMED], { type: 'text/plain' }));
+    httpMock
+      .expectOne(MODERATION_DOCUMENT_URL)
+      .flush(new Blob([WELL_FORMED], { type: 'text/plain' }));
     // Answered slowly on purpose: the assertion is about the gap BEFORE the second answer lands.
     const pending = httpMock.expectOne(HISTORY_URL);
     await fixture.whenStable();
 
-    expect(element.querySelector('[data-testid="history-comment"]')?.textContent ?? '').not.toContain(
-      'erste Freigabe',
-    );
+    expect(
+      element.querySelector('[data-testid="history-comment"]')?.textContent ?? '',
+    ).not.toContain('erste Freigabe');
 
     pending.flush({ events: [event({ comment: 'zweite Freigabe' })], total: 1, limit: 3 });
     await fixture.whenStable();

@@ -237,7 +237,10 @@ export async function contrastRatio(page: Page, selector: string): Promise<numbe
     const parse = (c: string) => {
       const m = c.match(/rgba?\(([^)]+)\)/);
       if (!m) return null;
-      const p = m[1].split(/[,\s/]+/).filter(Boolean).map(Number);
+      const p = m[1]
+        .split(/[,\s/]+/)
+        .filter(Boolean)
+        .map(Number);
       return { r: p[0], g: p[1], b: p[2], a: p.length > 3 ? p[3] : 1 };
     };
     const luminance = ({ r, g, b }: { r: number; g: number; b: number }) => {

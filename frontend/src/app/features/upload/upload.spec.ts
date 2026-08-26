@@ -160,7 +160,9 @@ describe('Upload', () => {
     const machine = element.querySelector('[data-testid="upload-machine"]')!;
     const title = element.querySelector('[data-testid="upload-title"]')!;
     const textarea = element.querySelector('[data-testid="text-input"]')!;
-    expect(machine.compareDocumentPosition(textarea) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(
+      machine.compareDocumentPosition(textarea) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
     expect(title.compareDocumentPosition(textarea) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
 
     // The format hint moved INTO the left column so that the two columns start on the same line at
@@ -197,7 +199,10 @@ describe('Upload', () => {
     (element.querySelector('[data-testid="upload-button"]') as HTMLButtonElement).click();
     httpMock
       .expectOne('/api/protocols')
-      .flush({ id: 'p-3', status: 'RECEIVED', message: 'queued' }, { status: 202, statusText: 'Accepted' });
+      .flush(
+        { id: 'p-3', status: 'RECEIVED', message: 'queued' },
+        { status: 202, statusText: 'Accepted' },
+      );
     // The view refreshes the list once after a successful upload, so the new row is visible in the
     // state it is actually in.
     httpMock.expectOne('/api/protocols/mine').flush(UPLOADS);
@@ -374,9 +379,9 @@ describe('Upload', () => {
     it('submits on a file alone, as it always did', async () => {
       const fixture = await render();
       fillMeta(fixture);
-      (
-        fixture.componentInstance as unknown as { file: { set: (value: File) => void } }
-      ).file.set(new File(['x'], 'p.txt', { type: 'text/plain' }));
+      (fixture.componentInstance as unknown as { file: { set: (value: File) => void } }).file.set(
+        new File(['x'], 'p.txt', { type: 'text/plain' }),
+      );
       await fixture.whenStable();
 
       expect(submitButton(fixture.nativeElement as HTMLElement).disabled).toBe(false);
@@ -433,7 +438,10 @@ describe('Upload', () => {
       // answer nothing read (DECISIONS.txt, 2026-08-10).
       expect(body.get('language')).toBeNull();
 
-      request.flush({ id: 'p-9', status: 'RECEIVED', message: 'queued' }, { status: 202, statusText: 'Accepted' });
+      request.flush(
+        { id: 'p-9', status: 'RECEIVED', message: 'queued' },
+        { status: 202, statusText: 'Accepted' },
+      );
       httpMock.expectOne('/api/protocols/mine').flush(UPLOADS);
       await fixture.whenStable();
     });
@@ -451,7 +459,10 @@ describe('Upload', () => {
       // the download, so it has to be readable and ASCII.
       expect(file.name).toMatch(/^PR-03-\d{8}-\d{6}-eingabe\.txt$/);
 
-      request.flush({ id: 'p-9', status: 'RECEIVED', message: 'queued' }, { status: 202, statusText: 'Accepted' });
+      request.flush(
+        { id: 'p-9', status: 'RECEIVED', message: 'queued' },
+        { status: 202, statusText: 'Accepted' },
+      );
       httpMock.expectOne('/api/protocols/mine').flush(UPLOADS);
       await fixture.whenStable();
     });
@@ -464,7 +475,10 @@ describe('Upload', () => {
       submitButton(element).click();
       httpMock
         .expectOne('/api/protocols')
-        .flush({ id: 'p-9', status: 'RECEIVED', message: 'queued' }, { status: 202, statusText: 'Accepted' });
+        .flush(
+          { id: 'p-9', status: 'RECEIVED', message: 'queued' },
+          { status: 202, statusText: 'Accepted' },
+        );
       // The same refresh as after a file upload — the call is identical, so the aftermath is too.
       httpMock.expectOne('/api/protocols/mine').flush(UPLOADS);
       await fixture.whenStable();

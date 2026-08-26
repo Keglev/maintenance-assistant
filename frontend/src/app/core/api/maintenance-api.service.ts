@@ -205,10 +205,9 @@ export class MaintenanceApiService {
     if (machineNo) {
       params = params.set('machineNo', machineNo);
     }
-    return this.http.get<DeletedProtocolPage>(
-      `${this.apiBaseUrl}/moderation/protocols/deleted`,
-      { params },
-    );
+    return this.http.get<DeletedProtocolPage>(`${this.apiBaseUrl}/moderation/protocols/deleted`, {
+      params,
+    });
   }
 
   /**
@@ -219,10 +218,10 @@ export class MaintenanceApiService {
    * protocol's content, and it is what makes the archive evidence rather than a tombstone.
    */
   getArchivedDocument(protocolId: string): Observable<HttpResponse<Blob>> {
-    return this.http.get(
-      `${this.apiBaseUrl}/moderation/protocols/deleted/${protocolId}/document`,
-      { observe: 'response', responseType: 'blob' },
-    );
+    return this.http.get(`${this.apiBaseUrl}/moderation/protocols/deleted/${protocolId}/document`, {
+      observe: 'response',
+      responseType: 'blob',
+    });
   }
 
   /** The caller's own uploads and what became of them. Schichtleiter only, server-side. */

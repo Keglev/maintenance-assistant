@@ -2,7 +2,11 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
 import { Approval, Citation, Machine, QueryAnswer } from '../../core/api/api.types';
-import { ApiFailure, MaintenanceApiService, classify } from '../../core/api/maintenance-api.service';
+import {
+  ApiFailure,
+  MaintenanceApiService,
+  classify,
+} from '../../core/api/maintenance-api.service';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { ProtocolDialog } from '../../shared/protocol/protocol-dialog';
 import { SearchAnswer } from './search-answer';

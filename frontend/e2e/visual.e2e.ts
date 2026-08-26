@@ -107,10 +107,7 @@ const SHORT_ANSWER = {
  */
 const UNAPPROVED_ANSWER = {
   ...SHORT_ANSWER,
-  citations: [
-    SHORT_ANSWER.citations[0],
-    { ...SHORT_ANSWER.citations[1], approved: false },
-  ],
+  citations: [SHORT_ANSWER.citations[0], { ...SHORT_ANSWER.citations[1], approved: false }],
 };
 
 /**

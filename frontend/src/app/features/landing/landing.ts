@@ -101,8 +101,9 @@ export class Landing {
     if (!target) {
       return;
     }
-    const reduced = this.document.defaultView?.matchMedia?.('(prefers-reduced-motion: reduce)')
-      ?.matches;
+    const reduced = this.document.defaultView?.matchMedia?.(
+      '(prefers-reduced-motion: reduce)',
+    )?.matches;
     target.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'start' });
     // preventScroll: the scroll above is the one that should happen; focus must not fight it.
     target.focus({ preventScroll: true });

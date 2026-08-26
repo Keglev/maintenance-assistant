@@ -144,6 +144,10 @@ export class SearchSources {
    * input, used identically on all three surfaces.
    */
   protected approvalOf(citation: Citation): Approval {
-    return { state: citation.approved ? 'APPROVED' : 'UNAPPROVED', approvedBy: null, approvedAt: null };
+    return {
+      state: citation.approved ? 'APPROVED' : 'UNAPPROVED',
+      approvedBy: null,
+      approvedAt: null,
+    };
   }
 }

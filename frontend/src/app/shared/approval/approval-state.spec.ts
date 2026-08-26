@@ -64,7 +64,9 @@ describe('ApprovalStateBadge', () => {
       const element = await render(approval);
       expect(element.querySelectorAll('[data-testid="approval-state"] svg').length).toBe(1);
       expect(
-        element.querySelector('[data-testid="approval-state"] .approval-label')?.textContent?.trim(),
+        element
+          .querySelector('[data-testid="approval-state"] .approval-label')
+          ?.textContent?.trim(),
       ).not.toBe('');
     }
   });

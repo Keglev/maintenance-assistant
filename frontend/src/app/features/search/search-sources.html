@@ -54,7 +54,8 @@
               [attr.aria-expanded]="isExpanded(citation)"
               [attr.aria-label]="
                 (isExpanded(citation) ? t().modeA.collapseSource : t().modeA.expandSource) +
-                ': ' + citation.title
+                ': ' +
+                citation.title
               "
               (click)="toggle(citation)"
             >

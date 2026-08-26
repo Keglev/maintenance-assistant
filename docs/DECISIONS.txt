@@ -575,3 +575,30 @@ Status: v1.3.0 released; refactor phase, Part 2 closed 2026-08-25, Part 3 next
   environment.ts when config.json is missing or malformed, so a broken file does not blank the
   page — it silently points the browser at whatever was built in. Validate the JSON before the
   force-recreate; the README has the command.
+- A FORMATTER CONFIGURED AND NEVER RUN, closed 2026-08-25 (#101), Part 3 C7 and the finding
+  Part 1 carried. prettier has been a devDependency with a versioned .prettierrc since early in
+  the project, and there was no `format` script, no `format:check` script, no .prettierignore
+  and no CI step — fourteen npm scripts and not one of them ran it. THE SIZE OF THE REFORMAT IS
+  THE FINDING: 38 of the 130 tracked frontend files prettier considers had never been through it.
+  The findings the Part 1 survey raised on the moderation view were real — those four files are
+  in the 38 — but they were a tenth of the drift, and they were simply the ones someone happened
+  to open. A COUNTER LIED ON THE WAY TO THAT NUMBER, and the correction is worth as much as the
+  number: the first run reported 127, because this working tree still held CRLF files from before
+  #95 added .gitattributes, and prettier flags a CRLF file whose content is otherwise perfect.
+  Eighty-five of those were line endings git normalises away and that would never have reached a
+  diff. Re-measure on a tree that matches what CI checks out, or the tool measures the machine
+  instead of the repository.
+  MARKDOWN IS EXCLUDED after measuring it: prettier rewrites `*emphasis*` to `_emphasis_`, which
+  renders identically but is a token change to PROSE, and it was the only non-whitespace change
+  in the whole reformat. Documentation is governed by REFACTOR-STANDARDS, not a code formatter.
+  THE RULE THAT FOLLOWS, and it is the same one the coverage ratchet already states in another
+  form: A TOOL THAT IS INSTALLED AND CONFIGURED BUT NOT GATED IS DECORATION. It reports nothing,
+  nobody runs it, and the drift it exists to prevent accumulates behind a green build. The gate
+  goes in the existing build-and-test job rather than a job of its own, because a second job
+  would report under a name branch protection does not require.
+  SHIPPED AS THREE COMMITS ON PURPOSE: the gate, then the reformat, then the SHA of the reformat
+  in .git-blame-ignore-revs. A 38-file whitespace commit mixed into a functional one is
+  unreviewable, and left out of the blame-ignore list it makes `git blame` name the wrong author
+  for every line it touched. NOTE THE LIMIT: .git-blame-ignore-revs only takes effect for a
+  reader who has set blame.ignoreRevsFile, so it is documented in REFACTOR-STANDARDS.txt rather
+  than assumed to work.

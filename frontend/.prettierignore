@@ -1,0 +1,42 @@
+# What `prettier --write .` must never rewrite.
+#
+# Measured 2026-08-25 against `npx prettier --check <path>` on a built working
+# tree, because an ignore rule nobody measured is a guess about what a tool does.
+# Two entries below are PROVEN — they flag files today. The rest are GUARDS:
+# generated output that flags nothing at the moment and must not start.
+
+# PROVEN, 1 file flagged. npm owns this format and rewrites it on every install;
+# a reformatted lockfile would be reverted by the next `npm ci` and would produce
+# a diff nobody authored.
+package-lock.json
+
+# PROVEN, 2 files flagged. Playwright run artefacts, git-ignored.
+test-results/
+
+# GUARDS — 0 files flagged today, listed so that stays true. Each is build or
+# tool output that exists on a developer's disk after a normal day's work, so a
+# local `npm run format` would otherwise be one prettier release away from
+# rewriting thousands of generated lines. CI never sees them: the format check
+# runs on a clean checkout, before the build.
+dist/
+coverage/
+documentation/
+playwright-report/
+.angular/
+
+# GUARD, and the one with teeth. These are the visual-regression baselines
+# (playwright.config.ts sets snapshotPathTemplate to {testDir}/__screenshots__).
+# They are PNGs, so prettier does not match them today — but nothing in this
+# repository is allowed to touch a baseline as a side effect. Regenerating one is
+# a deliberate act (`npm run e2e:visual:update`), per ADR-007.
+e2e/__screenshots__/
+
+# MARKDOWN, EXCLUDED AFTER MEASURING IT. Prettier rewrites `*emphasis*` to
+# `_emphasis_` and pads table separator rows — rendering-identical, but a
+# TOKEN change to prose rather than a whitespace one, and it was the only
+# non-whitespace change in the whole reformat (48 lines in
+# frontend/e2e/README.md, 32 of them emphasis markers). Documentation prose is
+# governed by docs/REFACTOR-STANDARDS.txt, not by a code formatter, and
+# rewriting it was not what this gate was asked for. Reopen deliberately if
+# markdown formatting is ever ruled on.
+*.md

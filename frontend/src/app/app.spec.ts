@@ -290,11 +290,13 @@ describe('App', () => {
 
       expect(element.querySelector('[data-testid="settings-dialog"]')).not.toBeNull();
       // The version is read from package.json at build time, so it is never a stale constant.
-      expect(element.querySelector('[data-testid="settings-version"]')?.textContent?.trim()).toMatch(
-        /^\d+\.\d+\.\d+/,
-      );
+      expect(
+        element.querySelector('[data-testid="settings-version"]')?.textContent?.trim(),
+      ).toMatch(/^\d+\.\d+\.\d+/);
       // The account rows exist only when there is an account.
-      expect(element.querySelector('[data-testid="settings-account"]') !== null).toBe(authenticated);
+      expect(element.querySelector('[data-testid="settings-account"]') !== null).toBe(
+        authenticated,
+      );
     }
   });
 
@@ -305,7 +307,9 @@ describe('App', () => {
     (element.querySelector('[data-testid="settings-button"]') as HTMLButtonElement).click();
     await fixture.whenStable();
 
-    expect(element.querySelector('[data-testid="settings-account"]')?.textContent).toContain('demo');
+    expect(element.querySelector('[data-testid="settings-account"]')?.textContent).toContain(
+      'demo',
+    );
     expect(element.querySelector('[data-testid="settings-role"]')?.textContent).toContain(
       'Schichtleiter',
     );

@@ -216,7 +216,9 @@ test.describe('the approve workflow', () => {
     await toCorrect.getByTestId('row-edit').click();
     await expect(page.getByTestId('edit-resets-approval')).toBeVisible();
 
-    await page.getByTestId('edit-content').fill(BODY.replace('entriegelt', 'GETAUSCHT, war defekt'));
+    await page
+      .getByTestId('edit-content')
+      .fill(BODY.replace('entriegelt', 'GETAUSCHT, war defekt'));
     await page.getByTestId('edit-comment').fill('e2e: Ursache war ein Defekt, nicht die Bedienung');
     await page.getByTestId('edit-save').click();
     await expect(page.getByTestId('corrected-notice')).toBeVisible();
@@ -342,7 +344,10 @@ test.describe('the approve workflow', () => {
     // asynchronously. Polled through the application's own refresh, never slept on — and this wait
     // is precisely what the flaking tests could not have, because for them the dialog was an
     // accident rather than the subject.
-    const originalRow = page.getByTestId('uploads-table').locator('tr').filter({ hasText: original });
+    const originalRow = page
+      .getByTestId('uploads-table')
+      .locator('tr')
+      .filter({ hasText: original });
     const reFiledRow = page.getByTestId('uploads-table').locator('tr').filter({ hasText: reFiled });
     await expect(async () => {
       await page.getByTestId('refresh-button').click();
@@ -455,7 +460,10 @@ test.describe('the approved-only facet', () => {
     await page.getByTestId('ask-button').click();
     await expect(page.getByTestId('approved-only-note')).toBeVisible();
 
-    expect(sent, 'the facet has to reach the request, not just the checkbox').toEqual([false, true]);
+    expect(sent, 'the facet has to reach the request, not just the checkbox').toEqual([
+      false,
+      true,
+    ]);
 
     // THE EMPTY STATE OF THE FACET, and the reason it needs one: a narrowed search that finds
     // nothing answers Mode B exactly as a genuine gap in the corpus does. Without the way back, a

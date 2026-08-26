@@ -63,9 +63,7 @@ describe('parseProtocol', () => {
   });
 
   it('keeps the title line out of the header block and out of the sections', () => {
-    const title = parseProtocol(WELL_FORMED).segments.find(
-      (segment) => segment.kind === 'title',
-    );
+    const title = parseProtocol(WELL_FORMED).segments.find((segment) => segment.kind === 'title');
 
     expect(title?.kind === 'title' && title.text).toBe('E-47 Druckabfall im Presshub');
   });
@@ -111,9 +109,13 @@ describe('parseProtocol', () => {
   it('parses an uploaded protocol that has no banner, no header block and no title', () => {
     // This one is real: a protocol uploaded during verification, filed as bare sections. The messy
     // end of the quality mix omits whichever part it feels like, so every step has to be optional.
-    const bare = ['Symptom:', 'Lautes Klopfen aus dem Pumpenaggregat.', '', 'Ursache:', 'Ansaugfilter zugesetzt.'].join(
-      '\n',
-    );
+    const bare = [
+      'Symptom:',
+      'Lautes Klopfen aus dem Pumpenaggregat.',
+      '',
+      'Ursache:',
+      'Ansaugfilter zugesetzt.',
+    ].join('\n');
     const document = parseProtocol(bare);
 
     expect(document.kind).toBe('parsed');

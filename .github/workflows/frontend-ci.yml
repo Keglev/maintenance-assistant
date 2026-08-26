@@ -54,6 +54,19 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      # BEFORE the tests on purpose: this is the cheapest check in the job and the one
+      # whose failure is fixed by a single command (`npm run format`), so a formatting
+      # slip should not cost a full vitest run first. Prettier was a devDependency with
+      # a .prettierrc and no script and no step from the start of the project until
+      # 2026-08-25 — configured, installed, and never run. The formatting findings the
+      # Part 1 survey raised on the moderation view stayed open that whole time because
+      # nothing could have caught them.
+      #
+      # In this job and NOT a job of its own: the required branch-protection check is
+      # build-and-test, and a second job would report under a name nothing requires.
+      - name: Check formatting
+        run: npm run format:check
+
       # vitest in jsdom — no browser, so the runner needs no Chrome and no setup step.
       - name: Test with coverage
         run: npm run test:ci

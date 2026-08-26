@@ -79,7 +79,9 @@ describe('Search', () => {
     const fixture = TestBed.createComponent(Search);
     httpMock
       .expectOne('/api/machines')
-      .flush([{ id: MACHINE, machineNo: 'PR-03', name: 'Presse 3', type: 'Presse', location: null }]);
+      .flush([
+        { id: MACHINE, machineNo: 'PR-03', name: 'Presse 3', type: 'Presse', location: null },
+      ]);
     await fixture.whenStable();
     return fixture;
   }
@@ -135,7 +137,12 @@ describe('Search', () => {
   // -------------------------------------------------------------------------------------
 
   describe('approval on an answer and its sources', () => {
-    const UNAPPROVED_CITATION: Citation = { ...CITATION, protocolId: 'p-2', label: 'P2', approved: false };
+    const UNAPPROVED_CITATION: Citation = {
+      ...CITATION,
+      protocolId: 'p-2',
+      label: 'P2',
+      approved: false,
+    };
 
     it('marks an unapproved source on its card, in words', async () => {
       const fixture = await render();
@@ -144,8 +151,8 @@ describe('Search', () => {
         citations: [CITATION, UNAPPROVED_CITATION],
       });
 
-      const states = [...element.querySelectorAll('[data-testid="approval-state"]')].map(
-        (node) => node.getAttribute('data-approval'),
+      const states = [...element.querySelectorAll('[data-testid="approval-state"]')].map((node) =>
+        node.getAttribute('data-approval'),
       );
       // One of each, in citation order: the mark belongs to the source, not to the answer as a
       // whole, or a reader could not tell WHICH claim rests on unreviewed text.
@@ -226,7 +233,9 @@ describe('Search', () => {
       const machine = element.querySelector('[data-testid="machine-picker"]') as HTMLSelectElement;
       machine.value = MACHINE;
       machine.dispatchEvent(new Event('change'));
-      const question = element.querySelector('[data-testid="question-input"]') as HTMLTextAreaElement;
+      const question = element.querySelector(
+        '[data-testid="question-input"]',
+      ) as HTMLTextAreaElement;
       question.value = 'Presse kommt nicht auf Druck';
       question.dispatchEvent(new Event('input'));
       await fixture.whenStable();
@@ -239,8 +248,9 @@ describe('Search', () => {
       // has to be findable before anyone signs it off. Defaulting this on would quietly reinstate
       // the gate that decision refused.
       expect(request.request.body.approvedOnly).toBe(false);
-      expect((element.querySelector('[data-testid="approved-only"]') as HTMLInputElement).checked)
-        .toBe(false);
+      expect(
+        (element.querySelector('[data-testid="approved-only"]') as HTMLInputElement).checked,
+      ).toBe(false);
       request.flush(MODE_A);
       await fixture.whenStable();
     });
@@ -257,7 +267,9 @@ describe('Search', () => {
       const machine = element.querySelector('[data-testid="machine-picker"]') as HTMLSelectElement;
       machine.value = MACHINE;
       machine.dispatchEvent(new Event('change'));
-      const question = element.querySelector('[data-testid="question-input"]') as HTMLTextAreaElement;
+      const question = element.querySelector(
+        '[data-testid="question-input"]',
+      ) as HTMLTextAreaElement;
       question.value = 'Presse kommt nicht auf Druck';
       question.dispatchEvent(new Event('input'));
       await fixture.whenStable();
@@ -287,7 +299,9 @@ describe('Search', () => {
       const machine = element.querySelector('[data-testid="machine-picker"]') as HTMLSelectElement;
       machine.value = MACHINE;
       machine.dispatchEvent(new Event('change'));
-      const question = element.querySelector('[data-testid="question-input"]') as HTMLTextAreaElement;
+      const question = element.querySelector(
+        '[data-testid="question-input"]',
+      ) as HTMLTextAreaElement;
       question.value = 'Presse kommt nicht auf Druck';
       question.dispatchEvent(new Event('input'));
       await fixture.whenStable();
@@ -899,9 +913,9 @@ describe('Search', () => {
     // another machine's name.
     expect(element.querySelector('[data-testid="answer-mode-a"]')).toBeNull();
     expect(element.querySelector('[data-testid="working"]')).not.toBeNull();
-    expect((element.querySelector('[data-testid="ask-button"]') as HTMLButtonElement).disabled).toBe(
-      true,
-    );
+    expect(
+      (element.querySelector('[data-testid="ask-button"]') as HTMLButtonElement).disabled,
+    ).toBe(true);
     httpMock.expectOne('/api/query').flush(MODE_A);
     await fixture.whenStable();
   });

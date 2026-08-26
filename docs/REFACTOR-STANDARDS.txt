@@ -268,6 +268,16 @@ WORKING PRACTICES (the process rules that paid for themselves)
    comments, ADRs, this file), not silently left because the code moved
    on.
 10. ROBOTS NEVER TAG, and robots never grant themselves a waiver.
+11. A BULK REFORMAT IS ITS OWN COMMIT, and its SHA goes in
+    .git-blame-ignore-revs at the repository root. Reviewing a gate must
+    not mean reading a thousand lines of re-indentation, and blame must
+    keep answering "who last changed what this line MEANS" rather than
+    "who ran the formatter". THE FILE IS NOT AUTOMATIC: git reads it only
+    for a reader who has set it, once per clone —
+      git config blame.ignoreRevsFile .git-blame-ignore-revs
+    — and unset, blame simply behaves as it always did. GitHub's blame
+    view applies it without being asked. Added 2026-08-25 with the
+    prettier gate, which is the first reformat this rule had to cover.
 
 =====================================================================
 WAIVER REGISTER

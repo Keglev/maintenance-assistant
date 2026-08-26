@@ -10,7 +10,11 @@ import {
   SimilarProtocol,
   SimilarityReport,
 } from '../../core/api/api.types';
-import { ApiFailure, MaintenanceApiService, classify } from '../../core/api/maintenance-api.service';
+import {
+  ApiFailure,
+  MaintenanceApiService,
+  classify,
+} from '../../core/api/maintenance-api.service';
 import { AuthService } from '../../core/auth/auth.service';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { AppDatePipe } from '../../core/i18n/app-date.pipe';
@@ -265,9 +269,7 @@ export class Moderation {
     Object.values(this.applied()).some((value) => value !== ''),
   );
 
-  protected readonly pageCount = computed(() =>
-    Math.max(1, Math.ceil(this.total() / PAGE_SIZE)),
-  );
+  protected readonly pageCount = computed(() => Math.max(1, Math.ceil(this.total() / PAGE_SIZE)));
   protected readonly hasPrevious = computed(() => this.page() > 0);
   protected readonly hasNext = computed(() => this.page() + 1 < this.pageCount());
 

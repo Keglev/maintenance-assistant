@@ -27,9 +27,11 @@
 
 import { createServer } from 'node:http';
 
-const PORT = Number(process.argv.includes('--port')
-  ? process.argv[process.argv.indexOf('--port') + 1]
-  : (process.env.PORT ?? 8099));
+const PORT = Number(
+  process.argv.includes('--port')
+    ? process.argv[process.argv.indexOf('--port') + 1]
+    : (process.env.PORT ?? 8099),
+);
 
 /**
  * What this stub calls itself, in every response it serves.
@@ -56,7 +58,10 @@ const DIMENSIONS = 1024;
  */
 function embed(text) {
   const vector = new Float64Array(DIMENSIONS);
-  const normalised = ` ${String(text).toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').trim()} `;
+  const normalised = ` ${String(text)
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}]+/gu, ' ')
+    .trim()} `;
 
   for (let i = 0; i + 3 <= normalised.length; i++) {
     const gram = normalised.slice(i, i + 3);
@@ -105,13 +110,15 @@ function parseSources(userPrompt) {
  * about it.
  */
 function sentences(text, limit) {
-  return text
-    .split(/\n+|(?<=\.)\s+/)
-    .map((line) => line.trim())
-    .filter((line) => line.length > 0)
-    // A banner (all caps, no sentence punctuation) or a "machine · title" header line.
-    .filter((line) => !/^[A-ZÄÖÜ\s]{6,}$/.test(line) && !line.includes(' · '))
-    .slice(0, limit);
+  return (
+    text
+      .split(/\n+|(?<=\.)\s+/)
+      .map((line) => line.trim())
+      .filter((line) => line.length > 0)
+      // A banner (all caps, no sentence punctuation) or a "machine · title" header line.
+      .filter((line) => !/^[A-ZÄÖÜ\s]{6,}$/.test(line) && !line.includes(' · '))
+      .slice(0, limit)
+  );
 }
 
 function chatCompletion(request) {

@@ -143,7 +143,9 @@
             <li class="viewer-history-item" data-testid="history-item">
               <p class="viewer-history-act">
                 <span class="viewer-history-what">{{ actionLabel(event.action) }}</span>
-                <span class="viewer-history-who" data-testid="history-actor">{{ event.actor }}</span>
+                <span class="viewer-history-who" data-testid="history-actor">{{
+                  event.actor
+                }}</span>
                 <!-- THE TIME AS WELL AS THE DAY. Two corrections on one afternoon are a different
                      story from two a month apart, and the day-only format the tables use cannot
                      tell them apart. -->
@@ -162,7 +164,9 @@
           <!-- One quiet line, and NO "show all" control. The three-entry cap is a product decision:
                a full change history is a report with its own screen, deferred deliberately. What
                this line prevents is the truncation being silent. -->
-          <p class="caption" data-testid="history-more">{{ t().viewer.historyMore(olderEvents()) }}</p>
+          <p class="caption" data-testid="history-more">
+            {{ t().viewer.historyMore(olderEvents()) }}
+          </p>
         }
       }
     </section>

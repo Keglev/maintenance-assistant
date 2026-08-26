@@ -2,7 +2,11 @@ import { Component, ElementRef, computed, inject, signal, viewChild } from '@ang
 import { FormsModule } from '@angular/forms';
 
 import { Machine, UploadStatus } from '../../core/api/api.types';
-import { ApiFailure, MaintenanceApiService, classify } from '../../core/api/maintenance-api.service';
+import {
+  ApiFailure,
+  MaintenanceApiService,
+  classify,
+} from '../../core/api/maintenance-api.service';
 import { AppDatePipe } from '../../core/i18n/app-date.pipe';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { Pager } from '../../shared/pager/pager';
@@ -225,7 +229,9 @@ export class Upload {
         this.uploads.set(uploads);
         // A refresh can shrink the list — a failed upload retried and removed, for instance — and
         // page 3 of a two-page list renders empty with no way back except the pager.
-        this.page.update((current) => Math.min(current, Math.max(0, Math.ceil(uploads.length / PAGE_SIZE) - 1)));
+        this.page.update((current) =>
+          Math.min(current, Math.max(0, Math.ceil(uploads.length / PAGE_SIZE) - 1)),
+        );
         this.refreshing.set(false);
       },
       error: (error: unknown) => {

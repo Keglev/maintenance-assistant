@@ -11,7 +11,11 @@ import {
 } from '@angular/core';
 
 import { Approval, ModerationEvent, ProtocolHistory } from '../../core/api/api.types';
-import { ApiFailure, MaintenanceApiService, classify } from '../../core/api/maintenance-api.service';
+import {
+  ApiFailure,
+  MaintenanceApiService,
+  classify,
+} from '../../core/api/maintenance-api.service';
 import { AppDatePipe } from '../../core/i18n/app-date.pipe';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { ApprovalStateBadge } from '../approval/approval-state';

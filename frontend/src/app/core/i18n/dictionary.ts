@@ -542,7 +542,8 @@ export const DE: Dictionary = {
     trustRolesBody:
       'Bediener erhalten nur Schritte, die eine unterwiesene Person ausführen darf, samt Hinweis, wann eine Fachkraft zu holen ist.',
     demoHeading: 'Demo-Zugänge',
-    demoIntro: 'Vier Benutzer, ein Passwort. Jede Rolle zeigt eine andere Sicht auf dieselben Daten.',
+    demoIntro:
+      'Vier Benutzer, ein Passwort. Jede Rolle zeigt eine andere Sicht auf dieselben Daten.',
     demoBoundary:
       'Bewusst öffentliche Demo-Umgebung: eigener, isolierter Realm, ausschließlich synthetische Daten, Anfragen begrenzt, Sitzung nach 15 Minuten beendet.',
     demoPassword: 'Passwort für alle',
@@ -696,14 +697,12 @@ export const DE: Dictionary = {
       'Die Datei ist zu groß. Ein Protokoll ist eine Seite Text — bitte kürzen oder als Text eingeben.',
     uploadRejected:
       'Diese Datei kann nicht gelesen werden. Angenommen werden nur Textdateien (.txt) mit Inhalt — PDF und Scans noch nicht.',
-    uploadRateLimited:
-      'Zu viele Uploads in kurzer Zeit. Bitte kurz warten und erneut versuchen.',
+    uploadRateLimited: 'Zu viele Uploads in kurzer Zeit. Bitte kurz warten und erneut versuchen.',
     generic: 'Die Anfrage ist fehlgeschlagen.',
   },
   moderation: {
     heading: 'Protokollverwaltung',
-    intro:
-      'Alle Protokolle im Bestand. Öffnen zum Prüfen, entfernen was nicht hineingehört.',
+    intro: 'Alle Protokolle im Bestand. Öffnen zum Prüfen, entfernen was nicht hineingehört.',
     headingCorrector: 'Protokolle korrigieren',
     introCorrector:
       'Alle Protokolle im Bestand. Öffnen zum Nachlesen, korrigieren was fachlich falsch ist — mit Begründung und sofortiger Neuindexierung.',
@@ -747,7 +746,8 @@ export const DE: Dictionary = {
     reason: 'Grund',
     reasonHint: 'Wird mit Name und Zeitpunkt protokolliert.',
     reasonPlaceholder: 'z. B. Anzugsmoment war falsch, laut Herstellerangabe 120 Nm.',
-    reasonRequired: 'Ohne Grund geht es nicht — eine Änderung am Bestand muss nachvollziehbar sein.',
+    reasonRequired:
+      'Ohne Grund geht es nicht — eine Änderung am Bestand muss nachvollziehbar sein.',
     archiveIntro:
       'Entfernte Protokolle. Aus Suche und Bestand verschwunden, hier für die Prüfung noch lesbar.',
     archiveHint: (cap) =>
@@ -1134,8 +1134,7 @@ export const EN: Dictionary = {
     archiveNoComment: '—',
     identityLocked:
       'Machine and type cannot be changed. If the assignment is wrong, the protocol is wrong at its root: delete it and file a new one.',
-    alreadyArchived:
-      'This protocol was removed and can no longer be edited. Removed is final.',
+    alreadyArchived: 'This protocol was removed and can no longer be edited. Removed is final.',
     filterDateFormatHint: 'Format: MM/DD/YYYY',
     filterApproval: 'Approval',
     filterApprovalAll: 'All',

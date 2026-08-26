@@ -27,8 +27,7 @@ describe('roleGuard', () => {
     return TestBed.runInInjectionContext(
       () =>
         roleGuard(...allowed)({} as ActivatedRouteSnapshot, { url } as RouterStateSnapshot) as
-          | boolean
-          | UrlTree,
+          boolean | UrlTree,
     );
   }
 

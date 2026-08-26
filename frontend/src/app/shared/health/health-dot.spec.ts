@@ -101,9 +101,7 @@ describe('HealthDot', () => {
 
   it('is down on a non-2xx', async () => {
     const fixture = TestBed.createComponent(HealthDot);
-    httpMock
-      .expectOne('/api/health')
-      .flush({}, { status: 503, statusText: 'Service Unavailable' });
+    httpMock.expectOne('/api/health').flush({}, { status: 503, statusText: 'Service Unavailable' });
     fixture.detectChanges();
 
     expect(element(fixture).getAttribute('data-state')).toBe('down');

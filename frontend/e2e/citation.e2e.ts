@@ -125,9 +125,9 @@ test.describe('Mode A citation click-through', () => {
 
     // The regression guard the unit suite also keeps, asserted here on the real DOM: a rendered
     // source link must not carry a raw API href, because an href is the bug.
-    const hrefs = await page.getByTestId('source-link').evaluateAll((nodes) =>
-      nodes.map((n) => n.getAttribute('href')),
-    );
+    const hrefs = await page
+      .getByTestId('source-link')
+      .evaluateAll((nodes) => nodes.map((n) => n.getAttribute('href')));
     expect(hrefs.every((href) => href === null)).toBe(true);
 
     // Following a marker points at its card. A marker that answered a click with nothing visible is
@@ -138,8 +138,9 @@ test.describe('Mode A citation click-through', () => {
     // And now the click that used to 401.
     await page.getByTestId('source-link').first().click();
 
-    await expect(page.getByTestId('protocol-section').or(page.getByTestId('protocol-raw')).first())
-      .toBeVisible();
+    await expect(
+      page.getByTestId('protocol-section').or(page.getByTestId('protocol-raw')).first(),
+    ).toBeVisible();
     await expect(page.getByTestId('protocol-doc-title')).toContainText(SEED.title);
 
     // The assertion this whole file exists for.

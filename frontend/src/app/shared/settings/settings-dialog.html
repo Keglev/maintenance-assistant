@@ -1,9 +1,4 @@
-<app-dialog
-  [open]="open()"
-  [title]="t().settings.title"
-  testId="settings"
-  (closed)="closed.emit()"
->
+<app-dialog [open]="open()" [title]="t().settings.title" testId="settings" (closed)="closed.emit()">
   <section class="settings-section">
     <h3 class="settings-heading">{{ t().settings.aboutHeading }}</h3>
     <dl class="settings-rows">

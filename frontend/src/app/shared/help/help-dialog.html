@@ -1,9 +1,4 @@
-<app-dialog
-  [open]="open()"
-  [title]="t().help.title"
-  testId="help"
-  (closed)="closed.emit()"
->
+<app-dialog [open]="open()" [title]="t().help.title" testId="help" (closed)="closed.emit()">
   <section class="help-section">
     <h3 class="help-heading">{{ t().help.modesHeading }}</h3>
     <!-- The two modes are explained in their own colours: the reader meets the same green and

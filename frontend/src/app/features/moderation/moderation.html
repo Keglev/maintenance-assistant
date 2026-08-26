@@ -108,172 +108,182 @@
   }
 
   @if (tab() === 'corpus') {
-  <!-- Above the table, not in a drawer: with 150 protocols and growing, finding one is the first
+    <!-- Above the table, not in a drawer: with 150 protocols and growing, finding one is the first
        thing a reviewer does, not an option they go looking for. -->
-  <form class="card filter-bar" (ngSubmit)="applyFilter()" [attr.aria-label]="t().moderation.filterLegend">
-    <div class="filter-fields">
-      <label class="field">
-        <span class="field-label">{{ t().upload.machine }}</span>
-        <select
-          name="machineNo"
-          data-testid="filter-machine"
-          [ngModel]="draft().machineNo"
-          (ngModelChange)="edit('machineNo', $event)"
-        >
-          <option value="">{{ t().moderation.filterMachineAll }}</option>
-          @for (machine of machines(); track machine.id) {
-            <option [value]="machine.machineNo">{{ machine.machineNo }} · {{ machine.name }}</option>
-          }
-        </select>
-      </label>
+    <form
+      class="card filter-bar"
+      (ngSubmit)="applyFilter()"
+      [attr.aria-label]="t().moderation.filterLegend"
+    >
+      <div class="filter-fields">
+        <label class="field">
+          <span class="field-label">{{ t().upload.machine }}</span>
+          <select
+            name="machineNo"
+            data-testid="filter-machine"
+            [ngModel]="draft().machineNo"
+            (ngModelChange)="edit('machineNo', $event)"
+          >
+            <option value="">{{ t().moderation.filterMachineAll }}</option>
+            @for (machine of machines(); track machine.id) {
+              <option [value]="machine.machineNo">
+                {{ machine.machineNo }} · {{ machine.name }}
+              </option>
+            }
+          </select>
+        </label>
 
-      <!-- Disabled until a machine is chosen, which is the same rule the backend enforces with a
+        <!-- Disabled until a machine is chosen, which is the same rule the backend enforces with a
            400: a title fragment over ten machines answers with rows nobody was looking for. -->
-      <label class="field">
-        <span class="field-label">{{ t().moderation.filterTitle }}</span>
-        <input
-          type="search"
-          name="titleContains"
-          data-testid="filter-title"
-          [disabled]="!machineChosen()"
-          [ngModel]="draft().titleContains"
-          (ngModelChange)="edit('titleContains', $event)"
-        />
-      </label>
+        <label class="field">
+          <span class="field-label">{{ t().moderation.filterTitle }}</span>
+          <input
+            type="search"
+            name="titleContains"
+            data-testid="filter-title"
+            [disabled]="!machineChosen()"
+            [ngModel]="draft().titleContains"
+            (ngModelChange)="edit('titleContains', $event)"
+          />
+        </label>
 
-      <label class="field field-date">
-        <span class="field-label">{{ t().moderation.filterFrom }}</span>
-        <input
-          type="date"
-          name="from"
-          data-testid="filter-from"
-          [disabled]="!machineChosen()"
-          [ngModel]="draft().from"
-          (ngModelChange)="edit('from', $event)"
-        />
-      </label>
+        <label class="field field-date">
+          <span class="field-label">{{ t().moderation.filterFrom }}</span>
+          <input
+            type="date"
+            name="from"
+            data-testid="filter-from"
+            [disabled]="!machineChosen()"
+            [ngModel]="draft().from"
+            (ngModelChange)="edit('from', $event)"
+          />
+        </label>
 
-      <label class="field field-date">
-        <span class="field-label">{{ t().moderation.filterTo }}</span>
-        <input
-          type="date"
-          name="to"
-          data-testid="filter-to"
-          [disabled]="!machineChosen()"
-          [ngModel]="draft().to"
-          (ngModelChange)="edit('to', $event)"
-        />
-      </label>
-    </div>
+        <label class="field field-date">
+          <span class="field-label">{{ t().moderation.filterTo }}</span>
+          <input
+            type="date"
+            name="to"
+            data-testid="filter-to"
+            [disabled]="!machineChosen()"
+            [ngModel]="draft().to"
+            (ngModelChange)="edit('to', $event)"
+          />
+        </label>
+      </div>
 
-    <!-- OUTSIDE `.filter-fields`, and not because of the layout: this is the one filter the backend
+      <!-- OUTSIDE `.filter-fields`, and not because of the layout: this is the one filter the backend
          applies WITHOUT a machine, because "everything still waiting for review" is only useful
          whole. It applies on change rather than on submit — a queue behind a second button press is
          a queue nobody opens. -->
-    <label class="field filter-approval">
-      <span class="field-label">{{ t().moderation.filterApproval }}</span>
-      <select
-        name="approvalState"
-        data-testid="filter-approval"
-        [ngModel]="draft().approvalState"
-        (ngModelChange)="filterByApproval($event)"
-      >
-        <option value="">{{ t().moderation.filterApprovalAll }}</option>
-        <option value="UNAPPROVED">{{ t().approval.unapproved }}</option>
-        <option value="APPROVED">{{ t().approval.approved }}</option>
-      </select>
-    </label>
+      <label class="field filter-approval">
+        <span class="field-label">{{ t().moderation.filterApproval }}</span>
+        <select
+          name="approvalState"
+          data-testid="filter-approval"
+          [ngModel]="draft().approvalState"
+          (ngModelChange)="filterByApproval($event)"
+        >
+          <option value="">{{ t().moderation.filterApprovalAll }}</option>
+          <option value="UNAPPROVED">{{ t().approval.unapproved }}</option>
+          <option value="APPROVED">{{ t().approval.approved }}</option>
+        </select>
+      </label>
 
-    <!-- A disabled field with no explanation reads as broken rather than as not-yet-applicable. -->
-    <p class="field-hint" data-testid="filter-hint">{{ t().moderation.filterHint }}</p>
-    <!-- The one place the interface language does NOT decide the format: a native date input is
+      <!-- A disabled field with no explanation reads as broken rather than as not-yet-applicable. -->
+      <p class="field-hint" data-testid="filter-hint">{{ t().moderation.filterHint }}</p>
+      <!-- The one place the interface language does NOT decide the format: a native date input is
          drawn by the browser in the BROWSER's locale, so an English interface on a German machine
          still shows TT.MM.JJJJ. Replacing it with a custom picker would cost a keyboard-accessible,
          touch-friendly control the platform already gives; naming the expected format costs a line.
          The value sent to the API is ISO either way. -->
-    <p class="field-hint" data-testid="filter-date-format">
-      {{ t().moderation.filterDateFormatHint }}
-    </p>
-
-    @if (machinesFailed()) {
-      <p class="notice notice-error" data-testid="filter-machines-error">
-        {{ t().search.machinesUnavailable }}
+      <p class="field-hint" data-testid="filter-date-format">
+        {{ t().moderation.filterDateFormatHint }}
       </p>
-    }
 
-    <div class="filter-actions">
-      <button type="submit" class="btn btn-primary btn-sm" data-testid="filter-apply">
-        {{ t().moderation.filterApply }}
-      </button>
-      <button
-        type="button"
-        class="btn btn-secondary btn-sm"
-        data-testid="filter-reset"
-        (click)="resetFilter()"
-      >
-        {{ t().moderation.filterReset }}
-      </button>
-    </div>
-  </form>
-
-  <section class="card">
-    @if (loading()) {
-      <p class="hint" role="status" data-testid="moderation-loading">{{ t().moderation.loading }}</p>
-    } @else if (protocols().length === 0) {
-      <!-- Two different "nothing here": an empty corpus is a fact, an empty filtered result is
-           something the reader can undo. A bare table would say neither. -->
-      <div class="empty-state" data-testid="moderation-empty">
-        <p class="hint">
-          {{ isFiltered() ? t().moderation.emptyFiltered : t().moderation.empty }}
+      @if (machinesFailed()) {
+        <p class="notice notice-error" data-testid="filter-machines-error">
+          {{ t().search.machinesUnavailable }}
         </p>
-        @if (isFiltered()) {
-          <button
-            type="button"
-            class="btn btn-secondary btn-sm"
-            data-testid="empty-reset"
-            (click)="resetFilter()"
-          >
-            {{ t().moderation.filterReset }}
-          </button>
-        }
+      }
+
+      <div class="filter-actions">
+        <button type="submit" class="btn btn-primary btn-sm" data-testid="filter-apply">
+          {{ t().moderation.filterApply }}
+        </button>
+        <button
+          type="button"
+          class="btn btn-secondary btn-sm"
+          data-testid="filter-reset"
+          (click)="resetFilter()"
+        >
+          {{ t().moderation.filterReset }}
+        </button>
       </div>
-    } @else {
-      <div class="table-scroll">
-        <table class="moderation-table" data-testid="moderation-table">
-          <thead>
-            <tr>
-              <th>{{ t().upload.columnProtocol }}</th>
-              <th>{{ t().upload.machine }}</th>
-              <th>{{ t().upload.type }}</th>
-              <th>{{ t().moderation.uploadedBy }}</th>
-              <th>{{ t().upload.columnUploaded }}</th>
-              <th>{{ t().upload.columnStatus }}</th>
-              <th>{{ t().approval.column }}</th>
-              <th><span class="sr-only">{{ t().moderation.actions }}</span></th>
-            </tr>
-          </thead>
-          <tbody>
-            @for (protocol of protocols(); track protocol.id) {
-              <tr data-testid="moderation-row">
-                <td>{{ protocol.title }}</td>
-                <td class="machine">{{ protocol.machineNo }}</td>
-                <td>
-                  {{
-                    protocol.protocolType === 'WARTUNG'
-                      ? t().upload.typeMaintenance
-                      : t().upload.typeFault
-                  }}
-                </td>
-                <!-- The author, on screen. A reviewer who can see a bad protocol but not who filed
+    </form>
+
+    <section class="card">
+      @if (loading()) {
+        <p class="hint" role="status" data-testid="moderation-loading">
+          {{ t().moderation.loading }}
+        </p>
+      } @else if (protocols().length === 0) {
+        <!-- Two different "nothing here": an empty corpus is a fact, an empty filtered result is
+           something the reader can undo. A bare table would say neither. -->
+        <div class="empty-state" data-testid="moderation-empty">
+          <p class="hint">
+            {{ isFiltered() ? t().moderation.emptyFiltered : t().moderation.empty }}
+          </p>
+          @if (isFiltered()) {
+            <button
+              type="button"
+              class="btn btn-secondary btn-sm"
+              data-testid="empty-reset"
+              (click)="resetFilter()"
+            >
+              {{ t().moderation.filterReset }}
+            </button>
+          }
+        </div>
+      } @else {
+        <div class="table-scroll">
+          <table class="moderation-table" data-testid="moderation-table">
+            <thead>
+              <tr>
+                <th>{{ t().upload.columnProtocol }}</th>
+                <th>{{ t().upload.machine }}</th>
+                <th>{{ t().upload.type }}</th>
+                <th>{{ t().moderation.uploadedBy }}</th>
+                <th>{{ t().upload.columnUploaded }}</th>
+                <th>{{ t().upload.columnStatus }}</th>
+                <th>{{ t().approval.column }}</th>
+                <th>
+                  <span class="sr-only">{{ t().moderation.actions }}</span>
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (protocol of protocols(); track protocol.id) {
+                <tr data-testid="moderation-row">
+                  <td>{{ protocol.title }}</td>
+                  <td class="machine">{{ protocol.machineNo }}</td>
+                  <td>
+                    {{
+                      protocol.protocolType === 'WARTUNG'
+                        ? t().upload.typeMaintenance
+                        : t().upload.typeFault
+                    }}
+                  </td>
+                  <!-- The author, on screen. A reviewer who can see a bad protocol but not who filed
                      it can remove the text and learn nothing (ADR-006). -->
-                <td class="uploader" data-testid="row-uploader">{{ protocol.uploadedBy }}</td>
-                <td class="num">{{ protocol.uploadedAt | appDate: language() }}</td>
-                <td>
-                  <span class="status status-{{ protocol.status.toLowerCase() }}">{{
-                    statusLabel(protocol.status)
-                  }}</span>
-                </td>
-                <!-- On every row, not only on the unapproved ones. This list is also where an
+                  <td class="uploader" data-testid="row-uploader">{{ protocol.uploadedBy }}</td>
+                  <td class="num">{{ protocol.uploadedAt | appDate: language() }}</td>
+                  <td>
+                    <span class="status status-{{ protocol.status.toLowerCase() }}">{{
+                      statusLabel(protocol.status)
+                    }}</span>
+                  </td>
+                  <!-- On every row, not only on the unapproved ones. This list is also where an
                      administrator checks that something they approved is STILL approved — and after
                      a correction it will not be, because an edit resets it.
                      THE STATE, AND NOTHING ELSE, since 2026-08-14. It carried the approver and the
@@ -282,143 +292,143 @@
                      PROVENANCE, and provenance belongs in the record rather than repeated down
                      twenty rows of a list somebody is scanning for a title: it is in the viewer's
                      history section now, read once, beside the document. -->
-                <td class="approval-cell">
-                  <app-approval-state [approval]="protocol.approval" />
-                </td>
-                <!-- The buttons live in a DIV inside the cell, not on the cell itself. A <td> with
+                  <td class="approval-cell">
+                    <app-approval-state [approval]="protocol.approval" />
+                  </td>
+                  <!-- The buttons live in a DIV inside the cell, not on the cell itself. A <td> with
                      `display: flex` stops being a table cell: the browser wraps it in an anonymous
                      one and it no longer takes the row's height, so its bottom border floats
                      mid-row the moment any other cell wraps to a second line. Invisible while every
                      title fitted on one line, and visible the day the approval column made them
                      wrap — which is how it was found. -->
-                <td class="actions-cell">
-                  <div class="row-actions">
-                  <button
-                    type="button"
-                    class="btn btn-secondary btn-sm"
-                    data-testid="row-open"
-                    [attr.aria-haspopup]="'dialog'"
-                    [attr.aria-label]="t().moderation.open + ': ' + protocol.title"
-                    (click)="viewing.set(protocol)"
-                  >
-                    {{ t().moderation.open }}
-                  </button>
-                  <!-- THE CORRECTION BUTTON IS THE SCHICHTLEITER'S NOW, and it is gone for the
+                  <td class="actions-cell">
+                    <div class="row-actions">
+                      <button
+                        type="button"
+                        class="btn btn-secondary btn-sm"
+                        data-testid="row-open"
+                        [attr.aria-haspopup]="'dialog'"
+                        [attr.aria-label]="t().moderation.open + ': ' + protocol.title"
+                        (click)="viewing.set(protocol)"
+                      >
+                        {{ t().moderation.open }}
+                      </button>
+                      <!-- THE CORRECTION BUTTON IS THE SCHICHTLEITER'S NOW, and it is gone for the
                        administrator (2026-08-13): the approver does not also correct. The backend
                        answers 403, so a button left here would offer an action that cannot work —
                        and a control that fails reads as a broken application rather than as a job
                        belonging to someone else. -->
-                  @if (canCorrect()) {
-                    <button
-                      type="button"
-                      class="btn btn-secondary btn-sm"
-                      data-testid="row-edit"
-                      [attr.aria-haspopup]="'dialog'"
-                      [attr.aria-label]="t().moderation.edit + ': ' + protocol.title"
-                      (click)="startEdit(protocol)"
-                    >
-                      {{ t().moderation.edit }}
-                    </button>
-                  }
-                  @if (canApprove()) {
-                    @if (protocol.approval.state === 'APPROVED') {
-                      <button
-                        type="button"
-                        class="btn btn-secondary btn-sm"
-                        data-testid="row-withdraw"
-                        [attr.aria-haspopup]="'dialog'"
-                        [attr.aria-label]="t().approval.withdraw + ': ' + protocol.title"
-                        (click)="beginWithdraw(protocol)"
-                      >
-                        <!-- The short label in the row, the full one in its accessible name and in
+                      @if (canCorrect()) {
+                        <button
+                          type="button"
+                          class="btn btn-secondary btn-sm"
+                          data-testid="row-edit"
+                          [attr.aria-haspopup]="'dialog'"
+                          [attr.aria-label]="t().moderation.edit + ': ' + protocol.title"
+                          (click)="startEdit(protocol)"
+                        >
+                          {{ t().moderation.edit }}
+                        </button>
+                      }
+                      @if (canApprove()) {
+                        @if (protocol.approval.state === 'APPROVED') {
+                          <button
+                            type="button"
+                            class="btn btn-secondary btn-sm"
+                            data-testid="row-withdraw"
+                            [attr.aria-haspopup]="'dialog'"
+                            [attr.aria-label]="t().approval.withdraw + ': ' + protocol.title"
+                            (click)="beginWithdraw(protocol)"
+                          >
+                            <!-- The short label in the row, the full one in its accessible name and in
                              the dialog it opens: three buttons per row have to fit beside six
                              columns, and "Freigabe zurückziehen" set the whole table's widths. -->
-                        {{ t().approval.withdrawShort }}
-                      </button>
-                    } @else {
-                      <!-- Still no confirmation dialog in the ordinary case, which is what #54
+                            {{ t().approval.withdrawShort }}
+                          </button>
+                        } @else {
+                          <!-- Still no confirmation dialog in the ordinary case, which is what #54
                            decided: approving affirms the text as it stands and the reviewer has
                            just read it. Withdrawing takes back something a named person vouched
                            for, and that direction needs a reason.
                            SINCE 2026-08-14 the click first asks whether this machine already holds
                            something similar, and a dialog opens ONLY if it does — information when
                            there is information, one click when there is not. -->
-                      <button
-                        type="button"
-                        class="btn btn-primary btn-sm"
-                        data-testid="row-approve"
-                        [disabled]="approving() !== null || checkingDuplicates() !== null"
-                        [attr.aria-label]="t().approval.approve + ': ' + protocol.title"
-                        (click)="approve(protocol)"
-                      >
-                        {{
-                          approving() === protocol.id || checkingDuplicates() === protocol.id
-                            ? t().approval.approving
-                            : t().approval.approve
-                        }}
-                      </button>
-                    }
-                  }
-                  <!-- Removing from the corpus is the administrator's, and stays so: 2026-08-14
+                          <button
+                            type="button"
+                            class="btn btn-primary btn-sm"
+                            data-testid="row-approve"
+                            [disabled]="approving() !== null || checkingDuplicates() !== null"
+                            [attr.aria-label]="t().approval.approve + ': ' + protocol.title"
+                            (click)="approve(protocol)"
+                          >
+                            {{
+                              approving() === protocol.id || checkingDuplicates() === protocol.id
+                                ? t().approval.approving
+                                : t().approval.approve
+                            }}
+                          </button>
+                        }
+                      }
+                      <!-- Removing from the corpus is the administrator's, and stays so: 2026-08-14
                        opened the LIST and the DOCUMENT to the corrector, nothing more. Absent for
                        them rather than disabled — a destructive control that exists only to refuse
                        is noise on a tablet and a lie about the role. -->
-                  @if (canArchive()) {
-                    <button
-                      type="button"
-                      class="btn btn-danger btn-sm"
-                      data-testid="row-delete"
-                      [attr.aria-haspopup]="'dialog'"
-                      [attr.aria-label]="t().moderation.delete + ': ' + protocol.title"
-                      (click)="deleting.set(protocol)"
-                    >
-                      {{ t().moderation.delete }}
-                    </button>
-                  }
-                  </div>
-                </td>
-              </tr>
-              @if (approvalFailureFor(protocol); as reason) {
-                <!-- A row of its own under the one it is about, spanning the table. The refusal has
-                     to name the protocol it belongs to, and a sentence at the top of the page about
-                     "this protocol" names none of ten identical rows. -->
-                <tr class="approval-failure-row" data-testid="approval-failure-row">
-                  <td colspan="8">
-                    <p class="notice notice-error" role="alert" data-testid="approval-failure">
-                      @switch (reason) {
-                        @case ('archived') {
-                          {{ t().approval.archived }}
-                        }
-                        @case ('notFound') {
-                          {{ t().moderation.alreadyGone }}
-                        }
-                        @case ('forbidden') {
-                          {{ t().errors.forbidden }}
-                        }
-                        @default {
-                          {{ t().errors.generic }}
-                        }
+                      @if (canArchive()) {
+                        <button
+                          type="button"
+                          class="btn btn-danger btn-sm"
+                          data-testid="row-delete"
+                          [attr.aria-haspopup]="'dialog'"
+                          [attr.aria-label]="t().moderation.delete + ': ' + protocol.title"
+                          (click)="deleting.set(protocol)"
+                        >
+                          {{ t().moderation.delete }}
+                        </button>
                       }
-                    </p>
+                    </div>
                   </td>
                 </tr>
+                @if (approvalFailureFor(protocol); as reason) {
+                  <!-- A row of its own under the one it is about, spanning the table. The refusal has
+                     to name the protocol it belongs to, and a sentence at the top of the page about
+                     "this protocol" names none of ten identical rows. -->
+                  <tr class="approval-failure-row" data-testid="approval-failure-row">
+                    <td colspan="8">
+                      <p class="notice notice-error" role="alert" data-testid="approval-failure">
+                        @switch (reason) {
+                          @case ('archived') {
+                            {{ t().approval.archived }}
+                          }
+                          @case ('notFound') {
+                            {{ t().moderation.alreadyGone }}
+                          }
+                          @case ('forbidden') {
+                            {{ t().errors.forbidden }}
+                          }
+                          @default {
+                            {{ t().errors.generic }}
+                          }
+                        }
+                      </p>
+                    </td>
+                  </tr>
+                }
               }
-            }
-          </tbody>
-        </table>
-      </div>
+            </tbody>
+          </table>
+        </div>
 
-      <app-pager
-        testId="page"
-        [page]="page()"
-        [pageCount]="pageCount()"
-        [total]="total()"
-        [label]="t().moderation.tabCorpus"
-        (previous)="previous()"
-        (next)="next()"
-      />
-    }
-  </section>
+        <app-pager
+          testId="page"
+          [page]="page()"
+          [pageCount]="pageCount()"
+          [total]="total()"
+          [label]="t().moderation.tabCorpus"
+          (previous)="previous()"
+          (next)="next()"
+        />
+      }
+    </section>
   }
 
   <!-- `canArchive()` as well as the tab, so the archive cannot be rendered by a role that may not
@@ -436,13 +446,17 @@
         >
           <option value="">{{ t().moderation.filterMachineAll }}</option>
           @for (machine of machines(); track machine.id) {
-            <option [value]="machine.machineNo">{{ machine.machineNo }} · {{ machine.name }}</option>
+            <option [value]="machine.machineNo">
+              {{ machine.machineNo }} · {{ machine.name }}
+            </option>
           }
         </select>
       </label>
       <!-- The cap and the absence of a restore are stated, not discovered: both are decisions, and
            a reviewer who assumes deletions are recoverable will use deletion differently. -->
-      <p class="field-hint" data-testid="archive-hint">{{ t().moderation.archiveHint(archiveCap()) }}</p>
+      <p class="field-hint" data-testid="archive-hint">
+        {{ t().moderation.archiveHint(archiveCap()) }}
+      </p>
     </section>
 
     <section class="card">
@@ -464,7 +478,9 @@
                 <th>{{ t().moderation.archiveDeletedAt }}</th>
                 <th>{{ t().moderation.archiveDeletedBy }}</th>
                 <th>{{ t().moderation.archiveComment }}</th>
-                <th><span class="sr-only">{{ t().moderation.actions }}</span></th>
+                <th>
+                  <span class="sr-only">{{ t().moderation.actions }}</span>
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -480,18 +496,18 @@
                   </td>
                   <td class="actions-cell">
                     <div class="row-actions">
-                    <!-- Open only. There is no restore and no edit here, by design: the archive is
+                      <!-- Open only. There is no restore and no edit here, by design: the archive is
                          for looking at what was removed, not for reversing it. -->
-                    <button
-                      type="button"
-                      class="btn btn-secondary btn-sm"
-                      data-testid="archive-open"
-                      [attr.aria-haspopup]="'dialog'"
-                      [attr.aria-label]="t().moderation.open + ': ' + protocol.title"
-                      (click)="viewingArchived.set(protocol)"
-                    >
-                      {{ t().moderation.open }}
-                    </button>
+                      <button
+                        type="button"
+                        class="btn btn-secondary btn-sm"
+                        data-testid="archive-open"
+                        [attr.aria-haspopup]="'dialog'"
+                        [attr.aria-label]="t().moderation.open + ': ' + protocol.title"
+                        (click)="viewingArchived.set(protocol)"
+                      >
+                        {{ t().moderation.open }}
+                      </button>
                     </div>
                   </td>
                 </tr>
@@ -938,12 +954,19 @@
       >
         {{ editSaving() ? t().moderation.editSaving : t().moderation.editSave }}
       </button>
-      <button type="button" class="btn btn-secondary" data-testid="edit-cancel" (click)="cancelEdit()">
+      <button
+        type="button"
+        class="btn btn-secondary"
+        data-testid="edit-cancel"
+        (click)="cancelEdit()"
+      >
         {{ t().common.cancel }}
       </button>
     </div>
     @if (!canSaveEdit()) {
-      <p class="field-hint" data-testid="edit-reason-required">{{ t().moderation.reasonRequired }}</p>
+      <p class="field-hint" data-testid="edit-reason-required">
+        {{ t().moderation.reasonRequired }}
+      </p>
     }
   }
 </app-dialog>

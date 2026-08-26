@@ -44,9 +44,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">95.38% </span>
+                <span class="strong">92.95% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>62/65</span>
+                <span class='fraction'>66/71</span>
             </div>
         
             
@@ -207,7 +207,13 @@
 <a name='L142'></a><a href='#L142'>142</a>
 <a name='L143'></a><a href='#L143'>143</a>
 <a name='L144'></a><a href='#L144'>144</a>
-<a name='L145'></a><a href='#L145'>145</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">45x</span>
+<a name='L145'></a><a href='#L145'>145</a>
+<a name='L146'></a><a href='#L146'>146</a>
+<a name='L147'></a><a href='#L147'>147</a>
+<a name='L148'></a><a href='#L148'>148</a>
+<a name='L149'></a><a href='#L149'>149</a>
+<a name='L150'></a><a href='#L150'>150</a>
+<a name='L151'></a><a href='#L151'>151</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">45x</span>
 <span class="cline-any cline-yes">242x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -267,7 +273,9 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">242x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">45x</span>
 <span class="cline-any cline-yes">242x</span>
+<span class="cline-any cline-yes">45x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">45x</span>
@@ -286,7 +294,11 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">242x</span>
 <span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">45x</span>
@@ -352,148 +364,154 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">&lt;div class="page page-split"&gt;
-&lt;h1 class="page-title"&gt;{{ t().search.heading }}&lt;/h1&gt;
+  &lt;h1 class="page-title"&gt;{{ t().search.heading }}&lt;/h1&gt;
 &nbsp;
-&lt;!-- Two columns on a wide screen: the form and its answer on the left, the help panel on the
+  &lt;!-- Two columns on a wide screen: the form and its answer on the left, the help panel on the
      right. A grid rather than a flex row, because a flex row wraps when the contents do not fit
      and that is exactly how the panel ended up under the form. --&gt;
-&lt;div class="search-layout"&gt;
-&lt;div class="search-main"&gt;
-&lt;form class="ask" (ngSubmit)="ask()"&gt;
-  &lt;label class="field"&gt;
-    &lt;span class="field-label"&gt;{{ t().search.machine }}&lt;/span&gt;
-    &lt;select
-      name="machine"
-      data-testid="machine-picker"
-      [ngModel]="machineId()"
-      (ngModelChange)="machineId.set($event)"
-      [disabled]="asking()"
-    &gt;
-      &lt;option value=""&gt;{{ t().search.machinePlaceholder }}&lt;/option&gt;
-      @for (machine of machines(); track machine.id) {
-        &lt;option [value]="machine.id"&gt;{{ machine.machineNo }} · {{ machine.name }}&lt;/option&gt;
-      }
-    &lt;/select&gt;
-  &lt;/label&gt;
+  &lt;div class="search-layout"&gt;
+    &lt;div class="search-main"&gt;
+      &lt;form class="ask" (ngSubmit)="ask()"&gt;
+        &lt;label class="field"&gt;
+          &lt;span class="field-label"&gt;{{ t().search.machine }}&lt;/span&gt;
+          &lt;select
+            name="machine"
+            data-testid="machine-picker"
+            [ngModel]="machineId()"
+            (ngModelChange)="machineId.set($event)"
+            [disabled]="asking()"
+          &gt;
+            &lt;option value=""&gt;{{ t().search.machinePlaceholder }}&lt;/option&gt;
+            @for (machine of machines(); track machine.id) {
+              &lt;option [value]="machine.id"&gt;{{ machine.machineNo }} · {{ machine.name }}&lt;/option&gt;
+            }
+          &lt;/select&gt;
+        &lt;/label&gt;
 &nbsp;
-  @if (machinesFailed()) {
-    &lt;p class="notice notice-error" data-testid="machines-error"&gt;
-      {{ t().search.machinesUnavailable }}
-    &lt;/p&gt;
-  }
+        @if (machinesFailed()) {
+          &lt;p class="notice notice-error" data-testid="machines-error"&gt;
+            {{ t().search.machinesUnavailable }}
+          &lt;/p&gt;
+        }
 &nbsp;
-  &lt;label class="field"&gt;
-    &lt;span class="field-label"&gt;{{ t().search.question }}&lt;/span&gt;
-    &lt;textarea
-      name="question"
-      rows="3"
-      data-testid="question-input"
-      [placeholder]="t().search.questionPlaceholder"
-      [ngModel]="question()"
-      (ngModelChange)="question.set($event)"
-      [disabled]="asking()"
-    &gt;&lt;/textarea&gt;
-  &lt;/label&gt;
+        &lt;label class="field"&gt;
+          &lt;span class="field-label"&gt;{{ t().search.question }}&lt;/span&gt;
+          &lt;textarea
+            name="question"
+            rows="3"
+            data-testid="question-input"
+            [placeholder]="t().search.questionPlaceholder"
+            [ngModel]="question()"
+            (ngModelChange)="question.set($event)"
+            [disabled]="asking()"
+          &gt;&lt;/textarea&gt;
+        &lt;/label&gt;
 &nbsp;
-  &lt;!-- The approved-only facet. OFF by default and stated as such in the hint, because "everything is
+        &lt;!-- The approved-only facet. OFF by default and stated as such in the hint, because "everything is
        searched" is the decision (2026-08-11) and a reader has to be able to see that it is. Below
        the question rather than beside the machine picker: it narrows the ANSWER, not the scope of
        the question, and the machine row is where scope already lives. --&gt;
-  &lt;div class="ask-facet"&gt;
-    &lt;label class="checkbox"&gt;
-      &lt;input
-        type="checkbox"
-        name="approvedOnly"
-        data-testid="approved-only"
-        [ngModel]="approvedOnly()"
-        (ngModelChange)="approvedOnly.set($event)"
-        [disabled]="asking()"
-      /&gt;
-      &lt;span&gt;{{ t().search.approvedOnly }}&lt;/span&gt;
-    &lt;/label&gt;
-    &lt;p class="field-hint" data-testid="approved-only-hint"&gt;{{ t().search.approvedOnlyHint }}&lt;/p&gt;
-  &lt;/div&gt;
+        &lt;div class="ask-facet"&gt;
+          &lt;label class="checkbox"&gt;
+            &lt;input
+              type="checkbox"
+              name="approvedOnly"
+              data-testid="approved-only"
+              [ngModel]="approvedOnly()"
+              (ngModelChange)="approvedOnly.set($event)"
+              [disabled]="asking()"
+            /&gt;
+            &lt;span&gt;{{ t().search.approvedOnly }}&lt;/span&gt;
+          &lt;/label&gt;
+          &lt;p class="field-hint" data-testid="approved-only-hint"&gt;
+            {{ t().search.approvedOnlyHint }}
+          &lt;/p&gt;
+        &lt;/div&gt;
 &nbsp;
-  &lt;div class="ask-actions"&gt;
-    &lt;!-- Disabled while a request is in flight: the answer costs a provider call and counts against
+        &lt;div class="ask-actions"&gt;
+          &lt;!-- Disabled while a request is in flight: the answer costs a provider call and counts against
          a per-user rate limit, so a second click is money and a 429 rather than a faster answer. --&gt;
-    &lt;button
-      type="submit"
-      class="btn btn-primary"
-      data-testid="ask-button"
-      [disabled]="asking()"
-      [attr.aria-busy]="asking()"
-    &gt;
-      {{ asking() ? t().search.working : t().search.submit }}
-    &lt;/button&gt;
-  &lt;/div&gt;
+          &lt;button
+            type="submit"
+            class="btn btn-primary"
+            data-testid="ask-button"
+            [disabled]="asking()"
+            [attr.aria-busy]="asking()"
+          &gt;
+            {{ asking() ? t().search.working : t().search.submit }}
+          &lt;/button&gt;
+        &lt;/div&gt;
 &nbsp;
-  @if (validation() === 'machine') {
-    &lt;p class="notice notice-error" data-testid="validation"&gt;{{ t().search.machineRequired }}&lt;/p&gt;
-  } @else if (validation() === 'question') {
-<span class="cstat-no" title="statement not covered" >    &lt;p class="notice notice-error" data-testid="validation"&gt;<span class="cstat-no" title="statement not covered" >{</span>{ t().search.questionRequired }}<span class="cstat-no" title="statement not covered" >&lt;</span>/p&gt;</span>
-  }
-&lt;/form&gt;
+        @if (validation() === 'machine') {
+          &lt;p class="notice notice-error" data-testid="validation"&gt;
+            {{ t().search.machineRequired }}
+          &lt;/p&gt;
+        } @else if (validation() === 'question') {
+<span class="cstat-no" title="statement not covered" >          &lt;p class="notice notice-error" data-testid="validation"&gt;</span>
+<span class="cstat-no" title="statement not covered" >            {{ t().search.questionRequired }}</span>
+<span class="cstat-no" title="statement not covered" >          &lt;/p&gt;</span>
+        }
+      &lt;/form&gt;
 &nbsp;
-@if (asking()) {
-  &lt;!-- Answers take 5-20 s. An indeterminate bar with an honest estimate beats a spinner that says
+      @if (asking()) {
+        &lt;!-- Answers take 5-20 s. An indeterminate bar with an honest estimate beats a spinner that says
        nothing about whether waiting is normal. --&gt;
-  &lt;div class="working" role="status" aria-live="polite" data-testid="working"&gt;
-    &lt;div class="working-bar"&gt;&lt;span&gt;&lt;/span&gt;&lt;/div&gt;
-    &lt;p class="working-text"&gt;{{ t().search.working }}&lt;/p&gt;
-    &lt;p class="working-hint"&gt;{{ t().search.workingHint }}&lt;/p&gt;
-  &lt;/div&gt;
-}
+        &lt;div class="working" role="status" aria-live="polite" data-testid="working"&gt;
+          &lt;div class="working-bar"&gt;&lt;span&gt;&lt;/span&gt;&lt;/div&gt;
+          &lt;p class="working-text"&gt;{{ t().search.working }}&lt;/p&gt;
+          &lt;p class="working-hint"&gt;{{ t().search.workingHint }}&lt;/p&gt;
+        &lt;/div&gt;
+      }
 &nbsp;
-@if (failure(); as reason) {
-  &lt;p class="notice notice-error" role="alert" data-testid="failure"&gt;
-    @switch (reason) {
-      @case ('rateLimited') {
-        {{ t().errors.rateLimited }}
+      @if (failure(); as reason) {
+        &lt;p class="notice notice-error" role="alert" data-testid="failure"&gt;
+          @switch (reason) {
+            @case ('rateLimited') {
+              {{ t().errors.rateLimited }}
+            }
+            @case ('budgetExhausted') {
+              {{ t().errors.budgetExhausted }}
+            }
+            @case ('unavailable') {
+              {{ t().errors.unavailable }}
+            }
+            @case ('forbidden') {
+<span class="cstat-no" title="statement not covered" >              {{ t().errors.forbidden }}</span>
+            }
+            @default {
+<span class="cstat-no" title="statement not covered" >              {{ t().errors.generic }}</span>
+            }
+          }
+        &lt;/p&gt;
       }
-      @case ('budgetExhausted') {
-        {{ t().errors.budgetExhausted }}
-      }
-      @case ('unavailable') {
-        {{ t().errors.unavailable }}
-      }
-      @case ('forbidden') {
-<span class="cstat-no" title="statement not covered" >        {{ t().errors.forbidden }}</span>
-      }
-      @default {
-<span class="cstat-no" title="statement not covered" >        {{ t().errors.generic }}</span>
-      }
-    }
-  &lt;/p&gt;
-}
 &nbsp;
-@if (answer(); as result) {
-  &lt;!-- The answer sits directly under the form that produced it. It used to render after the help
+      @if (answer(); as result) {
+        &lt;!-- The answer sits directly under the form that produced it. It used to render after the help
        panel, which on a wide screen meant scrolling past an explanation to reach the thing being
        explained. --&gt;
-  &lt;app-search-answer
-    [answer]="result"
-    [machine]="machineLabel()"
-    [approvedOnly]="answeredApprovedOnly()"
-    (opened)="openSource($event)"
-    (widen)="widenToWholeCorpus()"
-  /&gt;
-}
-&lt;/div&gt;
+        &lt;app-search-answer
+          [answer]="result"
+          [machine]="machineLabel()"
+          [approvedOnly]="answeredApprovedOnly()"
+          (opened)="openSource($event)"
+          (widen)="widenToWholeCorpus()"
+        /&gt;
+      }
+    &lt;/div&gt;
 &nbsp;
-&lt;app-search-help /&gt;
-&lt;/div&gt;
+    &lt;app-search-help /&gt;
+  &lt;/div&gt;
 &nbsp;
-&lt;!-- The protocol behind a citation opens HERE, not in a new tab: the reader stays in the answer they
+  &lt;!-- The protocol behind a citation opens HERE, not in a new tab: the reader stays in the answer they
      clicked from, which on a tablet on the shop floor is the difference between reading the evidence
      and losing the answer. --&gt;
-&lt;app-protocol-dialog
-  [protocolId]="viewing()?.protocolId ?? null"
-  [protocolTitle]="viewing()?.title ?? ''"
-  [machine]="machineLabel()"
-  [approval]="viewingApproval()"
-<span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >  (closed)="v</span>iewing.set(null)"</span>
-/&gt;
+  &lt;app-protocol-dialog
+    [protocolId]="viewing()?.protocolId ?? null"
+    [protocolTitle]="viewing()?.title ?? ''"
+    [machine]="machineLabel()"
+    [approval]="viewingApproval()"
+<span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >    (closed)="v</span>iewing.set(null)"</span>
+  /&gt;
 &lt;/div&gt;
 &nbsp;</pre></td></tr></table></pre>
 
@@ -502,7 +520,7 @@
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-08-25T15:41:41.104Z
+                at 2026-08-26T08:31:30.151Z
             </div>
         <script src="../../../../../prettify.js"></script>
         <script>

@@ -46,7 +46,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">100% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>113/113</span>
+                <span class='fraction'>117/117</span>
             </div>
         
             
@@ -303,7 +303,11 @@
 <a name='L238'></a><a href='#L238'>238</a>
 <a name='L239'></a><a href='#L239'>239</a>
 <a name='L240'></a><a href='#L240'>240</a>
-<a name='L241'></a><a href='#L241'>241</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">34x</span>
+<a name='L241'></a><a href='#L241'>241</a>
+<a name='L242'></a><a href='#L242'>242</a>
+<a name='L243'></a><a href='#L243'>243</a>
+<a name='L244'></a><a href='#L244'>244</a>
+<a name='L245'></a><a href='#L245'>245</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">34x</span>
 <span class="cline-any cline-yes">196x</span>
 <span class="cline-any cline-yes">196x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -364,6 +368,8 @@
 <span class="cline-any cline-yes">196x</span>
 <span class="cline-any cline-yes">196x</span>
 <span class="cline-any cline-yes">225x</span>
+<span class="cline-any cline-yes">225x</span>
+<span class="cline-any cline-yes">38x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">34x</span>
 <span class="cline-any cline-yes">34x</span>
@@ -520,7 +526,9 @@
 <span class="cline-any cline-yes">387x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">28x</span>
 <span class="cline-any cline-yes">156x</span>
+<span class="cline-any cline-yes">28x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">86x</span>
 <span class="cline-any cline-yes">387x</span>
@@ -544,44 +552,44 @@
 <span class="cline-any cline-yes">34x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">&lt;div class="page"&gt;
-&lt;h1 class="page-title"&gt;{{ t().upload.heading }}&lt;/h1&gt;
-&lt;p class="page-lead"&gt;{{ t().upload.intro }}&lt;/p&gt;
+  &lt;h1 class="page-title"&gt;{{ t().upload.heading }}&lt;/h1&gt;
+  &lt;p class="page-lead"&gt;{{ t().upload.intro }}&lt;/p&gt;
 &nbsp;
-&lt;form class="upload-form" [class.wide]="isMode('text')" (ngSubmit)="submit()"&gt;
-  &lt;!-- Two ways in, and typing is the one that matches the shift: the protocol gets written at the
+  &lt;form class="upload-form" [class.wide]="isMode('text')" (ngSubmit)="submit()"&gt;
+    &lt;!-- Two ways in, and typing is the one that matches the shift: the protocol gets written at the
        end of it, not saved as a .txt first. File stays the default so nothing changes for anyone
        already used to it. --&gt;
-  &lt;div class="field"&gt;
-    &lt;span class="field-label" id="mode-label"&gt;{{ t().upload.inputMode }}&lt;/span&gt;
-    &lt;div class="mode-switch" role="group" aria-labelledby="mode-label" data-testid="mode-switch"&gt;
-      &lt;button
-        type="button"
-        data-testid="mode-file"
-        [class.active]="isMode('file')"
-        [attr.aria-pressed]="isMode('file')"
-        (click)="useMode('file')"
-      &gt;
-        {{ t().upload.modeFile }}
-      &lt;/button&gt;
-      &lt;button
-        type="button"
-        data-testid="mode-text"
-        [class.active]="isMode('text')"
-        [attr.aria-pressed]="isMode('text')"
-        (click)="useMode('text')"
-      &gt;
-        {{ t().upload.modeText }}
-      &lt;/button&gt;
+    &lt;div class="field"&gt;
+      &lt;span class="field-label" id="mode-label"&gt;{{ t().upload.inputMode }}&lt;/span&gt;
+      &lt;div class="mode-switch" role="group" aria-labelledby="mode-label" data-testid="mode-switch"&gt;
+        &lt;button
+          type="button"
+          data-testid="mode-file"
+          [class.active]="isMode('file')"
+          [attr.aria-pressed]="isMode('file')"
+          (click)="useMode('file')"
+        &gt;
+          {{ t().upload.modeFile }}
+        &lt;/button&gt;
+        &lt;button
+          type="button"
+          data-testid="mode-text"
+          [class.active]="isMode('text')"
+          [attr.aria-pressed]="isMode('text')"
+          (click)="useMode('text')"
+        &gt;
+          {{ t().upload.modeText }}
+        &lt;/button&gt;
+      &lt;/div&gt;
     &lt;/div&gt;
-  &lt;/div&gt;
 &nbsp;
-  &lt;!-- THE ORDER IS THE FIX. In text mode the textarea used to come first and pushed machine, type
+    &lt;!-- THE ORDER IS THE FIX. In text mode the textarea used to come first and pushed machine, type
        and title below the fold — the opposite of file mode, where the small fields lead. Now the
        small fields are always first in the DOM, and on a wide screen the textarea sits beside them
        in the space that was empty. Reading order and visual order agree in both modes. --&gt;
-  &lt;div class="form-columns" [class.with-text]="isMode('text')"&gt;
-    &lt;div class="form-fields"&gt;
-      &lt;!-- What the endpoint accepts, said here rather than by a 400 after the file was chosen. It
+    &lt;div class="form-columns" [class.with-text]="isMode('text')"&gt;
+      &lt;div class="form-fields"&gt;
+        &lt;!-- What the endpoint accepts, said here rather than by a 400 after the file was chosen. It
            sits outside the mode branch on purpose: the limit applies to a typed protocol too, which
            is also submitted as a .txt the browser builds.
 &nbsp;
@@ -591,197 +599,201 @@
            the column, it is level with "Protokolltext" and the textarea starts with the machine
            picker. Stacked (phone, tablet portrait) it renders exactly where it did before — first
            thing under the mode switch. --&gt;
-      &lt;p class="field-hint" data-testid="format-hint"&gt;{{ t().upload.formatHint }}&lt;/p&gt;
+        &lt;p class="field-hint" data-testid="format-hint"&gt;{{ t().upload.formatHint }}&lt;/p&gt;
 &nbsp;
-      &lt;label class="field"&gt;
-        &lt;span class="field-label"&gt;{{ t().upload.machine }}&lt;/span&gt;
-        &lt;select
-          name="machine"
-          data-testid="upload-machine"
-          [ngModel]="machineNo()"
-          (ngModelChange)="machineNo.set($event)"
-        &gt;
-          &lt;option value=""&gt;{{ t().search.machinePlaceholder }}&lt;/option&gt;
-          @for (machine of machines(); track machine.id) {
-            &lt;option [value]="machine.machineNo"&gt;{{ machine.machineNo }} · {{ machine.name }}&lt;/option&gt;
-          }
-        &lt;/select&gt;
-      &lt;/label&gt;
-&nbsp;
-      &lt;label class="field"&gt;
-        &lt;span class="field-label"&gt;{{ t().upload.type }}&lt;/span&gt;
-        &lt;select name="type" [ngModel]="type()" (ngModelChange)="type.set($event)"&gt;
-          &lt;option value="STOERUNG"&gt;{{ t().upload.typeFault }}&lt;/option&gt;
-          &lt;option value="WARTUNG"&gt;{{ t().upload.typeMaintenance }}&lt;/option&gt;
-        &lt;/select&gt;
-      &lt;/label&gt;
-&nbsp;
-      &lt;!-- Required in both modes: a protocol with no title reduces "Meine Uploads" to a machine
-           number and a date, and every row has to be opened to find out which one it is. --&gt;
-      &lt;label class="field"&gt;
-        &lt;span class="field-label"
-          &gt;{{ t().upload.title }} &lt;em class="required"&gt;({{ t().upload.required }})&lt;/em&gt;&lt;/span
-        &gt;
-        &lt;input
-          name="title"
-          type="text"
-          required
-          aria-required="true"
-          data-testid="upload-title"
-          [ngModel]="title()"
-          (ngModelChange)="title.set($event)"
-        /&gt;
-      &lt;/label&gt;
-&nbsp;
-      &lt;label class="field"&gt;
-        &lt;span class="field-label"
-          &gt;{{ t().upload.errorCode }} &lt;em class="optional"&gt;({{ t().upload.optional }})&lt;/em&gt;&lt;/span
-        &gt;
-        &lt;input
-          name="errorCode"
-          type="text"
-          data-testid="upload-error-code"
-          [ngModel]="errorCode()"
-          (ngModelChange)="errorCode.set($event)"
-        /&gt;
-      &lt;/label&gt;
-&nbsp;
-      @if (isMode('file')) {
         &lt;label class="field"&gt;
-          &lt;span class="field-label"&gt;{{ t().upload.file }}&lt;/span&gt;
+          &lt;span class="field-label"&gt;{{ t().upload.machine }}&lt;/span&gt;
+          &lt;select
+            name="machine"
+            data-testid="upload-machine"
+            [ngModel]="machineNo()"
+            (ngModelChange)="machineNo.set($event)"
+          &gt;
+            &lt;option value=""&gt;{{ t().search.machinePlaceholder }}&lt;/option&gt;
+            @for (machine of machines(); track machine.id) {
+              &lt;option [value]="machine.machineNo"&gt;
+                {{ machine.machineNo }} · {{ machine.name }}
+              &lt;/option&gt;
+            }
+          &lt;/select&gt;
+        &lt;/label&gt;
+&nbsp;
+        &lt;label class="field"&gt;
+          &lt;span class="field-label"&gt;{{ t().upload.type }}&lt;/span&gt;
+          &lt;select name="type" [ngModel]="type()" (ngModelChange)="type.set($event)"&gt;
+            &lt;option value="STOERUNG"&gt;{{ t().upload.typeFault }}&lt;/option&gt;
+            &lt;option value="WARTUNG"&gt;{{ t().upload.typeMaintenance }}&lt;/option&gt;
+          &lt;/select&gt;
+        &lt;/label&gt;
+&nbsp;
+        &lt;!-- Required in both modes: a protocol with no title reduces "Meine Uploads" to a machine
+           number and a date, and every row has to be opened to find out which one it is. --&gt;
+        &lt;label class="field"&gt;
+          &lt;span class="field-label"
+            &gt;{{ t().upload.title }} &lt;em class="required"&gt;({{ t().upload.required }})&lt;/em&gt;&lt;/span
+          &gt;
           &lt;input
-            type="file"
-            accept=".txt,text/plain"
-            data-testid="file-input"
-            #fileInput
-            (change)="pickFile($event)"
+            name="title"
+            type="text"
+            required
+            aria-required="true"
+            data-testid="upload-title"
+            [ngModel]="title()"
+            (ngModelChange)="title.set($event)"
           /&gt;
         &lt;/label&gt;
-      }
 &nbsp;
-      &lt;button
-        type="submit"
-        class="btn btn-primary"
-        data-testid="upload-button"
-        [disabled]="submitting() || !canSubmit()"
-        [attr.aria-busy]="submitting()"
-      &gt;
-<span class="branch-0 cbranch-no" title="branch not covered" >        {{ submitting() ? t().upload.submitting : t().upload.submit }}</span>
-      &lt;/button&gt;
-    &lt;/div&gt;
+        &lt;label class="field"&gt;
+          &lt;span class="field-label"
+            &gt;{{ t().upload.errorCode }} &lt;em class="optional"&gt;({{ t().upload.optional }})&lt;/em&gt;&lt;/span
+          &gt;
+          &lt;input
+            name="errorCode"
+            type="text"
+            data-testid="upload-error-code"
+            [ngModel]="errorCode()"
+            (ngModelChange)="errorCode.set($event)"
+          /&gt;
+        &lt;/label&gt;
 &nbsp;
-    @if (isMode('text')) {
-      &lt;label class="field form-text"&gt;
-        &lt;span class="field-label"&gt;{{ t().upload.text }}&lt;/span&gt;
-        &lt;!-- Free text on purpose. Structured Symptom/Ursache/Massnahme fields are a later step, and
+        @if (isMode('file')) {
+          &lt;label class="field"&gt;
+            &lt;span class="field-label"&gt;{{ t().upload.file }}&lt;/span&gt;
+            &lt;input
+              type="file"
+              accept=".txt,text/plain"
+              data-testid="file-input"
+              #fileInput
+              (change)="pickFile($event)"
+            /&gt;
+          &lt;/label&gt;
+        }
+&nbsp;
+        &lt;button
+          type="submit"
+          class="btn btn-primary"
+          data-testid="upload-button"
+          [disabled]="submitting() || !canSubmit()"
+          [attr.aria-busy]="submitting()"
+        &gt;
+<span class="branch-0 cbranch-no" title="branch not covered" >          {{ submitting() ? t().upload.submitting : t().upload.submit }}</span>
+        &lt;/button&gt;
+      &lt;/div&gt;
+&nbsp;
+      @if (isMode('text')) {
+        &lt;label class="field form-text"&gt;
+          &lt;span class="field-label"&gt;{{ t().upload.text }}&lt;/span&gt;
+          &lt;!-- Free text on purpose. Structured Symptom/Ursache/Massnahme fields are a later step, and
              the corpus deliberately contains messy protocols — this form has to be able to produce
              one, or it would only ever add the tidy half of reality. --&gt;
-        &lt;span class="field-hint" data-testid="text-hint"&gt;{{ t().upload.textHint }}&lt;/span&gt;
-        &lt;textarea
-          name="protocolText"
-          rows="14"
-          data-testid="text-input"
-          [placeholder]="t().upload.textPlaceholder"
-          [ngModel]="text()"
-          (ngModelChange)="text.set($event)"
-        &gt;&lt;/textarea&gt;
-      &lt;/label&gt;
-    }
-  &lt;/div&gt;
-&lt;/form&gt;
+          &lt;span class="field-hint" data-testid="text-hint"&gt;{{ t().upload.textHint }}&lt;/span&gt;
+          &lt;textarea
+            name="protocolText"
+            rows="14"
+            data-testid="text-input"
+            [placeholder]="t().upload.textPlaceholder"
+            [ngModel]="text()"
+            (ngModelChange)="text.set($event)"
+          &gt;&lt;/textarea&gt;
+        &lt;/label&gt;
+      }
+    &lt;/div&gt;
+  &lt;/form&gt;
 &nbsp;
-@if (accepted()) {
-  &lt;!-- 202, said out loud. The protocol exists; it is not searchable yet. --&gt;
-  &lt;p class="notice notice-info" role="status" data-testid="accepted"&gt;
-    &lt;strong&gt;{{ t().upload.accepted }}&lt;/strong&gt; {{ t().upload.acceptedHint }}
-  &lt;/p&gt;
-}
-&nbsp;
-@if (failure(); as reason) {
-  &lt;p class="notice notice-error" role="alert" data-testid="upload-failure"&gt;
-    @switch (reason) {
-      @case ('forbidden') {
-        {{ t().errors.forbidden }}
-      }
-      @case ('unavailable') {
-        {{ t().errors.unavailable }}
-      }
-      @case ('tooLarge') {
-        {{ t().errors.uploadTooLarge }}
-      }
-      @case ('rejectedContent') {
-        {{ t().errors.uploadRejected }}
-      }
-      @case ('rateLimited') {
-        {{ t().errors.uploadRateLimited }}
-      }
-      @default {
-        {{ t().errors.generic }}
-      }
-    }
-  &lt;/p&gt;
-}
-&nbsp;
-&lt;section class="uploads card"&gt;
-  &lt;div class="uploads-header"&gt;
-    &lt;h2 class="section-title"&gt;{{ t().upload.myUploads }}&lt;/h2&gt;
-    &lt;button
-      type="button"
-      class="btn btn-secondary btn-sm"
-      data-testid="refresh-button"
-      [disabled]="refreshing()"
-      (click)="refresh()"
-    &gt;
-      {{ t().upload.refresh }}
-    &lt;/button&gt;
-  &lt;/div&gt;
-  &lt;p class="hint"&gt;{{ t().upload.refreshHint }}&lt;/p&gt;
-&nbsp;
-  @if (uploads().length) {
-    &lt;table class="uploads-table" data-testid="uploads-table"&gt;
-      &lt;thead&gt;
-        &lt;tr&gt;
-          &lt;th&gt;{{ t().upload.columnProtocol }}&lt;/th&gt;
-          &lt;th&gt;{{ t().upload.columnStatus }}&lt;/th&gt;
-          &lt;th&gt;{{ t().upload.columnUploaded }}&lt;/th&gt;
-        &lt;/tr&gt;
-      &lt;/thead&gt;
-      &lt;tbody&gt;
-        @for (upload of pagedUploads(); track upload.id) {
-          &lt;tr&gt;
-            &lt;td&gt;
-              &lt;span class="upload-machine"&gt;{{ upload.machineNo }}&lt;/span&gt;
-              {{ upload.title }}
-            &lt;/td&gt;
-            &lt;td&gt;
-              &lt;span class="status status-{{ upload.status.toLowerCase() }}"&gt;{{
-                statusLabel(upload.status)
-              }}&lt;/span&gt;
-              @if (upload.failureReason) {
-                &lt;!-- The reason, not only the fact. "It failed" makes re-uploading the same broken
-                     file the obvious next move. --&gt;
-                &lt;p class="failure-reason" data-testid="failure-reason"&gt;{{ upload.failureReason }}&lt;/p&gt;
-              }
-            &lt;/td&gt;
-            &lt;td class="num"&gt;{{ upload.createdAt | appDate: language() }}&lt;/td&gt;
-          &lt;/tr&gt;
-        }
-      &lt;/tbody&gt;
-    &lt;/table&gt;
-&nbsp;
-    &lt;app-pager
-      testId="uploads"
-      [page]="page()"
-      [pageCount]="pageCount()"
-      [total]="uploads().length"
-      [label]="t().upload.myUploads"
-      (previous)="previousPage()"
-      (next)="nextPage()"
-    /&gt;
-  } @else {
-    &lt;p class="hint" data-testid="no-uploads"&gt;{{ t().upload.none }}&lt;/p&gt;
+  @if (accepted()) {
+    &lt;!-- 202, said out loud. The protocol exists; it is not searchable yet. --&gt;
+    &lt;p class="notice notice-info" role="status" data-testid="accepted"&gt;
+      &lt;strong&gt;{{ t().upload.accepted }}&lt;/strong&gt; {{ t().upload.acceptedHint }}
+    &lt;/p&gt;
   }
-&lt;/section&gt;
+&nbsp;
+  @if (failure(); as reason) {
+    &lt;p class="notice notice-error" role="alert" data-testid="upload-failure"&gt;
+      @switch (reason) {
+        @case ('forbidden') {
+          {{ t().errors.forbidden }}
+        }
+        @case ('unavailable') {
+          {{ t().errors.unavailable }}
+        }
+        @case ('tooLarge') {
+          {{ t().errors.uploadTooLarge }}
+        }
+        @case ('rejectedContent') {
+          {{ t().errors.uploadRejected }}
+        }
+        @case ('rateLimited') {
+          {{ t().errors.uploadRateLimited }}
+        }
+        @default {
+          {{ t().errors.generic }}
+        }
+      }
+    &lt;/p&gt;
+  }
+&nbsp;
+  &lt;section class="uploads card"&gt;
+    &lt;div class="uploads-header"&gt;
+      &lt;h2 class="section-title"&gt;{{ t().upload.myUploads }}&lt;/h2&gt;
+      &lt;button
+        type="button"
+        class="btn btn-secondary btn-sm"
+        data-testid="refresh-button"
+        [disabled]="refreshing()"
+        (click)="refresh()"
+      &gt;
+        {{ t().upload.refresh }}
+      &lt;/button&gt;
+    &lt;/div&gt;
+    &lt;p class="hint"&gt;{{ t().upload.refreshHint }}&lt;/p&gt;
+&nbsp;
+    @if (uploads().length) {
+      &lt;table class="uploads-table" data-testid="uploads-table"&gt;
+        &lt;thead&gt;
+          &lt;tr&gt;
+            &lt;th&gt;{{ t().upload.columnProtocol }}&lt;/th&gt;
+            &lt;th&gt;{{ t().upload.columnStatus }}&lt;/th&gt;
+            &lt;th&gt;{{ t().upload.columnUploaded }}&lt;/th&gt;
+          &lt;/tr&gt;
+        &lt;/thead&gt;
+        &lt;tbody&gt;
+          @for (upload of pagedUploads(); track upload.id) {
+            &lt;tr&gt;
+              &lt;td&gt;
+                &lt;span class="upload-machine"&gt;{{ upload.machineNo }}&lt;/span&gt;
+                {{ upload.title }}
+              &lt;/td&gt;
+              &lt;td&gt;
+                &lt;span class="status status-{{ upload.status.toLowerCase() }}"&gt;{{
+                  statusLabel(upload.status)
+                }}&lt;/span&gt;
+                @if (upload.failureReason) {
+                  &lt;!-- The reason, not only the fact. "It failed" makes re-uploading the same broken
+                     file the obvious next move. --&gt;
+                  &lt;p class="failure-reason" data-testid="failure-reason"&gt;
+                    {{ upload.failureReason }}
+                  &lt;/p&gt;
+                }
+              &lt;/td&gt;
+              &lt;td class="num"&gt;{{ upload.createdAt | appDate: language() }}&lt;/td&gt;
+            &lt;/tr&gt;
+          }
+        &lt;/tbody&gt;
+      &lt;/table&gt;
+&nbsp;
+      &lt;app-pager
+        testId="uploads"
+        [page]="page()"
+        [pageCount]="pageCount()"
+        [total]="uploads().length"
+        [label]="t().upload.myUploads"
+        (previous)="previousPage()"
+        (next)="nextPage()"
+      /&gt;
+    } @else {
+      &lt;p class="hint" data-testid="no-uploads"&gt;{{ t().upload.none }}&lt;/p&gt;
+    }
+  &lt;/section&gt;
 &lt;/div&gt;
 &nbsp;</pre></td></tr></table></pre>
 
@@ -790,7 +802,7 @@
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-08-25T15:41:41.104Z
+                at 2026-08-26T08:31:30.151Z
             </div>
         <script src="../../../../../prettify.js"></script>
         <script>

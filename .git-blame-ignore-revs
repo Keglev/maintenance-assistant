@@ -1,0 +1,20 @@
+# Revisions git blame should look through rather than at.
+#
+# A bulk reformat rewrites lines without changing what they do, so it makes
+# `git blame` name the wrong author and the wrong date for every line it
+# touched. Listing the commit here restores the answer to "who last changed
+# what this line MEANS".
+#
+# IT IS NOT AUTOMATIC. git only reads this file when the reader has set
+#
+#   git config blame.ignoreRevsFile .git-blame-ignore-revs
+#
+# per clone. Unset, blame behaves as though this file did not exist — nothing
+# breaks, the answers are just worse. GitHub's blame view applies it by default.
+# The setting is documented in docs/REFACTOR-STANDARDS.txt.
+#
+# One SHA per line, full length. Add only commits that changed no behaviour.
+
+# style(frontend): apply prettier to the thirty-eight files it had never touched
+# 2026-08-25, the reformat that followed the format gate landing in the same PR.
+c4965a4e8f5ef982f174391f5740463a560de031

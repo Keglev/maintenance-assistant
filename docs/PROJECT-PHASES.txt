@@ -20,6 +20,9 @@ PART 3 CLOSED 2026-08-26 (#94-#108); DIAGNOSTICS WAVE NEXT, then feature
 Diagnostics wave: measurements recorded #110; R1 cap 2100 and R2
 fallback gpt-oss-120b ruled 2026-08-26; W-2 next.
 
+W-2 merged; deploy is automatic (backend-deploy on main); verify with
+`curl -sI .../api/health | grep -i x-request-id`.
+
 v1.3.0 IS THE LATEST TAG, 2026-08-20. The release history, from the
 repository's own tags: v0.1.0 2026-08-06, v1.0.0 2026-08-08, v1.1.0
 2026-08-11, v1.2.0 2026-08-13, v1.3.0 2026-08-20.
@@ -3217,6 +3220,18 @@ rather than given one afterwards.
         which logs the TAIL of a truncated body and its WHITESPACE RATIO
         — a ratio near 1 confirms it, a tail of real German kills it.
         Nothing downstream should treat it as settled before then.
+        CONFIRMATION PATH, shipped by W-2 (#PRNUM) and usable from the
+        first deploy: grep `chat truncated:` in the backend log.
+          refusalShaped=true with whitespaceRatio > 0.9  -> CONFIRMED,
+            the body is the refusal plus padding and W-3's degradation
+            path is the fix.
+          refusalShaped=false with a tail of German prose -> REFUTED,
+            the answer genuinely ran out of room and the cap is the fix.
+        The ratio is printed under the ROOT locale precisely so that
+        `> 0.9` is greppable; see the defect the W-2 row records.
+        UNTIL A REAL ONE IS LOGGED THIS STAYS A HYPOTHESIS. Six clean
+        runs did not reproduce it, so the confirming line may take a
+        while to appear — and its absence is not evidence either way.
         THE CONSEQUENCE IF IT HOLDS, and this is why it is worth writing
         down before it is proven: THE FIX IS A DEGRADATION PATH, NOT A
         BIGGER CAP. A cap of 2100 buys a degenerating answer 900 more
@@ -3328,6 +3343,57 @@ rather than given one afterwards.
           one user-visible failure can be followed across the two.
         DEPLOY, NO TAG. Nothing the application does changes; this PR
         only makes the next incident readable.
+        DONE 2026-08-26, #PRNUM: kinds, anatomy, cause logging, two silent
+        sites, request id (backend-generated; Caddy header parked).
+        WHAT SHIPPED, against what the row asked for:
+          - ChatException.Kind {TRUNCATED, EMPTY, TRANSPORT, REJECTED,
+            UNREADABLE}, set at ALL EIGHT throw sites in IonosChatClient
+            AND at the three in AnswerAssembler. The row named only the
+            client's; a kind that is right for eight sites and defaulted
+            for three would be a field that lies about a quarter of the
+            failures it classifies, so the constructor requires it and
+            there is no default.
+          - `provider returned an empty body` is UNREADABLE, not EMPTY,
+            and the choice is stated because the row left it open: EMPTY
+            means the MODEL produced no usable content and is the
+            reasoning-model diagnosis; a null response body is nothing
+            arriving that could be read, which is the other class.
+          - TruncatedBody, a record computed beside the throw and logged
+            at WARN prefixed `chat truncated:`, carrying completion
+            tokens, characters, whitespace ratio, the LAST 200
+            characters with newlines escaped, and refusalShaped. It also
+            rides in the exception message tail, so a developer reading a
+            stack trace sees the same evidence as one reading a log.
+          - QueryService's catch site logs kind and passes the exception
+            as the last argument, so the cause chain is logged; the two
+            silent throw sites (chat not configured, embedder returned no
+            vector) now name their condition first; the embedding catch
+            gained the exception argument.
+          - RequestIdFilter at HIGHEST_PRECEDENCE: reads X-Request-Id,
+            validates it against [A-Za-z0-9._-]{8,64}, generates a UUID
+            when absent or malformed, puts it in MDC, echoes it in the
+            response header and clears MDC in a finally.
+        A DEFECT THE NEW TEST CAUGHT BEFORE THE PR EXISTED, recorded
+        because it is the same failure class as the whole wave: the
+        anatomy's toString used %.2f with no Locale and printed
+        `whitespaceRatio=0,96` on this machine. The confirmation rule
+        below greps for `> 0.9`; a comma would have made the line the
+        ledger tells the next reader to search for unsearchable. Fixed
+        with Locale.ROOT and the reason at the site. The counting rule
+        already covers this shape — of() had the ROOT locale and its
+        comment; toString did not, which is how a rule applied in one of
+        two places looks.
+        MDC PROPAGATION WAS CHECKED, NOT ASSUMED: `grep -rn "@Async|
+        CompletableFuture|ExecutorService|TaskExecutor|new Thread"` over
+        query/ and QueryController returns nothing, so every chat call
+        runs on the request thread and the id follows it. If a future
+        change moves a provider call to another thread, MDC does not
+        follow and this stops working silently.
+        PROVEN IN THE BUILD ITSELF rather than by reading the pattern:
+        11 log lines in the verify run carry a generated id in the
+        correlation slot, and one of them is c.k.m.query.QueryService —
+        the exact line the incident needed and did not have. Lines with
+        no request behind them print `[]` rather than the word null.
 
      W-3 BEHAVIOUR CHANGE — TRUNCATION DEGRADES INSTEAD OF FAILING.
         - Parse the partial body. If it yields empty claims, or is
@@ -3467,6 +3533,29 @@ STANDING LIST — small, always visible, never a release of its own:
     re-litigated every session. If it is ever reopened it must be
     because it rides along with a theme change that is being
     hand-deployed anyway, never on its own.
+
+    PARKED 2026-08-26 — THE CADDYFILE'S X-Request-Id HEADER (W-2,
+    #PRNUM). docker/caddy/Caddyfile now sets `header_up X-Request-Id
+    {http.request.uuid}` on all three backend reverse_proxy blocks, and
+    the file is HAND-DEPLOYED (OPS RULE 3), so it is not live. RIDES
+    WITH THE NEXT HAND-DEPLOY THAT HAS A REASON OF ITS OWN; until then
+    the backend generates the id itself, so correlation works
+    backend-side from the first deploy and simply gets one hop wider
+    when this lands. `caddy validate` against caddy:2.10-alpine, the tag
+    the production compose pins: "Valid configuration".
+    MEASURED WHILE WRITING IT, because the row asked whether the access
+    log can carry the header and the answer is more useful than yes or
+    no: the log directive is `format console`, and the console encoder
+    DOES record request headers — verified against a live container. But
+    it logs the INBOUND request, and header_up applies to the upstream
+    copy, so X-Request-Id does NOT appear in the access line. It does not
+    need to: caddy:2.10 already writes a top-level "uuid" field on every
+    access line, and it is the SAME value {http.request.uuid} sends
+    upstream — proven by running two sites, one proxying to the other,
+    and reading both log lines: edge uuid 1f4e87d6-0279-4b61-b192-
+    522396cecbd5, upstream X-Request-Id the same string. So no access-log
+    change is needed and none was made. The field to grep on the Caddy
+    side is `uuid`, not the header name, and the Caddyfile says so.
 
     PARKED 2026-08-24 — THE COMPOSE COMMENT NOW REFERENCES
     domain-model.md. docker/docker-compose.prod.yml is hand-deployed

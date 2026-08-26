@@ -104,6 +104,11 @@ public class QueryService {
         }
 
         if (!chatClient.isConfigured()) {
+            // Silent until now, and it is the one failure here that is not the provider's fault:
+            // a deployment reaches this line with no key and every question 503s. Logged so the
+            // log says "misconfigured" instead of leaving it to look like an outage.
+            log.warn("Chat call refused before it was made: the chat client is not configured "
+                    + "(no api-key resolved); retrieval works, answering does not");
             throw new ProviderUnavailableException(
                     "the answer service is not configured (no LLM_API_KEY); retrieval works, answering does not");
         }
@@ -150,7 +155,12 @@ public class QueryService {
             // truncated answer — arrives here as one type, and leaves as one status. The detail is
             // in the log and in the message; what the caller needs to know is that retrying later
             // is the right move and that nothing was answered wrongly in the meantime.
-            log.warn("Chat call failed: {}", e.getMessage());
+            // THE KIND AND THE CAUSE, because this line was the whole log of the 2026-08-26
+            // incident and it carried neither: a message with no class to group it by, and no
+            // stack, so the failing throw site had to be inferred from the wording. The exception
+            // is the LAST argument, which is how slf4j knows to log the cause chain rather than
+            // formatting it into the message.
+            log.warn("Chat call failed: kind={} {}", e.kind(), e.getMessage(), e);
             throw new ProviderUnavailableException("the answer service is temporarily unavailable: " + e.getMessage());
         }
 
@@ -248,10 +258,15 @@ public class QueryService {
         try {
             batch = embeddingClient.embed(List.of(question));
         } catch (EmbeddingClient.EmbeddingException e) {
-            log.warn("Question embedding failed: {}", e.getMessage());
+            log.warn("Question embedding failed: {}", e.getMessage(), e);
             throw new ProviderUnavailableException("the search service is temporarily unavailable: " + e.getMessage());
         }
         if (batch.vectors().size() != 1) {
+            // Also silent until now, and the count is the whole diagnosis: a batch of one that
+            // came back empty is a different provider fault from one that came back with three,
+            // and neither is visible from the 503 the caller receives.
+            log.warn("Question embedding returned {} vectors for 1 input; expected exactly 1",
+                    batch.vectors().size());
             throw new ProviderUnavailableException("embedding provider returned no vector for the question");
         }
         return batch.vectors().get(0);

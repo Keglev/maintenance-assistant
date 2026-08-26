@@ -88,16 +88,61 @@
 	# Matched first, so /api/* never reaches the SPA. The backend maps its own
 	# routes under /api, so the prefix is passed through rather than stripped.
 	handle /api/* {
-		reverse_proxy backend:8080
+		reverse_proxy backend:8080 {
+			# One id per request, set here and echoed back by the backend, so a single
+			# grep lines up an access line with the WARN it produced, instead of matching
+			# millisecond timestamps across two containers. Caddy OVERWRITES any inbound
+			# value on purpose: this header is written to a log, and the edge is where a
+			# client-supplied string stops being trusted.
+			# The backend generates its own id when this header is absent, so correlation
+			# already works without this file being deployed — it gets one hop wider when
+			# this file next rides along with a hand-deploy (OPS RULE 3).
+			# THE ACCESS LOG NEEDS NO CHANGE: `format console` already records this
+			# request as a top-level "uuid" field, and it is the SAME value this header
+			# carries — measured 2026-08-26 against caddy:2.10-alpine. Note that the
+			# access line does NOT show the header itself: it logs the inbound request,
+			# and header_up applies to the upstream copy. "uuid" is the field to grep.
+			header_up X-Request-Id {http.request.uuid}
+		}
 	}
 
 	# The OpenAPI UI and spec, published deliberately: reachable API docs are a
 	# requirement of the demo, and both are read-only.
 	handle /swagger-ui* {
-		reverse_proxy backend:8080
+		reverse_proxy backend:8080 {
+			# One id per request, set here and echoed back by the backend, so a single
+			# grep lines up an access line with the WARN it produced, instead of matching
+			# millisecond timestamps across two containers. Caddy OVERWRITES any inbound
+			# value on purpose: this header is written to a log, and the edge is where a
+			# client-supplied string stops being trusted.
+			# The backend generates its own id when this header is absent, so correlation
+			# already works without this file being deployed — it gets one hop wider when
+			# this file next rides along with a hand-deploy (OPS RULE 3).
+			# THE ACCESS LOG NEEDS NO CHANGE: `format console` already records this
+			# request as a top-level "uuid" field, and it is the SAME value this header
+			# carries — measured 2026-08-26 against caddy:2.10-alpine. Note that the
+			# access line does NOT show the header itself: it logs the inbound request,
+			# and header_up applies to the upstream copy. "uuid" is the field to grep.
+			header_up X-Request-Id {http.request.uuid}
+		}
 	}
 	handle /v3/api-docs* {
-		reverse_proxy backend:8080
+		reverse_proxy backend:8080 {
+			# One id per request, set here and echoed back by the backend, so a single
+			# grep lines up an access line with the WARN it produced, instead of matching
+			# millisecond timestamps across two containers. Caddy OVERWRITES any inbound
+			# value on purpose: this header is written to a log, and the edge is where a
+			# client-supplied string stops being trusted.
+			# The backend generates its own id when this header is absent, so correlation
+			# already works without this file being deployed — it gets one hop wider when
+			# this file next rides along with a hand-deploy (OPS RULE 3).
+			# THE ACCESS LOG NEEDS NO CHANGE: `format console` already records this
+			# request as a top-level "uuid" field, and it is the SAME value this header
+			# carries — measured 2026-08-26 against caddy:2.10-alpine. Note that the
+			# access line does NOT show the header itself: it logs the inbound request,
+			# and header_up applies to the upstream copy. "uuid" is the field to grep.
+			header_up X-Request-Id {http.request.uuid}
+		}
 	}
 
 	# Everything else is the single-page application. nginx inside the container

@@ -274,6 +274,14 @@ springdoc:
     tags-sorter: alpha
 
 logging:
+  # THE REQUEST ID IN EVERY LINE, via Spring Boot's own correlation slot rather than by copying
+  # the whole default pattern in here. `logging.pattern.correlation` is substituted into
+  # CONSOLE_LOG_PATTERN immediately before the logger name, which is exactly where this belongs
+  # and which means a Boot upgrade that reworks the rest of the pattern does not silently drop it.
+  # RequestIdFilter puts `requestId` into MDC; `:-` prints nothing for the lines that have none —
+  # startup, scheduled jobs, the backup runner — rather than the word "null".
+  pattern:
+    correlation: "[%X{requestId:-}] "
   level:
     # Bracketed because the key contains dots: unescaped, relaxed binding reads it as
     # nested maps rather than one logger name.

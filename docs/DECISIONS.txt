@@ -760,3 +760,36 @@ Status: v1.3.1 released; refactor phase, Part 3 closed 2026-08-26; diagnostics w
   all still point the same way — but a reason that is no longer true has to be corrected where it is
   written, not left standing because the conclusion survives it. The correction goes into the W-4
   revision.
+- ONE ID PER REQUEST, IN EVERY LINE IT PRODUCES — shipped 2026-08-26 (W-2, #111), zero behaviour
+  change. Diagnosing the incident of 2026-08-26 07:23 UTC meant lining up a Caddy access line and a
+  backend WARN by their millisecond timestamps across two containers and hoping no second request
+  had arrived in between; a `grep` replaces that. The backend GENERATES the id when the header is
+  absent rather than only accepting one from the edge, because the Caddyfile is hand-deployed
+  (OPS RULE 3) and correlation must not wait for a server login: the Caddy half is written and
+  parked, and it widens the trail by one hop when it lands. The inbound header is VALIDATED before
+  it is echoed or logged — it reaches a log line, and a newline inside a client-controlled string is
+  where log forging lives; a malformed id is replaced rather than made a reason to fail an otherwise
+  fine request. Implemented through Spring Boot's own `logging.pattern.correlation` slot instead of
+  copying the default pattern into application.yml, so a Boot upgrade that reworks the rest of the
+  pattern cannot silently drop it.
+- FAILURES NOW CARRY A CLASS, NOT ONLY A SENTENCE — ChatException.Kind {TRUNCATED, EMPTY, TRANSPORT,
+  REJECTED, UNREADABLE}, 2026-08-26 (W-2). Every provider failure leaves this application as one
+  status, PROVIDER_UNAVAILABLE, and that collapse is right for the caller and useless for whoever
+  reads the log afterwards: on 2026-08-26 an answer that hit the token cap and a provider that was
+  genuinely down produced the same line. THE KIND IS AN ENUM AND NOT A SUBSTRING OF THE MESSAGE,
+  because a message is prose and prose gets reworded; and the constructor REQUIRES it, because a
+  kind with a default is a field that lies about whichever throw sites nobody updated. The messages
+  themselves are unchanged — tests assert on them, and they are the diagnosis while the kind is the
+  classification.
+- A TRUNCATED ANSWER NOW REPORTS ITS OWN ANATOMY, 2026-08-26 (W-2): completion tokens, character
+  count, whitespace ratio, the LAST 200 characters, and whether it is refusal-shaped. The previous
+  log showed the FIRST characters, and the two things a 1200-token body can be — a refusal followed
+  by unbounded JSON whitespace, or an answer that genuinely ran out of room — have the same first
+  characters and opposite fixes. This is the evidence the A4 hypothesis is settled on, and it is
+  logged rather than acted on deliberately: acting on it is W-3's job, and doing it here would be
+  deciding the answer before the evidence is in.
+  WORTH KEEPING FROM BUILDING IT: the anatomy's own toString formatted the ratio without a locale
+  and printed `whitespaceRatio=0,96` on a German machine, while the ledger tells the next reader to
+  grep for `> 0.9`. The new unit test caught it before the pull request existed. A diagnosis that is
+  only searchable in some locales is not a diagnosis, and the counting rule that already covers this
+  had been applied in one of the two places it belonged.

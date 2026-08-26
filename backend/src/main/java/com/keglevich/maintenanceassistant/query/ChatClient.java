@@ -62,12 +62,46 @@ interface ChatClient {
 
     /** Anything that stops a question being answered. */
     class ChatException extends RuntimeException {
-        ChatException(String message) {
-            super(message);
+
+        /**
+         * What kind of failure this is, so a log line can be grouped without reading its message.
+         *
+         * <p>THE MESSAGE IS THE DIAGNOSIS AND THE KIND IS THE CLASS, and the two are not the same
+         * job. Every failure below leaves the application as one status — {@code
+         * PROVIDER_UNAVAILABLE}, deliberately, because what a caller needs to know is that
+         * retrying later is right. That collapse is correct for the caller and useless for
+         * whoever is reading the log afterwards: on 2026-08-26 an answer that hit the token cap
+         * and a provider that was genuinely down were the same line. The kind is what separates
+         * them, and it is an enum rather than a substring of the message because a message is
+         * prose and prose gets reworded.
+         */
+        enum Kind {
+            /** {@code finish_reason=length}: the answer stopped at the cap and is unparseable. */
+            TRUNCATED,
+            /** The model produced no usable content — usually a missing {@code reasoning_effort}. */
+            EMPTY,
+            /** Nothing was served: connect refused, read timeout, reset, interrupted backoff. */
+            TRANSPORT,
+            /** The provider refused the request: a 4xx that is not 429. Terminal. */
+            REJECTED,
+            /** Something arrived and could not be turned into an answer. Paid for, unusable. */
+            UNREADABLE
         }
 
-        ChatException(String message, Throwable cause) {
+        private final Kind kind;
+
+        ChatException(Kind kind, String message) {
+            super(message);
+            this.kind = kind;
+        }
+
+        ChatException(Kind kind, String message, Throwable cause) {
             super(message, cause);
+            this.kind = kind;
+        }
+
+        public Kind kind() {
+            return kind;
         }
     }
 }

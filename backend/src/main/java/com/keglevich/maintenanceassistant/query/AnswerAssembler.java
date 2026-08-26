@@ -119,7 +119,8 @@ class AnswerAssembler {
                 .toList();
 
         if (steps.isEmpty()) {
-            throw new ChatClient.ChatException("model produced no troubleshooting steps");
+            throw new ChatClient.ChatException(ChatClient.ChatException.Kind.EMPTY,
+                    "model produced no troubleshooting steps");
         }
         // Newline-separated rather than one paragraph: these are steps, and a night-shift reader
         // works down a list. The frontend renders the lines; it does not have to parse them.
@@ -132,13 +133,14 @@ class AnswerAssembler {
         try {
             T parsed = json.readValue(content, type);
             if (parsed == null) {
-                throw new ChatClient.ChatException("model returned a null answer object");
+                throw new ChatClient.ChatException(ChatClient.ChatException.Kind.UNREADABLE,
+                        "model returned a null answer object");
             }
             return parsed;
         } catch (RuntimeException e) {
             // The provider accepted a strict json_schema, so this should be unreachable; if it ever
             // fires, the raw content is the only thing that explains why.
-            throw new ChatClient.ChatException(
+            throw new ChatClient.ChatException(ChatClient.ChatException.Kind.UNREADABLE,
                     "cannot parse the model answer as JSON: " + firstChars(content), e);
         }
     }

@@ -95,17 +95,27 @@ class IonosChatClient implements ChatClient {
             // happens in practice has a fix: a reasoning model without reasoning_effort "none"
             // burns the whole output cap on its reasoning field (ADR-002 caveat 3), and the
             // symptom looks like a truncation bug rather than a configuration one.
-            throw new ChatException("model %s returned empty content (finish_reason=%s)%s"
+            throw new ChatException(ChatException.Kind.EMPTY,
+                    "model %s returned empty content (finish_reason=%s)%s"
                     .formatted(properties.model(), response.finishReason(),
                             properties.isReasoningModel() ? "" : " — is this a reasoning model?"));
         }
         if ("length".equals(response.finishReason())) {
             // The answer is JSON, so a truncated one is not a shorter answer, it is an unparseable
             // one. Failing here names the cap instead of letting a parse error blame the model.
-            throw new ChatException(
-                    "answer truncated at the max-tokens cap of %d after %d completion tokens: %s"
+            //
+            // THE ANATOMY IS LOGGED SEPARATELY AND ON ONE LINE, prefixed `chat truncated:`, so the
+            // A4 hypothesis can be settled by one grep rather than by reading a stack trace: a
+            // whitespace ratio above 0.9 with refusalShaped=true is the constrained-decoding
+            // degeneration, and a tail of German prose is an answer that genuinely needed more
+            // room. Nothing here decides between them — that is W-3's job with this evidence.
+            TruncatedBody anatomy = TruncatedBody.of(content, response.completionTokens());
+            log.warn("chat truncated: model={} maxTokens={} {}",
+                    properties.model(), properties.maxTokens(), anatomy);
+            throw new ChatException(ChatException.Kind.TRUNCATED,
+                    "answer truncated at the max-tokens cap of %d after %d completion tokens: %s [%s]"
                             .formatted(properties.maxTokens(), response.completionTokens(),
-                                    preview(content)));
+                                    preview(content), anatomy));
         }
 
         log.info("Chat answer: model={} promptTokens={} completionTokens={} in {} ms",
@@ -174,30 +184,32 @@ class IonosChatClient implements ChatClient {
                 // request, whatever happens to the response afterwards.
                 recordUsage(response);
                 if (response == null) {
-                    throw new ChatException("provider returned an empty body");
+                    throw new ChatException(ChatException.Kind.UNREADABLE, "provider returned an empty body");
                 }
                 return response;
             } catch (org.springframework.http.converter.HttpMessageConversionException e) {
                 // Answered and billed for; we simply could not read it. Terminal, because a retry
                 // produces the same unreadable response at the same price.
                 budget.record(1, 0L, 0L);
-                throw new ChatException("cannot read the provider response: " + e.getMessage(), e);
+                throw new ChatException(ChatException.Kind.UNREADABLE,
+                        "cannot read the provider response: " + e.getMessage(), e);
             } catch (org.springframework.web.client.HttpClientErrorException.TooManyRequests e) {
                 last = e;
             } catch (org.springframework.web.client.HttpClientErrorException e) {
-                throw new ChatException("chat request rejected: %s %s"
+                throw new ChatException(ChatException.Kind.REJECTED, "chat request rejected: %s %s"
                         .formatted(e.getStatusCode(), firstLine(e.getResponseBodyAsString())), e);
             } catch (RestClientException e) {
                 if (isUnreadableResponse(e)) {
                     budget.record(1, 0L, 0L);
-                    throw new ChatException("cannot read the provider response: " + e.getMessage(), e);
+                    throw new ChatException(ChatException.Kind.UNREADABLE,
+                        "cannot read the provider response: " + e.getMessage(), e);
                 }
                 // No response arrived — connect refused, read timeout, connection reset. Nothing
                 // was served, so nothing is counted, and another attempt is worth making.
                 last = e;
             }
         }
-        throw new ChatException("chat provider unavailable after %d attempts: %s"
+        throw new ChatException(ChatException.Kind.TRANSPORT, "chat provider unavailable after %d attempts: %s"
                 .formatted(properties.maxRetries() + 1, last == null ? "unknown" : last.getMessage()), last);
     }
 
@@ -312,7 +324,7 @@ class IonosChatClient implements ChatClient {
             Thread.sleep(duration.toMillis());
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-            throw new ChatException("interrupted while backing off", e);
+            throw new ChatException(ChatException.Kind.TRANSPORT, "interrupted while backing off", e);
         }
     }
 }

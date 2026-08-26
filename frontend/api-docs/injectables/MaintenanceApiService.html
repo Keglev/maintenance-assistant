@@ -676,8 +676,8 @@ document no longer contains (ADR-006 revision).</p>
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="221"
-                                    class="link-to-prism">src/app/core/api/maintenance-api.service.ts:221</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="220"
+                                    class="link-to-prism">src/app/core/api/maintenance-api.service.ts:220</a></div>
                         </td>
                     </tr>
 
@@ -1084,8 +1084,8 @@ uploaded, and a review screen that loads all of them gets slower every month.</p
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="229"
-                                    class="link-to-prism">src/app/core/api/maintenance-api.service.ts:229</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="228"
+                                    class="link-to-prism">src/app/core/api/maintenance-api.service.ts:228</a></div>
                         </td>
                     </tr>
 
@@ -1375,8 +1375,8 @@ same fact. That is what makes it safe for the view to fail open when this call e
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="234"
-                                    class="link-to-prism">src/app/core/api/maintenance-api.service.ts:234</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="233"
+                                    class="link-to-prism">src/app/core/api/maintenance-api.service.ts:233</a></div>
                         </td>
                     </tr>
 
@@ -1710,10 +1710,9 @@ export class MaintenanceApiService {
     if (machineNo) {
       params &#x3D; params.set(&#x27;machineNo&#x27;, machineNo);
     }
-    return this.http.get&lt;DeletedProtocolPage&gt;(
-      &#x60;${this.apiBaseUrl}/moderation/protocols/deleted&#x60;,
-      { params },
-    );
+    return this.http.get&lt;DeletedProtocolPage&gt;(&#x60;${this.apiBaseUrl}/moderation/protocols/deleted&#x60;, {
+      params,
+    });
   }
 
   /**
@@ -1724,10 +1723,10 @@ export class MaintenanceApiService {
    * protocol&#x27;s content, and it is what makes the archive evidence rather than a tombstone.
    */
   getArchivedDocument(protocolId: string): Observable&lt;HttpResponse&lt;Blob&gt;&gt; {
-    return this.http.get(
-      &#x60;${this.apiBaseUrl}/moderation/protocols/deleted/${protocolId}/document&#x60;,
-      { observe: &#x27;response&#x27;, responseType: &#x27;blob&#x27; },
-    );
+    return this.http.get(&#x60;${this.apiBaseUrl}/moderation/protocols/deleted/${protocolId}/document&#x60;, {
+      observe: &#x27;response&#x27;,
+      responseType: &#x27;blob&#x27;,
+    });
   }
 
   /** The caller&#x27;s own uploads and what became of them. Schichtleiter only, server-side. */

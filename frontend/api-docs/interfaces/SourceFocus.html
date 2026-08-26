@@ -384,7 +384,11 @@ export class SearchSources {
    * input, used identically on all three surfaces.
    */
   protected approvalOf(citation: Citation): Approval {
-    return { state: citation.approved ? &#x27;APPROVED&#x27; : &#x27;UNAPPROVED&#x27;, approvedBy: null, approvedAt: null };
+    return {
+      state: citation.approved ? &#x27;APPROVED&#x27; : &#x27;UNAPPROVED&#x27;,
+      approvedBy: null,
+      approvedAt: null,
+    };
   }
 }
 </code></pre>

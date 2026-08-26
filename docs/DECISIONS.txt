@@ -760,7 +760,7 @@ Status: v1.3.1 released; refactor phase, Part 3 closed 2026-08-26; diagnostics w
   all still point the same way — but a reason that is no longer true has to be corrected where it is
   written, not left standing because the conclusion survives it. The correction goes into the W-4
   revision.
-- ONE ID PER REQUEST, IN EVERY LINE IT PRODUCES — shipped 2026-08-26 (W-2, #PRNUM), zero behaviour
+- ONE ID PER REQUEST, IN EVERY LINE IT PRODUCES — shipped 2026-08-26 (W-2, #111), zero behaviour
   change. Diagnosing the incident of 2026-08-26 07:23 UTC meant lining up a Caddy access line and a
   backend WARN by their millisecond timestamps across two containers and hoping no second request
   had arrived in between; a `grep` replaces that. The backend GENERATES the id when the header is

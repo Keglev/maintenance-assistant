@@ -3220,7 +3220,7 @@ rather than given one afterwards.
         which logs the TAIL of a truncated body and its WHITESPACE RATIO
         — a ratio near 1 confirms it, a tail of real German kills it.
         Nothing downstream should treat it as settled before then.
-        CONFIRMATION PATH, shipped by W-2 (#PRNUM) and usable from the
+        CONFIRMATION PATH, shipped by W-2 (#111) and usable from the
         first deploy: grep `chat truncated:` in the backend log.
           refusalShaped=true with whitespaceRatio > 0.9  -> CONFIRMED,
             the body is the refusal plus padding and W-3's degradation
@@ -3343,7 +3343,7 @@ rather than given one afterwards.
           one user-visible failure can be followed across the two.
         DEPLOY, NO TAG. Nothing the application does changes; this PR
         only makes the next incident readable.
-        DONE 2026-08-26, #PRNUM: kinds, anatomy, cause logging, two silent
+        DONE 2026-08-26, #111: kinds, anatomy, cause logging, two silent
         sites, request id (backend-generated; Caddy header parked).
         WHAT SHIPPED, against what the row asked for:
           - ChatException.Kind {TRUNCATED, EMPTY, TRANSPORT, REJECTED,
@@ -3535,7 +3535,7 @@ STANDING LIST — small, always visible, never a release of its own:
     hand-deployed anyway, never on its own.
 
     PARKED 2026-08-26 — THE CADDYFILE'S X-Request-Id HEADER (W-2,
-    #PRNUM). docker/caddy/Caddyfile now sets `header_up X-Request-Id
+    #111). docker/caddy/Caddyfile now sets `header_up X-Request-Id
     {http.request.uuid}` on all three backend reverse_proxy blocks, and
     the file is HAND-DEPLOYED (OPS RULE 3), so it is not live. RIDES
     WITH THE NEXT HAND-DEPLOY THAT HAS A REASON OF ITS OWN; until then

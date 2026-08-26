@@ -2075,6 +2075,46 @@ rather than given one afterwards.
          none of which fits a dependency bump, and Dependabot CREATES a
          `dependencies` label of its own when the key is absent. An empty
          list is the only spelling that labels nothing and creates nothing.
+         AMENDED 2026-08-26, #105: first npm batch failed on TS major /
+         Playwright Chromium; groups narrowed to minor+patch, majors
+         ungrouped, TypeScript and Boot minors ignored, Playwright isolated.
+         THE GROUPING RULE WAS TOO COARSE FOR A PEER-CONSTRAINED ECOSYSTEM.
+         #104 bundled thirteen npm updates and went red on all three
+         frontend checks — build-and-test, e2e and visual — in 7 s, 1m15s
+         and 1m10s. Measured, not inferred: all three died in the SAME step,
+         `Install dependencies`, with the same error, so the batch never
+         reached a test:
+           npm error code ERESOLVE
+           npm error While resolving: @angular/build@22.1.5
+           npm error Found: typescript@7.0.2
+           npm error   dev typescript@"~7.0.2" from the root project
+         against `npm view @angular/compiler-cli@22.1.3 peerDependencies`
+         -> typescript ">=6.0 <6.1". A batch is a convenience for changes
+         that need no thought; a major version is never one of those.
+         THE PLAYWRIGHT HAZARD IS REAL AND WAS NOT WHAT WENT RED — worth
+         separating, because the install failed first and hid it. The bump
+         is ^1.56.0 -> ^1.62.1, and the browser is not installed by npm at
+         all: it ships inside mcr.microsoft.com/playwright:v1.56.0-noble,
+         pinned in TWO places (frontend-e2e-visual.yml:85 and
+         e2e/run-visual-docker.mjs:25). Moving the package alone
+         desynchronises the runner from its browser; moving all three
+         re-renders every baseline, which ADR-007 makes a deliberate act.
+         So Playwright gets its own group and its PR is EXPECTED red on
+         visual until the baselines are regenerated.
+         SCHEMA CHECKED AGAINST THE REFERENCE BEFORE WRITING, both keys and
+         both value vocabularies, which differ and are easy to swap:
+           groups.<name>.update-types  -> "patch" | "minor" | "major"
+           ignore[].update-types       -> "version-update:semver-patch" |
+                                          "-minor" | "-major"
+         and the behaviour the whole amendment rests on: "Any outdated
+         dependencies that do not match a rule are updated in individual
+         pull requests." GROUP ORDER IS LOAD-BEARING — "If a dependency
+         matches more than one rule, it's included in the first group that
+         it matches" — so `playwright` is declared BEFORE the `*` catch-all
+         or it would never match anything.
+         NOT VERIFIED HERE: no API validates a dependabot.yml. The file
+         parses and every key is in the reference; GitHub's own acceptance
+         shows only on Insights -> Dependency graph -> Dependabot.
 
      C17 docs/scripts/generate-diagrams.mjs:8 and
          .github/scripts/docs/build-openapi-docs.sh:47 — TWO UNPINNED

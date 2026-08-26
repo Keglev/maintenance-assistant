@@ -1,5 +1,5 @@
 PROJECT DECISIONS — Instandhaltungs-Assistent / Maintenance Protocol Assistant
-Status: v1.3.1 released; refactor phase, Part 3 closed 2026-08-26, diagnostics wave next
+Status: v1.3.1 released; refactor phase, Part 3 closed 2026-08-26; diagnostics wave in progress
 (Details in: requirements.md, domain-model.md, adr/ — index in adr/README.md)
 
 == PRODUCT ==
@@ -721,3 +721,42 @@ Status: v1.3.1 released; refactor phase, Part 3 closed 2026-08-26, diagnostics w
   for Mode A within 0.02 of the threshold. The last step cannot start until the first has been
   live long enough to have logged real traffic, which is the one place in this wave where waiting
   is the work.
+- THE OUTPUT CAP MOVES 1200 -> 2100, ruled 2026-08-26 (R1). The number is the rule stated before the
+  measurement rather than one chosen after it: the 95th percentile of the longest QUALIFYING model
+  times 1.25, rounded to 100 — openai/gpt-oss-120b measured p95 1642 over 21 samples, 1642 x 1.25 =
+  2052.5 -> 2100. The same arithmetic on the incumbent gives 700, BELOW today's 1200, which is the
+  part worth keeping: the cap was never too small for the model actually deployed. IT SHIPS WITH THE
+  TRUNCATION DEGRADATION AND NEVER ALONE (W-3, v1.3.2) — a larger cap without a degradation path
+  moves the cliff instead of removing it. The full tables are in PROJECT-PHASES.txt under the
+  diagnostics wave, A2 and A3; they are not repeated here.
+- THE DOCUMENTED FALLBACK IS IONOS + openai/gpt-oss-120b, ruled 2026-08-26 (R2), EFFECTIVE ONLY ONCE
+  THE CAP CHANGE IS DEPLOYED — and that condition is not a formality: the model qualified at a cap of
+  3000 and FAILED at 1200, so naming it while the cap is still 1200 would document a plan measured
+  not to work. The switch stays a base-url-and-model change: LLM_CHAT_MODEL in .env.prod plus a
+  backend restart, per OPS RULE 3. NEBIUS IS DROPPED for three reasons, not one: it retires
+  meta-llama/Llama-3.3-70B-Instruct on 2026-08-31, no Nebius credential exists on the host so nothing
+  about it can be verified, and its own suggested replacements fall outside the isReasoningModel()
+  predicate — which would make the swap a CODE change and contradict ADR-002 a second way. THERE IS
+  NO TESTED FALLBACK FOR A FULL IONOS OUTAGE and the ADR-002 revision (W-4) will say so in those
+  words: a single-provider dependency that is written down is a risk, one implied by an out-of-date
+  fallback is a trap.
+- THE D1 INCIDENT IS PROBABLY NOT WHAT ITS OWN ENTRY SAYS — HYPOTHESIS, 2026-08-26, labelled as one.
+  The incumbent, on the exact question, machine and retrieved set of 2026-08-26 07:23 UTC, REFUSES IN
+  TEN TOKENS six times of six, at cap 1200 and at cap 3000; retrieval reproduced the incident's
+  0.5651 to four decimals, so it is the same case. The production WARN's content preview began with
+  that same refusal. The likeliest reading is therefore that the 1200-token body was never a long
+  answer but a CONSTRAINED-DECODING DEGENERATION AFTER THE REFUSAL — JSON whitespace is unbounded
+  under a strict schema — stochastic at temperature 0.1, which is also why the same question
+  succeeded at 10:45 UTC. W-2 confirms or kills it by logging the tail of a truncated body and its
+  whitespace ratio. THE CONSEQUENCE, recorded before the proof because it changes what W-3 builds:
+  the fix is a DEGRADATION PATH, not a bigger cap. A cap of 2100 buys a degenerating answer 900 more
+  tokens of whitespace and still fails. R1 serves the fallback model, not D1, and must not be
+  recorded as a fix for it.
+- ADR-002's "EUR PRICING" IS WRONG TODAY, found 2026-08-26 while pricing the candidates. IONOS quotes
+  AI Model Hub tokens in USD, and the page does not localise: cloud.ionos.com/prices fetched with
+  Accept-Language de and with en came back byte-identical at 1,285,509 bytes with the same $ figures.
+  The ADR cites EUR pricing among the reasons IONOS won over Nebius on 2026-08-06. It does not change
+  the decision — the measured retrieval, the multilingual embedding requirement and the NFR-4 latency
+  all still point the same way — but a reason that is no longer true has to be corrected where it is
+  written, not left standing because the conclusion survives it. The correction goes into the W-4
+  revision.

@@ -278,6 +278,12 @@ WORKING PRACTICES (the process rules that paid for themselves)
     — and unset, blame simply behaves as it always did. GitHub's blame
     view applies it without being asked. Added 2026-08-25 with the
     prettier gate, which is the first reformat this rule had to cover.
+    UNDER SQUASH MERGE, THE ENTRY IS ALWAYS THE MERGE COMMIT ON MAIN,
+    ADDED IN THE PR AFTER THE REFORMAT LANDS. A branch commit is
+    unreachable from main once the pull request is squashed, and git
+    ignores an entry it cannot resolve WITHOUT SAYING SO — the file
+    still exists, still looks right, and does nothing. Learned
+    2026-08-26, one pull request after the rule was written.
 
 =====================================================================
 WAIVER REGISTER

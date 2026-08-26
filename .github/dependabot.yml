@@ -9,23 +9,39 @@
 # MONTHLY, NOT WEEKLY OR DAILY. Carlos reviews every pull request in this
 # repository personally, so the cost of an update is a review, not a merge
 # button. One batch a month is a session; a trickle is an interruption, and an
-# interruption is what turns dependency PRs into a queue nobody reads. Grouped
-# for the same reason: one pull request per ecosystem, not one per package.
+# interruption is what turns dependency PRs into a queue nobody reads.
+#
+# GROUPS ADMIT ONLY minor AND patch. A MAJOR IS ONE PR, ONE DECISION.
+# Amended 2026-08-26 after the first npm batch (#104) went red on all three
+# frontend checks before a single test ran. It had bundled typescript
+# ~6.0.2 -> ~7.0.2 into thirteen otherwise routine updates, and
+# @angular/compiler-cli@22.1.3 declares `typescript: ">=6.0 <6.1"`, so `npm ci`
+# died on ERESOLVE. The grouping rule was too coarse for a peer-constrained
+# ecosystem: a batch is a convenience for changes that need no thought, and a
+# major version is never one of those. Dependabot opens an individual pull
+# request for anything that matches no group, which is exactly the shape wanted.
 #
 # DEPENDABOT PULL REQUESTS GO THROUGH THE SAME REQUIRED CHECKS as any other —
 # they report under `build-and-test` from whichever workflow owns their paths,
 # and a bumped action that breaks the docs build or the backend suite is red
-# before it is mergeable. Nothing here is auto-merged.
+# before it is mergeable. Nothing here is auto-merged. #104 is the proof that
+# this works: it was caught by CI, not by a reviewer reading a diff.
 #
-# NO IGNORE RULES, deliberately. An ignored dependency is a decision that
-# disappears; if something must not be updated, that belongs in a ledger entry
-# where it can be revisited, not in a config file nobody re-reads.
+# IGNORE RULES ARE FOR PEER-CONSTRAINED VERSIONS ONLY, never for convenience.
+# Each one below names the constraint it encodes, so it can be revisited when
+# the constraint moves. A dependency ignored for any other reason belongs in a
+# ledger entry, where it can be argued with.
 version: 2
 
 updates:
   # The actions this repository pins. Two of them are third-party — peaceiris
   # and lycheeverse — and one of those holds `contents: write` on gh-pages,
   # which is the strongest argument in the file for watching this ecosystem.
+  #
+  # DELIBERATELY UNCHANGED BY THE 2026-08-26 AMENDMENT: an action major is
+  # exactly what the SHA pins exist to absorb, the blast radius is one workflow
+  # step, and one PR per major is fine here because there are twelve actions and
+  # they move slowly.
   - package-ecosystem: github-actions
     directory: /
     schedule:
@@ -48,9 +64,44 @@ updates:
     schedule:
       interval: monthly
     groups:
-      frontend:
+      # FIRST, AND THE ORDER IS LOAD-BEARING: "If a dependency matches more than
+      # one rule, it's included in the first group that it matches." Below the
+      # catch-all, `@playwright/test` would be swallowed by `*` and this group
+      # would never match anything.
+      #
+      # PLAYWRIGHT IS ISOLATED BECAUSE A PLAYWRIGHT BUMP IS A CHROMIUM BUMP.
+      # The browser that renders the visual baselines is not installed by npm at
+      # all — it ships inside `mcr.microsoft.com/playwright:v1.56.0-noble`, named
+      # in frontend-e2e-visual.yml and again in e2e/run-visual-docker.mjs. Moving
+      # the package without moving both of those desynchronises the test runner
+      # from its browser; moving all three re-renders every baseline.
+      #
+      # SO THIS PR IS EXPECTED TO BE RED ON `visual` UNTIL THE BASELINES ARE
+      # REGENERATED, and that is the process working rather than failing:
+      # ADR-007 makes regeneration an explicit act (`npm run e2e:visual:update`),
+      # never a side effect. Bump the package, bump the two image references,
+      # regenerate, and look at the diffs before accepting them.
+      playwright:
+        patterns:
+          - '@playwright/*'
+          - 'playwright'
+      # Everything else, minor and patch only. A major arrives on its own.
+      frontend-patch-minor:
         patterns:
           - '*'
+        update-types:
+          - minor
+          - patch
+    ignore:
+      # TypeScript is pinned by Angular's peer range; it moves with the Angular
+      # major, never alone. `npm view @angular/compiler-cli@22.1.3
+      # peerDependencies` -> typescript ">=6.0 <6.1". A TypeScript major on its
+      # own cannot install, so a pull request proposing one is a red build and a
+      # closed tab, every month, until Angular itself moves. Minors and patches
+      # still flow.
+      - dependency-name: typescript
+        update-types:
+          - 'version-update:semver-major'
     open-pull-requests-limit: 3
     commit-message:
       prefix: build(deps)
@@ -61,9 +112,23 @@ updates:
     schedule:
       interval: monthly
     groups:
-      backend:
+      backend-patch-minor:
         patterns:
           - '*'
+        update-types:
+          - minor
+          - patch
+    ignore:
+      # A Spring Boot LINE change is a deliberate act with its own pull request
+      # and its own reading of the release notes — #96 is the precedent: 4.1.0 ->
+      # 4.1.1 moved 79 managed versions, and the PR that did it quoted the notes
+      # area by area and re-measured the whole suite. That is not a batch item.
+      # PATCHES STILL FLOW, because the parent's managed versions are where the
+      # security fixes arrive and nothing about a patch needs a decision.
+      - dependency-name: 'org.springframework.boot:*'
+        update-types:
+          - 'version-update:semver-major'
+          - 'version-update:semver-minor'
     open-pull-requests-limit: 3
     commit-message:
       prefix: build(deps)

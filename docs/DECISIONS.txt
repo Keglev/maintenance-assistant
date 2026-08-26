@@ -627,3 +627,27 @@ Status: v1.3.0 released; refactor phase, Part 2 closed 2026-08-25, Part 3 next
   squash merge the entry is ALWAYS the merge commit on main, added in the PR after the reformat
   lands. The general form is older than this instance — a guard that cannot report its own failure
   has to be verified from outside, here with `git merge-base --is-ancestor`.
+- A GROUPING RULE TOO COARSE FOR A PEER-CONSTRAINED ECOSYSTEM, found and narrowed 2026-08-26
+  (#105), amending the C16 ruling one day old. Dependabot's first npm batch (#104) bundled
+  thirteen frontend updates and went red on ALL THREE frontend checks in seconds — and all three
+  died in the same step, `npm ci`, with the same ERESOLVE, so not one test ran. The cause was one
+  line of the thirteen: typescript ~6.0.2 -> ~7.0.2, against @angular/compiler-cli@22.1.3 declaring
+  peer typescript ">=6.0 <6.1". THE RULE THAT FOLLOWS, now in REFACTOR-STANDARDS: DEPENDENCY GROUPS
+  ADMIT ONLY MINOR AND PATCH; A MAJOR IS ONE PR, ONE DECISION. A batch is a convenience for changes
+  that need no thought, and a major is never one of those — it is also the update most likely to be
+  held by a peer range nobody remembers. Dependabot opens an individual PR for anything matching no
+  group, so narrowing the group is the whole fix.
+  TWO IGNORE RULES, EACH NAMING THE CONSTRAINT IT ENCODES so it can be revisited when the
+  constraint moves: TypeScript majors, because TypeScript is pinned by Angular's peer range and
+  moves with the Angular major or not at all; and Spring Boot majors AND minors, because a Boot
+  LINE change is a deliberate act with its own release-note reading — #96 is the precedent, where
+  4.1.0 -> 4.1.1 moved 79 managed versions. Boot PATCHES still flow, because that is where security
+  fixes arrive and nothing about a patch needs a decision.
+  PLAYWRIGHT IS ISOLATED IN ITS OWN GROUP, and this one was NOT what went red — the install failed
+  first and hid it, which is worth separating rather than blurring. A Playwright bump is a Chromium
+  bump, and the browser is not installed by npm at all: it ships inside the container image pinned
+  in TWO places. Moving the package alone desynchronises the runner from its browser; moving all
+  three re-renders every visual baseline, which ADR-007 makes a deliberate act and never a side
+  effect. Its pull request is EXPECTED to be red on `visual` until the baselines are regenerated.
+  THE MECHANISM WORKED, and that is the part to keep: #104 was caught by CI on a pull request, by a
+  gate that had to be right, not by a reviewer reading a thirteen-line diff and noticing a "~7".

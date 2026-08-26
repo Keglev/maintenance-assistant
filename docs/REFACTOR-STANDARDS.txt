@@ -157,6 +157,12 @@ SCRIPTS AND WORKFLOWS
 - CHECKS MUST FAIL LOUDLY. A check that passes for the wrong reason
   (wrong directory, line-ending-blind comparison, a probe that never
   ran) is discarded, not read as green.
+- DEPENDENCY GROUPS ADMIT ONLY MINOR AND PATCH; A MAJOR IS ONE PR, ONE
+  DECISION. A batch is a convenience for changes that need no thought,
+  and a major version is never one of those — it is also the update most
+  likely to be constrained by a peer range nobody remembers. Learned
+  2026-08-26 (#104): one TypeScript major inside thirteen routine npm
+  updates failed all three frontend checks before a test ran.
 
 =====================================================================
 TEST CONDUCT

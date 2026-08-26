@@ -5,7 +5,7 @@ Naming update overriding older docs: project = "maintenance-assistant",
 Keycloak realm = "maintenance". English repo name is intentional.)
 
 =====================================================================
-CURRENT STATUS — 2026-08-25 (v1.3.0; PART 3 SURVEYED, AWAITING RULINGS)
+CURRENT STATUS — 2026-08-26 (v1.3.1; PART 3 CLOSED, DIAGNOSTICS NEXT)
 =====================================================================
 v1.3.1 TAGGED 2026-08-26 on ee5b814, carrying #99 (production behaviour:
 the forwarded-headers fix) and #100 (the hand-deployed-file count).
@@ -14,8 +14,8 @@ THERE IS NO CHANGELOG FILE and the earlier wording here promised one:
 by release.yml from pull request titles, which is why the titles are
 written to be read.
 
-PART 3 WAVE COMPLETE PENDING #108 MERGE AND FIRST PUBLISH VERIFICATION;
-close-out next.
+PART 3 CLOSED 2026-08-26 (#94-#108); DIAGNOSTICS WAVE NEXT, then feature
+'guided questions' (ADR-011), then docs landing page, then PART 4 SURVEY.
 
 v1.3.0 IS THE LATEST TAG, 2026-08-20. The release history, from the
 repository's own tags: v0.1.0 2026-08-06, v1.0.0 2026-08-08, v1.1.0
@@ -48,9 +48,17 @@ disagree.
     in #91, F3 ruled in #90, F4 and F5 WATCH with no pull request, F6 and
     F7 ACCEPT. Detail in the "PART 2 — CODE STRUCTURE SURVEY" entry and
     its close-out below.
-  PARTS 3 to 6 — REMAINING: config and root files, dead and redundant
-    code, code comments against docs/REFACTOR-STANDARDS.txt, and docs
-    last.
+  PART 3 — CONFIGURATION AND DEPLOYMENT: CLOSED 2026-08-26. Thirty-one
+    findings, C1 to C31; thirteen pull requests, #94 to #103, #105, #107
+    and #108, plus #104 and #106 closed by design. Detail in the
+    "PART 3 CLOSE-OUT" entry below, including the one thing it leaves
+    open — the first reports publish under I2.
+  PARTS 4 to 6 — REMAINING: dead and redundant code, code comments
+    against docs/REFACTOR-STANDARDS.txt, and docs last. They are
+    preceded by the DIAGNOSTICS AND PROVIDER WAVE (opened 2026-08-26,
+    its own section below), then the guided-questions feature — ADR-011
+    is a RESERVED NUMBER, not a written ADR; there are ten today — then
+    the docs landing page.
 
 WHAT THIS HEADER IS FOR. It is the first thing every AI session reads,
 so it says where the project is TODAY and points at the detail rather
@@ -2536,6 +2544,397 @@ rather than given one afterwards.
        files), so they are an IDE analysis and not a build signal, and
        nothing about them is a Part 3 fix. This bump moved jspecify
        1.0.0 -> 1.0.1, which changes annotations and not the analysis.
+
+   PART 3 CLOSE-OUT — DONE, 2026-08-26. Thirty-one findings, C1 to C31,
+   thirteen merged pull requests and two Dependabot pull requests closed
+   by design. Every row is dispositioned: fixed, ruled and not done, or
+   carried with a named destination. The survey itself moved nothing;
+   every change below was its own pull request after a ruling, which is
+   the shape the six-part plan asks for.
+
+   THE DATES ARE MEASURED, NOT QUOTED. The survey entry above is dated
+   2026-08-25 and was measured on 162b0e0 (#92, merged 2026-08-25
+   09:19 UTC); the last pull request of the wave, #108, merged
+   2026-08-26 14:10 UTC. TWO DAYS. The prompt that opened this close-out
+   said the survey ran 2026-08-24; it did not, and the correction is
+   recorded here rather than carried into the metrics.
+
+   (0) THE FIRST STAGED PUBLISH — VERIFIED 2026-08-26, and this is the
+   condition the wave was held open for. #108 changed the publisher and
+   could not be exercised on a pull request, so the close depended on
+   watching the first real run.
+     THE PUBLISH: gh-pages 52647a6, 2026-08-26 14:10:55 +0000, "docs:
+     publish site for 9d028d4dc19cea4a26b667faaed6e573cff15267" — the
+     merge commit of #108 publishing under its own new shape.
+       git ls-tree -r --name-only origin/gh-pages | wc -l        -> 549
+       ... | grep -cE '^arc42/|^DOMAIN-MODEL|^REQUIREMENTS|
+                       ^LICENSE|just-the-docs'                   ->   0
+       .nojekyll present at the root                             -> yes
+     549 IS THE NUMBER THE SIMULATION PREDICTED, to the file. The
+     forty-three-file Jekyll/just-the-docs build of 2026-08-05, the six
+     #92 ghosts and the two stale jacoco pages (C30) are gone, and
+     .nojekyll is present because build-docs.sh now writes it rather
+     than because keep_files spared it — I3 and the .nojekyll hazard
+     from sketch (e), both answered by the same tree.
+     SERVED, NOT ONLY COMMITTED — the live site, curl status codes:
+       domain-model.html                 200
+       backend/coverage/index.html       200
+       frontend/coverage/index.html      200
+       backend/api-docs/index.html       200
+       frontend/api-docs/index.html      200
+       arc42/index.html                  404
+       DOMAIN-MODEL.html                 404
+     The four report roots answering 200 is I1 working: the site
+     publish carried backend/ and frontend/ over rather than deleting
+     them, which was the whole cost of dropping keep_files. The two
+     404s are C2 and C29 confirmed from outside the repository — the
+     ghosts are not merely unpublished, they have stopped being served.
+     I2 IS NOT YET VERIFIED AND IS THE ONE THING THIS CLOSE-OUT LEAVES
+     OPEN. No reports publish has run since #108 — origin/gh-pages'
+     five most recent commits are 52647a6 (the site publish above) and
+     four publishes that predate it. Until a backend or frontend run
+     publishes, "a report publish never touches the site or the other
+     project" is a read of the workflow and not a measurement. Carried
+     in (c) as open verification, with the check that settles it:
+       git diff-tree --name-only -r <sha> | cut -d/ -f1 | sort -u
+     must return exactly one project directory.
+
+   (a) WHAT SHIPPED — thirteen pull requests, the rows each closed, and
+   the failure class each one ends
+     #94 chore: make seven config comments true again — C3, C5, C11,
+       C12, C13, C15, C22. CLASS: a comment that states a fact the
+       checkout contradicts. Seven of them in configuration files, which
+       is where a wrong comment is least likely to be read against the
+       thing it describes.
+     #95 ci: gate the shared e2e stack and settle the root file
+       conventions — C4, C19, C24. CLASS: a path no workflow gates — the
+       action that provisions the e2e stack ran `visual` and not `e2e` —
+       and a repository edited on Windows and built on Linux with no
+       line-ending law. .editorconfig and .gitattributes added from
+       MEASURED sizes; `git add --renormalize .` changed no tracked
+       file, so eol=lf ratified the state rather than converting it.
+     #96 build(backend): upgrade Spring Boot to 4.1.1 — no C row; a
+       dependency bump taken during the wave and recorded in (g).
+       CLASS: none. 79 managed versions moved, the five coverage figures
+       byte-identical, compiler warning baseline 0/0.
+     #97 chore(docker): delete the dev compose app service and its dead
+       settings — C8, C9, C10. CLASS: configuration that claims to do
+       something and does nothing — a forty-line commented-out service
+       and the six variables only it read, including four empty
+       assignments of the exact landmine shape #22 had already fixed.
+       Surfaced C25, C26 and C27 while doing it.
+     #98 docs: make the dev Postgres port say the same thing everywhere
+       — C25, C26. CLASS: a personal-machine override leaked into shared
+       documentation. Five files said 5432, two said 5433, and a
+       developer following the e2e README against a stock .env.example
+       got a port nothing was listening on.
+     #99 fix(backend): honour the reverse proxy's forwarded headers —
+       C6. CLASS: an absent property; not a deployment fault and not a
+       library bug — springdoc derived `servers` from a request Caddy
+       had already terminated TLS for. THE FIRST PART 3 CHANGE THAT
+       ALTERED PRODUCTION BEHAVIOUR, and the published spec was only the
+       visible symptom of a class that included every absolute URL the
+       application derives from a request.
+     #100 docs: count the hand-deployed files and amend the architecture
+       constraint — C14, and the TC-3 ruling carried out of C12. CLASS:
+       a record that knows a fact in one sentence and forgets it
+       everywhere a person would go looking, and a CONSTRAINT the
+       workflows breach. The ruling said four hand-deployed files; the
+       measurement said seven, and writing four would have repeated the
+       original defect one number later.
+     #101 ci(frontend): gate formatting, then apply it — C7. CLASS: a
+       tool installed, configured, versioned and never run. 38 of the
+       130 eligible files reformatted, against the two the row expected;
+       markdown excluded after a stop-and-report, because prose is
+       governed by REFACTOR-STANDARDS and not by a code formatter.
+     #102 ci: pin every action to a commit and watch them with
+       dependabot — C16, C17 (the pin half), C28. CLASS: a floating
+       third-party dependency with nothing watching it, one of them
+       holding contents: write on gh-pages; and a guard that reports
+       success while guarding nothing — .git-blame-ignore-revs named a
+       branch commit that squash-merging had made unreachable, and git
+       ignores an entry it cannot resolve WITHOUT SAYING SO. 12 actions
+       pinned across 41 occurrences in 10 files, mermaid-cli 11.16.0 and
+       redocly 2.41.1 pinned in the publish path.
+     #103 build(deps): bump the backend group in /backend with 2 updates
+       — THE FIRST ACCEPTED DEPENDABOT BATCH, one day after the bot was
+       added. CLASS: none; the mechanism working as designed.
+     #105 ci: keep majors and browser bumps out of the monthly batch —
+       amends the C16 ruling one day old. CLASS: a grouping rule too
+       coarse for a peer-constrained ecosystem. Groups narrowed to
+       minor+patch, majors ungrouped, TypeScript and Boot line changes
+       ignored, Playwright isolated.
+     #107 build(deps): bump the frontend-patch-minor group in /frontend
+       with 11 updates — THE SECOND ACCEPTED BATCH, and the proof that
+       #105's cut was the right one: eleven of the thirteen updates #104
+       had bundled went green as a single pull request.
+     #108 ci: publish the docs site as one staged tree instead of
+       appending to it — C1, C2, C29, C30. CLASS: an append-only
+       publisher that can never delete. keep_files gone, two publish
+       steps declared and exactly one per run, I1 to I5 written into the
+       workflow header, 48 files deleted on the first publish against a
+       ruling that had read the list. LAST IN THE WAVE ON PURPOSE, so
+       every other fix was on main before the publisher changed shape.
+
+     CLOSED BY DESIGN, NOT MERGED — and both are results
+     #104 build(deps): bump the frontend group in /frontend with 13
+       updates. Red on all three frontend checks in 7 s, 1m15s and
+       1m10s, all three in the same step and with the same ERESOLVE, so
+       not one test ran. One line of the thirteen caused it: typescript
+       ~7.0.2 against @angular/compiler-cli's peer range >=6.0 <6.1.
+       Superseded by #105 and closed. THE MECHANISM WORKED — it was
+       caught by a gate that had to be right, not by a reviewer noticing
+       a "~7" in a thirteen-line diff.
+     #106 build(deps): bump @playwright/test 1.56.0 -> 1.62.1. Closed
+       with #105's regrouping. A Playwright bump is a Chromium bump and
+       the browser ships inside a container image pinned in two other
+       places; moving the package alone desynchronises the runner from
+       its browser, and moving all three re-renders every visual
+       baseline, which ADR-007 makes a deliberate act. It gets its own
+       group and its next pull request is EXPECTED red on `visual`.
+
+   (b) WHAT WAS RULED AND NOT DONE, and why that is a result
+     C17 (cache half) — NOT APPLICABLE, answered by measurement in #102.
+       The row proposed WATCH on caching npm for the two docs jobs.
+       There is no lockfile for any docs job to cache against: the only
+       lockfile in the repository is frontend/package-lock.json and no
+       docs job installs from it. `cache: npm` would cache an empty set
+       and report success, which is the kind of green this repository
+       throws away rather than counts. The pin half shipped.
+     C18 an actuator exposure list nothing reads — WATCH, ruled
+       2026-08-25, no pull request. health,info are exposed, unproxied
+       by the Caddyfile, and called by nothing since C8's service was
+       deleted. Left because it is also the honest home for the backend
+       healthcheck C20 is about; fixing one without ruling the other
+       would be a guess.
+     C20 health checked on the half of the stack that did not need it —
+       WATCH, ruled 2026-08-25, no pull request. caddy depends_on
+       frontend, backend and keycloak as a bare list, so `up -d` can
+       leave Caddy proxying a backend still starting. Survivable because
+       Caddy retries and both deploy workflows poll the public URL
+       twenty times before declaring success — the real gate is already
+       there, and adding a second one is a design change, not a fix.
+     C21 a password interpolated into an SQL literal — WATCH, ruled
+       2026-08-25, no pull request. Not exploitable as deployed: the
+       documented generator cannot emit a quote, the script runs once on
+       an empty data directory, and the file is readable only by the
+       deploy user. It is a trap for whoever next sets that password by
+       hand, which is why it is recorded rather than dismissed.
+     C23 four DOMAIN-MODEL.md / REQUIREMENTS.md citations inside
+       spike/adr-002 — RULED 2026-08-25, frozen, no edit. Part 2's F6
+       reasoning EXTENDS from the spike's own filenames to citations
+       inside it: the spike is a closed, dated artefact, and editing it
+       edits the record of a decision that is already Accepted. This was
+       a stop-and-report because the two readings gave opposite answers;
+       the ruling picked one and wrote it down so the next survey does
+       not re-litigate it.
+     C31 Nebius has deprecated meta-llama/Llama-3.3-70B-Instruct —
+       WATCH, ruled not this wave's. It is a PROVIDER question with a
+       measurement in front of it, and it opens the diagnostics wave as
+       D3 below. A documented fallback that no longer exists is worse
+       than no fallback, because it is the plan someone reaches for
+       during an incident.
+     NOT IN THIS LIST, AND DELIBERATELY SO: C22 was PROPOSED WATCH by
+     the survey and ruled FIX — nginx.conf's "(Phase 4)" was one line in
+     the same comment-accuracy class as C3 and C11, so it went into #94
+     with them rather than becoming a row nobody would return to. C24
+     was proposed WATCH and ruled FIX IN PART: four of the six dead
+     ignore rules were deleted and TWO WERE KEPT WITH THE COMMENT THEY
+     NEVER HAD, because both are guards and deleting a guard to win a
+     tidiness point is the exact move the waiver register's own text
+     warns about.
+
+   (c) CARRIED, WITH DESTINATION
+     TO PART 4 (dead and redundant code)
+       - docs/scripts/generate-diagrams.sh calls itself a thin POSIX
+         wrapper "for CI steps" and no CI step invokes it; both
+         workflows and both citing docs pages call the .mjs directly.
+         Raised by Part 2, confirmed still true by Part 3, re-analysed
+         by neither.
+       - build-docs.sh's copy_report is dead on the CI path; the
+         function's own header says so at length and #74 traced it and
+         left it deliberately.
+       - THE JSPECIFY NULL-SAFETY WARNINGS under Boot 4 / Framework 7 —
+         count and classify them there, AND MEASURE THEM WITH THE JDT
+         COMPILER. javac reports 0 over 66 source files before and after
+         #96, so the warnings the IDE shows are an Eclipse JDT analysis
+         and not a build signal; a Part 4 row that quotes javac will
+         measure nothing and conclude wrongly.
+       - docker/README.md's dev-run prose, if any survives the Part 6
+         pass. #97 verified that the deleted compose block described
+         nothing, and frontend/e2e/README.md is where the running
+         instructions actually are — which is C27, below.
+     TO PART 6 (docs)
+       - docs/runbooks/ is never converted by the docs build, so
+         seed-v12-protocols.md is tracked and unpublished. Whether it
+         should be published is a content question.
+       - nav-docs.html lists ADR-001 to ADR-004 and ADR-010. There are
+         TEN ADRs; 005 to 009 are unreachable from the navigation. Five
+         of ten linked.
+       - C27 THE ONLY DESCRIPTION OF HOW TO RUN THE STACK LOCALLY lives
+         in frontend/e2e/README.md's "What it needs running" table.
+         Neither the repository README nor arc42 07 says how to start
+         the application on a laptop. The instructions are correct where
+         they are and nobody would look there first.
+       - docker/README.md and .env.prod.example on frontend-config.json
+         (C14's content half), and arc42/07-deployment-view.md:109,
+         which carries the same mount line and needs the same answer.
+     TO THE DIAGNOSTICS WAVE — the section immediately below. C31
+       becomes D3; the incident of 2026-08-26 07:23 UTC becomes D1 and
+       D2.
+     OPEN VERIFICATION — two, and they are the only things this
+     close-out cannot state as measured
+       1. THE FIRST REPORTS PUBLISH UNDER I2. Not yet run; see (0) for
+          the check that settles it.
+       2. /opt/maintenance-assistant/src/frontend ON THE HOST — a
+          leftover seen during the wave, RULING PENDING. Not measured
+          into any count here and not deleted; it is named so the next
+          host-side task starts from a known list rather than an `ls`.
+     ONE LIVE FALSEHOOD WAS FOUND AND CLOSED INSIDE THE WAVE rather
+     than carried: backend-deploy.yml:51-52's multi-arch sentence, which
+     the same file contradicted twenty lines later, corrected in #102.
+     It is recorded here because a carried item that gets fixed mid-wave
+     should stop looking carried.
+
+   (d) METRICS
+     Findings          31 rows, C1 to C31 — 24 surveyed, 7 found while
+                       fixing: C25-C27 by #97, C28 by #102, C29 and C30
+                       by #108's simulation, C31 from a provider email.
+     Pull requests     13 merged: #94-#103, #105, #107, #108.
+                       2 closed by design: #104, #106.
+     Dispositions      FIXED 24 · WATCH 5 (C18, C20, C21, C31, and
+                       C17's cache half) · FROZEN 1 (C23) · CARRIED 1
+                       (C27).
+     Rulings           5 needed, 5 given 2026-08-25, plus C2 re-ruled
+                       2026-08-26 when the simulation returned 49 files
+                       instead of six. C6 was never put to a ruling and
+                       shipped as a FIX (#99).
+     Days              2026-08-25 (survey, on 162b0e0) -> 2026-08-26
+                       (#108 merged, first publish verified). Two days.
+     Releases          v1.3.1, tagged 2026-08-26 on ee5b814, carrying
+                       #99 (the forwarded-headers fix, the wave's only
+                       production behaviour change) and #100. No release
+                       was cut for the other eleven merged pull
+                       requests, which is correct: they are comments,
+                       ledgers, CI and dev-only files.
+     Site              597 published files before, 549 after, 48
+                       removed, 0 "only in built".
+
+   (e) CORRECTIONS TO EARLIER RECORDS MADE DURING THIS WAVE, by date.
+   This list exists so the close-out is the index: a correction that
+   lives only where the error was is a correction the next session finds
+   by accident.
+     2026-08-25 — THE PEACEIRIS PUBLISH-STEP COUNT. The Part 1 close-out
+       said "three steps" and #92's evidence line said "four
+       invocations". Both wrong, in opposite directions: FOUR steps were
+       declared and at most TWO ran in any one run. Corrected under the
+       carried finding and as C1; both earlier figures stand as written
+       beside the measured one. #108 then removed the drift by making it
+       two declared and one per run.
+     2026-08-25 — THE PART 2 CLOSE DATE. Part 2 closed on #91's merge,
+       2026-08-25, not 2026-08-24. The heading and the CURRENT STATUS
+       entry both stay as written and the commit is the evidence
+       (4a7212d, 2026-08-25 10:19:23 +0200).
+     2026-08-25 — TC-3, THE MULTI-ARCH CONSTRAINT. Not a comment fix:
+       arc42 02 stated a constraint the deploy workflows breach, so
+       either the arm64 leg came back or the constraint was amended.
+       Ruled A, amended, #100 — with the deployment view's Images row,
+       the CAX21 paragraph and a §7.5 delivery sentence the earlier note
+       had not counted.
+     2026-08-25 — SEVEN HAND-DEPLOYED FILES, NOT FOUR. The C14 ruling
+       said four; the bind mounts in docker-compose.prod.yml and an `ls`
+       on the host say seven. docker/README.md now carries the measured
+       list with the mount kind per row, because OPS RULE 3 applies to
+       the four SINGLE-FILE mounts and not to the theme directory — the
+       distinction a count alone hides. Corrected with it: the survey
+       said "every other passage says three hand-deployed files", and
+       `git grep -n "three hand"` returns two hits, BOTH of them this
+       record. No published document ever enumerated the set; what was
+       missing was any list at all.
+     2026-08-26 — THE CHANGELOG WORDING IN CURRENT STATUS. The header
+       promised a CHANGELOG file. `git ls-files | grep -i changelog` is
+       empty and always was; release notes are generated by release.yml
+       from pull request titles, which is why the titles are written to
+       be read. Corrected in the header with v1.3.1.
+     2026-08-26 — THE PRETTIER COUNTER THAT LIED, recorded because it
+       nearly reached this page. `prettier --check .` first reported
+       127; after a checkout under `* text=auto eol=lf` the same command
+       reported 38. Eighty-five of the "failures" were CRLF files git
+       normalises away and that would never have appeared in a diff. The
+       figure in (a) is the true one, and CI always saw it.
+
+   DIAGNOSTICS AND PROVIDER WAVE — opened 2026-08-26, from the incident
+   of 2026-08-26 07:23 UTC
+
+   NOT A REFACTOR PART. It sits between Part 3 and Part 4 because an
+   incident that presents as an outage and is not one outranks a survey
+   of dead code. The rows below are D-numbered so they cannot be
+   confused with the C rows above.
+
+   RECORDED FROM CARLOS'S DIAGNOSIS REPORT. Everything in D1 is a
+   quantity that report measured; nothing here was re-derived from the
+   code, and no figure was inferred. Where this section states a number
+   it is the report's number.
+
+     D1 INCIDENT SUMMARY — FR-01, the question "sensor fehler",
+        2026-08-26 07:23 UTC. Retrieval returned 5 hits with a best
+        score of 0.5651, which is above the similarity threshold, so the
+        pipeline chose MODE A. The chat call then finished with
+        finish_reason=length at the 1200-token cap, which raised
+        ChatException, which surfaced as PROVIDER_UNAVAILABLE 503, which
+        the UI rendered as "nicht erreichbar". THE SAME QUESTION AT
+        10:45 UTC scored below 0.55, fell to MODE B, and succeeded.
+        CLASS: a borderline retrieval and a vague question together
+        produce the LONGEST answers; the token cap catches exactly
+        those; and the failure is surfaced to the user as an outage.
+        Three separate facts, and only the third is a lie to the user —
+        the provider was reachable throughout.
+
+     D2 PLANNED PULL REQUESTS, IN ORDER. Each is its own row because
+        each has its own stop condition, and the order is not
+        negotiable: nothing is calibrated before it is measured.
+       (a) OBSERVABILITY, ZERO BEHAVIOUR CHANGE. A cause-carrying WARN
+           at QueryService's catch site; a kind on ChatException so the
+           cap is distinguishable from a real provider failure; log
+           lines at the two ProviderUnavailable throw sites that
+           currently throw silently; and a request id issued by Caddy
+           and echoed in the backend logs so one user-visible failure
+           can be followed across the two. Nothing about what the
+           application DOES changes — this PR only makes the next
+           incident readable.
+       (b) TRUNCATION DEGRADES TO MODE B, with its own reason code, and
+           the score and token count logged at the decision. A cap hit
+           becomes a labelled ungrounded answer rather than a 503.
+           BEHAVIOUR CHANGE -> v1.3.2.
+       (c) MEASURED CALIBRATION of the max-tokens ceiling FROM (a)'s
+           LOGS, not from a guess; and a row for ADR-008 on Mode A
+           within 0.02 of the threshold — 0.5651 against a threshold in
+           the 0.55 band is the case the ADR does not currently address.
+        NOTE THE DEPENDENCY: (c) cannot start until (a) has been live
+        long enough to have logged real traffic. This is the one place
+        in the wave where waiting is the work.
+
+     D3 PROVIDER CATALOGUE CHECK — FIRST TASK OF THE WAVE, READ-ONLY,
+        and it carries C31 forward. List IONOS's and Nebius's /v1/models
+        (NAMES ONLY — no key, no value, no completion is to be printed);
+        confirm that meta-llama/Llama-3.3-70B-Instruct and BAAI/bge-m3
+        are both on IONOS; record Nebius's announced deprecation date
+        for the chat model; and prepare an ADR-002 revision naming a
+        TESTED fallback chat model.
+        THE MODEL IS CHOSEN BY MEASUREMENT AGAINST THE JSON ANSWER
+        CONTRACT, NEVER BY NAME. A model that is "equivalent" on a
+        provider's page has not been shown to produce this application's
+        answer shape, and ADR-002 states the swap as a base-url and
+        model change rather than a code change — a claim that is only
+        true while the named model exists and honours the contract.
+
+     D4 PROCESS RULES FROM THE DIAGNOSIS — written into
+        REFACTOR-STANDARDS, WORKING PRACTICES 12 in the same pull
+        request as this entry, because a rule learned in an incident and
+        recorded only in the incident's own notes is a rule the next
+        incident re-learns. Log redaction redacts IN PLACE and never
+        drops a whole line; every incident time carries a zone and the
+        host is UTC.
 
 5. PHASE 5 — EVOLUTION CANDIDATES (unchanged list, optional):
    similar-machine search, OCR, downtime stats, PDF export (generation,

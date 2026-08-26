@@ -1,5 +1,5 @@
 PROJECT DECISIONS — Instandhaltungs-Assistent / Maintenance Protocol Assistant
-Status: v1.3.0 released; refactor phase, Part 2 closed 2026-08-25, Part 3 next
+Status: v1.3.1 released; refactor phase, Part 3 closed 2026-08-26, diagnostics wave next
 (Details in: requirements.md, domain-model.md, adr/ — index in adr/README.md)
 
 == PRODUCT ==
@@ -686,3 +686,38 @@ Status: v1.3.0 released; refactor phase, Part 2 closed 2026-08-25, Part 3 next
   diagnostics wave: check the IONOS catalogue for the same model, then either amend ADR-002's
   fallback or name a different model in it. A documented fallback that no longer exists is worse
   than none, because it is the plan someone reaches for during an incident.
+- PART 3 CLOSED 2026-08-26, thirty-one findings and thirteen merged pull requests (#94-#103,
+  #105, #107, #108) plus two Dependabot pull requests closed by design (#104, #106). The full
+  record is the "PART 3 CLOSE-OUT" entry in PROJECT-PHASES.txt and is deliberately not repeated
+  here — one home per fact. What belongs in a decisions file is the SHAPE THE WAVE CONFIRMED:
+  a survey rules before it fixes, each ruling is its own pull request, and a count in the record
+  is recomputed by the pull request that acts on it. Twenty-four rows fixed, five WATCH, one
+  frozen (C23, Part 2's F6 extended to citations inside the spike), one carried to Part 6 (C27).
+  THE CLOSE WAS HELD OPEN FOR A MEASUREMENT and not for a merge: #108 changed the docs publisher
+  in a way no pull request can exercise, so the wave stayed open until the first real publish was
+  read — gh-pages 52647a6, 549 files, zero legacy entries, .nojekyll present, the four report
+  roots still answering 200 and the two ghost pages answering 404. ONE THING IS STILL OPEN AND IS
+  RECORDED AS OPEN: no reports publish has run since #108, so invariant I2 ("a report publish
+  never touches the site or the other project") is a read of the workflow rather than a
+  measurement. The check that settles it is in the close-out.
+  ALSO CORRECTED DURING THE WAVE, indexed in the close-out's (e) so a correction is findable from
+  one place rather than only where the error was: the peaceiris publish-step count, Part 2's close
+  date, TC-3's multi-arch constraint, four hand-deployed files becoming seven, the CHANGELOG
+  wording in the status header, and a prettier counter that reported 127 CRLF-inflated failures
+  where the repository had 38.
+- THE ORDER OF WORK AFTER PART 3, decided 2026-08-26: DIAGNOSTICS AND PROVIDER WAVE first, then
+  the guided-questions feature (ADR-011, a reserved number — there are ten ADRs today), then the
+  docs landing page, then the PART 4 SURVEY. Part 4 is deliberately displaced. AN INCIDENT THAT
+  PRESENTS AS AN OUTAGE AND IS NOT ONE OUTRANKS A SURVEY OF DEAD CODE: on 2026-08-26 07:23 UTC a
+  borderline retrieval (best score 0.5651, above the threshold, so Mode A) met a vague question,
+  the answer ran into the 1200-token cap, and finish_reason=length surfaced to the user as
+  PROVIDER_UNAVAILABLE 503 — "nicht erreichbar" — while the provider was reachable throughout.
+  The same question at 10:45 UTC scored below 0.55, fell to Mode B, and succeeded.
+  THE WAVE'S OWN ORDER IS ALSO DECIDED AND IS NOT NEGOTIABLE, because nothing is calibrated before
+  it is measured: the provider catalogue check first (read-only, carrying C31 — Nebius has
+  deprecated the fallback chat model ADR-002 names); then observability with zero behaviour
+  change; then truncation degrading to Mode B with its own reason code, which is a behaviour
+  change and takes v1.3.2; then a max-tokens ceiling calibrated FROM THOSE LOGS and an ADR-008 row
+  for Mode A within 0.02 of the threshold. The last step cannot start until the first has been
+  live long enough to have logged real traffic, which is the one place in this wave where waiting
+  is the work.

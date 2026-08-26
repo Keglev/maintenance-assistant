@@ -5,7 +5,7 @@
  *   node docs/scripts/generate-diagrams.mjs          # render all
  *   node docs/scripts/generate-diagrams.mjs --check  # fail if any SVG is missing or stale
  *
- * Rendering runs through `npx -y @mermaid-js/mermaid-cli` (mmdc), so nothing has to be
+ * Rendering runs through `npx -y @mermaid-js/mermaid-cli@<pinned>` (mmdc), so nothing has to be
  * installed up front — but it does need network access on first use, and a Chromium
  * download. Generated SVGs are not versioned (see .gitignore); the docs site build
  * regenerates them.
@@ -21,7 +21,14 @@ import { fileURLToPath } from 'node:url';
 
 const DOCS_DIR = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const CHECK_ONLY = process.argv.includes('--check');
-const MMDC = ['-y', '@mermaid-js/mermaid-cli'];
+// PIN — BUMP THIS DELIBERATELY, and diff the rendered SVGs when you do. This renderer
+// produces published pages, exactly like the pandoc pin in docs-pr-check.yml and
+// docs.yml, and a different mermaid-cli may render differently: the .mmd sources are
+// versioned and the SVGs are NOT, so an unpinned renderer could change every diagram on
+// the site without a single line of this repository changing. Unpinned until 2026-08-26
+// (Part 3, C17); 11.16.0 is the version that was resolving at the time, measured with
+// `npx -y @mermaid-js/mermaid-cli --version`.
+const MMDC = ['-y', '@mermaid-js/mermaid-cli@11.16.0'];
 
 /** Recursively collect *.mmd files, skipping node_modules. */
 async function findMermaidSources(dir) {

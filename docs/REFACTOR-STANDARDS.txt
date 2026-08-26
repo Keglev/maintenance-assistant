@@ -290,6 +290,14 @@ WORKING PRACTICES (the process rules that paid for themselves)
     ignores an entry it cannot resolve WITHOUT SAYING SO — the file
     still exists, still looks right, and does nothing. Learned
     2026-08-26, one pull request after the rule was written.
+12. TWO RULES FROM THE DIAGNOSIS OF 2026-08-26, both learned when a
+    reachable provider was reported as an outage: LOG REDACTION REDACTS
+    IN PLACE AND NEVER DROPS A WHOLE LINE, because a dropped line takes
+    the timestamp, the level and the cause with the secret and leaves
+    an incident with a hole where its evidence was. EVERY INCIDENT TIME
+    CARRIES A ZONE, and the host is UTC — a bare clock time is two
+    different moments to the two people reading it.
+
 
 =====================================================================
 WAIVER REGISTER

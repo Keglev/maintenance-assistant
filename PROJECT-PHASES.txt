@@ -1736,6 +1736,47 @@ rather than given one afterwards.
          formatting findings on moderation.ts and moderation.html stay
          open with no gate that could have caught them. Carried from
          Part 1 unchanged. FIX.
+         FIXED 2026-08-25, #101: gate added; 38 files reformatted in a
+         separate commit c4965a4e8f5e;
+         blame-ignore added.
+         A FORMATTER CONFIGURED AND NEVER RUN — and the size of the
+         reformat is the finding, not the reformat. The row expected the
+         two moderation files. THE MEASURED ANSWER IS 38 of the 130 tracked
+         frontend files prettier considers: 30 under src/, 6 under e2e/ and
+         two tsconfigs — 23 .ts, 11 .html, 2 .json, 1 .mjs, 1 .css. The
+         moderation four are among them, so the Part 1 findings were real;
+         they were also only a tenth of the drift, which is what a gate
+         nobody ran buys.
+         A COUNTER THAT LIED, RECORDED BECAUSE IT NEARLY REACHED THIS PAGE:
+         the first run of `prettier --check .` reported 127. That figure was
+         an artefact of THIS WORKING TREE, not of the repository — the files
+         predated #95's .gitattributes and were still CRLF on disk, and
+         prettier flags a CRLF file whose content is otherwise perfect.
+         After a checkout under `* text=auto eol=lf` the same command
+         reported 38. Eighty-five of the "failures" were line endings git
+         normalises away and would never have appeared in a diff. CI checks
+         out LF and always saw the true number.
+         MARKDOWN IS EXCLUDED, AND THAT WAS A STOP-AND-REPORT. Prettier
+         rewrites `*emphasis*` to `_emphasis_` and pads table separator
+         rows: rendering-identical, but a TOKEN change to prose and the
+         ONLY non-whitespace change in the entire reformat — 48 lines in
+         frontend/e2e/README.md, 32 of them emphasis markers. Documentation
+         prose is governed by REFACTOR-STANDARDS, not by a code formatter,
+         and nobody ruled on rewriting it, so *.md is ignored with the
+         reasoning at the site. Everything remaining under `git diff -w` is
+         re-wrapping and one added trailing comma.
+         THE .prettierignore WAS MEASURED, NOT GUESSED. Two entries are
+         proven — package-lock.json (1 flagged; npm owns that format and
+         `npm ci` would revert a reformat) and test-results/ (2 flagged,
+         Playwright artefacts). The rest are GUARDS at 0 flagged today:
+         dist/, coverage/, documentation/, playwright-report/, .angular/
+         and e2e/__screenshots__/. The last has teeth — those are the
+         visual baselines, and ADR-007 makes regenerating one a deliberate
+         act, never a side effect of running a formatter.
+         CHECKED BEFORE THE REFORMAT, because it would have been a silent
+         loss: prettier PRESERVES the // comments in angular.json. The
+         ratchet block #83 wrote there survives verbatim, 17 comment lines
+         before and 17 after.
 
      C8  docker-compose.yml:74-113 — a forty-line commented-out `app:`
          service, headed "enabled in Phase 1, once backend/ contains a

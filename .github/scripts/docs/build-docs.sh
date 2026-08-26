@@ -123,6 +123,19 @@ copy_plain_text_docs() {
   fi
 }
 
+# GITHUB PAGES MUST NOT RUN JEKYLL OVER PANDOC OUTPUT. Without this file Pages
+# jekylls the branch: directories beginning with an underscore and files beginning
+# with a dot are dropped, and the site loses whatever happens to be named that way.
+#
+# WRITTEN BY THE BUILD SINCE 2026-08-26 (Part 3, C2), and that is the point rather
+# than a tidy-up: the site publish no longer keeps files it did not produce, so a
+# .nojekyll that exists only on gh-pages would be deleted on the first run. It has
+# to come from the build or it does not come at all.
+write_nojekyll() {
+  : > "$OUTPUT_DIR/.nojekyll"
+  echo "✓ .nojekyll written"
+}
+
 # JaCoCo HTML, downloaded by the workflow to target/reports/backend-coverage.
 # Absent on docs-only builds, in which case the deploy step preserves the
 # published report.
@@ -194,6 +207,7 @@ bash "$SCRIPTS_DIR/build-openapi-docs.sh"  "$PROJECT_DIR"
 copy_report backend-coverage  backend/coverage
 copy_report frontend-coverage frontend/coverage
 copy_report frontend-api-docs frontend/api-docs
+write_nojekyll
 verify_absolute_links_survived
 
 echo ""

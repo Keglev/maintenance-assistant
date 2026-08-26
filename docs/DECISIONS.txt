@@ -651,3 +651,38 @@ Status: v1.3.0 released; refactor phase, Part 2 closed 2026-08-25, Part 3 next
   effect. Its pull request is EXPECTED to be red on `visual` until the baselines are regenerated.
   THE MECHANISM WORKED, and that is the part to keep: #104 was caught by CI on a pull request, by a
   gate that had to be right, not by a reviewer reading a thirteen-line diff and noticing a "~7".
+- THE PUBLISHED SITE IS WHAT THE BUILD PRODUCES, plus the two report subtrees. Ruled and shipped
+  2026-08-26 (#108), Part 3 C2 and the finding Part 1 carried. keep_files is gone from docs.yml.
+  FIVE INVARIANTS, written into the workflow header so the next reader does not infer them:
+    I1  The site publish never deletes a report subtree — it checks gh-pages out and copies
+        backend/ and frontend/ into the build output before publishing.
+    I2  A report publish never touches the site or the other project. destination_dir scopes the
+        deletion: "existing files in the publish branch (or only in `destination_dir` if given)
+        will be removed" — the action's README at the pinned commit.
+    I3  Anything at the root the site build did not produce is deleted on the next site publish.
+        This is the point of the change, not a side effect.
+    I4  Exactly one publish step runs per workflow run.
+    I5  A run that cannot find the report subtrees to carry over FAILS rather than publishing a
+        site without them. The single exception is a first-ever publish, where gh-pages does not
+        exist at all.
+  keep_files WAS NEVER THE REQUIREMENT, ONLY THE CHEAPEST WAY TO MEET IT, and the Part 1 finding
+  that carried this forward said "KEEP_FILES MUST SURVIVE IT" — a condition stated as a mechanism,
+  which outlived the reason for it. What had to survive was the report subtrees; carrying them over
+  survives them better, and lets the site delete.
+  THE COST, ACCEPTED WITH THE EVIDENCE IN FRONT OF IT: the first publish removes 49 files. Six are
+  the ghosts #92 recorded; .nojekyll moves into the build output; the other 43 are a complete
+  2026-08-05 Jekyll/just-the-docs build — 33 arc42 pages, six pre-ADR-005 markdown sources and the
+  theme's own assets — that had been served beside the Pandoc site for three weeks, answering 200
+  and linked from nothing. No redirects and no archive: each has a current equivalent under
+  architecture/ or adr/*.html.
+  THE SIMULATION IS THE VERIFICATION, because docs.yml publishes only from main and cannot be
+  exercised on a pull request. It was run twice: the first run STOPPED the work, because the
+  deletion list came back at 49 against an expectation of six. That stop is the mechanism paying
+  for itself — the alternative was finding out from the live site.
+- NEBIUS HAS ANNOUNCED DEPRECATION OF meta-llama/Llama-3.3-70B-Instruct (email 2026-08-26). WATCH,
+  not actioned here. ADR-002 names Nebius Token Factory as the documented fallback and states the
+  swap as "a base-url + model change, not a code change" — which is only true while both providers
+  serve the model. As written the fallback is invalid. The measured task, at the start of the
+  diagnostics wave: check the IONOS catalogue for the same model, then either amend ADR-002's
+  fallback or name a different model in it. A documented fallback that no longer exists is worse
+  than none, because it is the plan someone reaches for during an incident.

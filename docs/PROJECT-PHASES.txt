@@ -14,6 +14,9 @@ THERE IS NO CHANGELOG FILE and the earlier wording here promised one:
 by release.yml from pull request titles, which is why the titles are
 written to be read.
 
+PART 3 WAVE COMPLETE PENDING #108 MERGE AND FIRST PUBLISH VERIFICATION;
+close-out next.
+
 v1.3.0 IS THE LATEST TAG, 2026-08-20. The release history, from the
 repository's own tags: v0.1.0 2026-08-06, v1.0.0 2026-08-08, v1.1.0
 2026-08-11, v1.2.0 2026-08-13, v1.3.0 2026-08-20.
@@ -1225,6 +1228,14 @@ rather than given one afterwards.
          163 plus exactly one of 176 / 187 in `reports`, gated on
          steps.project.outputs.name. Both earlier figures stand as written;
          this is the measured one. See PART 3 finding C1.
+         CLOSED #108. One staged publish per job, two declared and exactly
+         one per run, keep_files gone. The direction this line agreed was
+         right; its condition — "KEEP_FILES MUST SURVIVE IT" — was wrong, and
+         is the interesting part. keep_files was never the requirement, only
+         the cheapest way to meet it: what actually had to survive was the
+         report subtrees, and the site job now carries those over from
+         gh-pages before it publishes. A condition stated as a mechanism
+         outlives the reason for it.
        - prettier is a devDependency with NO format script and NO format
          step in frontend-ci.yml. The formatting findings on
          moderation.ts and moderation.html are still open, and the gate
@@ -1620,6 +1631,9 @@ rather than given one afterwards.
          no written rule — the convention is that a count in the record
          is recomputed by the PR that acts on it (REFACTOR-STANDARDS,
          COUNTING METHODS). FIX (the record; the workflow is C2's).
+         CLOSED BY #108: the count is now two declared, one per run, and
+         the header says so. The number this row argued about no longer has
+         a way to drift, because there is one publish step per job.
 
      C2  gh-pages root — SIX ENTRIES NO BUILD PRODUCES. Measured against
          what build-docs.sh actually emits (write_lua_filter,
@@ -1647,12 +1661,43 @@ rather than given one afterwards.
          RULED 2026-08-25: single staged publish. Its own PR, last in
          the wave, because every other fix should be on main before the
          publisher changes shape.
+         STOPPED 2026-08-26 ON THE FIRST ATTEMPT, and the stop was the point
+         of running the simulation: the deletion list came back at 49 files,
+         not the six this row named. No pull request was opened.
+         RULED 2026-08-26, Carlos, VERBATIM: "The published site is what the
+         build produces plus the two report subtrees. All 49 'Only in
+         gh-pages' entries from the simulation are deleted on the first
+         publish: the six from #92, .nojekyll (which moves into the build
+         output), the 33-file pre-rename arc42/ tree, the six pre-ADR-005 ADR
+         markdown sources and the just-the-docs theme leftovers. Evidence
+         accepted: all 43 date from the single 2026-08-05 publish, nothing in
+         the repository links to them, and each has a current equivalent
+         under architecture/ or adr/*.html. No redirects, no archive."
+         FIXED 2026-08-26, #108: two publish steps, one per run, no
+         keep_files; 49 files deleted on first publish, ruled 2026-08-26;
+         list in the PR body; simulation S3 output recorded there in full.
+         THE SIMULATION AFTER THE RULING DELETES 48, NOT 49, and the
+         difference is the fix rather than a discrepancy: .nojekyll is the
+         forty-ninth, and build-docs.sh now writes it, so it appears on both
+         sides and is not deleted. 597 published files, 549 built and
+         carried, 48 removed, 0 "only in built". Nothing outside the ruled
+         set.
+         COMPUTED FROM `git ls-tree -r` ON BOTH SIDES, NEVER FROM A CHECKOUT.
+         Windows is case-insensitive, so DOMAIN-MODEL.html and
+         domain-model.html cannot both exist in a worktree and a `diff -rq`
+         against one silently under-reports by two. A comparison run on a
+         Linux runner would not have shown this; the tool has to be chosen
+         for the machine it runs on.
 
      C3  docs.yml:10 — "Both publish steps use keep_files". There are
          four. The comment predates two of them and now understates the
          thing it exists to warn about. REFACTOR-STANDARDS, DOCS:
          "PUBLISHED PROSE STATES ONLY WHAT THE CHECKOUT SHOWS". FIX.
          FIXED 2026-08-25, #94.
+         CLOSED BY #108: that paragraph is rewritten again, this time to
+         describe a workflow with two publish steps and no keep_files, and it
+         now carries I1-I5 so the next reader does not have to infer the
+         rules from the steps.
 
      C4  frontend-e2e.yml:26-37 — THE SHARED STACK ACTION IS NOT A
          TRIGGER HERE. The job uses ./.github/actions/e2e-stack at
@@ -2290,6 +2335,40 @@ rather than given one afterwards.
          — f71aec49 also carries one CI step and one ignore file. Blame will
          look through those five lines too. That is the price of squash
          merging, and it is smaller than the 38 files it hides.
+
+     C29 gh-pages SERVED A 2026-08-05 JEKYLL/JUST-THE-DOCS BUILD (33 arc42
+         pages, 6 ADR sources, theme assets) FOR THREE WEEKS BESIDE THE
+         PANDOC SITE — keep_files preserved it; removed by #108. CLOSED.
+         Found while simulating C2 rather than by looking for it, which is
+         the argument for simulating a publish before making one. Every file
+         first and last published 2026-08-05; every one still answering 200
+         (arc42/index.html, arc42/07-deployment-view.html,
+         adr/ADR-001-....md, assets/js/just-the-docs.js all checked); and
+         every one unreachable from the site itself — nav-docs.html links
+         only to architecture/* and adr/*.html, and `grep -rn
+         "just-the-docs\|arc42/" docs/_theme/` returns nothing. A published
+         page nothing links to and nothing produces is not an archive, it is
+         a second site nobody is maintaining.
+
+     C30 backend/coverage carried TWO STALE JACOCO PAGES —
+         FileStorageProperties.html and FileStorageProperties.java.html, for
+         a class that no longer exists. They are removed by the FIRST reports
+         publish under the new shape, and that is I2 WORKING rather than a
+         separate fix: destination_dir scopes the deletion to backend/, so a
+         report page that stops being generated now stops being served.
+         Measured in simulation S4: 202 files differ (newer coverage numbers
+         against the published ones), 2 exist only on gh-pages, 0 only in the
+         staging. CLOSED by #108.
+
+     C31 NEBIUS HAS ANNOUNCED DEPRECATION OF meta-llama/Llama-3.3-70B-Instruct
+         (email 2026-08-26). ADR-002's fallback chat model is invalid as
+         written; the IONOS catalogue must be checked for the same model.
+         Measured task at the start of the diagnostics wave. NOT THIS PR.
+         WATCH. Recorded here because a documented fallback that no longer
+         exists is worse than no fallback: it is a plan someone would reach
+         for in an incident, and ADR-002 states the swap as a base-url and
+         model change rather than a code change — which is only true while
+         both providers serve the model.
 
    (c) CLEAN — measured, nothing found
      - THE PATH PARTITION. 397 files, 0 gaps, 6 deliberate overlaps.

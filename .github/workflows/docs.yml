@@ -7,10 +7,34 @@ name: docs
 #   b) frontend-ci / backend-ci succeeded on main -> publish their coverage and
 #      API documentation into subfolders
 #
-# FOUR publish steps are declared below and AT MOST TWO run in any one workflow
-# run: the site job's step, or the reports job's coverage step plus exactly one
-# of the two API-reference steps. All four set keep_files, so the site never
-# deletes the report subfolders and the reports never delete the site.
+# TWO publish steps are declared below and EXACTLY ONE RUNS PER RUN (I4), because
+# the two jobs are mutually exclusive on event name. NEITHER SETS keep_files.
+#
+# keep_files WAS THE OLD ANSWER AND IT MADE THE SITE APPEND-ONLY. Four publish
+# steps each preserved what the others wrote, which also preserved everything
+# nobody wrote any more: a rename added a page and never removed the old one. By
+# 2026-08-26 the branch was still serving a complete 2026-08-05 Jekyll build —
+# 33 arc42 pages, six ADR sources and a just-the-docs theme — three weeks after
+# the Pandoc site replaced it, all of it answering 200 and reachable from nothing.
+#
+# THE SITE JOB CARRIES THE REPORT SUBTREES OVER FROM gh-pages INSTEAD. That is
+# what makes keep_files unnecessary: the published site is assembled in full
+# before it is published, so "replace everything" is safe and deletion works.
+#
+# THE INVARIANTS, in the order they are enforced below:
+#   I1  The site publish never deletes a report subtree — it checks gh-pages out
+#       and copies backend/ and frontend/ into the build output first.
+#   I2  A report publish never touches the site or the other project. It sets
+#       destination_dir, and the action deletes only inside it: "existing files
+#       in the publish branch (or only in `destination_dir` if given) will be
+#       removed" — peaceiris/actions-gh-pages README, at the pinned commit.
+#   I3  Anything at the root the site build did not produce is deleted on the
+#       next site publish. This is the point of the change, not a side effect;
+#       .nojekyll therefore comes from build-docs.sh now.
+#   I4  Exactly one publish step runs per workflow run.
+#   I5  A run that cannot find the report subtrees to carry over FAILS rather
+#       than publishing a site without them. The one exception is a first-ever
+#       publish, where gh-pages does not exist at all — see that step.
 on:
   push:
     branches: [main]
@@ -29,6 +53,12 @@ permissions:
 # Serialized, NOT cancelled: every job here pushes to the same gh-pages branch.
 # Cancelling a run in flight would silently drop a published report, and two
 # concurrent pushes would collide on a non-fast-forward.
+#
+# THIS IS NOW LOAD-BEARING FOR I1, not merely tidy. The site job READS gh-pages
+# and then REPLACES it; a reports job publishing in between would write a subtree
+# that the site job has already read and is about to overwrite with the older
+# copy. Serialising the group is what closes that window. Do not add
+# cancel-in-progress here, and do not give either job a group of its own.
 concurrency:
   group: gh-pages
   cancel-in-progress: false
@@ -76,15 +106,55 @@ jobs:
       - name: Build docs site
         run: bash .github/scripts/docs/build-docs.sh .
 
+      # I1. The site build produces no reports — they come from the CI runs that
+      # generate them — so the currently published copies are read back and folded
+      # into the output before anything is published.
+      #
+      # continue-on-error IS THE FIRST-PUBLISH ESCAPE, and the only one: on a
+      # repository where gh-pages does not exist yet this checkout fails, the step
+      # below sees outcome != success, says so, and lets an empty site through.
+      # Every other failure — a branch that exists without backend/ or frontend/ —
+      # is caught by the guard and stops the run (I5).
+      - name: Check out the published site
+        id: published
+        continue-on-error: true
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: gh-pages
+          path: gh-pages
+          fetch-depth: 1
+
+      # EXACTLY TWO DIRECTORIES ARE CARRIED. Everything else on gh-pages is either
+      # something this build just produced or something nothing produces any more,
+      # and the second kind is what I3 exists to remove.
+      - name: Carry the report subtrees over
+        run: |
+          set -euo pipefail
+          if [ "${{ steps.published.outcome }}" != "success" ]; then
+            echo "::notice::gh-pages does not exist yet — first publish, nothing to carry over."
+            exit 0
+          fi
+          missing=0
+          for subtree in backend frontend; do
+            if [ -d "gh-pages/$subtree" ]; then
+              cp -r "gh-pages/$subtree" target/docs/
+              echo "carried over: $subtree ($(find "target/docs/$subtree" -type f | wc -l) files)"
+            else
+              echo "::error::gh-pages/$subtree is missing. Publishing now would delete the"
+              echo "::error::published $subtree reports, and this job cannot rebuild them."
+              missing=1
+            fi
+          done
+          [ "$missing" -eq 0 ]
+
+      # No keep_files and no destination_dir: the branch becomes this directory.
+      # That is only safe because the step above put the reports back into it.
       - name: Publish site to gh-pages
         uses: peaceiris/actions-gh-pages@84c30a85c19949d7eee79c4ff27748b70285e453 # v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./target/docs
           publish_branch: gh-pages
-          # Leaves /frontend/** and /backend/** untouched - this build regenerates
-          # neither, and the reports job below publishes them independently.
-          keep_files: true
           commit_message: 'docs: publish site for ${{ github.sha }}'
 
   # ---------------------------------------------------------------------------
@@ -148,8 +218,8 @@ jobs:
       # no route back except editing the URL. The Redocly page gets the identical
       # anchor from the same script, one step above.
       #
-      # AFTER the download and BEFORE the publish, because the publish steps
-      # below upload these directories exactly as they stand.
+      # AFTER the download and BEFORE the staging step, because that step copies
+      # these directories exactly as they stand.
       - name: Inject the back-to-docs anchor into the coverage report
         run: |
           bash .github/scripts/docs/inject-back-to-docs.sh \
@@ -161,36 +231,34 @@ jobs:
           bash .github/scripts/docs/inject-back-to-docs.sh \
             target/reports/frontend-api-docs/index.html
 
-      - name: Publish coverage to gh-pages
-        uses: peaceiris/actions-gh-pages@84c30a85c19949d7eee79c4ff27748b70285e453 # v4
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: target/reports/${{ steps.project.outputs.name }}-coverage
-          publish_branch: gh-pages
-          destination_dir: ${{ steps.project.outputs.name }}/coverage
-          keep_files: true
-          commit_message: 'docs: publish ${{ steps.project.outputs.name }} coverage'
+      # ONE SUBTREE, ASSEMBLED WHOLE, so one publish can replace it. Backend takes
+      # the Redocly page the step above rendered; frontend takes the Compodoc tree
+      # its artifact already contains. Both take their coverage from the artifact.
+      - name: Stage the report subtree
+        env:
+          NAME: ${{ steps.project.outputs.name }}
+        run: |
+          set -euo pipefail
+          mkdir -p "target/publish/$NAME"
+          cp -r "target/reports/$NAME-coverage" "target/publish/$NAME/coverage"
+          if [ "$NAME" = "backend" ]; then
+            cp -r target/docs/backend/api-docs "target/publish/$NAME/api-docs"
+          else
+            cp -r target/reports/frontend-api-docs "target/publish/$NAME/api-docs"
+          fi
+          echo "staged $NAME: $(find "target/publish/$NAME" -type f | wc -l) files"
+          find "target/publish/$NAME" -maxdepth 1 -mindepth 1 -type d | sort
 
-      # Backend publishes the rendered Redocly page; frontend publishes the
-      # Compodoc tree the artifact already contains.
-      - name: Publish backend API reference to gh-pages
-        if: steps.project.outputs.name == 'backend'
+      # I2. destination_dir scopes the deletion to this project's subtree, so the
+      # site at the root and the other project's reports cannot be touched — see
+      # the README quotation in the header. A page that stops being generated is
+      # now removed rather than kept forever: the first run of this deletes two
+      # JaCoCo pages for a class that no longer exists.
+      - name: Publish ${{ steps.project.outputs.name }} reports to gh-pages
         uses: peaceiris/actions-gh-pages@84c30a85c19949d7eee79c4ff27748b70285e453 # v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: target/docs/backend/api-docs
+          publish_dir: target/publish/${{ steps.project.outputs.name }}
           publish_branch: gh-pages
-          destination_dir: backend/api-docs
-          keep_files: true
-          commit_message: 'docs: publish backend API reference'
-
-      - name: Publish frontend API reference to gh-pages
-        if: steps.project.outputs.name == 'frontend'
-        uses: peaceiris/actions-gh-pages@84c30a85c19949d7eee79c4ff27748b70285e453 # v4
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: target/reports/frontend-api-docs
-          publish_branch: gh-pages
-          destination_dir: frontend/api-docs
-          keep_files: true
-          commit_message: 'docs: publish frontend API reference'
+          destination_dir: ${{ steps.project.outputs.name }}
+          commit_message: 'docs: publish ${{ steps.project.outputs.name }} coverage and API reference'

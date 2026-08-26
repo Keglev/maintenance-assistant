@@ -119,64 +119,66 @@ import java.util.regex.Pattern;
 <span class="fc" id="L119">                .toList();</span>
 
 <span class="fc bfc" id="L121" title="All 2 branches covered.">        if (steps.isEmpty()) {</span>
-<span class="fc" id="L122">            throw new ChatClient.ChatException(&quot;model produced no troubleshooting steps&quot;);</span>
+<span class="fc" id="L122">            throw new ChatClient.ChatException(ChatClient.ChatException.Kind.EMPTY,</span>
+                    &quot;model produced no troubleshooting steps&quot;);
         }
         // Newline-separated rather than one paragraph: these are steps, and a night-shift reader
         // works down a list. The frontend renders the lines; it does not have to parse them.
-<span class="fc" id="L126">        String prose = String.join(&quot;\n&quot;, steps);</span>
-<span class="fc" id="L127">        return new QueryAnswer(QueryAnswer.AnswerMode.B, prose, language(parsed.answerLanguage()),</span>
-<span class="fc" id="L128">                List.of(), List.of());</span>
+<span class="fc" id="L127">        String prose = String.join(&quot;\n&quot;, steps);</span>
+<span class="fc" id="L128">        return new QueryAnswer(QueryAnswer.AnswerMode.B, prose, language(parsed.answerLanguage()),</span>
+<span class="fc" id="L129">                List.of(), List.of());</span>
     }
 
     private &lt;T&gt; T parse(String content, Class&lt;T&gt; type) {
         try {
-<span class="fc" id="L133">            T parsed = json.readValue(content, type);</span>
-<span class="fc bfc" id="L134" title="All 2 branches covered.">            if (parsed == null) {</span>
-<span class="fc" id="L135">                throw new ChatClient.ChatException(&quot;model returned a null answer object&quot;);</span>
+<span class="fc" id="L134">            T parsed = json.readValue(content, type);</span>
+<span class="fc bfc" id="L135" title="All 2 branches covered.">            if (parsed == null) {</span>
+<span class="fc" id="L136">                throw new ChatClient.ChatException(ChatClient.ChatException.Kind.UNREADABLE,</span>
+                        &quot;model returned a null answer object&quot;);
             }
-<span class="fc" id="L137">            return parsed;</span>
-<span class="fc" id="L138">        } catch (RuntimeException e) {</span>
+<span class="fc" id="L139">            return parsed;</span>
+<span class="fc" id="L140">        } catch (RuntimeException e) {</span>
             // The provider accepted a strict json_schema, so this should be unreachable; if it ever
             // fires, the raw content is the only thing that explains why.
-<span class="fc" id="L141">            throw new ChatClient.ChatException(</span>
-<span class="fc" id="L142">                    &quot;cannot parse the model answer as JSON: &quot; + firstChars(content), e);</span>
+<span class="fc" id="L143">            throw new ChatClient.ChatException(ChatClient.ChatException.Kind.UNREADABLE,</span>
+<span class="fc" id="L144">                    &quot;cannot parse the model answer as JSON: &quot; + firstChars(content), e);</span>
         }
     }
 
     /** {@code &quot;[P1]&quot;}, {@code &quot;p1&quot;} and {@code &quot;P1&quot;} all mean the same label to a model. */
     private static String normaliseLabel(String source) {
-<span class="fc bfc" id="L148" title="All 4 branches covered.">        if (source == null || source.isBlank()) {</span>
-<span class="fc" id="L149">            return null;</span>
+<span class="fc bfc" id="L150" title="All 4 branches covered.">        if (source == null || source.isBlank()) {</span>
+<span class="fc" id="L151">            return null;</span>
         }
-<span class="fc" id="L151">        String cleaned = source.strip().toUpperCase(Locale.ROOT);</span>
-<span class="fc bfc" id="L152" title="All 4 branches covered.">        if (cleaned.startsWith(&quot;[&quot;) &amp;&amp; cleaned.endsWith(&quot;]&quot;)) {</span>
-<span class="fc" id="L153">            cleaned = cleaned.substring(1, cleaned.length() - 1).strip();</span>
+<span class="fc" id="L153">        String cleaned = source.strip().toUpperCase(Locale.ROOT);</span>
+<span class="fc bfc" id="L154" title="All 4 branches covered.">        if (cleaned.startsWith(&quot;[&quot;) &amp;&amp; cleaned.endsWith(&quot;]&quot;)) {</span>
+<span class="fc" id="L155">            cleaned = cleaned.substring(1, cleaned.length() - 1).strip();</span>
         }
-<span class="fc bfc" id="L155" title="All 2 branches covered.">        return cleaned.isBlank() ? null : cleaned;</span>
+<span class="fc bfc" id="L157" title="All 2 branches covered.">        return cleaned.isBlank() ? null : cleaned;</span>
     }
 
     private String stripMarkers(String text) {
-<span class="fc" id="L159">        return BRACKETED.matcher(text).replaceAll(&quot;&quot;);</span>
+<span class="fc" id="L161">        return BRACKETED.matcher(text).replaceAll(&quot;&quot;);</span>
     }
 
     /** The model's own answer to the language question, kept honest with an allowlist. */
     private static String language(String reported) {
-<span class="fc bfc" id="L164" title="All 2 branches covered.">        if (reported == null) {</span>
-<span class="fc" id="L165">            return &quot;de&quot;;</span>
+<span class="fc bfc" id="L166" title="All 2 branches covered.">        if (reported == null) {</span>
+<span class="fc" id="L167">            return &quot;de&quot;;</span>
         }
-<span class="fc" id="L167">        String lower = reported.strip().toLowerCase(Locale.ROOT);</span>
-<span class="fc bfc" id="L168" title="All 2 branches covered.">        return lower.startsWith(&quot;en&quot;) ? &quot;en&quot; : &quot;de&quot;;</span>
+<span class="fc" id="L169">        String lower = reported.strip().toLowerCase(Locale.ROOT);</span>
+<span class="fc bfc" id="L170" title="All 2 branches covered.">        return lower.startsWith(&quot;en&quot;) ? &quot;en&quot; : &quot;de&quot;;</span>
     }
 
     private static double round(double value) {
-<span class="fc" id="L172">        return Math.round(value * 10_000d) / 10_000d;</span>
+<span class="fc" id="L174">        return Math.round(value * 10_000d) / 10_000d;</span>
     }
 
     private static String firstChars(String content) {
-<span class="fc bfc" id="L176" title="All 2 branches covered.">        if (content == null) {</span>
-<span class="fc" id="L177">            return &quot;(null)&quot;;</span>
+<span class="fc bfc" id="L178" title="All 2 branches covered.">        if (content == null) {</span>
+<span class="fc" id="L179">            return &quot;(null)&quot;;</span>
         }
-<span class="fc bfc" id="L179" title="All 2 branches covered.">        return content.length() &lt;= 300 ? content : content.substring(0, 300) + &quot;…&quot;;</span>
+<span class="fc bfc" id="L181" title="All 2 branches covered.">        return content.length() &lt;= 300 ? content : content.substring(0, 300) + &quot;…&quot;;</span>
     }
 
     // -----------------------------------------------------------------------------------------
@@ -185,22 +187,22 @@ import java.util.regex.Pattern;
     // -----------------------------------------------------------------------------------------
 
     @JsonIgnoreProperties(ignoreUnknown = true)
-<span class="fc" id="L188">    record GroundedAnswer(@JsonProperty(&quot;answer_language&quot;) String answerLanguage, List&lt;Claim&gt; claims) {</span>
+<span class="fc" id="L190">    record GroundedAnswer(@JsonProperty(&quot;answer_language&quot;) String answerLanguage, List&lt;Claim&gt; claims) {</span>
 
         @JsonIgnoreProperties(ignoreUnknown = true)
-<span class="fc" id="L191">        record Claim(String text, String source) {</span>
+<span class="fc" id="L193">        record Claim(String text, String source) {</span>
         }
 
         List&lt;Claim&gt; safeClaims() {
-<span class="fc bfc" id="L195" title="All 2 branches covered.">            return claims == null ? List.of() : claims;</span>
+<span class="fc bfc" id="L197" title="All 2 branches covered.">            return claims == null ? List.of() : claims;</span>
         }
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)
-<span class="fc" id="L200">    record UngroundedAnswer(@JsonProperty(&quot;answer_language&quot;) String answerLanguage, List&lt;String&gt; steps) {</span>
+<span class="fc" id="L202">    record UngroundedAnswer(@JsonProperty(&quot;answer_language&quot;) String answerLanguage, List&lt;String&gt; steps) {</span>
 
         List&lt;String&gt; safeSteps() {
-<span class="fc bfc" id="L203" title="All 2 branches covered.">            return steps == null ? List.of() : steps;</span>
+<span class="fc bfc" id="L205" title="All 2 branches covered.">            return steps == null ? List.of() : steps;</span>
         }
     }
 }

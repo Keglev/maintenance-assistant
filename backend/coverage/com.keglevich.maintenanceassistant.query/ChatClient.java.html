@@ -62,13 +62,47 @@ interface ChatClient {
 
     /** Anything that stops a question being answered. */
     class ChatException extends RuntimeException {
-        ChatException(String message) {
-<span class="fc" id="L66">            super(message);</span>
-<span class="fc" id="L67">        }</span>
 
-        ChatException(String message, Throwable cause) {
-<span class="fc" id="L70">            super(message, cause);</span>
-<span class="fc" id="L71">        }</span>
+        /**
+         * What kind of failure this is, so a log line can be grouped without reading its message.
+         *
+         * &lt;p&gt;THE MESSAGE IS THE DIAGNOSIS AND THE KIND IS THE CLASS, and the two are not the same
+         * job. Every failure below leaves the application as one status — {@code
+         * PROVIDER_UNAVAILABLE}, deliberately, because what a caller needs to know is that
+         * retrying later is right. That collapse is correct for the caller and useless for
+         * whoever is reading the log afterwards: on 2026-08-26 an answer that hit the token cap
+         * and a provider that was genuinely down were the same line. The kind is what separates
+         * them, and it is an enum rather than a substring of the message because a message is
+         * prose and prose gets reworded.
+         */
+<span class="fc" id="L78">        enum Kind {</span>
+            /** {@code finish_reason=length}: the answer stopped at the cap and is unparseable. */
+<span class="fc" id="L80">            TRUNCATED,</span>
+            /** The model produced no usable content — usually a missing {@code reasoning_effort}. */
+<span class="fc" id="L82">            EMPTY,</span>
+            /** Nothing was served: connect refused, read timeout, reset, interrupted backoff. */
+<span class="fc" id="L84">            TRANSPORT,</span>
+            /** The provider refused the request: a 4xx that is not 429. Terminal. */
+<span class="fc" id="L86">            REJECTED,</span>
+            /** Something arrived and could not be turned into an answer. Paid for, unusable. */
+<span class="fc" id="L88">            UNREADABLE</span>
+        }
+
+        private final Kind kind;
+
+        ChatException(Kind kind, String message) {
+<span class="fc" id="L94">            super(message);</span>
+<span class="fc" id="L95">            this.kind = kind;</span>
+<span class="fc" id="L96">        }</span>
+
+        ChatException(Kind kind, String message, Throwable cause) {
+<span class="fc" id="L99">            super(message, cause);</span>
+<span class="fc" id="L100">            this.kind = kind;</span>
+<span class="fc" id="L101">        }</span>
+
+        public Kind kind() {
+<span class="fc" id="L104">            return kind;</span>
+        }
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.15.202606040825</span></div></body></html>

@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>RequestIdFilter.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">maintenance-assistant</a> &gt; <a href="index.source.html" class="el_package">com.keglevich.maintenanceassistant.web</a> &gt; <span class="el_source">RequestIdFilter.java</span></div><h1>RequestIdFilter.java</h1><pre class="source lang-java linenums">package com.keglevich.maintenanceassistant.web;
+
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import org.slf4j.MDC;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
+import org.springframework.stereotype.Component;
+import org.springframework.web.filter.OncePerRequestFilter;
+
+import java.io.IOException;
+import java.util.UUID;
+import java.util.regex.Pattern;
+
+/**
+ * One id per request, in every log line the request produces.
+ *
+ * &lt;p&gt;&lt;b&gt;What this is for.&lt;/b&gt; Diagnosing the incident of 2026-08-26 07:23 UTC meant lining up a
+ * Caddy access line and a backend WARN by their millisecond timestamps across two containers, and
+ * hoping no second request had arrived in between. This filter replaces that arithmetic with
+ * {@code grep}: every line a request produces carries the same id, and the client gets it back in
+ * the response header, so a user reporting &quot;nicht erreichbar&quot; can be asked for one string.
+ *
+ * &lt;p&gt;&lt;b&gt;Generated here, not only accepted from the edge.&lt;/b&gt; Caddy is a HAND-DEPLOYED file
+ * (OPS RULE 3) and its {@code header_up} rides with the next deploy that has a reason of its own,
+ * so an id must exist without it. Reading the header first and generating only when it is absent
+ * means correlation works backend-side from the first deploy and gets one hop wider, free, when
+ * the Caddyfile lands.
+ *
+ * &lt;p&gt;&lt;b&gt;The inbound header is validated rather than trusted.&lt;/b&gt; It reaches the log, and a log
+ * line assembled from client-controlled text is where log forging lives — a newline in this value
+ * would let a caller write a line of their own into the log. The pattern admits UUIDs and Caddy's
+ * own ids and nothing that can break a line; anything else is REPLACED rather than rejected,
+ * because a malformed correlation id is not a reason to fail a request that is otherwise fine.
+ *
+ * &lt;p&gt;&lt;b&gt;MDC is cleared in a finally.&lt;/b&gt; The container reuses threads, and an id left behind
+ * attaches itself to the next request that lands on the same one — which is worse than no id at
+ * all, because it is a wrong answer rather than a missing one.
+ *
+ * &lt;p&gt;ZERO BEHAVIOUR CHANGE: this filter adds a response header and touches nothing else. No status,
+ * no body, no route, and it never short-circuits the chain.
+ */
+@Component
+@Order(Ordered.HIGHEST_PRECEDENCE)
+<span class="fc" id="L47">public class RequestIdFilter extends OncePerRequestFilter {</span>
+
+    static final String HEADER = &quot;X-Request-Id&quot;;
+    static final String MDC_KEY = &quot;requestId&quot;;
+
+    /**
+     * What may be echoed back and written to a log: letters, digits, dot, underscore and hyphen,
+     * 8 to 64 characters. A UUID is 36 and Caddy's {@code http.request.uuid} is the same shape.
+     */
+<span class="fc" id="L56">    private static final Pattern ACCEPTABLE = Pattern.compile(&quot;[A-Za-z0-9._-]{8,64}&quot;);</span>
+
+    @Override
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
+                                    FilterChain chain) throws ServletException, IOException {
+<span class="fc" id="L61">        String requestId = acceptableOrGenerated(request.getHeader(HEADER));</span>
+<span class="fc" id="L62">        MDC.put(MDC_KEY, requestId);</span>
+        // Set before the chain runs, not after: a handler that commits the response early would
+        // otherwise send the headers before this one was added, and the id would be missing from
+        // exactly the responses most worth correlating.
+<span class="fc" id="L66">        response.setHeader(HEADER, requestId);</span>
+        try {
+<span class="fc" id="L68">            chain.doFilter(request, response);</span>
+        } finally {
+<span class="fc" id="L70">            MDC.remove(MDC_KEY);</span>
+        }
+<span class="fc" id="L72">    }</span>
+
+    private static String acceptableOrGenerated(String candidate) {
+<span class="fc bfc" id="L75" title="All 4 branches covered.">        return candidate != null &amp;&amp; ACCEPTABLE.matcher(candidate).matches()</span>
+<span class="fc" id="L76">                ? candidate</span>
+<span class="fc" id="L77">                : UUID.randomUUID().toString();</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.15.202606040825</span></div></body></html>

@@ -179,6 +179,15 @@ ADR-002-eu-hosted-llm-provider · maintenance-assistant Docs</title>
         <h2 id="decision">Decision</h2>
         <p><strong>Primary: IONOS AI Model Hub. Documented fallback:
         Nebius Token Factory.</strong></p>
+        <blockquote>
+        <p><strong>Note added 2026-08-27</strong> — the sentence above
+        is the decision as taken and stays as written. The fallback half
+        of it is <strong>superseded</strong>: Nebius retires the model
+        this ADR names on 2026-08-31, and the documented fallback is now
+        IONOS + <code>openai/gpt-oss-120b</code>. See <em>REVISION
+        2026-08-27</em> at the end of this file. The primary is
+        unchanged.</p>
+        </blockquote>
         <p><strong>Models</strong></p>
         <ul>
         <li><strong>Embeddings: <code>BAAI/bge-m3</code>, 1024
@@ -217,6 +226,17 @@ ADR-002-eu-hosted-llm-provider · maintenance-assistant Docs</title>
         it, it spends the entire output budget on its reasoning field
         and returns empty content.</li>
         </ol>
+        <blockquote>
+        <p><strong>Note added 2026-08-27</strong> — there are now
+        <strong>five</strong>. Two more were measured on 2026-08-26 and
+        are stated in <em>REVISION 2026-08-27</em> §6:
+        <code>openai/gpt-oss-120b</code> rejects
+        <code>reasoning_effort</code> with an HTTP 400, and
+        <code>Qwen/Qwen3.5-397B-A17B</code> returns HTTP 500 when
+        <code>reasoning_effort</code> and a strict
+        <code>json_schema</code> are sent together. The count “three”
+        above is the count as of 2026-08-06.</p>
+        </blockquote>
         <h2 id="evidence">Evidence</h2>
         <p>Measured in <a
         href="https://github.com/Keglev/maintenance-assistant/tree/main/spike/adr-002"><code>spike/adr-002/</code></a>
@@ -581,7 +601,16 @@ into Go struct field Embedding.data.embedding of type []float32</code></pre>
         claim-per-statement answer over four protocols is 481 tokens, so
         the cap is 1200. The cap is still runaway protection rather than
         a quality constraint, but the number was carried over unexamined
-        and would have failed the E-47 demo.</li>
+        and would have failed the E-47 demo. <em>Superseded 2026-08-26
+        as to the cap, not as to the reasoning: 481 was measured over a
+        ten-protocol corpus, and the re-measurement of 2026-08-26
+        (PROJECT-PHASES, diagnostics wave A3) puts the deployed model’s
+        95th percentile at 575 and its maximum at 586 over 21 samples.
+        The cap is 2100 since #112 and is sized for the documented
+        fallback, not for the incumbent. The sentence above stays
+        because the argument it makes — a cap measured on the wrong
+        prompt does not transfer — is exactly the argument that moved
+        the number again.</em></li>
         </ol>
         <p><strong>Spring AI, revisited as promised and declined
         again.</strong> The note above said the chat path was where
@@ -688,8 +717,193 @@ into Go struct field Embedding.data.embedding of type []float32</code></pre>
         pay-as-you-go story. <em>Rejected.</em></li>
         <li><strong>Spring AI as a mandatory abstraction</strong> —
         desirable, but compatibility with Spring Boot 4.1 is still
-        unverified; see open question 5. <em>Conditional.</em></li>
+        unverified; see open question 5. <em>Conditional.</em> ##
+        REVISION 2026-08-27 — the documented fallback moves to a second
+        IONOS model</li>
         </ul>
+        <p>The decision of 2026-08-06 stands: IONOS AI Model Hub remains
+        primary, for the reasons measured in <em>Evidence</em>. What
+        changes is the <strong>fallback</strong>, which had stopped
+        existing without anyone noticing.</p>
+        <p>Every figure cited here is recorded in
+        <code>docs/PROJECT-PHASES.txt</code> under the diagnostics wave,
+        in the entries named — <strong>A1</strong> (provider catalogue),
+        <strong>A2</strong> (candidates at cap 1200),
+        <strong>A3</strong> (cap calibration and retest),
+        <strong>R1</strong> (the cap ruling) and <strong>R2</strong>
+        (the fallback ruling). The tables live there and are
+        deliberately not copied here: one home per fact.</p>
+        <h3 id="the-nebius-fallback-is-withdrawn">1. The Nebius fallback
+        is withdrawn</h3>
+        <p>Nebius Token Factory retires
+        <strong><code>meta-llama/Llama-3.3-70B-Instruct</code> on
+        2026-08-31</strong> (A1, from its August 2026 deprecation
+        notice). That is the model this ADR names as the fallback, so
+        the fallback was invalid as written — and it was announced by
+        email, which is how it nearly went unnoticed.</p>
+        <p>Three reasons, not one, and each stands on its own:</p>
+        <ol type="1">
+        <li><strong>The model retires.</strong> A documented fallback
+        that no longer exists is worse than none, because it is the plan
+        somebody reaches for during an incident.</li>
+        <li><strong>No Nebius credential exists.</strong> The only
+        LLM-family variables on the production host are
+        <code>LLM_BASE_URL</code>, <code>LLM_API_KEY</code>,
+        <code>LLM_CHAT_MODEL</code> and <code>LLM_EMBEDDING_MODEL</code>
+        (A1). Nebius’s own <code>/v1/models</code> could not be called,
+        so nothing about it can be verified from here.</li>
+        <li><strong>The swap would be a code change.</strong> This ADR’s
+        central claim about fallbacks is that the change is “base URL +
+        model names”. Two of the three replacements Nebius names —
+        <code>nvidia/Nemotron-3_5-    Lightning</code> and
+        <code>MiniMaxAI/MiniMax-M3</code> — fall outside
+        <code>isReasoningModel()</code>, whose predicate is a substring
+        match on <code>qwen3.5</code>. Adopting one means editing that
+        predicate, and <strong>the sentence no longer holds for the
+        model it named.</strong></li>
+        </ol>
+        <p><code>BAAI/bge-m3</code> appears in no Nebius notice (March,
+        June or August), so the embedding half of the old fallback was
+        never at risk. It is moot now regardless.</p>
+        <h3 id="the-documented-fallback-is-ionos-openaigpt-oss-120b">2.
+        The documented fallback is IONOS +
+        <code>openai/gpt-oss-120b</code></h3>
+        <p>Ruled 2026-08-26 (<strong>R2</strong>) and effective since
+        <strong>R1</strong> shipped in #112.</p>
+        <p><strong>It was chosen by measurement against this
+        application’s answer contract, never by name.</strong> It
+        qualified on 2026-08-26 at a cap of 2100 or more
+        (<strong>A3</strong>: 21 of 21 completions finished with
+        <code>finish_reason=stop</code>, worst latency 9.1 s against
+        NFR-4’s 30 s ceiling, 95th percentile 1642 completion tokens)
+        and it <strong>failed at the old cap of 1200</strong>
+        (<strong>A2</strong>: it truncated the grounded case in two runs
+        of three). That is why the cap ruling and the fallback ruling
+        are one decision: naming a model that has been measured not to
+        work at the deployed cap would be documenting a plan that cannot
+        be executed.</p>
+        <p><strong>The switch, in full.</strong> It remains a
+        configuration change:</p>
+        <ol type="1">
+        <li><code>LLM_CHAT_MODEL=openai/gpt-oss-120b</code> in
+        <code>/opt/maintenance-assistant/.env.prod</code>.</li>
+        <li>Restart the backend — a hand-deployed file, so <strong>OPS
+        RULE 3</strong> applies: back the file up first, and the change
+        is not live until the container is recreated.</li>
+        <li><strong>Verify by hand, in the browser, not by running the
+        harness.</strong> <code>QueryDemoVerificationIT</code> points at
+        a local database and the demo profile; against production it
+        would prove nothing about the deployment and would spend real
+        budget doing it. Ask the three demo questions as a Techniker:
+        <ul>
+        <li><em>“Presse kommt nicht auf Druck, Fehler E-47, was
+        tun?”</em> on <strong>PR-03</strong> — expect Mode A, with
+        citations that open.</li>
+        <li><em>“Band läuft nach rechts aus dem Lauf, Material fällt
+        herunter”</em> on <strong>FB-04</strong> — expect Mode A in
+        German over an English protocol.</li>
+        <li><em>“Dosierung ist ungenau, die Füllmenge schwankt”</em> on
+        <strong>AB-02</strong> — expect the labelled Mode B card and no
+        citations.</li>
+        </ul></li>
+        </ol>
+        <p><strong>Cost is close to neutral.</strong>
+        <code>openai/gpt-oss-120b</code> is $0.17 input / $0.71 output
+        per million tokens against the incumbent’s $0.71 / $0.71, but it
+        emits roughly 2.8× the tokens (A3), so the cheaper input rate is
+        spent on the longer answer rather than saved.</p>
+        <p><strong>Reasoning control: the predicate stays exactly as it
+        is.</strong> <code>gpt-oss-120b</code> <strong>rejects</strong>
+        <code>reasoning_effort</code> with
+        <code>HTTP 400 — "Harmony does not support reasoning_effort='none'"</code>,
+        so it must NOT match <code>isReasoningModel()</code>, and it
+        does not. Widening the predicate to cover it would turn a
+        working model into a 400. Measured, not assumed (A2).</p>
+        <h3 id="the-gap-this-leaves-stated-rather-than-implied">3. The
+        gap this leaves, stated rather than implied</h3>
+        <p><strong>There is no tested fallback for a full IONOS
+        outage.</strong> Both models now named — primary and fallback —
+        are served by one provider from one gateway. That is a single
+        point of failure, and it is written down here because a risk
+        that is recorded is a risk somebody can decide about, while one
+        implied by an out-of-date fallback is a trap.</p>
+        <p>Two candidates were measured and rejected on 2026-08-26;
+        neither is a fallback:</p>
+        <ul>
+        <li><strong><code>Qwen/Qwen3.5-397B-A17B</code></strong> — IONOS
+        returns <strong>HTTP 500</strong> for every request that carries
+        both <code>reasoning_effort:"none"</code> and a strict
+        <code>json_schema</code>, which is exactly the body this
+        application sends. Deterministic across ~20 requests, with two
+        controls isolating it to the combination. A support ticket is
+        drafted (<strong>A5</strong>). Do not re-measure until IONOS
+        answers.</li>
+        <li><strong><code>mistralai/Mistral-Small-24B-Instruct</code></strong>
+        — <strong>six of fifteen cases breached NFR-4’s 30 s</strong>,
+        the worst at 81.9 s, and one run hit the client’s own 45 s
+        timeout twice. It never came close to the token cap; latency
+        alone disqualifies it, and a larger cap cannot make a model
+        faster.</li>
+        </ul>
+        <h3 id="pricing-correction-the-eur-argument-is-withdrawn">4.
+        Pricing correction — the EUR argument is withdrawn</h3>
+        <p>The decision above says IONOS “prices in
+        <strong>EUR</strong>, which removes FX noise from a
+        €-denominated cost story”. <strong>That is not true
+        today.</strong> IONOS quotes AI Model Hub tokens in
+        <strong>USD</strong>, and the page does not localise: fetched on
+        2026-08-26 with <code>Accept-Language: de</code> and with
+        <code>en</code>, it returned byte-identical content with the
+        same <code>$</code> figures (A3, M5).</p>
+        <p><strong>The EUR argument is withdrawn. It changes nothing
+        else.</strong> The Berlin (<code>de-txl</code>) data centre, the
+        GDPR and NFR-1 residency argument, the multilingual embedding
+        requirement, the cross-language retrieval measurement and the
+        NFR-4 latency all stand, and they are what decided this ADR. A
+        reason that stopped being true has to be corrected where it is
+        written, not left standing because the conclusion survives
+        it.</p>
+        <h3 id="monitoring-the-catalogue-is-watched-now">5. Monitoring —
+        the catalogue is watched now</h3>
+        <p><code>.github/workflows/catalogue-watch.yml</code> runs
+        monthly (06:17 UTC on the 1st) and on demand, and fails when
+        <code>meta-llama/Llama-3.3-70B-Instruct</code>,
+        <code>BAAI/bge-m3</code> or <code>openai/gpt-oss-120b</code>
+        stops being listed.</p>
+        <p><strong>It watches for an absence because absence is the only
+        signal there is.</strong> Every entry of IONOS’
+        <code>/v1/models</code> carries exactly <code>created</code>,
+        <code>id</code>, <code>object</code> and <code>owned_by</code> —
+        no lifecycle field, no retirement date, and <code>created</code>
+        is the response timestamp rather than a per-model date (A1). The
+        retirement path is a documentation page and an email, so a red
+        run means <em>read <a
+        href="https://docs.ionos.com/cloud/ai/ai-model-hub/models">the
+        models page</a> and open a ledger row</em>, never <em>production
+        is down</em>.</p>
+        <h3 id="the-caveats-are-now-five">6. The caveats are now
+        five</h3>
+        <p>The <em>Decision</em> section lists three measured caveats
+        the code must carry. The measurements of 2026-08-26 add two,
+        both about the same parameter and pulling in opposite
+        directions:</p>
+        <ol start="4" type="1">
+        <li><strong><code>openai/gpt-oss-120b</code> rejects
+        <code>reasoning_effort</code> entirely</strong>, with
+        <code>HTTP 400 "Harmony does not    support reasoning_effort='none'"</code>.
+        The reasoning-model predicate must not match it.</li>
+        <li><strong><code>Qwen/Qwen3.5-397B-A17B</code> returns
+        <code>HTTP 500</code> when <code>reasoning_effort</code> and a
+        strict <code>json_schema</code> are sent together</strong> on
+        the IONOS gateway, while either alone succeeds. Caveat 3 remains
+        true of that model — it <em>is</em> a reasoning model and does
+        need the parameter — which is what makes the combination
+        unusable rather than merely awkward.</li>
+        </ol>
+        <p>Together they say something worth carrying beyond these two
+        models: <strong><code>reasoning_effort</code> is a per-model
+        property, measured per candidate, and never inferred from a
+        family name.</strong></p>
       </article>
     </main>
 
@@ -724,7 +938,28 @@ into Go struct field Embedding.data.embedding of type []float32</code></pre>
       risk closed</a></li>
       </ul></li>
       <li><a href="#alternatives-considered"
-      id="toc-alternatives-considered">Alternatives considered</a></li>
+      id="toc-alternatives-considered">Alternatives considered</a>
+      <ul>
+      <li><a href="#the-nebius-fallback-is-withdrawn"
+      id="toc-the-nebius-fallback-is-withdrawn">1. The Nebius fallback
+      is withdrawn</a></li>
+      <li><a href="#the-documented-fallback-is-ionos-openaigpt-oss-120b"
+      id="toc-the-documented-fallback-is-ionos-openaigpt-oss-120b">2.
+      The documented fallback is IONOS +
+      <code>openai/gpt-oss-120b</code></a></li>
+      <li><a href="#the-gap-this-leaves-stated-rather-than-implied"
+      id="toc-the-gap-this-leaves-stated-rather-than-implied">3. The gap
+      this leaves, stated rather than implied</a></li>
+      <li><a href="#pricing-correction-the-eur-argument-is-withdrawn"
+      id="toc-pricing-correction-the-eur-argument-is-withdrawn">4.
+      Pricing correction — the EUR argument is withdrawn</a></li>
+      <li><a href="#monitoring-the-catalogue-is-watched-now"
+      id="toc-monitoring-the-catalogue-is-watched-now">5. Monitoring —
+      the catalogue is watched now</a></li>
+      <li><a href="#the-caveats-are-now-five"
+      id="toc-the-caveats-are-now-five">6. The caveats are now
+      five</a></li>
+      </ul></li>
       </ul></li>
       </ul>
     </nav>

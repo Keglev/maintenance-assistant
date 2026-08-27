@@ -820,3 +820,35 @@ Status: v1.3.1 released; refactor phase, Part 3 closed 2026-08-26; diagnostics w
   application.yml and nowhere else — not in docker-compose.prod.yml, not in .env.prod.example, and
   not in the host's .env.prod. The default is what production runs, so a normal image deploy carries
   it and OPS RULE 3 does not apply.
+- THE DOCUMENTED FALLBACK IS WRITTEN DOWN AND THE CATALOGUE IS WATCHED — 2026-08-27 (W-4, #113),
+  which closes the diagnostics wave and C31, the row that opened it. ADR-002 carries a dated
+  REVISION 2026-08-27: Nebius withdrawn (its chat model retires 2026-08-31, no credential exists,
+  and two of its three suggested replacements fall outside the reasoning-model predicate, so the
+  swap would be a CODE change and the ADR's "base-url + model change" sentence no longer holds for
+  the model it named); IONOS + openai/gpt-oss-120b documented in its place, with the switch spelled
+  out and verified BY HAND in the browser rather than by pointing the demo harness at production,
+  which would prove nothing about the deployment and spend real budget doing it.
+  THE GAP IS STATED RATHER THAN IMPLIED: both models are now served by one provider from one
+  gateway, so there is no tested fallback for a full IONOS outage. A risk that is recorded is one
+  somebody can decide about; one implied by an out-of-date fallback is a trap.
+  THE EUR ARGUMENT IS WITHDRAWN — IONOS quotes AI Model Hub tokens in USD and the page does not
+  localise. Berlin, GDPR, the multilingual embedding requirement and the NFR-4 latency are what
+  decided the ADR and all stand. A reason that stopped being true is corrected where it is written,
+  not left standing because the conclusion survives it.
+  THE CAVEAT COUNT IS NOW FIVE, and the two new ones are the same parameter pulling opposite ways:
+  gpt-oss-120b REJECTS reasoning_effort with an HTTP 400, and Qwen3.5-397B returns HTTP 500 when
+  reasoning_effort and a strict json_schema are sent together. What travels beyond those two models
+  is the rule: reasoning_effort is a per-model property, measured per candidate, never inferred
+  from a family name.
+- A MONTHLY JOB WATCHES FOR AN ABSENCE, because absence is the only signal the provider offers.
+  catalogue-watch.yml (2026-08-27) fails when Llama-3.3-70B, bge-m3 or gpt-oss-120b stops being
+  listed in the IONOS catalogue. IONOS' /v1/models carries no lifecycle field, no deprecation flag
+  and no retirement date — `created` is the response timestamp, identical for every entry — so a
+  model going away is visible only as an id that stopped appearing. Retirements arrive by email and
+  on a documentation page, which is exactly how the Nebius one nearly went unnoticed.
+  A RED RUN IS EARLY WARNING, NEVER AN OUTAGE ALARM: it means read the IONOS models page and open a
+  ledger row. Nothing pages anyone, and the deployed backend keeps calling whatever it is
+  configured with. The job takes no checkout and uses no third-party action, so it pins nothing.
+  IT EARNED ITS KEEP BEFORE IT EVER RAN: the catalogue was re-fetched on 2026-08-27 and had already
+  moved — 21 ids against the 20 recorded the previous day, one added, none removed. One day, one
+  change.

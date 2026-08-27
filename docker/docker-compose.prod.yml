@@ -11,6 +11,21 @@
 #
 # Configuration lives in .env.prod, which is never committed — see
 # .env.prod.example for the full list.
+#
+# MEMORY LIMITS: THE TWO JVMs ONLY, and that is the whole rule rather than an
+# omission. A runtime that sizes itself as a PERCENTAGE OF VISIBLE RAM will take
+# a percentage of the HOST when no cgroup limit exists, and both Java services
+# here do exactly that. Nothing else in this stack behaves that way:
+#   - postgres  sizes from shared_buffers and leans on the kernel page cache,
+#               which a cgroup limit counts as usage; capping it would force
+#               premature reclaim on the one container whose failure loses data.
+#   - caddy     is Go, 66 MiB measured, with no RAM-proportional sizing — and it
+#               is the process that has to survive in order to answer at all.
+#   - frontend  is nginx over a static bundle, 4.75 MiB measured.
+# Measured 2026-08-27; the arithmetic is on each of the two services below.
+#
+# `deploy.resources.limits` IS honoured by `docker compose up` from Compose v2
+# onward — it is not a Swarm-only key. The host runs Compose v5.4.0.
 
 name: maintenance-assistant
 
@@ -60,6 +75,30 @@ services:
     image: ${BACKEND_IMAGE:-ghcr.io/keglev/maintenance-assistant/backend:latest}
     container_name: maintenance-backend
     restart: unless-stopped
+    # --- MEMORY LIMIT — measured on the CX33, 2026-08-27 ----------------------
+    # `docker stats --no-stream` reported 301.9 MiB for this container against a
+    # LIMIT of 7.565 GiB, which is the host's own RAM — that is no limit at all,
+    # and `docker inspect --format '{{.HostConfig.Memory}}'` returned 0 to say so.
+    #
+    # WHY A LIMIT NOW. This container runs `java -XX:MaxRAMPercentage=75.0`
+    # (read from /proc/1/cmdline), and UseContainerSupport applies that
+    # percentage to the CGROUP LIMIT ONLY WHEN ONE EXISTS. With none it applies
+    # it to the host, so the measured ceiling today is MaxHeapSize
+    # 6,094,323,712 B = 5,812 MiB — one JVM entitled to three quarters of the
+    # machine. Keycloak's is 5,424 MiB by the same mechanism. Two JVMs may
+    # therefore claim ~11 GiB on a 7.5 GiB host with NO SWAP (`swapon --show`
+    # prints nothing), and a THIRD is arriving: inventory-service joins this host
+    # as a second compose project. Nothing has broken yet only because neither
+    # heap has ever been asked to fill. That is luck, not design.
+    #
+    # THE NUMBER: 301.9 MiB measured, rounded up to the next 512 MiB (= 512) plus
+    # 512 MiB of headroom = 1,024 MiB, raised to the 1.5 GiB floor this stack
+    # sets for a Spring Boot service. The limit then feeds back into the heap:
+    # 75% of 1,536 MiB = 1,152 MiB, still 3.8x what the whole container uses now.
+    deploy:
+      resources:
+        limits:
+          memory: 1536m
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB}
       SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
@@ -128,6 +167,24 @@ services:
     container_name: maintenance-keycloak
     restart: unless-stopped
     command: ["start", "--import-realm"]
+    # --- MEMORY LIMIT — measured on the CX33, 2026-08-27 ----------------------
+    # 686.1 MiB measured (`docker stats`), + 256 MiB = 942 MiB, rounded up to the
+    # next 128 MiB. Same mechanism as the backend above: the image's launcher
+    # sets -XX:MaxRAMPercentage=70 with InitialRAMPercentage=50 — read from
+    # /proc/1/cmdline — so today's ceiling is MaxHeapSize 5,687,476,224 B =
+    # 5,424 MiB. Under this limit it becomes 717 MiB, and the JVM commits 512 MiB
+    # of heap at startup instead of growing lazily into it.
+    #
+    # THE TIGHTER OF THE TWO, WRITTEN DOWN RATHER THAN LEFT TO BE DISCOVERED:
+    # 1,024 MiB leaves about 338 MiB over today's resident set for metaspace,
+    # code cache, threads and direct buffers. If
+    # `docker inspect maintenance-keycloak --format '{{.State.OOMKilled}}'` ever
+    # returns true, THIS number is the one to raise — 1280m, then 1536m — and not
+    # the JVM percentage, which belongs to the image and would drift on upgrade.
+    deploy:
+      resources:
+        limits:
+          memory: 1024m
     environment:
       KC_DB: postgres
       KC_DB_URL: jdbc:postgresql://postgres:5432/${KC_DB_NAME}

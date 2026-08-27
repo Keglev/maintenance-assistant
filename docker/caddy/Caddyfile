@@ -183,3 +183,13 @@
 		format console
 	}
 }
+
+# ---------------------------------------------------------------------------
+# SmartSupplyPro backend (github.com/Keglev/inventory-service). Lives in its own
+# compose project, /opt/smartsupplypro, and joins this project's network so the
+# container name resolves here. Only Caddy is shared between the two projects.
+# ---------------------------------------------------------------------------
+api.smartsupplypro.de {
+	encode gzip
+	reverse_proxy ssp-backend:8081
+}

@@ -38,6 +38,9 @@ Guided questions complete; v1.4.0 on deploy after Carlos's browser check
 
 Landing pages rewritten; next: Playwright upgrade, ledger rotation,
 Part 4 survey.
+
+Shared host prepared in #119 (api.smartsupplypro.de, JVM memory limits);
+NOT DEPLOYED — the checklist is in the PR and the OPS entry below.
 THE VISUAL CHECK WAS RED BECAUSE THE BASELINE STEP WAS BLOCKED on #117,
 not by design: the pinned image would not pull, so no baseline could be
 produced and the wording "by design" claimed a deliberateness the situation
@@ -55,6 +58,18 @@ v1.2 wave. The bump went 1.1.0 -> 1.3.0 and 1.2.0 is simply skipped;
 the fix agreed at the time was the release drill checking the dialog
 AFTER deploy, not a retro-tag. The full note is in the v1.3.0 progress
 entry below.
+AND THE DRILL DID NOT CATCH THE NEXT ONE: 1.3.x WAS NEVER SET IN
+package.json EITHER. v1.3.1 and v1.3.2 were both tagged with the file
+still reading 1.3.0, so the Settings dialog has under-reported through
+two more releases — the same defect, twice, after the fix that was
+supposed to end it. CORRECTED TO 1.4.0 WITH #119, ahead of the tag
+rather than behind it: guided questions merged in #117 and v1.4.0 is
+the next tag, so the file now names where the release is going. That
+leaves a window in which the dialog claims an untagged version, which
+is the smaller wrong and closes itself on the next deploy. THE DRILL
+IS STILL THE FIX and it is still not working — checking the dialog
+after deploy catches this only if somebody looks, and nobody did,
+twice.
 
 THE REFACTOR PHASE IS ACTIVE. Six read-only surveys in a fixed order,
 each fixing what it finds before the next begins, DOCS DELIBERATELY
@@ -3362,6 +3377,12 @@ rather than given one afterwards.
          waiting — the Caddyfile header_up from W-2 (#111), parked in the
          standing list. DO BOTH IN THE SAME SESSION when that happens:
          two hand-deployed files, one login, one force-recreate.
+         THE SESSION NOW EXISTS: DEPLOYS with the shared-host hand-deploy,
+         checklist in the OPS entry of 2026-08-27 below and in #119's
+         body, where deleting these three lines is step (d). It turns
+         out to be THREE rows riding along and not two — the compose
+         comment parked 2026-08-24 makes a third, because the memory
+         limits put that file on the wire as well.
          AS ORIGINALLY WRITTEN 2026-08-26, kept: WATCH. Inert today
          because compose spells them with `:-`. Deleted at the next
          hand-deploy that has a reason of its own, per .env.prod.example
@@ -4006,6 +4027,10 @@ STANDING LIST — small, always visible, never a release of its own:
     522396cecbd5, upstream X-Request-Id the same string. So no access-log
     change is needed and none was made. The field to grep on the Caddy
     side is `uuid`, not the header name, and the Caddyfile says so.
+    DEPLOYS with the shared-host hand-deploy, checklist in the OPS entry
+    of 2026-08-27 below and in #119's body — step (c) copies the whole
+    Caddyfile, so this rides in with the site block that gave the login
+    a reason of its own. Still parked until that session runs.
 
     PARKED 2026-08-24 — THE COMPOSE COMMENT NOW REFERENCES
     domain-model.md. docker/docker-compose.prod.yml is hand-deployed
@@ -4016,6 +4041,13 @@ STANDING LIST — small, always visible, never a release of its own:
     with the next hand-deploy that has one, never on its own — a server
     login and a force-recreate to correct a comment is the same trade
     the locale-select entry above refuses.
+    DEPLOYS with the shared-host hand-deploy, checklist in the OPS entry
+    of 2026-08-27 below and in #119's body. The memory limits put the
+    compose file on the wire for a reason that stands on its own, and
+    this comment is already in the copy step (c) takes across. THREE
+    ROWS RIDE ALONG WITH THAT SESSION, NOT THE TWO THE PLAN NAMED —
+    this one, the Caddyfile header_up above, and the empty LLM_*= lines
+    in .env.prod.
 
     The original entries, kept as written:
   - v1.1.1 POLISH CANDIDATES, parked; they ride into v1.2 unless
@@ -4623,6 +4655,132 @@ OPEN ITEMS carried forward (not blockers, do not lose):
   `up -d --force-recreate caddy`. Never `mv`. The same trap applies to
   any single-file bind mount — frontend-config.json is the other one
   in this stack. DOCS DEBT: DONE — arc42 §7.4, next to the .env rule.
+- OPS — THE HOST IS SHARED FROM 2026-08-27, and the coupling is one
+  derived string. The CX33 also hosts github.com/Keglev/inventory-service
+  (the SmartSupplyPro backend) as a SECOND COMPOSE PROJECT under
+  /opt/smartsupplypro. api.smartsupplypro.de terminates on this Caddy and
+  proxies to ssp-backend:8081. CADDY IS THE ONLY SHARED COMPONENT:
+  separate databases, separate volumes, separate lifecycles, separate
+  repositories.
+  THE NETWORK NAME IS NOT CONFIGURED ANYWHERE, IT FALLS OUT OF `name:`.
+  docker-compose.prod.yml declares no networks: block, so Compose names
+  the default network maintenance-assistant_default — the project name
+  plus a suffix. The OTHER project declares it external and joins it;
+  this project's compose file is untouched by the arrangement, which is
+  the decision: a shared network declared HERE would make this stack's
+  startup depend on a project it does not own. THE TRAP: renaming
+  `name:` renames the network and breaks the neighbour SILENTLY, in a
+  repository whose maintainer is not reading this one. arc42 7.1 now
+  says so where somebody would look, and docker/README.md says the same
+  beside the Caddyfile row.
+  PREPARED IN #119, NOT DEPLOYED. Both files are hand-deployed (OPS
+  RULE 1), so the merge changes nothing on the server.
+
+  THE HAND-DEPLOY CHECKLIST, 2026-08-27, one session and one login. It
+  carries THREE parked rows along with it, not the two the plan named:
+  the Caddyfile header_up (W-2, #111), the three empty LLM_*= lines in
+  .env.prod, and the compose comment parked 2026-08-24 that still spells
+  DOMAIN-MODEL.md — the compose file is on the wire for the limits
+  anyway, so the third lands for free.
+    (a) DNS: `dig +short api.smartsupplypro.de` -> 2.28.57.15. ALREADY
+        CORRECT, measured 2026-08-27 — this is a verification and not a
+        change, so there is no propagation wait in this deploy. Today
+        http:// answers 308 (Caddy's blanket redirect) and https:// FAILS
+        THE TLS HANDSHAKE, because no site block means no certificate for
+        that name. That is the expected "before".
+    (b) .bak both files on the host, timestamped.
+    (c) cp OVER both — OPS RULE 3, never mv. The Caddyfile is a
+        single-file bind mount and tracks the INODE; mv gives it a new one
+        and the container keeps reading the old file while validate and
+        reload both report success.
+    (d) .env.prod: delete the three empty LLM_*= lines.
+    (e) `docker compose -f docker-compose.prod.yml --env-file .env.prod
+        config -q`. NAME BOTH FILES: without --env-file this prints a wall
+        of "variable is not set" and an `up -d` in that form would
+        recreate containers with blank secrets.
+    (f) `docker exec maintenance-caddy caddy validate --config
+        /etc/caddy/Caddyfile`, then the same with `caddy reload`. No
+        downtime.
+    (g) `docker compose ... up -d backend keycloak` to apply the limits.
+        EXPECTED DOWNTIME ~40 s for the backend; Keycloak is longer — a
+        60 s healthcheck start period plus the realm import. Sign-in is
+        unavailable during that window and EXISTING SESSIONS SURVIVE,
+        because the backend validates against a cached JWKS. Not during a
+        demo.
+    (h) VERIFY: the four maintenance URLs 200 (app root, /api/health,
+        /swagger-ui/index.html, the auth realm); x-request-id present on
+        /api/health, which is the W-2 row landing; `docker inspect`
+        HostConfig.Memory = 1610612736 and 1342177280; the heap the
+        comments predict, `java $JAVA_OPTS -XX:+PrintFlagsFinal -version |
+        grep MaxHeapSize` -> 1207959552; and the Caddy log carrying a
+        certificate for api.smartsupplypro.de.
+        A 502 ON api.smartsupplypro.de IS THE SUCCESS SIGNAL, not a
+        failure: it means the block is live and holding a certificate and
+        only the upstream is absent. A CERTIFICATE error means the file is
+        stale — go back to (c) and look for the mv trap.
+    (i) AFTER 24 HOURS, one look at whether Keycloak's limit was too
+        tight: `docker inspect maintenance-keycloak --format
+        '{{.State.OOMKilled}}'` and `docker stats --no-stream`.
+
+- OPS — THE TWO JVMs WERE UNCAPPED AND THAT WAS ALWAYS WRONG; the second
+  project only made it urgent. MEASURED 2026-08-27 on the host, read-only:
+  every container reported a LIMIT of 7.565 GiB, which is the host's own
+  RAM, and {{.HostConfig.Memory}} returned 0 to confirm there was no limit
+  at all. Resident: backend 301.9 MiB, keycloak 686.1 MiB, postgres
+  95.98 MiB, caddy 65.96 MiB, frontend 4.75 MiB. free -m: 7746 total.
+  swapon --show: NOTHING. THERE IS NO SWAP ON THIS HOST, so an
+  over-committed container is OOM-KILLED rather than slowed.
+  A JVM SIZES ITS HEAP FROM THE MEMORY IT CAN SEE, and UseContainerSupport
+  applies the percentage to the cgroup limit ONLY WHEN ONE EXISTS. With
+  none it uses the host. Backend runs -XX:MaxRAMPercentage=75.0 and
+  measured MaxHeapSize 6,094,323,712 B = 5,812 MiB; keycloak's image sets
+  70 and measured 5,687,476,224 B = 5,424 MiB. TWO JVMs ENTITLED TO ~11
+  GiB ON A 7.5 GiB MACHINE while using 988 MiB between them. Nothing had
+  broken because neither heap had ever been asked to fill — luck, not
+  design — and a third Spring Boot service was arriving.
+  A MEASUREMENT TRAP WORTH THE ROW: `docker exec ... java
+  -XX:+PrintFlagsFinal -version` starts a FRESH JVM that does NOT inherit
+  the container's JAVA_OPTS, so it reports the JDK default of 25%
+  (1,938 MiB) and not the running process's 75% (5,812 MiB). Both numbers
+  are believable and they differ by 3x. Read /proc/1/cmdline, or re-run
+  with $JAVA_OPTS expanded.
+  THE NUMBERS SET: backend 1536m (301.9 up to the next 512, plus 512
+  headroom = 1024, raised to this stack's 1.5 GiB floor); keycloak 1280m.
+  SETTING A LIMIT IS ALSO A HEAP DECISION: 75% of 1536 is a 1,152 MiB heap
+  and 70% of 1280 is 896 MiB, and both are in the compose comments so
+  nobody discovers them in production.
+  KEYCLOAK WAS 1024m FOR ONE DAY AND THE FORMULA IS WHAT WAS WRONG, not
+  the measurement. RSS + 256 MiB (686 + 256 = 942, up to the next 128)
+  sizes a process whose memory IS its resident set. A JVM is not that
+  process: the container limit is the INPUT to MaxRAMPercentage, so 1024m
+  would have entitled the HEAP ALONE to 717 MiB and left roughly 300 MiB
+  for metaspace, code cache, threads and direct buffers. Native memory
+  does not fit in what the heap declines to use. 1280m gives an 896 MiB
+  ceiling and about 380 MiB beside it.
+  THE FAILURE MODE IS WHY IT WAS RAISED BEFORE THE DEPLOY RATHER THAN
+  WATCHED AFTER IT: an over-committed container is OOM-KILLED on this
+  host — there is no swap — and a Keycloak restart logs every user out.
+  A limit that is probably fine is not a limit worth taking on the one
+  service whose failure is visible to everybody at once.
+  THE RULE THIS LEAVES BEHIND: SIZE A JVM CONTAINER FROM THE HEAP CEILING
+  THE PERCENTAGE WILL PRODUCE, NOT FROM THE RESIDENT SET IT HAPPENS TO
+  SHOW. The backend's 1536m survives it — 75% of 1536 is 1,152 MiB with
+  384 MiB beside it — because the 1.5 GiB floor had already overridden the
+  same too-tight arithmetic there.
+  NO LIMIT ON postgres, caddy OR frontend, and the rule is written once:
+  a limit goes where a runtime sizes itself from VISIBLE RAM. Postgres
+  does not — it sizes from shared_buffers and leans on the page cache a
+  cgroup limit would count as usage, on the one container whose failure
+  loses data.
+  NOT VERIFIED, and it cannot be from here: no limit was applied, so
+  1610612736, 1342177280 and the 1,152 MiB heap are arithmetic from
+  measured percentages rather than observations. ssp-backend:8081 was not
+  reached either — /opt holds only containerd and maintenance-assistant
+  today.
+  A SWAP FILE IS RECOMMENDED AND NOT CREATED. It is a host operation and
+  a judgement about whether a slow service beats a restarted one; arc42
+  7.1 records it as an open host-level consequence.
+
 - LLM_CHAT_MODEL empty default in docker-compose.prod.yml: FIXED in
   the query PR — it now repeats application.yml's real default
   (meta-llama/Llama-3.3-70B-Instruct), and LLM_CHAT_DAILY_CALL_BUDGET

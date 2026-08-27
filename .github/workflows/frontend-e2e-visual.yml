@@ -82,7 +82,7 @@ jobs:
           docker run --rm --network host \
             -v "${{ github.workspace }}/frontend:/work" -w /work \
             -e CI=1 -e E2E_REUSE_SERVER=1 \
-            mcr.microsoft.com/playwright:v1.56.0-noble \
+            mcr.microsoft.com/playwright:v1.62.1-noble \
             npx playwright test --grep @visual --reporter=list
 
       # THE DIFFS ARE THE DELIVERABLE OF A FAILED RUN. Playwright writes an expected, an actual and a

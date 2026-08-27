@@ -3727,6 +3727,29 @@ rather than given one afterwards.
         search-clamped photograph the ANSWER ELEMENT only
         (getByTestId('answer-mode-a')), so the chips are outside their
         frame and they should not move at all. TWO OF EIGHTEEN.
+        THE PREDICTION WAS WRONG AND CI SAID SO: SIX MOVED, NOT TWO.
+        Corrected here rather than quietly, because the difference is
+        the interesting part. The two page-level shots changed for the
+        reason predicted and the numbers say it plainly — 1280x1134
+        became 1280x1362, exactly the chips block's height. THE OTHER
+        FOUR KEPT THEIR DIMENSIONS EXACTLY and differ in about 1 % of
+        their pixels (3271 of them on the clamped pair).
+        THAT IS NOT A LEAK, AND THE PROOF IS STATIC: the change to
+        search-answer is additive INSIDE THE MODE B BRANCH — the whole
+        diff is one @if block after answer-mode-b, plus one CSS class
+        used only there. The Mode A element's markup and styles are
+        byte-identical, so nothing inside those four frames can have
+        rendered differently.
+        WHAT IS LEFT IS THE CAPTURE, not the page: the answer element
+        now sits 228 px further down, and an element screenshot is taken
+        after scrolling it into view — a different sub-pixel offset
+        shifts glyph antialiasing across every line of text, which is
+        what a diffuse 1 % looks like. NAMED BUT NOT CONFIRMED FROM THE
+        IMAGES: the diff artefact is 28 MB and would not download on the
+        same connection that would not pull the image. Whoever
+        regenerates should look at one diff PNG and confirm the
+        difference is spread over the text rather than concentrated in a
+        block — a block would mean something really did render.
         NO BASELINE COVERS MODE B, so the new protocol-count line has no
         visual baseline to move. Worth knowing rather than fixing here:
         ADR-007 chose baselines for CHURN, and the ungrounded card has

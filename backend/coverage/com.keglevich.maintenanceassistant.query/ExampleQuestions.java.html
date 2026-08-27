@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ExampleQuestions.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">maintenance-assistant</a> &gt; <a href="index.source.html" class="el_package">com.keglevich.maintenanceassistant.query</a> &gt; <span class="el_source">ExampleQuestions.java</span></div><h1>ExampleQuestions.java</h1><pre class="source lang-java linenums">package com.keglevich.maintenanceassistant.query;
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.stereotype.Service;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.UncheckedIOException;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
+import java.util.stream.Collectors;
+
+/**
+ * The questions a first-time reader is offered, per machine, per language (ADR-011).
+ *
+ * &lt;p&gt;&lt;b&gt;Why this is data and not a list in the frontend.&lt;/b&gt; Every example must reach a protocol —
+ * an example that lands on the ungrounded card teaches the opposite of the lesson it exists for —
+ * and what protocols exist is the backend's to know. A list in the Angular bundle would drift from
+ * the corpus silently and take a frontend deploy to correct a fact this side owns.
+ *
+ * &lt;p&gt;THE FILE IS VALIDATED AT STARTUP RATHER THAN AT FIRST REQUEST. A malformed resource or a
+ * machine number that no longer exists is a packaging error, and a packaging error should stop a
+ * deployment rather than surface as an empty picker to whoever clicks first.
+ *
+ * &lt;p&gt;&lt;b&gt;A machine with no entry gets an empty list, not an error.&lt;/b&gt; That is the ruled behaviour:
+ * where there is no question that works, the honest answer is to offer none, and the frontend shows
+ * no chips.
+ *
+ * &lt;p&gt;SIBLING, AND NOT THE SAME THING: {@code test/resources/retrieval/golden-questions.json} is
+ * ADR-008's ratified measurement set and keeps its deliberate Mode B cases. This file is canonical
+ * for what a user is offered; editing it is a product change.
+ */
+@Service
+public class ExampleQuestions implements InitializingBean {
+
+<span class="fc" id="L43">    private static final Logger log = LoggerFactory.getLogger(ExampleQuestions.class);</span>
+    private static final String RESOURCE = &quot;examples/example-questions.json&quot;;
+
+    private final MachineCatalog machines;
+    private final Map&lt;String, Questions&gt; byMachineNo;
+
+<span class="fc" id="L49">    ExampleQuestions(MachineCatalog machines) {</span>
+<span class="fc" id="L50">        this.machines = machines;</span>
+<span class="fc" id="L51">        this.byMachineNo = load();</span>
+<span class="fc" id="L52">    }</span>
+
+    /**
+     * Every example for one machine, or an empty pair.
+     *
+     * @param machineNo the plant identifier, as the resource file spells it
+     */
+    public Questions forMachine(String machineNo) {
+<span class="fc" id="L60">        return byMachineNo.getOrDefault(machineNo, Questions.EMPTY);</span>
+    }
+
+    /**
+     * Reads and parses the resource. A failure here fails the bean, and therefore the application.
+     */
+    private static Map&lt;String, Questions&gt; load() {
+<span class="fc" id="L67">        ClassPathResource resource = new ClassPathResource(RESOURCE);</span>
+<span class="fc" id="L68">        try (InputStream in = resource.getInputStream()) {</span>
+<span class="fc" id="L69">            Document document = new ObjectMapper().readValue(in, Document.class);</span>
+<span class="pc bpc" id="L70" title="3 of 6 branches missed.">            if (document == null || document.machines() == null || document.machines().isEmpty()) {</span>
+<span class="nc" id="L71">                throw new IllegalStateException(RESOURCE + &quot; parsed but carries no machines&quot;);</span>
+            }
+<span class="fc" id="L73">            return new TreeMap&lt;&gt;(document.machines());</span>
+<span class="nc" id="L74">        } catch (IOException e) {</span>
+            // Named rather than allowed to surface as a bean-creation stack: the one way this
+            // happens in practice is a resource that did not make it into the jar, and that
+            // sentence is the whole diagnosis.
+<span class="nc" id="L78">            throw new UncheckedIOException(&quot;cannot read &quot; + RESOURCE + &quot; from the classpath&quot;, e);</span>
+        }
+    }
+
+    /**
+     * Cross-checks the file against the machine table once the context is up.
+     *
+     * &lt;p&gt;&lt;b&gt;An unknown machine number FAILS the application; a machine table that cannot be read
+     * only WARNS.&lt;/b&gt; The asymmetry is the whole design of this method. A file naming a machine
+     * that does not exist is a real defect and is worth refusing to start over. Not being able to
+     * ASK is a different thing: an empty table is the ordinary state of a slice test that never ran
+     * Flyway, and the {@code test} profile has no database at all on purpose — so a hard failure
+     * here would make this bean impossible to load in every test that has nothing to do with it.
+     *
+     * &lt;p&gt;THE FILE ITSELF IS STILL VALIDATED HARD, in the constructor: a resource that does not
+     * parse, or does not reach the jar, fails the application whether a database exists or not.
+     * What is best-effort is only the part that needs somebody else's data.
+     */
+    @Override
+    public void afterPropertiesSet() {
+<span class="fc" id="L98">        int questions = byMachineNo.values().stream().mapToInt(Questions::size).sum();</span>
+
+        List&lt;String&gt; known;
+        try {
+<span class="fc" id="L102">            known = machines.findAll().stream().map(MachineCatalog.Machine::machineNo).toList();</span>
+<span class="fc" id="L103">        } catch (RuntimeException e) {</span>
+<span class="fc" id="L104">            log.warn(&quot;Example questions loaded ({} machines, {} questions); the machine table could &quot;</span>
+                    + &quot;not be read, so nothing was cross-checked: {}&quot;,
+<span class="fc" id="L106">                    byMachineNo.size(), questions, e.getMessage());</span>
+<span class="fc" id="L107">            return;</span>
+<span class="fc" id="L108">        }</span>
+
+<span class="fc bfc" id="L110" title="All 2 branches covered.">        if (known.isEmpty()) {</span>
+<span class="fc" id="L111">            log.warn(&quot;Example questions loaded ({} machines, {} questions) but the machine table is &quot;</span>
+<span class="fc" id="L112">                    + &quot;empty, so nothing was cross-checked&quot;, byMachineNo.size(), questions);</span>
+<span class="fc" id="L113">            return;</span>
+        }
+
+<span class="fc" id="L116">        Set&lt;String&gt; unknown = byMachineNo.keySet().stream()</span>
+<span class="pc bpc" id="L117" title="1 of 2 branches missed.">                .filter(machineNo -&gt; !known.contains(machineNo))</span>
+<span class="fc" id="L118">                .collect(Collectors.toCollection(java.util.LinkedHashSet::new));</span>
+<span class="pc bpc" id="L119" title="1 of 2 branches missed.">        if (!unknown.isEmpty()) {</span>
+<span class="nc" id="L120">            throw new IllegalStateException(RESOURCE + &quot; names machines that do not exist: &quot; + unknown);</span>
+        }
+
+<span class="fc" id="L123">        log.info(&quot;Example questions loaded: {} machines, {} questions ({} de, {} en)&quot;,</span>
+<span class="fc" id="L124">                byMachineNo.size(), questions,</span>
+<span class="fc" id="L125">                byMachineNo.values().stream().mapToInt(m -&gt; m.de().size()).sum(),</span>
+<span class="fc" id="L126">                byMachineNo.values().stream().mapToInt(m -&gt; m.en().size()).sum());</span>
+<span class="fc" id="L127">    }</span>
+
+    /** The file. {@code version} is read so a future shape change can be detected rather than guessed. */
+    @JsonIgnoreProperties(ignoreUnknown = true)
+<span class="fc" id="L131">    record Document(int version, Map&lt;String, Questions&gt; machines) {</span>
+    }
+
+    /**
+     * One machine's examples.
+     *
+     * @param de German questions, in the order the file lists them
+     * @param en English questions, likewise
+     */
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public record Questions(List&lt;Example&gt; de, List&lt;Example&gt; en) {
+
+<span class="fc" id="L143">        static final Questions EMPTY = new Questions(List.of(), List.of());</span>
+
+<span class="fc" id="L145">        public Questions {</span>
+<span class="pc bpc" id="L146" title="1 of 2 branches missed.">            de = de == null ? List.of() : List.copyOf(de);</span>
+<span class="pc bpc" id="L147" title="1 of 2 branches missed.">            en = en == null ? List.of() : List.copyOf(en);</span>
+<span class="fc" id="L148">        }</span>
+
+        int size() {
+<span class="fc" id="L151">            return de.size() + en.size();</span>
+        }
+    }
+
+    /**
+     * One example.
+     *
+     * @param question what the chip puts into the box
+     * @param source   the protocol this question was written against. Not shown to anyone: it is
+     *                 what lets a test fail when that protocol leaves the corpus, instead of the
+     *                 demo failing in front of a reader
+     */
+    @JsonIgnoreProperties(ignoreUnknown = true)
+<span class="fc" id="L164">    public record Example(String question, String source) {</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.15.202606040825</span></div></body></html>

@@ -4,6 +4,7 @@ import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -24,9 +25,9 @@ public class MachineCatalog {
 
     private final JdbcClient jdbc;
 
-<span class="fc" id="L27">    MachineCatalog(JdbcClient jdbc) {</span>
-<span class="fc" id="L28">        this.jdbc = jdbc;</span>
-<span class="fc" id="L29">    }</span>
+<span class="fc" id="L28">    MachineCatalog(JdbcClient jdbc) {</span>
+<span class="fc" id="L29">        this.jdbc = jdbc;</span>
+<span class="fc" id="L30">    }</span>
 
     /**
      * Every machine, ordered by the plant identifier.
@@ -35,18 +36,67 @@ public class MachineCatalog {
      * setting it models. Paging a picker that fits on one screen would be ceremony.
      */
     public List&lt;Machine&gt; findAll() {
-<span class="fc" id="L38">        return jdbc.sql(&quot;&quot;&quot;</span>
+<span class="fc" id="L39">        return jdbc.sql(&quot;&quot;&quot;</span>
                         SELECT id, machine_no, name, type, location
                         FROM machine
                         ORDER BY machine_no
                         &quot;&quot;&quot;)
-<span class="fc" id="L43">                .query((rs, rowNum) -&gt; new Machine(</span>
-<span class="fc" id="L44">                        rs.getObject(&quot;id&quot;, UUID.class),</span>
-<span class="fc" id="L45">                        rs.getString(&quot;machine_no&quot;),</span>
-<span class="fc" id="L46">                        rs.getString(&quot;name&quot;),</span>
-<span class="fc" id="L47">                        rs.getString(&quot;type&quot;),</span>
-<span class="fc" id="L48">                        rs.getString(&quot;location&quot;)))</span>
-<span class="fc" id="L49">                .list();</span>
+<span class="fc" id="L44">                .query((rs, rowNum) -&gt; new Machine(</span>
+<span class="fc" id="L45">                        rs.getObject(&quot;id&quot;, UUID.class),</span>
+<span class="fc" id="L46">                        rs.getString(&quot;machine_no&quot;),</span>
+<span class="fc" id="L47">                        rs.getString(&quot;name&quot;),</span>
+<span class="fc" id="L48">                        rs.getString(&quot;type&quot;),</span>
+<span class="fc" id="L49">                        rs.getString(&quot;location&quot;)))</span>
+<span class="fc" id="L50">                .list();</span>
+    }
+
+    /**
+     * One machine by its plant identifier, or empty.
+     *
+     * &lt;p&gt;By {@code machineNo} and not by id, because the caller that needs this is addressing a
+     * machine the way a person does — see {@code /api/machines/{machineNo}/examples}, whose
+     * resource file is hand-authored against plant identifiers (ADR-011).
+     */
+    public Optional&lt;Machine&gt; findByMachineNo(String machineNo) {
+<span class="pc" id="L61">        return jdbc.sql(&quot;&quot;&quot;</span>
+                        SELECT id, machine_no, name, type, location
+                        FROM machine
+                        WHERE machine_no = :machineNo
+                        &quot;&quot;&quot;)
+<span class="fc" id="L66">                .param(&quot;machineNo&quot;, machineNo)</span>
+<span class="pc" id="L67">                .query((rs, rowNum) -&gt; new Machine(</span>
+<span class="nc" id="L68">                        rs.getObject(&quot;id&quot;, UUID.class),</span>
+<span class="nc" id="L69">                        rs.getString(&quot;machine_no&quot;),</span>
+<span class="nc" id="L70">                        rs.getString(&quot;name&quot;),</span>
+<span class="nc" id="L71">                        rs.getString(&quot;type&quot;),</span>
+<span class="nc" id="L72">                        rs.getString(&quot;location&quot;)))</span>
+<span class="nc" id="L73">                .optional();</span>
+    }
+
+    /**
+     * How many protocols this machine has that a question could actually reach.
+     *
+     * &lt;p&gt;&lt;b&gt;{@code deleted_at IS NULL} is the whole point of this method.&lt;/b&gt; It is the same
+     * predicate {@link ChunkRetriever}'s statement carries, and the two must not disagree: a count
+     * that included soft-deleted rows would tell a user that evidence exists which retrieval can
+     * never return, which is a worse answer than no number at all. Measured on 2026-08-26, the
+     * difference is real rather than theoretical — 50 soft-deleted protocols locally and 2 in
+     * production would have been counted.
+     *
+     * &lt;p&gt;&quot;Live&quot; is therefore spelled in two SQL statements, here and in the retriever. That
+     * duplication is recorded rather than hidden; hoisting it is a refactor with no caller asking
+     * for it yet.
+     */
+    public int countLiveProtocols(UUID machineId) {
+<span class="fc" id="L91">        return jdbc.sql(&quot;&quot;&quot;</span>
+                        SELECT count(*)
+                        FROM protocol
+                        WHERE machine_id = :machineId
+                          AND deleted_at IS NULL
+                        &quot;&quot;&quot;)
+<span class="fc" id="L97">                .param(&quot;machineId&quot;, machineId)</span>
+<span class="fc" id="L98">                .query(Integer.class)</span>
+<span class="fc" id="L99">                .single();</span>
     }
 
     /**
@@ -54,7 +104,7 @@ public class MachineCatalog {
      *                  picker must show, because nobody on a shop floor knows a UUID
      * @param name      the human name (Presse 3)
      */
-<span class="fc" id="L57">    public record Machine(UUID id, String machineNo, String name, String type, String location) {</span>
+<span class="fc" id="L107">    public record Machine(UUID id, String machineNo, String name, String type, String location) {</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.15.202606040825</span></div></body></html>

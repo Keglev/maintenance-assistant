@@ -3661,6 +3661,37 @@ rather than given one afterwards.
         and springdoc attributes it to every route. Noise in the
         contract, not a defect in behaviour; 13 of 13 predates this PR.
         Its own one-line fix, Part 5 or later.
+        FIXED 2026-08-27, #116: option D (@Hidden on the advice plus an
+        explicit @ApiResponse where the status is real); 413 advertised
+        19 -> 1 (POST /api/protocols). NOT a one-line fix after all, and
+        the first attempt was wrong.
+        assignableTypes WAS TRIED AND REJECTED. Scoping the advice to
+        ProtocolUploadController produced exactly the right document —
+        19 of 19 down to 1 — and BROKE THE RUNTIME: the exception is
+        raised in DispatcherServlet.checkMultipart, BEFORE handler
+        resolution, so there is no resolved handler for assignableTypes
+        to match and the advice stopped running altogether. An oversized
+        upload went back to Tomcat's HTML error page. UploadSizeLimitIT
+        caught it, which is what a real-container test is for; the class
+        javadoc had said why the advice must be global since it was
+        written, and the first attempt read past it.
+        THE SECOND CANDIDATE WAS MEASURED AND ALSO REJECTED:
+        springdoc.override-with-generic-response=false removes the 413
+        everywhere, changes no runtime behaviour — and takes FIVE REAL
+        400s with it, on the moderation GETs that take a UUID path
+        variable and really can answer 400 for a malformed one. Trading
+        eighteen false 413s for five false absences is not an accuracy
+        gain, only a change in which operations are wrong.
+        WHY @Hidden IS THE RIGHT LEVER: it removes this advice from
+        springdoc's generic-response merge and touches nothing else.
+        Measured across all 19 operations before and after, the ONLY
+        change is 413 disappearing — NO 400, 403, 404, 409, 429 or 503
+        moved anywhere. POST /api/protocols keeps its 413 because it
+        already declared one; it now also publishes the body's schema
+        (reason, limit, error) and names the property that sets the
+        limit, so a client can read what it will actually receive.
+        THE OPERATIONCUSTOMIZER FALLBACK WAS NOT NEEDED and was not
+        written: @Hidden sufficed, so the smaller change won.
 
      GQ-2 FRONTEND — the chips and the hint.
         - Clickable chips under the question box once a machine is

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>UploadSizeExceededAdvice.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">maintenance-assistant</a> &gt; <a href="index.source.html" class="el_package">com.keglevich.maintenanceassistant.web</a> &gt; <span class="el_source">UploadSizeExceededAdvice.java</span></div><h1>UploadSizeExceededAdvice.java</h1><pre class="source lang-java linenums">package com.keglevich.maintenanceassistant.web;
 
+import io.swagger.v3.oas.annotations.Hidden;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -26,7 +27,25 @@ import java.util.Map;
  * &lt;p&gt;This is the CONTAINER's ceiling ({@code spring.servlet.multipart.max-file-size}). The decoded
  * text has a second, lower ceiling in the ingestion module which reports itself as a 400; both are
  * real and they guard different things — bytes on the wire, and characters reaching the embedder.
+ *
+ * &lt;p&gt;&lt;b&gt;{@code @Hidden} IS ABOUT THE PUBLISHED DOCUMENT, NOT ABOUT THE RUNTIME.&lt;/b&gt; springdoc
+ * merges an advice's declared status into every operation the advice can reach, and this advice can
+ * reach all of them — so the API published a {@code 413 Content Too Large} on all 19 operations,
+ * including thirteen GETs that carry no request body at all. A contract that tells a client to
+ * handle a status an endpoint can never return is wrong about that endpoint, which is what the
+ * standards' OpenAPI obligation exists to catch. {@code @Hidden} takes this advice out of that
+ * merge and changes nothing about when it runs or what it answers; the one operation that CAN
+ * answer 413 declares it itself, in {@link ProtocolUploadController}.
+ *
+ * &lt;p&gt;&lt;b&gt;SCOPING WITH {@code assignableTypes} WAS TRIED AND REJECTED, 2026-08-27.&lt;/b&gt; It produced
+ * exactly the right document and broke the behaviour: {@code assignableTypes} matches on the
+ * RESOLVED HANDLER, and by the paragraph above there is no resolved handler when this fires, so the
+ * advice simply stopped running and an oversized upload went back to receiving Tomcat's HTML.
+ * {@code UploadSizeLimitIT} caught it. The rule that generalises: an advice handling an exception
+ * raised before handler resolution cannot be narrowed by handler type, and narrowing what it
+ * PUBLISHES is a documentation-generation concern instead.
  */
+@Hidden
 @RestControllerAdvice
 class UploadSizeExceededAdvice {
 
@@ -40,19 +59,19 @@ class UploadSizeExceededAdvice {
      */
     private final String maxFileSize;
 
-<span class="fc" id="L43">    UploadSizeExceededAdvice(@Value(&quot;${spring.servlet.multipart.max-file-size}&quot;) String maxFileSize) {</span>
-<span class="fc" id="L44">        this.maxFileSize = maxFileSize;</span>
-<span class="fc" id="L45">    }</span>
+<span class="fc" id="L62">    UploadSizeExceededAdvice(@Value(&quot;${spring.servlet.multipart.max-file-size}&quot;) String maxFileSize) {</span>
+<span class="fc" id="L63">        this.maxFileSize = maxFileSize;</span>
+<span class="fc" id="L64">    }</span>
 
     @ExceptionHandler(MaxUploadSizeExceededException.class)
     // CONTENT_TOO_LARGE, not PAYLOAD_TOO_LARGE: same 413, and the older constant is deprecated as of
     // Spring 7 (the RFC renamed the status).
     @ResponseStatus(HttpStatus.CONTENT_TOO_LARGE)
     Map&lt;String, String&gt; onTooLarge(MaxUploadSizeExceededException e) {
-<span class="fc" id="L52">        return Map.of(</span>
+<span class="fc" id="L71">        return Map.of(</span>
                 &quot;reason&quot;, &quot;FILE_TOO_LARGE&quot;,
                 &quot;limit&quot;, maxFileSize,
-<span class="fc" id="L55">                &quot;error&quot;, &quot;The uploaded file is larger than the %s limit.&quot;.formatted(maxFileSize));</span>
+<span class="fc" id="L74">                &quot;error&quot;, &quot;The uploaded file is larger than the %s limit.&quot;.formatted(maxFileSize));</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.15.202606040825</span></div></body></html>

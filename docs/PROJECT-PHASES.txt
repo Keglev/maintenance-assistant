@@ -33,6 +33,14 @@ pull requests, backend then frontend, then v1.4.0.
 
 Guided questions backend merged; frontend next; v1.4.0 after both.
 
+Guided questions complete; v1.4.0 on deploy after Carlos's browser check
+(five examples across machines); next: recruiter landing page.
+THE VISUAL CHECK WAS RED BECAUSE THE BASELINE STEP WAS BLOCKED on #117,
+not by design: the pinned image would not pull, so no baseline could be
+produced and the wording "by design" claimed a deliberateness the situation
+did not have. RESOLVED 2026-08-27 — the image was available on a later
+attempt, the six baselines were regenerated in it, and the check is green.
+
 v1.3.0 IS THE LATEST TAG, 2026-08-20. The release history, from the
 repository's own tags: v0.1.0 2026-08-06, v1.0.0 2026-08-08, v1.1.0
 2026-08-11, v1.2.0 2026-08-13, v1.3.0 2026-08-20.
@@ -3710,8 +3718,103 @@ rather than given one afterwards.
         COMMIT (ADR-007). The chips change the search page layout, so the
         baselines move for a reason; regenerating them in the feature
         commit would hide whether anything ELSE moved.
+        DONE 2026-08-27, #117: chips, count line, e2e case
+        guided-questions.e2e.ts. BASELINES REGENERATED LOCALLY IN THE
+        PINNED IMAGE PER ADR-007, in their own commit as this row
+        required: six files, and `git diff --stat main --
+        frontend/e2e/__screenshots__` lists exactly those six. The six
+        were deleted before regenerating rather than left to
+        --update-snapshots, which only rewrites what fails.
+        THE CI ARTEFACT'S DIFFS WERE INSPECTED, image by image, and they
+        divide two ways: TWO GROWTH (the page-level pair, taller by the
+        chips block and nothing else) and FOUR ANTIALIASING (speckle
+        spread over text lines and glyph edges, with no solid block, no
+        shifted element and no colour region in any of them — the check
+        that would have meant the change leaked off the search page).
+        LOCAL VERSUS CI ACTUALS: IDENTICAL, all six, byte for byte under
+        `cmp` against run 33079151276's `-actual.png` files. ADR-007
+        pins the container on the claim that the renderer belongs to the
+        image and not to the machine under it; a Windows desktop and an
+        ubuntu-latest runner agreeing to the byte is that claim measured
+        rather than assumed.
+        WHICH BASELINES WERE EXPECTED TO MOVE, worked out from what each
+        one photographs rather than from running them: search-mode-a
+        (light and dark) is a fullPage shot of the search view and gains
+        the chips block under the question box. search-unapproved and
+        search-clamped photograph the ANSWER ELEMENT only
+        (getByTestId('answer-mode-a')), so the chips are outside their
+        frame and they should not move at all. TWO OF EIGHTEEN.
+        THE PREDICTION WAS WRONG AND CI SAID SO: SIX MOVED, NOT TWO.
+        Corrected here rather than quietly, because the difference is
+        the interesting part. The two page-level shots changed for the
+        reason predicted and the numbers say it plainly — 1280x1134
+        became 1280x1362, exactly the chips block's height. TWO OF THE
+        OTHER FOUR KEPT THEIR DIMENSIONS EXACTLY — search-unapproved, at
+        772x481, differing in 3271 pixels light and 4686 dark — AND TWO
+        DID NOT: search-clamped went 772x889 to 772x888, ONE PIXEL
+        SHORTER, differing in 17514 light and 18502 dark. The sentence
+        above said all four held their dimensions and attributed 3271 to
+        the clamped pair; both were wrong, and the one-pixel loss is the
+        more interesting half — an element screenshot rounds its own
+        height, so the sub-pixel offset named below changes the frame as
+        well as the glyphs inside it.
+        THAT IS NOT A LEAK, AND THE PROOF IS STATIC: the change to
+        search-answer is additive INSIDE THE MODE B BRANCH — the whole
+        diff is one @if block after answer-mode-b, plus one CSS class
+        used only there. The Mode A element's markup and styles are
+        byte-identical, so nothing inside those four frames can have
+        rendered differently.
+        WHAT IS LEFT IS THE CAPTURE, not the page: the answer element
+        now sits 228 px further down, and an element screenshot is taken
+        after scrolling it into view — a different sub-pixel offset
+        shifts glyph antialiasing across every line of text, which is
+        what a diffuse 1 % looks like. CONFIRMED FROM THE IMAGES on
+        2026-08-27: the artefact downloaded, and all four diff PNGs were
+        opened. Each is speckle along glyph edges and whole text lines,
+        alternating down the clamped pair the way a one-pixel row shift
+        looks; the answer paragraph is untouched in the unapproved pair,
+        and the only straight lines in any of them are 1 px card borders
+        re-rounding. No solid block, no element in a new place, no region
+        of changed colour — the block that would have meant something
+        really did render is absent from all four.
+        NO BASELINE COVERS MODE B, so the new protocol-count line has no
+        visual baseline to move. Worth knowing rather than fixing here:
+        ADR-007 chose baselines for CHURN, and the ungrounded card has
+        never had one. If the count line is worth pinning, it is its own
+        deliberate addition with its own reasoning.
+        THE HELP PANEL IS UNTOUCHED, as the standing rule requires:
+        LexicalTerms did not change in the backend PR, so what the panel
+        says about exact terms is still true and its text is unedited.
+        NO LINT TARGET EXISTS in this project — `ng lint` reports
+        "Cannot find lint target". Formatting is the gate C7 added, and
+        `npm run format:check` passes; there is no second checker to run.
 
      THEN v1.4.0 — a feature, so a minor bump, after both.
+
+     BLOCKED, 2026-08-27: THE PINNED PLAYWRIGHT IMAGE WILL NOT PULL on
+     this machine. `docker pull mcr.microsoft.com/playwright:v1.56.0-noble`
+     stalls on one layer, retries, and never completes — three attempts,
+     the longest twenty minutes, with the log frozen and the image absent
+     from `docker images` afterwards. ADR-007 makes the container the ONLY
+     environment allowed to produce a baseline, because font rendering is a
+     property of the machine and a baseline made on a Windows desktop is a
+     permanently red CI job. So the choice was between a baseline nobody
+     can trust and none at all, and none at all is the honest one.
+     WHAT THIS COSTS: the `visual` check goes red on this pull request, on
+     the two search-mode-a baselines and on nothing else. That is the
+     expected failure ADR-007 describes for a deliberate design change, and
+     it stays red until the regeneration commit lands.
+     UNBLOCKED THE SAME DAY, and the record should say how rather than
+     leave a stall looking like a verdict: on a later session the image was
+     already on the machine, so nothing had to be pulled, and the whole
+     regeneration took one command against the ordinary dev stack. The
+     prediction in the paragraph above — red "on the two search-mode-a
+     baselines and on nothing else" — was itself wrong; six went red, and
+     the correction sits in the GQ-2 row where the numbers are.
+     NO EXCEPTION WAS EVER NEEDED, which is why DECISIONS.txt gains
+     nothing from this: ADR-007's rule held throughout. The blocked run
+     produced no baseline precisely because the rule forbade one, and the
+     unblocked run produced six inside the container the rule names.
 
      THE GOLDEN QUESTIONS ARE COPIED, NOT MOVED, and the ADR names the
      duplication. golden-questions.json stays ADR-008's ratified

@@ -60,6 +60,45 @@ export interface QueryAnswer {
   readonly language: string;
   readonly claims: readonly Claim[];
   readonly citations: readonly Citation[];
+  /**
+   * How many protocols the machine has, on a MODE B answer only (ADR-011).
+   *
+   * Absent on Mode A, where the sources are the answer already, and absent from any older
+   * backend — hence optional rather than `| null`: the field is missing from the JSON, not
+   * present and empty. Live protocols only, matching exactly what retrieval can return, so a
+   * count shown to a reader never promises evidence that cannot be reached.
+   */
+  readonly protocolCount?: number;
+}
+
+/** One offered question, from `GET /api/machines/{machineNo}/examples`. */
+export interface ExampleQuestion {
+  readonly question: string;
+  /**
+   * The protocol this question was written against.
+   *
+   * Never rendered. It travels so the backend's own test can fail when that protocol leaves the
+   * corpus, and it is typed here only because it is on the wire.
+   */
+  readonly source: string;
+}
+
+/**
+ * A machine's example questions, from `GET /api/machines/{machineNo}/examples`.
+ *
+ * ADR-011: a first-time reader cannot invent a question that reaches a protocol, because they do
+ * not know that E-47 exists. Every entry is written against a protocol that exists, so every one
+ * of them yields Mode A — a machine with nothing to offer returns empty lists rather than an
+ * error, and the view then shows no chips at all.
+ */
+export interface MachineExamples {
+  readonly machineNo: string;
+  /** Live protocols for this machine — the same number a Mode B answer carries. */
+  readonly protocolCount: number;
+  readonly examples: {
+    readonly de: readonly ExampleQuestion[];
+    readonly en: readonly ExampleQuestion[];
+  };
 }
 
 /** One of the caller's uploads, from `GET /api/protocols/mine`. */

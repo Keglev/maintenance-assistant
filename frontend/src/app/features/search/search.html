@@ -42,6 +42,41 @@
           ></textarea>
         </label>
 
+        <!-- EXAMPLE QUESTIONS (ADR-011). A first-time reader cannot invent a question that reaches
+             a protocol, because they do not know that E-47 exists; these are questions that do.
+             Under the box rather than beside the picker: they are about what to TYPE, so they
+             belong next to the typing.
+
+             CLICKING FILLS AND DOES NOT SUBMIT. The reader still sees the question and still
+             presses the button, so the demo teaches the shape of a good question instead of
+             performing a trick they cannot repeat.
+
+             Absent entirely when the list is empty — a machine with no protocols has no question
+             that works, and offering none is the honest answer. Nothing renders while the list is
+             loading and nothing renders if the call fails: the chips are an aid, never a step. -->
+        @if (examples().length) {
+          <div class="examples" data-testid="examples">
+            <p class="examples-heading" id="examples-heading">{{ t().search.examplesHeading }}</p>
+            <ul class="example-chips" aria-labelledby="examples-heading">
+              @for (example of examples(); track example.question) {
+                <li>
+                  <!-- type="button" is load-bearing inside a form: the default is submit, and a
+                       chip that submitted would be exactly the trick this feature refuses. -->
+                  <button
+                    type="button"
+                    class="example-chip"
+                    data-testid="example-chip"
+                    [disabled]="asking()"
+                    (click)="useExample(example.question, $event)"
+                  >
+                    {{ example.question }}
+                  </button>
+                </li>
+              }
+            </ul>
+          </div>
+        }
+
         <!-- The approved-only facet. OFF by default and stated as such in the hint, because "everything is
        searched" is the decision (2026-08-11) and a reader has to be able to see that it is. Below
        the question rather than beside the machine picker: it narrows the ANSWER, not the scope of

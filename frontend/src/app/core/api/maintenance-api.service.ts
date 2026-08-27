@@ -8,6 +8,7 @@ import {
   DeletedProtocolPage,
   HealthStatus,
   Machine,
+  MachineExamples,
   NO_FILTER,
   ProtocolCorrection,
   ProtocolFilter,
@@ -47,6 +48,18 @@ export class MaintenanceApiService {
   /** The machines a question can be asked about. */
   machines(): Observable<Machine[]> {
     return this.http.get<Machine[]>(`${this.apiBaseUrl}/machines`);
+  }
+
+  /**
+   * The questions this machine can actually answer, and how many protocols it has (ADR-011).
+   *
+   * By `machineNo` and not by id, because the resource behind it is hand-authored against plant
+   * identifiers; the picker carries both, so the caller has the key either way.
+   */
+  machineExamples(machineNo: string): Observable<MachineExamples> {
+    return this.http.get<MachineExamples>(
+      `${this.apiBaseUrl}/machines/${encodeURIComponent(machineNo)}/examples`,
+    );
   }
 
   /**

@@ -7,11 +7,17 @@
 # scripts for each doc type. Output tree mirrors the deployed site under
 # <project-dir>/target/docs.
 #
-# The three report trees are NOT generated here. Each is produced by a *test*
-# workflow, uploaded as an artifact, and copied into place only on the run that
-# workflow triggered — so any single build has at most one of them, while the
-# deployed site has all of them because the deploy step preserves what a given
-# build did not regenerate (keep_files).
+# The report trees are NOT generated here. Each is produced by a *test* workflow,
+# uploaded as an artifact, and copied into place only on the run that workflow
+# triggered — so any single build has at most one of them, while the deployed
+# site has all of them.
+#
+# HOW THEY SURVIVE A PUBLISH CHANGED IN #108, and this comment described the old
+# way until 2026-08-27: keep_files is GONE. The site job checks gh-pages out and
+# COPIES the report subtrees into the build output before publishing, and a report
+# publish is scoped by destination_dir. Nothing is "kept" — everything published is
+# something a run put there deliberately, which is what lets the site delete a page
+# that stopped being produced. The five invariants are in docs.yml's header (I1-I5).
 #
 # Prerequisites: pandoc, redocly CLI (optional — skipped when absent)
 # =============================================================================

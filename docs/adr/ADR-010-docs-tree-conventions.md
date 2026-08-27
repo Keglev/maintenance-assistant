@@ -103,6 +103,39 @@ in `docs/`.** The two landing pages stay where they are. `copy_landing_pages()` 
 of that split, not evidence against it: a theme that owns a hand-written page needs a copy step
 whichever directory the page sits in.
 
+### Addendum 2026-08-27 — ledger rotation
+
+This extends the Decision above; it is not a new record, because it answers the same question this
+ADR already owns — where a docs file lives and what its name says about it.
+
+**4. `docs/ledger/` exists, and closed blocks of `PROJECT-PHASES.txt` move into it byte-identical.**
+
+`PROJECT-PHASES.txt` is an append-only ledger and it grew into a problem the DOCS rules did not
+cover: it is exempt from the 150–250 line limit *because* it is a ledger, and by 2026-08-27 it had
+reached **5,349 lines and 340,453 bytes, of which 72% was closed history** — read by every session,
+actionable by none. The exemption was correct and the outcome was not.
+
+- A block moves only when it is **closed**. The DIAGNOSTICS AND PROVIDER WAVE stayed behind on the
+  first rotation because A4 is an open hypothesis with its instrument live.
+- A moved block is **byte-identical** to the lines it was cut from — no reflow, no whitespace fix,
+  no line-ending change — and the move is proved with `cmp` against the base commit, not asserted.
+  Extract before editing, so the line numbers cannot shift underneath the extraction.
+- What stays behind is a **two-line stub** at the same position, naming the file it went to, plus
+  the rows that are still open, **copied rather than summarised**. A ruling restated is a ruling
+  changed.
+- File names are **SCREAMING**, per rule 1 of this ADR: these are records, not explanatory prose.
+- Citations elsewhere that now land in a moved block are **not edited**. A citation is evidence of
+  what somebody knew when they wrote it, and rewriting it to survive a file move is how a record
+  stops being one. `docs/ledger/INDEX.txt` carries a FORWARDING table instead, keyed on the quoted
+  phrase rather than a line number that drifts.
+
+**5. The ledger directory is history, not a session input.** The files handed to every AI session
+are still exactly `docs/PROJECT-PHASES.txt`, `docs/DECISIONS.txt` and `docs/REFACTOR-STANDARDS.txt`.
+`docs/ledger/` is read when a stub or a forwarding entry points into it, and **loading it wholesale
+into a prompt recreates the problem the rotation solved.** `PROJECT-PHASES.txt` remains the single
+phases file a session is given; the rotation changes what is inside it, not how many files there
+are.
+
 ## Consequences
 
 **Positive**

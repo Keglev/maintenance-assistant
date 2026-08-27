@@ -910,7 +910,7 @@ Status: v1.3.1 released; refactor phase, Part 3 closed 2026-08-26; diagnostics w
   exposed through the API shares one flat namespace with every other one, so its simple name is part
   of the public contract whether anyone meant it to be or not.
 - AN ADVICE THAT RUNS BEFORE HANDLER RESOLUTION CANNOT BE SCOPED BY HANDLER TYPE, and narrowing what
-  it PUBLISHES is a documentation-generation concern — learned 2026-08-27 (#PRNUM), fixing a
+  it PUBLISHES is a documentation-generation concern — learned 2026-08-27 (#116), fixing a
   contract that advertised 413 Content Too Large on all 19 operations including thirteen GETs.
   THE OBVIOUS FIX WAS TRIED FIRST AND WAS WRONG. @RestControllerAdvice(assignableTypes = ...) gave
   exactly the right document and broke the behaviour: MaxUploadSizeExceededException is raised in

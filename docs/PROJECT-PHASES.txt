@@ -35,6 +35,9 @@ Guided questions backend merged; frontend next; v1.4.0 after both.
 
 Guided questions complete; v1.4.0 on deploy after Carlos's browser check
 (five examples across machines); next: recruiter landing page.
+
+Landing pages rewritten; next: Playwright upgrade, ledger rotation,
+Part 4 survey.
 THE VISUAL CHECK WAS RED BECAUSE THE BASELINE STEP WAS BLOCKED on #117,
 not by design: the pinned image would not pull, so no baseline could be
 produced and the wording "by design" claimed a deliberateness the situation
@@ -1981,6 +1984,13 @@ rather than given one afterwards.
          the instructions are correct and nobody would look there first.
          Not a defect and not this wave's to move.
          -> Part 6 (docs), carried.
+         STILL CARRIED AFTER #118, and checked rather than assumed: the
+         recruiter landing pages describe the LIVE DEMO — sign in, pick a
+         machine, read an answer — and say nothing about starting the
+         stack on a laptop. overview.md does not either; it stops at
+         three containers and one `docker compose up`, which describes
+         the topology rather than instructing anybody. So neither section
+         5 nor the overview closes C27, and it goes to Part 6 unchanged.
 
      C11 docker/.env.example:28-29 — "EU-hosted, OpenAI-compatible LLM
          endpoint — see ADR-002. Left empty on purpose: the provider is
@@ -3826,6 +3836,52 @@ rather than given one afterwards.
      change. Canonical for what a user is offered: the resource file, and
      editing it is a PRODUCT change. The golden file gains a header note
      saying so, because it is user-visible now.
+
+   DOCS — RECRUITER LANDING PAGE. DONE 2026-08-27, #118. Both landing
+   pages in docs/_theme rewritten for a reader with two minutes and no
+   plant experience; the card grid keeps its structure and its ten cards
+   and stays where it was.
+   THE SHAPE IS BORROWED, THE TEXT IS NOT: keglev.github.io/stockease
+   answers a stranger's questions in the order they get asked — what it
+   is, where it comes from, how it was built, how it is verifiable, what
+   to see in two minutes — and the same five sections carry this
+   project's own facts.
+   THE RULE THE PAGES WERE WRITTEN UNDER, and the reason this is a row
+   rather than a line: EVERY SENTENCE STATES A FACT THE READER CAN CHECK
+   BY A LINK ON THE SAME PAGE. No adjective that cannot be measured, no
+   outcome that has not happened. That is REFACTOR-STANDARDS' "published
+   prose states only what the checkout shows" applied to the one page
+   most likely to drift into a brochure.
+   THE NUMBERS ON THE PAGE, ALL COUNTED RATHER THAN REMEMBERED: 165
+   protocols; 10 machines; 36 example questions per language over all
+   ten; 11 decision records; 274 backend unit tests and 262 integration
+   tests (10 key-gated and skipped in CI); 321 vitest specs; 39
+   Playwright cases; 18 screenshot baselines; backend coverage 92%
+   instructions and 86% branches, frontend 97.44 / 88.38 / 96.16 / 97.4,
+   both from the PUBLISHED reports; release v1.3.2, tagged 2026-08-27.
+   SIX COVERAGE FIGURES, NOT THE FIVE THE PLAN ASKED FOR — the two
+   reports carry two and four between them, and publishing a subset
+   would have been a choice with no reason behind it.
+   THE STALE STATUS LINE IS GONE. Both pages had said "in development,
+   Phase 1 — walking skeleton" since the skeleton, on a repository at its
+   seventh tag. It is replaced by the release and its date: a fact with
+   an expiry a reader can see.
+   NO SEPARATE RERANKER ADR EXISTS to cite, and the page does not invent
+   one — the drop is a dated section inside ADR-008. Worth knowing before
+   somebody goes looking for an ADR-0NN that was never written.
+   DEMO CREDENTIALS NEEDED NO HEDGE. The plan allowed for "demo access on
+   request" if they were undocumented; they are documented, printed on
+   the login page by the Keycloak theme with WA_SHOW_DEMO_ACCOUNTS=true
+   in docker-compose.prod.yml, and that was CONFIRMED AGAINST THE LIVE
+   PAGE rather than read off the template.
+   NOT VERIFIED, AND SAID SO IN THE PULL REQUEST: the two-minute path was
+   not driven end to end against the live demo. Each of its three steps
+   rests on repository evidence instead — the e2e case for the chips, G10
+   of the ratified set for the cross-lingual answer, and the corpus file
+   for KP-01's fourteen protocols with no sensor fault among them.
+   THEME CSS ONLY, in landing.css under one comment block, and no new
+   JavaScript, which is the constraint the plan set. Dark mode needed one
+   rule because the tokens were already there.
 
 5. PHASE 5 — EVOLUTION CANDIDATES (unchanged list, optional):
    similar-machine search, OCR, downtime stats, PDF export (generation,

@@ -286,6 +286,57 @@ R__seed_machines.sql:1       -- Repeatable seed — the 10 machines of the demo 
         <em>consequence</em> of that split, not evidence against it: a
         theme that owns a hand-written page needs a copy step whichever
         directory the page sits in.</p>
+        <h3 id="addendum-2026-08-27-ledger-rotation">Addendum 2026-08-27
+        — ledger rotation</h3>
+        <p>This extends the Decision above; it is not a new record,
+        because it answers the same question this ADR already owns —
+        where a docs file lives and what its name says about it.</p>
+        <p><strong>4. <code>docs/ledger/</code> exists, and closed
+        blocks of <code>PROJECT-PHASES.txt</code> move into it
+        byte-identical.</strong></p>
+        <p><code>PROJECT-PHASES.txt</code> is an append-only ledger and
+        it grew into a problem the DOCS rules did not cover: it is
+        exempt from the 150–250 line limit <em>because</em> it is a
+        ledger, and by 2026-08-27 it had reached <strong>5,349 lines and
+        340,453 bytes, of which 72% was closed history</strong> — read
+        by every session, actionable by none. The exemption was correct
+        and the outcome was not.</p>
+        <ul>
+        <li>A block moves only when it is <strong>closed</strong>. The
+        DIAGNOSTICS AND PROVIDER WAVE stayed behind on the first
+        rotation because A4 is an open hypothesis with its instrument
+        live.</li>
+        <li>A moved block is <strong>byte-identical</strong> to the
+        lines it was cut from — no reflow, no whitespace fix, no
+        line-ending change — and the move is proved with
+        <code>cmp</code> against the base commit, not asserted. Extract
+        before editing, so the line numbers cannot shift underneath the
+        extraction.</li>
+        <li>What stays behind is a <strong>two-line stub</strong> at the
+        same position, naming the file it went to, plus the rows that
+        are still open, <strong>copied rather than summarised</strong>.
+        A ruling restated is a ruling changed.</li>
+        <li>File names are <strong>SCREAMING</strong>, per rule 1 of
+        this ADR: these are records, not explanatory prose.</li>
+        <li>Citations elsewhere that now land in a moved block are
+        <strong>not edited</strong>. A citation is evidence of what
+        somebody knew when they wrote it, and rewriting it to survive a
+        file move is how a record stops being one.
+        <code>docs/ledger/INDEX.txt</code> carries a FORWARDING table
+        instead, keyed on the quoted phrase rather than a line number
+        that drifts.</li>
+        </ul>
+        <p><strong>5. The ledger directory is history, not a session
+        input.</strong> The files handed to every AI session are still
+        exactly <code>docs/PROJECT-PHASES.txt</code>,
+        <code>docs/DECISIONS.txt</code> and
+        <code>docs/REFACTOR-STANDARDS.txt</code>.
+        <code>docs/ledger/</code> is read when a stub or a forwarding
+        entry points into it, and <strong>loading it wholesale into a
+        prompt recreates the problem the rotation solved.</strong>
+        <code>PROJECT-PHASES.txt</code> remains the single phases file a
+        session is given; the rotation changes what is inside it, not
+        how many files there are.</p>
         <h2 id="consequences">Consequences</h2>
         <p><strong>Positive</strong></p>
         <ul>
@@ -371,7 +422,12 @@ R__seed_machines.sql:1       -- Repeatable seed — the 10 machines of the demo 
       id="toc-f3-where-the-sites-landing-pages-live">F3 — where the
       site’s landing pages live</a></li>
       </ul></li>
-      <li><a href="#decision" id="toc-decision">Decision</a></li>
+      <li><a href="#decision" id="toc-decision">Decision</a>
+      <ul>
+      <li><a href="#addendum-2026-08-27-ledger-rotation"
+      id="toc-addendum-2026-08-27-ledger-rotation">Addendum 2026-08-27 —
+      ledger rotation</a></li>
+      </ul></li>
       <li><a href="#consequences"
       id="toc-consequences">Consequences</a></li>
       <li><a href="#alternatives-considered"

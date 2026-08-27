@@ -793,3 +793,30 @@ Status: v1.3.1 released; refactor phase, Part 3 closed 2026-08-26; diagnostics w
   grep for `> 0.9`. The new unit test caught it before the pull request existed. A diagnosis that is
   only searchable in some locales is not a diagnosis, and the counting rule that already covers this
   had been applied in one of the two places it belonged.
+- A TRUNCATED GROUNDED ANSWER IS A DEGRADATION, NOT AN OUTAGE — shipped 2026-08-26 (W-3, #PRNUM),
+  PRODUCTION BEHAVIOUR CHANGE, v1.3.2. When the Mode A call stops at the model's output cap its JSON
+  is unparseable, so there is no grounded answer to salvage; but the ungrounded answer is still worth
+  having, and it is the same fall-through the query path already takes when Mode A produces no
+  attributable citation. Reused, not duplicated. The user who was shown "nicht erreichbar" on
+  2026-08-26 while the provider was answering and being paid now gets the labelled Mode B card,
+  which is the honest output for a question nothing in the corpus grounds. THE RESPONSE SAYS SO:
+  a new optional `degradedFrom: "TRUNCATED"` on the answer, absent from every ordinary payload, so a
+  client that has never heard of it sees what it always saw — no frontend change in this wave.
+  THE COST IS A SECOND PAID CALL and it is accepted rather than hidden: identical to the existing
+  fall-through, and the headroom check at the top of the request already reserves for two.
+  DEGRADATION IS ONE STEP, NEVER A LOOP: the catch is around the grounded call only, so an
+  ungrounded call that truncates is a real provider failure and still returns 503. That is
+  structural rather than a guard someone has to remember, and it is asserted by a test.
+- THE OUTPUT CAP IS 2100, shipped with the degradation and never alone (R1, 2026-08-26, #PRNUM).
+  The arithmetic is in application.yml beside the number so the next reader can recompute it rather
+  than inherit it: 1642 x 1.25 = 2052.5 -> 2100, the 95th percentile of the longest QUALIFYING model
+  times 1.25. THE SENTENCE THAT MATTERS MORE THAN THE NUMBER: it is sized for the documented
+  FALLBACK model, not the deployed one. Llama-3.3 measured a p95 of 575 and a maximum of 586 over 21
+  samples and did not use more room when it was given 3000; openai/gpt-oss-120b qualified as the
+  fallback at 3000 and FAILED at 1200. A cap alone would not have fixed the incident — under the
+  standing hypothesis it would buy a degenerating answer 900 more tokens of whitespace and still
+  fail — which is why the two changes ship together.
+  NO HAND-DEPLOY IS NEEDED, checked rather than assumed: LLM_CHAT_MAX_TOKENS appears in
+  application.yml and nowhere else — not in docker-compose.prod.yml, not in .env.prod.example, and
+  not in the host's .env.prod. The default is what production runs, so a normal image deploy carries
+  it and OPS RULE 3 does not apply.

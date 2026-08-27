@@ -349,6 +349,108 @@ class QueryServiceTest {
     }
 
     // ---------------------------------------------------------------------------------------
+    // A truncated grounded answer is a degradation, not an outage (diagnostics wave W-3)
+    // ---------------------------------------------------------------------------------------
+
+    @Nested
+    @DisplayName("truncation degrades")
+    class TruncationDegrades {
+
+        /** The A4 shape: the refusal the model committed to, then padding to the cap. */
+        private static final String REFUSAL_SHAPED =
+                "{\"answer_language\": \"de\", \"claims\": []" + " ".repeat(600);
+
+        /** The other shape: real prose, cut off mid-sentence. */
+        private static final String OVERRUN =
+                "{\"answer_language\": \"de\", \"claims\": [{\"text\": \"Der Fehler E-47 bedeutet "
+                        + "Druckabfall im Presshub und wurde durch einen verschlissenen Dichtsatz";
+
+        @Test
+        @DisplayName("a refusal-shaped truncation returns the ungrounded answer, not a 503")
+        void refusalShapedTruncation_degradesToModeB() {
+            retriever.returning(hit(0.5651));
+            chat.truncatingOnCall(REFUSAL_SHAPED, 1);
+            chat.replyingUngrounded("Kein Protokoll deckt diesen Fall ab.", "Sensorik pruefen.",
+                    "Verkabelung pruefen.", "Techniker informieren.");
+
+            QueryAnswer answer = ask(QueryRole.TECHNIKER);
+
+            // THE WHOLE POINT OF THIS PULL REQUEST, in one assertion: the caller who saw
+            // "nicht erreichbar" on 2026-08-26 now gets the labelled ungrounded card.
+            assertThat(answer.mode()).isEqualTo(QueryAnswer.AnswerMode.B);
+            assertThat(answer.degradedFrom()).isEqualTo(QueryAnswer.DegradedFrom.TRUNCATED);
+            assertThat(answer.citations()).isEmpty();
+            // Two provider calls: the truncated grounded one, which was served and billed, and
+            // the ungrounded one. The accepted cost of the degradation, asserted so that a future
+            // change cannot make it three without saying so.
+            assertThat(chat.calls()).isEqualTo(2);
+            // 0.5651 is the incident's own similarity: retrieval said Mode A and got Mode B, which
+            // is exactly the case this field exists to make visible.
+            assertThat(budget.headroomChecks())
+                    .as("headroom for two calls is reserved once, at the top of ask()")
+                    .isEqualTo(1);
+        }
+
+        @Test
+        @DisplayName("an overrun truncation degrades the same way — the shape changes the log, not the outcome")
+        void overrunTruncation_degradesToModeB() {
+            retriever.returning(hit(0.7));
+            chat.truncatingOnCall(OVERRUN, 1);
+            chat.replyingUngrounded("Kein Protokoll deckt diesen Fall ab.", "Dichtsatz pruefen.",
+                    "Druck messen.", "Techniker informieren.");
+
+            QueryAnswer answer = ask(QueryRole.TECHNIKER);
+
+            assertThat(answer.mode()).isEqualTo(QueryAnswer.AnswerMode.B);
+            assertThat(answer.degradedFrom()).isEqualTo(QueryAnswer.DegradedFrom.TRUNCATED);
+            assertThat(answer.answer()).contains("Dichtsatz pruefen.");
+            assertThat(chat.calls()).isEqualTo(2);
+        }
+
+        @Test
+        @DisplayName("the ungrounded call truncating too IS a provider failure — no infinite degradation")
+        void bothCallsTruncate_isStillAProviderFailure() {
+            retriever.returning(hit(0.7));
+            chat.truncatingOnCall(REFUSAL_SHAPED, 1, 2);
+
+            assertThatThrownBy(() -> ask(QueryRole.TECHNIKER))
+                    .isInstanceOf(QueryService.ProviderUnavailableException.class)
+                    .hasMessageContaining("temporarily unavailable");
+            // Exactly two: the degradation is one step, not a loop. A third call here would be a
+            // provider being asked to fail a third time at the user's expense.
+            assertThat(chat.calls()).isEqualTo(2);
+        }
+
+        @Test
+        @DisplayName("a degraded answer is cached as degraded, so the second asker is told the same thing")
+        void theDegradedAnswerIsCachedWithItsLabel() {
+            retriever.returning(hit(0.7));
+            chat.truncatingOnCall(REFUSAL_SHAPED, 1);
+            chat.replyingUngrounded("Kein Protokoll deckt diesen Fall ab.", "Pruefen.", "Messen.",
+                    "Techniker informieren.");
+
+            ask(QueryRole.TECHNIKER);
+            QueryAnswer cached = ask(QueryRole.TECHNIKER);
+
+            assertThat(cached.degradedFrom()).isEqualTo(QueryAnswer.DegradedFrom.TRUNCATED);
+            assertThat(chat.calls())
+                    .as("the cache serves the degraded answer rather than paying to degrade again")
+                    .isEqualTo(2);
+        }
+
+        @Test
+        @DisplayName("an ordinary answer says nothing about degradation at all")
+        void anUndegradedAnswerCarriesNoLabel() {
+            // The additive half, asserted rather than assumed: a client that has never heard of
+            // this field must see the payload it always saw.
+            retriever.returning(hit(0.695));
+            chat.replyingGrounded("Der Druck faellt ab.", "P1");
+
+            assertThat(ask(QueryRole.TECHNIKER).degradedFrom()).isNull();
+        }
+    }
+
+    // ---------------------------------------------------------------------------------------
     // Bad input
     // ---------------------------------------------------------------------------------------
 
@@ -495,6 +597,8 @@ class QueryServiceTest {
 
         private final List<String> responses = new ArrayList<>();
         private final AtomicInteger calls = new AtomicInteger();
+        private final java.util.Set<Integer> truncatingCalls = new java.util.HashSet<>();
+        private String truncatedBody;
         private String lastSystemPrompt;
         private String lastUserPrompt;
 
@@ -547,11 +651,33 @@ class QueryServiceTest {
             return true;
         }
 
+        /**
+         * Make the given 1-based calls fail the way a provider does at the output cap.
+         *
+         * <p>A real TruncatedBody rather than a null one, because the degradation LOGS its
+         * classification from it and a fake that skipped the anatomy would leave that line untested.
+         */
+        void truncatingOnCall(String partialBody, int... callNumbers) {
+            truncatedBody = partialBody;
+            truncatingCalls.clear();
+            for (int callNumber : callNumbers) {
+                truncatingCalls.add(callNumber);
+            }
+        }
+
         @Override
         public Completion complete(Prompt prompt) {
             lastSystemPrompt = prompt.system();
             lastUserPrompt = prompt.user();
-            int index = Math.min(calls.getAndIncrement(), responses.size() - 1);
+            int callNumber = calls.incrementAndGet();
+            if (truncatingCalls.contains(callNumber)) {
+                TruncatedBody anatomy = TruncatedBody.of(truncatedBody, 2100L);
+                throw new ChatException(ChatException.Kind.TRUNCATED,
+                        "answer truncated at the max-tokens cap of 2100 after 2100 completion "
+                                + "tokens: preview [" + anatomy + "]",
+                        anatomy);
+            }
+            int index = Math.min(callNumber - 1, responses.size() - 1);
             return new Completion(responses.get(index), 100L, 50L, 5L);
         }
     }

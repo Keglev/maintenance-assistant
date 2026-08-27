@@ -115,7 +115,8 @@ class IonosChatClient implements ChatClient {
             throw new ChatException(ChatException.Kind.TRUNCATED,
                     "answer truncated at the max-tokens cap of %d after %d completion tokens: %s [%s]"
                             .formatted(properties.maxTokens(), response.completionTokens(),
-                                    preview(content), anatomy));
+                                    preview(content), anatomy),
+                    anatomy);
         }
 
         log.info("Chat answer: model={} promptTokens={} completionTokens={} in {} ms",

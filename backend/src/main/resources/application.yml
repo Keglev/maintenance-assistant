@@ -109,13 +109,24 @@ maintenance:
     # "none" on its own, or the model spends its whole output budget thinking and
     # returns empty content (ADR-002 caveat 3).
     model: ${LLM_CHAT_MODEL:meta-llama/Llama-3.3-70B-Instruct}
-    # NFR-7. MEASURED 2026-08-07 against the production prompts, not carried over from
-    # the spike: the spike's longest answer was 195 tokens, but it asked for a one-line
-    # refusal where Mode B asks for a troubleshooting list and Mode A for one claim per
-    # statement. At 700 the Mode-B demo case hit the cap and came back as truncated JSON.
-    # 1200 leaves headroom over the longest observed answer (481 tokens) and is still
-    # runaway protection rather than a constraint on answer quality.
-    max-tokens: ${LLM_CHAT_MAX_TOKENS:1200}
+    # NFR-7, and RE-MEASURED 2026-08-26 (PROJECT-PHASES, diagnostics wave A3 and ruling
+    # R1). The arithmetic, which was the rule stated before the measurement rather than a
+    # number chosen after it — the 95th percentile of the longest QUALIFYING model, times
+    # 1.25, rounded to 100:
+    #     1642 x 1.25 = 2052.5 -> 2100
+    # SIZED FOR THE DOCUMENTED FALLBACK MODEL; THE INCUMBENT'S p95 IS 575 (A3). Llama-3.3
+    # measured a maximum of 586 completion tokens over 21 samples and did not move when
+    # the cap was lifted to 3000, so this is not headroom the deployed model asked for. It
+    # is headroom openai/gpt-oss-120b needs: that model qualified as the fallback at 3000
+    # and FAILED at 1200, and a fallback nobody can switch to is not a fallback.
+    # The note that stood here quoted a longest-observed-answer figure measured on
+    # 2026-08-07 against a ten-protocol corpus. A3's tables supersede it and it is not
+    # repeated here; the original number stays where the record of it belongs, in
+    # DECISIONS.txt and in ADR-002, whose dated revision is W-4's to write.
+    # THIS IS NOT THE FIX FOR THE 2026-08-26 INCIDENT and must not be recorded as one —
+    # that is the degradation path in QueryService. A cap alone would buy a degenerating
+    # answer 900 more tokens of whitespace and still fail.
+    max-tokens: ${LLM_CHAT_MAX_TOKENS:2100}
     # Grounded answering, not writing. 0 is not used because a few providers treat it
     # as "unset"; 0.1 is deterministic enough and unambiguous.
     temperature: 0.1

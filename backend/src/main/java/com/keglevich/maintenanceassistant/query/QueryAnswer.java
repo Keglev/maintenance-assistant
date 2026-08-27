@@ -1,5 +1,8 @@
 package com.keglevich.maintenanceassistant.query;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import io.swagger.v3.oas.annotations.media.Schema;
+
 import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
@@ -22,17 +25,63 @@ import java.util.UUID;
  *                  hyphenation, and it is the observable half of the language rule ADR-002 records
  * @param claims    Mode A only: one statement, one source label. Empty in Mode B
  * @param citations the sources actually cited, in label order. Empty in Mode B
+ * @param degradedFrom why this Mode B answer is a Mode B answer when retrieval had said Mode A.
+ *                     ABSENT from the JSON for every ordinary answer, which is what makes it
+ *                     additive: a client that has never heard of it sees the payload it always saw
  */
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public record QueryAnswer(
         AnswerMode mode,
         String answer,
         String language,
         List<Claim> claims,
-        List<Citation> citations) {
+        List<Citation> citations,
+        @Schema(description = "Present only when retrieval selected Mode A and the grounded answer "
+                + "could not be produced, so the ungrounded answer was returned instead. TRUNCATED "
+                + "means the grounded answer hit the model's output cap. Absent on every ordinary "
+                + "answer; a client may ignore it.",
+                requiredMode = Schema.RequiredMode.NOT_REQUIRED)
+        DegradedFrom degradedFrom) {
+
+    /**
+     * The five-argument shape every caller used before the degradation path existed.
+     *
+     * <p>Kept so that adding the field is additive IN THE CODE as well as on the wire: an answer
+     * that was not degraded says so by not mentioning it, and no existing construction site had to
+     * be edited to keep meaning what it already meant.
+     */
+    public QueryAnswer(AnswerMode mode, String answer, String language,
+                       List<Claim> claims, List<Citation> citations) {
+        this(mode, answer, language, claims, citations, null);
+    }
+
+    /**
+     * The same answer, labelled with why it was degraded.
+     *
+     * <p>A copy rather than a mutable field: this record is handed to the cache, and an answer that
+     * could be relabelled after it was stored is an answer two callers can disagree about.
+     */
+    public QueryAnswer degradedFrom(DegradedFrom reason) {
+        return new QueryAnswer(mode, answer, language, claims, citations, reason);
+    }
 
     /** NFR-2's two modes. Serialised as "A" and "B". */
     public enum AnswerMode {
         A, B
+    }
+
+    /**
+     * Why a Mode B answer is being returned for a question retrieval had routed to Mode A.
+     *
+     * <p>ONE CONSTANT, AND IT IS AN ENUM ANYWAY. The alternative reason — Mode A produced no
+     * attributable citation — has existed since the assembler was written and is deliberately NOT
+     * labelled here: this field exists to make the 2026-08-26 failure class visible, and giving a
+     * name to a fall-through that has always been silent would change what an existing answer
+     * reports. It goes in when someone asks for it, with its own row.
+     */
+    public enum DegradedFrom {
+        /** The grounded call stopped at the model's output cap, so its JSON was unparseable. */
+        TRUNCATED
     }
 
     /**

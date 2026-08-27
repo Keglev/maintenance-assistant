@@ -50,18 +50,186 @@
   <main class="home" id="main">
     <section class="hero">
       <h1>Maintenance knowledge, findable in plain language</h1>
-      <p>Shop-floor staff ask in German or English and get an answer with citations to the source protocols — filtered by role, and explicitly labelled when no protocol matches. All processing on EU infrastructure.</p>
-      <p><strong>Status: in development, Phase 1</strong> — walking skeleton. Reports below appear as their pipelines publish them.</p>
+      <p>A technician on the shop floor types what the machine is doing, in German or in English, and reads back an answer with the protocols it was taken from — each one citable and openable. When no protocol matches, the system says so and shows no sources at all.</p>
+      <p class="hero-meta">
+        Live at <a href="https://maintenance.smartsupply.com.de">maintenance.smartsupply.com.de</a>.
+        Four demo accounts — <code>operator</code>, <code>techniker</code>, <code>schichtleiter</code>, <code>admin</code> —
+        are printed on the sign-in page together with the password they share. The role decides what an answer contains.
+      </p>
+      <p class="hero-meta">
+        Release <a href="https://github.com/Keglev/maintenance-assistant/releases/tag/v1.3.2">v1.3.2</a>, tagged 27 August 2026 ·
+        interface and corpus in German and English · all inference on EU infrastructure.
+      </p>
       <div class="stack">
         <span>Java 21 · Spring Boot 4.1</span>
         <span>Angular 22 · TypeScript</span>
         <span>PostgreSQL · pgvector</span>
         <span>Keycloak · OIDC</span>
-        <span>EU-hosted LLM</span>
-        <span>Docker Compose</span>
+        <span>Caddy · Docker Compose</span>
         <span>GitHub Actions</span>
-        <span>JUnit · Vitest</span>
+        <span>IONOS AI Model Hub · Berlin</span>
+        <span>JUnit · Vitest · Playwright</span>
       </div>
+    </section>
+
+    <section class="overview" aria-labelledby="overview-heading">
+      <h2 id="overview-heading">Project overview</h2>
+
+      <article class="overview-item">
+        <h3>What it is</h3>
+        <p>
+          Maintenance knowledge in manufacturing sits in scattered PDFs, scans and paper manuals, and in the heads of
+          experienced technicians. Many machines here run fifteen to twenty years on PLC or SCADA only, so the machine
+          itself offers little beyond an error code. This system indexes maintenance protocols and answers questions
+          about them in natural language, with citations — and it is explicitly not a ticketing or CMMS system.
+          The <a href="/maintenance-assistant/overview.html">overview</a> is the short way in;
+          <a href="/maintenance-assistant/requirements.html">requirements</a> holds the user stories and the seven
+          non-functional requirements.
+        </p>
+        <dl class="facts">
+          <div><dt>165</dt><dd>protocols in the seeded corpus, all synthetic</dd></div>
+          <div><dt>10</dt><dd>machines in the demo plant</dd></div>
+          <div><dt>36</dt><dd>example questions per language, across all ten machines</dd></div>
+          <div><dt>11</dt><dd>architecture decision records</dd></div>
+        </dl>
+        <p class="note">
+          No real customer or plant document is used anywhere in this project. The corpus is generated, which the
+          <a href="https://github.com/Keglev/maintenance-assistant/blob/main/AI-USAGE.md#standing-statement-on-the-data">standing statement on the data</a>
+          says in as many words, along with the two consequences it has for every measurement below.
+        </p>
+      </article>
+
+      <article class="overview-item">
+        <h3>Where it comes from</h3>
+        <p>
+          The rules this system obeys are not retrieval defaults. They come from maintenance work in US and German
+          plants, and each one is written down where it was decided rather than only implemented.
+        </p>
+        <ul class="ruleset">
+          <li>
+            <strong>An Operator and a Techniker get different answers to the same question.</strong> An Operator
+            receives only actions they may perform — clean a sensor, remove material, load a program — and is told to
+            escalate when the fix needs a Fachkraft. Filtering happens server-side, on the token's role.
+            <a href="/maintenance-assistant/requirements.html">Requirements, US-1</a> ·
+            <a href="/maintenance-assistant/adr/ADR-003-keycloak-for-iam.html">ADR-003</a>
+          </li>
+          <li>
+            <strong>Only a Schichtleiter may write.</strong> Reading is broad and writing is one role, for quality and
+            consistency. A Schichtleiter can nevertheless upload arbitrary text, so uploads carry a moderation and
+            approval chain, and an unapproved source is marked in the answer that cites it.
+            <a href="/maintenance-assistant/DECISIONS.txt">DECISIONS.txt</a> ·
+            <a href="/maintenance-assistant/adr/ADR-006-insider-threat-and-protocol-moderation.html">ADR-006</a>
+          </li>
+          <li>
+            <strong>An error code is what the machine gives you, and it is nearly all it gives you.</strong> It is also
+            the worst kind of input for a vector search: five characters a technician reads off a display carry
+            certainty and almost no meaning. Measured — <em>“Was bedeutet KOM-04?”</em> retrieved the right protocol at
+            rank 1 scoring 0.4288 against a 0.55 gate, so the reader was told nothing while the answer sat at the top
+            of the list. The fix grounds on the literal term instead of moving the gate.
+            <a href="/maintenance-assistant/adr/ADR-009-hybrid-retrieval.html">ADR-009</a>
+          </li>
+        </ul>
+      </article>
+
+      <article class="overview-item">
+        <h3>How it was built</h3>
+        <p>
+          One Spring Boot application, internally split into <code>ingestion</code>, <code>query</code> and
+          <code>web</code>, with an Angular client in front of it and three containers behind it. Retrieval is one SQL
+          statement combining the machine filter with cosine ranking over the chunk table, which is why the vectors
+          live in PostgreSQL rather than in a separate vector database.
+          <a href="/maintenance-assistant/architecture/index.html">arc42</a> ·
+          <a href="/maintenance-assistant/adr/ADR-001-modular-monolith-first.html">ADR-001</a> ·
+          <a href="/maintenance-assistant/adr/ADR-004-pgvector-for-vector-search.html">ADR-004</a>
+        </p>
+        <p>
+          The working method is stated rather than implied, because a reader is owed the difference between what was
+          written and what was generated:
+        </p>
+        <ol class="method">
+          <li>A chat model is a sparring partner while the design documents and decision records are written — it challenges the decisions, it does not make them.</li>
+          <li>An editor agent implements against those documents as the source of truth, and reports its deviations in the pull request rather than smoothing them over.</li>
+          <li>Every pull request is read line by line before merge, a red pipeline blocks it, and anything the browser does is verified in a browser.</li>
+        </ol>
+        <p class="note">
+          The full account, session by session, including the defects that were found only by running the thing —
+          is in <a href="https://github.com/Keglev/maintenance-assistant/blob/main/AI-USAGE.md">AI-USAGE.md</a>.
+        </p>
+      </article>
+
+      <article class="overview-item">
+        <h3>How it is verifiable</h3>
+        <p>
+          Every claim above has somewhere to be checked, and the reports below are generated by the pipelines rather
+          than written by hand.
+        </p>
+        <ul class="ruleset">
+          <li>
+            <strong>Eleven decision records</strong>, each dated, each carrying the alternatives it rejected and the
+            evidence it was decided on. <a href="/maintenance-assistant/adr/index.html">The ADR index</a>
+          </li>
+          <li>
+            <strong>Coverage, published per run.</strong> Backend 92% of instructions and 86% of branches
+            (<a href="/maintenance-assistant/backend/coverage/index.html">JaCoCo</a>); frontend 97.44% of statements,
+            88.38% of branches, 96.16% of functions and 97.4% of lines
+            (<a href="/maintenance-assistant/frontend/coverage/index.html">Vitest</a>). Behind them: 274 backend unit
+            tests, 262 integration tests against Testcontainers, 321 Vitest specs and 39 Playwright cases against a
+            real Keycloak and a real backend, plus 18 screenshot baselines compared per run.
+          </li>
+          <li>
+            <strong>The API as it is served, not as it is described.</strong>
+            <a href="/maintenance-assistant/backend/api-docs/index.html">The REST reference</a> is rendered from the
+            OpenAPI document the application produces, and
+            <a href="https://maintenance.smartsupply.com.de/swagger-ui">the live Swagger UI</a> sends requests against
+            the running deployment.
+          </li>
+          <li>
+            <strong>The working ledger is published, not summarised.</strong> Every phase, every survey finding and
+            every correction, including the ones that turned out wrong.
+            <a href="/maintenance-assistant/PROJECT-PHASES.txt">PROJECT-PHASES.txt</a>
+          </li>
+          <li>
+            <strong>The retrieval thresholds and the reranker were measured, not chosen.</strong> A ratified set of 19
+            questions is run against the real provider and the real index; the 0.55 gate was kept on a sweep that
+            showed it, and the reranker was dropped because recall@1 was already 16/17 and the one failing question was
+            at rank 1 already — nothing for a reranker to reorder.
+            <a href="/maintenance-assistant/adr/ADR-008-retrieval-measurement.html">ADR-008</a> ·
+            <a href="/maintenance-assistant/adr/ADR-009-hybrid-retrieval.html">ADR-009</a>
+          </li>
+        </ul>
+      </article>
+
+      <article class="overview-item">
+        <h3>What to see in two minutes</h3>
+        <p>
+          Sign in at <a href="https://maintenance.smartsupply.com.de">maintenance.smartsupply.com.de</a> as
+          <code>techniker</code>; the password is on the sign-in page.
+        </p>
+        <ol class="tour">
+          <li>
+            <strong>Pick Presse 3 (PR-03) and click an example question.</strong> Four suggestions appear under the
+            question box in the interface language. Clicking one fills the box and does <em>not</em> submit — you still
+            read the question and still press Ask, so what you learn is the shape of a question that works. The answer
+            arrives with its sources as cards you can open.
+            <a href="/maintenance-assistant/adr/ADR-011-guided-questions.html">ADR-011</a> ·
+            <a href="https://github.com/Keglev/maintenance-assistant/blob/main/backend/src/main/resources/examples/example-questions.json">the questions themselves</a>
+          </li>
+          <li>
+            <strong>Switch the interface to EN, pick Kompressor 1 (KP-01), and ask in German:</strong>
+            <em>“Kompressor schaltet nach einer halben Stunde wegen zu hoher Temperatur ab”.</em> The protocol behind
+            that fault is written in English. There is no translation step anywhere — one embedding model holds both
+            languages in one space. This is case G10 of the ratified measurement set.
+            <a href="https://github.com/Keglev/maintenance-assistant/blob/main/backend/src/test/resources/retrieval/golden-questions.json">the golden questions</a>
+          </li>
+          <li>
+            <strong>Stay on Kompressor 1 and ask “sensor fehler”.</strong> None of its 14 protocols is about a sensor.
+            The answer comes back as a general suggestion, labelled ungrounded, with no source area at all — and it
+            says how many protocols the machine does have, so the emptiness is a fact rather than a shrug.
+            <a href="https://github.com/Keglev/maintenance-assistant/blob/main/backend/src/main/resources/corpus/protocols.ndjson">the corpus</a> ·
+            <a href="/maintenance-assistant/llm-approach.html">the two answer modes</a>
+          </li>
+        </ol>
+      </article>
     </section>
 
     <div class="card-grid">

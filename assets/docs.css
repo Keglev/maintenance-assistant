@@ -494,6 +494,126 @@ button:focus-visible {
   background: #16303a;
   box-shadow: 0 4px 24px color-mix(in srgb, var(--accent) 30%, transparent);
 }
+
+/* =============================================================================
+   Project overview — the recruiter-facing middle of the landing pages.
+   Added for docs/landing-for-recruiters. The hero above is centred display
+   text; everything here is meant to be READ, so it is left-aligned, measure-
+   capped and set at body size. No new JavaScript and no new colour tokens: the
+   palette is the one tokens.css already defines, which is what keeps the dark
+   theme correct without a second set of rules to maintain.
+   ========================================================================== */
+
+/* The two lines under the hero paragraph: where it runs, and which release.
+   `.hero p` already caps the measure and centres; these only need to be
+   smaller and to close the gap before the stack badges. */
+.hero-meta {
+  font-size: 0.92rem;
+  margin-bottom: 0.6rem;
+}
+.hero-meta:last-of-type {
+  margin-bottom: 1.75rem;
+}
+
+.overview {
+  margin-top: 3.5rem;
+}
+.overview > h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--heading);
+  margin: 0 0 0.5rem;
+}
+
+.overview-item {
+  padding: 1.75rem 0;
+  border-top: 1px solid var(--border);
+}
+.overview-item h3 {
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--heading);
+  margin: 0 0 0.75rem;
+}
+.overview-item p {
+  max-width: 78ch;
+  margin: 0 0 1rem;
+  color: var(--text);
+  line-height: 1.7;
+}
+/* Provenance and caveats — the sentences that qualify a claim rather than make
+   one. Muted and smaller so they read as a footnote without being hidden. */
+.overview-item p.note {
+  font-size: 0.88rem;
+  color: var(--muted);
+}
+
+/* The rule list (section 2) and the evidence list (section 4). Each item opens
+   with a <strong> claim and closes with the links that check it, so the marker
+   is dropped: the bold opening already does the work a bullet would. */
+.ruleset {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 1.1rem;
+}
+.ruleset > li {
+  max-width: 78ch;
+  padding-left: 1rem;
+  border-left: 3px solid var(--accent);
+  color: var(--text);
+  line-height: 1.7;
+}
+
+/* The three-line working method and the three-step tour keep their numbers:
+   in both the ORDER is part of the content. */
+.method,
+.tour {
+  max-width: 78ch;
+  margin: 0 0 1rem;
+  padding-left: 1.3rem;
+  color: var(--text);
+  line-height: 1.7;
+}
+.method > li,
+.tour > li {
+  margin-bottom: 0.85rem;
+}
+
+/* Counted facts. A <div> per pair so dt and dd stay together in the grid —
+   a bare dl would lay its terms and definitions out as independent cells. */
+.facts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 1rem;
+  margin: 0 0 1.25rem;
+}
+.facts > div {
+  padding: 0.9rem 1rem;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+.facts dt {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--accent);
+  line-height: 1.2;
+}
+.facts dd {
+  margin: 0.25rem 0 0;
+  font-size: 0.85rem;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+/* Dark mode: the same lift the cards get, and for the same reason — the page
+   background and --surface-2 sit close together in this palette. */
+:root[data-theme="dark"] .facts > div {
+  background: #111f33;
+  border-color: rgba(148, 163, 184, 0.40);
+}
 /* =============================================================================
    maintenance-assistant Docs — Content
    Typography for Markdown rendered into .doc-body by the Pandoc pipeline.

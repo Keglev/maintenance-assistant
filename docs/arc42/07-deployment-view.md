@@ -48,6 +48,14 @@ Two consequences worth stating before somebody trips over them:
   the arrangement, which is deliberate: a shared network declared here would make this stack's
   startup depend on a project it does not own.
 
+**A new public hostname is probed within seconds of its certificate being issued.** Four
+certificate-transparency scanners reached `api.smartsupplypro.de` from four addresses inside a
+minute of Caddy obtaining the certificate on 2026-08-27, while the upstream did not yet exist and
+every request was answered with a 502. CT logs are public and watched continuously, so the window
+between "the name resolves and serves TLS" and "the application behind it is configured" is not
+private: **the upstream's own security configuration has to be right before its container starts**,
+not shortly afterwards.
+
 If inventory-service ever leaves this host, the removal is the site block in
 [`docker/caddy/Caddyfile`](https://github.com/Keglev/maintenance-assistant/blob/main/docker/caddy/Caddyfile)
 and nothing else here.
@@ -83,11 +91,20 @@ threads and direct buffers — an OOM kill on the one service whose restart logs
 deliberately unlimited: none of them sizes itself from visible RAM, and a cgroup limit on Postgres
 would count the page cache it depends on.
 
-**There is no swap on this host.** `swapon --show` prints nothing, so an over-committed container is
-OOM-killed rather than slowed down. That was survivable while nothing was near its ceiling; with a
-third JVM arriving, a small swap file is cheap insurance against a kill during a burst. It is not
-created by the change that wrote this section — it is a host operation and a judgement call about
-whether a slow service is better than a restarted one.
+**The host had no swap, and now has 2 GB.** Until 2026-08-27 `swapon --show` printed nothing, so an
+over-committed container was OOM-killed rather than slowed — survivable while nothing was near its
+ceiling, and not survivable as a third JVM arrives. A 2 GB file was created as root during the
+shared-host preparation and entered in `/etc/fstab` (`/swapfile none swap sw 0 0`) so it survives a
+reboot:
+
+```
+NAME      TYPE SIZE USED PRIO
+/swapfile file   2G   0B   -1
+```
+
+It is insurance, not capacity. Swap that is actually being used by a JVM heap is its own performance
+incident; the reason it is here is that a burst which would have been a kill becomes a slowdown
+somebody can observe and act on.
 
 ## 7.2 Containers
 

@@ -39,8 +39,10 @@ Guided questions complete; v1.4.0 on deploy after Carlos's browser check
 Landing pages rewritten; next: Playwright upgrade, ledger rotation,
 Part 4 survey.
 
-Shared host prepared in #119 (api.smartsupplypro.de, JVM memory limits);
-NOT DEPLOYED — the checklist is in the PR and the OPS entry below.
+Shared host LIVE for api.smartsupplypro.de (502 until inventory-service
+deploys); hand-deployed 2026-08-27 18:13-18:23 UTC from #119's checklist.
+v1.4.0 TAGGED 2026-08-27 on a3e781d. Next: Playwright upgrade, ledger
+rotation, Part 4 survey.
 THE VISUAL CHECK WAS RED BECAUSE THE BASELINE STEP WAS BLOCKED on #117,
 not by design: the pinned image would not pull, so no baseline could be
 produced and the wording "by design" claimed a deliberateness the situation
@@ -70,6 +72,12 @@ is the smaller wrong and closes itself on the next deploy. THE DRILL
 IS STILL THE FIX and it is still not working — checking the dialog
 after deploy catches this only if somebody looks, and nobody did,
 twice.
+CLOSED 2026-08-27: v1.4.0 is tagged on a3e781d and package.json reads
+1.4.0, so the tag and the dialog agree for the first time since v1.1.0.
+The row stays because the drill did not earn the fix — the bump was
+made deliberately in #119 and the tag followed it, which is the order
+that works and the one the drill was supposed to enforce from the
+other end.
 
 THE REFACTOR PHASE IS ACTIVE. Six read-only surveys in a fixed order,
 each fixing what it finds before the next begins, DOCS DELIBERATELY
@@ -3383,6 +3391,9 @@ rather than given one afterwards.
          out to be THREE rows riding along and not two — the compose
          comment parked 2026-08-24 makes a third, because the memory
          limits put that file on the wire as well.
+         DEPLOYED 2026-08-27, step (d) of the hand-deploy. Verified from
+         the host: `grep -c '^LLM_' .env.prod` returns 1, the remaining
+         line being LLM_API_KEY, which has a value. CLOSED.
          AS ORIGINALLY WRITTEN 2026-08-26, kept: WATCH. Inert today
          because compose spells them with `:-`. Deleted at the next
          hand-deploy that has a reason of its own, per .env.prod.example
@@ -4030,7 +4041,12 @@ STANDING LIST — small, always visible, never a release of its own:
     DEPLOYS with the shared-host hand-deploy, checklist in the OPS entry
     of 2026-08-27 below and in #119's body — step (c) copies the whole
     Caddyfile, so this rides in with the site block that gave the login
-    a reason of its own. Still parked until that session runs.
+    a reason of its own.
+    DEPLOYED 2026-08-27. Verified end to end rather than by file
+    contents: `curl -I https://maintenance.smartsupply.com.de/api/health`
+    returns X-Request-Id, which it could only do through this file. The
+    id is now set at the edge and the correlation is one hop wider than
+    the backend-generated id it replaces. CLOSED after 34 days parked.
 
     PARKED 2026-08-24 — THE COMPOSE COMMENT NOW REFERENCES
     domain-model.md. docker/docker-compose.prod.yml is hand-deployed
@@ -4048,6 +4064,9 @@ STANDING LIST — small, always visible, never a release of its own:
     ROWS RIDE ALONG WITH THAT SESSION, NOT THE TWO THE PLAN NAMED —
     this one, the Caddyfile header_up above, and the empty LLM_*= lines
     in .env.prod.
+    DEPLOYED 2026-08-27 with the compose file. CLOSED, and it cost
+    nothing of its own, which is exactly the trade the row was holding
+    out for.
 
     The original entries, kept as written:
   - v1.1.1 POLISH CANDIDATES, parked; they ride into v1.2 unless
@@ -4722,6 +4741,111 @@ OPEN ITEMS carried forward (not blockers, do not lose):
         tight: `docker inspect maintenance-keycloak --format
         '{{.State.OOMKilled}}'` and `docker stats --no-stream`.
 
+  DONE 2026-08-27, 18:13-18:23 UTC. Executed as written, (a) to (i), one
+  session and one login, by Carlos. Times are UTC because the host is
+  (REFACTOR-STANDARDS, incident times carry a zone).
+    (a) NOT A CHANGE: the A record for api.smartsupplypro.de already
+        pointed at the host, as #119's body predicted. No propagation
+        wait.
+    (b) caddy/Caddyfile.bak-2026-08-27,
+        docker-compose.prod.yml.bak-2026-08-27,
+        .env.prod.bak-2026-08-27.
+    (c) cp OVER both files, never mv. See the FINDING below: one of them
+        could not be written from the deploy account at all.
+    (d) The three empty LLM_*= lines removed from .env.prod.
+        `grep -c '^LLM_' .env.prod` -> 1, the survivor being LLM_API_KEY.
+    (e) `docker compose --env-file .env.prod config -q` OK.
+    (f) `caddy validate` OK, `caddy reload` OK. No downtime.
+    (g) backend and keycloak recreated. HostConfig.Memory 1610612736 and
+        1342177280, the numbers #119 predicted.
+    (h) /api/health 200 WITH X-Request-Id — which is the W-2 row landing
+        and could only come through the new Caddyfile. Keycloak discovery
+        200. api.smartsupplypro.de: 502 OVER TLS with a valid
+        certificate, which is the documented success signal and not a
+        failure — the site block is live and only the upstream is
+        missing.
+    (i) BASELINE TAKEN: OOMKilled=false, RestartCount=0 on both
+        containers. RE-CHECK DUE 2026-08-28, and it is the only thing
+        this session leaves open.
+
+  FINDING — docker-compose.prod.yml ON THE HOST WAS root:root 644, AND
+  HAD BEEN SINCE THE FIRST MANUAL DEPLOY ON 2026-08-11. The deploy
+  account could not overwrite it. Corrected from the root console in the
+  same session: cp, then chown deploy:deploy.
+  THE RECORD WAS WRONG FOR SIXTEEN DAYS AND NOTHING COULD SEE IT. The
+  "seven hand-deployed files" table implies the deploy account can
+  replace all seven, and for one of them that was false from the day it
+  was created. It surfaced only because this was the first deploy since
+  2026-08-11 that actually needed to write that file — a latent defect
+  whose detector is a rare event, which is the worst kind.
+  THE RULE, now in docker/README.md and in the OPS RULES below: BEFORE A
+  HAND-DEPLOY, `ls -l` THE TARGET. A root-owned file needs the root
+  console, and gets chown'd to deploy while you are there.
+
+  FINDING — A WINDOWS EXPORT PIPELINE PRODUCED A SECRETS FILE WITH EVERY
+  NEWLINE STRIPPED: 44,081 bytes, twelve keys concatenated onto the ends
+  of the preceding values, on ONE line. It was discarded, and the host
+  file was built from the clean CRLF export instead.
+  IT LOOKED FINE. Right size, opens in an editor, `file` says "ASCII
+  text". A bare regex finds 3 of its 12 keys, because a key preceded by
+  an alphanumeric character is invisible to one — so even a check would
+  have under-reported rather than failed. It was caught by counting
+  bytes: 0 LF, 0 CR, 0 spaces, 24 '=' signs in 44 KB.
+  THE STANDARD THIS BOUGHT is in REFACTOR-STANDARDS, OPS: a secrets file
+  is validated by byte checks — line count, CR/LF, BOM, KEY=VALUE per
+  line — before it is deployed, never by eye. And no value is ever
+  printed to check it: names, lengths and counts answer every question,
+  and a length matching a previously measured length is the stronger
+  check.
+
+  HOST PREP FOR inventory-service, same session. /opt/smartsupplypro
+  created as root and chown'd to deploy (drwxr-x--- deploy deploy);
+  .env.prod written from the Fly secrets export OVER STDIN — no temp
+  file on either side, never a command-line argument — 600 deploy:deploy,
+  12 keys, sha256 identical local and remote. The 2 GB swap file was
+  created in the same session and entered in /etc/fstab; the host had
+  none.
+  THE SHARED-HOST RULE, and it is now in the OPS RULES below: ROOT
+  CREATES AND HANDS OVER, deploy OPERATES. The deploy account has NO
+  SUDO by provisioning design (infra/provision.sh: adduser
+  --disabled-password, passwd -l, docker group, no sudoers entry), so
+  anything under /opt needs one root action to exist and a chown to be
+  usable afterwards. That is the design working, not a gap to close.
+
+  THE FOUR PARKED ROWS ARE ALL DEPLOYED as of this session: the W-2
+  Caddyfile header_up (#111), the three empty LLM_*= lines in .env.prod,
+  the compose comment referencing domain-model.md, and the memory
+  limits. Each row above is marked CLOSED where it lives. The oldest had
+  been parked 34 days, and every one of them cost nothing of its own —
+  which is the whole argument for the ride-along rule rather than a
+  server login per item.
+
+  OPEN — HOST MAINTENANCE, PLANNED WINDOW: apt upgrade plus a reboot,
+  BEFORE inventory-service goes live, so that one reboot covers both
+  projects instead of two outages. Measured on the host 2026-08-27:
+  18 updates available, 3 of them security; /var/run/reboot-required
+  present, naming linux-image-7.0.0-30-generic and linux-base against a
+  running 7.0.0-29-generic. So it is a kernel reboot and not a service
+  restart.
+  WHAT MAKES IT SAFE TO DO: every service in docker-compose.prod.yml
+  carries `restart: unless-stopped` — five of five, verified by grep and
+  again by `docker inspect --format '{{.HostConfig.RestartPolicy.Name}}'`
+  on the running containers — so the stack comes back on its own.
+  Caddy's certificates live in the caddy-data volume and survive the
+  reboot, so nothing is re-issued and no Let's Encrypt rate limit is
+  approached. THE ONE THING TO CHECK AFTERWARDS is the swap file, which
+  is new and whose fstab entry has not yet survived a boot.
+
+  CERTIFICATE TRANSPARENCY IS A PUBLIC FEED, AND IT IS WATCHED. Within a
+  minute of Caddy obtaining the certificate for api.smartsupplypro.de,
+  four scanners reached the new hostname from four addresses — while the
+  upstream did not exist and every request was a 502. THE CONSEQUENCE
+  FOR THE NEXT PROJECT: a new public hostname is probed immediately, so
+  the upstream's own security configuration must be right BEFORE its
+  container starts, not shortly afterwards. Recorded in arc42 7.1 as
+  well, because that is where somebody adding a hostname will be reading.
+
+
 - OPS — THE TWO JVMs WERE UNCAPPED AND THAT WAS ALWAYS WRONG; the second
   project only made it urgent. MEASURED 2026-08-27 on the host, read-only:
   every container reported a LIMIT of 7.565 GiB, which is the host's own
@@ -4772,15 +4896,39 @@ OPEN ITEMS carried forward (not blockers, do not lose):
   does not — it sizes from shared_buffers and leans on the page cache a
   cgroup limit would count as usage, on the one container whose failure
   loses data.
-  NOT VERIFIED, and it cannot be from here: no limit was applied, so
-  1610612736, 1342177280 and the 1,152 MiB heap are arithmetic from
-  measured percentages rather than observations. ssp-backend:8081 was not
-  reached either — /opt holds only containerd and maintenance-assistant
-  today.
-  A SWAP FILE IS RECOMMENDED AND NOT CREATED. It is a host operation and
-  a judgement about whether a slow service beats a restarted one; arc42
-  7.1 records it as an open host-level consequence.
+  WAS NOT VERIFIED WHEN WRITTEN, AND NOW IS: applied 2026-08-27, and
+  `docker inspect` reports HostConfig.Memory 1610612736 on the backend
+  and 1342177280 on keycloak. The arithmetic held. ssp-backend:8081 is
+  still unreached — the container does not exist yet.
+  THE SWAP FILE EXISTS: 2 GB, created as root during the same session
+  and entered in /etc/fstab, so it survives a reboot. The sentence above
+  saying there is no swap describes the host as it was before that day
+  and is left standing, because it is the reason the limits were sized
+  the way they were.
 
+- OPS RULE 4 (learned 2026-08-27, cost one root console mid-deploy):
+  BEFORE A HAND-DEPLOY, `ls -l` THE TARGET. The deploy account has no
+  sudo, so a root-owned file on the host CANNOT be replaced from it, and
+  the failure arrives halfway through a session rather than at its
+  start. docker-compose.prod.yml was found root:root 644, sixteen days
+  after a root session created it and did not hand it over — invisible
+  until a deploy finally needed to write that file. A file that is not
+  deploy:deploy needs the root console, and gets `chown deploy:deploy`
+  while you are there. DOCS DEBT: DONE — docker/README.md, above the
+  OPS RULE 3 note, with the ls -l command.
+- OPS RULE 5, THE SHARED-HOST RULE (2026-08-27): ROOT CREATES AND HANDS
+  OVER, deploy OPERATES. /opt is root-owned, and `deploy` is not in
+  sudoers at all — infra/provision.sh builds it that way on purpose
+  (adduser --disabled-password, passwd -l, docker group, no sudoers
+  entry). So a second project's directory needs exactly one root action
+  to exist, plus a chown, and everything after that is deploy's. This is
+  the design working rather than a gap: the account that runs containers
+  every day is not the account that can rewrite the machine.
+  NOTE THAT docker GROUP MEMBERSHIP IS ROOT-EQUIVALENT in practice, and
+  the rule stands anyway — a boundary that is trivially crossable is
+  still the written statement of who is supposed to do what, and using
+  the docker socket to sidestep sudoers is how an operator surprises the
+  next one.
 - LLM_CHAT_MODEL empty default in docker-compose.prod.yml: FIXED in
   the query PR — it now repeats application.yml's real default
   (meta-llama/Llama-3.3-70B-Instruct), and LLM_CHAT_DAILY_CALL_BUDGET

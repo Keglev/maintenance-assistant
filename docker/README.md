@@ -115,6 +115,25 @@ itself — not three, and not the four the survey expected:
 | 6 | `keycloak/themes/wartungsassistent/` | the login theme | directory |
 | 7 | `postgres/init-keycloak-db.sh` | runs once, on an empty data directory | single file |
 
+**THEY ARE OWNED BY `deploy`, AND ONE OF THEM WAS NOT.** The account that runs `docker compose` on
+the host is `deploy`, and it has **no sudo** — that is `infra/provision.sh` working as designed, not
+an omission. So every file above has to be `deploy:deploy` for a hand-deploy to be possible at all.
+On 2026-08-27 `docker-compose.prod.yml` turned out to be `root:root 644`, and had been since the
+first manual deploy on 2026-08-11: it was created by a root session and never handed over. Nothing
+reported it for sixteen days, because nobody had needed to overwrite that file since. It was
+corrected the same day (`cp` as root, then `chown deploy:deploy`).
+
+**So the first step of a hand-deploy is `ls -l`, not `cp`:**
+
+```bash
+cd /opt/maintenance-assistant
+ls -l docker-compose.prod.yml caddy/Caddyfile .env.prod frontend-config.json
+```
+
+A file that is not `deploy:deploy` cannot be replaced from the deploy account. It needs the **root
+console** — and while you are there, `chown deploy:deploy` it, so the next person does not meet the
+same wall. **Root creates and hands over; `deploy` operates.**
+
 **OPS RULE 3 applies to all four single-file mounts (3, 4, 5, 7).** A single-file bind mount
 tracks the file's INODE, not its path: replacing the host file with `mv` gives it a new inode
 and the container keeps reading the old one, silently — `caddy validate` and `caddy reload` run

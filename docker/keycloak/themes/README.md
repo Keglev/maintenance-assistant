@@ -4,7 +4,7 @@
   directory reaches the server the same way the Caddyfile does: by hand (PROJECT-PHASES, OPS RULES).
 
     1. On the server, in /opt/maintenance-assistant:  git pull        (the theme directory arrives)
-    2. cp docker-compose.prod.yml docker-compose.prod.yml.bak-$(date +%Y%m%d-%H%M%S)
+    2. f=docker-compose.prod.yml; cp -pn "$f" "$f.bak.of-$(date -r "$f" +%F)"
        then apply the merged keycloak block — COPY OVER the file, never `mv` (OPS RULE 3)
     3. docker compose -f docker-compose.prod.yml --env-file .env.prod up -d --force-recreate keycloak
        (an env or mount change is inert until the container is recreated — OPS RULE 2)

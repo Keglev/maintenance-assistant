@@ -203,7 +203,7 @@ that changed nothing. It cost a deploy round on 2026-08-08: the host file carrie
 `Content-Security-Policy` lines while a `grep` inside the container found none.
 
 ```bash
-cp caddy/Caddyfile caddy/Caddyfile.bak-$(date +%Y%m%d-%H%M%S)   # rollback copy
+f=caddy/Caddyfile; cp -pn "$f" "$f.bak.of-$(date -r "$f" +%F)"   # rollback copy
 cp new-Caddyfile caddy/Caddyfile                                 # cp, NOT mv — same inode
 docker compose -f docker-compose.prod.yml --env-file .env.prod exec caddy \
   caddy reload --config /etc/caddy/Caddyfile
@@ -296,7 +296,7 @@ healthy and was running the old definition. Applying such a change:
 ```bash
 ssh deploy@<host>
 cd /opt/maintenance-assistant
-cp docker-compose.prod.yml docker-compose.prod.yml.bak-$(date +%Y%m%d-%H%M%S)   # rollback copy first
+f=docker-compose.prod.yml; cp -pn "$f" "$f.bak.of-$(date -r "$f" +%F)"   # rollback copy first
 # copy the new file over (scp from the workstation, or edit in place)
 docker compose -f docker-compose.prod.yml up -d --force-recreate backend
 ```
@@ -305,7 +305,7 @@ The Caddyfile is applied the same way, and reloaded rather than recreated — Ca
 configuration without dropping connections or re-issuing certificates:
 
 ```bash
-cp caddy/Caddyfile caddy/Caddyfile.bak-$(date +%Y%m%d-%H%M%S)   # rollback copy first
+f=caddy/Caddyfile; cp -pn "$f" "$f.bak.of-$(date -r "$f" +%F)"   # rollback copy first
 # copy the new file over
 docker compose -f docker-compose.prod.yml --env-file .env.prod exec caddy \
   caddy reload --config /etc/caddy/Caddyfile

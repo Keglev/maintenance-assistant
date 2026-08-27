@@ -376,3 +376,24 @@ something cared about a pixel:
 asserts everything in frame, including the things nobody thought to assert — and the value here was
 not that the layout was wrong, but that the *fixture* was, silently, in a way four other test suites
 had been tolerating.
+
+## Revision 2026-08-27 — the pinned image is now v1.62.1-noble
+
+The sentence under "one authority" above still names the tag that was pinned when this record was
+accepted, and it is left as written: a decision record is corrected by a dated note rather than by
+an edit to its text.
+
+**Revision 2026-08-27 — the pinned image is now v1.62.1-noble (#124); the tag moves with
+`@playwright/test`, the two pins in `frontend-e2e-visual.yml:85` and `run-visual-docker.mjs:25` are
+the authority, this sentence is left as written.**
+
+The decision is unchanged — one image, one authority — and only the tag moved. Two things measured
+on the way are worth keeping:
+
+- **All eighteen baselines passed unchanged** under 1.62.1 and its newer Chromium. The upgrade
+  crossed six minor versions and moved no pixel, which is the first evidence this project has that
+  a Playwright bump is not automatically a baseline regeneration.
+- **The local half of "generate locally, compare in CI" has no working path today.** The image would
+  not pull on the maintainer's machine for the second time (DECISIONS.txt, 2026-08-27), so the
+  regeneration in #124 could not have been run locally had it been needed, and the pass was measured
+  on the runner instead. That is a WATCH against this ADR's mechanism, not a change to it.

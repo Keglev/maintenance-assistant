@@ -158,7 +158,7 @@ npm run e2e:visual          # compare against the baselines
 npm run e2e:visual:update   # regenerate them — a deliberate act, never automatic
 ```
 
-Both run **inside `mcr.microsoft.com/playwright:v1.56.0-noble`**, and that is not optional.
+Both run **inside `mcr.microsoft.com/playwright:v1.62.1-noble`**, and that is not optional.
 
 ### Baselines have exactly one home
 

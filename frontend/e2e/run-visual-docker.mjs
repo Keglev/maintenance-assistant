@@ -22,7 +22,7 @@ import { fileURLToPath } from 'node:url';
 import { dirname, resolve } from 'node:path';
 
 /** Pinned to the @playwright/test version in package.json. Bump both together, never one. */
-const IMAGE = 'mcr.microsoft.com/playwright:v1.56.0-noble';
+const IMAGE = 'mcr.microsoft.com/playwright:v1.62.1-noble';
 
 const frontendDir = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const update = process.argv.includes('--update');

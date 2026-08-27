@@ -793,7 +793,7 @@ Status: v1.3.1 released; refactor phase, Part 3 closed 2026-08-26; diagnostics w
   grep for `> 0.9`. The new unit test caught it before the pull request existed. A diagnosis that is
   only searchable in some locales is not a diagnosis, and the counting rule that already covers this
   had been applied in one of the two places it belonged.
-- A TRUNCATED GROUNDED ANSWER IS A DEGRADATION, NOT AN OUTAGE — shipped 2026-08-26 (W-3, #PRNUM),
+- A TRUNCATED GROUNDED ANSWER IS A DEGRADATION, NOT AN OUTAGE — shipped 2026-08-26 (W-3, #112),
   PRODUCTION BEHAVIOUR CHANGE, v1.3.2. When the Mode A call stops at the model's output cap its JSON
   is unparseable, so there is no grounded answer to salvage; but the ungrounded answer is still worth
   having, and it is the same fall-through the query path already takes when Mode A produces no
@@ -807,7 +807,7 @@ Status: v1.3.1 released; refactor phase, Part 3 closed 2026-08-26; diagnostics w
   DEGRADATION IS ONE STEP, NEVER A LOOP: the catch is around the grounded call only, so an
   ungrounded call that truncates is a real provider failure and still returns 503. That is
   structural rather than a guard someone has to remember, and it is asserted by a test.
-- THE OUTPUT CAP IS 2100, shipped with the degradation and never alone (R1, 2026-08-26, #PRNUM).
+- THE OUTPUT CAP IS 2100, shipped with the degradation and never alone (R1, 2026-08-26, #112).
   The arithmetic is in application.yml beside the number so the next reader can recompute it rather
   than inherit it: 1642 x 1.25 = 2052.5 -> 2100, the 95th percentile of the longest QUALIFYING model
   times 1.25. THE SENTENCE THAT MATTERS MORE THAN THE NUMBER: it is sized for the documented

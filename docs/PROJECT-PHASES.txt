@@ -4710,7 +4710,7 @@ OPEN ITEMS carried forward (not blockers, do not lose):
     (h) VERIFY: the four maintenance URLs 200 (app root, /api/health,
         /swagger-ui/index.html, the auth realm); x-request-id present on
         /api/health, which is the W-2 row landing; `docker inspect`
-        HostConfig.Memory = 1610612736 and 1073741824; the heap the
+        HostConfig.Memory = 1610612736 and 1342177280; the heap the
         comments predict, `java $JAVA_OPTS -XX:+PrintFlagsFinal -version |
         grep MaxHeapSize` -> 1207959552; and the Caddy log carrying a
         certificate for api.smartsupplypro.de.
@@ -4745,20 +4745,35 @@ OPEN ITEMS carried forward (not blockers, do not lose):
   are believable and they differ by 3x. Read /proc/1/cmdline, or re-run
   with $JAVA_OPTS expanded.
   THE NUMBERS SET: backend 1536m (301.9 up to the next 512, plus 512
-  headroom = 1024, raised to this stack's 1.5 GiB floor); keycloak 1024m
-  (686.1 + 256 = 942, up to the next 128). SETTING A LIMIT IS ALSO A HEAP
-  DECISION: 75% of 1536 is a 1,152 MiB heap, 70% of 1024 is 717 MiB, and
-  both are in the compose comments so nobody discovers them in
-  production. KEYCLOAK IS THE TIGHTER ONE BY DESIGN — about 338 MiB over
-  its resident set — and the comment names OOMKilled as the signal and
-  THE LIMIT, never the image's percentage, as the thing to raise.
+  headroom = 1024, raised to this stack's 1.5 GiB floor); keycloak 1280m.
+  SETTING A LIMIT IS ALSO A HEAP DECISION: 75% of 1536 is a 1,152 MiB heap
+  and 70% of 1280 is 896 MiB, and both are in the compose comments so
+  nobody discovers them in production.
+  KEYCLOAK WAS 1024m FOR ONE DAY AND THE FORMULA IS WHAT WAS WRONG, not
+  the measurement. RSS + 256 MiB (686 + 256 = 942, up to the next 128)
+  sizes a process whose memory IS its resident set. A JVM is not that
+  process: the container limit is the INPUT to MaxRAMPercentage, so 1024m
+  would have entitled the HEAP ALONE to 717 MiB and left roughly 300 MiB
+  for metaspace, code cache, threads and direct buffers. Native memory
+  does not fit in what the heap declines to use. 1280m gives an 896 MiB
+  ceiling and about 380 MiB beside it.
+  THE FAILURE MODE IS WHY IT WAS RAISED BEFORE THE DEPLOY RATHER THAN
+  WATCHED AFTER IT: an over-committed container is OOM-KILLED on this
+  host — there is no swap — and a Keycloak restart logs every user out.
+  A limit that is probably fine is not a limit worth taking on the one
+  service whose failure is visible to everybody at once.
+  THE RULE THIS LEAVES BEHIND: SIZE A JVM CONTAINER FROM THE HEAP CEILING
+  THE PERCENTAGE WILL PRODUCE, NOT FROM THE RESIDENT SET IT HAPPENS TO
+  SHOW. The backend's 1536m survives it — 75% of 1536 is 1,152 MiB with
+  384 MiB beside it — because the 1.5 GiB floor had already overridden the
+  same too-tight arithmetic there.
   NO LIMIT ON postgres, caddy OR frontend, and the rule is written once:
   a limit goes where a runtime sizes itself from VISIBLE RAM. Postgres
   does not — it sizes from shared_buffers and leans on the page cache a
   cgroup limit would count as usage, on the one container whose failure
   loses data.
   NOT VERIFIED, and it cannot be from here: no limit was applied, so
-  1610612736, 1073741824 and the 1,152 MiB heap are arithmetic from
+  1610612736, 1342177280 and the 1,152 MiB heap are arithmetic from
   measured percentages rather than observations. ssp-backend:8081 was not
   reached either — /opt holds only containerd and maintenance-assistant
   today.

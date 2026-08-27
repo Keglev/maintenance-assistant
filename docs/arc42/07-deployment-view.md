@@ -73,9 +73,13 @@ host, and a third — inventory-service is also Spring Boot — was about to joi
 broken, because neither heap had ever been asked to fill; that is not a property anyone designed.
 
 So the two Java services now carry `deploy.resources.limits.memory`: **1536m** for backend and
-**1024m** for keycloak, with the arithmetic in the compose file beside each. Setting the limit is
-also what re-sizes the heap — 75% of 1,536 MiB is 1,152 MiB, and 70% of 1,024 MiB is 717 MiB — so a
-limit is a heap decision here as much as a memory-safety one. `postgres`, `caddy` and `frontend` are
+**1280m** for keycloak, with the arithmetic in the compose file beside each. Setting the limit is
+also what re-sizes the heap — 75% of 1,536 MiB is 1,152 MiB, and 70% of 1,280 MiB is 896 MiB — so a
+limit is a heap decision here as much as a memory-safety one. Keycloak's number was 1024m for one
+day and was raised before it ever ran: RSS + 256 MiB is a reasonable rule for a process whose memory
+is its resident set, and the wrong rule for a JVM, where the limit is the *input* to the percentage.
+At 1024m the heap alone could have taken 717 MiB and left ~300 MiB for metaspace, code cache,
+threads and direct buffers — an OOM kill on the one service whose restart logs every user out. `postgres`, `caddy` and `frontend` are
 deliberately unlimited: none of them sizes itself from visible RAM, and a cgroup limit on Postgres
 would count the page cache it depends on.
 

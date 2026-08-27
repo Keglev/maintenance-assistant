@@ -168,23 +168,33 @@ services:
     restart: unless-stopped
     command: ["start", "--import-realm"]
     # --- MEMORY LIMIT — measured on the CX33, 2026-08-27 ----------------------
-    # 686.1 MiB measured (`docker stats`), + 256 MiB = 942 MiB, rounded up to the
-    # next 128 MiB. Same mechanism as the backend above: the image's launcher
-    # sets -XX:MaxRAMPercentage=70 with InitialRAMPercentage=50 — read from
-    # /proc/1/cmdline — so today's ceiling is MaxHeapSize 5,687,476,224 B =
-    # 5,424 MiB. Under this limit it becomes 717 MiB, and the JVM commits 512 MiB
-    # of heap at startup instead of growing lazily into it.
+    # 686 MiB measured (`docker stats`). Same mechanism as the backend above: the
+    # image's launcher sets -XX:MaxRAMPercentage=70 with InitialRAMPercentage=50
+    # — read from /proc/1/cmdline — so today's ceiling is MaxHeapSize
+    # 5,687,476,224 B = 5,424 MiB, sized against the host because no cgroup limit
+    # exists to size against instead.
     #
-    # THE TIGHTER OF THE TWO, WRITTEN DOWN RATHER THAN LEFT TO BE DISCOVERED:
-    # 1,024 MiB leaves about 338 MiB over today's resident set for metaspace,
-    # code cache, threads and direct buffers. If
+    # 1280m, AND THE FIRST NUMBER WAS WRONG. At 1280 MiB the heap ceiling becomes
+    # 896 MiB and about 380 MiB is left for metaspace, code cache, threads and
+    # direct buffers — the things the percentage does NOT cover.
+    #
+    # 1024m was the arithmetic RSS + 256 MiB, and that formula is fine for a
+    # process whose memory is its resident set. It is not fine for a JVM: the
+    # limit it sets is the input to MaxRAMPercentage, so 1024 MiB would have
+    # entitled the heap ALONE to 717 MiB and left roughly 300 MiB for everything
+    # else in the process. Native memory does not fit in what the heap declines
+    # to use, and the failure mode is not a slow container — it is an OOM kill on
+    # the one service whose restart logs every user out.
+    #
+    # THE RULE THIS LEAVES BEHIND: size a JVM container from the heap ceiling the
+    # percentage will produce, not from the resident set it happens to show. If
     # `docker inspect maintenance-keycloak --format '{{.State.OOMKilled}}'` ever
-    # returns true, THIS number is the one to raise — 1280m, then 1536m — and not
-    # the JVM percentage, which belongs to the image and would drift on upgrade.
+    # returns true, THIS number is the one to raise — 1536m next — and not the
+    # JVM percentage, which belongs to the image and would drift on an upgrade.
     deploy:
       resources:
         limits:
-          memory: 1024m
+          memory: 1280m
     environment:
       KC_DB: postgres
       KC_DB_URL: jdbc:postgresql://postgres:5432/${KC_DB_NAME}

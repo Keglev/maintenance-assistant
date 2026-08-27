@@ -77,9 +77,13 @@ maintenance:
     backlog-batch-size: ${INGESTION_BACKLOG_BATCH_SIZE:200}
 
   embedding:
-    # IONOS AI Model Hub, primary provider per ADR-002. Nebius Token Factory is the
-    # documented fallback and is a base-url + model change, not a code change — both
-    # speak the same OpenAI-compatible API.
+    # IONOS AI Model Hub, primary provider per ADR-002. THE DOCUMENTED FALLBACK IS NO
+    # LONGER NEBIUS — see ADR-002 REVISION 2026-08-27: Nebius retires the chat model that
+    # ADR named on 2026-08-31, and the fallback is now a second IONOS model,
+    # openai/gpt-oss-120b, chosen by measurement against this application's answer
+    # contract. That makes the switch LLM_CHAT_MODEL alone, not a base-url change, and
+    # it leaves this project on one provider: there is no tested fallback for a full
+    # IONOS outage, which the revision says in those words.
     base-url: ${LLM_BASE_URL:https://openai.inference.de-txl.ionos.com/v1}
     api-key: ${LLM_API_KEY:}
     # Ignore the *-migration aliases in the IONOS catalogue (ADR-002).

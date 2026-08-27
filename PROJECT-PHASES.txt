@@ -31,6 +31,8 @@ with the instrument live; next: feature guided questions (ADR-011).
 Guided questions RULED 2026-08-27 (ADR-011, #114): two implementation
 pull requests, backend then frontend, then v1.4.0.
 
+Guided questions backend merged; frontend next; v1.4.0 after both.
+
 v1.3.0 IS THE LATEST TAG, 2026-08-20. The release history, from the
 repository's own tags: v0.1.0 2026-08-06, v1.0.0 2026-08-08, v1.1.0
 2026-08-11, v1.2.0 2026-08-13, v1.3.0 2026-08-20.
@@ -3600,6 +3602,65 @@ rather than given one afterwards.
         A MACHINE WITH NO PROTOCOLS RETURNS AN EMPTY LIST. Not an error
         and not a placeholder: there is no question that works, so none
         is offered.
+        DONE 2026-08-27, #115: 10 machines, 72 questions (36 de / 36
+        en), endpoint, protocolCount; demo check RUN, and run wider than
+        the row asked for.
+        EVERY ONE OF THE 72 WAS MEASURED BEFORE IT SHIPPED, not three.
+        The row allowed a spot check of three questions on three
+        machines; the whole file was run instead, against the real
+        bge-m3 embedding and the retriever's own SQL on the local index.
+        NO CHAT CALL WAS MADE and none was needed: whether a question
+        reaches Mode A is decided by the gate, before an answer is
+        generated, so 72 questions cost 72 embeddings and no tokens.
+        THE MEASUREMENT CAUGHT ONE, WHICH IS WHY IT WAS WORTH TAKING.
+        AB-02's third English example was first written against the
+        GERMAN infeed-star protocol and scored 0.4967 — below the 0.55
+        gate, so it would have offered a reader an example that lands on
+        the ungrounded card, which is the one thing this feature must
+        never do. Rewritten against AB-02's own English protocol: 0.6875.
+        Final: 72 of 72 Mode A, and every one retrieves the protocol it
+        was written against.
+        MOST OF THEM CARRY AN ERROR CODE, AND THAT IS THE MECHANISM
+        RATHER THAN A STYLE: a code is a code-like term, so ADR-009's
+        exact-term clause grounds the answer even where the cosine score
+        alone would not. That makes "every example yields Mode A" a
+        property of the question instead of a hope about the embedding.
+        Three examples carry no code and were measured instead.
+        THE STARTUP VALIDATION IS HARD ABOUT THE FILE AND SOFT ABOUT THE
+        DATABASE, and the first build taught that: the cross-check called
+        the machine table, and the `test` profile HAS NO DATABASE ON
+        PURPOSE, so every test-profile context failed at once. A parse
+        failure or a missing resource still fails the application — that
+        is the bean's own data. Not being able to ASK the machine table
+        now warns, for the same reason an empty table already did.
+        A GUARD FIRED AND WAS OBEYED: RoleMatrixIT failed the build with
+        "these routes exist and no role matrix covers them", naming the
+        new endpoint. Added to the matrix WITH its expected role set —
+        all four, deliberately — rather than to the route list alone,
+        which is the difference between recording a widening and hiding
+        it. The row also notes what it does not do: it grants no access
+        to protocol text, so the four-eyes pair is untouched.
+        A DEFECT IN THE PUBLISHED CONTRACT, FOUND BY READING THE
+        GENERATED SPEC RATHER THAN THE CODE (the Part 5 obligation doing
+        its job). The nested record was called ExampleQuestions.Machine,
+        and springdoc names schemas by SIMPLE CLASS NAME — so it
+        collided with MachineCatalog.Machine, and the examples field
+        published a $ref to the machine record: id, machineNo, name,
+        type, location, where a client should have found de and en.
+        Both tests passed throughout, because neither reads the spec's
+        $ref targets. Renamed to ExampleQuestions.Questions; the field
+        now refs a Questions schema and Machine is the catalogue's again.
+        THE COST, NAMED RATHER THAN HIDDEN: "live" is now spelled in two
+        SQL statements — countLiveProtocols and ChunkRetriever's own
+        clause — and they must not disagree. Both say deleted_at IS NULL
+        and the method says so beside itself. Hoisting it is a refactor
+        no caller is asking for yet.
+        SEEN WHILE READING THE SPEC, PRE-EXISTING, NOT FIXED HERE: every
+        one of the 13 GET paths publishes a 413 Content Too Large,
+        because UploadSizeExceededAdvice is a global @ControllerAdvice
+        and springdoc attributes it to every route. Noise in the
+        contract, not a defect in behaviour; 13 of 13 predates this PR.
+        Its own one-line fix, Part 5 or later.
 
      GQ-2 FRONTEND — the chips and the hint.
         - Clickable chips under the question box once a machine is

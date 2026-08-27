@@ -31,6 +31,7 @@ When a machine stops, the standard escalation applies (e.g. Operator → call Te
 - **US-6** — As an *Admin*, I manage users and role assignments in Keycloak without code changes.
 - **US-7** — As *any user*, I log in via single sign-on (Keycloak/OIDC); the UI shows only the functions my role permits.
 - **US-8** — As *any user*, I can switch the UI between German and English.
+- **US-9** — As *any user*, and above all as a first-time visitor with no plant experience, I am offered example questions for the machine I selected, so I can ask one that actually reaches a protocol instead of guessing; and when nothing matches, the answer tells me how many protocols exist for that machine and gives me one way to narrow the question. **Added 2026-08-27 (ADR-011)** from live testing: a two-word question correctly returns the labelled Mode B card, and to a reader who has never seen the plant that reads as a broken product rather than as an invitation to be more specific.
 
 ## 4. Non-Functional Requirements / Nicht-funktionale Anforderungen
 

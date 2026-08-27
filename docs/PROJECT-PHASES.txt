@@ -28,6 +28,9 @@ v1.3.2 TAGGED 2026-08-27 on 21f007d, carrying W-2 (#111) and W-3 (#112).
 Diagnostics wave complete pending #113; A4 remains an open hypothesis
 with the instrument live; next: feature guided questions (ADR-011).
 
+Guided questions RULED 2026-08-27 (ADR-011, #PRNUM): two implementation
+pull requests, backend then frontend, then v1.4.0.
+
 v1.3.0 IS THE LATEST TAG, 2026-08-20. The release history, from the
 repository's own tags: v0.1.0 2026-08-06, v1.0.0 2026-08-08, v1.1.0
 2026-08-11, v1.2.0 2026-08-13, v1.3.0 2026-08-20.
@@ -3563,6 +3566,71 @@ rather than given one afterwards.
      Playwright upgrade (the package, the two image pins and the
      baselines, which ADR-007 makes one deliberate act); the PART 4
      SURVEY.
+
+   FEATURE — GUIDED QUESTIONS. Ruled 2026-08-27 as ADR-011, #PRNUM.
+   Docs only in that pull request; nothing is built yet.
+
+   THE PROBLEM IS DISCOVERABILITY, NOT RETRIEVAL, and that distinction
+   is the whole decision. A first-time reader types two words — "sensor
+   fehler" — and gets the labelled ungrounded card. The card is CORRECT:
+   no protocol matches a two-word question with no machine context, which
+   is exactly what NFR-2 asks for. But to a recruiter with ninety seconds
+   and no plant experience it reads as a broken product, and 165 live
+   protocols sit behind those machines with no way for them to be reached.
+   THE OBVIOUS FIX IS THE WRONG ONE: lowering the threshold would turn
+   some of these into Mode A answers by loosening the one number NFR-2's
+   honesty rests on. That stays a measurement question — see the ADR-008
+   WATCH row on the no-citation fall-through, which is measured for a week
+   before anything is ruled.
+
+     GQ-1 BACKEND — the resource, the endpoint, the count.
+        - backend/src/main/resources/examples/example-questions.json:
+          3-4 entries per machine, DE and EN, every one written against a
+          protocol that exists so every example yields Mode A.
+        - GET /api/machines/{machineNo}/examples, read-only, any
+          authenticated role. Addressed by machineNo and not by the UUID
+          the query path uses, because the file is hand-authored against
+          plant identifiers and MachineCatalog.Machine carries both.
+        - protocolCount on the Mode B response, with a @Schema
+          description, counting LIVE protocols only (deleted_at IS NULL)
+          so the number matches what retrieval can actually reach. The
+          M4 measurement is why that clause is explicit: 50 soft-deleted
+          rows locally and 2 in production would otherwise be promised.
+        - Tests and the OpenAPI document asserted accurate.
+        A MACHINE WITH NO PROTOCOLS RETURNS AN EMPTY LIST. Not an error
+        and not a placeholder: there is no question that works, so none
+        is offered.
+
+     GQ-2 FRONTEND — the chips and the hint.
+        - Clickable chips under the question box once a machine is
+          selected. CLICKING FILLS THE BOX AND DOES NOT SUBMIT: the user
+          still reads the question and still presses the button, so the
+          demo teaches the shape of a good question instead of performing
+          a trick the reader cannot repeat.
+        - The ungrounded card says, in the user's language, that N
+          protocols exist for this machine and none matched, with ONE
+          hint — an error code or one of the examples. Dictionary entries
+          DE and EN.
+        - Spec tests, and one e2e case that clicks a chip and asserts
+          Mode A. That case is also what holds the two question files
+          from drifting on the one thing they must agree about.
+        A VISUAL BASELINE REGENERATION IS EXPECTED AND MUST BE ITS OWN
+        COMMIT (ADR-007). The chips change the search page layout, so the
+        baselines move for a reason; regenerating them in the feature
+        commit would hide whether anything ELSE moved.
+
+     THEN v1.4.0 — a feature, so a minor bump, after both.
+
+     THE GOLDEN QUESTIONS ARE COPIED, NOT MOVED, and the ADR names the
+     duplication. golden-questions.json stays ADR-008's ratified
+     measurement set — 19 questions, ratified 2026-08-20, TWO OF THEM
+     DELIBERATELY MODE B — and a set whose job includes questions that
+     must not find anything cannot be the set shown to a user as
+     questions that will. Its Mode A entries seed the new file. Canonical
+     for measurement: the test file, and editing it is a measurement
+     change. Canonical for what a user is offered: the resource file, and
+     editing it is a PRODUCT change. The golden file gains a header note
+     saying so, because it is user-visible now.
 
 5. PHASE 5 — EVOLUTION CANDIDATES (unchanged list, optional):
    similar-machine search, OCR, downtime stats, PDF export (generation,

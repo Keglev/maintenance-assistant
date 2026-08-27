@@ -852,3 +852,30 @@ Status: v1.3.1 released; refactor phase, Part 3 closed 2026-08-26; diagnostics w
   IT EARNED ITS KEEP BEFORE IT EVER RAN: the catalogue was re-fetched on 2026-08-27 and had already
   moved — 21 ids against the 20 recorded the previous day, one added, none removed. One day, one
   change.
+- SHOW THE USER A QUESTION THAT WORKS — ruled 2026-08-27 as ADR-011 (#PRNUM), docs only; two
+  implementation pull requests follow, backend then frontend, then v1.4.0. THE PROBLEM IS
+  DISCOVERABILITY, NOT RETRIEVAL, and holding those apart is the decision. A first-time reader types
+  "sensor fehler", gets the labelled ungrounded card, and reads it as a broken product — while 165
+  live protocols sit behind those machines. The card is correct; NFR-2 asks for exactly that answer
+  when nothing matches. What is missing is any way for a reader with no plant experience to discover
+  a question that reaches a protocol, and the help panel only answers a question they have not
+  thought to ask.
+  THE OBVIOUS FIX IS THE WRONG ONE and is explicitly not taken here: lowering the similarity
+  threshold would turn some of these into Mode A answers by loosening the one number NFR-2's honesty
+  rests on. That stays a measurement question under ADR-008 — the no-citation fall-through WATCH row
+  is measured for a week first. Guided questions reduce how often a reader MEETS the gap; they say
+  nothing about where the gate belongs.
+  THE EXAMPLES ARE DATA THE BACKEND OWNS, not a list in the Angular bundle, because they must track
+  the CORPUS: an example whose protocol was deleted is a broken demo, and only the side that owns
+  the data can notice. Served per machine, three to four in DE and EN, every one written against a
+  protocol that exists so every example yields Mode A; a machine with no protocols offers none.
+  CLICKING A CHIP FILLS THE BOX AND DOES NOT SUBMIT, which is the part worth keeping: the reader
+  still sees the question and still presses the button, so the demo teaches the SHAPE of a good
+  question — machine, symptom, error code — instead of performing a trick they cannot repeat.
+  THE GOLDEN QUESTIONS ARE COPIED, NOT MOVED, and the duplication is named rather than hidden.
+  golden-questions.json stays ADR-008's ratified measurement set, and two of its nineteen entries
+  are DELIBERATELY Mode B: a set whose job includes questions that must not find anything cannot be
+  the set shown to a user as questions that will. Canonical for measurement is the test file, and
+  editing it is a measurement change; canonical for what a user is offered is the resource file, and
+  editing it is a PRODUCT change. They will drift, correctly; what must not drift is a question's
+  expected mode, and the e2e case that clicks a chip and asserts Mode A is what holds that.

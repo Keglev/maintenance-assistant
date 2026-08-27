@@ -29,6 +29,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 class QueryServiceTest {
 
     private static final UUID MACHINE = UUID.fromString("0f9c5b01-0000-4000-8000-000000000001");
+    /** What the machine catalogue reports, and therefore what a Mode B answer must carry. */
+    private static final int PROTOCOLS_ON_THIS_MACHINE = 24;
     private static final UUID OTHER_PROTOCOL = UUID.fromString("0f9c5b02-0000-4000-8000-0000000000ff");
     private static final String SUBJECT = "user-sub-1";
 
@@ -38,6 +40,7 @@ class QueryServiceTest {
     private QueryCache cache;
     private QueryService service;
     private QueryProperties properties;
+    private MachineCatalog machines;
 
     @BeforeEach
     void setUp() {
@@ -46,8 +49,13 @@ class QueryServiceTest {
         retriever = new StubRetriever();
         budget = new CountingBudget();
         cache = new QueryCache(properties);
+        // A stub rather than a mock: the count is a number the Mode B answer carries, and what
+        // these tests assert is whether it reaches the answer at all — not how it was fetched.
+        machines = org.mockito.Mockito.mock(MachineCatalog.class);
+        org.mockito.Mockito.when(machines.countLiveProtocols(org.mockito.ArgumentMatchers.any()))
+                .thenReturn(PROTOCOLS_ON_THIS_MACHINE);
         service = new QueryService(new FakeEmbeddingClient(), retriever, chat, new AnswerAssembler(),
-                budget, cache, new QueryRateLimiter(properties), properties);
+                budget, cache, new QueryRateLimiter(properties), properties, machines);
     }
 
     // ---------------------------------------------------------------------------------------
@@ -439,6 +447,23 @@ class QueryServiceTest {
         }
 
         @Test
+        @DisplayName("a degraded answer carries the protocol count as well as the label")
+        void aDegradedAnswerAlsoCarriesTheCount() {
+            retriever.returning(hit(0.7));
+            chat.truncatingOnCall(REFUSAL_SHAPED, 1);
+            chat.replyingUngrounded("Kein Protokoll deckt diesen Fall ab.", "Pruefen.", "Messen.",
+                    "Techniker informieren.");
+
+            // The two labels are independent and both belong on this answer: WHY it is Mode B
+            // (truncation) and WHAT the machine has anyway (24 protocols). A degradation that
+            // dropped the count would leave the reader with the worst version of the card.
+            QueryAnswer answer = ask(QueryRole.TECHNIKER);
+
+            assertThat(answer.degradedFrom()).isEqualTo(QueryAnswer.DegradedFrom.TRUNCATED);
+            assertThat(answer.protocolCount()).isEqualTo(PROTOCOLS_ON_THIS_MACHINE);
+        }
+
+        @Test
         @DisplayName("an ordinary answer says nothing about degradation at all")
         void anUndegradedAnswerCarriesNoLabel() {
             // The additive half, asserted rather than assumed: a client that has never heard of
@@ -447,6 +472,77 @@ class QueryServiceTest {
             chat.replyingGrounded("Der Druck faellt ab.", "P1");
 
             assertThat(ask(QueryRole.TECHNIKER).degradedFrom()).isNull();
+        }
+    }
+
+    // ---------------------------------------------------------------------------------------
+    // What an ungrounded answer says about the machine it could not answer for (ADR-011)
+    // ---------------------------------------------------------------------------------------
+
+    @Nested
+    @DisplayName("protocol count on Mode B")
+    class ProtocolCount {
+
+        @Test
+        @DisplayName("a Mode B answer carries how many protocols the machine actually has")
+        void modeBCarriesTheCount() {
+            // The measured gap case: 0.502 against a 0.55 threshold. The answer is "no source in
+            // the corpus" — and the corpus has 24 protocols for this machine, which is the fact
+            // that turns a dead end into a next step.
+            retriever.returning(hit(0.502));
+            chat.replyingUngrounded("Kein Protokoll deckt diesen Fall ab.", "Sensorik pruefen.",
+                    "Verkabelung pruefen.", "Techniker informieren.");
+
+            QueryAnswer answer = ask(QueryRole.TECHNIKER);
+
+            assertThat(answer.mode()).isEqualTo(QueryAnswer.AnswerMode.B);
+            assertThat(answer.protocolCount()).isEqualTo(PROTOCOLS_ON_THIS_MACHINE);
+        }
+
+        @Test
+        @DisplayName("a Mode A answer says nothing about the count — its sources are the answer")
+        void modeACarriesNoCount() {
+            retriever.returning(hit(0.695));
+            chat.replyingGrounded("Der Druck faellt ab.", "P1");
+
+            QueryAnswer answer = ask(QueryRole.TECHNIKER);
+
+            assertThat(answer.mode()).isEqualTo(QueryAnswer.AnswerMode.A);
+            assertThat(answer.protocolCount())
+                    .as("a count beside citations is noise; the field is absent from the JSON")
+                    .isNull();
+        }
+
+        @Test
+        @DisplayName("the no-citation fall-through carries it too, so every route to Mode B agrees")
+        void theNoCitationFallThroughCarriesIt() {
+            // Retrieval clears the gate, generation cites nothing attributable, and the answer
+            // falls through to Mode B. Three routes reach Mode B and all three must say the same
+            // thing about the machine — which is why the count is attached in one place.
+            retriever.returning(hit(0.7));
+            chat.replyingGrounded("Etwas ohne Beleg.", "P9");
+            chat.thenReplyingUngrounded("Kein Protokoll deckt diesen Fall ab.", "Pruefen.",
+                    "Messen.", "Techniker informieren.");
+
+            QueryAnswer answer = ask(QueryRole.TECHNIKER);
+
+            assertThat(answer.mode()).isEqualTo(QueryAnswer.AnswerMode.B);
+            assertThat(answer.protocolCount()).isEqualTo(PROTOCOLS_ON_THIS_MACHINE);
+        }
+
+        @Test
+        @DisplayName("a machine with no protocols reports zero rather than omitting the field")
+        void zeroIsAnAnswerAndNotAnAbsence() {
+            // Zero is a true and useful thing to say — "nothing has been recorded for this machine
+            // yet" is a different message from "nothing matched", and the frontend needs to be able
+            // to tell them apart.
+            org.mockito.Mockito.when(machines.countLiveProtocols(org.mockito.ArgumentMatchers.any()))
+                    .thenReturn(0);
+            retriever.returning(hit(0.502));
+            chat.replyingUngrounded("Kein Protokoll deckt diesen Fall ab.", "Pruefen.", "Messen.",
+                    "Techniker informieren.");
+
+            assertThat(ask(QueryRole.TECHNIKER).protocolCount()).isZero();
         }
     }
 

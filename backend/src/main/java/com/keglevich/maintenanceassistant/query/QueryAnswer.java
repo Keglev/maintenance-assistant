@@ -41,7 +41,16 @@ public record QueryAnswer(
                 + "means the grounded answer hit the model's output cap. Absent on every ordinary "
                 + "answer; a client may ignore it.",
                 requiredMode = Schema.RequiredMode.NOT_REQUIRED)
-        DegradedFrom degradedFrom) {
+        DegradedFrom degradedFrom,
+
+        @Schema(description = "How many protocols exist for the machine that was asked about, on a "
+                + "MODE B answer only. It turns \"no source in the corpus\" from a dead end into a "
+                + "next step: N protocols are there and none matched, so a narrower question — an "
+                + "error code, or one of the machine's example questions — may reach one. Live "
+                + "protocols only, matching exactly what retrieval can return. Absent on Mode A, "
+                + "where the sources are in the answer already.",
+                requiredMode = Schema.RequiredMode.NOT_REQUIRED)
+        Integer protocolCount) {
 
     /**
      * The five-argument shape every caller used before the degradation path existed.
@@ -52,7 +61,7 @@ public record QueryAnswer(
      */
     public QueryAnswer(AnswerMode mode, String answer, String language,
                        List<Claim> claims, List<Citation> citations) {
-        this(mode, answer, language, claims, citations, null);
+        this(mode, answer, language, claims, citations, null, null);
     }
 
     /**
@@ -62,7 +71,21 @@ public record QueryAnswer(
      * could be relabelled after it was stored is an answer two callers can disagree about.
      */
     public QueryAnswer degradedFrom(DegradedFrom reason) {
-        return new QueryAnswer(mode, answer, language, claims, citations, reason);
+        return new QueryAnswer(mode, answer, language, claims, citations, reason, protocolCount);
+    }
+
+    /**
+     * The same answer, carrying how many protocols the machine has.
+     *
+     * <p>Applied on the Mode B paths only, and by the same copy-rather-than-mutate rule as
+     * {@link #degradedFrom}. Guarded rather than trusted: a Mode A answer that somehow reached here
+     * would be returned unchanged, because the count is a statement about an answer that found
+     * nothing and it would read as noise beside citations.
+     */
+    public QueryAnswer withProtocolCount(int count) {
+        return mode == AnswerMode.B
+                ? new QueryAnswer(mode, answer, language, claims, citations, degradedFrom, count)
+                : this;
     }
 
     /** NFR-2's two modes. Serialised as "A" and "B". */

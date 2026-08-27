@@ -1,10 +1,17 @@
 package com.keglevich.maintenanceassistant.web;
 
+import com.keglevich.maintenanceassistant.query.ExampleQuestions;
 import com.keglevich.maintenanceassistant.query.MachineCatalog;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -35,9 +42,11 @@ import java.util.List;
 class MachineController {
 
     private final MachineCatalog machines;
+    private final ExampleQuestions examples;
 
-    MachineController(MachineCatalog machines) {
+    MachineController(MachineCatalog machines, ExampleQuestions examples) {
         this.machines = machines;
+        this.examples = examples;
     }
 
     @GetMapping
@@ -48,5 +57,63 @@ class MachineController {
                     + "plant metadata carries nothing a protocol says.")
     List<MachineCatalog.Machine> list() {
         return machines.findAll();
+    }
+
+    /**
+     * The example questions for one machine, and how many protocols it has.
+     *
+     * <p>ADR-011. A first-time reader cannot invent a question that reaches a protocol, because
+     * they do not know that E-47 exists; this is what the chips under the question box are filled
+     * from. Read-only, and available to every role — the examples are QUESTIONS, and what an
+     * operator may be TOLD is filtered on the answer path (ADR-006, NFR-3), so filtering the
+     * questions as well would mean maintaining a second role matrix over content that carries no
+     * protocol text.
+     *
+     * <p>Addressed by {@code machineNo} rather than by the id the query path takes: the resource
+     * file behind it is hand-authored against plant identifiers, and a file keyed by UUID is a file
+     * nobody can review.
+     */
+    @GetMapping("/{machineNo}/examples")
+    @PreAuthorize("hasAnyRole('OPERATOR', 'TECHNIKER', 'SCHICHTLEITER', 'ADMIN')")
+    @Operation(summary = "Example questions for one machine",
+            description = "Questions known to reach a protocol on this machine, in German and "
+                    + "English, for a reader who does not yet know what to ask. Every entry is "
+                    + "written against a protocol that exists. A machine with no examples returns "
+                    + "empty lists rather than an error — there is no question that works, so none "
+                    + "is offered.")
+    @ApiResponse(responseCode = "200", description = "The machine's examples, possibly empty")
+    @ApiResponse(responseCode = "404", description = "No machine carries this identifier",
+            content = @Content)
+    ResponseEntity<MachineExamples> examples(
+            @Parameter(description = "The plant identifier, e.g. PR-03", example = "PR-03")
+            @PathVariable String machineNo) {
+
+        return machines.findByMachineNo(machineNo)
+                .map(machine -> ResponseEntity.ok(new MachineExamples(
+                        machine.machineNo(),
+                        machines.countLiveProtocols(machine.id()),
+                        examples.forMachine(machine.machineNo()))))
+                .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    /**
+     * @param machineNo     the identifier as stored, so a caller that guessed the case sees the
+     *                      canonical spelling back
+     * @param protocolCount how many protocols a question about this machine could reach
+     * @param examples      the questions, by language
+     */
+    record MachineExamples(
+            @Schema(description = "The plant identifier this list belongs to", example = "PR-03")
+            String machineNo,
+
+            @Schema(description = "How many protocols exist for this machine that a question can "
+                    + "reach. Live protocols only — a deleted protocol is unreachable by "
+                    + "retrieval, so counting it would promise evidence that cannot be returned.",
+                    example = "24")
+            int protocolCount,
+
+            @Schema(description = "The example questions, keyed by language. Empty lists when this "
+                    + "machine has none.")
+            ExampleQuestions.Questions examples) {
     }
 }

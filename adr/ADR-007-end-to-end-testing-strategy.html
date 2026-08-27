@@ -686,6 +686,36 @@ ADR-007-end-to-end-testing-strategy · maintenance-assistant Docs</title>
         assert — and the value here was not that the layout was wrong,
         but that the <em>fixture</em> was, silently, in a way four other
         test suites had been tolerating.</p>
+        <h2
+        id="revision-2026-08-27-the-pinned-image-is-now-v1.62.1-noble">Revision
+        2026-08-27 — the pinned image is now v1.62.1-noble</h2>
+        <p>The sentence under “one authority” above still names the tag
+        that was pinned when this record was accepted, and it is left as
+        written: a decision record is corrected by a dated note rather
+        than by an edit to its text.</p>
+        <p><strong>Revision 2026-08-27 — the pinned image is now
+        v1.62.1-noble (#124); the tag moves with
+        <code>@playwright/test</code>, the two pins in
+        <code>frontend-e2e-visual.yml:85</code> and
+        <code>run-visual-docker.mjs:25</code> are the authority, this
+        sentence is left as written.</strong></p>
+        <p>The decision is unchanged — one image, one authority — and
+        only the tag moved. Two things measured on the way are worth
+        keeping:</p>
+        <ul>
+        <li><strong>All eighteen baselines passed unchanged</strong>
+        under 1.62.1 and its newer Chromium. The upgrade crossed six
+        minor versions and moved no pixel, which is the first evidence
+        this project has that a Playwright bump is not automatically a
+        baseline regeneration.</li>
+        <li><strong>The local half of “generate locally, compare in CI”
+        has no working path today.</strong> The image would not pull on
+        the maintainer’s machine for the second time (DECISIONS.txt,
+        2026-08-27), so the regeneration in #124 could not have been run
+        locally had it been needed, and the pass was measured on the
+        runner instead. That is a WATCH against this ADR’s mechanism,
+        not a change to it.</li>
+        </ul>
       </article>
     </main>
 
@@ -755,6 +785,10 @@ ADR-007-end-to-end-testing-strategy · maintenance-assistant Docs</title>
       the first visual run caught — a CI defect wearing a layout
       disguise</a></li>
       </ul></li>
+      <li><a
+      href="#revision-2026-08-27-the-pinned-image-is-now-v1.62.1-noble"
+      id="toc-revision-2026-08-27-the-pinned-image-is-now-v1.62.1-noble">Revision
+      2026-08-27 — the pinned image is now v1.62.1-noble</a></li>
       </ul></li>
       </ul>
     </nav>

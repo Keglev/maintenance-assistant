@@ -58,6 +58,20 @@ NEXT, IN ORDER:
      one deliberate act: a mismatched Chromium is a whole-suite diff,
      and a baseline taken anywhere but the pinned container is a
      permanently red job.
+     DONE 2026-08-27, #124: 1.56.0 -> 1.62.1, both pins to
+     v1.62.1-noble, ZERO OF EIGHTEEN BASELINES CHANGED. Six minor
+     versions and a newer Chromium moved no pixel — the first evidence
+     here that a Playwright bump is not automatically a regeneration.
+     WATCH: THE LOCAL PULL TO MCR STALLED A SECOND TIME. v1.62.1-noble
+     would not download on the maintainer's machine — four layers at
+     zero bytes for ninety seconds, image absent after ~18 minutes; the
+     same failure as the first attempt (DECISIONS.txt), different tag,
+     so it is the path to the registry and not the image. BASELINE
+     REGENERATION THEREFORE HAS NO WORKING LOCAL PATH, and ADR-007's
+     mechanism is "generate locally, compare in CI". #124 escaped it
+     only because nothing needed regenerating; the next intentional
+     design change will not. A WATCH, not a fix — a mirror, another
+     network or a CI job that regenerates are a decision, not a cleanup.
   2. THE OOMKilled AND RESTART RE-CHECK on the two limited containers,
      carried from the 18:13-18:23 hand-deploy and due 2026-08-28.
      THE 20:07 UTC READING WAS CLEAN — OOMKilled=false and
@@ -179,6 +193,45 @@ none of the three is from 2026-08-27. Their mtimes are 2026-08-19,
 2026-08-11 and 2026-08-08. A backup named for the wrong day is worse
 than no backup, because it will be restored with confidence. Neither
 set is deleted here; deleting a backup is its own decision.
+
+BACKUP NAMING, 2026-08-27 ~20:40 UTC, root. The trap above was acted on
+the same evening. Inventory taken first, because a naming rule written
+without counting what is on disk is a guess:
+  TWELVE backup files in /opt/maintenance-assistant, in FIVE naming
+  formats — .bak (1), .bak-YYYY-MM-DD (2), .bak-YYYYMMDD-HHMMSS (3),
+  .bak.YYYY-MM-DD (3) and, from this session, .bak.of-YYYY-MM-DD (3).
+  Five formats on one host is what a convention nobody wrote down
+  produces, and the published runbooks were themselves prescribing
+  three of them.
+THE THREE MIS-DATED FILES WERE RENAMED, not copied, with `mv -n`:
+  .env.prod.bak-2026-08-27              -> .env.prod.bak.of-2026-08-19
+  docker-compose.prod.yml.bak-2026-08-27 -> ....bak.of-2026-08-11
+  caddy/Caddyfile.bak-2026-08-27        -> ....bak.of-2026-08-08
+Each new name now agrees with its own mtime, which is the property the
+old names could not have and the reason the rule reads the mtime rather
+than the clock. Verified read-only afterwards, name against
+`date -r`: eleven of twelve dated names match.
+ONE ROOT-OWNED BACKUP WAS HANDED OVER in the same pass:
+docker-compose.prod.yml.bak-20260807-193625 was root:root and is now
+deploy:deploy. That is the #120 ownership class in miniature — a file a
+root session created and did not chown, sitting unnoticed until somebody
+enumerated the directory. It cost nothing this time because a backup is
+never written to; the same omission on the compose file itself cost a
+root console mid-deploy.
+NOTHING WAS DELETED. The other nine keep their names, and eight of them
+because their dates are true.
+THE NINTH IS STILL WRONG AND IS LEFT THAT WAY, recorded rather than
+quietly fixed: docker-compose.prod.yml.bak-20260807-162246 names
+2026-08-07 16:22:46 and has an mtime of 2026-08-06 11:27 — a day out.
+It is the oldest file in the set and predates any `cp -p` discipline, so
+which of the two is the content date cannot be established from the host
+alone. A rename would assert an answer nobody has. FOUR files were
+mis-named, not three.
+THE RULE THIS BOUGHT is OPS RULE 6 in docker/README.md: a backup is
+named <file>.bak.of-<YYYY-MM-DD> from the SOURCE file's mtime, with
+`cp -pn`, so the name and the timestamp agree and a second copy of the
+same bytes is refused rather than duplicated. Every prescribed backup
+command in the published docs now uses that one form.
 
 SUPERSEDED STATUS — 2026-08-11 (v1.1.0 TAGGED AND RELEASED)
 Moved to docs/ledger/STATUS-2026-08-11.txt on 2026-08-27, byte-identical.

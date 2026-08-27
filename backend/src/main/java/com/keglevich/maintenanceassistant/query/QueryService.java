@@ -43,6 +43,7 @@ public class QueryService {
 
     private final EmbeddingClient embeddingClient;
     private final ChunkRetriever retriever;
+    private final MachineCatalog machines;
     private final ChatClient chatClient;
     private final AnswerAssembler assembler;
     private final ChatBudget budget;
@@ -52,9 +53,10 @@ public class QueryService {
 
     QueryService(EmbeddingClient embeddingClient, ChunkRetriever retriever, ChatClient chatClient,
                  AnswerAssembler assembler, ChatBudget budget, QueryCache cache,
-                 QueryRateLimiter rateLimiter, QueryProperties properties) {
+                 QueryRateLimiter rateLimiter, QueryProperties properties, MachineCatalog machines) {
         this.embeddingClient = embeddingClient;
         this.retriever = retriever;
+        this.machines = machines;
         this.chatClient = chatClient;
         this.assembler = assembler;
         this.budget = budget;
@@ -148,8 +150,8 @@ public class QueryService {
         QueryAnswer answer;
         try {
             answer = grounded
-                    ? answerGrounded(question, role, hits)
-                    : answerUngrounded(question, role);
+                    ? answerGrounded(question, machineId, role, hits)
+                    : answerUngrounded(question, machineId, role);
         } catch (ChatClient.ChatException e) {
             // Everything the provider can do to us — a rejected key, a timeout, an unreadable or
             // truncated answer — arrives here as one type, and leaves as one status. The detail is
@@ -174,7 +176,8 @@ public class QueryService {
      * ones would otherwise invite the model to cite the weak ones, and a citation that does not
      * support its claim is worse than a shorter answer.
      */
-    private QueryAnswer answerGrounded(String question, QueryRole role, List<RetrievedChunk> hits) {
+    private QueryAnswer answerGrounded(String question, UUID machineId, QueryRole role,
+                                       List<RetrievedChunk> hits) {
         List<GroundedPrompt.LabelledSource> sources = labelByProtocol(hits);
 
         ChatClient.Completion completion;
@@ -207,7 +210,7 @@ public class QueryService {
                     classify(e.truncation()),
                     e.truncation() == null ? "unknown" : e.truncation().completionTokens(),
                     e.truncation() == null ? "unknown" : e.truncation().whitespaceRatio());
-            return answerUngrounded(question, role)
+            return answerUngrounded(question, machineId, role)
                     .degradedFrom(QueryAnswer.DegradedFrom.TRUNCATED);
         }
 
@@ -221,7 +224,7 @@ public class QueryService {
         // labelled general suggestion rather than a Mode A answer with no claims in it. Rare enough
         // to be worth a warning, and cheap enough to be worth the second call.
         log.warn("Mode A produced no valid citations; falling through to Mode B");
-        return answerUngrounded(question, role);
+        return answerUngrounded(question, machineId, role);
     }
 
     /**
@@ -279,13 +282,21 @@ public class QueryService {
         return sources;
     }
 
-    private QueryAnswer answerUngrounded(String question, QueryRole role) {
+    private QueryAnswer answerUngrounded(String question, UUID machineId, QueryRole role) {
         ChatClient.Completion completion = chatClient.complete(new ChatClient.Prompt(
                 UngroundedPrompt.system(role),
                 UngroundedPrompt.user(question),
                 UngroundedPrompt.SCHEMA_NAME,
                 UngroundedPrompt.schema()));
-        return assembler.assembleUngrounded(completion.content());
+        // THE COUNT IS ATTACHED HERE AND NOWHERE ELSE, so every route to Mode B carries it:
+        // retrieval below the threshold, a truncated grounded answer, and a grounded answer
+        // with no attributable citation all arrive through this method. Attaching it at the
+        // three call sites instead would be three chances to forget one (ADR-011).
+        //
+        // It is a SECOND read of the database on a path that has just made a provider call, so
+        // it costs nothing anyone can measure against the seconds the answer took.
+        return assembler.assembleUngrounded(completion.content())
+                .withProtocolCount(machines.countLiveProtocols(machineId));
     }
 
     /**

@@ -207,6 +207,11 @@ class RoleMatrixIT {
                         as -> get("/api/protocols/mine").with(as)),
                 new Endpoint("GET /api/machines", OTHER,
                         as -> get("/api/machines").with(as)),
+                // ADR-011. Open to all four roles ON PURPOSE — these are QUESTIONS, and what an
+                // operator may be TOLD is filtered on the answer path. That is exactly the kind of
+                // deliberate widening this matrix exists to keep visible rather than to forbid.
+                new Endpoint("GET /api/machines/{machineNo}/examples", OTHER,
+                        as -> get("/api/machines/{machineNo}/examples", "PR-03").with(as)),
 
                 // The ingestion admin surface. Not part of the four-eyes pair — it re-runs indexing,
                 // it does not change what a protocol SAYS — but a widening here is still a widening.
@@ -278,6 +283,11 @@ class RoleMatrixIT {
         expected.put("GET /api/protocols/{id}/document", Set.of("operator", "techniker", "schichtleiter"));
         expected.put("GET /api/protocols/mine", Set.of("schichtleiter"));
         expected.put("GET /api/machines", Set.of("operator", "techniker", "schichtleiter", "admin"));
+        // All four, deliberately (ADR-011): an example is a QUESTION, and the answer path is where
+        // an operator's view of a protocol is narrowed. Note what this row does NOT do — it gives
+        // nobody access to protocol TEXT, so it cannot widen the four-eyes pair above.
+        expected.put("GET /api/machines/{machineNo}/examples",
+                Set.of("operator", "techniker", "schichtleiter", "admin"));
 
         Map<String, Set<String>> actual = new LinkedHashMap<>();
         Map<String, Set<String>> allowed = measureMatrix();

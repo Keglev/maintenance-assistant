@@ -4,6 +4,7 @@ import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -47,6 +48,55 @@ public class MachineCatalog {
                         rs.getString("type"),
                         rs.getString("location")))
                 .list();
+    }
+
+    /**
+     * One machine by its plant identifier, or empty.
+     *
+     * <p>By {@code machineNo} and not by id, because the caller that needs this is addressing a
+     * machine the way a person does — see {@code /api/machines/{machineNo}/examples}, whose
+     * resource file is hand-authored against plant identifiers (ADR-011).
+     */
+    public Optional<Machine> findByMachineNo(String machineNo) {
+        return jdbc.sql("""
+                        SELECT id, machine_no, name, type, location
+                        FROM machine
+                        WHERE machine_no = :machineNo
+                        """)
+                .param("machineNo", machineNo)
+                .query((rs, rowNum) -> new Machine(
+                        rs.getObject("id", UUID.class),
+                        rs.getString("machine_no"),
+                        rs.getString("name"),
+                        rs.getString("type"),
+                        rs.getString("location")))
+                .optional();
+    }
+
+    /**
+     * How many protocols this machine has that a question could actually reach.
+     *
+     * <p><b>{@code deleted_at IS NULL} is the whole point of this method.</b> It is the same
+     * predicate {@link ChunkRetriever}'s statement carries, and the two must not disagree: a count
+     * that included soft-deleted rows would tell a user that evidence exists which retrieval can
+     * never return, which is a worse answer than no number at all. Measured on 2026-08-26, the
+     * difference is real rather than theoretical — 50 soft-deleted protocols locally and 2 in
+     * production would have been counted.
+     *
+     * <p>"Live" is therefore spelled in two SQL statements, here and in the retriever. That
+     * duplication is recorded rather than hidden; hoisting it is a refactor with no caller asking
+     * for it yet.
+     */
+    public int countLiveProtocols(UUID machineId) {
+        return jdbc.sql("""
+                        SELECT count(*)
+                        FROM protocol
+                        WHERE machine_id = :machineId
+                          AND deleted_at IS NULL
+                        """)
+                .param("machineId", machineId)
+                .query(Integer.class)
+                .single();
     }
 
     /**

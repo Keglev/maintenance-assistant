@@ -66,6 +66,14 @@ class OpenApiSpecIT {
         .contains("\"TRUNCATED\"")
         .contains("Present only when retrieval selected Mode A");
 
+    // ADR-011's two additions to the contract, asserted for the same reason as degradedFrom above:
+    // an OPTIONAL field and a new read-only path are both deletable without another test noticing,
+    // and both are things an integrator has to be told about rather than discover.
+    assertThat(spec)
+        .contains("/api/machines/{machineNo}/examples")
+        .contains("\"protocolCount\"")
+        .contains("Live protocols only");
+
     Files.createDirectories(OUTPUT.getParent());
     Files.writeString(OUTPUT, spec);
 

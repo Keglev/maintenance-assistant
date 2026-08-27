@@ -879,3 +879,33 @@ Status: v1.3.1 released; refactor phase, Part 3 closed 2026-08-26; diagnostics w
   editing it is a measurement change; canonical for what a user is offered is the resource file, and
   editing it is a PRODUCT change. They will drift, correctly; what must not drift is a question's
   expected mode, and the e2e case that clicks a chip and asserts Mode A is what holds that.
+- GUIDED QUESTIONS, BACKEND HALF — shipped 2026-08-27 (ADR-011 PR 1 of 2, #PRNUM). 72 example
+  questions across 10 machines, 36 German and 36 English, served per machine from a versioned
+  resource the backend owns; plus protocolCount on every Mode B answer, so "no source in the corpus"
+  now says how many protocols the machine actually has. Additive on the wire and no retrieval change:
+  ChunkRetriever, LexicalTerms and both prompts are untouched, and the diff over the query package is
+  the answer DTO, the count, and the new resource loader.
+  EVERY QUESTION WAS MEASURED BEFORE IT SHIPPED, and that is the part worth keeping. The plan allowed
+  a spot check of three; all 72 were run against the real embedding model and the retriever's own SQL
+  instead. IT COST NO TOKENS — whether a question reaches Mode A is decided by the gate, before any
+  answer is generated, so the check is 72 embeddings and no chat call at all. It caught one: AB-02's
+  third English example, written against a GERMAN protocol, scored 0.4967 against a 0.55 gate and
+  would have offered a reader the exact ungrounded card this feature exists to prevent. Rewritten
+  against that machine's own English protocol, 0.6875. Final: 72 of 72 Mode A.
+  MOST EXAMPLES CARRY AN ERROR CODE, AS A MECHANISM AND NOT A STYLE: a code is a code-like term, so
+  ADR-009's exact-term clause grounds the answer even where cosine alone would not. That turns "every
+  example yields Mode A" from a hope about the embedding into a property of the question.
+- TWO GUARDS FIRED DURING THAT WORK AND BOTH WERE OBEYED RATHER THAN QUIETED, 2026-08-27. RoleMatrixIT
+  failed the build naming the new route as uncovered by the role matrix — it went in WITH its expected
+  role set, all four, which is the difference between recording a widening and hiding one. And the
+  startup cross-check of the examples file against the machine table broke every test-profile context,
+  because THE test PROFILE HAS NO DATABASE ON PURPOSE; validation is now hard about the file it owns
+  (a parse failure or a missing resource still refuses to start) and soft about data it has to ask
+  someone else for.
+  A THIRD DEFECT CAME FROM READING THE GENERATED SPEC RATHER THAN THE CODE, which is what the Part 5
+  obligation is for: the nested record was named Machine, springdoc names schemas by simple class
+  name, and the examples field published a $ref to MachineCatalog.Machine — id, machineNo, name, type,
+  location, where a client should have found de and en. Every test passed throughout, because no test
+  reads the spec's $ref targets. Renamed to Questions. THE LESSON IS THE NAMING RULE: a nested record
+  exposed through the API shares one flat namespace with every other one, so its simple name is part
+  of the public contract whether anyone meant it to be or not.

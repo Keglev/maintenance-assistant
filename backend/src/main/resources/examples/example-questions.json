@@ -1,0 +1,373 @@
+{
+  "_about": [
+    "EXAMPLE QUESTIONS — the questions a first-time reader is offered, per machine, per language.",
+    "",
+    "RULED BY ADR-011. This file is CANONICAL FOR WHAT A USER IS OFFERED, and editing it is a",
+    "PRODUCT change. Its sibling, backend/src/test/resources/retrieval/golden-questions.json, is",
+    "canonical for retrieval MEASUREMENT (ADR-008) and editing that one is a measurement change.",
+    "The two overlap and will drift, which is correct: the measurement set must keep its Mode B",
+    "cases and this set must never have any.",
+    "",
+    "EVERY QUESTION HERE MUST YIELD MODE A. An example that lands on the ungrounded card teaches the",
+    "opposite of the lesson it exists for. Each carries the `source` protocol id it was written",
+    "against, so ExampleQuestionsTest fails when that protocol leaves the corpus rather than the",
+    "demo failing in front of a reader.",
+    "",
+    "WHY MOST OF THEM CARRY AN ERROR CODE, and it is not decoration: a code is a code-like term, so",
+    "ADR-009's exact-term clause grounds the answer even when the cosine score alone would not.",
+    "That is what makes 'every example yields Mode A' a property of the question rather than a hope",
+    "about the embedding. The three without a code were measured instead — see the pull request that",
+    "added this file."
+  ],
+  "version": 1,
+  "machines": {
+    "AB-02": {
+      "de": [
+        {
+          "question": "Förderschnecke blockiert, Fehler AB-14 — was wurde damals gemacht?",
+          "source": "0f9c5b02-0000-4000-8000-000000000132"
+        },
+        {
+          "question": "Verschlusskopf zieht nicht fest, Meldung AB-31 — woran lag es?",
+          "source": "0f9c5b02-0000-4000-8000-000000000135"
+        },
+        {
+          "question": "Gebinde verklemmen im Einlaufstern, was hat geholfen?",
+          "source": "0f9c5b02-0000-4000-8000-000000000137"
+        }
+      ],
+      "en": [
+        {
+          "question": "Feed screw blocked, error AB-14 — what was the cause?",
+          "source": "0f9c5b02-0000-4000-8000-000000000132"
+        },
+        {
+          "question": "Capping head not tightening, AB-31 — what fixed it?",
+          "source": "0f9c5b02-0000-4000-8000-000000000135"
+        },
+        {
+          "question": "Labeller putting labels on the wrong side, what was the cause?",
+          "source": "0f9c5b02-0000-4000-8000-000000000134"
+        }
+      ]
+    },
+    "FB-04": {
+      "de": [
+        {
+          "question": "Band läuft nach rechts aus dem Lauf, Fehler FB-12 — was tun?",
+          "source": "0f9c5b02-0000-4000-8000-000000000106"
+        },
+        {
+          "question": "Band bleibt beim Anlauf unter Last stehen, FB-30 — Ursache?",
+          "source": "0f9c5b02-0000-4000-8000-000000000108"
+        },
+        {
+          "question": "Bandgeschwindigkeit schwankt, Meldung FB-45 — was wurde geprüft?",
+          "source": "0f9c5b02-0000-4000-8000-000000000111"
+        }
+      ],
+      "en": [
+        {
+          "question": "Belt tracking off to the right, error FB-12 — what was the fix?",
+          "source": "0f9c5b02-0000-4000-8000-000000000106"
+        },
+        {
+          "question": "Belt stalls on start-up under load, FB-30 — what caused it?",
+          "source": "0f9c5b02-0000-4000-8000-000000000108"
+        },
+        {
+          "question": "Conveyor speed fluctuating, FB-45 — what was checked?",
+          "source": "0f9c5b02-0000-4000-8000-000000000111"
+        }
+      ]
+    },
+    "FR-01": {
+      "de": [
+        {
+          "question": "Schleppfehler X-Achse, Alarm SV0410 — Servomotor oder Kabel?",
+          "source": "0f9c5b02-0000-4000-8000-000000000040"
+        },
+        {
+          "question": "Werkzeugwechsler greift daneben, TC0210 — was war die Ursache?",
+          "source": "0f9c5b02-0000-4000-8000-000000000043"
+        },
+        {
+          "question": "Spindel Übertemperatur, Alarm OH0700 — was wurde gefunden?",
+          "source": "0f9c5b02-0000-4000-8000-000000000041"
+        },
+        {
+          "question": "Programm bricht mit Alarm PS0130 ab, wie wurde das gelöst?",
+          "source": "0f9c5b02-0000-4000-8000-000000000049"
+        }
+      ],
+      "en": [
+        {
+          "question": "Following error on the X axis, alarm SV0410 — motor or cable?",
+          "source": "0f9c5b02-0000-4000-8000-000000000040"
+        },
+        {
+          "question": "Tool changer missing the pocket, TC0210 — what was the cause?",
+          "source": "0f9c5b02-0000-4000-8000-000000000043"
+        },
+        {
+          "question": "Spindle overtemperature, alarm OH0700 — what was found?",
+          "source": "0f9c5b02-0000-4000-8000-000000000041"
+        },
+        {
+          "question": "Program aborting with alarm PS0130, how was it resolved?",
+          "source": "0f9c5b02-0000-4000-8000-000000000049"
+        }
+      ]
+    },
+    "KP-01": {
+      "de": [
+        {
+          "question": "Kompressor baut keinen Druck auf, Fehler K-03 — Motor wirklich defekt?",
+          "source": "0f9c5b02-0000-4000-8000-000000000093"
+        },
+        {
+          "question": "Kompressor schaltet auf Übertemperatur ab, K-11 — Ursache?",
+          "source": "0f9c5b02-0000-4000-8000-000000000095"
+        },
+        {
+          "question": "Motorschutz löst aus, Meldung K-07 — was wurde gemessen?",
+          "source": "0f9c5b02-0000-4000-8000-000000000102"
+        }
+      ],
+      "en": [
+        {
+          "question": "Compressor not building pressure, error K-03 — was the motor really faulty?",
+          "source": "0f9c5b02-0000-4000-8000-000000000093"
+        },
+        {
+          "question": "Compressor shutting down on high temperature, K-11 — what was the cause?",
+          "source": "0f9c5b02-0000-4000-8000-000000000095"
+        },
+        {
+          "question": "Motor protection tripping, K-07 — what was measured?",
+          "source": "0f9c5b02-0000-4000-8000-000000000102"
+        }
+      ]
+    },
+    "LS-01": {
+      "de": [
+        {
+          "question": "Schnittkante schlecht, Grat an der Unterseite, LS-08 — was hat geholfen?",
+          "source": "0f9c5b02-0000-4000-8000-000000000121"
+        },
+        {
+          "question": "Alarm LS-21 Chiller flow rate too low, was war die Ursache?",
+          "source": "0f9c5b02-0000-4000-8000-000000000124"
+        },
+        {
+          "question": "Absaugung schwach, Rauch steht in der Kabine — was wurde gemacht?",
+          "source": "0f9c5b02-0000-4000-8000-000000000130"
+        }
+      ],
+      "en": [
+        {
+          "question": "Poor cut edge with burr underneath, LS-08 — what helped?",
+          "source": "0f9c5b02-0000-4000-8000-000000000121"
+        },
+        {
+          "question": "Alarm LS-21, chiller flow rate too low — what was the cause?",
+          "source": "0f9c5b02-0000-4000-8000-000000000124"
+        },
+        {
+          "question": "Weak fume extraction, smoke standing in the cabin — what was done?",
+          "source": "0f9c5b02-0000-4000-8000-000000000130"
+        }
+      ]
+    },
+    "PR-03": {
+      "de": [
+        {
+          "question": "Presse kommt nicht auf Druck, Fehler E-47, was tun?",
+          "source": "0f9c5b02-0000-4000-8000-000000000001"
+        },
+        {
+          "question": "Presse startet nicht, Lichtvorhang, Fehler E-08 — Ursache?",
+          "source": "0f9c5b02-0000-4000-8000-000000000006"
+        },
+        {
+          "question": "Endlage oben wird nicht erkannt, E-12 — woran lag es?",
+          "source": "0f9c5b02-0000-4000-8000-000000000008"
+        },
+        {
+          "question": "Hydrauliköl zu heiß, Presse abgeschaltet, E-31 — was wurde geprüft?",
+          "source": "0f9c5b02-0000-4000-8000-000000000007"
+        }
+      ],
+      "en": [
+        {
+          "question": "Press not reaching pressure, error E-47 — what was done?",
+          "source": "0f9c5b02-0000-4000-8000-000000000001"
+        },
+        {
+          "question": "Press will not start, light curtain, error E-08 — what was the cause?",
+          "source": "0f9c5b02-0000-4000-8000-000000000006"
+        },
+        {
+          "question": "Upper end position not detected, E-12 — what was it?",
+          "source": "0f9c5b02-0000-4000-8000-000000000008"
+        },
+        {
+          "question": "Hydraulic oil overtemperature, press shut down, E-31 — what was checked?",
+          "source": "0f9c5b02-0000-4000-8000-000000000007"
+        }
+      ]
+    },
+    "PR-07": {
+      "de": [
+        {
+          "question": "Presse 7 in der Leitwarte ausgegraut, KOM-04 — was war das?",
+          "source": "0f9c5b02-0000-4000-8000-000000000023"
+        },
+        {
+          "question": "Nach Spannungseinbruch alle Rezeptwerte weg, A-2201 — wie wiederhergestellt?",
+          "source": "0f9c5b02-0000-4000-8000-000000000024"
+        },
+        {
+          "question": "Druck erreicht den Sollwert nicht, Alarm A-1140 — Ursache?",
+          "source": "0f9c5b02-0000-4000-8000-000000000027"
+        },
+        {
+          "question": "Teiledicke schwankt, Toleranzalarm A-3010 — was wurde gefunden?",
+          "source": "0f9c5b02-0000-4000-8000-000000000029"
+        }
+      ],
+      "en": [
+        {
+          "question": "Press 7 greyed out in the control room, KOM-04 — what was it?",
+          "source": "0f9c5b02-0000-4000-8000-000000000023"
+        },
+        {
+          "question": "All recipe values lost after a voltage dip, A-2201 — how was it restored?",
+          "source": "0f9c5b02-0000-4000-8000-000000000024"
+        },
+        {
+          "question": "Pressure not reaching setpoint, alarm A-1140 — what was the cause?",
+          "source": "0f9c5b02-0000-4000-8000-000000000027"
+        },
+        {
+          "question": "Part thickness varying, tolerance alarm A-3010 — what was found?",
+          "source": "0f9c5b02-0000-4000-8000-000000000029"
+        }
+      ]
+    },
+    "RB-02": {
+      "de": [
+        {
+          "question": "Naht sitzt versetzt nach Kollision, R-114 — was wurde gemacht?",
+          "source": "0f9c5b02-0000-4000-8000-000000000059"
+        },
+        {
+          "question": "Drahtvorschub bleibt stehen, Lichtbogen reißt ab, R-208 — Ursache?",
+          "source": "0f9c5b02-0000-4000-8000-000000000060"
+        },
+        {
+          "question": "Zelle lässt sich nicht starten, Schutztür, R-050 — woran lag es?",
+          "source": "0f9c5b02-0000-4000-8000-000000000066"
+        },
+        {
+          "question": "Roboter verliert Referenz nach Spannungseinbruch, R-402 — was hat geholfen?",
+          "source": "0f9c5b02-0000-4000-8000-000000000067"
+        }
+      ],
+      "en": [
+        {
+          "question": "Weld seam offset after a collision, R-114 — what was done?",
+          "source": "0f9c5b02-0000-4000-8000-000000000059"
+        },
+        {
+          "question": "Wire feed stalling and the arc dropping out, R-208 — what was the cause?",
+          "source": "0f9c5b02-0000-4000-8000-000000000060"
+        },
+        {
+          "question": "Cell will not start, safety door, R-050 — what was it?",
+          "source": "0f9c5b02-0000-4000-8000-000000000066"
+        },
+        {
+          "question": "Robot losing its reference after a voltage dip, R-402 — what helped?",
+          "source": "0f9c5b02-0000-4000-8000-000000000067"
+        }
+      ]
+    },
+    "SP-05": {
+      "de": [
+        {
+          "question": "Schlieren und Blasen im Teil, SP-27 — was wurde eingestellt?",
+          "source": "0f9c5b02-0000-4000-8000-000000000138"
+        },
+        {
+          "question": "Heizband Zone 3 ausgefallen, SP-11 — welche Übergangslösung?",
+          "source": "0f9c5b02-0000-4000-8000-000000000139"
+        },
+        {
+          "question": "Grat am Teil nach Werkzeugwechsel, SP-40 — Ursache?",
+          "source": "0f9c5b02-0000-4000-8000-000000000142"
+        },
+        {
+          "question": "Handling-Roboter lässt Teile fallen, SP-63 — was wurde geprüft?",
+          "source": "0f9c5b02-0000-4000-8000-000000000143"
+        }
+      ],
+      "en": [
+        {
+          "question": "Streaks and bubbles in the part, SP-27 — what was adjusted?",
+          "source": "0f9c5b02-0000-4000-8000-000000000138"
+        },
+        {
+          "question": "Heater band zone 3 failed, SP-11 — what was the interim fix?",
+          "source": "0f9c5b02-0000-4000-8000-000000000139"
+        },
+        {
+          "question": "Flash on the part after a tool change, SP-40 — what was the cause?",
+          "source": "0f9c5b02-0000-4000-8000-000000000142"
+        },
+        {
+          "question": "Handling robot dropping parts, SP-63 — what was checked?",
+          "source": "0f9c5b02-0000-4000-8000-000000000143"
+        }
+      ]
+    },
+    "VP-01": {
+      "de": [
+        {
+          "question": "Meldung Sensor defekt an der Einlaufkontrolle, VP-22 — was war es?",
+          "source": "0f9c5b02-0000-4000-8000-000000000076"
+        },
+        {
+          "question": "Siegelnaht undicht, Packungen ziehen Luft, VP-40 — was hat geholfen?",
+          "source": "0f9c5b02-0000-4000-8000-000000000077"
+        },
+        {
+          "question": "Vakuum wird nicht erreicht, VP-55 — welche Behelfslösung?",
+          "source": "0f9c5b02-0000-4000-8000-000000000080"
+        },
+        {
+          "question": "Kettenriss im Transportsystem, VP-70 — wie wurde repariert?",
+          "source": "0f9c5b02-0000-4000-8000-000000000083"
+        }
+      ],
+      "en": [
+        {
+          "question": "Sensor fault message on the infeed check, VP-22 — what was it?",
+          "source": "0f9c5b02-0000-4000-8000-000000000076"
+        },
+        {
+          "question": "Seal seam leaking, packs drawing air, VP-40 — what helped?",
+          "source": "0f9c5b02-0000-4000-8000-000000000077"
+        },
+        {
+          "question": "Vacuum not reached, VP-55 — what was the workaround?",
+          "source": "0f9c5b02-0000-4000-8000-000000000080"
+        },
+        {
+          "question": "Chain break in the transport system, VP-70 — how was it repaired?",
+          "source": "0f9c5b02-0000-4000-8000-000000000083"
+        }
+      ]
+    }
+  }
+}

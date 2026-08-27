@@ -75,10 +75,15 @@ test.describe('a first-time reader is offered a question that works', () => {
     await selectSearchMachine(page, SEED.machineNo);
 
     await expect(page.getByTestId('example-chip').first()).toBeVisible({ timeout: 30_000 });
-    const german = await page.getByTestId('example-chip').first().textContent();
 
+    // START FROM GERMAN EXPLICITLY, rather than assuming it. The language is remembered in
+    // localStorage, so this test used to inherit whatever the previous one left behind — and on
+    // its own RETRY it inherited the English it had just switched to, and failed. A test that
+    // cannot run twice is a test that reports its own leftovers as a defect.
+    await page.getByTestId('lang-de').click();
     // The dictionary heading is the cheap check that the block itself is the right one.
     await expect(page.getByTestId('examples')).toContainText('Beispielfragen');
+    const german = await page.getByTestId('example-chip').first().textContent();
 
     await page.getByTestId('lang-en').click();
 

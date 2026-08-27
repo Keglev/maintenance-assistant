@@ -109,15 +109,27 @@ is the stable key.
     production — see PROJECT-PHASES"
     -> V1.2.0-TRUST-CHAIN.txt
 
-  backend/src/test/java/.../web/ProtocolUploadGuardsIT.java:47
+  backend/src/test/java/.../web/ProtocolUploadGuardsIT.java:46
   backend/src/test/java/.../web/UploadSizeLimitIT.java:36
     "the HEAD defect recorded in PROJECT-PHASES"
-    -> STATUS-2026-08-11.txt, BEST MATCH AND NOT CERTAIN. The phrase
-       "HEAD defect" appears nowhere in PROJECT-PHASES.txt at the base
-       commit. The nearest subject is #36 sec/upload-guards — the
-       multipart caps, UploadContentPolicy and the 413 — which is what
-       both tests are about and which moved into that file. Whoever
-       knows what "HEAD" meant should correct this line.
+    -> IT IS #31 fix(backend): HEAD permitted on public paths (uptime
+       probes). `curl -I` sends an HTTP HEAD, and the permit list matched
+       HttpMethod.GET only — HEAD is a method of its own to the matcher —
+       so every public path, /api/health included, refused HEAD while
+       serving a browser perfectly. Any uptime probe using HEAD would have
+       seen a permanently unauthorised health check.
+       Two lines carry it, and both moved:
+         STATUS-2026-08-11.txt:17   (base 137)
+           "#31 fix(backend): HEAD permitted on public paths (uptime
+           probes)," — the pull request in the v1.1 wave list.
+         STATUS-2026-08-08.txt:31   (base 4210)
+           "the same bug and was not: -I sends HEAD, the permit list
+           matched" — the diagnosis, inside THE SWAGGER ENTRY POINT TOOK
+           THREE ROUNDS.
+       WHY THE TWO TESTS CITE IT: the defect was invisible to anything but
+       a real request against a real container, which is the shape both of
+       them are about. STATUS-2026-08-08.txt is the one to read for the
+       reasoning; STATUS-2026-08-11.txt only names the fix.
 
 CHECKED AND NEEDING NO FORWARDING — the citation resolves into a block
 that STAYED in PROJECT-PHASES.txt:

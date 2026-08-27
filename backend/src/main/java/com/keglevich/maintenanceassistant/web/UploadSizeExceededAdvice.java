@@ -1,5 +1,6 @@
 package com.keglevich.maintenanceassistant.web;
 
+import io.swagger.v3.oas.annotations.Hidden;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -26,7 +27,25 @@ import java.util.Map;
  * <p>This is the CONTAINER's ceiling ({@code spring.servlet.multipart.max-file-size}). The decoded
  * text has a second, lower ceiling in the ingestion module which reports itself as a 400; both are
  * real and they guard different things — bytes on the wire, and characters reaching the embedder.
+ *
+ * <p><b>{@code @Hidden} IS ABOUT THE PUBLISHED DOCUMENT, NOT ABOUT THE RUNTIME.</b> springdoc
+ * merges an advice's declared status into every operation the advice can reach, and this advice can
+ * reach all of them — so the API published a {@code 413 Content Too Large} on all 19 operations,
+ * including thirteen GETs that carry no request body at all. A contract that tells a client to
+ * handle a status an endpoint can never return is wrong about that endpoint, which is what the
+ * standards' OpenAPI obligation exists to catch. {@code @Hidden} takes this advice out of that
+ * merge and changes nothing about when it runs or what it answers; the one operation that CAN
+ * answer 413 declares it itself, in {@link ProtocolUploadController}.
+ *
+ * <p><b>SCOPING WITH {@code assignableTypes} WAS TRIED AND REJECTED, 2026-08-27.</b> It produced
+ * exactly the right document and broke the behaviour: {@code assignableTypes} matches on the
+ * RESOLVED HANDLER, and by the paragraph above there is no resolved handler when this fires, so the
+ * advice simply stopped running and an oversized upload went back to receiving Tomcat's HTML.
+ * {@code UploadSizeLimitIT} caught it. The rule that generalises: an advice handling an exception
+ * raised before handler resolution cannot be narrowed by handler type, and narrowing what it
+ * PUBLISHES is a documentation-generation concern instead.
  */
+@Hidden
 @RestControllerAdvice
 class UploadSizeExceededAdvice {
 

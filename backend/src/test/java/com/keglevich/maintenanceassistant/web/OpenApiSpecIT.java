@@ -4,6 +4,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import org.junit.jupiter.api.DisplayName;
@@ -74,9 +76,39 @@ class OpenApiSpecIT {
         .contains("\"protocolCount\"")
         .contains("Live protocols only");
 
+    // 413 IS ADVERTISED WHERE IT CAN HAPPEN, AND NOWHERE ELSE. UploadSizeExceededAdvice has to be
+    // global — the container refuses an oversized multipart before a handler is resolved — and
+    // springdoc used to merge its status into all 19 operations, thirteen of them GETs that carry
+    // no request body. The advice is @Hidden from that merge and the upload declares the status
+    // itself. Asserted from the document rather than from the annotations, because the defect was
+    // invisible in the code and obvious in the spec.
+    JsonNode spec413 = new ObjectMapper().readTree(spec);
+    assertThat(responseCodes(spec413, "/api/machines/{machineNo}/examples"))
+        .as("a GET carries no request body and can never answer 413")
+        .doesNotContain("413");
+    assertThat(responseCodes(spec413, "/api/machines"))
+        .as("nor can the machine list")
+        .doesNotContain("413");
+    assertThat(spec413.at("/paths/~1api~1protocols/post/responses/413/description").asText())
+        .as("the one operation that CAN answer 413 says so, and says what the body carries")
+        .contains("spring.servlet.multipart.max-file-size");
+    assertThat(spec413.at("/paths/~1api~1protocols/post/responses/413/content"
+            + "/application~1json/schema/$ref").asText())
+        .isEqualTo("#/components/schemas/FileTooLarge");
+
     Files.createDirectories(OUTPUT.getParent());
     Files.writeString(OUTPUT, spec);
 
     assertThat(OUTPUT).isNotEmptyFile();
+  }
+
+  /** The response codes one operation declares, read from the document rather than the code. */
+  private static java.util.Set<String> responseCodes(JsonNode spec, String path) {
+    JsonNode responses = spec.at("/paths/" + path.replace("~", "~0").replace("/", "~1")
+        + "/get/responses");
+    assertThat(responses.isMissingNode()).as("no GET declared at %s", path).isFalse();
+    java.util.Set<String> codes = new java.util.TreeSet<>();
+    responses.fieldNames().forEachRemaining(codes::add);
+    return codes;
   }
 }

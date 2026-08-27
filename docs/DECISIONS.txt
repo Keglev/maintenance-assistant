@@ -932,3 +932,28 @@ Status: v1.3.1 released; refactor phase, Part 3 closed 2026-08-26; diagnostics w
   the generated document. Nothing about the advice was wrong; what was wrong was what springdoc did
   with it, and only reading the spec shows that. It is the second contract defect in two days found
   by reading the document instead of the annotations — the first was a schema-name collision in #115.
+- GUIDED QUESTIONS ARE LIVE END TO END — frontend half shipped 2026-08-27 (ADR-011 PR 2 of 2,
+  #PRNUM), v1.4.0 after Carlos's browser check. Chips under the question box, in the reader's
+  language, appearing when a machine is chosen; the ungrounded card now says how many protocols the
+  machine does have. CLICKING A CHIP FILLS THE BOX AND DOES NOT SUBMIT, which is the part the e2e
+  case pins: a chip that submitted would produce a good answer and no understanding, because the
+  reader would never see the question that worked.
+  THE CHIPS FAIL QUIETLY, BY DESIGN. A slow or failed fetch renders nothing at all — no spinner, no
+  error, no empty heading. They are an aid, never a step: a reader who never sees them is exactly
+  where they were before this feature existed, while a complaint about "example questions" beside a
+  working search box would be an error about something they did not ask for and cannot act on.
+  BOTH LANGUAGES ARRIVE IN ONE RESPONSE and are cached for the session, so a language switch
+  re-renders from what is already in hand — asserted by a spec that fails if a second request is
+  made. Not in browser storage: an example whose protocol has since been deleted would then survive
+  a deploy, which is the staleness this whole feature exists to avoid.
+- A DELIBERATE BASELINE REGENERATION COULD NOT BE TAKEN, and the honest answer was to ship without
+  it — 2026-08-27, #PRNUM. ADR-007 makes the pinned Playwright container the ONLY environment
+  allowed to produce a baseline, because font rendering is a property of the machine and a baseline
+  made on a Windows desktop is a permanently red CI job. That image would not pull: four attempts,
+  the longest twenty minutes, all stalling on the same layer with the image absent afterwards.
+  THE CHOICE WAS BETWEEN A BASELINE NOBODY CAN TRUST AND NONE AT ALL. Generating the PNGs outside
+  the container would have produced two files that look right locally and turn CI permanently red —
+  worse than the red check the pull request now carries, because that one is expected, named, and
+  fixed by one command on a machine that can pull the image. ADR-007's own sentence applies: a
+  baseline records what the app LOOKS LIKE, and one recorded on the wrong machine records the wrong
+  thing.

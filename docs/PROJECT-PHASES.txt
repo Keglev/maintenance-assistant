@@ -33,6 +33,12 @@ pull requests, backend then frontend, then v1.4.0.
 
 Guided questions backend merged; frontend next; v1.4.0 after both.
 
+Guided questions complete; v1.4.0 on deploy after Carlos's browser check
+(five examples across machines); next: recruiter landing page.
+THE VISUAL CHECK IS RED BY DESIGN on #PRNUM: two search-mode-a baselines
+need regenerating in the pinned image, which would not pull on the robot's
+machine. It is one command on a machine that can pull it.
+
 v1.3.0 IS THE LATEST TAG, 2026-08-20. The release history, from the
 repository's own tags: v0.1.0 2026-08-06, v1.0.0 2026-08-08, v1.1.0
 2026-08-11, v1.2.0 2026-08-13, v1.3.0 2026-08-20.
@@ -3710,8 +3716,44 @@ rather than given one afterwards.
         COMMIT (ADR-007). The chips change the search page layout, so the
         baselines move for a reason; regenerating them in the feature
         commit would hide whether anything ELSE moved.
+        DONE 2026-08-27, #PRNUM: chips, count line, e2e case
+        guided-questions.e2e.ts. BASELINES NOT REGENERATED LOCALLY — see
+        the row below; the reason is an environment failure, not a
+        decision.
+        WHICH BASELINES WERE EXPECTED TO MOVE, worked out from what each
+        one photographs rather than from running them: search-mode-a
+        (light and dark) is a fullPage shot of the search view and gains
+        the chips block under the question box. search-unapproved and
+        search-clamped photograph the ANSWER ELEMENT only
+        (getByTestId('answer-mode-a')), so the chips are outside their
+        frame and they should not move at all. TWO OF EIGHTEEN.
+        NO BASELINE COVERS MODE B, so the new protocol-count line has no
+        visual baseline to move. Worth knowing rather than fixing here:
+        ADR-007 chose baselines for CHURN, and the ungrounded card has
+        never had one. If the count line is worth pinning, it is its own
+        deliberate addition with its own reasoning.
+        THE HELP PANEL IS UNTOUCHED, as the standing rule requires:
+        LexicalTerms did not change in the backend PR, so what the panel
+        says about exact terms is still true and its text is unedited.
+        NO LINT TARGET EXISTS in this project — `ng lint` reports
+        "Cannot find lint target". Formatting is the gate C7 added, and
+        `npm run format:check` passes; there is no second checker to run.
 
      THEN v1.4.0 — a feature, so a minor bump, after both.
+
+     BLOCKED, 2026-08-27: THE PINNED PLAYWRIGHT IMAGE WILL NOT PULL on
+     this machine. `docker pull mcr.microsoft.com/playwright:v1.56.0-noble`
+     stalls on one layer, retries, and never completes — three attempts,
+     the longest twenty minutes, with the log frozen and the image absent
+     from `docker images` afterwards. ADR-007 makes the container the ONLY
+     environment allowed to produce a baseline, because font rendering is a
+     property of the machine and a baseline made on a Windows desktop is a
+     permanently red CI job. So the choice was between a baseline nobody
+     can trust and none at all, and none at all is the honest one.
+     WHAT THIS COSTS: the `visual` check goes red on this pull request, on
+     the two search-mode-a baselines and on nothing else. That is the
+     expected failure ADR-007 describes for a deliberate design change, and
+     it stays red until the regeneration commit lands.
 
      THE GOLDEN QUESTIONS ARE COPIED, NOT MOVED, and the ADR names the
      duplication. golden-questions.json stays ADR-008's ratified

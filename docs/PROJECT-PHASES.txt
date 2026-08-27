@@ -23,8 +23,7 @@ THE SHARED HOST IS LIVE. api.smartsupplypro.de terminates on this
 deployment's Caddy and answers 502 over a valid certificate until
 inventory-service starts; the two JVMs now carry memory limits
 (1610612736 / 1342177280). Hand-deployed 2026-08-27, 18:13-18:23 UTC.
-The 24-hour OOMKilled re-check falls due 2026-08-28 and is the only
-thing that session left open.
+The OOMKilled re-check that session left open is now NEXT item 2.
 
 REFACTOR PHASE — six read-only surveys in a fixed order, docs last.
   PART 1 TEST COVERAGE  CLOSED 2026-08-24, #70-#84 plus #85.
@@ -59,17 +58,18 @@ NEXT, IN ORDER:
      one deliberate act: a mismatched Chromium is a whole-suite diff,
      and a baseline taken anywhere but the pinned container is a
      permanently red job.
-  2. THE PLANNED MAINTENANCE WINDOW, before inventory-service goes
-     live, so one reboot covers both projects instead of two outages.
-     Measured on the host 2026-08-27: 18 updates, 3 of them security;
-     /var/run/reboot-required naming linux-image-7.0.0-30-generic and
-     linux-base against a running 7.0.0-29-generic — a kernel reboot,
-     not a service restart. AFTERWARDS: `swapon --show` must still show
-     the 2 GB file (its fstab entry has not yet survived a boot) and
-     all five containers must be back; every service carries
-     `restart: unless-stopped`, verified in the compose file and on the
-     running containers. Caddy's certificates persist in the caddy-data
-     volume, so nothing is re-issued.
+  2. THE OOMKilled AND RESTART RE-CHECK on the two limited containers,
+     carried from the 18:13-18:23 hand-deploy and due 2026-08-28.
+     THE 20:07 UTC READING WAS CLEAN — OOMKilled=false and
+     RestartCount=0 on all five — BUT IT IS NOT THE 24-HOUR ANSWER: the
+     maintenance window recreated every container at 20:07, so the
+     observation clock restarted with them. Keycloak's 1280m is the
+     tight one and the reading that matters is one taken after a day of
+     ordinary traffic, not one taken minutes after a cold start.
+     THE MAINTENANCE WINDOW THIS ITEM USED TO NAME IS DONE — taken
+     2026-08-27 20:00-20:10 UTC, kernel 7.0.0-29 -> 30. See the
+     MAINTENANCE WINDOW block below; it also corrects two lines of the
+     runbook wording this item carried.
   3. THE PART 4 SURVEY — dead and redundant code. Two rows are already
      waiting for it and must not be rediscovered:
        - THE JSPECIFY NULL-SAFETY WARNINGS under Boot 4 / Framework 7:
@@ -107,6 +107,78 @@ drill only catches what somebody looks at. v1.4.0 agrees with the file
 only because #119 bumped it deliberately and the tag followed, which is
 the order that works and the one the drill was supposed to enforce from
 the other end.
+
+=====================================================================
+MAINTENANCE WINDOW — 2026-08-27 20:00-20:10 UTC, hand-run by Carlos
+=====================================================================
+The window NEXT item 2 called for, taken before inventory-service goes
+live so that one reboot covers both projects instead of two outages.
+Ten minutes, no rollback, nothing unexpected. It is recorded because it
+is the first OS-level change made through the privilege split, and
+because two lines of the runbook wording turned out to be wrong.
+
+BEFORE. Uptime 19 days. Kernel 7.0.0-29-generic running, with
+7.0.0-30-generic ALREADY INSTALLED and the banner saying "System restart
+required" — so this was a reboot to pick up a kernel that was already on
+disk, not an upgrade that fetched one. Swap: /swapfile, 2 GB, active
+from the hand `swapon` of 2026-08-27, its fstab entry never yet booted.
+Five containers up.
+
+APT. 18 packages upgraded, 3 of them security; 6 more held back by
+phasing and deliberately left. THE KERNEL IS NOT IN THAT LIST, for the
+reason above. docker-compose-plugin 5.4.0 -> 5.5.0 rode along and is the
+ONLY Docker-related package in the set — worth naming because a compose
+upgrade under a running stack is the one line in an apt run that could
+have surprised the containers, and it did not.
+
+THE SPLIT WAS EXERCISED, AND IT HELD. Root ran `apt upgrade` and the
+reboot; `deploy` ran `compose down` beforehand (reached with
+`su - deploy`) and `compose up -d` afterwards. NOTHING NEEDED SUDO FOR
+deploy, which is the whole claim of the rule in DECISIONS 2026-08-27 —
+root creates and hands over, deploy operates — tested for the first time
+against something other than a file copy.
+
+AFTER, all measured. Kernel 7.0.0-30-generic; no reboot pending. Boot at
+20:03:56 UTC. /swapfile mounted FROM FSTAB ON ITS FIRST BOOT, 2 GB
+active — the one thing the previous entry flagged as untested. Compose
+v5.5.0. Five containers up, started 20:07:21-20:07:43.
+`docker inspect`: OOMKilled=false and RestartCount=0 on all five, with
+the limits intact (backend 1610612736, keycloak 1342177280; postgres,
+caddy and frontend unlimited by decision).
+HEALTH STATUS ON THREE OF FIVE, and that is not a regression: postgres,
+keycloak and frontend report healthy; backend and caddy declare no
+healthcheck at all. That is C20, unchanged and still WATCH.
+/api/health answered 200 to `curl -I` — an HTTP HEAD, which makes it the
+standing regression check for #31 and not a formality.
+api.smartsupplypro.de answered 502 over a valid certificate, exactly as
+#120 recorded: the site block is live and only the upstream is absent.
+Browser login and one Mode A query answered.
+
+TWO CORRECTIONS TO THE RUNBOOK WORDING, both found by doing it:
+  - THE CADDYFILE IS AT caddy/Caddyfile, not at the project root. Every
+    earlier checklist wrote the path as if it sat beside the compose
+    file.
+  - `restart: unless-stopped` DOES NOT BRING BACK A CONTAINER THAT NO
+    LONGER EXISTS. After `compose down` the containers are removed, so
+    the restart policy has nothing to act on and the stack does NOT come
+    back by itself on reboot. `compose up -d` is therefore a STEP OF
+    EVERY WINDOW, not a finding and not a contingency. The earlier
+    entry's "the stack comes back on its own" is true only of a reboot
+    taken WITHOUT a `compose down` first.
+
+BACKUPS, taken with `cp -p` and left on the host:
+docker-compose.prod.yml, .env.prod and caddy/Caddyfile, each copied to
+*.bak.2026-08-27. `cp -p` preserves the modification time, so all three
+copies carry their SOURCE's mtime (18:13-18:19, from the hand-deploy
+earlier that day) rather than the time of the window.
+A NAMING TRAP FOUND WHILE VERIFYING THEM, recorded so the next operator
+does not trust a filename: the host also holds
+.env.prod.bak-2026-08-27, docker-compose.prod.yml.bak-2026-08-27 and
+Caddyfile.bak-2026-08-27 — a HYPHEN before the date, not a dot — and
+none of the three is from 2026-08-27. Their mtimes are 2026-08-19,
+2026-08-11 and 2026-08-08. A backup named for the wrong day is worse
+than no backup, because it will be restored with confidence. Neither
+set is deleted here; deleting a backup is its own decision.
 
 SUPERSEDED STATUS — 2026-08-11 (v1.1.0 TAGGED AND RELEASED)
 Moved to docs/ledger/STATUS-2026-08-11.txt on 2026-08-27, byte-identical.

@@ -1,0 +1,715 @@
+2. v1.2.0 — TRUST CHAIN
+   - APPROVE WORKFLOW, per ADR-006's dated note (2026-08-10): the
+     Techniker writes and never edits his own; the Schichtleiter edits
+     and forwards; the Admin approves, and may close after an edit.
+     AUTHOR AND APPROVER ARE NEVER THE SAME PERSON — four-eyes where
+     it bites, at the moment a protocol becomes citable. The approval
+     state then gives search a NEW FACET for approved protocols, for
+     free.
+   - DUPLICATE DETECTION ON APPROVAL: run the existing pgvector
+     similarity against the same machine's protocols; high similarity
+     raises a WARNING with links and NEVER BLOCKS. The E-47 seed is
+     the proof case — same code, four different root causes, all
+     legitimate, and any threshold useful enough to catch a real
+     duplicate would flag those four as copies of each other. The
+     admin decides join / keep / delete.
+   - ADR-006 gets a revision on implementation; migrations expected.
+
+   PROGRESS 2026-08-13 — PR 1 of 2 IS OPEN (feat/approval-backend):
+   BACKEND AND DATA ONLY. Schema V5 (approval_state + approved_by +
+   approved_at, with a constraint that an APPROVED row must carry both
+   and an UNAPPROVED row neither), the 150 seeds born approved by
+   system:corpus-seed, 15 new UNAPPROVED protocols so the queue is
+   real, approval state on every read path INCLUDING the citations on
+   an answer, an admin-only approve/un-approve endpoint, an
+   approvalState filter on the moderation list and an approvedOnly
+   parameter on the query. Edit RESETS approval and writes both an
+   EDIT and an UNAPPROVE row. ADR-006 carries the implemented design.
+   TWO PERMISSIONS MOVED, both widenings mandated by decision 3, both
+   different from what the prompt assumed the code already did: the
+   TECHNIKER may now file a protocol (upload was Schichtleiter-only)
+   and the SCHICHTLEITER may now correct one (edit was admin-only).
+   The admin KEEPS edit, so four eyes is enforced on the ACT — an
+   approval is refused for a protocol the same person filed or last
+   corrected — rather than by the role split alone.
+   (SUPERSEDED 2026-08-15: #54 removed the admin's edit and the act
+   check became unreachable; it was removed and replaced by
+   RoleMatrixIT. See the PR 6 entry above.)
+   PROGRESS 2026-08-13 — PR 2 of 3 IS OPEN (feat/approval-ui): THE
+   INTERFACE, plus ONE PERMISSION CARLOS REVERSED after reviewing #53.
+   OPTION B: THE ADMIN STOPS EDITING. Techniker writes, Schichtleiter
+   corrects, Admin approves, and nobody holds two of those jobs. The
+   edit endpoint is SCHICHTLEITER-only now; the act-based check in
+   ProtocolApprovalService is KEPT as the belt to the role split's
+   braces — it is the only guard that can express "the same human did
+   both", the only one that survives a future widening, and a rule
+   enforced in one place is one annotation edit away from being gone.
+   Every comment explaining why the admin kept edit is deleted rather
+   than amended (the ADR-006 collision this project already hit once).
+   VISIBILITY, which is what decision 1 costs: approval state on every
+   source card (word + icon + colour, never colour alone), ONE quiet
+   line at ANSWER level when any cited source is unapproved — a
+   technician acts on the answer and must not have to audit five cards
+   — the state in the viewer's head before the text, and an approval
+   column in Verwaltung carrying who and when. Approve has no dialog;
+   withdrawing takes a reason. The four-eyes refusal is answered with
+   the rule in plain language beside the row, never a disabled button.
+   Approved-only search facet, default OFF, with the Mode B note that
+   says WHY nothing was found and offers the way back.
+   FINDING, REPORTED AND NOT FIXED — CARLOS DECIDES: /moderation is
+   roleGuard('admin'), and the Bearbeiten button lives on that view.
+   So after this PR the CORRECTION PATH HAS NO INTERFACE FOR ANYBODY:
+   the admin has the screen and not the permission, the Schichtleiter
+   has the permission and not the screen. The API is right and the
+   button renders for the right role. Widening the route is a
+   permission decision and was deliberately not taken inside a UI PR.
+   Until it is decided, moderation.e2e.ts performs its correction step
+   as an authenticated PUT from the signed-in Schichtleiter's browser,
+   labelled as ARRANGEMENT, with every assertion still in the browser —
+   see correctAsSchichtleiter in e2e/support.ts, which is written to be
+   DELETED the day the route opens.
+
+   PROGRESS 2026-08-14 — CARLOS RULED, AND THE GAP ABOVE IS CLOSED
+   (feat/schichtleiter-correction-view). Open the path to the
+   Schichtleiter. /moderation is now roleGuard('admin','schichtleiter'),
+   and the backend widened exactly two endpoints, method-level: the
+   corpus LIST and the DOCUMENT read. You cannot correct what you cannot
+   find or open; the edit dialog loads the STORED TEXT rather than
+   rebuilding it from the row, so the document read is not optional.
+   IT STOPS THERE, and the fence has its own parameterised test: delete,
+   approve, the archive and archived documents stay ADMIN. The full
+   endpoint x role matrix now lives in ModerationController's class
+   javadoc and in ADR-006 — one place a reader can check the security
+   surface of the whole trust chain instead of collecting it from seven
+   annotations.
+   CORRECTING IS NOT MODERATING, and the screen says so: the
+   Schichtleiter sees the list, Öffnen and Bearbeiten, and does NOT see
+   Löschen, Freigeben/Zurückziehen or the archive tab — absent, never
+   disabled, because a control that exists only to refuse is noise on a
+   tablet and a lie about the role. The heading, the intro and the nav
+   entry are chosen by role ("Protokolle korrigieren", "Korrekturen"):
+   a corrector who clicks "Verwaltung" and finds no delete button has
+   been told the wrong thing about their own role.
+   One sentence in the correction dialog when the protocol is APPROVED,
+   because an edit resets approval (#53) and the person causing it
+   should read that before they save, not find it in the list after.
+   correctAsSchichtleiter IS DELETED — it was written to be, and every
+   e2e step is a click again. THE HISTORY IS RECORDED HONESTLY IN
+   ADR-006: for one release the correction path had no interface at all,
+   because the role split landed before the route did. A permission and
+   its path are one change.
+   PROGRESS 2026-08-14 — PR 4 of 4 IS OPEN (feat/duplicate-detection),
+   THE LAST FEATURE OF v1.2.0. Approving a protocol first asks what the
+   corpus already says: up to three protocols on the SAME machine that
+   say close to the same thing, each with its date, its similarity as a
+   whole percentage and — the field the decision turns on — ITS OWN
+   APPROVAL STATE. "Nearly the same as something an administrator
+   already vouched for" is a merge-or-reject question; "nearly the same
+   as one nobody has reviewed" is often two honest accounts of one
+   fault, and this corpus wants both. Each opens in the existing
+   read-only viewer, because a percentage is not a comparison.
+   IT WARNS AND NEVER BLOCKS. No branch anywhere refuses an approval on
+   a score, the approve button is never disabled, a FAILED similarity
+   call approves anyway (the backend recomputes and records regardless),
+   and a test approves past a verbatim copy so that nobody adds the
+   "obvious" guard later. THE DIALOG OPENS ONLY WHEN IT HAS CONTENT —
+   nothing similar is still one click, and a permanently empty section
+   is one readers learn to skip, including on the day it fills.
+   WHAT IS COMPARED: the PROTOCOL, as the centroid of its chunk
+   vectors. Chunk-to-chunk best match was measured beside it and
+   rejected — a maximum over a set that GROWS WITH DOCUMENT LENGTH
+   cannot go down when material the other document lacks is added, so it
+   flags two long protocols overlapping in one paragraph. Measured: E-47
+   #1 against #13 is 0.8205 by chunk-max and 0.7698 by centroid, and
+   that gap is the false positive's exact shape.
+   THE THRESHOLD IS A CONFIG PROPERTY, MEASURED, and it is NOT ADR-002's
+   0.55 — that is question-to-chunk, this is document-to-document
+   between two texts of one genre on one machine from one template. The
+   MEAN over all 1,393 same-machine pairs is 0.5547.
+   THE FINDING, AND IT IS NOT WHAT THE BRIEF ASSUMED: the E-47 four are
+   the tightest FAULT cluster (0.7594-0.8329) and they are NOT the
+   constraint — they clear the threshold by 0.09. The highest legitimate
+   pair in the whole corpus is PR-07's Halbjahreswartung and
+   Jahreswartung at 0.9151: scheduled maintenance shares a template, a
+   technician and a vocabulary, and two filled-in checklists resemble
+   each other more than two incidents do. A realistic duplicate (one
+   incident re-narrated by a second person) scores 0.9305 and a verbatim
+   re-file 0.9778, so the usable window is 0.0154 WIDE. 0.92 sits in it,
+   low on purpose. THE NARROW WINDOW IS SURVIVABLE ONLY BECAUSE IT
+   WARNS: a false positive costs one card an approver dismisses, a false
+   negative costs the warning. A blocking feature could not ship this
+   margin — which is the strongest argument yet for the rule Carlos set.
+   THE LEDGER RECORDS AN INFORMED APPROVAL: "approved despite N similar
+   protocols", with their ids, in the APPROVE row's own comment. No
+   schema change, no second event, and NO mandatory justification text —
+   the missing accountability was the record that the approver was
+   informed and proceeded, not a sentence about it. Recomputed by the
+   approval rather than taken from the request, so an approval made by
+   curl records the same fact as one made through the dialog.
+   DELIBERATELY NOT DONE, in ADR-006: no merge, and NO "supersedes" link
+   between protocols — it would make the corpus a graph and every answer
+   would have to explain which version it cites. Date-ordered sources
+   already tell a technician what is recent.
+   FOUR EYES, A FINDING RATHER THAN A FEATURE: the optional second demo
+   administrator was NOT added, because it would not work. The act-based
+   refusal fires on the same HUMAN doing two acts, and since #54 no
+   administrator can file or correct anything — so no admin account,
+   however many there are, can trip it. Making it clickable would mean
+   giving a demo account two of the three jobs, which contradicts the
+   decision the chain rests on. The check stays as the belt to the role
+   split's braces and is covered by ProtocolApprovalIT.
+   Cost, measured with EXPLAIN ANALYZE against the corpus: 1.7 ms
+   execution, 4.8 ms planning, on an admin's click. A sequential scan
+   that deliberately does not use the HNSW index — that index answers
+   "nearest neighbours of this vector" and this asks for an aggregate
+   per protocol.
+   v1.2.0 IS FEATURE-COMPLETE PENDING CARLOS'S DRILL AND TAG. #53 the
+   schema and the server side, #54 the interface and Option B, #55 the
+   corrector's door, and this. Remaining before the tag: the browser
+   walkthrough (an API call is not a click), the package.json version
+   bump the Settings dialog reads — A RELEASE OBLIGATION — and the tag
+   itself. Robots never tag.
+
+   PROGRESS 2026-08-14 — PR 5 (feat/protocol-history), FROM CARLOS'S
+   PRODUCTION DRILL OF #56 AND THE LAST ONE BEFORE THE TAG. The
+   Verwaltung table's FREIGABE column truncated: it carried "Freigegeben
+   system:corpus-seed · 12.08.2…" under the action buttons. MEASURED in
+   the live page: the cap was 176px, the seeded string renders at 293px
+   — a 117px overflow, two-thirds of the cell — and even "admin ·
+   12.08.2026" ran 42px over. The badge sets white-space: nowrap, so the
+   text never wrapped; the max-width was treating a CONTENT problem as a
+   layout problem.
+   CARLOS'S RULING: THE LIST SHOWS STATE, THE RECORD SHOWS PROVENANCE.
+   The column holds the badge alone — widest form 139px, so the cap is
+   gone and the cell is sized by what it holds — and who/when moved into
+   the protocol viewer as a HISTORY SECTION. Verified after the change
+   at 1920px and 1280px: 0px overflow in the approval cell, 0px in the
+   actions cell, 0 buttons painted outside their own row (#41 T4's
+   defect, checked rather than assumed).
+   showActor IS DELETED, not defaulted off, and its language input with
+   it: the badge renders in a table cell, a source card and a dialog
+   head, and a flag would have left the overflowing form one binding
+   away.
+   THE HISTORY: the last three acts, newest first, each with the verb in
+   plain language, the actor, the DATE AND TIME (two corrections in one
+   afternoon are a different story from two a month apart, which the
+   day-only table format cannot say) and the reason every ledger row
+   carries by constraint. appDate grew an OPTIONAL withTime rather than
+   changing under twenty existing call sites.
+   THE THREE-ENTRY CAP IS A PRODUCT DECISION, said twice in the code so
+   nobody "fixes" it: a full change history is a REPORT with its own
+   screen and Carlos deferred it. No "show all" control; one quiet line
+   saying older entries exist, which is what stops the truncation being
+   silent. Nothing to say renders NO section, not an empty box.
+   THE FINDING ON V5.1: THE PROMPT'S PREMISE WAS THREE PRs STALE. It
+   assumed ck_moderation_event_action was still V4's ('EDIT','DELETE')
+   and asked for a migration. V5 (#53) already widened it to include
+   APPROVE and UNAPPROVE, and approvals have been writing proper rows
+   ever since. Verified on the dev database carrying #53-#56 data:
+   Flyway at V5, six migrations, all successful, and 52 APPROVE / 31
+   UNAPPROVE / 51 EDIT / 105 DELETE rows already present. NO MIGRATION
+   WAS ADDED — the Flyway file count is unchanged. The stored verb stays
+   UNAPPROVE rather than WITHDRAW; renaming it would be a data migration
+   and a three-service sweep to change a word no user reads, and an
+   invented WITHDRAW is now proven to be REFUSED by the database.
+   BACKFILL: NOTHING IS MISSING. Of 163 approved protocols, the 13
+   approved by a human all have their row; the 150 approved by
+   system:corpus-seed have none, BY DESIGN — no human act produced them.
+   The viewer degrades to exactly that case and names the seed actor,
+   because showing nothing would let a reader assume the approval came
+   from somewhere it did not.
+   A FINDING ABOUT THE VISUAL CHECK, worth carrying: maxDiffPixelRatio
+   0.002 is ~1,000px on a dialog-sized shot, which is ENOUGH TO ABSORB
+   ONE LINE OF TEXT DISAPPEARING. When the badge lost its actor the
+   duplicate baselines still PASSED, so --update-snapshots refreshed
+   nothing — it only rewrites what fails, and a baseline that survives a
+   deliberate content change has stopped recording what the app looks
+   like. THE PRACTICE, now in visual.e2e.ts and e2e/README.md: after an
+   intentional change DELETE the affected baselines and regenerate.
+   Regeneration is byte-deterministic in the pinned container, so git
+   status afterwards is an exact list of what really moved — here,
+   exactly two files, with the other fourteen byte-identical.
+   PROGRESS 2026-08-15 — PR 6 (refactor/four-eyes-by-roles), FROM
+   CARLOS'S DRILL OF #57 AND THE LAST BEFORE THE TAG. He was refused an
+   approval on "Fehlercode x-99": a red banner citing the four-eyes
+   rule, which NOBODY HAD BROKEN. That protocol carries an EDIT whose
+   actor is admin, written during a drill BEFORE #54 removed the
+   admin's edit right. The check was applying today's rule to
+   yesterday's data — and permanently, since approval is the only thing
+   an admin can do to a protocol.
+   THE SEQUENCE IS THE LESSON: a guard that was RIGHT when written and
+   became WRONG because the design around it changed. #53 added it while
+   the admin still held the edit, so "the same human did both" was
+   reachable. #54 split the roles and it stopped being able to fire on
+   anything a live role can produce. It was kept anyway as the belt to
+   the split's braces — a reasonable call, recorded at the time — and
+   then the only thing it ever fired on was legacy rows. A BACKSTOP HAS
+   TO BE RE-READ AGAINST THE DESIGN IT BACKS UP; this one went three PRs
+   without that.
+   CARLOS'S DECISION: SIMPLIFY. The four-eyes property is carried by the
+   ROLE SPLIT and nothing else. requireFourEyes, the FOUR_EYES_REQUIRED
+   code, the classify() case, the ApiFailure member, both dictionary
+   strings and the banner branch are all gone — no dead code, no
+   unreachable error path, no UI handling a response the backend cannot
+   produce. Every javadoc arguing for the check is DELETED rather than
+   softened (the ADR-006 collision this project already hit once).
+   THE GUARD MOVED RATHER THAN DROPPED: RoleMatrixIT asserts that no
+   role holds both a corpus-write authority and the approve authority,
+   so a widened @PreAuthorize fails the BUILD instead of showing a
+   banner to one user — earlier, louder, and for every endpoint rather
+   than one pair.
+   THE MATRIX IS MEASURED, NOT PARSED: one real request per cell through
+   the full filter chain, 403 = refused. Reading the annotations would
+   mean re-implementing hasRole/hasAnyRole semantics AND would miss that
+   ModerationController's class-level rule is REPLACED by its
+   method-level ones — a request sees that, reflection does not.
+   Reflection is used for the one job it is good at: walking Spring's
+   handler mapping so a NEW ROUTE cannot be added without a matrix row.
+   A DEFECT IN THE TEST ITSELF, caught because it failed for the wrong
+   reason: the upload probe sent machineNo/protocolType where the
+   controller declares machine/type. MVC RESOLVES HANDLER ARGUMENTS
+   BEFORE THE SECURITY INTERCEPTOR, so the missing parameter gave 400
+   for every role — and 400 is "not 403", which read as ALLOWED. The
+   matrix claimed all four roles could upload. Fixed, plus a soundness
+   test: an endpoint answering every role with the same non-403 4xx is
+   reported as a BROKEN PROBE rather than trusted.
+   PROVEN TO BITE by actually widening the approval endpoint to the
+   Schichtleiter and capturing the failure, then reverting.
+   LEGACY DATA IS NOT MIGRATED. The old EDIT rows stay exactly as they
+   are: they are the record of what happened under the rules of the day,
+   and rewriting history to match current rules is the opposite of what
+   this ledger is for. Measured on the dev DB: 12 EDIT rows carry admin
+   as actor, all orphaned by the archive cap. An IT reproduces the x-99
+   shape and proves it now approves.
+
+   PROGRESS 2026-08-13 — (docs/swagger-visibility) THE LIVE SWAGGER UI
+   BECOMES REACHABLE IN ONE CLICK. It has been public and working since
+   #31 and nothing pointed at it: the docs landing card labelled
+   "Backend API" opens the STATIC Redocly rendering, and the README
+   mentioned /swagger-ui inside a clause. A tenth card on both landing
+   pages (EN and DE) links the live UI directly, and the README lists
+   the static reference and the live UI as two entries that each say
+   what they are. THE WAY BACK, which springdoc gives no property for,
+   is a markdown link in the OpenAPI info.description beside the
+   back-to-the-application link that was already there — data in a
+   document CI already publishes, so NOTHING IS HAND-DEPLOYED here and
+   no fourth host file joins the Caddyfile, the compose file and the
+   Keycloak theme. OpenApiSpecIT asserts both URLs are served, which
+   catches the config being deleted and NOT a Swagger UI that stopped
+   rendering markdown; measured against swagger-ui 5.32.11 (springdoc
+   3.1.0) on the live host, where the existing link renders as a
+   visible anchor with 0 CSP violations. /swagger-ui stays public by
+   design and was not touched.
+
+   EIGHTEEN BASELINES — nine surfaces x two palettes. The NINTH is the
+   viewer's history section, scoped to the section and
+   unmasked because every value in it is stubbed. It could not reuse the
+   duplicate dialog's focus-settle wait — this viewer's first focusable
+   is a Download button DISABLED until the document arrives, so the panel
+   takes focus instead (#50) and which wins is a race; focus is placed
+   explicitly.
+
+   THREE DESIGN DECISIONS, DECIDED BY CARLOS 2026-08-11 — the schema
+   and the server side are now built; the interface is PR 2. They are written
+   down here so v1.2's implementer inherits the reasoning and does not
+   re-open settled ground:
+
+   (1) APPROVAL IS A STATUS, AND UNAPPROVED PROTOCOLS STAY
+       SEARCHABLE. In Carlos's words: the admin may not review at a
+       weekend, and the factory does not stop. Hiding an unapproved
+       protocol until someone signs it off would mean the newest
+       knowledge — the protocol written about the fault happening
+       right now — is exactly the knowledge retrieval cannot see.
+       THE TRADE-OFF IS EXPLICIT AND ACCEPTED: an unapproved protocol
+       is less reliable to troubleshoot from. It follows that the UI
+       MUST MAKE APPROVAL STATE VISIBLE on the answer and on its
+       sources, and never silently — an unapproved source cited
+       without a mark would be the NFR-2 discipline working against
+       itself, making an unreviewed claim look as checked as a
+       reviewed one.
+   (2) THE 150 SEEDED PROTOCOLS ARE BORN APPROVED. A new Flyway
+       migration adds ~15 UNAPPROVED protocols on top, so the admin
+       has a real approval queue to demonstrate rather than an empty
+       one. The new protocols lean toward EASIER faults — machine does
+       not start, machine stops without warning — which also
+       broadens a corpus that is currently specialist-heavy.
+   (3) TECHNIKER MAY WRITE, NEVER EDIT — not even his own protocol.
+       A correction is REQUESTED from the Schichtleiter, who performs
+       it. Author is never the corrector; corrector is never the
+       approver. This is the four-eyes rule applied twice rather than
+       once, and it is what makes the chain a chain.
+
+   PROGRESS 2026-08-19 — v1.3.0 PR 1 of 3 IS OPEN (test/retrieval-baseline),
+   THE INSTRUMENT BEFORE THE CHANGE. A 19-question golden set as DATA with
+   every entry ratified:false — Carlos rules on the expectations, because a
+   set the robot both wrote and graded measures nothing — a key-gated harness
+   that runs each question through the UNCHANGED retrieval path against the
+   real provider, and a committed baseline.md that PR 2 and PR 3 are judged
+   by the DIFF of. NO RETRIEVAL BEHAVIOUR AND NO THRESHOLD DEFAULT CHANGED,
+   deliberately: a number tuned in the PR that built the instrument is a
+   number tuned against 19 questions nobody has ratified yet.
+   BASELINE: recall@1 0.82, MRR 0.8235, 15/19 fully correct. Plain,
+   cross-lingual and E-47 all 100% at rank 1. RECALL@1 EQUALS RECALL@5 — not
+   one question had its protocol at rank 2-5, so a RERANKER HAS NOTHING TO
+   REORDER on this corpus, which is a finding about the roadmap taken before
+   the work. CROSS-LINGUAL MEASURED FOR THE FIRST TIME as more than a demo,
+   2/2 both directions; EN->DE is the weaker one and clears 0.55 by 0.0082.
+   THE EXACT-TERM PROBLEM IS A SCORING PROBLEM, NOT A RANKING ONE: all three
+   put the right protocol at rank 1, and the bare code KOM-04 scores 0.4288 —
+   rank 1 and below the threshold, so the reader is told nothing while the
+   right answer sits on top of the list. PR 2 must lift the SCORE.
+   THRESHOLDS: 0.55 recommended UNCHANGED. The sweep shows the windows
+   OVERLAP — the lowest answerable question is 0.4288 and the lower Mode B
+   question is 0.4588, so no threshold both keeps KOM-04 grounded and keeps
+   the unanswerable ones ungrounded. It is not a config problem. The
+   DUPLICATE window re-measured identical to four decimals (0.9151 /
+   0.9305 / 0.9778, 0.92 still inside, 0.0154 wide) — not closed, no change.
+   THE DEFECT THIS FOUND, REPORTED AND DELIBERATELY NOT FIXED: the 15
+   protocols v1.2 added carry vectors from a DIFFERENT EMBEDDING MODEL than
+   queries use — orthogonal, so they can NEVER be retrieved. Re-embedding
+   their own stored text gives ~1.0 for the corpus and <=0.04 for these; the
+   all-positive ~0.54 mutual similarity is the e2e provider stub's trigram
+   signature, not bge-m3's. Rows present, status INDEXED, vectors unit-length
+   and the right width, every functional test green — INVISIBLE TO EVERYTHING
+   THE PROJECT HAD. The harness grew a fourth check for it and baseline.md
+   leads with a warning when it fires. Measured on the LOCAL dev database;
+   WHETHER PRODUCTION IS AFFECTED IS NOT VERIFIED and is the first thing to
+   settle. Fixing it inside the baseline PR would have destroyed the evidence
+   and changed what the baseline was measured against.
+
+   PROGRESS 2026-08-19 — v1.3.0 PR 2 of 3 IS OPEN (fix/embedding-provenance),
+   THE DETECTOR AND THE REPAIR. CARLOS CHECKED PRODUCTION: it holds 150
+   protocols, so the 15 v1.2 added NEVER REACHED IT — v1.2 shipped as code
+   and not as data. No corrupt vectors in production because there is nothing
+   there to be wrong; the repair was local. The bigger consequence is that
+   PRODUCTION HAS NO UNAPPROVED PROTOCOL AT ALL, so the v1.2 trust chain
+   cannot be demonstrated by clicking. docs/runbooks/seed-v12-protocols.md is
+   the procedure, ordered around the #52/#53 race (both runners are
+   ApplicationRunners and NEITHER DECLARES AN ORDER, so seeding and indexing
+   are two separate startups with a verification between them). A PROPOSAL
+   UNTIL CARLOS RUNS IT — no robot touched production.
+   THE DETECTOR: re-embed a chunk's own stored text and compare with the
+   stored vector — 0.9999 for the configured model, <=0.04 for a foreign one,
+   so there is nothing to tune. ONE implementation, two front doors: an ops
+   ApplicationRunner behind maintenance.ops.verify-embeddings (off in every
+   deployment, the bean does not exist unless set, exits 0 clean / 1 foreign
+   so a scrollback cannot be misread) and the key-gated baseline IT. NOT an
+   endpoint: a permanent public surface that spends provider money, needs a
+   role rule and a rate limit, for a check run twice a year.
+   THE STUB NAMES ITSELF NOW. It answered with whatever model was asked for,
+   so its response was indistinguishable from the provider's in every field;
+   it returns e2e-provider-stub-not-a-real-model, and the embedding client
+   warns once when the model that answered is not the model requested — which
+   also covers ADR-002's *-migration aliases, an unrelated trap of the same
+   shape. THE LESSON: A VECTOR'S SHAPE SAYS NOTHING ABOUT ITS PROVENANCE.
+   REPAIR, measured: 15 protocols set back to RECEIVED and re-indexed through
+   the EXISTING backlog path (delete-then-write, no second mechanism
+   invented); detector 182 chunks / 15 foreign before, 182 / 0 after.
+   THE BASELINE'S FIRST REAL USE, AND NO RETRIEVAL CODE CHANGED BETWEEN THE
+   TWO COLUMNS: recall@1 0.82 -> 0.94, recall@5 0.82 -> 1.00, MRR 0.8235 ->
+   0.9529, fully correct 15/19 -> 18/19, v12-seed 0/3 -> 2/3 at rank 1.
+   RERANKER DROPPED FROM v1.3 (Carlos, 2026-08-19) — AND THE EVIDENCE FOR IT
+   HAD TO BE CORRECTED: #61's "recall@1 == recall@5, nothing lands at rank
+   2-5" was measured on the CORRUPT index and is now false, G18 sits at rank
+   5. The decision holds on the claim it actually needs: the one question at
+   rank 2-5 is ALREADY ANSWERED CORRECTLY, and the one wrong answer (G13) is
+   at rank 1 already, so no question is answered wrongly because of ordering
+   and a reranker cannot lift a similarity through the Mode A/B threshold.
+   The condition for its return is written into ADR-008.
+   FOUND WHILE WRITING THE DOCS, REPORTED AND NOT FIXED: the site build's
+   Lua filter rewrites EVERY link ending in .md to .html, including ABSOLUTE
+   GitHub URLs. Two such links are already live and 404 for a reader —
+   spike/adr-002/RESULTS.html and spike/spring-ai-boot4/RESULTS.html, from
+   ADR-002 and arc42 §9. lychee cannot catch them: offline = true skips
+   external URLs, so the build is green while the published page is broken.
+   The fix is one condition in the filter (leave a target alone when it
+   starts with a scheme) and belongs in its own docs PR with a re-render;
+   this PR only avoided ADDING a third instance, by linking the runbooks
+   DIRECTORY instead of the file.
+   NEXT IS HYBRID SEARCH, and its target is precise: LIFT THE SCORE of
+   exact-term matches that already rank first. G13 (KOM-04) is rank 1 at
+   0.4288 and suppressed to Mode B — the reader is told nothing while the
+   right protocol sits on top of the list.
+
+   PROGRESS 2026-08-19 — THE RUNBOOK WAS EXECUTED AGAINST PRODUCTION,
+   AND THE RULE THAT SAYS IT SHOULD NOT HAVE BEEN STILL STANDS.
+   "Robots never touch production" was OVERRIDDEN ONCE, on Carlos's
+   explicit instruction, to run docs/runbooks/seed-v12-protocols.md. The
+   override was for that runbook and that occasion only. THE RULE IS
+   UNCHANGED for everything else: robots never merge, never tag, never
+   deploy, and Carlos still does every browser click that decides
+   anything. Recorded here because an exception that is not written down
+   becomes a precedent by accident.
+   THE OUTCOME WAS CLEAN. Production went 150 -> 165 protocols, 166 ->
+   181 chunks, 0 -> 15 UNAPPROVED, 0 FAILED; the provenance scan reported
+   181 chunks checked and 0 foreign — the detector's first run against
+   production, and it says the whole live index including the 150
+   originals is in the configured model's space. Measured cost of the
+   15: 2,322 prompt tokens, EUR 0.000046. The approve queue is real now
+   and the v1.2 trust chain can finally be demonstrated by clicking:
+   the answer carries "2 der Quellen sind noch nicht freigegeben" and the
+   source cards are badged, on production data, for the first time. The
+   E-47 demo was re-checked afterwards and is intact — the 150 were not
+   disturbed, proven three ways (the loader logged "150 already present",
+   chunks rose by exactly 15, the provenance scan covered all 181).
+   FOUR DEFECTS IN THE RUNBOOK, FOUND ONLY BY RUNNING IT, all corrected
+   in docs/runbook-corrections:
+     (1) NOT ONE compose command carried --env-file .env.prod. Compose
+         auto-loads only a file named .env, so as written the first
+         "up -d --force-recreate backend" would have recreated the
+         backend with a BLANK DATABASE PASSWORD, blank hostnames and no
+         provider key. An outage, in step 2, in a document reviewed and
+         merged. CI had always done it correctly, which is what made the
+         omission invisible to a reader who knew the deploy worked.
+     (2) The two flags did not EXIST in .env.prod; the runbook described
+         editing them. sed -i on an absent line exits 0 and changes
+         nothing — the OPS RULE 3 silent-no-op wearing a new costume.
+     (3) The cost table said one provider call; it is FIFTEEN. The
+         indexer embeds PER PROTOCOL and the batch size of 32 applies
+         within one protocol's chunk list, never across protocols. The
+         token estimate was within 3%, so the number that is billed was
+         right and the number that explains it was wrong.
+     (4) The provenance and browser checks ran BEFORE the flags were
+         turned off, so they verified an intermediate state and the ops
+         container inherited an armed backlog flag.
+   THE LESSON, and it is the one worth keeping: THE RUNBOOK'S OWN
+   PRECONDITIONS STEP PRINTED THE WARNINGS THAT PREVENTED THE OUTAGE —
+   a wall of "variable is not set" from a command whose only job was to
+   report the deployed image. Nothing told the operator to read them.
+   READING THE WARNINGS IS NOW A WRITTEN STEP, at the top of the
+   document, with the exact text to stop on. A runbook that produces
+   diagnostic noise must say which noise is a stop signal; otherwise it
+   is relying on the operator being suspicious that day.
+
+   PROGRESS 2026-08-19 — (fix/docs-absolute-links) TWO PUBLISHED LINKS WERE
+   404ing AND NO CHECK COULD SEE IT. The site build's Lua filter rewrote
+   .md -> .html in EVERY link target, absolute URLs included, so ADR-002's
+   and arc42 §9's links to spike/*/RESULTS.md on github.com were published
+   pointing at .html paths GitHub does not serve. ADR-002 is the strongest
+   document in the repo and a recruiter following that link hit nothing.
+   THE RULE, now written beside the filter: RELATIVE LINKS ARE THE FILTER'S
+   BUSINESS, ABSOLUTE LINKS ARE NOT. A source page becomes a page on the
+   site; a link to github.com points at a file in the repository, which is
+   never published and never becomes .html. Anything carrying a scheme or
+   protocol-relative passes through untouched.
+   THE DIFF IS THE PROOF: rebuilding changed exactly 2 files and exactly 2
+   links, .html -> .md. No internal link moved.
+   WHY NOTHING CAUGHT IT: lychee runs with offline = true, which SKIPS
+   external URLs — so a link to github.com is never fetched and a rewritten
+   one never fails. The build was green while the page was dead. The guard
+   is in build-docs.sh rather than in one workflow, because both the PR gate
+   and the publish build go through that script: it greps the BUILT output
+   for a github.com URL ending in .html — this repo publishes no .html to
+   GitHub, so every match is the filter having eaten a .md — and fails the
+   build. Demonstrated both ways: exit 1 naming both URLs with the bug
+   reintroduced, clean with the fix.
+   PANDOC IS PINNED AND NO LONGER COMES FROM apt, from the live failure of
+   the same day: a docs-pr-check run sat ~14 MINUTES inside "apt-get install
+   pandoc" against azure.archive.ubuntu.com and had to be cancelled. Every
+   docs PR and every docs deploy was gambling on Ubuntu mirror health for a
+   tool whose version nobody had chosen. Both workflows now fetch ONE .deb,
+   pinned at 3.1.3 — the version Ubuntu 24.04 was serving, so the output is
+   unchanged — with a connect timeout and one retry. MEASURED: a dead host
+   now fails in 35 s and a typo in the pin fails in 0 s with a 404, against
+   a 14-minute stall that never finished. VERIFIED BYTE-IDENTICAL: the site
+   built with apt's pandoc and with the pinned .deb in a runner-equivalent
+   container differ in 0 files and 0 lines, so this hardening cannot be the
+   thing that changed a page. The pin is a line someone must bump on
+   purpose and both workflows say so.
+   A CAVEAT FOUND WHILE VERIFYING, worth keeping: the two builds differed on
+   the FIRST comparison, in the <title> of every page, and it was the
+   CONTAINER LOCALE and not pandoc — apt's pandoc mojibakes a UTF-8 middle
+   dot under the POSIX locale while the pinned static binary does not.
+   Setting LANG=C.UTF-8, which is what the runner sets, made them identical.
+   A byte-comparison across two environments measures the environment too.
+
+   PROGRESS 2026-08-20 — v1.3.0 PR 3 (feat/hybrid-search), THE LAST FEATURE.
+   ADR-009. The baseline left exactly one failing question and characterised
+   it: G13 "Was bedeutet KOM-04?" retrieved the right protocol at RANK 1 and
+   scored 0.4288, below the 0.55 gate — the reader was told nothing while the
+   answer sat on top of the list. EXACT-TERM QUERIES ALREADY WIN THE RANKING;
+   THEIR SCORE IS TOO LOW TO CLEAR THE GATE.
+   THE SIGNAL: a term is extracted from the question when it carries AT LEAST
+   ONE LETTER AND ONE DIGIT, and the retrieval SQL counts how many appear
+   literally in each chunk. Still ONE statement — relational filter, vector
+   and lexical in one pass, so ADR-004's argument stands.
+   THE LETTER-AND-DIGIT RULE IS THE WHOLE SAFETY ARGUMENT, and it was
+   MEASURED BEFORE ANY CODE WAS WRITTEN: prose cannot satisfy it, so of the
+   19 golden questions exactly 3 produce terms (E-47, SV0410, KOM-04), the
+   expected protocol is among the matches in all three, and BOTH MODE B
+   QUESTIONS PRODUCE NONE. The anti-hallucination property is preserved by
+   construction rather than by tuning, and the harness now ASSERTS it.
+   THE GATE DECISION, and both options worked: similarity OR an exact term,
+   NOT a fused score. 0.55 is a MEASURED number meaning question-to-chunk
+   cosine; fusing a lexical component into it would re-calibrate that number
+   for EVERY question to fix ONE. The override is also the explainable rule
+   ("the code you typed is literally in this protocol") and can only turn B
+   into A, never the reverse — so the 16 questions carrying no term are
+   provably untouched. 0.55 IS UNCHANGED; the measurement did not force it.
+   A REGRESSION THE REORDERING WOULD HAVE INTRODUCED SILENTLY, caught by
+   reasoning and closed: the gate used to read hits.get(0).similarity(),
+   which was the maximum only because the list was ordered by similarity.
+   With a fused ORDER BY the head can be a LESS similar chunk, which would
+   have handed the gate a lower number and turned long-standing Mode A
+   questions into Mode B. The gate reads the MAX now, and so does the report.
+   MEASURED, real provider, real corpus: fully correct 18/19 -> 19/19, mode
+   correct 18/19 -> 19/19, exact-term 2/3 -> 3/3, Mode B still 2/2, and
+   RECALL AND MRR IDENTICAL (16/17, 17/17, 0.9529) — nothing that was right
+   became wrong. Latency by EXPLAIN ANALYZE: 0.699 ms before, 0.588 ms with
+   terms, 0.604 ms without, all noise-level and four orders inside NFR-4.
+   A FINDING ON THE INDEX: both plans are a seq scan with a top-N heapsort
+   BEFORE AND AFTER — the HNSW index was never serving this query, because
+   the machine filter makes a filtered scan cheaper across 182 chunks. So the
+   expression ORDER BY costs no index that was in use AT THIS SIZE, and that
+   is exactly the limit at which this design must be re-taken.
+   ALTERNATIVES REJECTED WITH MEASUREMENTS, not with taste. Postgres
+   full-text SPLITS THE CODE: to_tsvector('german', ...) makes KOM-04 into
+   'kom' + '-04', and plainto_tsquery ANDs in 'bedeutet', so it matches
+   NOTHING and G13 fails outright. Worse for this corpus, "Antriebstrommeln"
+   does not match "Antriebstrommel" through the German stemmer — compound
+   plurals are unrelated to their singular, and this corpus is made of
+   compounds. pg_trgm needs an extension and a migration and answers "how
+   similar are these strings", which is not the question. RRF discards score
+   MAGNITUDE, which is the one thing the gate reads.
+   THE HONEST RESIDUAL: retrieval and the gate are DETERMINISTIC — 10
+   consecutive runs of G13 opened the gate every time with identical numbers
+   — but the GENERATION step declined on 2 of 17 observed calls, returning no
+   claims for a definitional question backed by one weak source. Two of three
+   harness runs during this work therefore showed G13 as a MISS and the third
+   as OK. 19/19 is a TYPICAL result, not a guaranteed one, and the variance
+   is generation at temperature 0.1, not retrieval.
+   A MEASUREMENT THAT WAS WRONG AND WAS CAUGHT: the first stability probe
+   reported 10/10 and was measuring THE CACHE — QueryCache normalises the
+   question by stripping whitespace, so ten padded variants shared one key,
+   one real call and nine hits. The tell was the gate logging once instead of
+   ten times. Re-measured with the cache disabled.
+   REMAINING FOR v1.3.0: the threshold decision (the sweep now shows
+   0.48-0.55 as a flat plateau with no wrongly-grounded Mode B question) and
+   the tag. RERANKER STAYS DROPPED — #62's corrected evidence still holds.
+
+   PROGRESS 2026-08-19 — v1.3.0 IS FEATURE-COMPLETE AND READY TO TAG,
+   PENDING CARLOS'S DRILL (chore/release-1.3.0). Five PRs, and the wave's
+   shape is worth stating: it BUILT THE INSTRUMENT FIRST and then let the
+   instrument decide what the work was.
+     #61 test/retrieval-baseline — the golden set as DATA (19 questions,
+         every one ratified:false) and the key-gated harness that reads it.
+     #62 fix/embedding-provenance — the detector for vectors written by
+         another model, and the repair of the 15 protocols it caught.
+     #63 docs/runbook-corrections — the production seeding runbook,
+         executed and then corrected against what running it revealed.
+     #64 fix/docs-absolute-links — the Lua filter that was publishing two
+         dead links, plus the pinned pandoc that ended the mirror stalls.
+     #65 feat/hybrid-search — ADR-009, grounding on an exact term.
+   THE HEADLINE NUMBERS, all measured against the real provider and the real
+   corpus: fully correct 18/19 -> 19/19 (TYPICAL, not guaranteed — the
+   residual is generation variance at temperature 0.1, not retrieval, and
+   the ADR says so), exact-term 2/3 -> 3/3, Mode B still 2/2 ungrounded, and
+   RECALL AND MRR UNCHANGED at 16/17, 17/17 and 0.9529 — nothing that was
+   right became wrong.
+   THE PROVENANCE DETECTOR IS NOW OPS TOOLING, not just a test: one command
+   against a database, exits 0 clean / 1 foreign, and it has been run once
+   against production (181 chunks, 0 foreign).
+   THE RERANKER IS DROPPED, on measured evidence and with its return
+   condition written into ADR-008 — recall@5 meaningfully above recall@1
+   WITH WRONG ANSWERS attached to the gap, or a corpus large enough that
+   top-k truncation starts hiding correct protocols.
+   THE THRESHOLD DECISION, CARLOS, 2026-08-19: 0.55 STAYS. The sweep is FLAT
+   from 0.48 to 0.55 — identical grounded counts, zero wrongly-grounded Mode
+   B questions on every row — so moving it inside the plateau changes nothing
+   observable and would only cost the number its measured history. The one
+   argument for lowering it (G13 at 0.4288) was removed by #65's term
+   override rather than accommodated. The floor is MEASURED AND NAMED so
+   nobody optimises toward it: at 0.46-0.47 one Mode B question acquires a
+   citation and at 0.45 and below both do, which makes 0.48 the floor of
+   NFR-2's guarantee on this corpus. The known thin spot stays known — EN->DE
+   clears 0.55 by 0.0082 — and the response is measurement, not a preemptive
+   nudge: the harness re-measures that margin on every run and ADR-008 names
+   the condition for revisiting it.
+   RATIFICATION OF THE GOLDEN SET REMAINS OPEN. Every expectation is still
+   ratified:false, so all of the above rests on a set no human has ruled on.
+   That is Carlos's and it is not closed by this release.
+   A RELEASE-PROCESS DEFECT FOUND WHILE BUMPING: v1.2.0 WAS TAGGED WITH
+   package.json STILL AT 1.1.0. The Settings dialog has been reporting 1.1.0
+   for the whole v1.2 wave, which is exactly the obligation #35 recorded when
+   it put the version on screen. The bump in this PR goes 1.1.0 -> 1.3.0 and
+   1.2.0 is simply skipped; the honest fix is the drill checking the dialog
+   AFTER deploy, not a retro-tag.
+
+   PROGRESS 2026-08-20 — THE GOLDEN SET IS RATIFIED (docs/golden-set-
+   ratification), and with it the last thing v1.3.0 left open. Carlos ruled
+   on every expectation the robot proposed in #61; the file records it as
+   ratified:true on all 19 entries with ratifiedBy/ratifiedOn once at the
+   top level, because one act ratified the whole set rather than nineteen.
+   THE POINT, and it is worth saying plainly: THE METRICS NOW REST ON
+   OWNER-RATIFIED EXPECTATIONS. Every number quoted since #61 was measured
+   against a set the same agent had written and graded — a recall figure
+   against a draft is a claim about the draft. ADR-008 moves to Accepted.
+   NOTHING WAS RE-EXPECTED. Not one question, expected id, machine or case
+   label changed, verified by diffing the set field by field: 0 substantive
+   changes, 5 notes extended. All five flagged entries were ruled KEEP, and
+   the reasoning is now in the data where an editor will find it:
+     G09 as-is — all four E-47 protocols are correct and NO FIFTH EXISTS,
+         so the expectation is complete rather than generous.
+     G12 both correct BY DESIGN — a bare code cannot localise the defect,
+         so the code's FULL HISTORY is the answer and the technician picks
+         the incident that matches.
+     G14 keep — part questions are real and come AFTER troubleshooting
+         ("was this part ever changed?"); rare but real.
+     G16 Mode B is CORRECT TODAY — the question is realistic (upgrades,
+         repositioning, audits, calibration, economics) and the corpus holds
+         no storage procedure.
+     G19 002 only — "bleibt stehen" (was running) and "geht nicht an"
+         (never started) are DIFFERENT MACHINE STATES. An operator may
+         confuse them; THE BENCHMARK MUST NOT, or it can no longer tell a
+         system that understands the distinction from one that does not.
+   TWO STANDING CONDITIONS, written into the entries themselves so they are
+   found by whoever edits the data: G16 FLIPS to a Mode A case the day
+   Einlagerung protocols are seeded and must be updated IN THE SAME PR, or
+   the harness reports a correct answer as a failure; and G19 stays
+   single-answer on purpose.
+   THE HARNESS ASSERTION IS FLIPPED, NOT DELETED. It required ratified:false
+   — the guard against a robot marking its own homework — and now requires
+   ratified:true, so a question added later is caught as a PROPOSAL before
+   the aggregates can quote it. A set half proposal and half ruling reports
+   one number for two kinds of claim.
+   WHAT RATIFICATION DID NOT SETTLE: the honest limits are unchanged,
+   because they were never about the expectations. 19 questions over 165
+   synthetic protocols still measure DIRECTION, not quality, and the set can
+   still be over-fitted to.
+
+   PROGRESS 2026-08-20 — TWO FINDINGS FROM THE COMBINED v1.3.0 DRILL, fixed
+   in fix/footer-and-help-refresh. Both were found by Carlos opening the
+   running application on a 16-inch laptop, which is again the check that
+   found them and not a test.
+   (1) THE FOOTER IS HARD TO READ, and it is a SIZE defect rather than the
+       contrast one #68 closed three hours earlier. The ink stays exactly as
+       #68 measured it — no colour and no token moved, deliberately, so a
+       size change cannot smuggle a colour change past those ratios. Links
+       --t-sm -> --t-base, the demo notice --t-xs -> --t-sm, the bar --s-4 ->
+       --s-5 top and bottom. The health dot's LABEL went up with the links
+       because the two sit on one baseline-aligned row and raising one alone
+       leaves two type sizes on one line; the dot itself is untouched.
+   (2) THE HELP PANEL WAS FALSIFIED BY THE RUNNING SYSTEM, and this is the
+       finding worth carrying. It taught that "ein Wort beschreibt keinen
+       Fehler, und die Suche hat nichts, womit sie vergleichen kann" — TRUE
+       when retrieval was semantic only, and UNTRUE since ADR-009. A bare
+       "e-47" now returns a grounded Mode A answer, and Carlos typed it and
+       watched it work while the panel beside the field said it would not.
+       Nothing was broken and no test was red: the panel is prose, and prose
+       does not fail a build when the system underneath it changes.
+       THE STANDING RULE THAT FOLLOWS: THE HELP PANEL IS PART OF RETRIEVAL'S
+       CONTRACT WITH THE READER, so a change to LexicalTerms is a change to
+       the panel. It now states the rule the code actually implements — a
+       term needs at least one LETTER and at least one DIGIT to be matched
+       literally — which is why "E-47" and "SV0410" work alone and "frei",
+       "Druck" and "Band" still do not. Two vitest specs pin BOTH halves,
+       because a panel that mentioned codes and dropped the generic-word half
+       would teach the opposite error.
+       A quiet tip line joins the Mode B box: name the code if you have one.
+       It meets the lazy query at the moment it happens.
+   NO VALIDATION GATE, ruled out by Carlos and not to be re-proposed. The
+   drill is the argument: "e-47" is a lazy query that WORKS and "was
+   bedeutet" is a lazy query Mode B already handles gracefully, so a
+   completeness check would block the good one to prevent the harmless one.
+   NO ADR: this is content and type scale, not a decision of record.
+

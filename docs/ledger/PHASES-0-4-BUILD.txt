@@ -1,0 +1,239 @@
+=====================================================================
+PHASE 0 — PREP  [DONE]
+=====================================================================
+[x] Fix stockease: demo login + reachable API docs (recruiter feedback)
+[x] AI-USAGE.md added
+[x] ADR-002 spike (1 day): Nebius vs IONOS — multilingual embedding
+    DE<->EN retrieval test, citation prompt test, cost per query,
+    billing limits/prepaid. Done in spike/adr-002/ (two rounds, both
+    providers live); ADR-002 is Accepted (2026-08-06) and the spike
+    REVERSED the proposal: IONOS primary, Nebius documented fallback.
+    Billing checked manually: no hard spending cap anywhere, only cost
+    alerts (EUR 7 alert configured) -> NFR-7 rests on the app layer.
+    Spring AI vs Boot 4.1 is NOT closed by this spike (Python on
+    purpose, so it measured the provider not the Java integration);
+    it moves to Phase 3, fallback stays a plain RestClient.
+
+=====================================================================
+PHASE 1 — WALKING SKELETON  [DONE — Release v0.1.0, 2026-08-06]
+=====================================================================
+[x] Repo structure: frontend/, backend/, docs/, docker/, .github/
+    (only README.md at repo root)
+[x] docs: arc42 skeleton, ADR-001/-002/-003/-004 all Accepted,
+    docs theme (docs/_theme, Pandoc), mermaid script (docs/scripts)
+[x] docker-compose: Postgres(pgvector) + Keycloak, realm "maintenance",
+    4 roles (operator/techniker/schichtleiter/admin), demo users,
+    public client "frontend" (Auth Code Flow + PKCE), realm-export.json
+[x] Branch protection on main (PRs required), squash merges; single
+    required check "build-and-test" (see partition below)
+[x] Backend skeleton (Spring Boot 4.1, Java 21, Maven, modules
+    ingestion/query/web, /api/health public, /api/hello JWT-secured,
+    springdoc-openapi, JaCoCo, multi-stage Dockerfile)
+[x] Frontend skeleton (Angular 22 standalone, angular-oauth2-oidc PKCE,
+    /login + guarded /home, test runner: vitest (jsdom, no browser),
+    coverage in coverage/, Compodoc)
+[x] CI/CD pipelines (see PIPELINE ARCHITECTURE below)
+[x] GitHub Pages configured — docs site live on gh-pages
+[x] Production deploy: Hetzner CX33 (x86 — hosting revision: CAX/ARM
+    price advantage disappeared 2026-06 + out of stock at order time;
+    CI still builds multi-arch so ARM stays an option), Caddy TLS,
+    Keycloak prod mode, full stack via docker compose; CI deploys
+    over ssh with public-URL health verification
+[x] DONE criterion met: login flow runs on the VPS via pipeline
+[x] Release v0.1.0 tagged (after local-main squash-merge cleanup —
+    see the reset --hard rule in GIT WORKFLOW)
+
+UNIFIED REQUIRED CHECK — "build-and-test"
+Branch protection requires exactly ONE status check name:
+
+    build-and-test
+
+Three workflows gate pull requests, and all three name their job
+`build-and-test` (job id, no `name:` key — the id is what GitHub reports).
+Whichever part of the repo a PR touches, a job under that name reports on
+it. A PR touching two areas gets two checks under the name; both must pass.
+
+The pull_request path lists are a PARTITION and are maintained as a set:
+
+    frontend-ci.yml    paths:        frontend/**
+                                     .github/workflows/frontend-ci.yml
+    docs-pr-check.yml  paths:        docs/**
+                                     .github/workflows/docs.yml
+                                     .github/workflows/docs-pr-check.yml
+    backend-ci.yml     paths-ignore: frontend/**
+                                     docs/**
+                                     .github/workflows/docs.yml
+                       => catch-all: backend/**, docker/**, spike/**,
+                          README.md, .gitignore, AI-USAGE.md, LICENSE,
+                          everything else
+
+INVARIANT — do not break this:
+- A path may be ignored by backend-ci.yml ONLY if another workflow gives
+  that PR a build-and-test check. A path ignored by all three leaves its
+  PRs with no required check and permanently unmergeable.
+- Root files (README.md, .gitignore, AI-USAGE.md, LICENSE) stay with
+  backend-ci on purpose: they live outside docs/, so the docs build never
+  reads them and would gate them on nothing.
+- The gate workflows' own files (frontend-ci.yml, docs-pr-check.yml) are
+  deliberately NOT ignored by backend-ci.yml, so editing a gate runs the
+  backend suite too. Getting these lists wrong is how the repo loses its
+  ability to merge.
+- push triggers are NOT a partition: they exist to produce artifacts and
+  fire the deploy workflows, so they stay narrow (backend-ci on
+  backend/**, frontend-ci on frontend/**). Widening them would publish a
+  new image for a README typo.
+
+PIPELINE ARCHITECTURE (.github/workflows/)
+1. frontend-ci.yml    PR (paths frontend/**) + push main: job
+                      build-and-test — test with coverage (test runner:
+                      vitest in jsdom — no browser needed on the runner),
+                      build; upload coverage + Compodoc artifacts on main
+2. backend-ci.yml     PR (catch-all, see partition above) + push main
+                      (paths backend/**): job build-and-test — mvn verify
+                      (JUnit + JaCoCo), OpenAPI spec; upload artifacts
+                      on main
+2b. docs-pr-check.yml PR (paths docs/** + the docs workflow files): job
+                      build-and-test — renders the mermaid diagrams, builds
+                      the site with build-docs.sh and link-checks it with
+                      lychee. Publishes nothing.
+3. frontend-deploy.yml / backend-deploy.yml
+                      workflow_run success of the matching CI on main,
+                      or manual workflow_dispatch for a redeploy without
+                      a code change. Two jobs:
+                        image  - docker build -> GHCR. CORRECTION
+                                 2026-08-25 (#100): amd64 ONLY since
+                                 2026-08-10; the line below described a
+                                 multi-arch build that no longer happens.
+                                 -> GHCR, tags :latest and :sha-<commit>
+                        deploy - ssh to the Hetzner host as the deploy
+                                 user, `compose pull <svc> && up -d <svc>`,
+                                 then verify over the PUBLIC url (so DNS,
+                                 TLS and Caddy are exercised too) and fail
+                                 the job if it does not come back healthy
+                      Both deploy jobs share the concurrency group
+                      "hetzner-deploy" with cancel-in-progress: false, so
+                      rollouts to the server serialise and a superseded
+                      build never cancels one in flight.
+                      Secrets (repo level): DEPLOY_SSH_KEY, DEPLOY_HOST,
+                      DEPLOY_USER. The key is a dedicated ed25519 pair
+                      used by CI only; it is passed through the step env,
+                      never interpolated into a command line, and removed
+                      in an always() step.
+4. docs.yml           a) push main paths docs/**: regenerate mermaid
+                         diagrams, build the site with Pandoc via
+                         .github/scripts/docs/build-docs.sh -> gh-pages
+                         (theme: docs/_theme, landing + arc42 + ADRs)
+                      b) workflow_run success of frontend-ci/backend-ci:
+                         publish coverage + API docs into gh-pages
+                         subfolders (/frontend/coverage, /frontend/
+                         api-docs, /backend/coverage, /backend/api-docs)
+                         WITHOUT deleting the rest (keep_files)
+                      CORRECTION 2026-08-27, found while adding entry 6:
+                      the keep_files clause above has been WRONG since
+                      #108. keep_files is gone; the site job checks
+                      gh-pages out and carries the report subtrees over,
+                      and a report publish is scoped by destination_dir.
+                      Invariants I1-I5 are in the workflow header and in
+                      the Part 3 close-out. The line stays as written
+                      because this is where the error was.
+5. release.yml        tag v*: GitHub Release with generated notes
+6. catalogue-watch.yml
+                      schedule "17 6 1 * *" (monthly, 06:17 UTC on the
+                      1st) + workflow_dispatch: one job, no checkout,
+                      curls the IONOS /v1/models catalogue with the
+                      LLM_API_KEY secret and fails when
+                      meta-llama/Llama-3.3-70B-Instruct, BAAI/bge-m3 or
+                      openai/gpt-oss-120b stops being listed. Added
+                      2026-08-27, W-4.
+                      IT OWNS NO REPOSITORY PATHS, so the Part 3 path
+                      partition is UNAFFECTED: it has no pull_request
+                      trigger at all, gates nothing, and cannot report a
+                      required check. Its own file is covered by
+                      backend-ci's catch-all like every other workflow
+                      file that is not a gate's own.
+                      A red run is early warning, never an outage alarm.
+                      It watches for an ABSENCE because absence is the
+                      only signal the API offers — there is no lifecycle
+                      field (A1) — so a failure means "read the IONOS
+                      models page and open a ledger row".
+
+=====================================================================
+PHASE 2 — DATA + INGESTION  [DONE — 2026-08-07, PRs #18-#22 + ops]
+=====================================================================
+[x] Flyway migrations: machine, protocol, chunk (vector(1024)), HNSW
+    vector index (choice documented in ADR-004 dated note), 10-machine
+    repeatable seed with fixed UUIDs (#18)
+[x] Synthetic corpus: 150 protocols (108 DE / 42 EN, 120 STOERUNG /
+    30 WARTUNG, fault taxonomy MATERIAL 23 / BEDIENUNG 29 / TECHNIK 68
+    across 9 subtypes, quality mix 90/45/15). Demo seeds: E-47 on
+    Presse 3 x4 with four DIFFERENT root causes, Mode-B gap on AB-02
+    (dosing), DE-query->EN-protocol on FB-04 (mistracking). Mixed-
+    language protocols included (EN alarm strings inside DE prose).
+    Seed loader = flag-gated ApplicationRunner, idempotent (#19)
+[x] Ingestion pipeline: upload (schichtleiter, 202), file -> volume,
+    paragraph chunking, bge-m3 via plain RestClient (Spring AI CLOSED
+    — see DECISIONS.txt), RECEIVED -> INDEXED/FAILED async, backlog
+    catch-up, client-side budget counter (NFR-7), Testcontainers (#21)
+[x] Prod wiring fix: MAINTENANCE_FILES_PATH, flag passthrough,
+    empty-override defaults (#22) — and applied BY HAND on the host,
+    because CI never syncs compose files (see OPEN ITEMS)
+[x] Production indexed + verified live; flags disarmed (ops session)
+[x] Early task: backups (nightly pg_dump + volume archive + snapshot
+    routine) — DONE 2026-08-07, see arc42 §7.6
+[x] PREREQUISITE ADR-002 — MET. Threshold 0.583 revalidated against
+    the real corpus: TOO HIGH, tune to ~0.54-0.55 in Phase 3.
+
+=====================================================================
+PHASE 3 — RAG QUERY + MODES  [DONE — #24 + the search-UI PR]
+=====================================================================
+[x] Query module: embed question -> filtered pgvector top-5 ->
+    threshold 0.55 -> Mode A/B (#24)
+[x] Prompting: answer only from sources, cite each claim (few-shot
+    format example, kept OUT of the Mode-B path by putting the two
+    prompts in two classes), language pinning incl. refusals,
+    role-based filtering (Operator = operator-safe steps only) (#24)
+[x] Chat model: Llama-3.3-70B FOR EVERY ROLE — no per-role split,
+    because the evidence did not ask for one. Structured JSON is the
+    app-side enforcement, and it earned its place: it is what caught
+    Qwen3.5-9B failing to ground the cross-language case (#24)
+[x] Spring AI vs plain RestClient: RestClient, revisited on the chat
+    path as promised and declined again on the same reasoning (#24)
+[x] Fresh long-TTL IONOS token for the server .env.prod (ops session,
+    2026-08-07; expires 2027-08-07)
+[x] Latency from the Hetzner host — RESIDUAL RISK CLOSED. Measured
+    three ways, all the same shape: the variance is provider queueing,
+    not the network path. NFR-4 met at the median and at the worst
+    observed (ADR-002 note 2026-08-07)
+[x] NFR-7 guards: Bucket4j per-user rate limit, daily budget counter
+    in Postgres, max_tokens cap sent by the client, query cache keyed
+    including the role (#24)
+[x] Angular: search view with Mode A/B visual distinction + source
+    links; upload view with status; DE/EN switch (search-UI PR),
+    plus the three read endpoints those views needed
+
+=====================================================================
+PHASE 4 — POLISH + SHIP  [DONE — 2026-08-08, PRs #28, #29, #30 and
+the swagger-entrypoint fix; only Carlos's phone walkthrough and the
+v1.0.0 tag remain]
+=====================================================================
+- UI redesign: professional look, header + footer, landing page for
+  the logged-out state, help dialog, responsive (walkthrough is on a
+  phone). Mode A/B visual distinction stays — it is NFR-2, not theme.
+- Token-security hardening + ADR-005: threat split (compromised
+  endpoint = out of scope for ANY web app, stated plainly; XSS = in
+  scope), security headers at Caddy (CSP etc. — Caddyfile deploys BY
+  HAND like compose), sessionStorage + 15-min TTL recorded as the
+  existing posture, BFF pattern decided against for the demo and
+  documented as the enterprise-grade evolution. Interview material.
+- Tests kept green throughout (mode routing, role filtering, budget
+  guard already covered since #24/#25)
+- OpenAPI/Swagger reachable in the deployed demo (recruiter feedback!)
+- README: problem first, 90-second demo walkthrough, architecture
+  diagram, links to ADRs and gh-pages docs site; AI-USAGE.md current
+- Production is already live on Hetzner CX33 since Phase 1 — Phase 4
+  deploy work is verification + hardening, not first deployment
+- "How to reproduce" section in spike/adr-002/RESULTS.md (provability)
+- Full recruiter walkthrough test on a phone and a fresh browser
+  (click everything — an API call is not a click, see #26)
+- Release v1.0.0
+

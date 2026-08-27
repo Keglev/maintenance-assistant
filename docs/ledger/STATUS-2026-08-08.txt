@@ -1,0 +1,883 @@
+=====================================================================
+PREVIOUS STATUS — 2026-08-08 (superseded 2026-08-10, kept for history)
+=====================================================================
+Phases 0, 1, 2 and 3 are DONE. Phase 3 shipped in PRs #24 (query
+path), #25 (search UI) and #26 (source-link fix), all merged and
+deployed. Release v0.1.0 is tagged (Phase 2/3 tags are Carlos's call).
+
+PHASE 4 IS SHIPPED. #28 (UI redesign: design tokens, header + footer,
+logged-out landing page, help dialog, responsive), #29 (security
+headers at Caddy + ADR-005 on token handling) and #30 (README,
+AI-USAGE, spike reproduction, and the first half of the Swagger fix)
+are ALL MERGED AND DEPLOYED. The Caddyfile was applied BY HAND on
+2026-08-08 with a .bak and a force-recreate (see OPS RULE 3 — the first
+attempt used mv and silently changed nothing), and the header set is
+live and verified by curl: CSP, HSTS, nosniff, Referrer-Policy,
+Permissions-Policy, X-Frame-Options DENY. Keycloak's auth vhost keeps
+its own CSP; the per-vhost scoping was confirmed on the live host.
+
+FULL BROWSER WALKTHROUGH PASSED 2026-08-08 at a 390 px mobile viewport
+with the console open and ZERO CSP violations: Keycloak login round
+trip, the E-47 demo on Presse 3 answering Mode A with [P1]..[P4]
+resolving to the source list, a clicked source opening the protocol in
+a blob: tab (the #26 path survives the CSP — the thing curl could never
+have told us), the help dialog, the DE/EN switch and sign-out.
+/swagger-ui was verified in the browser the same day, after #30
+deployed.
+
+THE SWAGGER ENTRY POINT TOOK THREE ROUNDS, and the reason is worth
+carrying forward. #30 fixed GET /swagger-ui (302 -> the UI, confirmed
+live). A `curl -sI` afterwards still answered 401, which looked like
+the same bug and was not: -I sends HEAD, the permit list matched
+HttpMethod.GET only, and HEAD is a method of its own to the matcher —
+so EVERY public path, /api/health included, refused HEAD while serving
+a browser perfectly. Any uptime probe using HEAD would have seen a
+permanently unauthorised health check. Closed in fix/swagger-entrypoint
+together with two neighbours of the same defect: /swagger-ui/ and the
+old /swagger-ui.html now redirect into the UI, and the ERROR dispatch
+is permitted so that a permitted-but-unmapped path answers 404 instead
+of a misleading 401 (measured both ways in a real container).
+THE LESSON, next to the #26 one: MockMvc could not see any of this. It
+does not distinguish HEAD the way the matcher does and performs no
+error dispatch, so the guard tests passed twice while production
+refused. The replacement runs on RANDOM_PORT against a real Tomcat with
+the JDK HTTP client, following no redirects.
+
+Remaining before v1.0.0: Carlos's phone walkthrough on a fresh browser,
+then the tag. Robots never tag.
+
+Phase 2 shipped in PRs #18 (Flyway V1 + machines), #19 (150-protocol
+corpus + seed loader), #20 (backups), #21 (ingestion pipeline), #22
+(prod compose fix), all merged, plus one ops session (no commits).
+PRODUCTION IS INDEXED: 150 protocols INDEXED, 0 FAILED, 166 chunks
+(all 1024 dims), 150 documents on the volume (uid 1001), retrieval
+verified live (all four E-47 protocols top the Presse-3 ranking).
+Cost of full corpus embedding: EUR 0.00055 (27,713 input tokens,
+150 calls, 52 s with 4 workers). Seed + backlog flags are DISARMED;
+backups now carry real content (dump 752K incl. vectors, verified).
+
+Phase 3 shipped in PR #24 (query path: POST /api/query, threshold
+0.55, two answer modes, NFR-7 guards) and the search-UI PR (Angular
+search + upload views, DE/EN switch, and the three read endpoints
+they needed: GET /api/machines, /api/protocols/{id}/document,
+/api/protocols/mine). LATENCY RESIDUAL RISK IS CLOSED — measured from
+the production host and end-to-end through production; NFR-4 is met
+at the median and at the worst observed value (ADR-002 note
+2026-08-07).
+
+Live demo:  https://maintenance.smartsupply.com.de  (Angular + Keycloak
+            SSO, valid TLS via Caddy/Let's Encrypt, demo users
+            operator/techniker/schichtleiter/admin, password demo1234)
+Auth:       https://auth.smartsupply.com.de (Keycloak, prod mode)
+Docs site:  https://keglev.github.io/maintenance-assistant/
+Server:     Hetzner CX33 (x86_64, 4 vCPU, 8 GB), Nuremberg, Ubuntu
+            26.04. Stack at /opt/maintenance-assistant (compose:
+            caddy, frontend, backend, keycloak, postgres+pgvector).
+            Secrets in /opt/maintenance-assistant/.env.prod (0600),
+            copies in Carlos's password manager. SSH: root + deploy
+            user (deploy = CI key). Hetzner firewall: TCP 22/80/443.
+CI/CD:      push to main -> CI -> GHCR (:latest + :sha) -> ssh deploy
+            -> public health verify. Manual redeploy: workflow_dispatch.
+LLM:        ADR-002 ACCEPTED — IONOS AI Model Hub primary (Berlin,
+            de-txl), Nebius Token Factory fallback. Embeddings
+            BAAI/bge-m3 (1024 dims), chat Llama-3.3-70B-Instruct
+            (quality) / Qwen3.5-9B (fast, needs reasoning_effort=
+            "none"). Threshold = config property, initial 0.583.
+            IONOS gateway needs explicit encoding_format; ignore
+            *-migration model aliases. Evidence: spike/adr-002/
+            RESULTS.md + PR #14. No provider hard cap — EUR 7 cost
+            alert set; NFR-7 rests on the app layer (by design).
+Keys:       PRODUCTION: 365-day IONOS token (created 2026-08-07,
+            expires 2027-08-07) lives in the server .env.prod and in
+            Carlos's password manager — nowhere else. ROTATION
+            REMINDER: calendar entry ~2 weeks before 2027-08-07;
+            rotation = edit .env.prod + `up -d --force-recreate
+            backend` (see OPEN ITEMS: env edits are inert until
+            recreate). The old 30-day spike token (exp ~2026-09-05)
+            and the Nebius trial key remain in spike/adr-002/.env
+            (gitignored, local) for spike reruns only.
+            Token paste procedure that works (after two mangled
+            attempts — doubled+truncated at 4095 chars): password
+            manager -> Notepad (visual check: one line, eyJ..., two
+            dots) -> scp to server -> tr -d '\r\n' into .env.prod ->
+            verify dots=2, length ~1712, prefix eyJ.
+Config:     Flyway auto-config was DEAD on Boot 4.1 (missing
+            spring-boot-flyway module) — fixed and empirically
+            verified in PR #16. spring.flyway.* now binds. Error
+            properties moved to spring.web.error.*.
+
+OPEN ITEMS carried forward (not blockers, do not lose):
+- DESIGN FIXES ROUND 2, 2026-08-11 (feat/design-fixes-2), from Carlos's 1920px
+  drill of #41/#43. Frontend only.
+  PER-VIEW WIDTH: one centred 68rem column served every view, which starved the
+  Protokollverwaltung table — horizontal scrollbar at 1920px, Löschen cut off,
+  hundreds of unused pixels in the margins. Two page modifiers now: .page-wide
+  for the table views, .page-split for search. They widen the CONTAINER only;
+  prose keeps its measure, because a 1600px line is a regression.
+  THE SEARCH TWO-COLUMN LAYOUT WAS NEVER APPLIED AT DESKTOP WIDTH — and the
+  cause is worth carrying: .ask-row was in the template with ZERO rules in the
+  stylesheet. The flex container was deleted along with the help panel's styles
+  when that panel was extracted into its own component in #41; only the panel's
+  narrow-viewport block survived, which is why it looked right when narrow. NOT
+  a media-query bug. LESSON: extracting a component moves its styles, and the
+  LAYOUT rules that positioned it are not its styles — check the container after
+  every extraction. The replacement is a GRID with a declared template, because
+  a flex row wraps when things do not fit and that failure looks deliberate.
+  The answer now renders under the form that produced it, not under the help
+  panel; the grey inline example line is gone (it duplicated the panel).
+  LONG-ANSWER DRAWER: above ~50vh the answer is clamped behind a fade with a
+  full-width control. THE CLAMP IS A MAX-HEIGHT AND NOTHING ELSE — the whole
+  answer is in the DOM in both states, never truncated and never split, because
+  cutting it would separate a claim from its citation (NFR-2). A citation marker
+  EXPANDS FIRST and then points at its card: a marker answering a click with
+  nothing visible is the #26 bug class in a new costume.
+  DIALOGS: stored protocol text one step up (new --t-md token; monospace stays
+  on the raw view), and one spacing step between the last field and the action
+  row in all three confirmations.
+  STILL A TABLET-FIRST APP: everything above is desktop refinement and the
+  narrow behaviour is unchanged — that is the thing to re-check in any drill.
+- FOOTER SERVER-HEALTH DOT 2026-08-11 (feat/footer-health-dot), the last code
+  PR before v1.1.0. GET /api/health (public, unchanged) every 60 s WHILE SIGNED
+  IN only, with a 5 s client-side timeout so a hanging backend reads as offline
+  rather than as forever-pending. Three states, and the dot ALWAYS carries its
+  own label — a status told only in colour is one some readers do not get, the
+  same rule NFR-2 follows.
+  IT IS A COMPONENT, NOT A SERVICE, and the reason is its lifetime: the footer
+  renders it only under @if (isAuthenticated()), so start-on-login and
+  stop-on-logout are just the component being created and destroyed. No second
+  subscription to the auth signal and no token check duplicated.
+  ONE FAILURE FLIPS IT. No hysteresis, no backoff, no reconnect banner: a
+  footer dot is a glance surface, and one that stayed green through a real
+  outage waiting for a second opinion would be worse than no dot. If flapping
+  ever becomes real the fix is two-strikes, not a state machine.
+  THE UP COLOUR IS THE MODE A GREEN — the only place that hue appears outside
+  an answer. Judged acceptable because the dot is chrome, never sits beside an
+  answer block, and always carries its label; flagged in the PR so it can be
+  overruled cheaply. WATCH IT during the walkthrough.
+  THE BACKEND VERSION IS IN THE RESPONSE AND DELIBERATELY UNUSED: the Settings
+  dialog shows the FRONTEND version from package.json, and two versions on
+  screen in one release is how a reader learns to distrust both. Available if
+  ever wanted.
+- KEYCLOAK THEME CONTRAST 2026-08-11 (fix/keycloak-theme-contrast), from Carlos's
+  production drill of #42. Theme files only. TWO DEFECTS, ONE BUG CLASS: repainting
+  the canvas made every element keycloak.v2 had coloured FOR its dark backdrop this
+  theme's problem, including the ones the stylesheet never named. The realm heading
+  measured 1.09:1 in LIGHT (white on #f3f5f7) and was readable in dark BY ACCIDENT —
+  and it is pinned by the PARENT with !important, so this is the theme's one
+  documented !important. The back-link and demo box hugged the card's outer edge
+  because their footer region is the one PatternFly gives no padding; they now sit on
+  the card's own 48px content column, and the link is one size up with a scaled arrow.
+  A CONTRAST SWEEP of 18 elements x 3 pages x 2 schemes was run against a real render
+  (getComputedStyle, WCAG ratios): 1 failure before, 0 after. LESSON, in the theme
+  README: a code-level check of the stylesheet CANNOT find this class, because the
+  defect is an element that is absent from it — re-run the sweep after any theme edit.
+  Also measured for the drill: the parent's dark-mode script listens for `change`, so
+  the page repaints LIVE with no reload.
+- KEYCLOAK LOGIN THEME 2026-08-11 (feat/keycloak-login-theme). The login page
+  was the LAST surface still wearing stock Keycloak: the demo flow took a
+  recruiter from a designed landing page to a foreign-looking one, mid-login.
+  Theme "wartungsassistent" lives in docker/keycloak/themes/, extends
+  keycloak.v2 (the default login theme of KC 26.7) and overrides FOUR files:
+  theme.properties, one CSS, the two message bundles, and ONE template.
+  THE ONE TEMPLATE IS footer.ftl, which Keycloak ships as an empty macro whose
+  own comment names it the extension point for a custom footer — so nothing
+  upstream is copied and there is nothing to re-check on the next KC upgrade.
+  login.ftl was NOT copied. footer.ftl carries the back-to-home link
+  (bilingual, from the message bundle) and the demo-account box, and because
+  template.ftl renders it on EVERY login page the link is also on the OTP page
+  and the error page.
+  COLOUR SCHEME FOLLOWS THE OS ONLY, by design. The page cannot read the app's
+  manual light/dark choice (different origin) and deliberately does not try:
+  an auth URL is not a transport for UI state. A user who forced light in the
+  app on a dark OS gets a dark login page — accepted, and it matches what the
+  app itself does before anyone presses the toggle. It hangs off the dark-mode
+  switch keycloak.v2 already implements (kcDarkModeClass, toggled from
+  prefers-color-scheme by the parent) rather than a second mechanism of ours
+  that would have to be kept in step with it.
+  THE TOKEN VALUES ARE COPIES of frontend/src/styles.css, which stays the
+  source of truth: Keycloak serves the theme from its own origin and classpath,
+  and a cross-origin stylesheet on the login page is what the CSP refuses. A
+  colour changed in the app has to be changed in the theme too.
+  TWO ENV VARS drive it, read by theme.properties via ${env.X} (verified
+  working locally): WA_HOME_URL — empty renders NO link, because a back-link to
+  the wrong environment is worse than none — and WA_SHOW_DEMO_ACCOUNTS.
+  DEPLOY IS BY HAND, like the Caddyfile: git pull on the server, .bak the
+  compose file, cp over it (never mv), "up -d --force-recreate keycloak", and
+  THEN SELECT THE THEME ONCE in the admin console — the realm already exists,
+  so --import-realm does not apply the loginTheme now set in realm-export.json.
+  Runbook at the top of docker/keycloak/themes/README.md.
+  NOTE FOR WHOEVER EDITS THE THEME: dev runs start-dev, which disables theme
+  caching, so an edit is live on reload. Prod runs "start" with caching ON,
+  which is correct and is exactly why prod needs the force-recreate.
+  VERIFIED LOCALLY, not in production: theme active (its name in the resource
+  path, both stylesheets 200), footer + demo box in DE and EN, login_hint still
+  prefills, a real schichtleiter login through the themed page returned an auth
+  code, and the Keycloak log carries no theme or FreeMarker error — which had
+  to be checked, because a broken theme falls back to stock SILENTLY.
+- EDIT + ARCHIVE 2026-08-10 (feat/edit-and-delete-archive). TWO DECISIONS FROM
+  ADR-006 WERE REVERSED, and the revision is APPENDED to the ADR rather than
+  rewritten into it — the original text stands, the way the ARM entry in
+  DECISIONS.txt stands.
+  (1) EDITING IS ALLOWED NOW. The argument against it was that an answer cites a
+  protocol as it stood when the answer was produced. THAT ARGUMENT ASSUMED
+  ANSWERS ARE STORED, and they are not: every answer is generated per query and
+  every citation resolves live. There is no answer table, no answer history and
+  no shareable answer URL, so the exposure is not everything the system has ever
+  said — it is the answers currently open on a screen. THAT RESIDUAL IS REAL AND
+  IS WRITTEN DOWN rather than explained away; what makes it acceptable is that
+  an edit replaces a wrong Massnahme with a right one, is attributed with a
+  mandatory comment, and RE-INDEXES. Re-indexing is a CONDITION of the flow, not
+  a step in it: an edit that left the old chunks would be worse than no edit,
+  because retrieval would keep matching text the document no longer contains.
+  MACHINE AND TYPE ARE NOT EDITABLE, and a request that tries is refused 400
+  (PROTOCOL_IDENTITY_LOCKED), never silently ignored — a client told 200 would
+  report a move that did not happen. The rule in one line: WORDS CAN BE FIXED,
+  IDENTITY CANNOT. Editing an archived protocol is 409, not 404: the same admin
+  can read it in the archive one tab over, so "no such protocol" would be a lie
+  their own screen contradicts.
+  (2) DELETION IS NOW AN ARCHIVE. #37's hard delete removed the bad protocol AND
+  the evidence that it ever existed, which is the one thing the insider-threat
+  chain cannot lose — it was missing its last link, PRESERVE. The chunks are
+  still deleted (instant removal from every answer, every role), deleted_at is
+  set, the row and the file stay, and a moderation_event records actor + comment.
+  NO RESTORE, BY DESIGN — no endpoint, no flag, and a test that fails if a route
+  named restore/undelete appears. Capped at 50 per machine; past that the oldest
+  are purged completely, enforced SYNCHRONOUSLY by the delete that breached the
+  cap (a retention job is a scheduler that can silently stop running).
+  THE ADR'S OWN OBJECTION TO SOFT DELETE IS ANSWERED, not ignored: it said soft
+  delete makes every query grow a filter it must never forget, and that a
+  forgotten filter makes a deleted protocol citable again. The answer is that
+  RETRIEVAL IS PROTECTED BY THERE BEING NOTHING TO RETRIEVE. The deleted_at
+  guards on the row-based reads are the second line, and what they prevent is a
+  deleted protocol showing up in a LIST — visible and harmless — rather than in
+  a green Mode A answer.
+  READ-PATH AUDIT (all guarded): retrieval, the corpus list, Meine Uploads, the
+  live document endpoints, the indexer's load and the backlog enqueue. THE LAST
+  TWO ARE THE DANGEROUS ONES — either would have rebuilt an archived protocol's
+  chunks and put it back into search, which is the only way a soft delete could
+  be undone.
+  moderation_event has NO FOREIGN KEY to protocol, deliberately: a cascade would
+  mean the 51st deletion erasing the record of the first.
+  NOTE FOR THE NEXT SESSION: the migration is V4 and runs through the normal
+  Flyway path on deploy — no manual step, unlike a compose or Caddy change.
+  STILL OPEN from ADR-006, unchanged: draft/approve, four-eyes deletion,
+  automated suspicion signals. Four-eyes is now a BIGGER gap than it was, because
+  the single admin account can change what the corpus says and not only remove
+  from it.
+- ADMIN HOME + FILTERS 2026-08-10 (feat/admin-home-and-filters), and it opens
+  with a LIVE DEFECT found the same day: an admin signing in landed on /search,
+  the search view opens with GET /api/machines, and that endpoint correctly
+  refused a role with no shop-floor function — so the first thing an
+  administrator saw after a successful login was "Maschinenliste nicht
+  verfügbar". Every piece behaved as specified and the result was still broken,
+  which is the whole lesson: the defect lived in the ROUTING, not in either
+  side of the 403.
+  THE ADMIN'S HOME IS NOW THE PROTOKOLLVERWALTUNG. /home is the OIDC redirect
+  URI, so its fixed `redirectTo: 'search'` was literally where every completed
+  login went; it is role-aware now, and the same homePath() is where roleGuard
+  sends anyone it turns away. /search is GUARDED for the three shop-floor roles
+  and its nav entry is HIDDEN for the admin — search is not a view they can use
+  at all, because asking questions is closed to them by decision. Shop-floor
+  roles are untouched. GET /api/machines is now readable by admin as well:
+  widened by one named role, not to "anyone with a token", and only because the
+  new filter needs it — machine rows are plant metadata and carry nothing a
+  protocol says.
+  FILTERS ARE MACHINE-FIRST. GET /api/moderation/protocols takes machineNo,
+  titleContains (case-insensitive substring, ILIKE with % and _ escaped) and an
+  inclusive from/to range over the upload date, keeping the paging and the
+  newest-first + id ordering. titleContains and the dates are REFUSED without a
+  machine (400, reason MACHINE_REQUIRED_FOR_FILTER) and the UI disables them
+  until one is chosen, with a hint line saying why: across ten machines a title
+  fragment answers with rows from machines the reviewer was not looking at, and
+  a bare date range answers with most of the corpus. An open-ended range (one
+  end only) IS allowed. The rule lives in the filter record, not in the
+  controller, so a second caller cannot reach around it. TWO NOTES for whoever
+  edits this next: the `to` day is compared as "before the next day" because
+  created_at is a timestamp and `<= midnight` silently drops the chosen day;
+  and day boundaries are drawn in UTC, the zone the API's own timestamps use.
+  THE RENAME IS UI-ONLY. "Verwaltung"/"Moderation" read like a discussion forum
+  rather than like a maintenance record, so the nav entry, the view heading and
+  the route title are now DE "Protokollverwaltung" / EN "Protocol management".
+  The API paths (/api/moderation/**), the component, the dictionary KEY and the
+  tests keep their names on purpose — a cosmetic rename that churned the wire
+  contract would cost a round of test edits for something no user can see.
+  Also corrected on the way past: the help dialog still described the admin as
+  having "keine Fachfunktion in der Anwendung", untrue since ADR-006.
+  PR C2 FOLLOWS: edit + soft delete + the deleted-protocols archive. Deliberately
+  NOT started here — note that ADR-006 argues against editing as it stands, so
+  C2 is where that decision gets revisited in writing rather than in code.
+- MODERATION SHIPPED 2026-08-10 (feat/protocol-moderation), and with it ADR-006
+  on the insider threat. The threat, in the owner's words: a Schichtleiter can
+  file a protocol that looks entirely normal and carries a wrong Massnahme, and
+  Mode A will cite it faithfully — the citation discipline that makes a correct
+  answer checkable makes an incorrect one credible. It cannot be filtered; no
+  size, rate or vocabulary test separates a right torque figure from a wrong one.
+  THE ANSWER IS THREE PARTS, two of which already existed: traceability
+  (uploaded_by + citation discipline: every answer traces to a protocol and
+  therefore to a person), containment (NFR-7 budgets + the #36 guards bound the
+  volume), and now REMEDIATION — the admin role's first shop-floor function:
+  GET/DELETE under /api/moderation, a paged view of the whole corpus, and a hard
+  delete of chunks + row + file. Moderation belongs to the role that CANNOT
+  write, deliberately: a tool the Schichtleiter could reach would let the author
+  of a bad protocol remove the evidence.
+  NO EDITING, BY DESIGN. Correction is delete-then-reupload, so that no answer
+  can cite text that changed underneath it — an edited protocol would leave a
+  citation that still resolves and is no longer what was read.
+  LIFECYCLE ITEMS STILL OPEN, in order: (1) DRAFT/APPROVE (technician writes,
+  Schichtleiter approves before indexing) — the only thing that closes the window
+  between a bad upload and its removal; (2) four-eyes deletion; (3) soft delete
+  with retention. All three are argued and deferred in ADR-006 rather than left
+  as silence.
+- UPLOAD FORM FIXED 2026-08-10 (feat/upload-parity-and-settings), from
+  the live review of #34. TITLE IS NOW REQUIRED in both modes — a
+  protocol without one reduces "Meine Uploads" to a machine number and a
+  date. The DOCUMENT-LANGUAGE DROPDOWN IS GONE and the frontend no longer
+  sends the parameter: retrieval is language-agnostic by architecture and
+  the answer is pinned to the QUESTION's language, so the field asked for
+  a classification nothing read (full reasoning in DECISIONS.txt ==
+  ARCHITECTURE ==). No backend change — the endpoint already declared it
+  optional. NOTE: the review's premise that text mode HID metadata fields
+  did not reproduce; all four were already outside the mode branch. A
+  spec now locks that, so it cannot start being true later.
+- THEME CONTROL IS TWO STATES 2026-08-10, light and dark, with the OS
+  preference as the SILENT default until a button is pressed. The old
+  literal "system" in localStorage reads as "no override", which is what
+  it meant, so the migration costs nothing. The pressed state tracks the
+  theme PAINTED rather than the one chosen — keyed on the choice, a first
+  visit would show two unpressed buttons and read as broken.
+- SETTINGS ("System") DIALOG 2026-08-10 behind a gear at the far right of
+  the header, with app name + version (read from package.json at build
+  time), doc/repo links, the signed-in user with role and "angemeldet
+  seit" from the token's iat, and APP-WIDE TEXT SCALING in three steps.
+  Scaling is ONE data-font attribute on <html> against a rem-based design
+  system, so type, spacing AND the 44 px tap targets move together — a
+  technician who needs bigger text needs a bigger button in the same
+  moment. Persisted as ma-font and applied by the same pre-paint script
+  as the theme (still a separate same-origin file; CSP untouched).
+  package.json's version was 0.0.0 and now reads 1.0.0, matching the
+  deployed tag — IT MUST BE BUMPED WITH EACH RELEASE TAG or the dialog
+  starts lying.
+- PROTOCOL TEXT ENTRY 2026-08-10 (feat/protocol-text-entry), the FIRST
+  step of the protocol-lifecycle theme. Owner's domain knowledge, and the
+  reason it was built: the Schichtleiter types the protocol at the END OF
+  THE SHIFT. Nobody opens an editor, saves a .txt and then picks it —
+  requiring a file described a workflow that does not exist. The upload
+  view now offers "Datei hochladen" / "Text eingeben"; file stays the
+  default.
+  IMPLEMENTATION, and why it is FRONTEND ONLY: the typed text is wrapped
+  into a File in the browser and submitted through the UNCHANGED
+  multipart upload call. The endpoint, the ingestion pipeline, the volume,
+  the citation path and the download are untouched and unaware; after
+  submit a typed protocol is indistinguishable from an uploaded one. A
+  backend "text" field would have been a second write path to keep in step
+  with the first, for nothing the user can see. Typed protocols are named
+  <machineNo>-<yyyyMMdd-HHmmss>-eingabe.txt (ASCII, local time) and that
+  name is what Content-Disposition later offers on download.
+  THE TEXTAREA IS FREE TEXT BY DESIGN — the corpus deliberately contains
+  messy protocols, and a form that could only produce tidy ones would add
+  only the tidy half of reality.
+  BACKLOG AFTER THIS, in order: (1) UPLOAD GUARDS — size caps and rate
+  limits, and they belong on the BACKEND: the submit button here checks
+  only that a machine is chosen and the active mode has content, and a
+  rule that exists solely in the browser is a suggestion. (2) STRUCTURED
+  ENTRY FIELDS (Symptom / Ursache / Massnahme). (3) MODERATION. (4)
+  DRAFT / APPROVE.
+  NOTE FOR THE DEMO: there is NO moderation yet, so anything submitted in
+  production STAYS in the corpus and can be cited by a later answer.
+- THEME TOGGLE PULLED FORWARD 2026-08-10 (feat/theme-toggle) from the
+  v1.1 backlog, for the portfolio screenshots: a three-state control
+  (System / Hell / Dunkel) in the header and at the foot of the landing
+  page, remembered in localStorage under `ma-theme`. The dark palette
+  now lives ONCE, under html[data-theme="dark"]; the OS preference is
+  resolved in ThemeService and in public/theme-init.js and writes the
+  same attribute, because CSS cannot share one declaration block between
+  a media query and an attribute selector and two copies would drift.
+  NOTE FOR THE CSP: theme-init.js is a SEPARATE same-origin file loaded
+  in <head>, not an inline script — script-src is 'self' with no
+  'unsafe-inline' and it was not weakened for this.
+  STILL ON THE BACKLOG, unchanged: the KEYCLOAK LOGIN PAGE is not
+  themed by any of this. It is rendered by Keycloak, needs a Keycloak
+  theme, and that theme is a hand-deployed artifact on a host where CI
+  ships images only (OPS RULE) — a separate PR by design.
+- SUPERSEDED 2026-08-08 (feat/shopfloor-ux): the #26 BLOB-TAB MECHANISM IS
+  GONE. Citations now open an in-app viewer dialog that fetches the same
+  document through the same HttpClient call and renders it inside the
+  application. The blob: tab, the synchronous window.open ordering and the
+  popup-blocker download fallback are deleted. The reason is worth keeping
+  straight: the token-loss problem only ever existed BECAUSE the document
+  left the application, so the viewer removes the category of problem
+  instead of working around it — nothing navigates, so nothing can
+  navigate without a token. The document arrived in the browser's raw text
+  viewer, out of the app, which on the PRIMARY DEVICE (a tablet on the
+  plant WLAN, kiosk-style terminals) is somewhere hard to come back from.
+  Download is now the only object URL left, which is what they are for.
+  THE #26 LESSON ITSELF STILL STANDS AND IS NOT SUPERSEDED: anything the
+  BROWSER performs itself (anchor navigation, form action, img/src,
+  window.open of an API URL) carries no token and must be verified by
+  clicking in a browser, not with curl. So does the regression guard in
+  search.spec.ts — no rendered source link carries a raw /api href.
+- SOURCE LINKS 401'd IN THE BROWSER — found and FIXED in #26 (merged,
+  deployed, and verified by a real click on 2026-08-08: the source
+  opened in a new tab as a blob: URL), after PR #25 shipped them. A browser-followed <a href> is a
+  fresh navigation that never reaches Angular's interceptor, so it
+  carries no Bearer token, and the backend is a stateless JWT resource
+  server with no cookie fallback: every click on a citation answered
+  401. Documents are now fetched as blobs through HttpClient and opened
+  as object URLs. LESSON FOR PHASE 4's WALKTHROUGH: #25's live
+  verification opened the documents with curl and a token, which is why
+  it passed — an API call is not a click. Anything the BROWSER performs
+  itself (anchor navigation, form action, img/src, window.open of an
+  API URL) carries no token and must be verified in a browser, not with
+  curl. Regression guard in search.spec.ts asserts no rendered source
+  link carries a raw /api href.
+- Chat latency from the Hetzner host: DONE 2026-08-07, residual risk
+  CLOSED. Measured three ways (residential via the query module,
+  provider leg from the host, end-to-end through production) and all
+  three show the same shape, which attributes the variance to provider
+  queueing rather than to any network path. Provider leg from the host,
+  8 forced ~500-token calls: median ~15 s (8.4-29.7). End-to-end
+  through production, 5 cold questions: median 5.5 s (4.5-17.2) — real
+  answers are far shorter than the forced probe, so end-to-end beats
+  the provider leg. NFR-4 met at the median and at the worst observed.
+  Evidence: ADR-002 dated note 2026-08-07.
+- Threshold 0.583: MEASURED 2026-08-07 against the real corpus and it
+  is TOO HIGH. E-47 demo 0.695 (Mode A, ok), cross-language demo 0.577
+  (wants Mode A, would be refused), Mode-B gap 0.502 (correctly Mode B).
+  Set it near 0.54-0.55 in Phase 3. Evidence: ADR-002 dated note.
+- Backups: DONE 2026-08-07. Nightly systemd timer on the host at
+  03:15 UTC: pg_dump (custom format) of the app DB + tar.gz of the
+  protocol-files volume, both self-verified, keep 14, in
+  /opt/maintenance-assistant/backups. Scripted in infra/backup.sh +
+  infra/install-backup.sh, documented in arc42 §7.6 incl. the Hetzner
+  snapshot routine. STILL OPEN by decision: no offsite copy and no
+  restore automation (arc42 §7.8).
+- Citation few-shot prompt must NOT apply to the Mode-B/refusal path
+  (observed leakage in the spike). DONE in the query PR: two separate
+  prompt classes, and Mode B's schema has no source field at all.
+  NOTE for anyone editing them: Mode B does need a SHAPE example of
+  its own (no source/label/protocol in it) or constrained decoding
+  runs away on whitespace — measured, twice, at two token caps.
+- NEW, and the sharpest number in the project: the cross-language demo
+  clears the threshold by 0.0066 (0.5566 against 0.55). It is the
+  first thing to re-measure after any change to chunking, the corpus
+  or the embedding model. Reproduce with QueryDemoVerificationIT
+  (skipped unless LLM_API_KEY is set).
+- Chat latency tail: the 38.9 s breach measured in PR #24 remains
+  POSSIBLE on a bad queue day — shared serverless capacity, no SLA at
+  this tier. Documented residual, NO ACTION by decision; the
+  mitigations are already in place (client timeout, the "still
+  working" state in the search view, the max_tokens cap). See the
+  closed latency item above for the numbers that settled it.
+- OPS RULE (learned the hard way, cost ~12 min): the deploy pipeline
+  pulls IMAGES ONLY — it never syncs docker-compose.prod.yml or
+  .env.prod to the host. Any merged change to those files must be
+  applied on the server BY HAND before/with the next deploy (#22 was
+  merged in git but absent on the host until an ops session copied
+  it; rollback copy at docker-compose.prod.yml.bak-20260807-162246).
+  DOCS DEBT: DONE — arc42 07, "CI deploys images, never configuration",
+  including the .bak rule.
+- OPS RULE 2: an .env.prod edit is INERT until the container is
+  recreated (`up -d --force-recreate backend`); env freezes at
+  container creation. A container once ran 150 calls into a 401 with
+  a stale key while the file was already correct. DOCS DEBT: DONE —
+  arc42 §7.4, "An .env.prod edit is inert until the container is
+  recreated", with the printenv check.
+- OPS RULE 3 (learned 2026-08-08, cost one failed deploy round): the
+  prod compose bind-mounts the Caddyfile as a SINGLE FILE
+  (./caddy/Caddyfile:/etc/caddy/Caddyfile:ro), and a single-file bind
+  mount tracks the file's INODE, not its path. Replacing the host file
+  with `mv` gives it a NEW inode, and the container keeps reading the
+  OLD one. Nothing reports this: `caddy validate` and `caddy reload`
+  run INSIDE the container and both happily operate on the stale
+  content, and the reload reports success. Measured: a grep inside the
+  container found 0 CSP lines while the host file had 2. REMEDY: `cp`
+  OVER the existing file (same inode), or
+  `up -d --force-recreate caddy`. Never `mv`. The same trap applies to
+  any single-file bind mount — frontend-config.json is the other one
+  in this stack. DOCS DEBT: DONE — arc42 §7.4, next to the .env rule.
+- OPS — THE HOST IS SHARED FROM 2026-08-27, and the coupling is one
+  derived string. The CX33 also hosts github.com/Keglev/inventory-service
+  (the SmartSupplyPro backend) as a SECOND COMPOSE PROJECT under
+  /opt/smartsupplypro. api.smartsupplypro.de terminates on this Caddy and
+  proxies to ssp-backend:8081. CADDY IS THE ONLY SHARED COMPONENT:
+  separate databases, separate volumes, separate lifecycles, separate
+  repositories.
+  THE NETWORK NAME IS NOT CONFIGURED ANYWHERE, IT FALLS OUT OF `name:`.
+  docker-compose.prod.yml declares no networks: block, so Compose names
+  the default network maintenance-assistant_default — the project name
+  plus a suffix. The OTHER project declares it external and joins it;
+  this project's compose file is untouched by the arrangement, which is
+  the decision: a shared network declared HERE would make this stack's
+  startup depend on a project it does not own. THE TRAP: renaming
+  `name:` renames the network and breaks the neighbour SILENTLY, in a
+  repository whose maintainer is not reading this one. arc42 7.1 now
+  says so where somebody would look, and docker/README.md says the same
+  beside the Caddyfile row.
+  PREPARED IN #119, NOT DEPLOYED. Both files are hand-deployed (OPS
+  RULE 1), so the merge changes nothing on the server.
+
+  THE HAND-DEPLOY CHECKLIST, 2026-08-27, one session and one login. It
+  carries THREE parked rows along with it, not the two the plan named:
+  the Caddyfile header_up (W-2, #111), the three empty LLM_*= lines in
+  .env.prod, and the compose comment parked 2026-08-24 that still spells
+  DOMAIN-MODEL.md — the compose file is on the wire for the limits
+  anyway, so the third lands for free.
+    (a) DNS: `dig +short api.smartsupplypro.de` -> 2.28.57.15. ALREADY
+        CORRECT, measured 2026-08-27 — this is a verification and not a
+        change, so there is no propagation wait in this deploy. Today
+        http:// answers 308 (Caddy's blanket redirect) and https:// FAILS
+        THE TLS HANDSHAKE, because no site block means no certificate for
+        that name. That is the expected "before".
+    (b) .bak both files on the host, timestamped.
+    (c) cp OVER both — OPS RULE 3, never mv. The Caddyfile is a
+        single-file bind mount and tracks the INODE; mv gives it a new one
+        and the container keeps reading the old file while validate and
+        reload both report success.
+    (d) .env.prod: delete the three empty LLM_*= lines.
+    (e) `docker compose -f docker-compose.prod.yml --env-file .env.prod
+        config -q`. NAME BOTH FILES: without --env-file this prints a wall
+        of "variable is not set" and an `up -d` in that form would
+        recreate containers with blank secrets.
+    (f) `docker exec maintenance-caddy caddy validate --config
+        /etc/caddy/Caddyfile`, then the same with `caddy reload`. No
+        downtime.
+    (g) `docker compose ... up -d backend keycloak` to apply the limits.
+        EXPECTED DOWNTIME ~40 s for the backend; Keycloak is longer — a
+        60 s healthcheck start period plus the realm import. Sign-in is
+        unavailable during that window and EXISTING SESSIONS SURVIVE,
+        because the backend validates against a cached JWKS. Not during a
+        demo.
+    (h) VERIFY: the four maintenance URLs 200 (app root, /api/health,
+        /swagger-ui/index.html, the auth realm); x-request-id present on
+        /api/health, which is the W-2 row landing; `docker inspect`
+        HostConfig.Memory = 1610612736 and 1342177280; the heap the
+        comments predict, `java $JAVA_OPTS -XX:+PrintFlagsFinal -version |
+        grep MaxHeapSize` -> 1207959552; and the Caddy log carrying a
+        certificate for api.smartsupplypro.de.
+        A 502 ON api.smartsupplypro.de IS THE SUCCESS SIGNAL, not a
+        failure: it means the block is live and holding a certificate and
+        only the upstream is absent. A CERTIFICATE error means the file is
+        stale — go back to (c) and look for the mv trap.
+    (i) AFTER 24 HOURS, one look at whether Keycloak's limit was too
+        tight: `docker inspect maintenance-keycloak --format
+        '{{.State.OOMKilled}}'` and `docker stats --no-stream`.
+
+  DONE 2026-08-27, 18:13-18:23 UTC. Executed as written, (a) to (i), one
+  session and one login, by Carlos. Times are UTC because the host is
+  (REFACTOR-STANDARDS, incident times carry a zone).
+    (a) NOT A CHANGE: the A record for api.smartsupplypro.de already
+        pointed at the host, as #119's body predicted. No propagation
+        wait.
+    (b) caddy/Caddyfile.bak-2026-08-27,
+        docker-compose.prod.yml.bak-2026-08-27,
+        .env.prod.bak-2026-08-27.
+    (c) cp OVER both files, never mv. See the FINDING below: one of them
+        could not be written from the deploy account at all.
+    (d) The three empty LLM_*= lines removed from .env.prod.
+        `grep -c '^LLM_' .env.prod` -> 1, the survivor being LLM_API_KEY.
+    (e) `docker compose --env-file .env.prod config -q` OK.
+    (f) `caddy validate` OK, `caddy reload` OK. No downtime.
+    (g) backend and keycloak recreated. HostConfig.Memory 1610612736 and
+        1342177280, the numbers #119 predicted.
+    (h) /api/health 200 WITH X-Request-Id — which is the W-2 row landing
+        and could only come through the new Caddyfile. Keycloak discovery
+        200. api.smartsupplypro.de: 502 OVER TLS with a valid
+        certificate, which is the documented success signal and not a
+        failure — the site block is live and only the upstream is
+        missing.
+    (i) BASELINE TAKEN: OOMKilled=false, RestartCount=0 on both
+        containers. RE-CHECK DUE 2026-08-28, and it is the only thing
+        this session leaves open.
+
+  FINDING — docker-compose.prod.yml ON THE HOST WAS root:root 644, AND
+  HAD BEEN SINCE THE FIRST MANUAL DEPLOY ON 2026-08-11. The deploy
+  account could not overwrite it. Corrected from the root console in the
+  same session: cp, then chown deploy:deploy.
+  THE RECORD WAS WRONG FOR SIXTEEN DAYS AND NOTHING COULD SEE IT. The
+  "seven hand-deployed files" table implies the deploy account can
+  replace all seven, and for one of them that was false from the day it
+  was created. It surfaced only because this was the first deploy since
+  2026-08-11 that actually needed to write that file — a latent defect
+  whose detector is a rare event, which is the worst kind.
+  THE RULE, now in docker/README.md and in the OPS RULES below: BEFORE A
+  HAND-DEPLOY, `ls -l` THE TARGET. A root-owned file needs the root
+  console, and gets chown'd to deploy while you are there.
+
+  FINDING — A WINDOWS EXPORT PIPELINE PRODUCED A SECRETS FILE WITH EVERY
+  NEWLINE STRIPPED: 44,081 bytes, twelve keys concatenated onto the ends
+  of the preceding values, on ONE line. It was discarded, and the host
+  file was built from the clean CRLF export instead.
+  IT LOOKED FINE. Right size, opens in an editor, `file` says "ASCII
+  text". A bare regex finds 3 of its 12 keys, because a key preceded by
+  an alphanumeric character is invisible to one — so even a check would
+  have under-reported rather than failed. It was caught by counting
+  bytes: 0 LF, 0 CR, 0 spaces, 24 '=' signs in 44 KB.
+  THE STANDARD THIS BOUGHT is in REFACTOR-STANDARDS, OPS: a secrets file
+  is validated by byte checks — line count, CR/LF, BOM, KEY=VALUE per
+  line — before it is deployed, never by eye. And no value is ever
+  printed to check it: names, lengths and counts answer every question,
+  and a length matching a previously measured length is the stronger
+  check.
+
+  HOST PREP FOR inventory-service, same session. /opt/smartsupplypro
+  created as root and chown'd to deploy (drwxr-x--- deploy deploy);
+  .env.prod written from the Fly secrets export OVER STDIN — no temp
+  file on either side, never a command-line argument — 600 deploy:deploy,
+  12 keys, sha256 identical local and remote. The 2 GB swap file was
+  created in the same session and entered in /etc/fstab; the host had
+  none.
+  THE SHARED-HOST RULE, and it is now in the OPS RULES below: ROOT
+  CREATES AND HANDS OVER, deploy OPERATES. The deploy account has NO
+  SUDO by provisioning design (infra/provision.sh: adduser
+  --disabled-password, passwd -l, docker group, no sudoers entry), so
+  anything under /opt needs one root action to exist and a chown to be
+  usable afterwards. That is the design working, not a gap to close.
+
+  THE FOUR PARKED ROWS ARE ALL DEPLOYED as of this session: the W-2
+  Caddyfile header_up (#111), the three empty LLM_*= lines in .env.prod,
+  the compose comment referencing domain-model.md, and the memory
+  limits. Each row above is marked CLOSED where it lives. The oldest had
+  been parked 34 days, and every one of them cost nothing of its own —
+  which is the whole argument for the ride-along rule rather than a
+  server login per item.
+
+  OPEN — HOST MAINTENANCE, PLANNED WINDOW: apt upgrade plus a reboot,
+  BEFORE inventory-service goes live, so that one reboot covers both
+  projects instead of two outages. Measured on the host 2026-08-27:
+  18 updates available, 3 of them security; /var/run/reboot-required
+  present, naming linux-image-7.0.0-30-generic and linux-base against a
+  running 7.0.0-29-generic. So it is a kernel reboot and not a service
+  restart.
+  WHAT MAKES IT SAFE TO DO: every service in docker-compose.prod.yml
+  carries `restart: unless-stopped` — five of five, verified by grep and
+  again by `docker inspect --format '{{.HostConfig.RestartPolicy.Name}}'`
+  on the running containers — so the stack comes back on its own.
+  Caddy's certificates live in the caddy-data volume and survive the
+  reboot, so nothing is re-issued and no Let's Encrypt rate limit is
+  approached. THE ONE THING TO CHECK AFTERWARDS is the swap file, which
+  is new and whose fstab entry has not yet survived a boot.
+
+  CERTIFICATE TRANSPARENCY IS A PUBLIC FEED, AND IT IS WATCHED. Within a
+  minute of Caddy obtaining the certificate for api.smartsupplypro.de,
+  four scanners reached the new hostname from four addresses — while the
+  upstream did not exist and every request was a 502. THE CONSEQUENCE
+  FOR THE NEXT PROJECT: a new public hostname is probed immediately, so
+  the upstream's own security configuration must be right BEFORE its
+  container starts, not shortly afterwards. Recorded in arc42 7.1 as
+  well, because that is where somebody adding a hostname will be reading.
+
+
+- OPS — THE TWO JVMs WERE UNCAPPED AND THAT WAS ALWAYS WRONG; the second
+  project only made it urgent. MEASURED 2026-08-27 on the host, read-only:
+  every container reported a LIMIT of 7.565 GiB, which is the host's own
+  RAM, and {{.HostConfig.Memory}} returned 0 to confirm there was no limit
+  at all. Resident: backend 301.9 MiB, keycloak 686.1 MiB, postgres
+  95.98 MiB, caddy 65.96 MiB, frontend 4.75 MiB. free -m: 7746 total.
+  swapon --show: NOTHING. THERE IS NO SWAP ON THIS HOST, so an
+  over-committed container is OOM-KILLED rather than slowed.
+  A JVM SIZES ITS HEAP FROM THE MEMORY IT CAN SEE, and UseContainerSupport
+  applies the percentage to the cgroup limit ONLY WHEN ONE EXISTS. With
+  none it uses the host. Backend runs -XX:MaxRAMPercentage=75.0 and
+  measured MaxHeapSize 6,094,323,712 B = 5,812 MiB; keycloak's image sets
+  70 and measured 5,687,476,224 B = 5,424 MiB. TWO JVMs ENTITLED TO ~11
+  GiB ON A 7.5 GiB MACHINE while using 988 MiB between them. Nothing had
+  broken because neither heap had ever been asked to fill — luck, not
+  design — and a third Spring Boot service was arriving.
+  A MEASUREMENT TRAP WORTH THE ROW: `docker exec ... java
+  -XX:+PrintFlagsFinal -version` starts a FRESH JVM that does NOT inherit
+  the container's JAVA_OPTS, so it reports the JDK default of 25%
+  (1,938 MiB) and not the running process's 75% (5,812 MiB). Both numbers
+  are believable and they differ by 3x. Read /proc/1/cmdline, or re-run
+  with $JAVA_OPTS expanded.
+  THE NUMBERS SET: backend 1536m (301.9 up to the next 512, plus 512
+  headroom = 1024, raised to this stack's 1.5 GiB floor); keycloak 1280m.
+  SETTING A LIMIT IS ALSO A HEAP DECISION: 75% of 1536 is a 1,152 MiB heap
+  and 70% of 1280 is 896 MiB, and both are in the compose comments so
+  nobody discovers them in production.
+  KEYCLOAK WAS 1024m FOR ONE DAY AND THE FORMULA IS WHAT WAS WRONG, not
+  the measurement. RSS + 256 MiB (686 + 256 = 942, up to the next 128)
+  sizes a process whose memory IS its resident set. A JVM is not that
+  process: the container limit is the INPUT to MaxRAMPercentage, so 1024m
+  would have entitled the HEAP ALONE to 717 MiB and left roughly 300 MiB
+  for metaspace, code cache, threads and direct buffers. Native memory
+  does not fit in what the heap declines to use. 1280m gives an 896 MiB
+  ceiling and about 380 MiB beside it.
+  THE FAILURE MODE IS WHY IT WAS RAISED BEFORE THE DEPLOY RATHER THAN
+  WATCHED AFTER IT: an over-committed container is OOM-KILLED on this
+  host — there is no swap — and a Keycloak restart logs every user out.
+  A limit that is probably fine is not a limit worth taking on the one
+  service whose failure is visible to everybody at once.
+  THE RULE THIS LEAVES BEHIND: SIZE A JVM CONTAINER FROM THE HEAP CEILING
+  THE PERCENTAGE WILL PRODUCE, NOT FROM THE RESIDENT SET IT HAPPENS TO
+  SHOW. The backend's 1536m survives it — 75% of 1536 is 1,152 MiB with
+  384 MiB beside it — because the 1.5 GiB floor had already overridden the
+  same too-tight arithmetic there.
+  NO LIMIT ON postgres, caddy OR frontend, and the rule is written once:
+  a limit goes where a runtime sizes itself from VISIBLE RAM. Postgres
+  does not — it sizes from shared_buffers and leans on the page cache a
+  cgroup limit would count as usage, on the one container whose failure
+  loses data.
+  WAS NOT VERIFIED WHEN WRITTEN, AND NOW IS: applied 2026-08-27, and
+  `docker inspect` reports HostConfig.Memory 1610612736 on the backend
+  and 1342177280 on keycloak. The arithmetic held. ssp-backend:8081 is
+  still unreached — the container does not exist yet.
+  THE SWAP FILE EXISTS: 2 GB, created as root during the same session
+  and entered in /etc/fstab, so it survives a reboot. The sentence above
+  saying there is no swap describes the host as it was before that day
+  and is left standing, because it is the reason the limits were sized
+  the way they were.
+
+- OPS RULE 4 (learned 2026-08-27, cost one root console mid-deploy):
+  BEFORE A HAND-DEPLOY, `ls -l` THE TARGET. The deploy account has no
+  sudo, so a root-owned file on the host CANNOT be replaced from it, and
+  the failure arrives halfway through a session rather than at its
+  start. docker-compose.prod.yml was found root:root 644, sixteen days
+  after a root session created it and did not hand it over — invisible
+  until a deploy finally needed to write that file. A file that is not
+  deploy:deploy needs the root console, and gets `chown deploy:deploy`
+  while you are there. DOCS DEBT: DONE — docker/README.md, above the
+  OPS RULE 3 note, with the ls -l command.
+- OPS RULE 5, THE SHARED-HOST RULE (2026-08-27): ROOT CREATES AND HANDS
+  OVER, deploy OPERATES. /opt is root-owned, and `deploy` is not in
+  sudoers at all — infra/provision.sh builds it that way on purpose
+  (adduser --disabled-password, passwd -l, docker group, no sudoers
+  entry). So a second project's directory needs exactly one root action
+  to exist, plus a chown, and everything after that is deploy's. This is
+  the design working rather than a gap: the account that runs containers
+  every day is not the account that can rewrite the machine.
+  NOTE THAT docker GROUP MEMBERSHIP IS ROOT-EQUIVALENT in practice, and
+  the rule stands anyway — a boundary that is trivially crossable is
+  still the written statement of who is supposed to do what, and using
+  the docker socket to sidestep sudoers is how an operator surprises the
+  next one.
+- LLM_CHAT_MODEL empty default in docker-compose.prod.yml: FIXED in
+  the query PR — it now repeats application.yml's real default
+  (meta-llama/Llama-3.3-70B-Instruct), and LLM_CHAT_DAILY_CALL_BUDGET
+  joins it. It stopped being harmless the moment the chat path read it.
+- The #24 compose change WAS applied on the host by hand (bak copy
+  taken, container recreated, printenv verified LLM_CHAT_MODEL +
+  LLM_CHAT_DAILY_CALL_BUDGET) before the deploy — the ops rule worked
+  as written. #25 and #26 changed no compose file; CI deployed them
+  alone. WARNING kept from that session: running `docker compose` on
+  the host WITHOUT `--env-file .env.prod` prints a wall of "variable
+  is not set" WARNs — harmless for exec/ps, but an `up -d` in that
+  form would recreate containers with blank secrets. Any `up` on the
+  host must name both the file and the env-file.
+- CHUNK COUNT, canonical: 150 protocols -> 166 chunks (134x1 + 16x2;
+  the arithmetic only works for 166). PR #21's summary and an older
+  DECISIONS.txt line said 151/167 — off by one, likely a leftover
+  test upload counted during local verification. Production measured
+  150/166 with token counts matching local exactly. Use 150/166.
+- Java base package DECIDED 2026-08-07: KEEP com.keglevich.
+  maintenanceassistant. Robots must NOT rename it (see DECISIONS.txt
+  == ARCHITECTURE ==).
+- Editor hygiene (Carlos, no repo change): Spring Boot Extension Pack
+  in VS Code clears the false "never used" warnings; select the
+  Python interpreter for spike/ imports.
+
+PHASE 3, as built:
+  (1) feat/query-api — MERGED (#24). POST /api/query for operator/
+      techniker/schichtleiter; question embedded, one machine-filtered
+      pgvector top-5, threshold 0.55 -> Mode A / B. Chat = plain
+      RestClient (Spring AI revisited on the chat path and declined
+      again — see DECISIONS.txt == QUERY PATH ==). Llama-3.3-70B FOR
+      EVERY ROLE on measured evidence; Qwen3.5-9B failed to ground the
+      cross-language demo. Two separate prompt classes, structured
+      JSON, citations validated against the retrieved set. NFR-7:
+      Bucket4j 10/min per sub, chat_budget table (V3), max_tokens 1200
+      in the client, Caffeine cache keyed including the ROLE.
+  (2) feat/search-ui — MERGED (#25). Angular search view with
+      the two modes visually distinct (Mode A green + check + inline
+      [P1] links into the source list; Mode B amber + hatched + NO
+      source area at all), upload view honest about the 202 with a
+      manual status refresh, DE/EN runtime dictionary. Backend
+      additions, minimal: GET /api/machines (closes the picker gap),
+      GET /api/protocols/{id}/document (source links; readable by all
+      three shop-floor roles, path validated against the volume root),
+      GET /api/protocols/mine (schichtleiter, own uploads + failure
+      reason). QueryController's two 503s now carry a `reason` code so
+      the UI can tell a spent budget from an unreachable provider.
+  (3) fix/source-links — MERGED (#26). Citation sources are fetched as
+      blobs through HttpClient (the interceptor attaches the token)
+      and opened as object URLs; the new tab is opened SYNCHRONOUSLY
+      in the click handler and navigated after the blob arrives (the
+      popup-blocker-safe order), with a download fallback carrying the
+      Content-Disposition filename when the popup is blocked anyway.
+      The <a> kept its keyboard semantics but has NO href — a raw href
+      is the bug, and the regression guard in search.spec.ts forbids
+      it. The pre-fix suite ASSERTED the bug (checked href === the API
+      URL); it was replaced by its opposite.
+
+NEXT SESSION STARTS WITH: PHASE 4 — polish + ship, REVISED SCOPE.
+Carlos added two work packages on 2026-08-08; suggested robot PRs, in
+order:
+
+  (1) feat/ui-redesign — the frontend works but looks like a skeleton,
+      not like a product a recruiter would screenshot. Scope:
+      - A real visual design: consistent spacing/typography/color
+        system (keep the Mode A green / Mode B amber distinction — it
+        is NFR-2's anti-hallucination mechanism, not a theme choice),
+        proper header (app name, language switch, user + role, logout)
+        and footer (imprint-style links: docs site, GitHub repo,
+        AI-USAGE).
+      - A LANDING PAGE for the logged-out state: what the app is, who
+        the demo users are (the recruiter arrives here first — this
+        page is the 90-second pitch), login button.
+      - A HELP affordance (button/dialog): what the two answer modes
+        mean, what each role may do, example questions per demo seed.
+        Content from DECISIONS.txt, DE/EN via the existing dictionary.
+      - Responsive check: the Phase 4 walkthrough is ON A PHONE.
+      - No functional changes to search/upload logic; vitest suite
+        stays green and the no-raw-/api-href regression guard stays.
+
+  (2) sec/token-hardening — Carlos's mock-interview question, and he
+      DEMONSTRATED the threat himself: while measuring latency he
+      lifted his own access token out of the browser and used it from
+      curl. Anything that can read the tab's storage (XSS, or malware
+      on the machine) can do the same. Honest scope for this project:
+      - THREAT SPLIT (this is the ADR's spine): (a) malware on the
+        user's machine can also steal cookies, keylog the password and
+        read the screen — NO web-app architecture defends against a
+        compromised endpoint; state this plainly rather than pretend.
+        (b) XSS stealing the token from the SPA IS in scope and has
+        real, proportionate mitigations.
+      - What is ALREADY in place (record, don't rebuild): access token
+        lives in sessionStorage (tab-scoped, gone on close — the
+        angular-oauth2-oidc default; NOT localStorage), lifetime is
+        15 min (measured: expires_in 900), Angular templates escape by
+        default and the answer renderer uses typed segments with no
+        innerHTML anywhere (verified in review of #25).
+      - CHEAP AND REAL, do it: security headers at the Caddy layer —
+        Content-Security-Policy (script-src 'self'; connect-src self +
+        auth host; frame-ancestors 'none'), X-Content-Type-Options
+        (backend already sends nosniff — align the frontend),
+        Referrer-Policy, Permissions-Policy. NOTE: Caddyfile changes
+        deploy like compose changes — BY HAND on the host (ops rule).
+        Verify the CSP does not break the OIDC redirect or the blob:
+        tabs (blob: needs allowing where used) BEFORE merging.
+      - DISPROPORTIONATE FOR A PORTFOLIO DEMO, decide + document in
+        ADR-005 (token handling) instead of building: the BFF pattern
+        (backend-for-frontend holding tokens server-side, HttpOnly
+        session cookie to the browser) is the textbook answer to
+        SPA token theft and the RIGHT answer in an enterprise setting
+        — and it adds a stateful session layer, CSRF handling and a
+        second auth code path to a demo whose token already dies in
+        15 minutes. Decide: keep the public-client SPA + short TTL +
+        CSP, document BFF as the production-grade evolution. Also
+        record: refresh-token rotation status in the realm, and that
+        the demo users hold no data worth stealing (synthetic corpus).
+        THIS ADR IS INTERVIEW MATERIAL — Carlos asked the exact
+        question a mock interviewer asked him; the ADR is the answer
+        he will give.
+
+  (3) docs/ship-readiness — README (problem first, 90-second demo
+      walkthrough, architecture diagram, links to ADRs + docs site),
+      AI-USAGE.md current, OpenAPI/Swagger reachable in the deployed
+      demo (recruiter feedback!), "How to reproduce" in
+      spike/adr-002/RESULTS.md.
+
+  Then, by hand (Carlos, no robot): full recruiter walkthrough on a
+  phone and a fresh browser — REMEMBER THE #26 LESSON: anything the
+  browser performs itself must be verified by clicking, not with curl
+  — then tag v1.0.0.
+

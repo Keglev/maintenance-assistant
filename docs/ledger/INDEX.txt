@@ -1,0 +1,143 @@
+LEDGER — closed blocks rotated out of docs/PROJECT-PHASES.txt
+Created 2026-08-27. See ADR-010, "Addendum 2026-08-27 — ledger rotation".
+
+=====================================================================
+WHAT THIS DIRECTORY IS, AND WHAT IT IS NOT
+=====================================================================
+THIS DIRECTORY IS NOT HANDED TO AI SESSIONS. The three files given to
+every session are docs/PROJECT-PHASES.txt, docs/DECISIONS.txt and
+docs/REFACTOR-STANDARDS.txt, and that has not changed. What changed is
+that PROJECT-PHASES.txt no longer carries 3,807 lines of closed history
+inside it — the closed blocks live here, and the file keeps a two-line
+stub where each one was, plus the rows that are still open.
+
+IT IS HISTORY, NOT A SESSION INPUT. Read it when a stub points here, or
+when a citation in another file lands in a moved block (see FORWARDING).
+Do not load it wholesale into a prompt: doing that recreates the problem
+the rotation solved.
+
+EVERY FILE HERE IS BYTE-IDENTICAL to the lines it was cut from. No
+reflow, no whitespace fix, no line-ending change. The rotation commit
+proves it with cmp against the base commit, 75f06ba, and anyone can
+repeat that:
+
+  git show 75f06ba:docs/PROJECT-PHASES.txt | sed -n '<A>,<B>p' \
+    | cmp - docs/ledger/<FILE>
+
+THE MEASURED TRIGGER: PROJECT-PHASES.txt had reached 5,349 lines and
+340,453 bytes, of which 72% was closed — history that every session
+read and no session could act on.
+
+NAMES ARE SCREAMING per ADR-010 rule 1: these are records, not
+explanatory prose, and they are immutable once written here. A
+correction to a moved block is made where corrections are always made,
+in the live record, and never by editing the file it was cut from.
+
+=====================================================================
+FILES
+=====================================================================
+Ranges are lines of docs/PROJECT-PHASES.txt at 75f06ba.
+
+  STATUS-2026-08-08.txt                       4180-5062   883 lines
+    PREVIOUS STATUS — 2026-08-08, superseded 2026-08-10, including its
+    ==== fence. Phases 0-3 done and Phase 4 shipped; #24, #25, #26 named
+    as Phase 3, #28 onward as Phase 4. Covers the run up to v1.0.0.
+
+  STATUS-2026-08-11.txt                        121-232    112 lines
+    SUPERSEDED STATUS — 2026-08-11 (v1.1.0 tagged and released),
+    including its ==== fence. Its own summary: every PR from #31 to #47
+    merged and deployed, #48 the release chore the tag sits on.
+
+  V1.2.0-TRUST-CHAIN.txt                       268-982    715 lines
+    Roadmap item 2, the v1.2.0 trust chain, with the progress entries
+    written under it — the approval workflow, duplicate detection, the
+    protocol viewer's history, the corpus seed, and the v1.3.0 retrieval
+    entries that were recorded in the same item (#49 through #68).
+    2026-08-11 to 2026-08-20.
+
+  REFACTOR-PART-1-TEST-COVERAGE.txt           1070-1345   276 lines
+    Part 1 of the refactor phase: the survey of 2026-08-20 and its
+    close-out of 2026-08-24. #70 to #84, plus #85 which put it on the
+    record.
+
+  REFACTOR-PART-2-CODE-STRUCTURE.txt          1346-1630   285 lines
+    Part 2: the code-structure survey of 2026-08-24 and its close-out.
+    Seven findings; F1 fixed in #89, F2 ruled by ADR-010 in #90 and
+    fixed in #91, F3 ruled in #90.
+
+  REFACTOR-PART-3-CONFIG-DEPLOY.txt           1631-2927  1297 lines
+    Part 3: configuration and deployment, 2026-08-25 to 2026-08-26.
+    Thirty-one findings C1-C31; thirteen pull requests #94-#103, #105,
+    #107, #108, plus #104 and #106 closed by design.
+
+  PHASES-0-4-BUILD.txt                        5095-5333   239 lines
+    The original build plan, PHASE 0 through PHASE 4, each marked DONE.
+    Superseded as a plan by the ROADMAP that stays in PROJECT-PHASES;
+    kept because it is what was actually built and in what order.
+
+  Total moved: 3,807 lines.
+
+NOT MOVED, AND DELIBERATELY: the DIAGNOSTICS AND PROVIDER WAVE
+(2928-3871 at the base) stays in PROJECT-PHASES.txt. It is OPEN — the A4
+instrument is live and the Qwen ticket is unsent — and an open wave is
+not history.
+
+=====================================================================
+FORWARDING — citations elsewhere that now land in a moved block
+=====================================================================
+These files were NOT edited. A reader following one of them will not
+find the text in PROJECT-PHASES.txt any more; this table says where it
+went. Line numbers are as of 75f06ba and will drift; the quoted phrase
+is the stable key.
+
+  docs/DECISIONS.txt:691
+    "the PART 3 CLOSE-OUT entry in PROJECT-PHASES.txt"
+    -> REFACTOR-PART-3-CONFIG-DEPLOY.txt
+
+  .github/scripts/docs/build-docs.sh:45
+    "see PROJECT-PHASES 2026-08-19"
+    -> V1.2.0-TRUST-CHAIN.txt (the PROGRESS 2026-08-19 entries, three of
+       them, on the absolute-links defect this comment is about)
+
+  docs/adr/ADR-006-insider-threat-and-protocol-moderation.md:445
+    "It is named in PROJECT-PHASES so it cannot be inherited as a
+    mystery" — the archive route's widening as a permission decision
+    -> V1.2.0-TRUST-CHAIN.txt
+
+  docs/runbooks/seed-v12-protocols.md:374
+    "a one-time override of the standing rule that robots do not touch
+    production — see PROJECT-PHASES"
+    -> V1.2.0-TRUST-CHAIN.txt
+
+  backend/src/test/java/.../web/ProtocolUploadGuardsIT.java:47
+  backend/src/test/java/.../web/UploadSizeLimitIT.java:36
+    "the HEAD defect recorded in PROJECT-PHASES"
+    -> STATUS-2026-08-11.txt, BEST MATCH AND NOT CERTAIN. The phrase
+       "HEAD defect" appears nowhere in PROJECT-PHASES.txt at the base
+       commit. The nearest subject is #36 sec/upload-guards — the
+       multipart caps, UploadContentPolicy and the 413 — which is what
+       both tests are about and which moved into that file. Whoever
+       knows what "HEAD" meant should correct this line.
+
+CHECKED AND NEEDING NO FORWARDING — the citation resolves into a block
+that STAYED in PROJECT-PHASES.txt:
+
+  docs/DECISIONS.txt:417   "step 4 under CORRECTION 2026-08-21"
+    The CORRECTION 2026-08-21 block is at base line 1027, which is above
+    the Part 1 range (1070) and was NOT moved. The rotation plan
+    predicted this would forward to Part 1; it does not.
+  docs/DECISIONS.txt:730   diagnostics wave A2 and A3 — open, kept
+  frontend/e2e/README.md:317   "the v1.1.1 list" — base 3950, kept
+  frontend/e2e/approval.e2e.ts:20  "steps 1 and 2 swapped on 2026-08-11"
+    — base 242, in the ROADMAP, kept
+  .github/workflows/catalogue-watch.yml:11, application.yml:116,
+  TruncatedBody.java:16, ChatMaxTokensIT.java:27,
+  ADR-002:265 and :344 — all the diagnostics wave, kept
+  docker/keycloak/themes/README.md:4 — the OPS RULES, kept
+
+GENERIC MENTIONS, no block to forward: AI-USAGE.md:19,
+REFACTOR-STANDARDS.txt:3, :225 and :306, docs/_theme/index.html:189,
+docs/_theme/index-de.html:196, ADR-008:177 and :242, ADR-010:79,
+arc42/02-architecture-constraints.md:22 and :24,
+arc42/04-solution-strategy.md:53, arc42/README.md:26,
+docs/refactor-standards.md:169, application.yml:179.

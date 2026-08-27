@@ -1,0 +1,1297 @@
+   PART 3 — CONFIGURATION AND DEPLOYMENT SURVEY, 2026-08-25, measured on
+   162b0e0 (#92)
+
+   READ-ONLY. Nothing outside this file was edited, no workflow was
+   dispatched, no deploy was run, and no secret was read or printed —
+   only the four secret NAMES the workflows reference. Twenty-four
+   findings, C1 to C24; six areas came back clean and are named in (c)
+   rather than left to be inferred from an absence.
+
+   (a) SCOPE AND METHOD
+     Nine workflow files, one composite action, four docs scripts, two
+     diagram scripts, two compose files, two .env examples, the
+     Caddyfile, two Dockerfiles, the Postgres init script, five infra
+     files, backend/src/main/resources/application.yml plus the three
+     test profiles, seven frontend config files, and the repository
+     root. 397 tracked files at 162b0e0.
+
+     THE PATH PARTITION WAS MEASURED, NOT READ. Every tracked file was
+     run through the three pull_request filters that can produce the
+     required build-and-test check, with GitHub's glob semantics (**
+     crosses a separator, * does not):
+
+       git ls-files                                        -> 397 files
+       backend-ci paths-ignore  frontend/**, docs/**,
+                                .github/workflows/docs.yml
+       frontend-ci paths        frontend/**,
+                                .github/workflows/frontend-ci.yml
+       docs-pr-check paths      docs/**, .github/workflows/docs.yml,
+                                .github/workflows/docs-pr-check.yml,
+                                .github/scripts/docs/**
+
+     Result: 397 measured, 0 gaps, 6 overlaps. The six are the five
+     gate-adjacent docs paths and frontend-ci.yml's own file, every one
+     of them double-gated ON PURPOSE and documented as such in the
+     trigger comments. The partition holds. The script is quoted in the
+     pull request body so the next survey re-runs it rather than
+     re-deriving it.
+
+     COUNTS RECOMPUTED FROM PARTS, not carried: publish steps counted
+     with a grep over docs.yml and attributed to their job with an awk
+     pass; gh-pages entries counted from git ls-tree; the ghosts dated
+     with git log per path on origin/gh-pages.
+
+   (b) FINDINGS — C1 to C24
+     Severity is PROPOSED. Carlos rules; fixes are their own PRs.
+
+     C1  docs.yml:78,163,176,187 — THE PUBLISH STEP COUNT, RE-MEASURED.
+         Four peaceiris/actions-gh-pages@v4 steps, all four keep_files:
+         true. But at most TWO RUN IN ANY ONE RUN: step 78 is the only
+         one in the `site` job, and the `reports` job runs 163 plus
+         exactly one of 176 / 187, gated on steps.project.outputs.name.
+         So "three steps" (Part 1 close-out) and "four invocations"
+         (#92's evidence line) are both wrong, in opposite directions,
+         and neither is the number that matters. Evidence:
+           grep -c 'uses: peaceiris/actions-gh-pages@v4' docs.yml  -> 4
+           grep -c 'keep_files: true' docs.yml                     -> 4
+           awk job attribution -> site:78  reports:163,176,187
+         Recorded as a dated correction under the carried finding, above.
+         no written rule — the convention is that a count in the record
+         is recomputed by the PR that acts on it (REFACTOR-STANDARDS,
+         COUNTING METHODS). FIX (the record; the workflow is C2's).
+         CLOSED BY #108: the count is now two declared, one per run, and
+         the header says so. The number this row argued about no longer has
+         a way to drift, because there is one publish step per job.
+
+     C2  gh-pages root — SIX ENTRIES NO BUILD PRODUCES. Measured against
+         what build-docs.sh actually emits (write_lua_filter,
+         build_theme_assets, copy_landing_pages, copy_diagrams,
+         copy_plain_text_docs, build-markdown-docs.sh at -maxdepth 1):
+         nothing in the build writes README.md, LICENSE, DOMAIN-MODEL.md,
+         REQUIREMENTS.md, DOMAIN-MODEL.html or REQUIREMENTS.html.
+         Evidence, first and last publish per path:
+           git log --format=%cd origin/gh-pages -- <path> | tail -1
+           DOMAIN-MODEL.md    first 2026-08-05  last 2026-08-05
+           REQUIREMENTS.md    first 2026-08-05  last 2026-08-05
+           README.md          first 2026-08-05  last 2026-08-05
+           LICENSE            first 2026-08-05  last 2026-08-05
+           DOMAIN-MODEL.html  first 2026-08-05  last 2026-08-24
+           REQUIREMENTS.html  first 2026-08-05  last 2026-08-24
+         THE FOUR .md/LICENSE GHOSTS ARE OLDER THAN THE PANDOC BUILD —
+         they date from the 2026-08-05 first publish (41022de / 4babee3)
+         and have not been rewritten since, which confirms the guess
+         carried into this survey. The two .html ghosts are different in
+         kind: they were current output until 2026-08-24 and became
+         ghosts when #91 renamed their sources. One mechanism, two ages.
+         no written rule — the expected convention is that a published
+         site is what the build produces. RULING NEEDED, and (e) is the
+         sketch it needs to rule on.
+         RULED 2026-08-25: single staged publish. Its own PR, last in
+         the wave, because every other fix should be on main before the
+         publisher changes shape.
+         STOPPED 2026-08-26 ON THE FIRST ATTEMPT, and the stop was the point
+         of running the simulation: the deletion list came back at 49 files,
+         not the six this row named. No pull request was opened.
+         RULED 2026-08-26, Carlos, VERBATIM: "The published site is what the
+         build produces plus the two report subtrees. All 49 'Only in
+         gh-pages' entries from the simulation are deleted on the first
+         publish: the six from #92, .nojekyll (which moves into the build
+         output), the 33-file pre-rename arc42/ tree, the six pre-ADR-005 ADR
+         markdown sources and the just-the-docs theme leftovers. Evidence
+         accepted: all 43 date from the single 2026-08-05 publish, nothing in
+         the repository links to them, and each has a current equivalent
+         under architecture/ or adr/*.html. No redirects, no archive."
+         FIXED 2026-08-26, #108: two publish steps, one per run, no
+         keep_files; 49 files deleted on first publish, ruled 2026-08-26;
+         list in the PR body; simulation S3 output recorded there in full.
+         THE SIMULATION AFTER THE RULING DELETES 48, NOT 49, and the
+         difference is the fix rather than a discrepancy: .nojekyll is the
+         forty-ninth, and build-docs.sh now writes it, so it appears on both
+         sides and is not deleted. 597 published files, 549 built and
+         carried, 48 removed, 0 "only in built". Nothing outside the ruled
+         set.
+         COMPUTED FROM `git ls-tree -r` ON BOTH SIDES, NEVER FROM A CHECKOUT.
+         Windows is case-insensitive, so DOMAIN-MODEL.html and
+         domain-model.html cannot both exist in a worktree and a `diff -rq`
+         against one silently under-reports by two. A comparison run on a
+         Linux runner would not have shown this; the tool has to be chosen
+         for the machine it runs on.
+
+     C3  docs.yml:10 — "Both publish steps use keep_files". There are
+         four. The comment predates two of them and now understates the
+         thing it exists to warn about. REFACTOR-STANDARDS, DOCS:
+         "PUBLISHED PROSE STATES ONLY WHAT THE CHECKOUT SHOWS". FIX.
+         FIXED 2026-08-25, #94.
+         CLOSED BY #108: that paragraph is rewritten again, this time to
+         describe a workflow with two publish steps and no keep_files, and it
+         now carries I1-I5 so the next reader does not have to infer the
+         rules from the steps.
+
+     C4  frontend-e2e.yml:26-37 — THE SHARED STACK ACTION IS NOT A
+         TRIGGER HERE. The job uses ./.github/actions/e2e-stack at
+         line 57, but neither its pull_request nor its push paths list
+         .github/actions/e2e-stack/**. frontend-e2e-visual.yml lists it
+         in both (lines 29 and 37). So editing the action that provisions
+         Postgres, Keycloak, the stub and the backend runs `visual` and
+         does NOT run `e2e` — the functional suite, on the file that
+         decides whether its stack exists. Evidence:
+           git grep -n e2e-stack .github/workflows/*.yml
+         REFACTOR-STANDARDS, SCRIPTS AND WORKFLOWS: "EVERY PATH MUST BE
+         GATED by the workflow that actually exercises it." The same
+         reasoning that put .github/scripts/docs/** into docs-pr-check on
+         2026-08-21. FIX.
+         FIXED 2026-08-25, #95. '.github/actions/e2e-stack/**' added to both
+         of frontend-e2e.yml's filter lists, in the visual workflow's own
+         position and quoting. Re-measured over 399 tracked files: gaps 0,
+         build-and-test overlaps 6 — UNCHANGED, and that is not a null
+         result but a correction. The overlap count only ever counted the
+         three workflows that report the required check; e2e and visual
+         report `e2e` and `visual` and were never in it. What did change is
+         the thing the finding was about: action.yml now measures
+         e2e=true visual=true, where it was visual-only. The only remaining
+         asymmetry between the two suites is each one's own file, which is
+         correct.
+
+     C5  frontend-e2e-visual.yml:18 — names a script that does not
+         exist. The header says baselines are generated with
+         `npm run e2e:visual:update:docker`. package.json has
+         e2e:visual, e2e:visual:update and e2e:visual:bare, and both
+         ADR-007 and frontend/e2e/README.md say
+         e2e:visual:update. Evidence:
+           git grep -n "e2e:visual" -- ':!frontend/package.json'
+         A reader who follows the file's own instruction gets
+         "Missing script". REFACTOR-STANDARDS, DOCS: prose states what
+         the checkout shows. FIX.
+         FIXED 2026-08-25, #94.
+
+     C6  application.yml — THE http SERVER URL, RE-MEASURED AND ITS CAUSE
+         FOUND. Carried out of Part 1 as "springdoc deriving the server
+         behind the proxy". Still true 2026-08-25:
+           curl -s https://maintenance.smartsupply.com.de/v3/api-docs
+           servers: [{"url":"http://maintenance.smartsupply.com.de",
+                      "description":"Generated server url"}]
+         OpenApiConfig sets .info and .components and NO .servers, so
+         springdoc derives it from the request. Caddy
+         terminates TLS and proxies plain HTTP to backend:8080, so the
+         request the application sees IS http — and nothing tells it
+         otherwise: `grep -rn "forward-headers" backend/src docker/`
+         returns nothing. The absent setting is
+         server.forward-headers-strategy, which would make Boot honour
+         the X-Forwarded-Proto Caddy already sends. Not a deployment
+         fault and not a springdoc bug: a missing property. FIX, and it
+         is one line — but it changes what a published document says, so
+         it is a ruling before it is an edit.
+         FIXED 2026-08-25, #99: property server.forward-headers-strategy:
+         framework added to application.yml, test ForwardedHeadersIT.
+         DEPLOY REQUIRED — backend image; verify the live servers URL after
+         deploy. THIS IS THE FIRST PART 3 CHANGE THAT ALTERS PRODUCTION
+         BEHAVIOUR; every earlier PR in the wave was comments, ledgers or
+         dev-only files, and CI green does not finish this one.
+         THE STOP CONDITION WAS CHECKED BY MEASUREMENT, NOT BY READING.
+         Before the property was added, the new test ran and failed with
+           expected: "https://maintenance.smartsupply.com.de"
+            but was: "http://localhost:54027"
+         which proves springdoc DERIVES servers from the request in this
+         version — so the fix is the property and a hardcoded servers entry
+         would have been the wrong shape. With the property: 2 of 2 pass.
+         framework over native: native delegates to the container valve,
+         which only Tomcat has and which needs its own trusted-proxy list;
+         framework is Spring's ForwardedHeaderFilter, container-independent,
+         and honours X-Forwarded-Prefix as well.
+         THE SPEC WAS ONLY THE VISIBLE SYMPTOM. Redirect Location headers
+         and every other absolute URL the application derives from a request
+         carried the same defect; one property fixes the class.
+
+     C7  frontend/package.json — PRETTIER, RE-MEASURED, STILL OPEN.
+         prettier ^3.8.1 in devDependencies and a tracked
+         frontend/.prettierrc (printWidth 100, singleQuote, an angular
+         parser override for *.html) — and no `format` script, no
+         `format:check` script, and no format step in frontend-ci.yml.
+         Fourteen scripts, none of them prettier. So the configuration
+         is versioned, the tool is installed, and nothing runs it: the
+         formatting findings on moderation.ts and moderation.html stay
+         open with no gate that could have caught them. Carried from
+         Part 1 unchanged. FIX.
+         FIXED 2026-08-25, #101: gate added; 38 files reformatted in a
+         separate commit c4965a4e8f5e;
+         blame-ignore added.
+         A FORMATTER CONFIGURED AND NEVER RUN — and the size of the
+         reformat is the finding, not the reformat. The row expected the
+         two moderation files. THE MEASURED ANSWER IS 38 of the 130 tracked
+         frontend files prettier considers: 30 under src/, 6 under e2e/ and
+         two tsconfigs — 23 .ts, 11 .html, 2 .json, 1 .mjs, 1 .css. The
+         moderation four are among them, so the Part 1 findings were real;
+         they were also only a tenth of the drift, which is what a gate
+         nobody ran buys.
+         A COUNTER THAT LIED, RECORDED BECAUSE IT NEARLY REACHED THIS PAGE:
+         the first run of `prettier --check .` reported 127. That figure was
+         an artefact of THIS WORKING TREE, not of the repository — the files
+         predated #95's .gitattributes and were still CRLF on disk, and
+         prettier flags a CRLF file whose content is otherwise perfect.
+         After a checkout under `* text=auto eol=lf` the same command
+         reported 38. Eighty-five of the "failures" were line endings git
+         normalises away and would never have appeared in a diff. CI checks
+         out LF and always saw the true number.
+         MARKDOWN IS EXCLUDED, AND THAT WAS A STOP-AND-REPORT. Prettier
+         rewrites `*emphasis*` to `_emphasis_` and pads table separator
+         rows: rendering-identical, but a TOKEN change to prose and the
+         ONLY non-whitespace change in the entire reformat — 48 lines in
+         frontend/e2e/README.md, 32 of them emphasis markers. Documentation
+         prose is governed by REFACTOR-STANDARDS, not by a code formatter,
+         and nobody ruled on rewriting it, so *.md is ignored with the
+         reasoning at the site. Everything remaining under `git diff -w` is
+         re-wrapping and one added trailing comma.
+         THE .prettierignore WAS MEASURED, NOT GUESSED. Two entries are
+         proven — package-lock.json (1 flagged; npm owns that format and
+         `npm ci` would revert a reformat) and test-results/ (2 flagged,
+         Playwright artefacts). The rest are GUARDS at 0 flagged today:
+         dist/, coverage/, documentation/, playwright-report/, .angular/
+         and e2e/__screenshots__/. The last has teeth — those are the
+         visual baselines, and ADR-007 makes regenerating one a deliberate
+         act, never a side effect of running a formatter.
+         CHECKED BEFORE THE REFORMAT, because it would have been a silent
+         loss: prettier PRESERVES the // comments in angular.json. The
+         ratchet block #83 wrote there survives verbatim, 17 comment lines
+         before and 17 after.
+
+     C8  docker-compose.yml:74-113 — a forty-line commented-out `app:`
+         service, headed "enabled in Phase 1, once backend/ contains a
+         Spring Boot app". backend/ has contained one since Phase 1
+         shipped, and the real service is docker-compose.prod.yml's
+         `backend`, which has since diverged (MAINTENANCE_FILES_PATH,
+         the budgets, the :- default reasoning). Six-part plan item 3:
+         "no useless or redundant setting either; a setting that does
+         nothing is a claim that it does something." RULING NEEDED —
+         delete, or revive it as the dev stack's app service. Not a
+         judgement a survey gets to make.
+         RULED 2026-08-25: delete the commented-out dev app: block and
+         its five settings. Its own PR, with C9 and C10.
+         2026-08-25: docker-compose.yml:5 "Three containers per ADR-001"
+         must be made true in that same PR — the dev stack defines two
+         services with the third commented out, so deleting the block
+         without touching the line leaves a count describing nothing.
+         FIXED 2026-08-25, #97: 41 lines removed (the banner and block,
+         re-measured at 75-114 rather than the survey's 74-113 — #94 grew
+         the file header by one line), 6 variables removed, protocol-files
+         REMOVED. The volume was mounted only by the deleted block, so
+         nothing declares it now. The header line says two services and
+         names where the application actually runs; ADR-001's three
+         containers are the DEPLOYED count and the line now says which is
+         which instead of leaving a reader to guess.
+         THE RULING'S PREMISE WAS CHECKED BEFORE THE DELETION, because a
+         deletion that removes the only description of how to run the app
+         is not a cleanup: frontend/e2e/README.md "What it needs running"
+         tabulates postgres and keycloak by compose, the backend by
+         `cd backend && mvn spring-boot:run`, and the frontend on the dev
+         server. The flow is documented; the block described nothing.
+
+     C9  docker/.env.example:24-33 — five settings with no consumer.
+         APP_PORT, KEYCLOAK_ISSUER_URI, LLM_BASE_URL, LLM_API_KEY,
+         LLM_CHAT_MODEL and LLM_EMBEDDING_MODEL are read ONLY by the
+         commented-out service in C8. Evidence: they appear in
+         docker-compose.yml at lines 92-104, every one of them inside
+         the comment block. A developer who fills them in gets no error
+         and no effect. Ties to C8 — one ruling covers both. FIX with C8.
+         RULED 2026-08-25: deleted with C8, same PR.
+         FIXED 2026-08-25, #97: 6 removed, not the 5 the row counted —
+         APP_PORT, KEYCLOAK_ISSUER_URI and the four LLM_* ones. THE PROOF
+         THAT MATTERS IS ONE LOCATION, not four: docker/.env is read by
+         `docker compose` and by nothing else (verified — no script sources
+         it), so only docker-compose.yml can make a variable in it live,
+         and all six measure 0 there. The hits elsewhere are the real
+         consumers reading a DIFFERENT env source — application.yml from
+         the backend's own shell, .github/ from the e2e action, and
+         docker-compose.prod.yml from .env.prod. APP_PORT alone measures 0
+         in every location in the repository.
+
+     C10 docker/.env.example:30-33 — THE EMPTY-OVERRIDE LANDMINE, in the
+         file that teaches it. LLM_BASE_URL=, LLM_API_KEY=,
+         LLM_CHAT_MODEL= and LLM_EMBEDDING_MODEL= are set to empty
+         strings. docker-compose.prod.yml:88-93 documents at length why
+         that is a trap ("compose substitutes an empty string ... an
+         empty string is a set value ... it overrode a working default
+         with ''"), and .env.prod.example:51-54 repeats the warning and
+         says "If you do not need a value, delete the line". The
+         development example does the opposite of both. Inert today only
+         because C8 keeps the service commented out — which means
+         reviving that service reintroduces the exact defect #22 fixed.
+         FIX with C8.
+         RULED 2026-08-25: deleted with C8, same PR — the four empty
+         assignments go with the block that was their only consumer.
+         FIXED 2026-08-25, #97: all four empty assignments gone, and NO
+         assignment replaces them. The row allowed keeping a variable the
+         backend reads locally, with a comment and no `=` line; the measured
+         answer is that none of them can reach the backend from this file at
+         all, because the backend does not run in compose. So the section is
+         now prose only: it says where the LLM settings actually go (the
+         shell that starts the backend, per frontend/e2e/README.md), that
+         application.yml already carries a working default for every one of
+         them, and that an empty assignment anywhere is a set value that
+         overrides rather than defers. The trap is documented where someone
+         looking for a place to put a key will read it.
+
+     C25-C27  THREE FINDINGS #97 SURFACED WHILE DOING C8-C10, recorded
+         here rather than left in a pull request body, because a finding
+         that lives only in a merged PR is a finding the next survey
+         rediscovers.
+
+     C25 THE DEV POSTGRES PORT DISAGREED WITH ITSELF, and the failure is
+         worth naming: A PERSONAL-MACHINE OVERRIDE LEAKED INTO SHARED
+         DOCUMENTATION. POSTGRES_PORT=5433 belongs in one developer's
+         untracked docker/.env — docker/README.md documents it exactly
+         that way, as what to set when a host already runs Postgres on
+         5432 — and it had been copied into two shared files as though it
+         were the default. Measured, five files say 5432:
+           docker-compose.yml:30      "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
+           .env.example:11            POSTGRES_PORT=5432
+           application.yml:10         ...localhost:5432/maintenance
+           e2e-stack/action.yml:56    -p 5432:5432
+           docker/README.md:39-41     5433 named as the OVERRIDE only
+         Against them, frontend/e2e/README.md:23 and
+         application-demo.yml:14-15 stated 5433 as the default, so a
+         developer following the e2e README against a stock .env.example
+         got a port that nothing was listening on.
+         FIXED 2026-08-25, #98. The port table row now reads "5432 by
+         default; 5433 if POSTGRES_PORT=5433 is set in docker/.env" and
+         points at docker/README.md; the demo profile defaults to 5432 and
+         says that its ${SPRING_DATASOURCE_URL:...} placeholder is where an
+         override belongs. Every remaining 5433 in the repository is the
+         documented override, five hits, each one naming POSTGRES_PORT.
+
+     C26 docker/.env.example — KEYCLOAK_REALM=maintenance, a seventh dead
+         setting of the family C9 removed. Nothing in docker-compose.yml
+         read it, and it carried no comment of its own, so removing the
+         line orphaned nothing. THE REALM NAME IS NOT LOST AND WAS NEVER
+         THIS FILE'S TO SET: docker/keycloak/realm-export.json:2 carries
+         "realm": "maintenance" and the export is imported on every start,
+         which docker/README.md already states twice — in the Realm table
+         and under "Changing the realm" ("The export is the source of
+         truth"). No sentence was added anywhere, because none was missing.
+         FIXED 2026-08-25, #98.
+
+     C27 THE ONLY DESCRIPTION OF HOW TO RUN THE STACK LOCALLY lives in
+         frontend/e2e/README.md's "What it needs running" table. Neither
+         the repository README nor arc42 07 says how to start the
+         application on a laptop. #97 leaned on that table to verify its
+         own premise, which is exactly why the placement is worth a row:
+         the instructions are correct and nobody would look there first.
+         Not a defect and not this wave's to move.
+         -> Part 6 (docs), carried.
+         STILL CARRIED AFTER #118, and checked rather than assumed: the
+         recruiter landing pages describe the LIVE DEMO — sign in, pick a
+         machine, read an answer — and say nothing about starting the
+         stack on a laptop. overview.md does not either; it stops at
+         three containers and one `docker compose up`, which describes
+         the topology rather than instructing anybody. So neither section
+         5 nor the overview closes C27, and it goes to Part 6 unchanged.
+
+     C11 docker/.env.example:28-29 — "EU-hosted, OpenAI-compatible LLM
+         endpoint — see ADR-002. Left empty on purpose: the provider is
+         not decided yet". ADR-002 was ACCEPTED 2026-08-06 and decided
+         IONOS AI Model Hub, primary, with Nebius as the documented
+         fallback; application.yml:83 carries the resolved URL as its
+         default. The comment cites the ADR that refutes it. FIX.
+         FIXED 2026-08-25, #94.
+
+     C12 backend/Dockerfile:2-3, frontend/Dockerfile:2-3,
+         docker-compose.yml:6-7 — THE arm64 TARGET HOST IS GONE. All
+         three say the file is built "for the Hetzner CAX (arm64) target
+         host". backend-deploy.yml:73-77 and frontend-deploy.yml:60-64
+         removed the arm64 leg: "platforms: linux/amd64 ... Production is
+         x86_64 and the ARM rationale expired with Hetzner's 2026-06
+         price restructuring". frontend-deploy adds that npm ci under
+         qemu-emulated arm64 died on 2026-08-10. The images are amd64
+         only; the three comments still promise a host that was retired.
+         REFACTOR-STANDARDS, DOCS + "Comments explain WHY, never WHAT" —
+         a WHY that is no longer true is worse than no comment. FIX.
+         FIXED 2026-08-25, #94.
+         2026-08-25: fourth instance docker/README.md:4-5 and THREE arc42
+         statements — 02-architecture-constraints.md TC-3,
+         07-deployment-view.md Images row, and 07 again at the deploy
+         narrative — still claim multi-arch. The README line is prose and
+         is corrected in the C14 PR. TC-3 IS NOT PROSE AND NEEDS A RULING:
+         it is a CONSTRAINT ("every image is published for amd64 and arm64,
+         and CI builds multi-arch") whose own rationale column says it was
+         "Kept after the move to x86 on purpose". The deploy workflows
+         breach it. Either the arm64 leg comes back or TC-3 is amended, and
+         a comment PR does not get to choose. RULING NEEDED.
+         CLOSED 2026-08-25, #100, ruled A (amend TC-3): README line,
+         TC-3 rewritten, deployment view corrected — its Images row, the
+         CAX21 paragraph and the §7.5 delivery sentence, which was a third
+         arc42 instance the earlier note had not counted.
+         ONE LIVE FALSEHOOD IS LEFT AND IT IS OUT OF SCOPE:
+         backend-deploy.yml:51-52 still says "the images stay multi-arch so
+         moving back to ARM is a server swap and not a code change" — which
+         the SAME FILE contradicts twenty lines later at 73-77. Workflows are
+         out of scope here; it wants a one-line comment fix in its own PR.
+         KEPT AS CORRECT: both Dockerfiles and docker-compose.yml say BASE
+         images are multi-arch, which is true and is why either laptop
+         builds; the DECISIONS 2026-08-06 entry says "CI keeps building
+         amd64+arm64" and is immediately followed by its own REVISED AGAIN
+         2026-08-10; TC-2, 04-solution-strategy and AI-USAGE describe the
+         CAX-to-CX33 purchase revision, which happened.
+         backend-deploy.yml sentence corrected #102. It is the last live
+         instance, and frontend-deploy.yml never carried it — checked.
+
+     C13 backend/Dockerfile:33 vs docker/postgres/init-keycloak-db.sh:9
+         — THE HOST RUNS A DIFFERENT NUMBER OF CONTAINERS IN EACH FILE.
+         "the VPS runs three containers in ~8 GB (NFR-5)" against "the
+         VPS runs four containers in 8 GB". docker-compose.prod.yml
+         defines FIVE services: caddy, frontend, backend, keycloak,
+         postgres. Neither figure is right and they disagree with each
+         other, which is how a reader learns to trust neither.
+         REFACTOR-STANDARDS, COUNTING METHODS: "every stated total is
+         recomputed from its own parts". FIX.
+         FIXED 2026-08-25, #94.
+
+     C14 docker-compose.prod.yml:52 — A FOURTH HAND-DEPLOYED FILE THAT
+         THE RECORD DOES NOT COUNT. The frontend service bind-mounts
+         ./frontend-config.json into the container as /config.json. That
+         file is NOT in the repository, has no .example, and is
+         mentioned nowhere in docker/README.md or .env.prod.example.
+         Evidence:
+           git grep -n frontend-config
+           docker-compose.prod.yml:52
+           docs/PROJECT-PHASES.txt, OPS RULE 3 (its own aside; cited by
+                                         key, not line — this entry moved it)
+           docs/arc42/07-deployment-view.md:109  (the same mount line)
+         OPS RULE 3 already NAMES it — "frontend-config.json is the other
+         one in this stack" — while every other passage says three
+         hand-deployed files (compose, .env.prod, Caddyfile). So the
+         record knows about it in one sentence and forgets it everywhere
+         a person would go looking. A rebuilt host has no template to
+         copy, and environment.ts:4-5 says the deployment supplies this
+         file; without it the image silently falls back to compiled-in
+         defaults. RULING NEEDED — the fix is a frontend-config.json
+         .example plus one line in docker/README.md, but adding it means
+         deciding whether the host copy and the template may drift.
+         RULED 2026-08-25: add frontend-config.json.example, and correct
+         "three hand-deployed files" to four everywhere it is written.
+         Its own PR.
+         FIXED 2026-08-25, #100: example added with 3 keys, README,
+         .env.prod.example, backup.sh ALREADY COVERED; hand-deployed count
+         corrected in 1 place — and it is SEVEN, not four.
+         THE RULING SAID FOUR AND THE MEASUREMENT SAYS SEVEN. Counted from
+         the bind mounts in docker-compose.prod.yml and corroborated by an
+         `ls` on the host: docker-compose.prod.yml, .env.prod,
+         caddy/Caddyfile, frontend-config.json, keycloak/realm-export.json,
+         keycloak/themes/wartungsassistent/ and postgres/init-keycloak-db.sh.
+         Writing "four" would have repeated the original defect one number
+         later, so the README carries the measured seven with the mount kind
+         per row — OPS RULE 3 applies to the four SINGLE-FILE mounts and not
+         to the theme directory, which is the distinction a count alone
+         hides. THE HOST ALSO CARRIES the .bak copies OPS RULE 1 asks for
+         (three of the compose file, two of .env.prod, one of the Caddyfile),
+         which is the rule visibly working.
+         ONLY ONE LIVE PLACE NEEDED CORRECTING, and that is itself a finding:
+         `git grep -n "three hand"` returns two hits and BOTH are this
+         record. No published document ever enumerated the set — the survey
+         row said "every other passage says three hand-deployed files", and
+         that was an overstatement. What was actually missing was any list
+         at all. docker/README.md now has one.
+         KEY DRIFT: NONE. The three keys on the server (names only, read
+         over ssh with grep — no value left the host) are keycloakIssuer,
+         keycloakClientId, apiBaseUrl, exactly the RuntimeConfig interface
+         and in the same order.
+         BACKUPS, checked rather than assumed: infra/backup.sh archives the
+         database and the protocol-files volume and none of the seven, which
+         arc42 §7.6.2 covers deliberately — the nightly job protects the
+         data, the Hetzner snapshot protects the host. Nothing changed there.
+
+     C15 infra/backup.sh:10 — a citation #91 missed. "(DOMAIN-MODEL.md:
+         no BLOBs in Postgres)". #91's close-out records "19 citing files
+         updated"; this file was not one of them. It is NOT covered by
+         ADR-010's frozen-citation rule, which is written for APPLIED
+         FLYWAY MIGRATIONS only ("the checksum covers comments and a
+         repair is a production operation"), and backup.sh has no
+         checksum. Evidence, the full remaining set:
+           git grep -n "DOMAIN-MODEL\.md\|REQUIREMENTS\.md"
+           3 lines in db/migration/  — FROZEN, ruled by ADR-010, quoted
+                                       in that ADR
+           7 in adr/ADR-010          — the ADR quoting them, correct
+           4 in spike/adr-002/       — see C23
+           1 in infra/backup.sh      — this finding
+         FIX. One word, and it is the difference between a rename that
+         finished and one that nearly did.
+         FIXED 2026-08-25, #94.
+
+     C16 .github/workflows/*.yml — EVERY ACTION FLOATS, AND NOTHING
+         WATCHES THEM. Twenty-odd uses:, all on a mutable major tag:
+         actions/checkout@v7, setup-java@v5, setup-node@v7,
+         upload-artifact@v7, download-artifact@v8, docker/*@v4/v6/v7,
+         peaceiris/actions-gh-pages@v4, lycheeverse/lychee-action@v2.
+         Not one digest pin. And there is no dependabot.yml and no
+         renovate config anywhere:
+           ls .github/dependabot.yml renovate.json .github/renovate.json
+           -> all absent
+         The two are a pair: floating tags with an update bot is a
+         choice, floating tags with nothing watching is drift. Two of
+         these actions are third-party (peaceiris, lycheeverse) and one
+         of those holds contents: write on gh-pages. no written rule.
+         RULING NEEDED — pin the third-party two, or add dependabot, or
+         accept both deliberately and say so.
+         RULED 2026-08-25: pin every action to a SHA, and add a monthly
+         grouped dependabot.yml so the pins are maintained rather than
+         frozen. Its own PR.
+         FIXED 2026-08-26, #102: 12 actions pinned across 41 occurrences
+         in 10 files, dependabot.yml added.
+         TWELVE DISTINCT EXTERNAL ACTIONS, not the thirteen the row counted.
+         The thirteenth `uses:` target is ./.github/actions/e2e-stack, a
+         LOCAL composite action, which is read from the checkout and has no
+         SHA to pin — it is already exactly as trustworthy as the commit
+         being built. Left alone deliberately.
+         ELEVEN TAGS ARE LIGHTWEIGHT AND ONE IS ANNOTATED, which is the
+         detail that would have produced a wrong pin if it had been skipped:
+         peaceiris/actions-gh-pages@v4 resolves through git/ref/tags to a
+         TAG OBJECT (329bcc8f), and the commit is that object's target
+         (84c30a85). Pinning the tag object would have pinned something
+         `uses:` cannot check out. The other eleven answer object.type
+         "commit" directly.
+         NO VERSION WAS BUMPED. Every pin is the SHA the tag pointed at on
+         2026-08-26, so this PR changes what is GUARANTEED to run, not what
+         runs.
+         DEPENDABOT CARRIES `labels: []`, and that is a decision rather than
+         an omission: `gh label list` returns only GitHub's nine defaults,
+         none of which fits a dependency bump, and Dependabot CREATES a
+         `dependencies` label of its own when the key is absent. An empty
+         list is the only spelling that labels nothing and creates nothing.
+         AMENDED 2026-08-26, #105: first npm batch failed on TS major /
+         Playwright Chromium; groups narrowed to minor+patch, majors
+         ungrouped, TypeScript and Boot minors ignored, Playwright isolated.
+         THE GROUPING RULE WAS TOO COARSE FOR A PEER-CONSTRAINED ECOSYSTEM.
+         #104 bundled thirteen npm updates and went red on all three
+         frontend checks — build-and-test, e2e and visual — in 7 s, 1m15s
+         and 1m10s. Measured, not inferred: all three died in the SAME step,
+         `Install dependencies`, with the same error, so the batch never
+         reached a test:
+           npm error code ERESOLVE
+           npm error While resolving: @angular/build@22.1.5
+           npm error Found: typescript@7.0.2
+           npm error   dev typescript@"~7.0.2" from the root project
+         against `npm view @angular/compiler-cli@22.1.3 peerDependencies`
+         -> typescript ">=6.0 <6.1". A batch is a convenience for changes
+         that need no thought; a major version is never one of those.
+         THE PLAYWRIGHT HAZARD IS REAL AND WAS NOT WHAT WENT RED — worth
+         separating, because the install failed first and hid it. The bump
+         is ^1.56.0 -> ^1.62.1, and the browser is not installed by npm at
+         all: it ships inside mcr.microsoft.com/playwright:v1.56.0-noble,
+         pinned in TWO places (frontend-e2e-visual.yml:85 and
+         e2e/run-visual-docker.mjs:25). Moving the package alone
+         desynchronises the runner from its browser; moving all three
+         re-renders every baseline, which ADR-007 makes a deliberate act.
+         So Playwright gets its own group and its PR is EXPECTED red on
+         visual until the baselines are regenerated.
+         SCHEMA CHECKED AGAINST THE REFERENCE BEFORE WRITING, both keys and
+         both value vocabularies, which differ and are easy to swap:
+           groups.<name>.update-types  -> "patch" | "minor" | "major"
+           ignore[].update-types       -> "version-update:semver-patch" |
+                                          "-minor" | "-major"
+         and the behaviour the whole amendment rests on: "Any outdated
+         dependencies that do not match a rule are updated in individual
+         pull requests." GROUP ORDER IS LOAD-BEARING — "If a dependency
+         matches more than one rule, it's included in the first group that
+         it matches" — so `playwright` is declared BEFORE the `*` catch-all
+         or it would never match anything.
+         NOT VERIFIED HERE: no API validates a dependabot.yml. The file
+         parses and every key is in the reference; GitHub's own acceptance
+         shows only on Insights -> Dependency graph -> Dependabot.
+
+     C17 docs/scripts/generate-diagrams.mjs:8 and
+         .github/scripts/docs/build-openapi-docs.sh:47 — TWO UNPINNED
+         RENDERERS IN THE PUBLISH PATH, beside a pinned one. The
+         diagrams render through `npx -y @mermaid-js/mermaid-cli` and
+         the API page through `npx --yes @redocly/cli build-docs`,
+         both resolving to whatever is newest at run time. Twelve lines
+         of docs-pr-check.yml:82-86 argue the opposite case for pandoc:
+         "A different pandoc may render differently, so changing this
+         number is a content change and deserves its own pull request
+         with the output diffed." Mermaid and Redocly render published
+         pages on exactly the same terms and are exempt from the rule by
+         accident, not by argument. Neither job caches npm either, so
+         every run re-downloads mermaid-cli and a Chromium. FIX (pin),
+         WATCH (cache) — the cache is a minute, the pin is a claim about
+         what the site shows.
+         FIXED 2026-08-26, #102: mermaid-cli 11.16.0, redocly 2.41.1
+         pinned; cache NOT APPLICABLE — the three setup-node steps in
+         docs.yml and docs-pr-check.yml have no lockfile to cache against.
+         `ls package-lock.json docs/package-lock.json` finds nothing; the
+         only lockfile in the repository is frontend/package-lock.json, and
+         no docs job installs from it. `cache: npm` there would cache an
+         empty set and report success, which is the kind of green this
+         repository throws away rather than counts. The right fix, if the
+         minute is ever worth it, is npx's own cache or a lockfile of the
+         docs toolchain's own — a bigger change than a cache key.
+         THE VERSIONS WERE MEASURED, and note where they were NOT found:
+         `npx -y @mermaid-js/mermaid-cli --version` -> 11.16.0 and
+         `npx --yes @redocly/cli --version` -> 2.41.1, run locally. The
+         docs.yml run log records NEITHER — npx prints no resolved version,
+         so until now the published site could not say which renderer built
+         it. That absence is half the argument for the pin.
+
+     C18 application.yml:226-231 — an exposure list nothing reads.
+         management.endpoints.web.exposure.include: health,info exposes
+         /actuator/health and /actuator/info. The comment beside it says
+         "/api/health is the public probe, the rest stays closed" — but
+         /api/health is HealthController (@RequestMapping("/api"),
+         @GetMapping("/health")), a plain controller, not this. The
+         actuator endpoints these two lines expose are not proxied by
+         the Caddyfile (which routes /api/*, /swagger-ui*, /v3/api-docs*
+         and everything else to the SPA), and no compose healthcheck
+         calls them — the only consumer that ever did is the
+         commented-out service in C8, at docker-compose.yml:109. So the
+         setting is live, unreachable from outside, and unused inside.
+         Six-part plan item 3: a setting that does nothing is a claim
+         that it does something. WATCH — it is also the honest home for
+         a backend healthcheck, which is C20.
+         RULED 2026-08-25: WATCH, no PR.
+
+     C19 repository root — no .editorconfig and no .gitattributes.
+         Absent, both. This repository is edited from Windows and built
+         on ubuntu-latest, ships shell scripts that must stay LF, and
+         has been bitten by a line-ending-blind comparison before
+         (REFACTOR-STANDARDS: "a check that ... [is] line-ending-blind
+         ... is discarded"). git's own warning fires on every commit
+         here: "LF will be replaced by CRLF the next time Git touches
+         it". no written rule. WATCH — a .gitattributes with
+         `*.sh text eol=lf` is the cheap half.
+         FIXED 2026-08-25, #95. Both added at the root. EVERY SIZE WAS
+         MEASURED FIRST, so the config describes the repository rather
+         than imposing on it: java 4 (99 of 123 files), and ts/js/mjs,
+         json, yml, html, css all 2 and unanimous. Two sections the
+         original scope did not anticipate came out of that measurement —
+         sql 4 (5 of 6), and Caddyfile tab (97 tab-indented lines), which
+         `indent_style = space` would otherwise describe wrongly. TWO
+         THINGS WORTH KNOWING. frontend/.editorconfig already sets
+         root = true, so nothing in the new root file reaches frontend/;
+         .gitattributes settles line endings for both trees regardless,
+         because it knows nothing about editorconfig roots. And the tabs
+         in init-keycloak-db.sh are FUNCTIONAL — its heredoc opens `<<-SQL`
+         and `<<-` strips leading tabs only — so the file carries a written
+         guard against an editor converting them rather than a section that
+         would be just as wrong in the other direction.
+         `git add --renormalize .` changed NO tracked file: the repository
+         already stores LF throughout, so eol=lf ratifies the state rather
+         than converting it.
+
+     C20 docker-compose.prod.yml:21-41,47-53,59-120 — HEALTH IS CHECKED
+         ON THE HALF OF THE STACK THAT DID NOT NEED IT. postgres and
+         keycloak have healthchecks and backend waits on both with
+         condition: service_healthy. backend and caddy have none, and
+         frontend's lives in its Dockerfile (frontend/Dockerfile:32) not
+         in compose. caddy therefore depends_on frontend, backend and
+         keycloak as a bare list — start order only, no readiness — so a
+         `up -d` can leave Caddy proxying to a backend still starting.
+         Survivable because Caddy retries and both deploy workflows poll
+         the public URL twenty times before declaring success, which is
+         the real gate. no written rule. WATCH.
+         RULED 2026-08-25: WATCH, no PR.
+
+     C21 docker/postgres/init-keycloak-db.sh:17 — a password
+         interpolated into an SQL literal. CREATE USER ${KC_DB_USER}
+         WITH PASSWORD '${KC_DB_PASSWORD}'. A value containing a single
+         quote breaks the statement or extends it. Not exploitable as
+         deployed — .env.prod.example:6 generates with
+         `openssl rand -base64 24 | tr -d '/+='`, which cannot produce
+         one, and the script runs once on an empty data directory from
+         a file only the deploy user can read. It is a trap for whoever
+         next sets that password by hand. WATCH.
+         RULED 2026-08-25: WATCH, no PR.
+
+     C22 frontend/nginx.conf:33 — "The backend is reached through the
+         reverse proxy in front of this container (Phase 4)." Phase 4 in
+         the current plan is the DEAD CODE audit; the reverse proxy
+         shipped and is docker/caddy/Caddyfile. The parenthesis points
+         at a phase numbering that no longer means what it meant.
+         REFACTOR-STANDARDS, DOCS: cite by stable keys. WATCH.
+         FIXED 2026-08-25, #94.
+
+     C23 spike/adr-002/README.md:24, RESULTS.md:146, corpus.py:3,13 —
+         four citations to DOMAIN-MODEL.md and REQUIREMENTS.md inside a
+         closed, dated artefact. Part 2's F6 ruled the parallel case
+         ACCEPT: "the spike is a closed, dated artefact whose own README
+         and RESULTS cite all four names; renaming would edit the
+         records of a decision that is already Accepted." That reasoning
+         covers the spike's own filenames; whether it also covers a
+         citation to a file that has since moved is not settled, and the
+         two readings give opposite answers. STOP-AND-REPORT.
+         RULING NEEDED. (C15 is separate and not in doubt: backup.sh is
+         a live operational script, not an artefact.)
+         RULED 2026-08-25: Part 2 F6 extends to citations inside the
+         spike. Frozen, no edit.
+
+     C24 .gitignore:6,28,73,76,85-87 — six rules with nothing to match.
+         `!.mvn/wrapper/maven-wrapper.jar` (no wrapper is tracked —
+         `git ls-files | grep -i "mvnw\|\.mvn/"` is empty), `bazel-out/`
+         (no bazel anywhere), `!**/src/**/*.key` (no .key is tracked),
+         `spike/adr-002/.env` (already covered by the bare `.env` on
+         line 63), and the root `.vscode/*` block whose negation names
+         `.vscode/settings.json.example`, which does not exist — while
+         the .vscode files that ARE tracked live under frontend/ and are
+         a different set (extensions.json, launch.json, tasks.json).
+         Six-part plan item 3 again. WATCH — an ignore rule that matches
+         nothing is cheap noise, but it is noise that reads as a claim
+         about what this repository contains.
+         FIXED 2026-08-25, #95 — but four deleted, not six, and the two
+         kept are the point. All six were re-measured and all six are dead
+         today. DELETED: bazel-out/ (no bazel toolchain anywhere, and
+         Angular dropped Bazel), spike/adr-002/.env (git check-ignore shows
+         the bare `.env` already covers it at any depth), !**/src/**/*.key
+         (a negation that WEAKENS the *.key secret guard — deleting it
+         strengthens the repository), and !.vscode/settings.json.example
+         (names a file with no precedent anywhere in the tree).
+         KEPT, AND GIVEN THE COMMENT THEY NEVER HAD:
+         !.mvn/wrapper/maven-wrapper.jar and !.vscode/extensions.json. Both
+         are GUARDS — the only lines that would let their file past `*.jar`
+         and `.vscode/*` — and `mvn wrapper:wrapper` is one command away
+         while the identical vscode file is already tracked at
+         frontend/.vscode/extensions.json. Deleting a guard to win a
+         tidiness point is the exact move the waiver register's own text
+         warns about ("leaves the next reader deleting a guard to win a
+         branch"), so they stay and now say why. `git status --ignored` is
+         byte-identical before and after: 18 paths, both times.
+
+     C28 .git-blame-ignore-revs NAMED A COMMIT THAT DOES NOT EXIST ON MAIN,
+         found 2026-08-26, one pull request after the rule was written.
+         #101 shipped as three commits so the 38-file reformat was
+         reviewable apart from the gate, and its blame-ignore entry named
+         the reformat commit, c4965a4e. Carlos squash-merges. The moment
+         #101 landed, that SHA belonged to a branch and to nothing on main:
+           git merge-base --is-ancestor c4965a4e origin/main   -> exit 1
+           git branch -r --contains c4965a4e  -> origin/ci/prettier-gate
+         GIT IGNORES AN UNRESOLVABLE ENTRY WITHOUT SAYING SO. The file
+         existed, looked right, and did nothing — a guard that reports
+         success while guarding nothing, which is the failure class this
+         repository keeps a list of.
+         FIXED 2026-08-26, #102: the entry is f71aec49, the squash of
+         #101 on main, verified with `git merge-base --is-ancestor` exit 0.
+         The rule is in WP 11: under squash merge the entry is ALWAYS the
+         merge commit on main, added in the PR AFTER the reformat lands.
+         Cost of the shape: the recorded commit is no longer whitespace-only
+         — f71aec49 also carries one CI step and one ignore file. Blame will
+         look through those five lines too. That is the price of squash
+         merging, and it is smaller than the 38 files it hides.
+
+     C29 gh-pages SERVED A 2026-08-05 JEKYLL/JUST-THE-DOCS BUILD (33 arc42
+         pages, 6 ADR sources, theme assets) FOR THREE WEEKS BESIDE THE
+         PANDOC SITE — keep_files preserved it; removed by #108. CLOSED.
+         Found while simulating C2 rather than by looking for it, which is
+         the argument for simulating a publish before making one. Every file
+         first and last published 2026-08-05; every one still answering 200
+         (arc42/index.html, arc42/07-deployment-view.html,
+         adr/ADR-001-....md, assets/js/just-the-docs.js all checked); and
+         every one unreachable from the site itself — nav-docs.html links
+         only to architecture/* and adr/*.html, and `grep -rn
+         "just-the-docs\|arc42/" docs/_theme/` returns nothing. A published
+         page nothing links to and nothing produces is not an archive, it is
+         a second site nobody is maintaining.
+
+     C30 backend/coverage carried TWO STALE JACOCO PAGES —
+         FileStorageProperties.html and FileStorageProperties.java.html, for
+         a class that no longer exists. They are removed by the FIRST reports
+         publish under the new shape, and that is I2 WORKING rather than a
+         separate fix: destination_dir scopes the deletion to backend/, so a
+         report page that stops being generated now stops being served.
+         Measured in simulation S4: 202 files differ (newer coverage numbers
+         against the published ones), 2 exist only on gh-pages, 0 only in the
+         staging. CLOSED by #108.
+
+     C31 NEBIUS HAS ANNOUNCED DEPRECATION OF meta-llama/Llama-3.3-70B-Instruct
+         (email 2026-08-26). ADR-002's fallback chat model is invalid as
+         written; the IONOS catalogue must be checked for the same model.
+         Measured task at the start of the diagnostics wave. NOT THIS PR.
+         WATCH. Recorded here because a documented fallback that no longer
+         exists is worse than no fallback: it is a plan someone would reach
+         for in an incident, and ADR-002 states the swap as a base-url and
+         model change rather than a code change — which is only true while
+         both providers serve the model.
+         CLOSED #113, 2026-08-27. Nebius is dropped as the documented
+         fallback and ADR-002 says so in a dated revision; the IONOS
+         catalogue was checked (A1: both incumbents present) and is now
+         watched monthly by catalogue-watch.yml. The row that opened
+         this wave is the last one it closes.
+
+   (c) CLEAN — measured, nothing found
+     - THE PATH PARTITION. 397 files, 0 gaps, 6 deliberate overlaps.
+       Every tracked file reaches exactly one build-and-test check
+       except the six that are double-gated by design. The pair of
+       comments on backend-ci.yml's paths-ignore and docs-pr-check.yml's
+       paths is accurate as written.
+     - SECRETS. Four names referenced, four needed, none unused and none
+       missing: GITHUB_TOKEN (9 uses, automatic), DEPLOY_HOST (4),
+       DEPLOY_USER (2), DEPLOY_SSH_KEY (2). Every one reaches the
+       runner through `env:`, never interpolated into a command line;
+       backend-deploy.yml:108-109 says why, and `set -x` is absent from
+       both deploy jobs. The key is removed in an `if: always()` step.
+       The e2e stack generates its own Postgres and Keycloak passwords
+       at run time and masks them, so no credential is written down in a
+       versioned file at all.
+     - PERMISSIONS AND CONCURRENCY. All nine workflows declare both.
+       Every permissions block is least-privilege for what its jobs do
+       (contents: read except docs.yml's contents: write for gh-pages,
+       the two deploys' packages: write, and release.yml's contents:
+       write). The concurrency groups are right in the one place it is
+       easy to get wrong: docs.yml uses a single `gh-pages` group with
+       cancel-in-progress FALSE because a cancelled publish drops a
+       report, and both deploy workflows share `hetzner-deploy`, also
+       false, so two rollouts cannot race the same Docker daemon, while
+       their build-side groups DO cancel.
+     - JOB DEPENDENCIES. backend-deploy and frontend-deploy both gate
+       `image` on the workflow_run conclusion and hang `deploy` off it
+       with `needs:`, so a failed CI run skips the rollout rather than
+       deploying an unvalidated image. docs.yml's two jobs are mutually
+       exclusive on event name. Nothing depends on a job that can be
+       skipped without being skipped itself.
+     - CACHING, WHERE IT EXISTS, IS CORRECT. setup-java cache: maven in
+       backend-ci and in the e2e action; setup-node cache: npm with an
+       explicit cache-dependency-path: frontend/package-lock.json in
+       frontend-ci and the e2e action — the path matters because the
+       lockfile is not at the repository root. The docker builds use
+       type=gha with mode=max. (What is missing is C17's npm cache on
+       the two docs jobs.)
+     - THE CADDYFILE ROUTES MATCH WHAT THE BACKEND EXPOSES. /api/*
+         -> HealthController and the rest under @RequestMapping("/api");
+       /swagger-ui* and /v3/api-docs* -> the two springdoc paths set at
+       application.yml:239 and 245, including the deliberate /swagger-ui
+       spelling; everything else -> the SPA. Nothing routes /actuator,
+       which is the correct answer to C18 from the proxy's side. The
+       header block is coherent with ADR-005 and states its own residual
+       risks rather than claiming a clean policy.
+     - infra/. backup.sh verifies both artefacts before promoting them
+       off .part, passes PGPASSWORD by name so it never reaches a
+       command line, chmods the directory 0700 and the files 0600, and
+       prunes by count rather than by age with the reason stated. The
+       systemd pair is right for the job (oneshot + timer, Persistent
+       so a reboot costs a late backup rather than a missing one, the
+       timer enabled and not the service). provision.sh is idempotent
+       per step and probes Docker's apt repository before trusting the
+       codename. lychee.toml's four exclusions are each justified
+       against what the build does and does not produce. Only C15
+       touches this tree.
+
+   (d) RULINGS NEEDED — five, and a survey does not get to choose
+     1. C2 / (e) — the ghost pages. Delete-and-restage, or accept an
+        append-only site and record that as the rule.
+     2. C8 + C9 + C10 — the commented-out dev app service and the five
+        example settings that only it reads. Delete, or revive.
+     3. C14 — frontend-config.json: does the repository carry a
+        template for a file the deployment owns?
+     4. C16 — floating action tags with no update bot: pin, automate,
+        or accept in writing.
+     5. C23 — does F6's spike-is-a-closed-artefact reasoning cover a
+        citation to a renamed file, or only the spike's own names?
+     C6 is a sixth in a weaker sense: the fix is one property, but it
+     changes a published document and the record says so before an
+     edit does.
+     ALL FIVE RULED 2026-08-25. C2 single staged publish, C8+C9+C10
+     delete, C14 add the example and correct the count to four, C16 pin
+     to SHA plus a monthly grouped dependabot, C23 frozen per F6. Each
+     ruled item is its own PR except C23, which needs none. C6 was not
+     put to a ruling and stays a FIX awaiting its PR.
+
+   (e) THE SINGLE STAGED PUBLISH — a sketch, not a design
+     WHAT KEEP_FILES ACTUALLY BUYS, so the replacement keeps it: four
+     independent producers write four disjoint subtrees, and only one
+     of them exists on any given run. The site job has no coverage; a
+     backend run has no frontend tree. keep_files is what stops each
+     publish deleting the three trees it did not build. It costs the
+     ability to delete anything, ever — C2 is that cost, paid twice.
+
+     THE SHAPE THAT KEEPS BOTH: make the publish a function of ONE
+     staged tree rather than four partial ones.
+
+       1. Every producer keeps uploading its artifact exactly as today.
+          Nothing about backend-ci, frontend-ci or the site build
+          changes; this is a change to the publisher alone.
+       2. One publish job, triggered by any of the three, begins by
+          CHECKING OUT gh-pages into a staging directory. That is the
+          step that does not exist today, and it is the whole idea: the
+          published site becomes an input to the publish rather than a
+          thing the publish half-overwrites.
+       3. It replaces, wholesale, only the subtrees this run rebuilt —
+          rm -rf the destination, then copy — and leaves the others as
+          checked out. A rename now deletes, because the site tree is
+          replaced rather than merged into.
+       4. keep_files: false, publishing the staged tree. The four trees
+          survive because they are IN the staged tree, not because the
+          publisher was told not to delete.
+
+     WHAT THIS MUST NOT BREAK, and each is a real hazard:
+       - The .nojekyll file at the root is not produced by any build.
+         Under keep_files it survives by luck. A staged publish must
+         write it deliberately or the site stops serving underscore
+         paths.
+       - The concurrency group must stay `gh-pages` with
+         cancel-in-progress: false, and it becomes MORE load-bearing,
+         not less: a checkout-modify-publish cycle has a window a plain
+         overwrite does not.
+       - The first run under this scheme deletes six files (C2). That
+         is the point, and it should be a deliberate first run with the
+         diff read, not a side effect of merging the change.
+       - Whether LICENSE and README.md at the site root should exist at
+         all is a content question this sketch does not answer — it only
+         makes the answer enforceable.
+     NO PREDICTED OUTCOME NUMBERS: this is a shape, and the PR that
+     builds it measures what it actually publishes.
+
+   (f) SEEN, NOT SURVEYED — with destination
+     PART 4 (dead code)
+       - docs/scripts/generate-diagrams.sh calls itself a wrapper "for
+         CI steps" and no CI step invokes it; both workflows call the
+         .mjs directly. Already carried by the Part 2 close-out;
+         confirmed still true here, not re-analysed.
+       - build-docs.sh's copy_report is dead on the CI path. The
+         function's own header says so at length (lines 130-136). #74
+         traced it and left it deliberately; it is a Part 4 row, not a
+         Part 3 one.
+       - docker-compose.yml:74-113, the commented-out service, is listed
+         as C8 because it is configuration with a live .env.example
+         behind it. If Carlos rules "delete", the deletion is Part 4's
+         to sweep with the rest.
+     PART 5 (comments)
+       - C3, C11, C12, C13 and C22 are all comment-accuracy findings
+         raised here because they are IN config files and this survey
+         was reading those files. Part 5 owns the class; these five are
+         named now rather than found twice.
+     PART 6 (docs)
+       - docker/README.md documents no frontend-config.json (C14) and
+         .env.prod.example does not mention it either. The content
+         decision is Part 6's; the missing template is C14's.
+       - arc42/07-deployment-view.md:109 carries the same mount line and
+         will need the same answer.
+
+   (g) DEPENDENCY BUMPS — taken during the wave, recorded here so the
+   next survey does not re-derive what moved and when
+     2026-08-25: Spring Boot 4.1.0 -> 4.1.1, #96, 79 managed versions
+       moved, compiler warning baseline 0/0. One artifact ADDED and none
+       removed: org.checkerframework:checker-qual 3.55.1, arriving at
+       runtime scope under postgresql 42.7.13, which is a pgjdbc change
+       rather than a Boot one. Every explicitly pinned version held —
+       testcontainers 2.0.5, bucket4j 8.14.0, springdoc 3.1.0 — so the
+       parent managed nothing this pom had already decided. 246 unit and
+       242 integration tests before and after, 10 skipped both times,
+       jacoco check met both times, and the five coverage figures are
+       byte-identical. THE JSPECIFY NULL-SAFETY WARNINGS the IDE shows
+       under Boot 4 / Framework 7 ARE A PART 4 ROW — count and classify
+       them there. javac reports none (0 before, 0 after over 66 source
+       files), so they are an IDE analysis and not a build signal, and
+       nothing about them is a Part 3 fix. This bump moved jspecify
+       1.0.0 -> 1.0.1, which changes annotations and not the analysis.
+
+   PART 3 CLOSE-OUT — DONE, 2026-08-26. Thirty-one findings, C1 to C31,
+   thirteen merged pull requests and two Dependabot pull requests closed
+   by design. Every row is dispositioned: fixed, ruled and not done, or
+   carried with a named destination. The survey itself moved nothing;
+   every change below was its own pull request after a ruling, which is
+   the shape the six-part plan asks for.
+
+   THE DATES ARE MEASURED, NOT QUOTED. The survey entry above is dated
+   2026-08-25 and was measured on 162b0e0 (#92, merged 2026-08-25
+   09:19 UTC); the last pull request of the wave, #108, merged
+   2026-08-26 14:10 UTC. TWO DAYS. The prompt that opened this close-out
+   said the survey ran 2026-08-24; it did not, and the correction is
+   recorded here rather than carried into the metrics.
+
+   (0) THE FIRST STAGED PUBLISH — VERIFIED 2026-08-26, and this is the
+   condition the wave was held open for. #108 changed the publisher and
+   could not be exercised on a pull request, so the close depended on
+   watching the first real run.
+     THE PUBLISH: gh-pages 52647a6, 2026-08-26 14:10:55 +0000, "docs:
+     publish site for 9d028d4dc19cea4a26b667faaed6e573cff15267" — the
+     merge commit of #108 publishing under its own new shape.
+       git ls-tree -r --name-only origin/gh-pages | wc -l        -> 549
+       ... | grep -cE '^arc42/|^DOMAIN-MODEL|^REQUIREMENTS|
+                       ^LICENSE|just-the-docs'                   ->   0
+       .nojekyll present at the root                             -> yes
+     549 IS THE NUMBER THE SIMULATION PREDICTED, to the file. The
+     forty-three-file Jekyll/just-the-docs build of 2026-08-05, the six
+     #92 ghosts and the two stale jacoco pages (C30) are gone, and
+     .nojekyll is present because build-docs.sh now writes it rather
+     than because keep_files spared it — I3 and the .nojekyll hazard
+     from sketch (e), both answered by the same tree.
+     SERVED, NOT ONLY COMMITTED — the live site, curl status codes:
+       domain-model.html                 200
+       backend/coverage/index.html       200
+       frontend/coverage/index.html      200
+       backend/api-docs/index.html       200
+       frontend/api-docs/index.html      200
+       arc42/index.html                  404
+       DOMAIN-MODEL.html                 404
+     The four report roots answering 200 is I1 working: the site
+     publish carried backend/ and frontend/ over rather than deleting
+     them, which was the whole cost of dropping keep_files. The two
+     404s are C2 and C29 confirmed from outside the repository — the
+     ghosts are not merely unpublished, they have stopped being served.
+     I2 IS NOT YET VERIFIED AND IS THE ONE THING THIS CLOSE-OUT LEAVES
+     OPEN. No reports publish has run since #108 — origin/gh-pages'
+     five most recent commits are 52647a6 (the site publish above) and
+     four publishes that predate it. Until a backend or frontend run
+     publishes, "a report publish never touches the site or the other
+     project" is a read of the workflow and not a measurement. Carried
+     in (c) as open verification, with the check that settles it:
+       git diff-tree --name-only -r <sha> | cut -d/ -f1 | sort -u
+     must return exactly one project directory.
+
+   (a) WHAT SHIPPED — thirteen pull requests, the rows each closed, and
+   the failure class each one ends
+     #94 chore: make seven config comments true again — C3, C5, C11,
+       C12, C13, C15, C22. CLASS: a comment that states a fact the
+       checkout contradicts. Seven of them in configuration files, which
+       is where a wrong comment is least likely to be read against the
+       thing it describes.
+     #95 ci: gate the shared e2e stack and settle the root file
+       conventions — C4, C19, C24. CLASS: a path no workflow gates — the
+       action that provisions the e2e stack ran `visual` and not `e2e` —
+       and a repository edited on Windows and built on Linux with no
+       line-ending law. .editorconfig and .gitattributes added from
+       MEASURED sizes; `git add --renormalize .` changed no tracked
+       file, so eol=lf ratified the state rather than converting it.
+     #96 build(backend): upgrade Spring Boot to 4.1.1 — no C row; a
+       dependency bump taken during the wave and recorded in (g).
+       CLASS: none. 79 managed versions moved, the five coverage figures
+       byte-identical, compiler warning baseline 0/0.
+     #97 chore(docker): delete the dev compose app service and its dead
+       settings — C8, C9, C10. CLASS: configuration that claims to do
+       something and does nothing — a forty-line commented-out service
+       and the six variables only it read, including four empty
+       assignments of the exact landmine shape #22 had already fixed.
+       Surfaced C25, C26 and C27 while doing it.
+     #98 docs: make the dev Postgres port say the same thing everywhere
+       — C25, C26. CLASS: a personal-machine override leaked into shared
+       documentation. Five files said 5432, two said 5433, and a
+       developer following the e2e README against a stock .env.example
+       got a port nothing was listening on.
+     #99 fix(backend): honour the reverse proxy's forwarded headers —
+       C6. CLASS: an absent property; not a deployment fault and not a
+       library bug — springdoc derived `servers` from a request Caddy
+       had already terminated TLS for. THE FIRST PART 3 CHANGE THAT
+       ALTERED PRODUCTION BEHAVIOUR, and the published spec was only the
+       visible symptom of a class that included every absolute URL the
+       application derives from a request.
+     #100 docs: count the hand-deployed files and amend the architecture
+       constraint — C14, and the TC-3 ruling carried out of C12. CLASS:
+       a record that knows a fact in one sentence and forgets it
+       everywhere a person would go looking, and a CONSTRAINT the
+       workflows breach. The ruling said four hand-deployed files; the
+       measurement said seven, and writing four would have repeated the
+       original defect one number later.
+     #101 ci(frontend): gate formatting, then apply it — C7. CLASS: a
+       tool installed, configured, versioned and never run. 38 of the
+       130 eligible files reformatted, against the two the row expected;
+       markdown excluded after a stop-and-report, because prose is
+       governed by REFACTOR-STANDARDS and not by a code formatter.
+     #102 ci: pin every action to a commit and watch them with
+       dependabot — C16, C17 (the pin half), C28. CLASS: a floating
+       third-party dependency with nothing watching it, one of them
+       holding contents: write on gh-pages; and a guard that reports
+       success while guarding nothing — .git-blame-ignore-revs named a
+       branch commit that squash-merging had made unreachable, and git
+       ignores an entry it cannot resolve WITHOUT SAYING SO. 12 actions
+       pinned across 41 occurrences in 10 files, mermaid-cli 11.16.0 and
+       redocly 2.41.1 pinned in the publish path.
+     #103 build(deps): bump the backend group in /backend with 2 updates
+       — THE FIRST ACCEPTED DEPENDABOT BATCH, one day after the bot was
+       added. CLASS: none; the mechanism working as designed.
+     #105 ci: keep majors and browser bumps out of the monthly batch —
+       amends the C16 ruling one day old. CLASS: a grouping rule too
+       coarse for a peer-constrained ecosystem. Groups narrowed to
+       minor+patch, majors ungrouped, TypeScript and Boot line changes
+       ignored, Playwright isolated.
+     #107 build(deps): bump the frontend-patch-minor group in /frontend
+       with 11 updates — THE SECOND ACCEPTED BATCH, and the proof that
+       #105's cut was the right one: eleven of the thirteen updates #104
+       had bundled went green as a single pull request.
+     #108 ci: publish the docs site as one staged tree instead of
+       appending to it — C1, C2, C29, C30. CLASS: an append-only
+       publisher that can never delete. keep_files gone, two publish
+       steps declared and exactly one per run, I1 to I5 written into the
+       workflow header, 48 files deleted on the first publish against a
+       ruling that had read the list. LAST IN THE WAVE ON PURPOSE, so
+       every other fix was on main before the publisher changed shape.
+
+     CLOSED BY DESIGN, NOT MERGED — and both are results
+     #104 build(deps): bump the frontend group in /frontend with 13
+       updates. Red on all three frontend checks in 7 s, 1m15s and
+       1m10s, all three in the same step and with the same ERESOLVE, so
+       not one test ran. One line of the thirteen caused it: typescript
+       ~7.0.2 against @angular/compiler-cli's peer range >=6.0 <6.1.
+       Superseded by #105 and closed. THE MECHANISM WORKED — it was
+       caught by a gate that had to be right, not by a reviewer noticing
+       a "~7" in a thirteen-line diff.
+     #106 build(deps): bump @playwright/test 1.56.0 -> 1.62.1. Closed
+       with #105's regrouping. A Playwright bump is a Chromium bump and
+       the browser ships inside a container image pinned in two other
+       places; moving the package alone desynchronises the runner from
+       its browser, and moving all three re-renders every visual
+       baseline, which ADR-007 makes a deliberate act. It gets its own
+       group and its next pull request is EXPECTED red on `visual`.
+
+   (b) WHAT WAS RULED AND NOT DONE, and why that is a result
+     C17 (cache half) — NOT APPLICABLE, answered by measurement in #102.
+       The row proposed WATCH on caching npm for the two docs jobs.
+       There is no lockfile for any docs job to cache against: the only
+       lockfile in the repository is frontend/package-lock.json and no
+       docs job installs from it. `cache: npm` would cache an empty set
+       and report success, which is the kind of green this repository
+       throws away rather than counts. The pin half shipped.
+     C18 an actuator exposure list nothing reads — WATCH, ruled
+       2026-08-25, no pull request. health,info are exposed, unproxied
+       by the Caddyfile, and called by nothing since C8's service was
+       deleted. Left because it is also the honest home for the backend
+       healthcheck C20 is about; fixing one without ruling the other
+       would be a guess.
+     C20 health checked on the half of the stack that did not need it —
+       WATCH, ruled 2026-08-25, no pull request. caddy depends_on
+       frontend, backend and keycloak as a bare list, so `up -d` can
+       leave Caddy proxying a backend still starting. Survivable because
+       Caddy retries and both deploy workflows poll the public URL
+       twenty times before declaring success — the real gate is already
+       there, and adding a second one is a design change, not a fix.
+     C21 a password interpolated into an SQL literal — WATCH, ruled
+       2026-08-25, no pull request. Not exploitable as deployed: the
+       documented generator cannot emit a quote, the script runs once on
+       an empty data directory, and the file is readable only by the
+       deploy user. It is a trap for whoever next sets that password by
+       hand, which is why it is recorded rather than dismissed.
+     C23 four DOMAIN-MODEL.md / REQUIREMENTS.md citations inside
+       spike/adr-002 — RULED 2026-08-25, frozen, no edit. Part 2's F6
+       reasoning EXTENDS from the spike's own filenames to citations
+       inside it: the spike is a closed, dated artefact, and editing it
+       edits the record of a decision that is already Accepted. This was
+       a stop-and-report because the two readings gave opposite answers;
+       the ruling picked one and wrote it down so the next survey does
+       not re-litigate it.
+     C31 Nebius has deprecated meta-llama/Llama-3.3-70B-Instruct —
+       WATCH, ruled not this wave's. It is a PROVIDER question with a
+       measurement in front of it, and it opens the diagnostics wave as
+       D3 below. A documented fallback that no longer exists is worse
+       than no fallback, because it is the plan someone reaches for
+       during an incident.
+     NOT IN THIS LIST, AND DELIBERATELY SO: C22 was PROPOSED WATCH by
+     the survey and ruled FIX — nginx.conf's "(Phase 4)" was one line in
+     the same comment-accuracy class as C3 and C11, so it went into #94
+     with them rather than becoming a row nobody would return to. C24
+     was proposed WATCH and ruled FIX IN PART: four of the six dead
+     ignore rules were deleted and TWO WERE KEPT WITH THE COMMENT THEY
+     NEVER HAD, because both are guards and deleting a guard to win a
+     tidiness point is the exact move the waiver register's own text
+     warns about.
+
+   (c) CARRIED, WITH DESTINATION
+     TO PART 4 (dead and redundant code)
+       - docs/scripts/generate-diagrams.sh calls itself a thin POSIX
+         wrapper "for CI steps" and no CI step invokes it; both
+         workflows and both citing docs pages call the .mjs directly.
+         Raised by Part 2, confirmed still true by Part 3, re-analysed
+         by neither.
+       - build-docs.sh's copy_report is dead on the CI path; the
+         function's own header says so at length and #74 traced it and
+         left it deliberately.
+       - THE JSPECIFY NULL-SAFETY WARNINGS under Boot 4 / Framework 7 —
+         count and classify them there, AND MEASURE THEM WITH THE JDT
+         COMPILER. javac reports 0 over 66 source files before and after
+         #96, so the warnings the IDE shows are an Eclipse JDT analysis
+         and not a build signal; a Part 4 row that quotes javac will
+         measure nothing and conclude wrongly.
+       - docker/README.md's dev-run prose, if any survives the Part 6
+         pass. #97 verified that the deleted compose block described
+         nothing, and frontend/e2e/README.md is where the running
+         instructions actually are — which is C27, below.
+     TO PART 6 (docs)
+       - docs/runbooks/ is never converted by the docs build, so
+         seed-v12-protocols.md is tracked and unpublished. Whether it
+         should be published is a content question.
+       - nav-docs.html lists ADR-001 to ADR-004 and ADR-010. There are
+         TEN ADRs; 005 to 009 are unreachable from the navigation. Five
+         of ten linked.
+       - C27 THE ONLY DESCRIPTION OF HOW TO RUN THE STACK LOCALLY lives
+         in frontend/e2e/README.md's "What it needs running" table.
+         Neither the repository README nor arc42 07 says how to start
+         the application on a laptop. The instructions are correct where
+         they are and nobody would look there first.
+       - docker/README.md and .env.prod.example on frontend-config.json
+         (C14's content half), and arc42/07-deployment-view.md:109,
+         which carries the same mount line and needs the same answer.
+     TO THE DIAGNOSTICS WAVE — the section immediately below. C31
+       becomes D3; the incident of 2026-08-26 07:23 UTC becomes D1 and
+       D2.
+     OPEN VERIFICATION — two, and they are the only things this
+     close-out cannot state as measured
+       1. THE FIRST REPORTS PUBLISH UNDER I2. Not yet run; see (0) for
+          the check that settles it.
+       2. /opt/maintenance-assistant/src/frontend ON THE HOST — a
+          leftover seen during the wave, RULING PENDING. Not measured
+          into any count here and not deleted; it is named so the next
+          host-side task starts from a known list rather than an `ls`.
+     ONE LIVE FALSEHOOD WAS FOUND AND CLOSED INSIDE THE WAVE rather
+     than carried: backend-deploy.yml:51-52's multi-arch sentence, which
+     the same file contradicted twenty lines later, corrected in #102.
+     It is recorded here because a carried item that gets fixed mid-wave
+     should stop looking carried.
+
+   (d) METRICS
+     Findings          31 rows, C1 to C31 — 24 surveyed, 7 found while
+                       fixing: C25-C27 by #97, C28 by #102, C29 and C30
+                       by #108's simulation, C31 from a provider email.
+     Pull requests     13 merged: #94-#103, #105, #107, #108.
+                       2 closed by design: #104, #106.
+     Dispositions      FIXED 24 · WATCH 5 (C18, C20, C21, C31, and
+                       C17's cache half) · FROZEN 1 (C23) · CARRIED 1
+                       (C27).
+     Rulings           5 needed, 5 given 2026-08-25, plus C2 re-ruled
+                       2026-08-26 when the simulation returned 49 files
+                       instead of six. C6 was never put to a ruling and
+                       shipped as a FIX (#99).
+     Days              2026-08-25 (survey, on 162b0e0) -> 2026-08-26
+                       (#108 merged, first publish verified). Two days.
+     Releases          v1.3.1, tagged 2026-08-26 on ee5b814, carrying
+                       #99 (the forwarded-headers fix, the wave's only
+                       production behaviour change) and #100. No release
+                       was cut for the other eleven merged pull
+                       requests, which is correct: they are comments,
+                       ledgers, CI and dev-only files.
+     Site              597 published files before, 549 after, 48
+                       removed, 0 "only in built".
+
+   (e) CORRECTIONS TO EARLIER RECORDS MADE DURING THIS WAVE, by date.
+   This list exists so the close-out is the index: a correction that
+   lives only where the error was is a correction the next session finds
+   by accident.
+     2026-08-25 — THE PEACEIRIS PUBLISH-STEP COUNT. The Part 1 close-out
+       said "three steps" and #92's evidence line said "four
+       invocations". Both wrong, in opposite directions: FOUR steps were
+       declared and at most TWO ran in any one run. Corrected under the
+       carried finding and as C1; both earlier figures stand as written
+       beside the measured one. #108 then removed the drift by making it
+       two declared and one per run.
+     2026-08-25 — THE PART 2 CLOSE DATE. Part 2 closed on #91's merge,
+       2026-08-25, not 2026-08-24. The heading and the CURRENT STATUS
+       entry both stay as written and the commit is the evidence
+       (4a7212d, 2026-08-25 10:19:23 +0200).
+     2026-08-25 — TC-3, THE MULTI-ARCH CONSTRAINT. Not a comment fix:
+       arc42 02 stated a constraint the deploy workflows breach, so
+       either the arm64 leg came back or the constraint was amended.
+       Ruled A, amended, #100 — with the deployment view's Images row,
+       the CAX21 paragraph and a §7.5 delivery sentence the earlier note
+       had not counted.
+     2026-08-25 — SEVEN HAND-DEPLOYED FILES, NOT FOUR. The C14 ruling
+       said four; the bind mounts in docker-compose.prod.yml and an `ls`
+       on the host say seven. docker/README.md now carries the measured
+       list with the mount kind per row, because OPS RULE 3 applies to
+       the four SINGLE-FILE mounts and not to the theme directory — the
+       distinction a count alone hides. Corrected with it: the survey
+       said "every other passage says three hand-deployed files", and
+       `git grep -n "three hand"` returns two hits, BOTH of them this
+       record. No published document ever enumerated the set; what was
+       missing was any list at all.
+     2026-08-26 — THE CHANGELOG WORDING IN CURRENT STATUS. The header
+       promised a CHANGELOG file. `git ls-files | grep -i changelog` is
+       empty and always was; release notes are generated by release.yml
+       from pull request titles, which is why the titles are written to
+       be read. Corrected in the header with v1.3.1.
+     2026-08-26 — THE PRETTIER COUNTER THAT LIED, recorded because it
+       nearly reached this page. `prettier --check .` first reported
+       127; after a checkout under `* text=auto eol=lf` the same command
+       reported 38. Eighty-five of the "failures" were CRLF files git
+       normalises away and that would never have appeared in a diff. The
+       figure in (a) is the true one, and CI always saw it.
+

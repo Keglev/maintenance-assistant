@@ -909,3 +909,26 @@ Status: v1.3.1 released; refactor phase, Part 3 closed 2026-08-26; diagnostics w
   reads the spec's $ref targets. Renamed to Questions. THE LESSON IS THE NAMING RULE: a nested record
   exposed through the API shares one flat namespace with every other one, so its simple name is part
   of the public contract whether anyone meant it to be or not.
+- AN ADVICE THAT RUNS BEFORE HANDLER RESOLUTION CANNOT BE SCOPED BY HANDLER TYPE, and narrowing what
+  it PUBLISHES is a documentation-generation concern — learned 2026-08-27 (#PRNUM), fixing a
+  contract that advertised 413 Content Too Large on all 19 operations including thirteen GETs.
+  THE OBVIOUS FIX WAS TRIED FIRST AND WAS WRONG. @RestControllerAdvice(assignableTypes = ...) gave
+  exactly the right document and broke the behaviour: MaxUploadSizeExceededException is raised in
+  DispatcherServlet.checkMultipart, before a handler exists, and assignableTypes matches on the
+  RESOLVED HANDLER — so the advice stopped running and an oversized upload went back to receiving
+  Tomcat's HTML. The class javadoc had explained that since the day it was written; the attempt read
+  past it, and UploadSizeLimitIT — a real-container test, because MockMvc cannot reach this path —
+  is what said so out loud.
+  THE RULE: an advice handling an exception raised before handler resolution must stay global. If
+  its published status is wrong on other operations, fix the DOCUMENT — @Hidden on the advice plus an
+  explicit @ApiResponse where the status is real, or an OperationCustomizer if the status must be
+  removed selectively rather than everywhere.
+  THE BLUNT LEVER WAS MEASURED AND REJECTED TOO: springdoc.override-with-generic-response=false is
+  runtime-safe and removes the 413, but it also drops five REAL 400s from the moderation GETs, which
+  answer 400 for a malformed UUID. Swapping eighteen false 413s for five false absences is not an
+  accuracy gain. @Hidden was measured across all 19 operations before and after, and the only change
+  is the 413: no 400, 403, 404, 409, 429 or 503 moved.
+  WHAT MAKES THIS WORTH A RULE RATHER THAN A FIX: the defect was invisible in the code and obvious in
+  the generated document. Nothing about the advice was wrong; what was wrong was what springdoc did
+  with it, and only reading the spec shows that. It is the second contract defect in two days found
+  by reading the document instead of the annotations — the first was a schema-name collision in #115.

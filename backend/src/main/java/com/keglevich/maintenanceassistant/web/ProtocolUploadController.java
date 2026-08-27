@@ -4,6 +4,8 @@ import com.keglevich.maintenanceassistant.ingestion.ProtocolIntakeService;
 import com.keglevich.maintenanceassistant.ingestion.UploadContentPolicy;
 import com.keglevich.maintenanceassistant.ingestion.UploadRateLimiter;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -72,7 +74,19 @@ class ProtocolUploadController {
             @ApiResponse(responseCode = "202", description = "Accepted; indexing runs asynchronously"),
             @ApiResponse(responseCode = "400", description = "Unknown machine, bad field, or not UTF-8 text"),
             @ApiResponse(responseCode = "403", description = "Caller is not a Schichtleiter"),
-            @ApiResponse(responseCode = "413", description = "File larger than the configured limit"),
+            // THE ONLY OPERATION IN THIS API THAT CAN ANSWER 413, and it says so here rather than
+            // inheriting it. UploadSizeExceededAdvice must stay GLOBAL — the container refuses an
+            // oversized multipart while parsing the request, before a handler is resolved — and
+            // springdoc used to merge its status into all 19 operations, thirteen of which are GETs
+            // that carry no body. The advice is @Hidden from that merge now, so this declaration is
+            // what keeps the status published where it is real. The schema is the advice's own body.
+            @ApiResponse(responseCode = "413",
+                    description = "File larger than the container limit set by "
+                            + "spring.servlet.multipart.max-file-size. The body names the limit, "
+                            + "because \"too large\" without a number leaves the writer guessing "
+                            + "how much to cut.",
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = FileTooLarge.class))),
             @ApiResponse(responseCode = "429", description = "Too many uploads; see Retry-After")
     })
     ResponseEntity<Map<String, String>> upload(
@@ -173,4 +187,25 @@ class ProtocolUploadController {
                 .body(Map.of("reason", "RATE_LIMITED", "error", e.getMessage()));
     }
 
+    /**
+     * The 413 body, for the document only.
+     *
+     * <p>DOCUMENTATION, NOT A RETURN TYPE. The body is actually built by
+     * {@link UploadSizeExceededAdvice} as a {@code Map}, and it must stay a Map there: that advice
+     * runs when no handler has been resolved, so it cannot be given this controller's types to work
+     * with. This record exists so the published schema shows the three fields a client will
+     * actually receive instead of a bare {@code object}, and it is deliberately the only place the
+     * two shapes are stated together — if the advice's map changes, this changes with it.
+     *
+     * @param reason machine-readable, always {@code FILE_TOO_LARGE}; the code the frontend
+     *               translates, for the same reason as every other reason code in this API
+     * @param limit  the configured limit as configured, e.g. {@code 256KB} rather than 262144
+     * @param error  the human sentence, naming the limit
+     */
+    @Schema(name = "FileTooLarge", description = "The body of a 413 from this endpoint")
+    record FileTooLarge(
+            @Schema(example = "FILE_TOO_LARGE") String reason,
+            @Schema(example = "256KB") String limit,
+            @Schema(example = "The uploaded file is larger than the 256KB limit.") String error) {
+    }
 }

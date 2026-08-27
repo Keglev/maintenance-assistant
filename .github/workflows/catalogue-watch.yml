@@ -1,0 +1,111 @@
+name: catalogue-watch
+
+# Watches the IONOS AI Model Hub catalogue for the three model ids this project
+# depends on, and turns their disappearance into a red run instead of an incident.
+#
+# WHY THIS EXISTS AT ALL. On 2026-08-26 Nebius announced by EMAIL that it was
+# retiring meta-llama/Llama-3.3-70B-Instruct on 2026-08-31 — the model ADR-002
+# named as the documented fallback. Nothing in this repository would have noticed;
+# the plan someone reaches for during an incident had quietly stopped existing.
+#
+# WHY THE API CANNOT TELL US (PROJECT-PHASES, diagnostics wave A1, measured
+# 2026-08-26 16:31:30 UTC). Every entry of /v1/models carries exactly four keys —
+# created, id, object, owned_by. There is no lifecycle field, no deprecation flag
+# and no retirement date, and `created` reads the SAME value for all twenty entries
+# because it is the response timestamp. A model going away is visible only as an id
+# that stopped being listed. That absence is the only signal there is, so it is the
+# one this job watches.
+#
+# WHY MONTHLY. A retirement is announced weeks ahead on a documentation page whose
+# lifecycle columns are "Scheduled to Retire On" / "Retired On" / "Alternative", or
+# by email. A monthly check is early enough to act on and rare enough that a red run
+# means something. workflow_dispatch covers the day somebody wants to know now.
+#
+# WHAT A RED RUN MEANS: read https://docs.ionos.com/cloud/ai/ai-model-hub/models,
+# then OPEN A LEDGER ROW. It does NOT mean production is down — the deployed backend
+# keeps calling whatever it is configured with, and a model that vanishes from the
+# catalogue listing fails at call time with its own error. This job is early warning,
+# never an outage alarm, and nothing pages anyone.
+#
+# SECRET: LLM_API_KEY, the same repository secret the rest of the project uses. It is
+# passed to curl through the step environment and never interpolated into a command
+# line (backend-deploy.yml:108-109 records why), and `set +x` keeps the shell from
+# echoing the request.
+
+on:
+  schedule:
+    # 06:17 UTC on the 1st. The odd minute is deliberate: GitHub's scheduler queues
+    # heavily on the hour, and this job has no reason to compete for that slot.
+    - cron: "17 6 1 * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read # reads nothing in the repository; this is the least privilege there is
+
+concurrency:
+  group: catalogue-watch
+  cancel-in-progress: true
+
+jobs:
+  models:
+    name: the three ids this project depends on
+    runs-on: ubuntu-latest
+
+    # NO CHECKOUT STEP, deliberately. This job reads a provider catalogue, not the
+    # repository: the ids it checks are written into the script below, so a checkout
+    # would grant contents access for nothing. It also means this workflow pins no
+    # third-party action, which is why C16's SHA-pinning rule finds nothing to apply.
+    steps:
+      - name: Check the IONOS catalogue
+        env:
+          LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
+        run: |
+          set +x
+          set -euo pipefail
+
+          BASE="https://openai.inference.de-txl.ionos.com/v1"
+
+          code=$(curl -sS -o models.json -w '%{http_code}' --max-time 60 \
+            -H "Authorization: Bearer ${LLM_API_KEY}" "${BASE}/models")
+
+          if [ "$code" != "200" ]; then
+            echo "::error::IONOS /v1/models answered HTTP ${code}, so the catalogue could not be read."
+            echo "This is not the same finding as a missing model: the check did not run."
+            exit 1
+          fi
+
+          jq -r '.data[].id' models.json | sort > ids.txt
+          total=$(wc -l < ids.txt)
+
+          # ADR-002 caveat 2: the *-migration ids are deprecated aliases and must be
+          # ignored by any model-selection logic. Counted rather than checked, as
+          # information — a change in this number is a hint that the catalogue moved.
+          migration=$(grep -c -- '-migration$' ids.txt || true)
+
+          missing=""
+          for id in \
+            "meta-llama/Llama-3.3-70B-Instruct" \
+            "BAAI/bge-m3" \
+            "openai/gpt-oss-120b"
+          do
+            if ! grep -qxF "$id" ids.txt; then
+              missing="${missing}${id}\n"
+            fi
+          done
+
+          if [ -n "$missing" ]; then
+            echo "::error::A model this project depends on is no longer listed:"
+            printf "%b" "$missing"
+            echo "Read https://docs.ionos.com/cloud/ai/ai-model-hub/models and open a ledger row."
+            echo "--- the catalogue as served (${total} ids) ---"
+            cat ids.txt
+            exit 1
+          fi
+
+          echo "All three ids are listed."
+          echo "  meta-llama/Llama-3.3-70B-Instruct  (chat, application.yml default)"
+          echo "  BAAI/bge-m3                        (embedding, vector(1024))"
+          echo "  openai/gpt-oss-120b                (documented fallback, ADR-002 revision 2026-08-27)"
+          echo "catalogue size: ${total} ids, of which ${migration} are *-migration aliases (caveat 2)"
+          echo "--- the catalogue as served ---"
+          cat ids.txt

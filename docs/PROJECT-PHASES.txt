@@ -23,10 +23,10 @@ fallback gpt-oss-120b ruled 2026-08-26; W-2 next.
 W-2 merged; deploy is automatic (backend-deploy on main); verify with
 `curl -sI .../api/health | grep -i x-request-id`.
 
-v1.3.2 pending: tag after live verification: FR-01 'sensor fehler' x10
-returns the ungrounded card or a grounded answer, never the red 'nicht
-erreichbar'; `x-request-id` on every response; backend log shows
-`degrading to Mode B` if a truncation occurred.
+v1.3.2 TAGGED 2026-08-27 on 21f007d, carrying W-2 (#111) and W-3 (#112).
+
+Diagnostics wave complete pending #113; A4 remains an open hypothesis
+with the instrument live; next: feature guided questions (ADR-011).
 
 v1.3.0 IS THE LATEST TAG, 2026-08-20. The release history, from the
 repository's own tags: v0.1.0 2026-08-06, v1.0.0 2026-08-08, v1.1.0
@@ -2388,6 +2388,11 @@ rather than given one afterwards.
          for in an incident, and ADR-002 states the swap as a base-url and
          model change rather than a code change — which is only true while
          both providers serve the model.
+         CLOSED #113, 2026-08-27. Nebius is dropped as the documented
+         fallback and ADR-002 says so in a dated revision; the IONOS
+         catalogue was checked (A1: both incumbents present) and is now
+         watched monthly by catalogue-watch.yml. The row that opened
+         this wave is the last one it closes.
 
    (c) CLEAN — measured, nothing found
      - THE PATH PARTITION. 397 files, 0 gaps, 6 deliberate overlaps.
@@ -3276,6 +3281,11 @@ rather than given one afterwards.
         response Date headers are the correlation handle.
         WATCH: DO NOT RE-MEASURE Qwen UNTIL IONOS ANSWERS. Re-running a
         deterministic 500 costs money and proves what is already proven.
+        STATUS 2026-08-27, #113: STILL "DRAFTED, NOT YET SENT". Carlos
+        was not asked for a reference in this pull request and none was
+        reported, so nothing is claimed about it. When it goes, this row
+        gains "SENT <date>, reference <id>" and the WATCH above is what
+        stays open until IONOS replies.
 
    RULINGS — Carlos, 2026-08-26
 
@@ -3294,6 +3304,9 @@ rather than given one afterwards.
         cliff instead of removing it, and under A4's hypothesis it does
         not even move it.
 
+     R2 DOCUMENTED #113 — ADR-002 REVISION 2026-08-27 carries it, with
+        the by-hand verification steps the switch needs and the sentence
+        that an IONOS outage has no tested fallback.
      R2 THE DOCUMENTED FALLBACK IS PROVIDER IONOS, MODEL
         openai/gpt-oss-120b, EFFECTIVE ONCE R1 IS DEPLOYED. The switch is
         LLM_CHAT_MODEL in .env.prod plus a backend restart, per OPS RULE
@@ -3320,13 +3333,27 @@ rather than given one afterwards.
          The ADR cites EUR pricing among the reasons IONOS won over
          Nebius; whatever was true on 2026-08-06, the correction goes
          into the W-4 revision. It does not change the decision.
-       - THE THREE EMPTY LLM_*= LINES IN .env.prod — WATCH. Inert today
+       - THE THREE EMPTY LLM_*= LINES IN .env.prod — CARRIED 2026-08-27.
+         Still not worth a server login of its own; it rides with the
+         NEXT HAND-DEPLOY THAT HAS A REAL REASON, and one is already
+         waiting — the Caddyfile header_up from W-2 (#111), parked in the
+         standing list. DO BOTH IN THE SAME SESSION when that happens:
+         two hand-deployed files, one login, one force-recreate.
+         AS ORIGINALLY WRITTEN 2026-08-26, kept: WATCH. Inert today
          because compose spells them with `:-`. Deleted at the next
          hand-deploy that has a reason of its own, per .env.prod.example
          ("If you do not need a value, delete the line") and the same
          ride-along rule the compose comment and the locale-select
          cosmetic already follow. Never a server login on its own.
-       - isReasoningModel()'s SUBSTRING PREDICATE IS CORRECT for all
+       - isReasoningModel()'s SUBSTRING PREDICATE — CLOSED 2026-08-27, no
+         change. Measured correct for all three models: Qwen3.5 matches
+         and needs the parameter, gpt-oss-120b does not match and REJECTS
+         it with an HTTP 400, Mistral-Small does not match and tolerates
+         it either way. Closing it does not make the next model safe —
+         reasoning_effort is a per-model property and is measured per
+         candidate, which is now caveat 4/5 of ADR-002 rather than a row
+         here.
+         AS ORIGINALLY WRITTEN 2026-08-26, kept: IS CORRECT for all
          three measured models — WATCH, NO CHANGE. gpt-oss-120b rejects
          reasoning_effort with a 400 and must not match; Mistral-Small
          accepts it either way and does not need to; Qwen3.5 matches and
@@ -3336,6 +3363,32 @@ rather than given one afterwards.
        - A SOFT DELETE LEAVES `status` AT ITS LAST REAL VALUE, so a
          deleted protocol still reads INDEXED. Cosmetic; one sentence for
          Part 6. Not a defect row — see A3's M4 for why.
+       - MODE A NO-CITATION FALL-THROUGH — 2026-08-27, WATCH. 3 of 8
+         production queries since 07:59 UTC fell through with "Mode A
+         produced no valid citations" (request ids e8e82905, 8e248e16,
+         3dcbf63b), one of them FR-01 "sensor fehler" at best similarity
+         0.5651 — the D1 score, reproduced in production a day later.
+         NOT A DEFECT. The fall-through is the designed behaviour and the
+         user gets the labelled ungrounded card; what is new is that W-2's
+         request id makes it COUNTABLE, and a rate is a different question
+         from an event. This is the ADR-008 threshold question stated as a
+         rate: retrieval clears 0.55 and generation then finds nothing
+         attributable, which is either a threshold slightly too low or a
+         corpus gap, and three in eight is too small a sample to say.
+         MEASURE FOR ONE WEEK AFTER THIS MERGE, then rule. The method is
+         the grep the instrument now allows: take each "Mode A produced no
+         valid citations" WARN, read its request id, and find the "Query
+         on machine" INFO line carrying the same id for the similarity.
+         Pair them and the rate has a score distribution beside it.
+       - UNRELATED WARNINGS ON THE HOST LOG CHECK, 2026-08-27. The only
+         warnings observed while running it were docker compose's own
+         "variable is not set" lines, one per variable, caused by the
+         check omitting `--env-file .env.prod`. THEY ARE BENIGN FOR logs
+         AND exec, which attach to a container that is already running,
+         and backend-deploy.yml:145 passes --env-file for the operations
+         where it matters. Recorded so the next reader does not chase
+         them. IF CARLOS MEANT DIFFERENT WARNINGS, they are not recorded
+         here — ask for them.
 
    THE WAVE PLAN — D2 IS SUPERSEDED BY THE ROWS BELOW, 2026-08-26. D2
    stays as written above because it is the record of what was planned
@@ -3484,6 +3537,26 @@ rather than given one afterwards.
           It watches a catalogue and owns no repository paths, so the
           Part 3 path partition is unaffected.
         - The two WATCH rows above closed or carried, explicitly.
+        DONE 2026-08-27, #113. All four items shipped. Two notes on
+        what differs from the row above:
+          - THE SECRET ALREADY EXISTS. LLM_API_KEY was added to the
+            repository on 2026-08-27 09:15 UTC, so nothing blocks the
+            merge. `gh secret list` reports four names and no values.
+          - THE FIRST RUN CANNOT BE TRIGGERED FROM THE BRANCH. A
+            workflow whose triggers are schedule and workflow_dispatch
+            is only dispatchable once it is on the default branch, so
+            the first real run is a manual dispatch on main after merge
+            and the first scheduled one is 2026-09-01 06:17 UTC.
+        VERIFIED WITHOUT RUNNING IT: the YAML parses; the inline script
+        was extracted and passes `bash -n`; `grep -n "secrets."` finds
+        exactly one hit and it is inside `env:`. THE CHECK LOGIC WAS
+        SMOKE-TESTED against the live catalogue with the ids substituted
+        by hand — the pass path found all three, and a deliberately
+        absent id made the fail path fire naming only that id.
+        AND THE CATALOGUE HAD ALREADY MOVED. Re-fetched 2026-08-27: 21
+        ids where A1 recorded 20 on 2026-08-26, one added
+        (Qwen/Qwen3.8-27B), none removed, migration aliases 3. One day,
+        one change — which is the argument for the job in one line.
 
      THEN, IN ORDER: the guided-questions feature (ADR-011, a reserved
      number — there are ten ADRs today); the recruiter landing page; the
@@ -4524,7 +4597,34 @@ PIPELINE ARCHITECTURE (.github/workflows/)
                          subfolders (/frontend/coverage, /frontend/
                          api-docs, /backend/coverage, /backend/api-docs)
                          WITHOUT deleting the rest (keep_files)
+                      CORRECTION 2026-08-27, found while adding entry 6:
+                      the keep_files clause above has been WRONG since
+                      #108. keep_files is gone; the site job checks
+                      gh-pages out and carries the report subtrees over,
+                      and a report publish is scoped by destination_dir.
+                      Invariants I1-I5 are in the workflow header and in
+                      the Part 3 close-out. The line stays as written
+                      because this is where the error was.
 5. release.yml        tag v*: GitHub Release with generated notes
+6. catalogue-watch.yml
+                      schedule "17 6 1 * *" (monthly, 06:17 UTC on the
+                      1st) + workflow_dispatch: one job, no checkout,
+                      curls the IONOS /v1/models catalogue with the
+                      LLM_API_KEY secret and fails when
+                      meta-llama/Llama-3.3-70B-Instruct, BAAI/bge-m3 or
+                      openai/gpt-oss-120b stops being listed. Added
+                      2026-08-27, W-4.
+                      IT OWNS NO REPOSITORY PATHS, so the Part 3 path
+                      partition is UNAFFECTED: it has no pull_request
+                      trigger at all, gates nothing, and cannot report a
+                      required check. Its own file is covered by
+                      backend-ci's catch-all like every other workflow
+                      file that is not a gate's own.
+                      A red run is early warning, never an outage alarm.
+                      It watches for an ABSENCE because absence is the
+                      only signal the API offers — there is no lifecycle
+                      field (A1) — so a failure means "read the IONOS
+                      models page and open a ledger row".
 
 =====================================================================
 PHASE 2 — DATA + INGESTION  [DONE — 2026-08-07, PRs #18-#22 + ops]

@@ -1,7 +1,13 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, effect, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
-import { Approval, Citation, Machine, QueryAnswer } from '../../core/api/api.types';
+import {
+  Approval,
+  Citation,
+  ExampleQuestion,
+  Machine,
+  QueryAnswer,
+} from '../../core/api/api.types';
 import {
   ApiFailure,
   MaintenanceApiService,
@@ -82,6 +88,20 @@ export class Search {
     return machine ? `${machine.machineNo} · ${machine.name}` : '';
   });
 
+  /**
+   * The example questions for each machine that has been selected this session (ADR-011).
+   *
+   * <p>Cached per machine, in memory, for the life of the component: the list is a small, static
+   * property of the corpus, and a reader comparing two machines should not pay for a round trip
+   * each time they flip back. NOT in browser storage — an example whose protocol has since been
+   * deleted would then survive a deploy, which is exactly the staleness this feature exists to
+   * avoid.
+   */
+  private readonly examplesByMachineNo = new Map<string, readonly ExampleQuestion[]>();
+
+  /** The chips for the selected machine in the CURRENT language; empty means no chips at all. */
+  protected readonly examples = signal<readonly ExampleQuestion[]>([]);
+
   constructor() {
     this.api.machines().subscribe({
       next: (machines) => this.machines.set(machines),
@@ -89,6 +109,58 @@ export class Search {
       // that looks like a plant with no machines in it.
       error: () => this.machinesFailed.set(true),
     });
+
+    // Examples follow the machine AND the language, so the effect reads both. Two separate
+    // subscriptions would re-fetch on a language switch for a list already in hand.
+    effect(() => {
+      const machineNo = this.machines().find(
+        (candidate) => candidate.id === this.machineId(),
+      )?.machineNo;
+      const language = this.i18n.language();
+      if (!machineNo) {
+        this.examples.set([]);
+        return;
+      }
+
+      const key = `${machineNo}:${language}`;
+      const cached = this.examplesByMachineNo.get(key);
+      if (cached) {
+        this.examples.set(cached);
+        return;
+      }
+
+      this.api.machineExamples(machineNo).subscribe({
+        next: (response) => {
+          // Both languages arrive in one response, so both are cached from one round trip and a
+          // language switch costs nothing.
+          this.examplesByMachineNo.set(`${machineNo}:de`, response.examples.de);
+          this.examplesByMachineNo.set(`${machineNo}:en`, response.examples.en);
+          this.examples.set(response.examples[language] ?? []);
+        },
+        // SILENT ON FAILURE, AND ON PURPOSE. The chips are an aid, never a step: a reader who
+        // never sees them is exactly where they were before this feature existed, while an error
+        // message about "example questions" beside a working search box would be a complaint
+        // about something the reader did not ask for and cannot act on.
+        error: () => this.examples.set([]),
+      });
+    });
+  }
+
+  /**
+   * Puts an example into the question box, and stops there.
+   *
+   * <p><b>It deliberately does not submit</b> (ADR-011 §2). The reader still sees the question and
+   * still presses the button, so what the demo teaches is the SHAPE of a question that works — a
+   * machine, a symptom, ideally a fault code — instead of performing a trick they cannot repeat.
+   * Focus follows the text so the next keystroke edits it rather than going nowhere.
+   */
+  protected useExample(question: string, event: Event): void {
+    this.question.set(question);
+    this.validation.set(null);
+    (event.currentTarget as HTMLElement)
+      .closest('form')
+      ?.querySelector<HTMLTextAreaElement>('[data-testid="question-input"]')
+      ?.focus();
   }
 
   protected ask(): void {

@@ -107,6 +107,19 @@
            it, so it reads as an aside from the interface rather than a second complaint about the
            answer. A validation gate was considered and rejected (2026-08-20) — it would refuse
            "e-47", which works. -->
+      <!-- WHAT THE MACHINE HAS ANYWAY (ADR-011). "No source in the corpus" reads to a first-time
+           reader as an empty product; this says how many protocols DO exist for the machine, which
+           turns a dead end into a next step. Above the tip because it is the fact and the tip is
+           the advice, and a reader who stops after one line should get the fact.
+
+           Absent when the backend did not send a count, so an older backend renders exactly the
+           card it always did. -->
+      @if (answer().protocolCount !== undefined) {
+        <p class="answer-count" data-testid="mode-b-count">
+          {{ t().modeB.protocolCount(answer().protocolCount!, machine()) }}
+        </p>
+      }
+
       <p class="answer-tip" data-testid="mode-b-tip">{{ t().modeB.tip }}</p>
 
       @if (approvedOnly()) {

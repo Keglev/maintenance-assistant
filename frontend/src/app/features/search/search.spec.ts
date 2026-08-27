@@ -53,6 +53,24 @@ describe('Search', () => {
     'Presse kommt nicht auf Druck.',
   ].join('\n');
 
+  /**
+   * What `GET /api/machines/{machineNo}/examples` answers (ADR-011).
+   *
+   * Both languages in one response, which is what makes a language switch free — see the
+   * language-switch test below, which asserts that no second request is made.
+   */
+  const EXAMPLES = {
+    machineNo: 'PR-03',
+    protocolCount: 24,
+    examples: {
+      de: [
+        { question: 'Presse kommt nicht auf Druck, Fehler E-47, was tun?', source: 'p-1' },
+        { question: 'Presse startet nicht, Lichtvorhang, Fehler E-08 — Ursache?', source: 'p-2' },
+      ],
+      en: [{ question: 'Press not reaching pressure, error E-47 — what was done?', source: 'p-1' }],
+    },
+  };
+
   const MODE_B: QueryAnswer = {
     mode: 'B',
     answer:
@@ -97,6 +115,10 @@ describe('Search', () => {
     const machine = element.querySelector('[data-testid="machine-picker"]') as HTMLSelectElement;
     machine.value = MACHINE;
     machine.dispatchEvent(new Event('change'));
+    await fixture.whenStable();
+    // Selecting a machine fetches its example questions (ADR-011). Answered here rather than in
+    // every test, because it is a consequence of choosing a machine and every test does that.
+    drainExamples();
     const question = element.querySelector('[data-testid="question-input"]') as HTMLTextAreaElement;
     question.value = 'Presse kommt nicht auf Druck, E-47';
     question.dispatchEvent(new Event('input'));
@@ -112,6 +134,123 @@ describe('Search', () => {
     await fixture.whenStable();
     return element;
   }
+
+  /** Answers the examples call for PR-03, with the fixture above unless told otherwise. */
+  function flushExamples(body: object = EXAMPLES) {
+    httpMock.expectOne('/api/machines/PR-03/examples').flush(body);
+  }
+
+  /**
+   * Answers the examples call IF one was made.
+   *
+   * Not the same as {@link flushExamples}: selecting the same machine twice fetches once,
+   * because the list is cached for the session — so a test that asks two questions in a row
+   * sees one examples call, not two. The chip tests use the strict form, which is where the
+   * request being made is the thing under test.
+   */
+  function drainExamples(body: object = EXAMPLES) {
+    for (const request of httpMock.match('/api/machines/PR-03/examples')) {
+      request.flush(body);
+    }
+  }
+
+  /** Selects PR-03 and answers the examples call — the setup the chip tests share. */
+  async function selectMachine(
+    fixture: Awaited<ReturnType<typeof render>>,
+    body: object = EXAMPLES,
+  ) {
+    const element = fixture.nativeElement as HTMLElement;
+    const machine = element.querySelector('[data-testid="machine-picker"]') as HTMLSelectElement;
+    machine.value = MACHINE;
+    machine.dispatchEvent(new Event('change'));
+    await fixture.whenStable();
+    flushExamples(body);
+    await fixture.whenStable();
+    return element;
+  }
+
+  // -------------------------------------------------------------------------------------
+  // Example questions (ADR-011) — the chips that give a first-time reader a way in
+  // -------------------------------------------------------------------------------------
+
+  describe('example questions', () => {
+    it('renders one chip per example, in the current language', async () => {
+      const fixture = await render();
+      const element = await selectMachine(fixture);
+
+      const chips = element.querySelectorAll('[data-testid="example-chip"]');
+      expect(chips.length).toBe(2);
+      expect(chips[0].textContent).toContain('E-47');
+      expect(element.querySelector('[data-testid="examples"]')?.textContent).toContain(
+        'Beispielfragen',
+      );
+    });
+
+    it('shows nothing at all when the machine has no examples', async () => {
+      // A machine with no protocols has no question that works, so offering none is the honest
+      // answer (ADR-011 §1) — an empty heading would invite the reader to look for the list.
+      const fixture = await render();
+      const element = await selectMachine(fixture, {
+        machineNo: 'PR-03',
+        protocolCount: 0,
+        examples: { de: [], en: [] },
+      });
+
+      expect(element.querySelector('[data-testid="examples"]')).toBeNull();
+    });
+
+    it('shows nothing when the call fails, and says nothing about it', async () => {
+      // The chips are an aid, never a step: a reader who never sees them is where they were
+      // before this feature existed, and an error about something they did not ask for would be
+      // a complaint they cannot act on.
+      const fixture = await render();
+      const element = fixture.nativeElement as HTMLElement;
+      const machine = element.querySelector('[data-testid="machine-picker"]') as HTMLSelectElement;
+      machine.value = MACHINE;
+      machine.dispatchEvent(new Event('change'));
+      await fixture.whenStable();
+      httpMock
+        .expectOne('/api/machines/PR-03/examples')
+        .flush({}, { status: 503, statusText: 'unavailable' });
+      await fixture.whenStable();
+
+      expect(element.querySelector('[data-testid="examples"]')).toBeNull();
+      expect(element.textContent).not.toContain('Beispielfragen');
+    });
+
+    it('fills the question box on click and does NOT submit', async () => {
+      // The whole point of the feature (ADR-011 §2). If this ever submits, the demo stops
+      // teaching the shape of a good question and starts performing a trick.
+      const fixture = await render();
+      const element = await selectMachine(fixture);
+
+      (element.querySelector('[data-testid="example-chip"]') as HTMLButtonElement).click();
+      await fixture.whenStable();
+
+      const question = element.querySelector(
+        '[data-testid="question-input"]',
+      ) as HTMLTextAreaElement;
+      expect(question.value).toBe('Presse kommt nicht auf Druck, Fehler E-47, was tun?');
+      // No /api/query request was made. httpMock.verify() in afterEach would also catch it, but
+      // asserting it here names what the test is about.
+      httpMock.expectNone('/api/query');
+      expect(element.querySelector('[data-testid="answer-mode-a"]')).toBeNull();
+    });
+
+    it('swaps to the other language without asking the backend again', async () => {
+      const fixture = await render();
+      const element = await selectMachine(fixture);
+
+      TestBed.inject(I18nService).use('en');
+      await fixture.whenStable();
+
+      const chips = element.querySelectorAll('[data-testid="example-chip"]');
+      expect(chips.length).toBe(1);
+      expect(chips[0].textContent).toContain('Press not reaching pressure');
+      // Both languages arrived in one response, so the switch costs no round trip.
+      httpMock.expectNone('/api/machines/PR-03/examples');
+    });
+  });
 
   // -------------------------------------------------------------------------------------
   // Mode A
@@ -233,6 +372,10 @@ describe('Search', () => {
       const machine = element.querySelector('[data-testid="machine-picker"]') as HTMLSelectElement;
       machine.value = MACHINE;
       machine.dispatchEvent(new Event('change'));
+      await fixture.whenStable();
+      // Choosing a machine now fetches its example questions (ADR-011); answered so the
+      // outstanding-request check in afterEach still means what it meant.
+      drainExamples();
       const question = element.querySelector(
         '[data-testid="question-input"]',
       ) as HTMLTextAreaElement;
@@ -267,6 +410,10 @@ describe('Search', () => {
       const machine = element.querySelector('[data-testid="machine-picker"]') as HTMLSelectElement;
       machine.value = MACHINE;
       machine.dispatchEvent(new Event('change'));
+      await fixture.whenStable();
+      // Choosing a machine now fetches its example questions (ADR-011); answered so the
+      // outstanding-request check in afterEach still means what it meant.
+      drainExamples();
       const question = element.querySelector(
         '[data-testid="question-input"]',
       ) as HTMLTextAreaElement;
@@ -299,6 +446,10 @@ describe('Search', () => {
       const machine = element.querySelector('[data-testid="machine-picker"]') as HTMLSelectElement;
       machine.value = MACHINE;
       machine.dispatchEvent(new Event('change'));
+      await fixture.whenStable();
+      // Choosing a machine now fetches its example questions (ADR-011); answered so the
+      // outstanding-request check in afterEach still means what it meant.
+      drainExamples();
       const question = element.querySelector(
         '[data-testid="question-input"]',
       ) as HTMLTextAreaElement;
@@ -826,6 +977,76 @@ describe('Search', () => {
    * It is asserted on the MODE B branch only. On a grounded answer the advice is noise: the reader
    * already got what they came for, and telling them how to have asked better is a rebuke.
    */
+  // -------------------------------------------------------------------------------------
+  // The protocol count on Mode B (ADR-011) — the line that turns a dead end into a next step
+  // -------------------------------------------------------------------------------------
+
+  describe('the protocol count on an ungrounded answer', () => {
+    /** MODE_B with a count, which is what the backend now sends. */
+    function withCount(protocolCount: number): QueryAnswer {
+      return { ...MODE_B, protocolCount };
+    }
+
+    it('says how many protocols the machine has, and names the machine', async () => {
+      const fixture = await render();
+      const element = await ask(fixture, withCount(24));
+
+      const line = element.querySelector('[data-testid="mode-b-count"]');
+      expect(line?.textContent).toContain('24 Protokolle');
+      expect(line?.textContent).toContain('PR-03');
+      expect(line?.textContent).toContain('keins passt');
+    });
+
+    it('uses the singular for exactly one', async () => {
+      // "1 Protokolle" is the kind of thing a reader notices and a developer does not.
+      const fixture = await render();
+      const element = await ask(fixture, withCount(1));
+
+      const line = element.querySelector('[data-testid="mode-b-count"]')?.textContent ?? '';
+      expect(line).toContain('1 Protokoll zu');
+      expect(line).not.toContain('Protokolle');
+    });
+
+    it('says something different when the machine has nothing at all', async () => {
+      // Zero is not "none matched" — it is "nothing has been recorded here yet", and telling a
+      // reader to narrow the question would be advice that cannot work.
+      const fixture = await render();
+      const element = await ask(fixture, withCount(0));
+
+      const line = element.querySelector('[data-testid="mode-b-count"]')?.textContent ?? '';
+      expect(line).toContain('noch kein Protokoll');
+      expect(line).not.toContain('Fehlercode');
+    });
+
+    it('renders nothing when the backend sent no count', async () => {
+      // The additive half: an older backend, or any answer without the field, renders exactly the
+      // card it always did.
+      const fixture = await render();
+      const element = await ask(fixture, MODE_B);
+
+      expect(element.querySelector('[data-testid="mode-b-count"]')).toBeNull();
+    });
+
+    it('never appears on a grounded answer', async () => {
+      // Mode A carries its sources; a count beside them would be noise, and the backend does not
+      // send one — but the template is what has to agree.
+      const fixture = await render();
+      const element = await ask(fixture, MODE_A);
+
+      expect(element.querySelector('[data-testid="mode-b-count"]')).toBeNull();
+    });
+
+    it('translates', async () => {
+      const fixture = await render();
+      TestBed.inject(I18nService).use('en');
+      const element = await ask(fixture, withCount(24));
+
+      expect(element.querySelector('[data-testid="mode-b-count"]')?.textContent).toContain(
+        '24 protocols exist for PR-03',
+      );
+    });
+  });
+
   it('offers the code tip on an ungrounded answer, and only there', async () => {
     const fixture = await render();
     const element = await ask(fixture, MODE_B);

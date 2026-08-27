@@ -171,6 +171,15 @@ export interface Dictionary {
     readonly questionRequired: string;
     readonly machineRequired: string;
     /**
+     * The heading over the example-question chips (ADR-011).
+     *
+     * The chips exist because a first-time reader cannot invent a question that reaches a
+     * protocol — they do not know that E-47 exists. Clicking one FILLS the box and does not
+     * submit, so the demo teaches the shape of a good question rather than performing a trick
+     * the reader cannot repeat.
+     */
+    readonly examplesHeading: string;
+    /**
      * The "how do I search" panel.
      *
      * It exists because there is no keyword search to fall back on: retrieval is semantic by
@@ -266,6 +275,18 @@ export interface Dictionary {
      * validation gate — see SearchHelp's class comment for why that was rejected.
      */
     readonly tip: string;
+    /**
+     * What the machine has anyway, above the tip (ADR-011).
+     *
+     * Mode B says "no source in the corpus", which to a first-time reader sounds like an empty
+     * product. This says how many protocols DO exist for the machine, which turns a dead end
+     * into a next step: the corpus is not empty, the question was not specific enough.
+     *
+     * Three forms because none of them reads well as the others: one protocol is not "1
+     * Protokolle", and zero is a different statement entirely — nothing has been recorded for
+     * this machine yet, so narrowing the question would not help.
+     */
+    readonly protocolCount: (count: number, machine: string) => string;
     readonly steps: string;
   };
   readonly errors: {
@@ -615,6 +636,7 @@ export const DE: Dictionary = {
     machinesUnavailable: 'Maschinenliste nicht verfügbar.',
     questionRequired: 'Bitte eine Frage eingeben.',
     machineRequired: 'Bitte eine Maschine wählen.',
+    examplesHeading: 'Beispielfragen',
     helpHeading: 'Wie suche ich?',
     helpToggle: 'Wie suche ich?',
     helpMeaning:
@@ -683,6 +705,12 @@ export const DE: Dictionary = {
     explanation:
       'Zu dieser Frage gibt es kein Protokoll im Bestand. Die folgenden Schritte sind allgemeines Erfahrungswissen und NICHT durch ein Protokoll dieser Anlage belegt.',
     tip: 'Tipp: Wenn Sie einen Fehlercode haben, nennen Sie ihn — die Suche findet Codes wortgenau.',
+    protocolCount: (count, machine) =>
+      count === 0
+        ? `Zu ${machine} gibt es noch kein Protokoll.`
+        : count === 1
+          ? `1 Protokoll zu ${machine} vorhanden — es passt nicht zu dieser Beschreibung. Versuchen Sie einen Fehlercode oder eine der Beispielfragen.`
+          : `${count} Protokolle zu ${machine} vorhanden — keins passt zu dieser Beschreibung. Versuchen Sie einen Fehlercode oder eine der Beispielfragen.`,
     steps: 'Vorgeschlagene Schritte',
   },
   errors: {
@@ -991,6 +1019,7 @@ export const EN: Dictionary = {
     machinesUnavailable: 'Machine list unavailable.',
     questionRequired: 'Please enter a question.',
     machineRequired: 'Please choose a machine.',
+    examplesHeading: 'Example questions',
     helpHeading: 'How do I search?',
     helpToggle: 'How do I search?',
     helpMeaning:
@@ -1058,6 +1087,12 @@ export const EN: Dictionary = {
     explanation:
       'No protocol in the records covers this question. The steps below are general engineering knowledge and are NOT backed by a protocol for this machine.',
     tip: 'Tip: if you have a fault code, name it — the search matches codes word for word.',
+    protocolCount: (count, machine) =>
+      count === 0
+        ? `There is no protocol for ${machine} yet.`
+        : count === 1
+          ? `1 protocol exists for ${machine} — it does not match this description. Try a fault code, or one of the example questions.`
+          : `${count} protocols exist for ${machine} — none matches this description. Try a fault code, or one of the example questions.`,
     steps: 'Suggested steps',
   },
   errors: {

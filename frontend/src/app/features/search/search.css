@@ -26,6 +26,60 @@
   gap: var(--s-1);
 }
 
+/* EXAMPLE QUESTIONS (ADR-011).
+ *
+ * A row of quiet chips under the question box. They are an AID, not a control surface, and the
+ * styling says so: hint-weight heading, --c-sunken ground rather than the brand, and no icon. A
+ * chip that looked like the ask button would compete with it for the one action on this screen.
+ *
+ * They wrap rather than scroll: three to four short questions fit on a laptop and stack on a
+ * tablet, and a horizontal scroller hides its own contents on the device this application is
+ * mainly used on. */
+.examples {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+}
+
+.examples-heading {
+  margin: 0;
+  font-size: var(--t-sm);
+  color: var(--c-ink-muted);
+}
+
+.example-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.example-chip {
+  /* Left-aligned text, because these are sentences and not labels: a centred question reads as a
+     button caption, and a reader is meant to READ this one before clicking it. */
+  text-align: left;
+  padding: var(--s-2) var(--s-3);
+  border: 1px solid var(--c-line);
+  border-radius: var(--r-pill, 999px);
+  background: var(--c-sunken);
+  color: var(--c-ink);
+  font: inherit;
+  font-size: var(--t-sm);
+  line-height: var(--lh-normal);
+  cursor: pointer;
+}
+
+.example-chip:hover:not(:disabled) {
+  border-color: var(--c-brand);
+}
+
+.example-chip:disabled {
+  cursor: default;
+  color: var(--c-ink-disabled);
+}
+
 .ask-actions {
   display: flex;
   align-items: center;

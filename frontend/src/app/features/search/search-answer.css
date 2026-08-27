@@ -167,6 +167,21 @@
  * aside. Measured on --c-mode-b-soft, which is the ground it actually sits on rather than the page:
  * 5.54:1 light, 6.19:1 dark, both clear of AA.
  */
+/*
+ * The protocol count (ADR-011), directly above the tip.
+ *
+ * Deliberately the same size and ink as the tip below it, because the two are one aside read in
+ * one breath — the fact, then the advice. Giving the count more weight would make the interface
+ * argue with its own answer: "no source" and "24 protocols exist" would read as a contradiction
+ * rather than as the reason to ask again.
+ */
+.answer-count {
+  margin: 0 0 var(--s-1);
+  font-size: var(--t-sm);
+  line-height: var(--lh-normal);
+  color: var(--c-ink-hint);
+}
+
 .answer-tip {
   /* No top margin of its own: the explanation's --s-4 above it already sets the gap, and adding a
      second one here would be two rules describing one distance. */

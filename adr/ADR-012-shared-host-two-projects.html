@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Decisions ·
+ADR-012-shared-host-two-projects · maintenance-assistant Docs</title>
+
+  <!-- Set the theme before the stylesheet paints, otherwise the page flashes
+       the default theme for one frame before the saved choice applies. -->
+  <script>
+    (function () {
+      try {
+        var t = localStorage.getItem("maintenance-assistant-theme") ||
+          (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+        document.documentElement.setAttribute("data-theme", t);
+      } catch (e) {
+        document.documentElement.setAttribute("data-theme", "light");
+      }
+    })();
+  </script>
+
+  <link rel="stylesheet" href="/maintenance-assistant/assets/docs.css" />
+</head>
+
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <header class="topbar">
+    <div class="topbar-inner">
+      <button class="menu-btn" aria-label="Toggle navigation">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="18" x2="21" y2="18" />
+        </svg>
+      </button>
+
+      <a href="/maintenance-assistant/" class="brand">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <path d="M14.7 6.3a5 5 0 0 0-6.6 6.6l-5 5a2 2 0 1 0 2.8 2.8l5-5a5 5 0 0 0 6.6-6.6l-2.9 2.9-2.1-2.1 2.2-3.6z" />
+        </svg>
+        maintenance-assistant Docs
+      </a>
+
+      <div class="topbar-tools">
+        <span class="lang-switch">
+          <a href="/maintenance-assistant/" aria-current="true">EN</a>
+          <a href="/maintenance-assistant/index-de.html">DE</a>
+        </span>
+        <button class="theme-toggle" aria-label="Toggle light or dark theme">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <circle cx="12" cy="12" r="9" /><path d="M12 3a9 9 0 0 0 0 18z" fill="currentColor" stroke="none" />
+          </svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <div class="layout">
+    <!-- Sidebar navigation, included by app-docs.html as a Pandoc partial. One
+         sidebar serves the whole site: this repository has a single arc42 tree and a
+         single decision log, so the per-tier sidebars the sibling repositories need
+         would be three copies of the same list here. The active link is marked at
+         runtime by docs.js. Do not put template syntax in this comment - a partial
+         is itself a template. -->
+    <aside class="sidebar">
+      <p class="nav-title">Docs</p>
+      <ul>
+        <li><a href="/maintenance-assistant/">Docs home</a></li>
+        <li><a href="/maintenance-assistant/overview.html">Overview</a></li>
+        <li><a href="/maintenance-assistant/overview-de.html">&Uuml;berblick (DE)</a></li>
+        <li><a href="/maintenance-assistant/llm-approach.html">AI &amp; LLM approach</a></li>
+      </ul>
+
+      <p class="nav-title">Requirements</p>
+      <ul>
+        <li><a href="/maintenance-assistant/requirements.html">Requirements &amp; NFRs</a></li>
+        <li><a href="/maintenance-assistant/domain-model.html">Domain model</a></li>
+      </ul>
+
+      <details class="nav-group">
+        <summary>Architecture (arc42)</summary>
+        <ul>
+          <li><a href="/maintenance-assistant/architecture/index.html">Architecture index</a></li>
+          <li><a href="/maintenance-assistant/architecture/01-introduction-and-goals.html">1 &middot; Introduction &amp; Goals</a></li>
+          <li><a href="/maintenance-assistant/architecture/02-architecture-constraints.html">2 &middot; Constraints</a></li>
+          <li><a href="/maintenance-assistant/architecture/03-context-and-scope.html">3 &middot; Context &amp; Scope</a></li>
+          <li><a href="/maintenance-assistant/architecture/04-solution-strategy.html">4 &middot; Solution Strategy</a></li>
+          <li><a href="/maintenance-assistant/architecture/05-building-block-view.html">5 &middot; Building Blocks</a></li>
+          <li><a href="/maintenance-assistant/architecture/06-runtime-view.html">6 &middot; Runtime View</a></li>
+          <li><a href="/maintenance-assistant/architecture/07-deployment-view.html">7 &middot; Deployment</a></li>
+          <li><a href="/maintenance-assistant/architecture/08-crosscutting-concepts.html">8 &middot; Concepts</a></li>
+          <li><a href="/maintenance-assistant/architecture/09-architecture-decisions.html">9 &middot; Decisions</a></li>
+          <li><a href="/maintenance-assistant/architecture/10-quality-requirements.html">10 &middot; Quality Requirements</a></li>
+          <li><a href="/maintenance-assistant/architecture/11-risks-and-technical-debt.html">11 &middot; Risks &amp; Debt</a></li>
+          <li><a href="/maintenance-assistant/architecture/12-glossary.html">12 &middot; Glossary</a></li>
+        </ul>
+      </details>
+
+      <details class="nav-group">
+        <summary>Decisions (ADRs)</summary>
+        <ul>
+          <li><a href="/maintenance-assistant/adr/index.html">Decision index</a></li>
+          <li><a href="/maintenance-assistant/adr/ADR-001-modular-monolith-first.html">ADR-001 Modular monolith</a></li>
+          <li><a href="/maintenance-assistant/adr/ADR-002-eu-hosted-llm-provider.html">ADR-002 EU LLM provider</a></li>
+          <li><a href="/maintenance-assistant/adr/ADR-003-keycloak-for-iam.html">ADR-003 Keycloak as IdP</a></li>
+          <li><a href="/maintenance-assistant/adr/ADR-004-pgvector-for-vector-search.html">ADR-004 pgvector</a></li>
+          <li><a href="/maintenance-assistant/adr/ADR-010-docs-tree-conventions.html">ADR-010 Docs tree conventions</a></li>
+          <li><a href="/maintenance-assistant/adr/ADR-011-guided-questions.html">ADR-011 Guided questions</a></li>
+        </ul>
+      </details>
+
+      <p class="nav-title">Frontend</p>
+      <ul>
+        <li><a href="/maintenance-assistant/frontend-architecture.html">Frontend architecture</a></li>
+      </ul>
+
+      <p class="nav-title">Quality</p>
+      <ul>
+        <li><a href="/maintenance-assistant/refactor-standards.html">Refactor standards</a></li>
+        <li><a href="/maintenance-assistant/backend/api-docs/index.html">Backend API</a></li>
+        <li><a href="/maintenance-assistant/frontend/api-docs/index.html">Frontend API</a></li>
+        <li><a href="/maintenance-assistant/backend/coverage/index.html">Backend coverage</a></li>
+        <li><a href="/maintenance-assistant/frontend/coverage/index.html">Frontend coverage</a></li>
+      </ul>
+    </aside>
+    <main class="content" id="main">
+      <article class="doc-body">
+        <h1
+        id="adr-012-run-two-portfolio-projects-on-one-host-and-say-what-that-costs">ADR-012:
+        Run two portfolio projects on one host, and say what that
+        costs</h1>
+        <table>
+        <colgroup>
+        <col style="width: 50%" />
+        <col style="width: 50%" />
+        </colgroup>
+        <tbody>
+        <tr class="odd">
+        <td><strong>Status</strong></td>
+        <td>Accepted</td>
+        </tr>
+        <tr class="even">
+        <td><strong>Date</strong></td>
+        <td>2026-08-27</td>
+        </tr>
+        <tr class="odd">
+        <td><strong>Deciders</strong></td>
+        <td>Carlos Keglevich</td>
+        </tr>
+        <tr class="even">
+        <td><strong>Related</strong></td>
+        <td>ADR-001 (modular monolith — the same proportionality
+        argument, one layer down), PR #119 (the Caddy site block and the
+        memory limits), PR #120 (the hand-deploy record),
+        <code>docs/DECISIONS.txt:995-1011</code> (memory limits) and
+        <code>:1012-1026</code> (the privilege split),
+        <code>docker/docker-compose.prod.yml</code>,
+        <code>docker/caddy/Caddyfile</code>,
+        <code>infra/provision.sh</code></td>
+        </tr>
+        </tbody>
+        </table>
+        <h2 id="context">Context</h2>
+        <p>One Hetzner CX33 — 4 vCPU, 8 GB RAM, 75 GB disk, Nuremberg —
+        has run <strong>maintenance-assistant</strong> since 2026-08-06.
+        Since 2026-08-27 it also serves <strong><a
+        href="https://github.com/Keglev/inventory-service">inventory-service</a></strong>,
+        the SmartSupplyPro backend: its Caddy already terminates
+        <code>api.smartsupplypro.de</code> and proxies to
+        <code>ssp-backend:8081</code> (#119), hand-deployed and verified
+        in #120, where the hostname answers 502 over a valid certificate
+        until the container exists.</p>
+        <p>Both are <strong>portfolio deployments</strong>. They exist
+        to be opened by a recruiter or a hiring engineer and to be read
+        as evidence. Neither has a paying user, an SLA, or anyone on
+        call.</p>
+        <p>The decision is not whether the second project <em>can</em>
+        run here — it demonstrably does. It is whether running it here
+        is a defensible engineering position or an economy that has not
+        been priced. This record prices it.</p>
+        <h2 id="decision">Decision</h2>
+        <p><strong>One host, one Caddy, one compose stack per
+        project.</strong></p>
+        <table>
+        <thead>
+        <tr class="header">
+        <th></th>
+        <th><code>/opt/maintenance-assistant/</code></th>
+        <th><code>/opt/smartsupplypro/</code></th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr class="odd">
+        <td>compose file</td>
+        <td>hand-deployed</td>
+        <td><strong>delivered by CI</strong></td>
+        </tr>
+        <tr class="even">
+        <td><code>.env.prod</code></td>
+        <td>hand-deployed</td>
+        <td>hand-deployed</td>
+        </tr>
+        <tr class="odd">
+        <td><code>caddy/</code></td>
+        <td>hand-deployed, <strong>holds both projects’
+        routing</strong></td>
+        <td>—</td>
+        </tr>
+        </tbody>
+        </table>
+        <p>The two directories are otherwise independent: separate
+        databases, separate volumes, separate lifecycles, separate
+        repositories, separate pipelines.</p>
+        <p><strong>Caddy belongs to project 1 and carries project 2’s
+        site block, and that asymmetry is deliberate.</strong> It is the
+        single coupling between the two directories. The alternative — a
+        third compose project owning a shared proxy — would have made
+        both applications depend on a stack neither repository owns, and
+        would have needed its own deploy path, its own hand-deployed
+        config and its own place in two runbooks. One asymmetric edge is
+        cheaper to hold in the head than a symmetric third thing.</p>
+        <p><strong>Memory limits are set per JVM container, from the
+        heap ceiling the runtime will produce, not from the resident set
+        it happens to show</strong> —
+        <code>docs/DECISIONS.txt:995-1011</code>. A JVM sizes its heap
+        as a percentage of visible memory, so an unlimited container on
+        a shared host is one process entitled to most of the machine;
+        the limit is the input to that percentage. backend
+        <code>1536m</code> (75% → 1,152 MiB heap), keycloak
+        <code>1280m</code> (70% → 896 MiB). <code>postgres</code>,
+        <code>caddy</code> and <code>frontend</code> stay unlimited,
+        because none of them sizes from visible RAM.</p>
+        <p><strong>Root creates and hands over; <code>deploy</code>
+        operates</strong> — <code>docs/DECISIONS.txt:1012-1026</code>.
+        <code>/opt</code> is root-owned and <code>deploy</code> is
+        deliberately not in sudoers (<code>infra/provision.sh</code>),
+        so a second project’s directory takes exactly one root action to
+        exist plus a <code>chown</code>, and everything afterwards
+        belongs to the unprivileged account. Exercised for an OS change
+        for the first time in the maintenance window of 2026-08-27
+        20:00–20:10 UTC.</p>
+        <h3 id="why">Why</h3>
+        <p><strong>Cost, and these are portfolio deployments with no
+        paying user.</strong> That is the whole reason, in that order,
+        and it is written first so nobody later reconstructs a technical
+        justification that was never the point. A second VPS is a
+        recurring charge against two projects that need to be
+        <em>reachable and correct</em>, not <em>available</em>. The
+        engineering content of this decision is not the sharing — it is
+        being explicit about what the sharing costs and what would end
+        it.</p>
+        <h2 id="consequences">Consequences</h2>
+        <p><strong>Positive</strong></p>
+        <ul>
+        <li>One machine to provision, patch, back up and reboot. Host
+        maintenance is one window covering both projects instead of two
+        outages on two schedules — first exercised 2026-08-27, kernel
+        7.0.0-29 → 7.0.0-30 (see <code>docs/PROJECT-PHASES.txt</code>,
+        MAINTENANCE WINDOW).</li>
+        <li>One Caddy, so one certificate account, one ACME
+        configuration, one place where TLS can be wrong.</li>
+        <li>The second project inherits a hardened host: key-only SSH,
+        fail2ban, the unprivileged deploy account, and a nightly backup
+        that already exists.</li>
+        </ul>
+        <p><strong>Negative — the accepted risk, stated
+        plainly</strong></p>
+        <ul>
+        <li><strong>One blast radius.</strong> A kernel reboot, a host
+        fault or a disk failure takes <strong>both domains down
+        together</strong>. There is no scenario in which one survives
+        the machine.</li>
+        <li><strong>A memory incident in one project degrades the
+        other.</strong> The limits bound each JVM’s heap; they do not
+        stop a runaway container from making the box slow for everyone
+        on it, and the 2 GB swap file added on 2026-08-27 turns some
+        kills into slowdowns rather than removing them.</li>
+        <li><strong>A quieter coupling, and the one most likely to bite:
+        project 2’s routing lives in project 1’s
+        <code>caddy/Caddyfile</code>.</strong> A Caddyfile mistake made
+        while deploying maintenance-assistant can take
+        <code>api.smartsupplypro.de</code> offline. <strong>The reverse
+        is not true</strong> — nothing in
+        <code>/opt/smartsupplypro/</code> can break this project’s
+        routing. The asymmetry is the price of not building a third
+        stack, and it means a maintenance-assistant deploy is, silently,
+        a change window for the other project too.</li>
+        <li>The Caddyfile is hand-deployed (OPS RULE 1), so project 2’s
+        routing is not covered by project 2’s pipeline — or by
+        anyone’s.</li>
+        </ul>
+        <p><strong>Mitigations already on record</strong>, none of them
+        added by this ADR:</p>
+        <ul>
+        <li>the per-container memory limits above;</li>
+        <li>the privilege split, so an ordinary deploy cannot
+        reconfigure the machine;</li>
+        <li><strong>host maintenance is done in one window covering both
+        projects</strong>, which is what makes the shared blast radius a
+        schedule rather than a surprise.</li>
+        </ul>
+        <h2 id="reversal-conditions">Reversal conditions</h2>
+        <p>This decision stops being acceptable at any one of:</p>
+        <ol type="1">
+        <li><strong>A paying user or an SLA on either domain.</strong>
+        Shared failure is a cost somebody is now owed.</li>
+        <li><strong>A second operator.</strong> The privilege split is a
+        written rule between one person and their own future self; with
+        two people, one project’s deploy touching the other’s routing
+        needs a boundary an agreement cannot provide.</li>
+        <li><strong>A measured incident in which one project took the
+        other down.</strong> Not a near miss and not an argument — an
+        incident, recorded.</li>
+        </ol>
+        <p>Then the second project moves to its own host, <strong>and
+        the site block in <code>docker/caddy/Caddyfile</code> is the
+        only thing here that has to change.</strong> That is deliberate:
+        the reversal was kept to one file before the arrangement was
+        accepted, because a coupling you cannot cheaply undo is not a
+        coupling you should agree to.</p>
+        <h2 id="alternatives-considered">Alternatives considered</h2>
+        <ul>
+        <li><strong>A second VPS, one project each.</strong> No shared
+        blast radius, no shared Caddyfile, and the reversal conditions
+        above would all be answered in advance. It loses on cost against
+        two projects with no paying user, and on operational surface:
+        two hosts to patch and reboot is the recurring price, and
+        neither project is large enough to earn it. <em>Rejected —
+        revisit at any reversal condition.</em></li>
+        <li><strong>A third compose project owning a shared reverse
+        proxy.</strong> Symmetric, and it removes the awkward fact that
+        one project’s repository holds the other’s routing. It loses
+        because it makes both applications depend on a stack neither
+        repository owns: a new deploy path, a new hand-deployed config,
+        a new entry in two runbooks, and a third thing to remember
+        during an incident. The asymmetry it removes is cheaper to
+        document than the component it adds. <em>Rejected.</em></li>
+        <li><strong>Managed hosting for the second project</strong> (a
+        PaaS free or hobby tier). Removes the coupling entirely and
+        costs nothing at first. Rejected on the same ground as ADR-002’s
+        provider reasoning: the demo has to stay reachable and
+        predictable, and a free tier that sleeps, rate-limits or changes
+        terms is a demo that fails while somebody is reading the CV that
+        points at it. <em>Rejected.</em></li>
+        <li><strong>Do nothing and leave it undocumented.</strong> The
+        arrangement already worked on 2026-08-27, so this ADR changes no
+        behaviour at all. Rejected because an undocumented shared blast
+        radius is a decision nobody made: the next person to touch that
+        Caddyfile would have no way to know that a second domain depends
+        on it. <em>Rejected.</em></li>
+        </ul>
+      </article>
+    </main>
+
+        <nav class="toc" aria-label="On this page">
+      <p class="toc-title">On this page</p>
+      <ul>
+      <li><a
+      href="#adr-012-run-two-portfolio-projects-on-one-host-and-say-what-that-costs"
+      id="toc-adr-012-run-two-portfolio-projects-on-one-host-and-say-what-that-costs">ADR-012:
+      Run two portfolio projects on one host, and say what that
+      costs</a>
+      <ul>
+      <li><a href="#context" id="toc-context">Context</a></li>
+      <li><a href="#decision" id="toc-decision">Decision</a>
+      <ul>
+      <li><a href="#why" id="toc-why">Why</a></li>
+      </ul></li>
+      <li><a href="#consequences"
+      id="toc-consequences">Consequences</a></li>
+      <li><a href="#reversal-conditions"
+      id="toc-reversal-conditions">Reversal conditions</a></li>
+      <li><a href="#alternatives-considered"
+      id="toc-alternatives-considered">Alternatives considered</a></li>
+      </ul></li>
+      </ul>
+    </nav>
+      </div>
+
+  <footer class="footer">
+    maintenance-assistant · Generated by the docs pipeline
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <script src="/maintenance-assistant/assets/docs.js"></script>
+</body>
+</html>

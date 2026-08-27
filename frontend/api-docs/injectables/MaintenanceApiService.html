@@ -247,6 +247,10 @@ nothing here touches a header.</p>
                             </li>
                             <li>
                                 <span class="reference-badge reference-badge--method" aria-hidden="true">M</span>
+                                <a href="#machineExamples" >machineExamples</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--method" aria-hidden="true">M</span>
                                 <a href="#machines" >machines</a>
                             </li>
                             <li>
@@ -311,8 +315,8 @@ nothing here touches a header.</p>
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="59"
-                                    class="link-to-prism">src/app/core/api/maintenance-api.service.ts:59</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="72"
+                                    class="link-to-prism">src/app/core/api/maintenance-api.service.ts:72</a></div>
                         </td>
                     </tr>
 
@@ -415,8 +419,8 @@ a better feature and be a worse answer.</p>
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="203"
-                                    class="link-to-prism">src/app/core/api/maintenance-api.service.ts:203</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="216"
+                                    class="link-to-prism">src/app/core/api/maintenance-api.service.ts:216</a></div>
                         </td>
                     </tr>
 
@@ -508,8 +512,8 @@ a better feature and be a worse answer.</p>
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="137"
-                                    class="link-to-prism">src/app/core/api/maintenance-api.service.ts:137</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="150"
+                                    class="link-to-prism">src/app/core/api/maintenance-api.service.ts:150</a></div>
                         </td>
                     </tr>
 
@@ -592,8 +596,8 @@ history — three places nobody audited for it.</p>
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="150"
-                                    class="link-to-prism">src/app/core/api/maintenance-api.service.ts:150</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="163"
+                                    class="link-to-prism">src/app/core/api/maintenance-api.service.ts:163</a></div>
                         </td>
                     </tr>
 
@@ -676,8 +680,8 @@ document no longer contains (ADR-006 revision).</p>
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="220"
-                                    class="link-to-prism">src/app/core/api/maintenance-api.service.ts:220</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="233"
+                                    class="link-to-prism">src/app/core/api/maintenance-api.service.ts:233</a></div>
                         </td>
                     </tr>
 
@@ -748,8 +752,8 @@ protocol&#39;s content, and it is what makes the archive evidence rather than a 
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="85"
-                                    class="link-to-prism">src/app/core/api/maintenance-api.service.ts:85</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="98"
+                                    class="link-to-prism">src/app/core/api/maintenance-api.service.ts:98</a></div>
                         </td>
                     </tr>
 
@@ -826,8 +830,8 @@ half: <code>Content-Type</code> decides whether the browser renders the document
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="123"
-                                    class="link-to-prism">src/app/core/api/maintenance-api.service.ts:123</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="136"
+                                    class="link-to-prism">src/app/core/api/maintenance-api.service.ts:136</a></div>
                         </td>
                     </tr>
 
@@ -899,8 +903,8 @@ kind of difference that should be visible at the call site.</p>
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="43"
-                                    class="link-to-prism">src/app/core/api/maintenance-api.service.ts:43</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="44"
+                                    class="link-to-prism">src/app/core/api/maintenance-api.service.ts:44</a></div>
                         </td>
                     </tr>
 
@@ -926,6 +930,77 @@ keep in step with the first for no gain.</p>
         <tbody>
             <tr>
                 <td class="col-md-4">
+                    <a name="machineExamples"></a>
+                    <span class="name">
+                        <span ><b>machineExamples</b></span>
+                        <a href="#machineExamples"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+<code>machineExamples(machineNo: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank">string</a>)</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="59"
+                                    class="link-to-prism">src/app/core/api/maintenance-api.service.ts:59</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                        <div class="io-description"><p>The questions this machine can actually answer, and how many protocols it has (ADR-011).</p>
+<p>By <code>machineNo</code> and not by id, because the resource behind it is hand-authored against plant
+identifiers; the picker carries both, so the caller has the key either way.</p>
+</div>
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                                <td>Type</td>
+                                            <td>Optional</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>machineNo</td>
+                                            <td>
+                                                            <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>    <code>Observable&lt;MachineExamples&gt;</code>
+
+                        </div>
+                            <div class="io-description">
+                                
+                            </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
                     <a name="machines"></a>
                     <span class="name">
                         <span ><b>machines</b></span>
@@ -942,8 +1017,8 @@ keep in step with the first for no gain.</p>
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="48"
-                                    class="link-to-prism">src/app/core/api/maintenance-api.service.ts:48</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="49"
+                                    class="link-to-prism">src/app/core/api/maintenance-api.service.ts:49</a></div>
                         </td>
                     </tr>
 
@@ -981,8 +1056,8 @@ keep in step with the first for no gain.</p>
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="98"
-                                    class="link-to-prism">src/app/core/api/maintenance-api.service.ts:98</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="111"
+                                    class="link-to-prism">src/app/core/api/maintenance-api.service.ts:111</a></div>
                         </td>
                     </tr>
 
@@ -1084,8 +1159,8 @@ uploaded, and a review screen that loads all of them gets slower every month.</p
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="228"
-                                    class="link-to-prism">src/app/core/api/maintenance-api.service.ts:228</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="241"
+                                    class="link-to-prism">src/app/core/api/maintenance-api.service.ts:241</a></div>
                         </td>
                     </tr>
 
@@ -1123,8 +1198,8 @@ uploaded, and a review screen that loads all of them gets slower every month.</p
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="181"
-                                    class="link-to-prism">src/app/core/api/maintenance-api.service.ts:181</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="194"
+                                    class="link-to-prism">src/app/core/api/maintenance-api.service.ts:194</a></div>
                         </td>
                     </tr>
 
@@ -1195,8 +1270,8 @@ age. The response carries <code>total</code> so the viewer can still say that ol
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="167"
-                                    class="link-to-prism">src/app/core/api/maintenance-api.service.ts:167</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="180"
+                                    class="link-to-prism">src/app/core/api/maintenance-api.service.ts:180</a></div>
                         </td>
                     </tr>
 
@@ -1301,8 +1376,8 @@ access logs, proxy logs and browser history.</p>
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="196"
-                                    class="link-to-prism">src/app/core/api/maintenance-api.service.ts:196</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="209"
+                                    class="link-to-prism">src/app/core/api/maintenance-api.service.ts:209</a></div>
                         </td>
                     </tr>
 
@@ -1375,8 +1450,8 @@ same fact. That is what makes it safe for the view to fail open when this call e
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="233"
-                                    class="link-to-prism">src/app/core/api/maintenance-api.service.ts:233</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="246"
+                                    class="link-to-prism">src/app/core/api/maintenance-api.service.ts:246</a></div>
                         </td>
                     </tr>
 
@@ -1457,7 +1532,7 @@ same fact. That is what makes it safe for the view to fail open when this call e
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="33" class="link-to-prism">src/app/core/api/maintenance-api.service.ts:33</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="34" class="link-to-prism">src/app/core/api/maintenance-api.service.ts:34</a></div>
                         </td>
                     </tr>
 
@@ -1490,7 +1565,7 @@ same fact. That is what makes it safe for the view to fail open when this call e
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="32" class="link-to-prism">src/app/core/api/maintenance-api.service.ts:32</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="33" class="link-to-prism">src/app/core/api/maintenance-api.service.ts:33</a></div>
                         </td>
                     </tr>
 
@@ -1513,6 +1588,7 @@ import {
   DeletedProtocolPage,
   HealthStatus,
   Machine,
+  MachineExamples,
   NO_FILTER,
   ProtocolCorrection,
   ProtocolFilter,
@@ -1552,6 +1628,18 @@ export class MaintenanceApiService {
   /** The machines a question can be asked about. */
   machines(): Observable&lt;Machine[]&gt; {
     return this.http.get&lt;Machine[]&gt;(&#x60;${this.apiBaseUrl}/machines&#x60;);
+  }
+
+  /**
+   * The questions this machine can actually answer, and how many protocols it has (ADR-011).
+   *
+   * By &#x60;machineNo&#x60; and not by id, because the resource behind it is hand-authored against plant
+   * identifiers; the picker carries both, so the caller has the key either way.
+   */
+  machineExamples(machineNo: string): Observable&lt;MachineExamples&gt; {
+    return this.http.get&lt;MachineExamples&gt;(
+      &#x60;${this.apiBaseUrl}/machines/${encodeURIComponent(machineNo)}/examples&#x60;,
+    );
   }
 
   /**

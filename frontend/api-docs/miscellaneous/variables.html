@@ -920,6 +920,7 @@ needs to know which second they pressed the button.</div>
     machinesUnavailable: &#x27;Maschinenliste nicht verfügbar.&#x27;,
     questionRequired: &#x27;Bitte eine Frage eingeben.&#x27;,
     machineRequired: &#x27;Bitte eine Maschine wählen.&#x27;,
+    examplesHeading: &#x27;Beispielfragen&#x27;,
     helpHeading: &#x27;Wie suche ich?&#x27;,
     helpToggle: &#x27;Wie suche ich?&#x27;,
     helpMeaning:
@@ -988,6 +989,12 @@ needs to know which second they pressed the button.</div>
     explanation:
       &#x27;Zu dieser Frage gibt es kein Protokoll im Bestand. Die folgenden Schritte sind allgemeines Erfahrungswissen und NICHT durch ein Protokoll dieser Anlage belegt.&#x27;,
     tip: &#x27;Tipp: Wenn Sie einen Fehlercode haben, nennen Sie ihn — die Suche findet Codes wortgenau.&#x27;,
+    protocolCount: (count, machine) &#x3D;&gt;
+      count &#x3D;&#x3D;&#x3D; 0
+        ? &#x60;Zu ${machine} gibt es noch kein Protokoll.&#x60;
+        : count &#x3D;&#x3D;&#x3D; 1
+          ? &#x60;1 Protokoll zu ${machine} vorhanden — es passt nicht zu dieser Beschreibung. Versuchen Sie einen Fehlercode oder eine der Beispielfragen.&#x60;
+          : &#x60;${count} Protokolle zu ${machine} vorhanden — keins passt zu dieser Beschreibung. Versuchen Sie einen Fehlercode oder eine der Beispielfragen.&#x60;,
     steps: &#x27;Vorgeschlagene Schritte&#x27;,
   },
   errors: {
@@ -1354,6 +1361,7 @@ DECISIONS.txt, which is what the two modes are called throughout the project&#39
     machinesUnavailable: &#x27;Machine list unavailable.&#x27;,
     questionRequired: &#x27;Please enter a question.&#x27;,
     machineRequired: &#x27;Please choose a machine.&#x27;,
+    examplesHeading: &#x27;Example questions&#x27;,
     helpHeading: &#x27;How do I search?&#x27;,
     helpToggle: &#x27;How do I search?&#x27;,
     helpMeaning:
@@ -1421,6 +1429,12 @@ DECISIONS.txt, which is what the two modes are called throughout the project&#39
     explanation:
       &#x27;No protocol in the records covers this question. The steps below are general engineering knowledge and are NOT backed by a protocol for this machine.&#x27;,
     tip: &#x27;Tip: if you have a fault code, name it — the search matches codes word for word.&#x27;,
+    protocolCount: (count, machine) &#x3D;&gt;
+      count &#x3D;&#x3D;&#x3D; 0
+        ? &#x60;There is no protocol for ${machine} yet.&#x60;
+        : count &#x3D;&#x3D;&#x3D; 1
+          ? &#x60;1 protocol exists for ${machine} — it does not match this description. Try a fault code, or one of the example questions.&#x60;
+          : &#x60;${count} protocols exist for ${machine} — none matches this description. Try a fault code, or one of the example questions.&#x60;,
     steps: &#x27;Suggested steps&#x27;,
   },
   errors: {

@@ -255,7 +255,7 @@ cannot.</p>
 
                             <tr>
                                 <td class="col-md-4">
-                                    <div class="io-line">Defined in <a href="" data-line="263" class="link-to-prism">src/app/core/api/api.types.ts:263</a></div>
+                                    <div class="io-line">Defined in <a href="" data-line="302" class="link-to-prism">src/app/core/api/api.types.ts:302</a></div>
                                 </td>
                             </tr>
 
@@ -300,7 +300,7 @@ cannot.</p>
 
                             <tr>
                                 <td class="col-md-4">
-                                    <div class="io-line">Defined in <a href="" data-line="261" class="link-to-prism">src/app/core/api/api.types.ts:261</a></div>
+                                    <div class="io-line">Defined in <a href="" data-line="300" class="link-to-prism">src/app/core/api/api.types.ts:300</a></div>
                                 </td>
                             </tr>
 
@@ -339,7 +339,7 @@ cannot.</p>
 
                             <tr>
                                 <td class="col-md-4">
-                                    <div class="io-line">Defined in <a href="" data-line="260" class="link-to-prism">src/app/core/api/api.types.ts:260</a></div>
+                                    <div class="io-line">Defined in <a href="" data-line="299" class="link-to-prism">src/app/core/api/api.types.ts:299</a></div>
                                 </td>
                             </tr>
 
@@ -378,7 +378,7 @@ cannot.</p>
 
                             <tr>
                                 <td class="col-md-4">
-                                    <div class="io-line">Defined in <a href="" data-line="257" class="link-to-prism">src/app/core/api/api.types.ts:257</a></div>
+                                    <div class="io-line">Defined in <a href="" data-line="296" class="link-to-prism">src/app/core/api/api.types.ts:296</a></div>
                                 </td>
                             </tr>
 
@@ -417,7 +417,7 @@ cannot.</p>
 
                             <tr>
                                 <td class="col-md-4">
-                                    <div class="io-line">Defined in <a href="" data-line="258" class="link-to-prism">src/app/core/api/api.types.ts:258</a></div>
+                                    <div class="io-line">Defined in <a href="" data-line="297" class="link-to-prism">src/app/core/api/api.types.ts:297</a></div>
                                 </td>
                             </tr>
 
@@ -456,7 +456,7 @@ cannot.</p>
 
                             <tr>
                                 <td class="col-md-4">
-                                    <div class="io-line">Defined in <a href="" data-line="259" class="link-to-prism">src/app/core/api/api.types.ts:259</a></div>
+                                    <div class="io-line">Defined in <a href="" data-line="298" class="link-to-prism">src/app/core/api/api.types.ts:298</a></div>
                                 </td>
                             </tr>
 
@@ -520,6 +520,45 @@ export interface QueryAnswer {
   readonly language: string;
   readonly claims: readonly Claim[];
   readonly citations: readonly Citation[];
+  /**
+   * How many protocols the machine has, on a MODE B answer only (ADR-011).
+   *
+   * Absent on Mode A, where the sources are the answer already, and absent from any older
+   * backend — hence optional rather than &#x60;| null&#x60;: the field is missing from the JSON, not
+   * present and empty. Live protocols only, matching exactly what retrieval can return, so a
+   * count shown to a reader never promises evidence that cannot be reached.
+   */
+  readonly protocolCount?: number;
+}
+
+/** One offered question, from &#x60;GET /api/machines/{machineNo}/examples&#x60;. */
+export interface ExampleQuestion {
+  readonly question: string;
+  /**
+   * The protocol this question was written against.
+   *
+   * Never rendered. It travels so the backend&#x27;s own test can fail when that protocol leaves the
+   * corpus, and it is typed here only because it is on the wire.
+   */
+  readonly source: string;
+}
+
+/**
+ * A machine&#x27;s example questions, from &#x60;GET /api/machines/{machineNo}/examples&#x60;.
+ *
+ * ADR-011: a first-time reader cannot invent a question that reaches a protocol, because they do
+ * not know that E-47 exists. Every entry is written against a protocol that exists, so every one
+ * of them yields Mode A — a machine with nothing to offer returns empty lists rather than an
+ * error, and the view then shows no chips at all.
+ */
+export interface MachineExamples {
+  readonly machineNo: string;
+  /** Live protocols for this machine — the same number a Mode B answer carries. */
+  readonly protocolCount: number;
+  readonly examples: {
+    readonly de: readonly ExampleQuestion[];
+    readonly en: readonly ExampleQuestion[];
+  };
 }
 
 /** One of the caller&#x27;s uploads, from &#x60;GET /api/protocols/mine&#x60;. */

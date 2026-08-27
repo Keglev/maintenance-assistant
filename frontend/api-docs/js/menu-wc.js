@@ -198,10 +198,16 @@ customElements.define('compodoc-menu', class extends HTMLElement {
                                 <a href="interfaces/Dictionary.html" data-type="entity-link" >Dictionary</a>
                             </li>
                             <li class="link">
+                                <a href="interfaces/ExampleQuestion.html" data-type="entity-link" >ExampleQuestion</a>
+                            </li>
+                            <li class="link">
                                 <a href="interfaces/HealthStatus.html" data-type="entity-link" >HealthStatus</a>
                             </li>
                             <li class="link">
                                 <a href="interfaces/Machine.html" data-type="entity-link" >Machine</a>
+                            </li>
+                            <li class="link">
+                                <a href="interfaces/MachineExamples.html" data-type="entity-link" >MachineExamples</a>
                             </li>
                             <li class="link">
                                 <a href="interfaces/MetaRow.html" data-type="entity-link" >MetaRow</a>

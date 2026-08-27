@@ -123,7 +123,7 @@
   <li class="breadcrumb-item">Interfaces</li>
   <li class="breadcrumb-item"
   >
-  DeletedProtocolPage</li>
+  ExampleQuestion</li>
 </ol>
 
 <div class="io-file io-file-path" data-compodoc="entity-file-path">
@@ -159,9 +159,7 @@
                 <h3>Description</h3>
             </p>
             <p class="comment">
-                <p>One page of the archive.</p>
-<p><code>cap</code> is the per-machine ceiling, sent by the backend rather than hard-coded here so the hint on
-screen cannot drift away from the number the purge actually enforces.</p>
+                <p>One offered question, from <code>GET /api/machines/{machineNo}/examples</code>.</p>
 
             </p>
 
@@ -179,28 +177,13 @@ screen cannot drift away from the number the purge actually enforces.</p>
                 <td class="col-md-9">
                     <ul class="index-list">
                         <li>
-                                <a href="#cap" class="reference-link ">
-                                    <span class="reference-badge reference-badge--property" aria-hidden="true">P</span><span class="reference-link-label">cap</span>
+                                <a href="#question" class="reference-link ">
+                                    <span class="reference-badge reference-badge--property" aria-hidden="true">P</span><span class="reference-link-label">question</span>
                                 </a>
                         </li>
                         <li>
-                                <a href="#items" class="reference-link ">
-                                    <span class="reference-badge reference-badge--property" aria-hidden="true">P</span><span class="reference-link-label">items</span>
-                                </a>
-                        </li>
-                        <li>
-                                <a href="#page" class="reference-link ">
-                                    <span class="reference-badge reference-badge--property" aria-hidden="true">P</span><span class="reference-link-label">page</span>
-                                </a>
-                        </li>
-                        <li>
-                                <a href="#size" class="reference-link ">
-                                    <span class="reference-badge reference-badge--property" aria-hidden="true">P</span><span class="reference-link-label">size</span>
-                                </a>
-                        </li>
-                        <li>
-                                <a href="#total" class="reference-link ">
-                                    <span class="reference-badge reference-badge--property" aria-hidden="true">P</span><span class="reference-link-label">total</span>
+                                <a href="#source" class="reference-link ">
+                                    <span class="reference-badge reference-badge--property" aria-hidden="true">P</span><span class="reference-link-label">source</span>
                                 </a>
                         </li>
                     </ul>
@@ -218,9 +201,9 @@ screen cannot drift away from the number the purge actually enforces.</p>
                 <tbody>
                         <tr>
                             <td class="col-md-4">
-                                <a name="cap"></a>
-                                <span class="name "><b>cap</b>
-                                    <a href="#cap">
+                                <a name="question"></a>
+                                <span class="name "><b>question</b>
+                                    <a href="#question">
                                         <span class="icon ion-ios-link"></span>
                                     </a>
                                 </span>
@@ -228,7 +211,7 @@ screen cannot drift away from the number the purge actually enforces.</p>
                         </tr>
                         <tr>
                             <td class="col-md-4">
-                                <code>cap:         <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/number" target="_blank" >number</a></code>
+                                <code>question:         <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
 </code>
                             </td>
                         </tr>
@@ -236,7 +219,7 @@ screen cannot drift away from the number the purge actually enforces.</p>
 
                             <tr>
                                 <td class="col-md-4">
-                                    <i>Type : </i>        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/number" target="_blank" >number</a></code>
+                                    <i>Type : </i>        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
 
                                 </td>
                             </tr>
@@ -247,7 +230,7 @@ screen cannot drift away from the number the purge actually enforces.</p>
 
                             <tr>
                                 <td class="col-md-4">
-                                    <div class="io-line">Defined in <a href="" data-line="337" class="link-to-prism">src/app/core/api/api.types.ts:337</a></div>
+                                    <div class="io-line">Defined in <a href="" data-line="76" class="link-to-prism">src/app/core/api/api.types.ts:76</a></div>
                                 </td>
                             </tr>
 
@@ -257,9 +240,9 @@ screen cannot drift away from the number the purge actually enforces.</p>
                 <tbody>
                         <tr>
                             <td class="col-md-4">
-                                <a name="items"></a>
-                                <span class="name "><b>items</b>
-                                    <a href="#items">
+                                <a name="source"></a>
+                                <span class="name "><b>source</b>
+                                    <a href="#source">
                                         <span class="icon ion-ios-link"></span>
                                     </a>
                                 </span>
@@ -267,7 +250,7 @@ screen cannot drift away from the number the purge actually enforces.</p>
                         </tr>
                         <tr>
                             <td class="col-md-4">
-                                <code>items:     <code>{}</code>
+                                <code>source:         <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
 </code>
                             </td>
                         </tr>
@@ -275,7 +258,7 @@ screen cannot drift away from the number the purge actually enforces.</p>
 
                             <tr>
                                 <td class="col-md-4">
-                                    <i>Type : </i>    <code>{}</code>
+                                    <i>Type : </i>        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
 
                                 </td>
                             </tr>
@@ -286,127 +269,18 @@ screen cannot drift away from the number the purge actually enforces.</p>
 
                             <tr>
                                 <td class="col-md-4">
-                                    <div class="io-line">Defined in <a href="" data-line="333" class="link-to-prism">src/app/core/api/api.types.ts:333</a></div>
+                                    <div class="io-line">Defined in <a href="" data-line="83" class="link-to-prism">src/app/core/api/api.types.ts:83</a></div>
                                 </td>
                             </tr>
 
-                </tbody>
-            </table>
-            <table class="table table-sm table-bordered">
-                <tbody>
-                        <tr>
-                            <td class="col-md-4">
-                                <a name="page"></a>
-                                <span class="name "><b>page</b>
-                                    <a href="#page">
-                                        <span class="icon ion-ios-link"></span>
-                                    </a>
-                                </span>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="col-md-4">
-                                <code>page:         <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/number" target="_blank" >number</a></code>
-</code>
-                            </td>
-                        </tr>
-
-
-                            <tr>
-                                <td class="col-md-4">
-                                    <i>Type : </i>        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/number" target="_blank" >number</a></code>
-
-                                </td>
-                            </tr>
-
-
-
-
-
-                            <tr>
-                                <td class="col-md-4">
-                                    <div class="io-line">Defined in <a href="" data-line="334" class="link-to-prism">src/app/core/api/api.types.ts:334</a></div>
-                                </td>
-                            </tr>
-
-                </tbody>
-            </table>
-            <table class="table table-sm table-bordered">
-                <tbody>
-                        <tr>
-                            <td class="col-md-4">
-                                <a name="size"></a>
-                                <span class="name "><b>size</b>
-                                    <a href="#size">
-                                        <span class="icon ion-ios-link"></span>
-                                    </a>
-                                </span>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="col-md-4">
-                                <code>size:         <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/number" target="_blank" >number</a></code>
-</code>
-                            </td>
-                        </tr>
-
-
-                            <tr>
-                                <td class="col-md-4">
-                                    <i>Type : </i>        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/number" target="_blank" >number</a></code>
-
-                                </td>
-                            </tr>
-
-
-
-
-
-                            <tr>
-                                <td class="col-md-4">
-                                    <div class="io-line">Defined in <a href="" data-line="335" class="link-to-prism">src/app/core/api/api.types.ts:335</a></div>
-                                </td>
-                            </tr>
-
-                </tbody>
-            </table>
-            <table class="table table-sm table-bordered">
-                <tbody>
-                        <tr>
-                            <td class="col-md-4">
-                                <a name="total"></a>
-                                <span class="name "><b>total</b>
-                                    <a href="#total">
-                                        <span class="icon ion-ios-link"></span>
-                                    </a>
-                                </span>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="col-md-4">
-                                <code>total:         <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/number" target="_blank" >number</a></code>
-</code>
-                            </td>
-                        </tr>
-
-
-                            <tr>
-                                <td class="col-md-4">
-                                    <i>Type : </i>        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/number" target="_blank" >number</a></code>
-
-                                </td>
-                            </tr>
-
-
-
-
-
-                            <tr>
-                                <td class="col-md-4">
-                                    <div class="io-line">Defined in <a href="" data-line="336" class="link-to-prism">src/app/core/api/api.types.ts:336</a></div>
-                                </td>
-                            </tr>
-
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-description"><p>The protocol this question was written against.</p>
+<p>Never rendered. It travels so the backend&#39;s own test can fail when that protocol leaves the
+corpus, and it is typed here only because it is on the wire.</p>
+</div>
+                        </td>
+                    </tr>
                 </tbody>
             </table>
     </section>
@@ -796,7 +670,7 @@ export interface HealthStatus {
        <script>
             var COMPODOC_CURRENT_PAGE_DEPTH = 1;
             var COMPODOC_CURRENT_PAGE_CONTEXT = 'interface';
-            var COMPODOC_CURRENT_PAGE_URL = 'DeletedProtocolPage.html';
+            var COMPODOC_CURRENT_PAGE_URL = 'ExampleQuestion.html';
             var MAX_SEARCH_RESULTS = 15;
        </script>
 

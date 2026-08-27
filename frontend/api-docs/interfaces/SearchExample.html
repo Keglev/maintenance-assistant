@@ -455,6 +455,15 @@ export interface Dictionary {
     readonly questionRequired: string;
     readonly machineRequired: string;
     /**
+     * The heading over the example-question chips (ADR-011).
+     *
+     * The chips exist because a first-time reader cannot invent a question that reaches a
+     * protocol — they do not know that E-47 exists. Clicking one FILLS the box and does not
+     * submit, so the demo teaches the shape of a good question rather than performing a trick
+     * the reader cannot repeat.
+     */
+    readonly examplesHeading: string;
+    /**
      * The &quot;how do I search&quot; panel.
      *
      * It exists because there is no keyword search to fall back on: retrieval is semantic by
@@ -550,6 +559,18 @@ export interface Dictionary {
      * validation gate — see SearchHelp&#x27;s class comment for why that was rejected.
      */
     readonly tip: string;
+    /**
+     * What the machine has anyway, above the tip (ADR-011).
+     *
+     * Mode B says &quot;no source in the corpus&quot;, which to a first-time reader sounds like an empty
+     * product. This says how many protocols DO exist for the machine, which turns a dead end
+     * into a next step: the corpus is not empty, the question was not specific enough.
+     *
+     * Three forms because none of them reads well as the others: one protocol is not &quot;1
+     * Protokolle&quot;, and zero is a different statement entirely — nothing has been recorded for
+     * this machine yet, so narrowing the question would not help.
+     */
+    readonly protocolCount: (count: number, machine: string) &#x3D;&gt; string;
     readonly steps: string;
   };
   readonly errors: {
@@ -899,6 +920,7 @@ export const DE: Dictionary &#x3D; {
     machinesUnavailable: &#x27;Maschinenliste nicht verfügbar.&#x27;,
     questionRequired: &#x27;Bitte eine Frage eingeben.&#x27;,
     machineRequired: &#x27;Bitte eine Maschine wählen.&#x27;,
+    examplesHeading: &#x27;Beispielfragen&#x27;,
     helpHeading: &#x27;Wie suche ich?&#x27;,
     helpToggle: &#x27;Wie suche ich?&#x27;,
     helpMeaning:
@@ -967,6 +989,12 @@ export const DE: Dictionary &#x3D; {
     explanation:
       &#x27;Zu dieser Frage gibt es kein Protokoll im Bestand. Die folgenden Schritte sind allgemeines Erfahrungswissen und NICHT durch ein Protokoll dieser Anlage belegt.&#x27;,
     tip: &#x27;Tipp: Wenn Sie einen Fehlercode haben, nennen Sie ihn — die Suche findet Codes wortgenau.&#x27;,
+    protocolCount: (count, machine) &#x3D;&gt;
+      count &#x3D;&#x3D;&#x3D; 0
+        ? &#x60;Zu ${machine} gibt es noch kein Protokoll.&#x60;
+        : count &#x3D;&#x3D;&#x3D; 1
+          ? &#x60;1 Protokoll zu ${machine} vorhanden — es passt nicht zu dieser Beschreibung. Versuchen Sie einen Fehlercode oder eine der Beispielfragen.&#x60;
+          : &#x60;${count} Protokolle zu ${machine} vorhanden — keins passt zu dieser Beschreibung. Versuchen Sie einen Fehlercode oder eine der Beispielfragen.&#x60;,
     steps: &#x27;Vorgeschlagene Schritte&#x27;,
   },
   errors: {
@@ -1275,6 +1303,7 @@ export const EN: Dictionary &#x3D; {
     machinesUnavailable: &#x27;Machine list unavailable.&#x27;,
     questionRequired: &#x27;Please enter a question.&#x27;,
     machineRequired: &#x27;Please choose a machine.&#x27;,
+    examplesHeading: &#x27;Example questions&#x27;,
     helpHeading: &#x27;How do I search?&#x27;,
     helpToggle: &#x27;How do I search?&#x27;,
     helpMeaning:
@@ -1342,6 +1371,12 @@ export const EN: Dictionary &#x3D; {
     explanation:
       &#x27;No protocol in the records covers this question. The steps below are general engineering knowledge and are NOT backed by a protocol for this machine.&#x27;,
     tip: &#x27;Tip: if you have a fault code, name it — the search matches codes word for word.&#x27;,
+    protocolCount: (count, machine) &#x3D;&gt;
+      count &#x3D;&#x3D;&#x3D; 0
+        ? &#x60;There is no protocol for ${machine} yet.&#x60;
+        : count &#x3D;&#x3D;&#x3D; 1
+          ? &#x60;1 protocol exists for ${machine} — it does not match this description. Try a fault code, or one of the example questions.&#x60;
+          : &#x60;${count} protocols exist for ${machine} — none matches this description. Try a fault code, or one of the example questions.&#x60;,
     steps: &#x27;Suggested steps&#x27;,
   },
   errors: {

@@ -236,7 +236,7 @@ on screen in one release is how a reader learns to distrust both.</p>
 
                             <tr>
                                 <td class="col-md-4">
-                                    <div class="io-line">Defined in <a href="" data-line="313" class="link-to-prism">src/app/core/api/api.types.ts:313</a></div>
+                                    <div class="io-line">Defined in <a href="" data-line="352" class="link-to-prism">src/app/core/api/api.types.ts:352</a></div>
                                 </td>
                             </tr>
 
@@ -275,7 +275,7 @@ on screen in one release is how a reader learns to distrust both.</p>
 
                             <tr>
                                 <td class="col-md-4">
-                                    <div class="io-line">Defined in <a href="" data-line="314" class="link-to-prism">src/app/core/api/api.types.ts:314</a></div>
+                                    <div class="io-line">Defined in <a href="" data-line="353" class="link-to-prism">src/app/core/api/api.types.ts:353</a></div>
                                 </td>
                             </tr>
 
@@ -339,6 +339,45 @@ export interface QueryAnswer {
   readonly language: string;
   readonly claims: readonly Claim[];
   readonly citations: readonly Citation[];
+  /**
+   * How many protocols the machine has, on a MODE B answer only (ADR-011).
+   *
+   * Absent on Mode A, where the sources are the answer already, and absent from any older
+   * backend — hence optional rather than &#x60;| null&#x60;: the field is missing from the JSON, not
+   * present and empty. Live protocols only, matching exactly what retrieval can return, so a
+   * count shown to a reader never promises evidence that cannot be reached.
+   */
+  readonly protocolCount?: number;
+}
+
+/** One offered question, from &#x60;GET /api/machines/{machineNo}/examples&#x60;. */
+export interface ExampleQuestion {
+  readonly question: string;
+  /**
+   * The protocol this question was written against.
+   *
+   * Never rendered. It travels so the backend&#x27;s own test can fail when that protocol leaves the
+   * corpus, and it is typed here only because it is on the wire.
+   */
+  readonly source: string;
+}
+
+/**
+ * A machine&#x27;s example questions, from &#x60;GET /api/machines/{machineNo}/examples&#x60;.
+ *
+ * ADR-011: a first-time reader cannot invent a question that reaches a protocol, because they do
+ * not know that E-47 exists. Every entry is written against a protocol that exists, so every one
+ * of them yields Mode A — a machine with nothing to offer returns empty lists rather than an
+ * error, and the view then shows no chips at all.
+ */
+export interface MachineExamples {
+  readonly machineNo: string;
+  /** Live protocols for this machine — the same number a Mode B answer carries. */
+  readonly protocolCount: number;
+  readonly examples: {
+    readonly de: readonly ExampleQuestion[];
+    readonly en: readonly ExampleQuestion[];
+  };
 }
 
 /** One of the caller&#x27;s uploads, from &#x60;GET /api/protocols/mine&#x60;. */

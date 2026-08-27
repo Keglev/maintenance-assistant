@@ -177,11 +177,39 @@ public class QueryService {
     private QueryAnswer answerGrounded(String question, QueryRole role, List<RetrievedChunk> hits) {
         List<GroundedPrompt.LabelledSource> sources = labelByProtocol(hits);
 
-        ChatClient.Completion completion = chatClient.complete(new ChatClient.Prompt(
-                GroundedPrompt.system(role),
-                GroundedPrompt.user(question, sources),
-                GroundedPrompt.SCHEMA_NAME,
-                GroundedPrompt.schema()));
+        ChatClient.Completion completion;
+        try {
+            completion = chatClient.complete(new ChatClient.Prompt(
+                    GroundedPrompt.system(role),
+                    GroundedPrompt.user(question, sources),
+                    GroundedPrompt.SCHEMA_NAME,
+                    GroundedPrompt.schema()));
+        } catch (ChatClient.ChatException e) {
+            if (e.kind() != ChatClient.ChatException.Kind.TRUNCATED) {
+                throw e;
+            }
+            // A GROUNDED ANSWER THAT HIT THE CAP IS NOT AN OUTAGE, and reporting it as one is the
+            // defect of 2026-08-26: the provider answered, was paid, and the user was shown "nicht
+            // erreichbar". A truncated Mode A body is unparseable JSON, so there is no grounded
+            // answer to salvage — but the ungrounded answer is still worth having, and it is the
+            // same fall-through this method already takes when Mode A produces no attributable
+            // citation. Reused rather than duplicated: two paths to Mode B would be two places to
+            // fix the next time the ungrounded call changes.
+            //
+            // CAUGHT HERE AND NOT AT ask()'s CATCH SITE, deliberately. "Was this a Mode A call" is
+            // structural at this depth and would have to become a flag one level up — a second
+            // source of truth for something the call stack already knows.
+            //
+            // THE COST IS A SECOND PAID CALL, accepted: the Mode B call counts against the daily
+            // chat budget exactly like the no-citations fall-through above, and headroom for two
+            // calls per question is already what checkHeadroom(2) reserves at the top of ask().
+            log.warn("Mode A truncated ({}, tokens={}, wsRatio={}); degrading to Mode B",
+                    classify(e.truncation()),
+                    e.truncation() == null ? "unknown" : e.truncation().completionTokens(),
+                    e.truncation() == null ? "unknown" : e.truncation().whitespaceRatio());
+            return answerUngrounded(question, role)
+                    .degradedFrom(QueryAnswer.DegradedFrom.TRUNCATED);
+        }
 
         Optional<QueryAnswer> assembled = assembler.assembleGrounded(completion.content(), sources);
         if (assembled.isPresent()) {
@@ -194,6 +222,22 @@ public class QueryService {
         // to be worth a warning, and cheap enough to be worth the second call.
         log.warn("Mode A produced no valid citations; falling through to Mode B");
         return answerUngrounded(question, role);
+    }
+
+    /**
+     * Which of the two truncation shapes this was, in one word for the log line.
+     *
+     * <p>The distinction is the open question of the diagnostics wave (A4): a refusal followed by
+     * unbounded JSON whitespace and an answer that genuinely ran out of room look the same in a
+     * status code and need opposite fixes. The degradation is identical either way — there is no
+     * grounded answer to salvage in both cases — so this word decides nothing here. It is what makes
+     * the hypothesis answerable once these lines exist in production.
+     */
+    private static String classify(TruncatedBody truncation) {
+        if (truncation == null) {
+            return "unknown";
+        }
+        return truncation.refusalShaped() ? "refusalShaped" : "overrun";
     }
 
     /**

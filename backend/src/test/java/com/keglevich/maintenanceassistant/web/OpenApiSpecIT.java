@@ -55,6 +55,17 @@ class OpenApiSpecIT {
         .contains("https://maintenance.smartsupply.com.de/")
         .contains("https://keglev.github.io/maintenance-assistant/");
 
+    // The one described field in this API, and the description is the whole point of it: an
+    // OPTIONAL field that appears on some answers and not others is unreadable from the payload
+    // alone, so a client integrator has to be told when to expect it. Asserted because the
+    // annotation carrying it is deletable without breaking a single other test, and a published
+    // document that stops explaining an optional field is the documentation defect this
+    // repository keeps finding in prose (REFACTOR-STANDARDS, DOCS).
+    assertThat(spec)
+        .contains("\"degradedFrom\"")
+        .contains("\"TRUNCATED\"")
+        .contains("Present only when retrieval selected Mode A");
+
     Files.createDirectories(OUTPUT.getParent());
     Files.writeString(OUTPUT, spec);
 

@@ -23,6 +23,11 @@ fallback gpt-oss-120b ruled 2026-08-26; W-2 next.
 W-2 merged; deploy is automatic (backend-deploy on main); verify with
 `curl -sI .../api/health | grep -i x-request-id`.
 
+v1.3.2 pending: tag after live verification: FR-01 'sensor fehler' x10
+returns the ungrounded card or a grounded answer, never the red 'nicht
+erreichbar'; `x-request-id` on every response; backend log shows
+`degrading to Mode B` if a truncation occurred.
+
 v1.3.0 IS THE LATEST TAG, 2026-08-20. The release history, from the
 repository's own tags: v0.1.0 2026-08-06, v1.0.0 2026-08-08, v1.1.0
 2026-08-11, v1.2.0 2026-08-13, v1.3.0 2026-08-20.
@@ -3232,6 +3237,16 @@ rather than given one afterwards.
         UNTIL A REAL ONE IS LOGGED THIS STAYS A HYPOTHESIS. Six clean
         runs did not reproduce it, so the confirming line may take a
         while to appear — and its absence is not evidence either way.
+        2026-08-26, AFTER W-3 (#112): THE INSTRUMENT AND THE
+        DEGRADATION ARE BOTH LIVE, AND THE HYPOTHESIS IS STILL OPEN. W-2
+        logs the anatomy and W-3 acts on the truncation, so a user no
+        longer sees an outage either way — but nothing has yet confirmed
+        WHICH shape production produces, because no `chat truncated:`
+        line has been read. The degradation is deliberately identical for
+        both shapes, so shipping it does not depend on the answer and
+        does not settle it. `grep 'chat truncated:'` and, beside it now,
+        `grep 'degrading to Mode B'`, whose classification word is the
+        same evidence at the point where it changed the outcome.
         THE CONSEQUENCE IF IT HOLDS, and this is why it is worth writing
         down before it is proven: THE FIX IS A DEGRADATION PATH, NOT A
         BIGGER CAP. A cap of 2100 buys a degenerating answer 900 more
@@ -3408,6 +3423,49 @@ rather than given one afterwards.
         - LIVE CHECK: FR-01 "sensor fehler", ten times. One run proves
           nothing about a stochastic failure.
         TAG v1.3.2.
+        DONE 2026-08-26, #112: degradation path, degradedFrom field, cap
+        2100; DEPLOY automatic; v1.3.2 after live verification.
+        WHAT SHIPPED, and where it differs from the row above:
+          - THE DEGRADATION IS CAUGHT IN answerGrounded, NOT AT ask()'s
+            CATCH SITE. The row said the latter. "Was this a Mode A call"
+            is structural one level down and would have to become a flag
+            one level up — a second source of truth for something the call
+            stack already knows. The Mode B fall-through is the EXISTING
+            one (the no-valid-citations path), reused and not duplicated,
+            so a future change to the ungrounded call has one home.
+          - A Mode B call that truncates propagates as today: the catch is
+            around the GROUNDED call only, so no second degradation is
+            structurally possible. Asserted, not argued — the test that
+            truncates both calls expects exactly two provider calls.
+          - degradedFrom is a new OPTIONAL enum on QueryAnswer, absent
+            from the JSON for every ordinary answer (@JsonInclude
+            NON_NULL) and carried by a five-argument compatibility
+            constructor so no existing construction site had to change.
+            THE FIRST @Schema ANNOTATION IN THIS CODEBASE, and it is
+            there because springdoc has no javadoc plugin here: without
+            it the field would publish with no description, and an
+            optional field nobody can predict is exactly the one that
+            needs one. OpenApiSpecIT asserts the description is served.
+          - ONE REASON CODE, NOT TWO. The other fall-through — Mode A
+            produced no attributable citation — has been silent since the
+            assembler was written and stays silent: labelling it would
+            change what an existing answer reports, which is not this
+            PR's mission. Its own row when someone asks for it.
+        THE SECOND CALL IS AN ACCEPTED COST. A degraded answer costs two
+        provider calls against the daily budget, exactly like the
+        no-citations fall-through it reuses, and checkHeadroom(2) at the
+        top of ask() already reserves for two. No budget change.
+        THE CAP NEEDS NO HAND-DEPLOY, checked before it was assumed:
+        `git grep LLM_CHAT_MAX_TOKENS` returns application.yml and
+        nothing else — not docker-compose.prod.yml, not
+        .env.prod.example, and the host's .env.prod measured 0 for it on
+        2026-08-26. So the application.yml default IS what production
+        runs, and a normal image deploy carries it. No STOP-AND-REPORT.
+
+     R1 SHIPPED #112. The cap is 2100 in application.yml with the
+        arithmetic in the comment beside it, and with the sentence that
+        matters more than the number: it is sized for the documented
+        FALLBACK model, and the incumbent's p95 is 575.
 
      W-4 THE RECORD AND THE WATCH.
         - ADR-002 dated revision: Nebius dropped, gpt-oss-120b as the

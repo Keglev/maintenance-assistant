@@ -89,19 +89,38 @@ interface ChatClient {
         }
 
         private final Kind kind;
+        private final TruncatedBody truncation;
 
         ChatException(Kind kind, String message) {
+            this(kind, message, (TruncatedBody) null);
+        }
+
+        ChatException(Kind kind, String message, TruncatedBody truncation) {
             super(message);
             this.kind = kind;
+            this.truncation = truncation;
         }
 
         ChatException(Kind kind, String message, Throwable cause) {
             super(message, cause);
             this.kind = kind;
+            this.truncation = null;
         }
 
         public Kind kind() {
             return kind;
+        }
+
+        /**
+         * The anatomy of the partial answer, present exactly when {@link Kind#TRUNCATED}.
+         *
+         * <p>It is carried on the exception rather than only logged because the CALLER acts on it:
+         * a truncation degrades to Mode B, and the log line that records the degradation has to say
+         * which shape it was. Re-deriving it at the catch site would mean parsing the message, and
+         * a message is prose.
+         */
+        TruncatedBody truncation() {
+            return truncation;
         }
     }
 }

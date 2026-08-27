@@ -7,7 +7,7 @@ than an edit to history.
 | ADR | Title | Status |
 |---|---|---|
 | [ADR-001](ADR-001-modular-monolith-first.md) | Modular monolith first, service extraction in Phase 2 | Accepted |
-| [ADR-002](ADR-002-eu-hosted-llm-provider.md) | EU-hosted LLM & embedding provider | **Proposed** (spike pending) |
+| [ADR-002](ADR-002-eu-hosted-llm-provider.md) | EU-hosted LLM & embedding provider | Accepted (revised 2026-08-27) |
 | [ADR-003](ADR-003-keycloak-for-iam.md) | Keycloak as identity provider | Accepted |
 | [ADR-004](ADR-004-pgvector-for-vector-search.md) | PostgreSQL + pgvector instead of a dedicated vector DB | Accepted |
 | [ADR-005](ADR-005-spa-token-handling.md) | Keep the public-client SPA, harden it, and document the BFF | Accepted |
@@ -16,6 +16,7 @@ than an edit to history.
 | [ADR-008](ADR-008-retrieval-measurement.md) | Measure retrieval against a golden question set before changing it | Accepted |
 | [ADR-009](ADR-009-hybrid-retrieval.md) | Ground an answer on an exact term, without re-calibrating the threshold | Accepted |
 | [ADR-010](ADR-010-docs-tree-conventions.md) | Name docs pages by what they are, and freeze citations that a checksum guards | Accepted |
+| [ADR-011](ADR-011-guided-questions.md) | Show the user a question that works | Accepted |
 
 New records start from [ADR-TEMPLATE.md](ADR-TEMPLATE.md). Numbering is sequential and never
 reused. Planned: the Phase 5 extraction of the ingestion service and Kafka takes the next free

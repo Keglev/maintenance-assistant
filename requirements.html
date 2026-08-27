@@ -104,6 +104,7 @@
           <li><a href="/maintenance-assistant/adr/ADR-003-keycloak-for-iam.html">ADR-003 Keycloak as IdP</a></li>
           <li><a href="/maintenance-assistant/adr/ADR-004-pgvector-for-vector-search.html">ADR-004 pgvector</a></li>
           <li><a href="/maintenance-assistant/adr/ADR-010-docs-tree-conventions.html">ADR-010 Docs tree conventions</a></li>
+          <li><a href="/maintenance-assistant/adr/ADR-011-guided-questions.html">ADR-011 Guided questions</a></li>
         </ul>
       </details>
 
@@ -227,6 +228,17 @@
         my role permits.</li>
         <li><strong>US-8</strong> — As <em>any user</em>, I can switch
         the UI between German and English.</li>
+        <li><strong>US-9</strong> — As <em>any user</em>, and above all
+        as a first-time visitor with no plant experience, I am offered
+        example questions for the machine I selected, so I can ask one
+        that actually reaches a protocol instead of guessing; and when
+        nothing matches, the answer tells me how many protocols exist
+        for that machine and gives me one way to narrow the question.
+        <strong>Added 2026-08-27 (ADR-011)</strong> from live testing: a
+        two-word question correctly returns the labelled Mode B card,
+        and to a reader who has never seen the plant that reads as a
+        broken product rather than as an invitation to be more
+        specific.</li>
         </ul>
         <h2
         id="non-functional-requirements-nicht-funktionale-anforderungen">4.

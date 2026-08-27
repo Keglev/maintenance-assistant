@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Decisions ·
+ADR-011-guided-questions · maintenance-assistant Docs</title>
+
+  <!-- Set the theme before the stylesheet paints, otherwise the page flashes
+       the default theme for one frame before the saved choice applies. -->
+  <script>
+    (function () {
+      try {
+        var t = localStorage.getItem("maintenance-assistant-theme") ||
+          (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+        document.documentElement.setAttribute("data-theme", t);
+      } catch (e) {
+        document.documentElement.setAttribute("data-theme", "light");
+      }
+    })();
+  </script>
+
+  <link rel="stylesheet" href="/maintenance-assistant/assets/docs.css" />
+</head>
+
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <header class="topbar">
+    <div class="topbar-inner">
+      <button class="menu-btn" aria-label="Toggle navigation">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="18" x2="21" y2="18" />
+        </svg>
+      </button>
+
+      <a href="/maintenance-assistant/" class="brand">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <path d="M14.7 6.3a5 5 0 0 0-6.6 6.6l-5 5a2 2 0 1 0 2.8 2.8l5-5a5 5 0 0 0 6.6-6.6l-2.9 2.9-2.1-2.1 2.2-3.6z" />
+        </svg>
+        maintenance-assistant Docs
+      </a>
+
+      <div class="topbar-tools">
+        <span class="lang-switch">
+          <a href="/maintenance-assistant/" aria-current="true">EN</a>
+          <a href="/maintenance-assistant/index-de.html">DE</a>
+        </span>
+        <button class="theme-toggle" aria-label="Toggle light or dark theme">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <circle cx="12" cy="12" r="9" /><path d="M12 3a9 9 0 0 0 0 18z" fill="currentColor" stroke="none" />
+          </svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <div class="layout">
+    <!-- Sidebar navigation, included by app-docs.html as a Pandoc partial. One
+         sidebar serves the whole site: this repository has a single arc42 tree and a
+         single decision log, so the per-tier sidebars the sibling repositories need
+         would be three copies of the same list here. The active link is marked at
+         runtime by docs.js. Do not put template syntax in this comment - a partial
+         is itself a template. -->
+    <aside class="sidebar">
+      <p class="nav-title">Docs</p>
+      <ul>
+        <li><a href="/maintenance-assistant/">Docs home</a></li>
+        <li><a href="/maintenance-assistant/overview.html">Overview</a></li>
+        <li><a href="/maintenance-assistant/overview-de.html">&Uuml;berblick (DE)</a></li>
+        <li><a href="/maintenance-assistant/llm-approach.html">AI &amp; LLM approach</a></li>
+      </ul>
+
+      <p class="nav-title">Requirements</p>
+      <ul>
+        <li><a href="/maintenance-assistant/requirements.html">Requirements &amp; NFRs</a></li>
+        <li><a href="/maintenance-assistant/domain-model.html">Domain model</a></li>
+      </ul>
+
+      <details class="nav-group">
+        <summary>Architecture (arc42)</summary>
+        <ul>
+          <li><a href="/maintenance-assistant/architecture/index.html">Architecture index</a></li>
+          <li><a href="/maintenance-assistant/architecture/01-introduction-and-goals.html">1 &middot; Introduction &amp; Goals</a></li>
+          <li><a href="/maintenance-assistant/architecture/02-architecture-constraints.html">2 &middot; Constraints</a></li>
+          <li><a href="/maintenance-assistant/architecture/03-context-and-scope.html">3 &middot; Context &amp; Scope</a></li>
+          <li><a href="/maintenance-assistant/architecture/04-solution-strategy.html">4 &middot; Solution Strategy</a></li>
+          <li><a href="/maintenance-assistant/architecture/05-building-block-view.html">5 &middot; Building Blocks</a></li>
+          <li><a href="/maintenance-assistant/architecture/06-runtime-view.html">6 &middot; Runtime View</a></li>
+          <li><a href="/maintenance-assistant/architecture/07-deployment-view.html">7 &middot; Deployment</a></li>
+          <li><a href="/maintenance-assistant/architecture/08-crosscutting-concepts.html">8 &middot; Concepts</a></li>
+          <li><a href="/maintenance-assistant/architecture/09-architecture-decisions.html">9 &middot; Decisions</a></li>
+          <li><a href="/maintenance-assistant/architecture/10-quality-requirements.html">10 &middot; Quality Requirements</a></li>
+          <li><a href="/maintenance-assistant/architecture/11-risks-and-technical-debt.html">11 &middot; Risks &amp; Debt</a></li>
+          <li><a href="/maintenance-assistant/architecture/12-glossary.html">12 &middot; Glossary</a></li>
+        </ul>
+      </details>
+
+      <details class="nav-group">
+        <summary>Decisions (ADRs)</summary>
+        <ul>
+          <li><a href="/maintenance-assistant/adr/index.html">Decision index</a></li>
+          <li><a href="/maintenance-assistant/adr/ADR-001-modular-monolith-first.html">ADR-001 Modular monolith</a></li>
+          <li><a href="/maintenance-assistant/adr/ADR-002-eu-hosted-llm-provider.html">ADR-002 EU LLM provider</a></li>
+          <li><a href="/maintenance-assistant/adr/ADR-003-keycloak-for-iam.html">ADR-003 Keycloak as IdP</a></li>
+          <li><a href="/maintenance-assistant/adr/ADR-004-pgvector-for-vector-search.html">ADR-004 pgvector</a></li>
+          <li><a href="/maintenance-assistant/adr/ADR-010-docs-tree-conventions.html">ADR-010 Docs tree conventions</a></li>
+          <li><a href="/maintenance-assistant/adr/ADR-011-guided-questions.html">ADR-011 Guided questions</a></li>
+        </ul>
+      </details>
+
+      <p class="nav-title">Frontend</p>
+      <ul>
+        <li><a href="/maintenance-assistant/frontend-architecture.html">Frontend architecture</a></li>
+      </ul>
+
+      <p class="nav-title">Quality</p>
+      <ul>
+        <li><a href="/maintenance-assistant/refactor-standards.html">Refactor standards</a></li>
+        <li><a href="/maintenance-assistant/backend/api-docs/index.html">Backend API</a></li>
+        <li><a href="/maintenance-assistant/frontend/api-docs/index.html">Frontend API</a></li>
+        <li><a href="/maintenance-assistant/backend/coverage/index.html">Backend coverage</a></li>
+        <li><a href="/maintenance-assistant/frontend/coverage/index.html">Frontend coverage</a></li>
+      </ul>
+    </aside>
+    <main class="content" id="main">
+      <article class="doc-body">
+        <h1 id="adr-011-show-the-user-a-question-that-works">ADR-011:
+        Show the user a question that works</h1>
+        <table>
+        <colgroup>
+        <col style="width: 50%" />
+        <col style="width: 50%" />
+        </colgroup>
+        <tbody>
+        <tr class="odd">
+        <td><strong>Status</strong></td>
+        <td><strong>Accepted</strong></td>
+        </tr>
+        <tr class="even">
+        <td><strong>Date</strong></td>
+        <td>2026-08-27</td>
+        </tr>
+        <tr class="odd">
+        <td><strong>Deciders</strong></td>
+        <td>Project owner (solo)</td>
+        </tr>
+        <tr class="even">
+        <td><strong>Related</strong></td>
+        <td>Serves US-2, US-3, US-4 and the new <strong>US-9</strong>;
+        constrained by NFR-2 (answer modes) and NFR-3 (role-based answer
+        filtering). Builds on <a
+        href="ADR-006-insider-threat-and-protocol-moderation.html">ADR-006</a>
+        (role filtering), <a
+        href="ADR-008-retrieval-measurement.html">ADR-008</a> (the
+        golden set and the threshold) and <a
+        href="ADR-007-end-to-end-testing-strategy.html">ADR-007</a>
+        (visual baselines)</td>
+        </tr>
+        </tbody>
+        </table>
+        <h2 id="context">Context</h2>
+        <p>A first-time user types two words — <em>“sensor fehler”</em>,
+        <em>“maschine nicht einschalten”</em> — and gets the ungrounded
+        card. <strong>The card is correct and the product still looks
+        broken.</strong> No protocol matches a two-word question with no
+        machine context, so Mode B is exactly what NFR-2 asks for; but
+        to a reader who has never stood in front of a press, an answer
+        that begins “no source in the corpus” reads as <em>this thing
+        does not work</em>, not as <em>ask me something more
+        specific</em>.</p>
+        <p>This was found by using it, on 2026-08-26 and 2026-08-27, and
+        it is sharpest for the reader the demo exists for: <strong>a
+        recruiter, who has ninety seconds and no plant
+        experience.</strong> They cannot invent <em>“Presse kommt nicht
+        auf Druck, Fehler E-47”</em> because they do not know that E-47
+        exists.</p>
+        <p>Three things make it a decision rather than an obvious
+        fix:</p>
+        <ul>
+        <li><strong>The corpus is not the problem.</strong> 165 live
+        protocols sit behind those machines. The user has no way to
+        discover a question that reaches one, and the system has no way
+        to tell them.</li>
+        <li><strong>The help panel already explains this</strong> — and
+        only to someone who reads it. A panel that answers a question
+        the user has not thought to ask is documentation, not a
+        product.</li>
+        <li><strong>The obvious fix is the wrong one.</strong> Lowering
+        the similarity threshold would turn some of these into Mode A
+        answers, and would do it by loosening the one number NFR-2’s
+        honesty rests on. That is a measurement question, and it has its
+        own open row (see <em>Not decided here</em>).</li>
+        </ul>
+        <p>The failure is <strong>discoverability</strong>, not
+        retrieval. Retrieval is doing what it was measured to do.</p>
+        <h2 id="decision">Decision</h2>
+        <h3 id="example-questions-are-data-owned-by-the-backend">1.
+        Example questions are data, owned by the backend</h3>
+        <p>A versioned resource file,
+        <strong><code>backend/src/main/resources/examples/example-questions.json</code></strong>,
+        served by
+        <strong><code>GET /api/machines/{machineNo}/examples</code></strong>
+        — read-only, any authenticated role.</p>
+        <ul>
+        <li><strong>Three to four entries per machine, in German and
+        English</strong>, each written against a protocol that exists,
+        so <strong>every example yields Mode A</strong>. An example that
+        lands in Mode B would teach the opposite of the lesson.</li>
+        <li>Addressed by <code>machineNo</code> and not by the UUID the
+        query path uses: this file is authored by hand against plant
+        identifiers, and <code>MachineCatalog.Machine</code> already
+        carries both, so the frontend has the key either way. A
+        hand-edited file keyed by <code>0f9c5b01-…-0009</code> is a file
+        nobody can review.</li>
+        <li><strong>A machine with no protocols gets an empty
+        list</strong>, and the frontend shows no chips. Not an error,
+        not a placeholder: there is no question that works, so the
+        honest answer is to offer none.</li>
+        </ul>
+        <p><strong>Why the backend and not the bundle:</strong> the
+        examples must track <em>the corpus</em>, which the backend owns
+        and which changes when a protocol is uploaded or deleted. An
+        example that stopped matching because its protocol was removed
+        is a broken demo, and finding that out needs the two to live on
+        the same side of the wire. The same list then feeds the e2e
+        suite and a future demo script, so one edit fixes all three.</p>
+        <h3
+        id="the-golden-questions-are-the-seed-and-they-are-copied-not-moved">2.
+        The golden questions are the seed, and they are COPIED, not
+        moved</h3>
+        <p><code>backend/src/test/resources/retrieval/golden-questions.json</code>
+        <strong>stays exactly where it is and keeps its
+        meaning.</strong> It is ADR-008’s ratified measurement set: 19
+        questions over 10 machines, ratified by the owner on 2026-08-20,
+        and <strong>two of them are deliberately Mode B</strong> (the
+        dosing gap on AB-02). A set whose job includes questions that
+        must <em>not</em> find anything cannot be the set shown to a
+        user as questions that will.</p>
+        <p>So the Mode A entries are <strong>copied</strong> into the
+        new file as its seed, and this ADR names the duplication rather
+        than pretending it away:</p>
+        <table>
+        <colgroup>
+        <col style="width: 33%" />
+        <col style="width: 33%" />
+        <col style="width: 33%" />
+        </colgroup>
+        <thead>
+        <tr class="header">
+        <th>File</th>
+        <th>Canonical for</th>
+        <th>Changing it is</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr class="odd">
+        <td><code>test/resources/retrieval/golden-questions.json</code></td>
+        <td>retrieval measurement (ADR-008)</td>
+        <td>a measurement change — re-ratify</td>
+        </tr>
+        <tr class="even">
+        <td><code>main/resources/examples/example-questions.json</code></td>
+        <td>what a user is offered</td>
+        <td>a <strong>product</strong> change</td>
+        </tr>
+        </tbody>
+        </table>
+        <p>They will drift, and that is correct: the measurement set
+        must keep its Mode B cases, and the example set must never have
+        any. <strong>What must not drift is a question’s expected
+        mode</strong>, and the e2e case in §<em>Consequences</em> is
+        what holds that.</p>
+        <p>The golden file gains a header note saying its Mode A entries
+        are now user-visible through a copy, so an editor knows an edit
+        there is a measurement change and an edit in the other file is a
+        product change.</p>
+        <h3
+        id="chips-under-the-question-box-filled-but-not-submitted">3.
+        Chips under the question box, filled but not submitted</h3>
+        <p>Once a machine is selected, the frontend shows the examples
+        as clickable chips under the question box. <strong>Clicking
+        fills the box. It does not submit.</strong></p>
+        <p>The user still reads the question and still presses the
+        button. That is the whole value: the demo <strong>teaches the
+        shape of a good question</strong> — a machine, a symptom,
+        ideally an error code — instead of performing a trick the user
+        cannot repeat. A chip that submitted would produce a good answer
+        and no understanding.</p>
+        <h3
+        id="the-ungrounded-card-says-how-many-protocols-exist-and-offers-one-next-step">4.
+        The ungrounded card says how many protocols exist, and offers
+        one next step</h3>
+        <p>The Mode B response carries
+        <strong><code>protocolCount</code></strong> for the machine, and
+        the card says, in the user’s language, that <em>N protocols
+        exist for this machine and none matched</em>, with
+        <strong>one</strong> hint: an error code, or one of the
+        examples.</p>
+        <ul>
+        <li><strong>This is presentation, not retrieval.</strong> No
+        threshold moves, no query is re-run, nothing is re-ranked. The
+        same Mode B answer is returned with a number beside it.</li>
+        <li><strong>The count is live protocols only</strong>
+        (<code>deleted_at IS NULL</code>), matching exactly what
+        retrieval sees. A count that included soft-deleted rows would
+        promise evidence that cannot be reached — and the measurement of
+        2026-08-26 found 50 such rows locally and 2 in production, so
+        this is a real trap rather than a theoretical one.</li>
+        <li>One hint, not a list. A dead end becomes a next step; a wall
+        of suggestions becomes a second thing to read.</li>
+        </ul>
+        <h3 id="operators-see-the-same-examples">5. Operators see the
+        same examples</h3>
+        <p>No role filtering on the example list. <strong>The examples
+        are questions, not answers</strong>, and the answer path already
+        restricts what an operator may be told (ADR-006, NFR-3) — an
+        operator clicking a chip gets the operator-safe answer to it.
+        Filtering the questions as well would mean maintaining a second
+        role matrix for content that carries no protocol text.</p>
+        <h3 id="the-help-panel-and-lexicalterms-are-untouched">6. The
+        help panel and <code>LexicalTerms</code> are untouched</h3>
+        <p>Stated so the rule is visibly honoured:
+        <strong><code>LexicalTerms</code> is not modified</strong>, so
+        what counts as an exact term does not change, so the help
+        panel’s text stays true. The panel describes retrieval
+        behaviour; this ADR adds a way in <em>beside</em> it and changes
+        nothing it describes.</p>
+        <h3 id="not-decided-here">Not decided here</h3>
+        <ul>
+        <li><strong>Any threshold change.</strong> ADR-008’s WATCH row —
+        Mode A clearing the gate and then producing no attributable
+        citation, seen in 3 of 8 production queries on 2026-08-27 — is
+        measured for a week first. Guided questions reduce how often a
+        user <em>meets</em> the gap; they say nothing about where the
+        gate belongs.</li>
+        <li><strong>An automatic “did you mean”.</strong> Rewriting or
+        re-running a user’s question is a retrieval change and needs the
+        same measurement discipline as the threshold.</li>
+        <li><strong>Examples for machines with no protocols.</strong>
+        The list is empty and the chips are absent. Said explicitly so
+        it is a decision and not an oversight.</li>
+        </ul>
+        <h2 id="consequences">Consequences</h2>
+        <p><strong>Positive</strong></p>
+        <ul>
+        <li>The recruiter walkthrough (requirements §6, ≤ 90 seconds)
+        stops depending on the reader inventing a good question. That is
+        the acceptance demo working as written.</li>
+        <li>The examples are exercisable: an e2e case clicks a chip and
+        asserts Mode A, so “the demo works” becomes a check rather than
+        a claim.</li>
+        <li>The ungrounded card gains a number that is true — 165
+        protocols exist, none matched — which is a more honest statement
+        of the same outcome than the card makes today.</li>
+        </ul>
+        <p><strong>Negative</strong></p>
+        <ul>
+        <li><strong>Two files hold questions, and they will
+        diverge.</strong> Named above, with which is canonical for what;
+        the cost is a reviewer who has to know that.</li>
+        <li><strong>The example file is hand-maintained
+        content.</strong> A protocol that is deleted can orphan an
+        example, and nothing detects it except the e2e case, which
+        covers one chip and not all of them.</li>
+        <li><strong>One more endpoint</strong> on the public API
+        surface, and one more field in the answer DTO. Both are additive
+        and read-only, but the OpenAPI document grows and the Angular
+        client gains a call.</li>
+        <li><strong>The search page layout changes</strong>, so visual
+        baselines change — see below.</li>
+        </ul>
+        <h2 id="alternatives-considered">Alternatives considered</h2>
+        <ul>
+        <li><strong>A static list in the Angular bundle</strong> —
+        simplest possible change, no endpoint, no DTO.
+        <em>Rejected:</em> it drifts from the corpus silently, and
+        changing one question means a frontend build and deploy for a
+        fact the backend owns. The examples describe data; they belong
+        with the data.</li>
+        <li><strong>Examples derived at runtime from protocol
+        titles</strong> — always current, zero maintenance.
+        <em>Rejected</em> on two counts: a title is not a question
+        (“Werkzeugwechsler greift daneben” is a symptom, not something a
+        user would type), and it would surface text from
+        <strong>unapproved</strong> protocols to any role that can see
+        the box, which is exactly the leak ADR-006 exists to
+        prevent.</li>
+        <li><strong>A demo script in the README only</strong> — free,
+        and it documents the walkthrough properly. <em>Rejected as a
+        substitute:</em> it helps a reader and not a clicker, and the
+        person this is for is already clicking. <strong>It is still
+        written</strong>, as its own item on the landing page — the two
+        are complements, and only one of them was ever going to be
+        enough.</li>
+        </ul>
+        <h2 id="implementation">Implementation</h2>
+        <p>Two pull requests, in order, and a release after both:</p>
+        <ol type="1">
+        <li><strong>Backend</strong> — the resource file, the endpoint,
+        <code>protocolCount</code> on the Mode B DTO with a
+        <code>@Schema</code> description, unit and web-slice tests, and
+        the OpenAPI document asserted accurate.</li>
+        <li><strong>Frontend</strong> — the chips, the hint text in the
+        DE/EN dictionary, spec tests, and one e2e case that clicks a
+        chip and asserts Mode A. <strong>A visual baseline regeneration
+        is EXPECTED here and must be its own commit</strong> (ADR-007):
+        the chips change the search page layout, so the baselines move
+        for a reason, and regenerating them in the same commit as the
+        feature would hide whether anything <em>else</em> moved.</li>
+        </ol>
+        <p>Then <strong>v1.4.0</strong> — a feature, so a minor
+        bump.</p>
+      </article>
+    </main>
+
+        <nav class="toc" aria-label="On this page">
+      <p class="toc-title">On this page</p>
+      <ul>
+      <li><a href="#adr-011-show-the-user-a-question-that-works"
+      id="toc-adr-011-show-the-user-a-question-that-works">ADR-011: Show
+      the user a question that works</a>
+      <ul>
+      <li><a href="#context" id="toc-context">Context</a></li>
+      <li><a href="#decision" id="toc-decision">Decision</a>
+      <ul>
+      <li><a href="#example-questions-are-data-owned-by-the-backend"
+      id="toc-example-questions-are-data-owned-by-the-backend">1.
+      Example questions are data, owned by the backend</a></li>
+      <li><a
+      href="#the-golden-questions-are-the-seed-and-they-are-copied-not-moved"
+      id="toc-the-golden-questions-are-the-seed-and-they-are-copied-not-moved">2.
+      The golden questions are the seed, and they are COPIED, not
+      moved</a></li>
+      <li><a
+      href="#chips-under-the-question-box-filled-but-not-submitted"
+      id="toc-chips-under-the-question-box-filled-but-not-submitted">3.
+      Chips under the question box, filled but not submitted</a></li>
+      <li><a
+      href="#the-ungrounded-card-says-how-many-protocols-exist-and-offers-one-next-step"
+      id="toc-the-ungrounded-card-says-how-many-protocols-exist-and-offers-one-next-step">4.
+      The ungrounded card says how many protocols exist, and offers one
+      next step</a></li>
+      <li><a href="#operators-see-the-same-examples"
+      id="toc-operators-see-the-same-examples">5. Operators see the same
+      examples</a></li>
+      <li><a href="#the-help-panel-and-lexicalterms-are-untouched"
+      id="toc-the-help-panel-and-lexicalterms-are-untouched">6. The help
+      panel and <code>LexicalTerms</code> are untouched</a></li>
+      <li><a href="#not-decided-here" id="toc-not-decided-here">Not
+      decided here</a></li>
+      </ul></li>
+      <li><a href="#consequences"
+      id="toc-consequences">Consequences</a></li>
+      <li><a href="#alternatives-considered"
+      id="toc-alternatives-considered">Alternatives considered</a></li>
+      <li><a href="#implementation"
+      id="toc-implementation">Implementation</a></li>
+      </ul></li>
+      </ul>
+    </nav>
+      </div>
+
+  <footer class="footer">
+    maintenance-assistant · Generated by the docs pipeline
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <script src="/maintenance-assistant/assets/docs.js"></script>
+</body>
+</html>

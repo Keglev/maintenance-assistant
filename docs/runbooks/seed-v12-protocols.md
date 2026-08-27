@@ -93,7 +93,7 @@ them.** Do not set both flags at once to save a recreation.
 3. A `.bak` of `.env.prod` before editing it, per the standing ops rule:
 
    ```bash
-   cp .env.prod .env.prod.bak-$(date +%F)
+   f=.env.prod; cp -pn "$f" "$f.bak.of-$(date -r "$f" +%F)"
    ```
 
 **Remember that an edit to `.env.prod` is inert until the container is recreated.** `restart` is not

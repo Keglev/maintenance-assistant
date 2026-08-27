@@ -166,6 +166,30 @@ Three things follow, and all three have bitten somebody somewhere:
   name that no longer resolves fails at request time, not at reload, so `caddy validate` will keep
   reporting a valid configuration while the site returns 502 forever.
 
+**OPS RULE 6 — A BACKUP IS NAMED FOR ITS CONTENT DATE, NOT FOR THE DAY IT WAS COPIED.**
+
+```bash
+f=docker-compose.prod.yml; cp -pn "$f" "$f.bak.of-$(date -r "$f" +%F)"
+```
+
+The name is `<file>.bak.of-<YYYY-MM-DD>`, and the date comes from the SOURCE FILE'S mtime
+(`date -r FILE +%F`) — never from today. `cp -p` preserves that mtime onto the copy, so the name
+and the timestamp on disk agree and a later `ls -l` corroborates the filename instead of
+contradicting it. Two backups of the same content taken on different days collide by design;
+`cp -n` refuses the second, which is the right answer, because they are the same bytes.
+
+**Why, measured 2026-08-27.** The host held `.env.prod.bak-2026-08-27`,
+`docker-compose.prod.yml.bak-2026-08-27` and `Caddyfile.bak-2026-08-27` whose contents were from
+**2026-08-19, 2026-08-11 and 2026-08-08**. Every one of them was named for the day somebody ran
+`cp`, and every one of them was wrong about what it contained. **A backup named for the wrong day is
+restored with confidence**, which is worse than no backup at all — the operator does not stop to
+check, because the filename already answered the question.
+
+NUMBERED 6 BECAUSE 4 AND 5 ARE TAKEN: OPS RULE 4 is "before a hand-deploy, `ls -l` the target" and
+OPS RULE 5 is the shared-host rule, both written 2026-08-27. The canonical list currently sits in
+`docs/ledger/STATUS-2026-08-08.txt` — see the note in PROJECT-PHASES; that placement is a defect of
+the ledger rotation, not a statement that these rules are history.
+
 ### frontend-config.json
 
 The frontend image is environment-agnostic on purpose: it is built once and deployed anywhere,
@@ -186,7 +210,7 @@ rather than a blank page. That is a safety net, not a licence — it also means 
 
 ```bash
 # on the host, from /opt/maintenance-assistant
-cp frontend-config.json frontend-config.json.bak-$(date +%Y%m%d-%H%M%S)
+f=frontend-config.json; cp -pn "$f" "$f.bak.of-$(date -r "$f" +%F)"
 cp /path/to/new frontend-config.json      # cp OVER it — OPS RULE 3
 python3 -m json.tool frontend-config.json >/dev/null && echo "valid JSON"
 docker compose -f docker-compose.prod.yml --env-file .env.prod up -d --force-recreate frontend

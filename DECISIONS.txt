@@ -1009,3 +1009,28 @@ Status: v1.3.1 released; refactor phase, Part 3 closed 2026-08-26; diagnostics w
   cache, threads and direct buffers, which is the OOM-kill case on a host with no swap and on the
   one service whose restart logs every user out. SIZE A JVM CONTAINER FROM THE HEAP CEILING THE
   PERCENTAGE WILL PRODUCE, not from the resident set it happens to show.
+- THE SHARED HOST IS LIVE, AND THE PRIVILEGE SPLIT IS THE DECISION — 2026-08-27, hand-deployed
+  18:13-18:23 UTC from #119's checklist. api.smartsupplypro.de terminates on this Caddy and answers
+  502 over a valid certificate until inventory-service starts; the memory limits are on
+  (1610612736 / 1342177280); the four parked rows all landed in the one session.
+  ROOT CREATES AND HANDS OVER, deploy OPERATES. /opt is root-owned and `deploy` is not in sudoers —
+  infra/provision.sh builds the account that way deliberately — so a second project's directory
+  needs one root action to exist and a chown to be usable, and everything afterwards is deploy's.
+  The alternative was giving `deploy` a sudoers entry, and it was refused for the reason the split
+  exists: the account that runs containers every day should not also be the account that can rewrite
+  the machine. Docker-group membership makes that boundary crossable in practice, and it stands
+  anyway — a written statement of who does what is what stops one operator surprising the next.
+  WHAT IT COST TO LEARN: docker-compose.prod.yml had been root:root 644 on the host since
+  2026-08-11, so the deploy account could not overwrite it, and nothing could see that for sixteen
+  days because no deploy in between had needed to. The record said seven hand-deployed files and
+  implied deploy owned all seven; for one of them that was false from the day it was created.
+- A SECRETS FILE IS VALIDATED BY BYTES, NEVER BY EYE — 2026-08-27. A Windows export produced a
+  44,081-byte .env with every newline stripped: twelve keys concatenated onto the ends of the
+  preceding values, on one line. It was the right size, it opened in an editor, and `file` called it
+  ASCII text. A bare regex found 3 of its 12 keys, because a key preceded by an alphanumeric
+  character is invisible to one — so the obvious check would have under-reported instead of failing.
+  Counting bytes caught it: 0 LF, 0 CR, 24 '=' signs in 44 KB.
+  SO THE RULE IS A COMMAND, NOT A LOOK: line count, CR/LF, BOM, one KEY=VALUE per line, each
+  asserted before the file is deployed. AND NO VALUE IS EVER PRINTED TO CHECK IT — names, lengths
+  and counts answer every question, and a length that matches a previously measured length is a
+  stronger check than a value somebody read off a screen.

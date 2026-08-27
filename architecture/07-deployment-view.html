@@ -225,6 +225,17 @@
         network declared here would make this stack’s startup depend on
         a project it does not own.</li>
         </ul>
+        <p><strong>A new public hostname is probed within seconds of its
+        certificate being issued.</strong> Four certificate-transparency
+        scanners reached <code>api.smartsupplypro.de</code> from four
+        addresses inside a minute of Caddy obtaining the certificate on
+        2026-08-27, while the upstream did not yet exist and every
+        request was answered with a 502. CT logs are public and watched
+        continuously, so the window between “the name resolves and
+        serves TLS” and “the application behind it is configured” is not
+        private: <strong>the upstream’s own security configuration has
+        to be right before its container starts</strong>, not shortly
+        afterwards.</p>
         <p>If inventory-service ever leaves this host, the removal is
         the site block in <a
         href="https://github.com/Keglev/maintenance-assistant/blob/main/docker/caddy/Caddyfile"><code>docker/caddy/Caddyfile</code></a>
@@ -306,14 +317,21 @@
         <code>frontend</code> are deliberately unlimited: none of them
         sizes itself from visible RAM, and a cgroup limit on Postgres
         would count the page cache it depends on.</p>
-        <p><strong>There is no swap on this host.</strong>
-        <code>swapon --show</code> prints nothing, so an over-committed
-        container is OOM-killed rather than slowed down. That was
-        survivable while nothing was near its ceiling; with a third JVM
-        arriving, a small swap file is cheap insurance against a kill
-        during a burst. It is not created by the change that wrote this
-        section — it is a host operation and a judgement call about
-        whether a slow service is better than a restarted one.</p>
+        <p><strong>The host had no swap, and now has 2 GB.</strong>
+        Until 2026-08-27 <code>swapon --show</code> printed nothing, so
+        an over-committed container was OOM-killed rather than slowed —
+        survivable while nothing was near its ceiling, and not
+        survivable as a third JVM arrives. A 2 GB file was created as
+        root during the shared-host preparation and entered in
+        <code>/etc/fstab</code>
+        (<code>/swapfile none swap sw 0 0</code>) so it survives a
+        reboot:</p>
+        <pre><code>NAME      TYPE SIZE USED PRIO
+/swapfile file   2G   0B   -1</code></pre>
+        <p>It is insurance, not capacity. Swap that is actually being
+        used by a JVM heap is its own performance incident; the reason
+        it is here is that a burst which would have been a kill becomes
+        a slowdown somebody can observe and act on.</p>
         <h2 id="containers">7.2 Containers</h2>
         <table>
         <colgroup>
@@ -438,8 +456,8 @@
         existing container running, so a corrected value in
         <code>.env.prod</code> is read by nothing. The only reliable way
         to apply it is:</p>
-        <div class="sourceCode" id="cb1"><pre
-        class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">docker</span> compose <span class="at">-f</span> docker-compose.prod.yml up <span class="at">-d</span> <span class="at">--force-recreate</span> backend</span></code></pre></div>
+        <div class="sourceCode" id="cb2"><pre
+        class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">docker</span> compose <span class="at">-f</span> docker-compose.prod.yml up <span class="at">-d</span> <span class="at">--force-recreate</span> backend</span></code></pre></div>
         <p>This is not a theoretical footnote. A backend container once
         ran an entire indexing pass into HTTP 401s using a revoked API
         token while the correct token was already sitting in
@@ -448,8 +466,8 @@
         the two disagreed — the logs said “unauthorised”, which reads as
         a bad key rather than as a stale one. The check that settles it
         in one line:</p>
-        <div class="sourceCode" id="cb2"><pre
-        class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">docker</span> compose exec backend printenv LLM_API_KEY <span class="kw">|</span> <span class="fu">head</span> <span class="at">-c</span> 12   <span class="co"># what the process actually has</span></span></code></pre></div>
+        <div class="sourceCode" id="cb3"><pre
+        class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">docker</span> compose exec backend printenv LLM_API_KEY <span class="kw">|</span> <span class="fu">head</span> <span class="at">-c</span> 12   <span class="co"># what the process actually has</span></span></code></pre></div>
         <p>The same applies to a rotated token, a changed budget, and
         every other value in that file.</p>
         <h3
@@ -459,9 +477,9 @@
         <p>Two files reach their container as a
         <strong>single-file</strong> bind mount rather than as a
         directory:</p>
-        <div class="sourceCode" id="cb3"><pre
-        class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="kw">-</span><span class="at"> ./caddy/Caddyfile:/etc/caddy/Caddyfile:ro</span></span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="kw">-</span><span class="at"> ./frontend-config.json:/usr/share/nginx/html/config.json:ro</span></span></code></pre></div>
+        <div class="sourceCode" id="cb4"><pre
+        class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="kw">-</span><span class="at"> ./caddy/Caddyfile:/etc/caddy/Caddyfile:ro</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="kw">-</span><span class="at"> ./frontend-config.json:/usr/share/nginx/html/config.json:ro</span></span></code></pre></div>
         <p>The kernel binds the <em>inode</em> it found at that path
         when the container started, not the path.
         <code>mv new.Caddyfile caddy/Caddyfile</code> puts a
@@ -475,17 +493,17 @@
         nothing. It cost a deploy round on 2026-08-08: the host file
         carried two <code>Content-Security-Policy</code> lines while a
         <code>grep</code> inside the container found none.</p>
-        <div class="sourceCode" id="cb4"><pre
-        class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cp</span> caddy/Caddyfile caddy/Caddyfile.bak-<span class="va">$(</span><span class="fu">date</span> +%Y%m%d-%H%M%S<span class="va">)</span>   <span class="co"># rollback copy</span></span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="fu">cp</span> new-Caddyfile caddy/Caddyfile                                 <span class="co"># cp, NOT mv — same inode</span></span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="ex">docker</span> compose <span class="at">-f</span> docker-compose.prod.yml <span class="at">--env-file</span> .env.prod exec caddy <span class="dt">\</span></span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  caddy reload <span class="at">--config</span> /etc/caddy/Caddyfile</span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a><span class="co"># ...or sidestep the question entirely by giving the container a fresh view of the path:</span></span>
-<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a><span class="ex">docker</span> compose <span class="at">-f</span> docker-compose.prod.yml <span class="at">--env-file</span> .env.prod up <span class="at">-d</span> <span class="at">--force-recreate</span> caddy</span>
-<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a><span class="co"># and confirm from OUTSIDE, where the answer cannot be stale:</span></span>
-<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-sSI</span> https://<span class="op">&lt;</span>app host<span class="op">&gt;</span>/ <span class="kw">|</span> <span class="fu">grep</span> <span class="at">-i</span> content-security-policy</span></code></pre></div>
+        <div class="sourceCode" id="cb5"><pre
+        class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cp</span> caddy/Caddyfile caddy/Caddyfile.bak-<span class="va">$(</span><span class="fu">date</span> +%Y%m%d-%H%M%S<span class="va">)</span>   <span class="co"># rollback copy</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="fu">cp</span> new-Caddyfile caddy/Caddyfile                                 <span class="co"># cp, NOT mv — same inode</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="ex">docker</span> compose <span class="at">-f</span> docker-compose.prod.yml <span class="at">--env-file</span> .env.prod exec caddy <span class="dt">\</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>  caddy reload <span class="at">--config</span> /etc/caddy/Caddyfile</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a><span class="co"># ...or sidestep the question entirely by giving the container a fresh view of the path:</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a><span class="ex">docker</span> compose <span class="at">-f</span> docker-compose.prod.yml <span class="at">--env-file</span> .env.prod up <span class="at">-d</span> <span class="at">--force-recreate</span> caddy</span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a><span class="co"># and confirm from OUTSIDE, where the answer cannot be stale:</span></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-sSI</span> https://<span class="op">&lt;</span>app host<span class="op">&gt;</span>/ <span class="kw">|</span> <span class="fu">grep</span> <span class="at">-i</span> content-security-policy</span></code></pre></div>
         <p>The rule generalises: <strong>edit in place or
         <code>cp</code> over it; never <code>mv</code>, and never
         <code>rm</code> + recreate.</strong> An editor that writes
@@ -542,10 +560,10 @@ drwxr-xr-x 2 0 0 …            touch: Permission denied</code></pre>
         (Docker never chowns a host path), the container gets a
         root-owned directory and every upload fails. The check and the
         fix:</p>
-        <div class="sourceCode" id="cb6"><pre
-        class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">docker</span> compose exec backend ls <span class="at">-ldn</span> /var/lib/maintenance/files    <span class="co"># expect 1001 1001</span></span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="co"># only if it is not:</span></span>
-<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="ex">docker</span> run <span class="at">--rm</span> <span class="at">-v</span> maintenance-assistant_protocol-files:/d alpine chown <span class="at">-R</span> 1001:1001 /d</span></code></pre></div>
+        <div class="sourceCode" id="cb7"><pre
+        class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="ex">docker</span> compose exec backend ls <span class="at">-ldn</span> /var/lib/maintenance/files    <span class="co"># expect 1001 1001</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="co"># only if it is not:</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="ex">docker</span> run <span class="at">--rm</span> <span class="at">-v</span> maintenance-assistant_protocol-files:/d alpine chown <span class="at">-R</span> 1001:1001 /d</span></code></pre></div>
         <h2 id="delivery">7.5 Delivery</h2>
         <p>CI owns the rollout. When <code>backend-ci</code> or
         <code>frontend-ci</code> succeeds on <code>main</code>, the
@@ -612,21 +630,21 @@ drwxr-xr-x 2 0 0 …            touch: Permission denied</code></pre>
         because the host kept running the compose file it already had.
         The stack looked healthy and was running the old definition.
         Applying such a change:</p>
-        <div class="sourceCode" id="cb7"><pre
-        class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ssh</span> deploy@<span class="op">&lt;</span>host<span class="op">&gt;</span></span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> /opt/maintenance-assistant</span>
-<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="fu">cp</span> docker-compose.prod.yml docker-compose.prod.yml.bak-<span class="va">$(</span><span class="fu">date</span> +%Y%m%d-%H%M%S<span class="va">)</span>   <span class="co"># rollback copy first</span></span>
-<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a><span class="co"># copy the new file over (scp from the workstation, or edit in place)</span></span>
-<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a><span class="ex">docker</span> compose <span class="at">-f</span> docker-compose.prod.yml up <span class="at">-d</span> <span class="at">--force-recreate</span> backend</span></code></pre></div>
+        <div class="sourceCode" id="cb8"><pre
+        class="sourceCode bash"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ssh</span> deploy@<span class="op">&lt;</span>host<span class="op">&gt;</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> /opt/maintenance-assistant</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="fu">cp</span> docker-compose.prod.yml docker-compose.prod.yml.bak-<span class="va">$(</span><span class="fu">date</span> +%Y%m%d-%H%M%S<span class="va">)</span>   <span class="co"># rollback copy first</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a><span class="co"># copy the new file over (scp from the workstation, or edit in place)</span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a><span class="ex">docker</span> compose <span class="at">-f</span> docker-compose.prod.yml up <span class="at">-d</span> <span class="at">--force-recreate</span> backend</span></code></pre></div>
         <p>The Caddyfile is applied the same way, and reloaded rather
         than recreated — Caddy re-reads its configuration without
         dropping connections or re-issuing certificates:</p>
-        <div class="sourceCode" id="cb8"><pre
-        class="sourceCode bash"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cp</span> caddy/Caddyfile caddy/Caddyfile.bak-<span class="va">$(</span><span class="fu">date</span> +%Y%m%d-%H%M%S<span class="va">)</span>   <span class="co"># rollback copy first</span></span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="co"># copy the new file over</span></span>
-<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="ex">docker</span> compose <span class="at">-f</span> docker-compose.prod.yml <span class="at">--env-file</span> .env.prod exec caddy <span class="dt">\</span></span>
-<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>  caddy reload <span class="at">--config</span> /etc/caddy/Caddyfile</span>
-<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-sSI</span> https://<span class="op">&lt;</span>app host<span class="op">&gt;</span>/ <span class="kw">|</span> <span class="fu">grep</span> <span class="at">-i</span> content-security-policy   <span class="co"># it either arrived or it did not</span></span></code></pre></div>
+        <div class="sourceCode" id="cb9"><pre
+        class="sourceCode bash"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cp</span> caddy/Caddyfile caddy/Caddyfile.bak-<span class="va">$(</span><span class="fu">date</span> +%Y%m%d-%H%M%S<span class="va">)</span>   <span class="co"># rollback copy first</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="co"># copy the new file over</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="ex">docker</span> compose <span class="at">-f</span> docker-compose.prod.yml <span class="at">--env-file</span> .env.prod exec caddy <span class="dt">\</span></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>  caddy reload <span class="at">--config</span> /etc/caddy/Caddyfile</span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-sSI</span> https://<span class="op">&lt;</span>app host<span class="op">&gt;</span>/ <span class="kw">|</span> <span class="fu">grep</span> <span class="at">-i</span> content-security-policy   <span class="co"># it either arrived or it did not</span></span></code></pre></div>
         <p>The <code>.bak</code> copy is the rule rather than a
         suggestion: this file is the only definition of the running
         stack, there is no second host to compare against, and
@@ -741,11 +759,11 @@ drwxr-xr-x 2 0 0 …            touch: Permission denied</code></pre>
         it. Losing it costs a re-import, not data.</li>
         </ul>
         <p>Operating it:</p>
-        <div class="sourceCode" id="cb9"><pre
-        class="sourceCode bash"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ssh</span> deploy@<span class="op">&lt;</span>host<span class="op">&gt;</span> maintenance-backup          <span class="co"># run one now</span></span>
-<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="ex">journalctl</span> <span class="at">-u</span> maintenance-backup <span class="at">-n</span> 50        <span class="co"># what happened</span></span>
-<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="ex">systemctl</span> list-timers maintenance-backup.timer</span>
-<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a><span class="fu">ls</span> <span class="at">-lh</span> /opt/maintenance-assistant/backups/</span></code></pre></div>
+        <div class="sourceCode" id="cb10"><pre
+        class="sourceCode bash"><code class="sourceCode bash"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ssh</span> deploy@<span class="op">&lt;</span>host<span class="op">&gt;</span> maintenance-backup          <span class="co"># run one now</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="ex">journalctl</span> <span class="at">-u</span> maintenance-backup <span class="at">-n</span> 50        <span class="co"># what happened</span></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a><span class="ex">systemctl</span> list-timers maintenance-backup.timer</span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a><span class="fu">ls</span> <span class="at">-lh</span> /opt/maintenance-assistant/backups/</span></code></pre></div>
         <h3 id="hetzner-snapshots">7.6.2 Hetzner snapshots</h3>
         <p>The nightly backup protects the <em>data</em>. A snapshot
         protects the <em>host</em> — the compose files,

@@ -300,6 +300,42 @@ WORKING PRACTICES (the process rules that paid for themselves)
 
 
 =====================================================================
+OPS
+=====================================================================
+Two rules, both bought on 2026-08-27 by the shared-host hand-deploy.
+The operational log of that session is in PROJECT-PHASES; what is here
+is only the part that generalises.
+
+- A SECRETS FILE IS VALIDATED BY BYTE CHECKS BEFORE IT IS DEPLOYED,
+  NEVER BY EYE: line count, CR/LF, BOM, and one KEY=VALUE per line,
+  each asserted by a command rather than looked at. Learned from an
+  export pipeline on Windows that produced a 44,081-byte file with
+  EVERY NEWLINE STRIPPED — 12 keys concatenated onto the ends of the
+  preceding values, on one line. It opened in an editor, it was the
+  right size, and it was undeployable; a bare regex found 3 of its 12
+  keys, because a key preceded by an alphanumeric character is
+  invisible to one. THE FAILURE IS SILENT ON BOTH SIDES: nothing about
+  the file announces it, and a container started from it fails later
+  and elsewhere. The checks cost one command; `file` alone is not
+  enough, because "ASCII text, with very long lines" is also what a
+  correct wallet line looks like.
+  A VALUE IS NEVER PRINTED TO CHECK IT. Names, lengths and counts
+  answer every question above, and a length that matches a previously
+  measured length is a stronger check than a value somebody read.
+
+- BEFORE A HAND-DEPLOY, `ls -l` THE TARGET; OWNERSHIP IS PART OF THE
+  PRECONDITION, not something to discover from a permission error
+  halfway through. The deploy account has no sudo by provisioning
+  design, so a root-owned file on the host cannot be replaced from it.
+  ROOT CREATES AND HANDS OVER; deploy OPERATES — a file or directory
+  that root creates is `chown`ed to deploy in the same session, or it
+  becomes a wall the next operator meets instead. Learned when
+  docker-compose.prod.yml was found root:root 644, sixteen days after
+  a root session created it and did not hand it over, and only because
+  a deploy that day finally needed to overwrite it.
+
+
+=====================================================================
 WAIVER REGISTER
 =====================================================================
 Columns: file | figure | band/metric | date | reason | granted by

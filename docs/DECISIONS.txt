@@ -976,3 +976,36 @@ Status: v1.3.1 released; refactor phase, Part 3 closed 2026-08-26; diagnostics w
   decoration: a reader who picks DE and gets less has been told something about the project that is
   not true. Where a linked page exists only in English the German page says so, which is the
   convention its own card grid already followed.
+- THE SECOND PROJECT JOINS THIS PROJECT'S NETWORK; THIS PROJECT'S COMPOSE FILE IS NOT TOUCHED —
+  2026-08-27, #119. The CX33 also hosts github.com/Keglev/inventory-service (the SmartSupplyPro
+  backend) as a second compose project under /opt/smartsupplypro, and api.smartsupplypro.de
+  terminates on this Caddy, proxying to ssp-backend:8081. Caddy is the ONLY shared component:
+  separate databases, separate volumes, separate lifecycles, separate repositories.
+  THE ALTERNATIVE WAS A SHARED NETWORK DECLARED HERE, and it was refused for one reason: it would
+  make this stack's startup depend on a project it does not own. Compose already names the default
+  network after the project — maintenance-assistant_default is `name:` plus a suffix — so the
+  joining side can declare it external and attach, with nothing added to docker-compose.prod.yml at
+  all. The coupling is therefore one derived string in the OTHER repository, and the direction of
+  the dependency matches the direction of the need.
+  WHAT IT COSTS, and it is named rather than discovered: the network name is not configured
+  anywhere in this repository, it falls out of `name: maintenance-assistant`. Changing that line
+  renames the network and the neighbour's containers fail to attach — a failure that surfaces over
+  there, in a repository whose maintainer is not reading this one. arc42 7.1 and docker/README.md
+  both say so beside the things a person would actually be editing.
+- MEMORY LIMITS GO WHERE A RUNTIME SIZES ITSELF FROM VISIBLE RAM, and nowhere else — 2026-08-27,
+  #119. Measured: both JVMs ran with no cgroup limit, so UseContainerSupport sized their heaps
+  against the HOST — 5,812 MiB for the backend at MaxRAMPercentage=75 and 5,424 MiB for Keycloak at
+  70, on a 7.5 GiB machine with no swap, while the two together used 988 MiB. That is not headroom,
+  it is a decision nobody made, and a third Spring Boot service is arriving on the same host.
+  backend 1536m and keycloak 1280m, sized from the measurements; postgres, caddy and frontend stay
+  unlimited because none of them sizes from visible RAM and a cgroup limit on Postgres would count
+  the page cache it depends on, on the one container whose failure loses data.
+  THE LIMIT IS ALSO THE HEAP, which is the half that is easy to miss: 75% of 1536 MiB is a
+  1,152 MiB ceiling and 70% of 1280 MiB is 896 MiB. Both are written into the compose comments so
+  the consequence is read before the deploy rather than found after it.
+  AND IT IS WHY THE SIZING RULE IS NOT "RSS + A CONSTANT". Keycloak was written as 1024m from
+  686 + 256 and corrected to 1280m the same day, before it ever ran: with the limit feeding the
+  percentage, 1024m entitles the heap alone to 717 MiB and leaves ~300 MiB for metaspace, code
+  cache, threads and direct buffers, which is the OOM-kill case on a host with no swap and on the
+  one service whose restart logs every user out. SIZE A JVM CONTAINER FROM THE HEAP CEILING THE
+  PERCENTAGE WILL PRODUCE, not from the resident set it happens to show.

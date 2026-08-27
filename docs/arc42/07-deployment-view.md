@@ -24,6 +24,71 @@ cost something, and the record says so: on 2026-08-10 the arm64 build leg was re
 had no consumer and was crashing under QEMU. Moving back to an arm64 host is now a purchase
 order PLUS restoring one line in each deploy workflow, or adding a native arm64 runner.
 
+### Shared host
+
+Since 2026-08-27 this VPS also hosts **[inventory-service](https://github.com/Keglev/inventory-service)**,
+the SmartSupplyPro backend, as a **second compose project** under `/opt/smartsupplypro`. The two
+projects are separate stacks — separate databases, separate volumes, separate lifecycles, separate
+repositories. **Caddy is the only shared component**, and `api.smartsupplypro.de` terminates here.
+
+**The coupling is a network name, and that is the whole of it.** `docker-compose.prod.yml` declares
+no `networks:` block, so Compose creates the default network and names it after the project:
+`maintenance-assistant_default` — the value of `name:` at the top of the file, plus `_default`.
+The other project joins **that** network as an external one, which is what lets this Caddyfile write
+`reverse_proxy ssp-backend:8081` and have the container name resolve.
+
+Two consequences worth stating before somebody trips over them:
+
+- **The name is derived, not configured.** Nothing in this repository sets it; it falls out of
+  `name: maintenance-assistant`. Changing that line renames the network, and the other project's
+  containers then fail to attach — a failure that surfaces over there, in a repository whose
+  maintainer may not be reading this one.
+- **The declaration lives on the joining side.** inventory-service's compose file names
+  `maintenance-assistant_default` as `external: true`. This project's compose file is untouched by
+  the arrangement, which is deliberate: a shared network declared here would make this stack's
+  startup depend on a project it does not own.
+
+If inventory-service ever leaves this host, the removal is the site block in
+[`docker/caddy/Caddyfile`](https://github.com/Keglev/maintenance-assistant/blob/main/docker/caddy/Caddyfile)
+and nothing else here.
+
+#### Memory limits, and why they arrived with the second project
+
+Measured on the host, 2026-08-27, with nothing limited:
+
+| Container | Resident | JVM heap ceiling |
+|---|---|---|
+| backend | 301.9 MiB | **5,812 MiB** (`-XX:MaxRAMPercentage=75.0` against the host's RAM) |
+| keycloak | 686.1 MiB | **5,424 MiB** (the image's `MaxRAMPercentage=70`) |
+| postgres | 96.0 MiB | — |
+| caddy | 66.0 MiB | — |
+| frontend | 4.8 MiB | — |
+
+`docker inspect --format '{{.HostConfig.Memory}}'` returned `0` for every container: the `LIMIT`
+column in `docker stats` was reading the host's 7.565 GiB.
+
+**A JVM sizes its heap as a percentage of the memory it can see, and without a cgroup limit that is
+the whole machine.** Two JVMs were therefore entitled to roughly 11 GiB between them on a 7.5 GiB
+host, and a third — inventory-service is also Spring Boot — was about to join them. Nothing had
+broken, because neither heap had ever been asked to fill; that is not a property anyone designed.
+
+So the two Java services now carry `deploy.resources.limits.memory`: **1536m** for backend and
+**1280m** for keycloak, with the arithmetic in the compose file beside each. Setting the limit is
+also what re-sizes the heap — 75% of 1,536 MiB is 1,152 MiB, and 70% of 1,280 MiB is 896 MiB — so a
+limit is a heap decision here as much as a memory-safety one. Keycloak's number was 1024m for one
+day and was raised before it ever ran: RSS + 256 MiB is a reasonable rule for a process whose memory
+is its resident set, and the wrong rule for a JVM, where the limit is the *input* to the percentage.
+At 1024m the heap alone could have taken 717 MiB and left ~300 MiB for metaspace, code cache,
+threads and direct buffers — an OOM kill on the one service whose restart logs every user out. `postgres`, `caddy` and `frontend` are
+deliberately unlimited: none of them sizes itself from visible RAM, and a cgroup limit on Postgres
+would count the page cache it depends on.
+
+**There is no swap on this host.** `swapon --show` prints nothing, so an over-committed container is
+OOM-killed rather than slowed down. That was survivable while nothing was near its ceiling; with a
+third JVM arriving, a small swap file is cheap insurance against a kill during a burst. It is not
+created by the change that wrote this section — it is a host operation and a judgement call about
+whether a slow service is better than a restarted one.
+
 ## 7.2 Containers
 
 | Container | Exposed | Purpose |

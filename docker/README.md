@@ -109,7 +109,7 @@ itself — not three, and not the four the survey expected:
 |---|---|---|---|
 | 1 | `docker-compose.prod.yml` | the stack definition itself | — |
 | 2 | `.env.prod` | every secret and hostname | — |
-| 3 | `caddy/Caddyfile` | TLS, routes, security headers | single file |
+| 3 | `caddy/Caddyfile` | TLS, routes, security headers — and one site block for a FOREIGN project, see below | single file |
 | 4 | `frontend-config.json` | the SPA runtime configuration | single file |
 | 5 | `keycloak/realm-export.json` | realm, roles, clients | single file |
 | 6 | `keycloak/themes/wartungsassistent/` | the login theme | directory |
@@ -122,6 +122,30 @@ INSIDE the container and both happily report success against stale content. **Al
 the existing file**, or `up -d --force-recreate <service>`. Never `mv`. The theme (6) is a
 directory mount and does not carry the trap, though theme caching means it still needs a
 force-recreate to take effect.
+
+### caddy/Caddyfile
+
+TLS, routing and the security headers, for **three** hostnames — and the third one is not this
+project's.
+
+`api.smartsupplypro.de` proxies to `ssp-backend:8081`, a container belonging to
+[inventory-service](https://github.com/Keglev/inventory-service), which runs on the same host as a
+second compose project under `/opt/smartsupplypro` and joins this project's network
+(`maintenance-assistant_default`) so the name resolves. Caddy is the only thing the two projects
+share; see [arc42 §7.1, "Shared host"](../docs/arc42/07-deployment-view.md).
+
+Three things follow, and all three have bitten somebody somewhere:
+
+- **The foreign site block is edited HERE and deployed BY HAND**, like every other line in this
+  file. Committing it changes nothing on the server. inventory-service's own pipeline does not
+  deploy it either — it has no reason to know this file exists.
+- **A 502 on `api.smartsupplypro.de` is the expected answer when inventory-service is down.** Caddy
+  still holds a valid certificate for the name, because the site block is what makes it ask for one.
+  A certificate error means the block is missing or the file is stale; a 502 means the block is
+  live and the upstream is not.
+- **Removing inventory-service from this host means removing the block.** A `reverse_proxy` to a
+  name that no longer resolves fails at request time, not at reload, so `caddy validate` will keep
+  reporting a valid configuration while the site returns 502 forever.
 
 ### frontend-config.json
 

@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>QueryAnswer.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">maintenance-assistant</a> &gt; <a href="index.source.html" class="el_package">com.keglevich.maintenanceassistant.query</a> &gt; <span class="el_source">QueryAnswer.java</span></div><h1>QueryAnswer.java</h1><pre class="source lang-java linenums">package com.keglevich.maintenanceassistant.query;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import io.swagger.v3.oas.annotations.media.Schema;
+
 import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
@@ -22,17 +25,63 @@ import java.util.UUID;
  *                  hyphenation, and it is the observable half of the language rule ADR-002 records
  * @param claims    Mode A only: one statement, one source label. Empty in Mode B
  * @param citations the sources actually cited, in label order. Empty in Mode B
+ * @param degradedFrom why this Mode B answer is a Mode B answer when retrieval had said Mode A.
+ *                     ABSENT from the JSON for every ordinary answer, which is what makes it
+ *                     additive: a client that has never heard of it sees the payload it always saw
  */
-<span class="fc" id="L26">public record QueryAnswer(</span>
+@JsonInclude(JsonInclude.Include.NON_NULL)
+<span class="fc" id="L33">public record QueryAnswer(</span>
         AnswerMode mode,
         String answer,
         String language,
         List&lt;Claim&gt; claims,
-        List&lt;Citation&gt; citations) {
+        List&lt;Citation&gt; citations,
+        @Schema(description = &quot;Present only when retrieval selected Mode A and the grounded answer &quot;
+                + &quot;could not be produced, so the ungrounded answer was returned instead. TRUNCATED &quot;
+                + &quot;means the grounded answer hit the model's output cap. Absent on every ordinary &quot;
+                + &quot;answer; a client may ignore it.&quot;,
+                requiredMode = Schema.RequiredMode.NOT_REQUIRED)
+        DegradedFrom degradedFrom) {
+
+    /**
+     * The five-argument shape every caller used before the degradation path existed.
+     *
+     * &lt;p&gt;Kept so that adding the field is additive IN THE CODE as well as on the wire: an answer
+     * that was not degraded says so by not mentioning it, and no existing construction site had to
+     * be edited to keep meaning what it already meant.
+     */
+    public QueryAnswer(AnswerMode mode, String answer, String language,
+                       List&lt;Claim&gt; claims, List&lt;Citation&gt; citations) {
+<span class="fc" id="L55">        this(mode, answer, language, claims, citations, null);</span>
+<span class="fc" id="L56">    }</span>
+
+    /**
+     * The same answer, labelled with why it was degraded.
+     *
+     * &lt;p&gt;A copy rather than a mutable field: this record is handed to the cache, and an answer that
+     * could be relabelled after it was stored is an answer two callers can disagree about.
+     */
+    public QueryAnswer degradedFrom(DegradedFrom reason) {
+<span class="fc" id="L65">        return new QueryAnswer(mode, answer, language, claims, citations, reason);</span>
+    }
 
     /** NFR-2's two modes. Serialised as &quot;A&quot; and &quot;B&quot;. */
-<span class="fc" id="L34">    public enum AnswerMode {</span>
-<span class="fc" id="L35">        A, B</span>
+<span class="fc" id="L69">    public enum AnswerMode {</span>
+<span class="fc" id="L70">        A, B</span>
+    }
+
+    /**
+     * Why a Mode B answer is being returned for a question retrieval had routed to Mode A.
+     *
+     * &lt;p&gt;ONE CONSTANT, AND IT IS AN ENUM ANYWAY. The alternative reason — Mode A produced no
+     * attributable citation — has existed since the assembler was written and is deliberately NOT
+     * labelled here: this field exists to make the 2026-08-26 failure class visible, and giving a
+     * name to a fall-through that has always been silent would change what an existing answer
+     * reports. It goes in when someone asks for it, with its own row.
+     */
+<span class="fc" id="L82">    public enum DegradedFrom {</span>
+        /** The grounded call stopped at the model's output cap, so its JSON was unparseable. */
+<span class="fc" id="L84">        TRUNCATED</span>
     }
 
     /**
@@ -40,7 +89,7 @@ import java.util.UUID;
      *
      * @param source the {@code [P1]}-style label, matching a {@link Citation#label()}
      */
-<span class="fc" id="L43">    public record Claim(String text, String source) {</span>
+<span class="fc" id="L92">    public record Claim(String text, String source) {</span>
     }
 
     /**
@@ -57,7 +106,7 @@ import java.util.UUID;
      *                       typed is in this protocol&quot; rather than showing a score that moved for
      *                       reasons the reader cannot see. Zero for most questions
      */
-<span class="fc" id="L60">    public record Citation(</span>
+<span class="fc" id="L109">    public record Citation(</span>
             String label,
             UUID protocolId,
             String title,

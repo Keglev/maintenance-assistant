@@ -89,19 +89,38 @@ interface ChatClient {
         }
 
         private final Kind kind;
+        private final TruncatedBody truncation;
 
         ChatException(Kind kind, String message) {
-<span class="fc" id="L94">            super(message);</span>
-<span class="fc" id="L95">            this.kind = kind;</span>
+<span class="fc" id="L95">            this(kind, message, (TruncatedBody) null);</span>
 <span class="fc" id="L96">        }</span>
 
-        ChatException(Kind kind, String message, Throwable cause) {
-<span class="fc" id="L99">            super(message, cause);</span>
+        ChatException(Kind kind, String message, TruncatedBody truncation) {
+<span class="fc" id="L99">            super(message);</span>
 <span class="fc" id="L100">            this.kind = kind;</span>
-<span class="fc" id="L101">        }</span>
+<span class="fc" id="L101">            this.truncation = truncation;</span>
+<span class="fc" id="L102">        }</span>
+
+        ChatException(Kind kind, String message, Throwable cause) {
+<span class="fc" id="L105">            super(message, cause);</span>
+<span class="fc" id="L106">            this.kind = kind;</span>
+<span class="fc" id="L107">            this.truncation = null;</span>
+<span class="fc" id="L108">        }</span>
 
         public Kind kind() {
-<span class="fc" id="L104">            return kind;</span>
+<span class="fc" id="L111">            return kind;</span>
+        }
+
+        /**
+         * The anatomy of the partial answer, present exactly when {@link Kind#TRUNCATED}.
+         *
+         * &lt;p&gt;It is carried on the exception rather than only logged because the CALLER acts on it:
+         * a truncation degrades to Mode B, and the log line that records the degradation has to say
+         * which shape it was. Re-deriving it at the catch site would mean parsing the message, and
+         * a message is prose.
+         */
+        TruncatedBody truncation() {
+<span class="fc" id="L123">            return truncation;</span>
         }
     }
 }

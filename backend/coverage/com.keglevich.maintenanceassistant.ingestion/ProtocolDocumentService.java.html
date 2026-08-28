@@ -165,7 +165,7 @@ public class ProtocolDocumentService {
     private static String probe(Path path) {
         try {
 <span class="fc" id="L167">            return Files.probeContentType(path);</span>
-<span class="nc" id="L168">        } catch (IOException e) {</span>
+<span class="nc" id="L168">        } catch (IOException ignored) {</span>
 <span class="nc" id="L169">            return null;</span>
         }
     }
@@ -173,7 +173,7 @@ public class ProtocolDocumentService {
     private static long sizeOf(Path path) {
         try {
 <span class="fc" id="L175">            return Files.size(path);</span>
-<span class="nc" id="L176">        } catch (IOException e) {</span>
+<span class="nc" id="L176">        } catch (IOException ignored) {</span>
             // A length header is a courtesy; the stream is the answer.
 <span class="nc" id="L178">            return -1L;</span>
         }

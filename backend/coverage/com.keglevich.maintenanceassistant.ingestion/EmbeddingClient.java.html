@@ -46,13 +46,14 @@ public interface EmbeddingClient {
 
     /** Anything that stops a protocol being indexed. Carries the text stored in {@code failure_reason}. */
     class EmbeddingException extends RuntimeException {
+        private static final long serialVersionUID = 1L;
         public EmbeddingException(String message) {
-<span class="fc" id="L50">            super(message);</span>
-<span class="fc" id="L51">        }</span>
+<span class="fc" id="L51">            super(message);</span>
+<span class="fc" id="L52">        }</span>
 
         public EmbeddingException(String message, Throwable cause) {
-<span class="fc" id="L54">            super(message, cause);</span>
-<span class="fc" id="L55">        }</span>
+<span class="fc" id="L55">            super(message, cause);</span>
+<span class="fc" id="L56">        }</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.15.202606040825</span></div></body></html>

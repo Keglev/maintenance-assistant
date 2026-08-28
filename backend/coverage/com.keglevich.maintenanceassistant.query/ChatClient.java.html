@@ -62,6 +62,7 @@ interface ChatClient {
 
     /** Anything that stops a question being answered. */
     class ChatException extends RuntimeException {
+        private static final long serialVersionUID = 1L;
 
         /**
          * What kind of failure this is, so a log line can be grouped without reading its message.
@@ -75,40 +76,40 @@ interface ChatClient {
          * them, and it is an enum rather than a substring of the message because a message is
          * prose and prose gets reworded.
          */
-<span class="fc" id="L78">        enum Kind {</span>
+<span class="fc" id="L79">        enum Kind {</span>
             /** {@code finish_reason=length}: the answer stopped at the cap and is unparseable. */
-<span class="fc" id="L80">            TRUNCATED,</span>
+<span class="fc" id="L81">            TRUNCATED,</span>
             /** The model produced no usable content — usually a missing {@code reasoning_effort}. */
-<span class="fc" id="L82">            EMPTY,</span>
+<span class="fc" id="L83">            EMPTY,</span>
             /** Nothing was served: connect refused, read timeout, reset, interrupted backoff. */
-<span class="fc" id="L84">            TRANSPORT,</span>
+<span class="fc" id="L85">            TRANSPORT,</span>
             /** The provider refused the request: a 4xx that is not 429. Terminal. */
-<span class="fc" id="L86">            REJECTED,</span>
+<span class="fc" id="L87">            REJECTED,</span>
             /** Something arrived and could not be turned into an answer. Paid for, unusable. */
-<span class="fc" id="L88">            UNREADABLE</span>
+<span class="fc" id="L89">            UNREADABLE</span>
         }
 
         private final Kind kind;
         private final TruncatedBody truncation;
 
         ChatException(Kind kind, String message) {
-<span class="fc" id="L95">            this(kind, message, (TruncatedBody) null);</span>
-<span class="fc" id="L96">        }</span>
+<span class="fc" id="L96">            this(kind, message, (TruncatedBody) null);</span>
+<span class="fc" id="L97">        }</span>
 
         ChatException(Kind kind, String message, TruncatedBody truncation) {
-<span class="fc" id="L99">            super(message);</span>
-<span class="fc" id="L100">            this.kind = kind;</span>
-<span class="fc" id="L101">            this.truncation = truncation;</span>
-<span class="fc" id="L102">        }</span>
+<span class="fc" id="L100">            super(message);</span>
+<span class="fc" id="L101">            this.kind = kind;</span>
+<span class="fc" id="L102">            this.truncation = truncation;</span>
+<span class="fc" id="L103">        }</span>
 
         ChatException(Kind kind, String message, Throwable cause) {
-<span class="fc" id="L105">            super(message, cause);</span>
-<span class="fc" id="L106">            this.kind = kind;</span>
-<span class="fc" id="L107">            this.truncation = null;</span>
-<span class="fc" id="L108">        }</span>
+<span class="fc" id="L106">            super(message, cause);</span>
+<span class="fc" id="L107">            this.kind = kind;</span>
+<span class="fc" id="L108">            this.truncation = null;</span>
+<span class="fc" id="L109">        }</span>
 
         public Kind kind() {
-<span class="fc" id="L111">            return kind;</span>
+<span class="fc" id="L112">            return kind;</span>
         }
 
         /**
@@ -120,7 +121,7 @@ interface ChatClient {
          * a message is prose.
          */
         TruncatedBody truncation() {
-<span class="fc" id="L123">            return truncation;</span>
+<span class="fc" id="L124">            return truncation;</span>
         }
     }
 }

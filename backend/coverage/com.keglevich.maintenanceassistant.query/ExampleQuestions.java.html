@@ -67,15 +67,21 @@ public class ExampleQuestions implements InitializingBean {
 <span class="fc" id="L67">        ClassPathResource resource = new ClassPathResource(RESOURCE);</span>
 <span class="fc" id="L68">        try (InputStream in = resource.getInputStream()) {</span>
 <span class="fc" id="L69">            Document document = new ObjectMapper().readValue(in, Document.class);</span>
-<span class="pc bpc" id="L70" title="3 of 6 branches missed.">            if (document == null || document.machines() == null || document.machines().isEmpty()) {</span>
-<span class="nc" id="L71">                throw new IllegalStateException(RESOURCE + &quot; parsed but carries no machines&quot;);</span>
+            // KEPT DELIBERATELY, although the annotations mark `document == null` unreachable and
+            // JDT reports it as redundant — that warning is ACCEPTED (Part 4 survey, S1). What this
+            // guards is a HAND-EDITED CLASSPATH RESOURCE: the annotation says what Jackson promises
+            // for a well-formed document, not what an empty or malformed file produces, and the
+            // whole point of failing here is that a packaging mistake stops the application instead
+            // of surfacing as an empty picker to whoever clicks first.
+<span class="pc bpc" id="L76" title="3 of 6 branches missed.">            if (document == null || document.machines() == null || document.machines().isEmpty()) {</span>
+<span class="nc" id="L77">                throw new IllegalStateException(RESOURCE + &quot; parsed but carries no machines&quot;);</span>
             }
-<span class="fc" id="L73">            return new TreeMap&lt;&gt;(document.machines());</span>
-<span class="nc" id="L74">        } catch (IOException e) {</span>
+<span class="fc" id="L79">            return new TreeMap&lt;&gt;(document.machines());</span>
+<span class="nc" id="L80">        } catch (IOException e) {</span>
             // Named rather than allowed to surface as a bean-creation stack: the one way this
             // happens in practice is a resource that did not make it into the jar, and that
             // sentence is the whole diagnosis.
-<span class="nc" id="L78">            throw new UncheckedIOException(&quot;cannot read &quot; + RESOURCE + &quot; from the classpath&quot;, e);</span>
+<span class="nc" id="L84">            throw new UncheckedIOException(&quot;cannot read &quot; + RESOURCE + &quot; from the classpath&quot;, e);</span>
         }
     }
 
@@ -95,40 +101,40 @@ public class ExampleQuestions implements InitializingBean {
      */
     @Override
     public void afterPropertiesSet() {
-<span class="fc" id="L98">        int questions = byMachineNo.values().stream().mapToInt(Questions::size).sum();</span>
+<span class="fc" id="L104">        int questions = byMachineNo.values().stream().mapToInt(Questions::size).sum();</span>
 
         List&lt;String&gt; known;
         try {
-<span class="fc" id="L102">            known = machines.findAll().stream().map(MachineCatalog.Machine::machineNo).toList();</span>
-<span class="fc" id="L103">        } catch (RuntimeException e) {</span>
-<span class="fc" id="L104">            log.warn(&quot;Example questions loaded ({} machines, {} questions); the machine table could &quot;</span>
+<span class="fc" id="L108">            known = machines.findAll().stream().map(MachineCatalog.Machine::machineNo).toList();</span>
+<span class="fc" id="L109">        } catch (RuntimeException e) {</span>
+<span class="fc" id="L110">            log.warn(&quot;Example questions loaded ({} machines, {} questions); the machine table could &quot;</span>
                     + &quot;not be read, so nothing was cross-checked: {}&quot;,
-<span class="fc" id="L106">                    byMachineNo.size(), questions, e.getMessage());</span>
-<span class="fc" id="L107">            return;</span>
-<span class="fc" id="L108">        }</span>
-
-<span class="fc bfc" id="L110" title="All 2 branches covered.">        if (known.isEmpty()) {</span>
-<span class="fc" id="L111">            log.warn(&quot;Example questions loaded ({} machines, {} questions) but the machine table is &quot;</span>
-<span class="fc" id="L112">                    + &quot;empty, so nothing was cross-checked&quot;, byMachineNo.size(), questions);</span>
+<span class="fc" id="L112">                    byMachineNo.size(), questions, e.getMessage());</span>
 <span class="fc" id="L113">            return;</span>
+<span class="fc" id="L114">        }</span>
+
+<span class="fc bfc" id="L116" title="All 2 branches covered.">        if (known.isEmpty()) {</span>
+<span class="fc" id="L117">            log.warn(&quot;Example questions loaded ({} machines, {} questions) but the machine table is &quot;</span>
+<span class="fc" id="L118">                    + &quot;empty, so nothing was cross-checked&quot;, byMachineNo.size(), questions);</span>
+<span class="fc" id="L119">            return;</span>
         }
 
-<span class="fc" id="L116">        Set&lt;String&gt; unknown = byMachineNo.keySet().stream()</span>
-<span class="pc bpc" id="L117" title="1 of 2 branches missed.">                .filter(machineNo -&gt; !known.contains(machineNo))</span>
-<span class="fc" id="L118">                .collect(Collectors.toCollection(java.util.LinkedHashSet::new));</span>
-<span class="pc bpc" id="L119" title="1 of 2 branches missed.">        if (!unknown.isEmpty()) {</span>
-<span class="nc" id="L120">            throw new IllegalStateException(RESOURCE + &quot; names machines that do not exist: &quot; + unknown);</span>
+<span class="fc" id="L122">        Set&lt;String&gt; unknown = byMachineNo.keySet().stream()</span>
+<span class="pc bpc" id="L123" title="1 of 2 branches missed.">                .filter(machineNo -&gt; !known.contains(machineNo))</span>
+<span class="fc" id="L124">                .collect(Collectors.toCollection(java.util.LinkedHashSet::new));</span>
+<span class="pc bpc" id="L125" title="1 of 2 branches missed.">        if (!unknown.isEmpty()) {</span>
+<span class="nc" id="L126">            throw new IllegalStateException(RESOURCE + &quot; names machines that do not exist: &quot; + unknown);</span>
         }
 
-<span class="fc" id="L123">        log.info(&quot;Example questions loaded: {} machines, {} questions ({} de, {} en)&quot;,</span>
-<span class="fc" id="L124">                byMachineNo.size(), questions,</span>
-<span class="fc" id="L125">                byMachineNo.values().stream().mapToInt(m -&gt; m.de().size()).sum(),</span>
-<span class="fc" id="L126">                byMachineNo.values().stream().mapToInt(m -&gt; m.en().size()).sum());</span>
-<span class="fc" id="L127">    }</span>
+<span class="fc" id="L129">        log.info(&quot;Example questions loaded: {} machines, {} questions ({} de, {} en)&quot;,</span>
+<span class="fc" id="L130">                byMachineNo.size(), questions,</span>
+<span class="fc" id="L131">                byMachineNo.values().stream().mapToInt(m -&gt; m.de().size()).sum(),</span>
+<span class="fc" id="L132">                byMachineNo.values().stream().mapToInt(m -&gt; m.en().size()).sum());</span>
+<span class="fc" id="L133">    }</span>
 
     /** The file. {@code version} is read so a future shape change can be detected rather than guessed. */
     @JsonIgnoreProperties(ignoreUnknown = true)
-<span class="fc" id="L131">    record Document(int version, Map&lt;String, Questions&gt; machines) {</span>
+<span class="fc" id="L137">    record Document(int version, Map&lt;String, Questions&gt; machines) {</span>
     }
 
     /**
@@ -140,15 +146,15 @@ public class ExampleQuestions implements InitializingBean {
     @JsonIgnoreProperties(ignoreUnknown = true)
     public record Questions(List&lt;Example&gt; de, List&lt;Example&gt; en) {
 
-<span class="fc" id="L143">        static final Questions EMPTY = new Questions(List.of(), List.of());</span>
+<span class="fc" id="L149">        static final Questions EMPTY = new Questions(List.of(), List.of());</span>
 
-<span class="fc" id="L145">        public Questions {</span>
-<span class="pc bpc" id="L146" title="1 of 2 branches missed.">            de = de == null ? List.of() : List.copyOf(de);</span>
-<span class="pc bpc" id="L147" title="1 of 2 branches missed.">            en = en == null ? List.of() : List.copyOf(en);</span>
-<span class="fc" id="L148">        }</span>
+<span class="fc" id="L151">        public Questions {</span>
+<span class="pc bpc" id="L152" title="1 of 2 branches missed.">            de = de == null ? List.of() : List.copyOf(de);</span>
+<span class="pc bpc" id="L153" title="1 of 2 branches missed.">            en = en == null ? List.of() : List.copyOf(en);</span>
+<span class="fc" id="L154">        }</span>
 
         int size() {
-<span class="fc" id="L151">            return de.size() + en.size();</span>
+<span class="fc" id="L157">            return de.size() + en.size();</span>
         }
     }
 
@@ -161,7 +167,7 @@ public class ExampleQuestions implements InitializingBean {
      *                 demo failing in front of a reader
      */
     @JsonIgnoreProperties(ignoreUnknown = true)
-<span class="fc" id="L164">    public record Example(String question, String source) {</span>
+<span class="fc" id="L170">    public record Example(String question, String source) {</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.15.202606040825</span></div></body></html>

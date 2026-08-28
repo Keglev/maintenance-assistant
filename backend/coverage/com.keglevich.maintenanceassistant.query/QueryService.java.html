@@ -339,38 +339,42 @@ public class QueryService {
 
     /** The caller's mistake: an empty question, a missing or unknown machine. Becomes a 400. */
     public static class InvalidQueryException extends RuntimeException {
+        private static final long serialVersionUID = 1L;
         InvalidQueryException(String message) {
-<span class="fc" id="L343">            super(message);</span>
-<span class="fc" id="L344">        }</span>
+<span class="fc" id="L344">            super(message);</span>
+<span class="fc" id="L345">        }</span>
     }
 
     /** This user is asking too fast (NFR-7). Becomes a 429 with a Retry-After. */
     public static class RateLimitedException extends RuntimeException {
+        private static final long serialVersionUID = 1L;
 
         private final long retryAfterSeconds;
 
         RateLimitedException(long retryAfterSeconds, String message) {
-<span class="fc" id="L353">            super(message);</span>
-<span class="fc" id="L354">            this.retryAfterSeconds = retryAfterSeconds;</span>
-<span class="fc" id="L355">        }</span>
+<span class="fc" id="L355">            super(message);</span>
+<span class="fc" id="L356">            this.retryAfterSeconds = retryAfterSeconds;</span>
+<span class="fc" id="L357">        }</span>
 
         public long retryAfterSeconds() {
-<span class="fc" id="L358">            return retryAfterSeconds;</span>
+<span class="fc" id="L360">            return retryAfterSeconds;</span>
         }
     }
 
     /** Today's global answer budget is spent (NFR-7). Becomes a 503, gracefully. */
     public static class BudgetExhaustedException extends RuntimeException {
+        private static final long serialVersionUID = 1L;
         BudgetExhaustedException(String message) {
-<span class="fc" id="L365">            super(message);</span>
-<span class="fc" id="L366">        }</span>
+<span class="fc" id="L368">            super(message);</span>
+<span class="fc" id="L369">        }</span>
     }
 
     /** Answering is impossible right now — no key, or the provider is unreachable. Becomes a 503. */
     public static class ProviderUnavailableException extends RuntimeException {
+        private static final long serialVersionUID = 1L;
         ProviderUnavailableException(String message) {
-<span class="fc" id="L372">            super(message);</span>
-<span class="fc" id="L373">        }</span>
+<span class="fc" id="L376">            super(message);</span>
+<span class="fc" id="L377">        }</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.15.202606040825</span></div></body></html>

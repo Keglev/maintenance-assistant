@@ -142,7 +142,7 @@ class ProtocolUploadController {
     private static String readAsText(MultipartFile file) {
         try {
 <span class="fc" id="L144">            return ProtocolIntakeService.decodeStrictUtf8(file.getBytes());</span>
-<span class="nc" id="L145">        } catch (CharacterCodingException e) {</span>
+<span class="nc" id="L145">        } catch (CharacterCodingException ignored) {</span>
 <span class="nc" id="L146">            throw new ProtocolIntakeService.InvalidProtocolException(</span>
                     &quot;only UTF-8 text files are accepted; PDF and scan extraction is not implemented yet&quot;);
 <span class="nc" id="L148">        } catch (IOException e) {</span>

@@ -558,16 +558,17 @@ public class ProtocolModerationService {
 
     /** A filter combination the endpoint does not accept. Answered as 400 with {@link #code()}. */
     public static class InvalidModerationRequestException extends RuntimeException {
+        private static final long serialVersionUID = 1L;
 
         private final String code;
 
         public InvalidModerationRequestException(String code, String message) {
-<span class="fc" id="L565">            super(message);</span>
-<span class="fc" id="L566">            this.code = code;</span>
-<span class="fc" id="L567">        }</span>
+<span class="fc" id="L566">            super(message);</span>
+<span class="fc" id="L567">            this.code = code;</span>
+<span class="fc" id="L568">        }</span>
 
         public String code() {
-<span class="fc" id="L570">            return code;</span>
+<span class="fc" id="L571">            return code;</span>
         }
     }
 
@@ -576,7 +577,7 @@ public class ProtocolModerationService {
      * @param size      rows per page after clamping
      * @param total     protocols in the corpus, so a client can render &quot;page 3 of 16&quot;
      */
-<span class="fc" id="L579">    public record ProtocolPage(List&lt;ModeratedProtocol&gt; items, int page, int size, long total) {</span>
+<span class="fc" id="L580">    public record ProtocolPage(List&lt;ModeratedProtocol&gt; items, int page, int size, long total) {</span>
     }
 
     /**
@@ -585,7 +586,7 @@ public class ProtocolModerationService {
      * @param chunkCount how many searchable pieces this protocol contributes; 0 means it is stored
      *                   but not retrievable, which is what RECEIVED and FAILED look like
      */
-<span class="fc" id="L588">    public record ModeratedProtocol(</span>
+<span class="fc" id="L589">    public record ModeratedProtocol(</span>
             UUID id,
             String machineNo,
             String title,
@@ -609,7 +610,7 @@ public class ProtocolModerationService {
      * @param cap the per-machine ceiling, reported so the view can state it rather than hard-code a
      *            number that would drift the day the constant changes
      */
-<span class="fc" id="L612">    public record DeletedProtocolPage(List&lt;ArchivedProtocol&gt; items, int page, int size, long total,</span>
+<span class="fc" id="L613">    public record DeletedProtocolPage(List&lt;ArchivedProtocol&gt; items, int page, int size, long total,</span>
                                       int cap) {
     }
 
@@ -620,7 +621,7 @@ public class ProtocolModerationService {
      *                       other than this service, which nothing does today
      * @param deleteComment  the stated reason — the field the whole archive exists to carry
      */
-<span class="fc" id="L623">    public record ArchivedProtocol(</span>
+<span class="fc" id="L624">    public record ArchivedProtocol(</span>
             UUID id,
             String machineNo,
             String title,
@@ -633,11 +634,11 @@ public class ProtocolModerationService {
             String deleteComment) {
     }
 
-<span class="fc" id="L636">    private record DeletedProtocol(String title, String sourceFile, UUID machineId, String machineNo) {</span>
+<span class="fc" id="L637">    private record DeletedProtocol(String title, String sourceFile, UUID machineId, String machineNo) {</span>
     }
 
     /** What a purge needs to know: which row to drop, which file to remove, what to call it in the log. */
-<span class="fc" id="L640">    private record PurgeTarget(UUID id, String title, String sourceFile) {</span>
+<span class="fc" id="L641">    private record PurgeTarget(UUID id, String title, String sourceFile) {</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.15.202606040825</span></div></body></html>

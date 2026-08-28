@@ -112,9 +112,10 @@ class EmbeddingBudget {
 
     /** Thrown when today's ceiling is reached. The message becomes {@code protocol.failure_reason}. */
     static class BudgetExhaustedException extends RuntimeException {
+        private static final long serialVersionUID = 1L;
         BudgetExhaustedException(String message) {
-<span class="fc" id="L116">            super(message);</span>
-<span class="fc" id="L117">        }</span>
+<span class="fc" id="L117">            super(message);</span>
+<span class="fc" id="L118">        }</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.15.202606040825</span></div></body></html>

@@ -126,9 +126,10 @@ class ChatBudget {
 
     /** Thrown when today's ceiling is reached. Becomes a 503 with a readable message. */
     static class BudgetExhaustedException extends RuntimeException {
+        private static final long serialVersionUID = 1L;
         BudgetExhaustedException(String message) {
-<span class="fc" id="L130">            super(message);</span>
-<span class="fc" id="L131">        }</span>
+<span class="fc" id="L131">            super(message);</span>
+<span class="fc" id="L132">        }</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.15.202606040825</span></div></body></html>

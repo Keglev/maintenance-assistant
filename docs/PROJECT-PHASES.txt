@@ -97,6 +97,20 @@ NEXT, IN ORDER:
          different question from an event. Measure for one week from
          that merge, then rule.
 
+- 2026-08-28 HAND-DEPLOY: Caddyfile api block, OAuth forwarded-host fix.
+  Caddy strips X-Forwarded-* from an untrusted sender; the backend runs
+  forward-headers-strategy: framework and derives its redirect URIs from
+  what it is told; Google registers only the WWW redirect URI
+  (inventory-service ADR-0010). Validated, reloaded, both domains
+  verified. THE REPO COPY FOLLOWS THE HOST HERE — CI never deploys this
+  file (OPS RULE 1) — and the two differ by whitespace only: the
+  hand-typed block used a tab and four spaces, which is the fmt warn the
+  live file reports at line 198. One cp and a reload clears it.
+- WATCH, 2026-08-28: maintenance LOGOUT shows a ~3-4 s blank page before
+  the login screen, on the demo accounts. Front-channel logout round
+  trip suspected, nothing measured yet. NOT the Caddy change — different
+  hostname, different upstream. Part 5 neighbourhood.
+
 WHAT THIS HEADER IS FOR. It is the first thing every AI session reads,
 so it says where the project is TODAY and points at the detail rather
 than repeating it. It had been left at 2026-08-11 through three

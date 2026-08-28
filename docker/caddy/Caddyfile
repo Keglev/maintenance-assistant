@@ -191,5 +191,12 @@
 # ---------------------------------------------------------------------------
 api.smartsupplypro.de {
 	encode gzip
-	reverse_proxy ssp-backend:8081
+	# The backend derives OAuth2 redirect URIs from X-Forwarded-Host. Caddy treats
+	# the Koyeb proxy as untrusted and would replace the forwarded host with this
+	# one; the canonical origin is the www host (inventory-service ADR-0010).
+	reverse_proxy ssp-backend:8081 {
+		header_up X-Forwarded-Host www.smartsupplypro.de
+		header_up X-Forwarded-Proto https
+		header_up X-Forwarded-Port 443
+	}
 }

@@ -18,6 +18,19 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
+/**
+ * The walking skeleton's proof that the whole authentication path works end to end.
+ *
+ * <p>What it asserts is the CHAIN, not the handler: Keycloak issued the token, the resource server
+ * validated it, and the realm roles arrived as authorities under the names the application
+ * authorises on. That is why the identity cases assert the ROLES in the body rather than a status
+ * — a 200 alone would pass with the role mapping broken, which is the one thing this endpoint
+ * exists to demonstrate.
+ *
+ * <p>OUT OF SCOPE: which roles may reach which endpoint, covered exhaustively by
+ * {@link RoleMatrixIT}; and the converter's own edge cases, covered by
+ * {@link KeycloakRealmRoleConverterTest}. This is the integration of the two.
+ */
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")

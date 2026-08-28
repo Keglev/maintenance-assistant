@@ -45,5 +45,12 @@ class HealthController {
     return new HealthResponse("UP", version);
   }
 
+  /**
+   * What an anonymous caller may know: that the service is up, and which build answered.
+   *
+   * <p>{@code version} is BuildProperties, written by the build-info goal, and reads {@code dev}
+   * from an IDE start. It is the APPLICATION version and not the API contract generation, which is
+   * the {@code v1} in the OpenAPI info block — see OpenApiConfig for why those are two numbers.
+   */
   record HealthResponse(String status, String version) {}
 }

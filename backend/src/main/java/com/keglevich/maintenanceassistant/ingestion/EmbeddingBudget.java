@@ -83,6 +83,15 @@ class EmbeddingBudget {
                 .update();
     }
 
+    /**
+     * Today's call count, or zero on a day nothing has been embedded yet.
+     *
+     * <p>{@code coalesce(max(...), 0)} rather than a plain select, and the aggregate is the whole
+     * point: there is at most one row per day, so {@code max} returns that row's value — but on a
+     * day with no row it returns one NULL row rather than none, which {@code coalesce} turns into
+     * zero. A plain select would return no rows at all and {@code single()} would throw on the
+     * first call of every day.
+     */
     int usedToday() {
         return jdbc.sql("SELECT coalesce(max(calls), 0) FROM embedding_budget WHERE usage_date = :day")
                 .param("day", LocalDate.now())
@@ -90,6 +99,14 @@ class EmbeddingBudget {
                 .single();
     }
 
+    /**
+     * Today's prompt-token total, for the operator view rather than for the guard.
+     *
+     * <p>Reported and never enforced: the ceiling this class defends is a CALL count, because that
+     * is what the provider bills per request and what {@link #checkHeadroom(int)} can predict
+     * before a run. Tokens are only knowable afterwards, so a token budget would refuse work on
+     * yesterday's evidence. Same zero-on-empty-day reasoning as {@link #usedToday()}.
+     */
     long tokensToday() {
         return jdbc.sql("SELECT coalesce(max(prompt_tokens), 0) FROM embedding_budget WHERE usage_date = :day")
                 .param("day", LocalDate.now())

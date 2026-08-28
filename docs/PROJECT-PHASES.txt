@@ -692,6 +692,20 @@ Open rows carried below.
         decision date at every non-obvious site — and both are named in
         the amended standard so the next reader has an example rather
         than an adjective.
+        DONE (#138), RE-MEASURED WITH THE SAME COUNTER: nested types
+        undocumented 17 -> 0, non-private methods undocumented 69 -> 47.
+        THE 47 ARE THE EXEMPTIONS AND NOTHING ELSE, which is the number
+        the amendment was for: 18 handlers and advice carrying
+        @Operation, 11 @Override of a documented interface, 3 @Bean, and
+        15 one-line accessors (code, kind, size, retryAfterSeconds x3,
+        content, finishReason and the rest). 22 genuine + 17 records
+        were written; 69 - 22 = 47.
+        THE IONOS WIRE RECORDS GET ONE LINE EACH naming the provider's
+        field and which of ours it feeds — Choice/finish_reason is what
+        tells a cap hit from a real answer, Message/content is the body
+        we parse, and the two Usage records feed ChatBudget.logUsage and
+        EmbeddingBudget.record. A reader of those four should not have to
+        open the provider's documentation to know what they bind.
 
      K2 BACKEND TEST NAMING (standard: "method_state_expected; no doc
         comments on test methods")
@@ -730,6 +744,25 @@ Open rows carried below.
         (HelloControllerIT, HealthControllerIT,
         KeycloakRealmRoleConverterTest). Per-class mixing is measured in
         the fix PR, which is third in order.
+        DONE (#138), AND THE COUNT OF TEN WAS WRONG: there are EIGHT
+        test-method Javadocs, not ten. The survey counted the doc on
+        UploadSizeLimitIT.StubDecoder and on
+        HybridRetrievalIT.FakeEmbeddingConfig, which are nested
+        @TestConfiguration CLASSES and not test methods — their docs are
+        correct where they are and were left alone. The eight moved:
+        ApiDocsEntrypointIT x2, ForwardedHeadersIT, RetrievalBaselineIT
+        x2, IonosChatClientFailureTest, IonosEmbeddingClientFailureTest
+        x2. THE SENTENCES SURVIVED, they moved: each is now a paragraph
+        of its class doc, and nothing was dropped in the move. The three
+        missing class docs are written.
+        NOTHING WAS RENAMED, and the mixing measurement says why it can
+        stay that way: 459 tests over 57 classes, 155 method_state_expected
+        (34%), 28 two-part (6%), 276 camelCase sentence (60%) — the
+        survey's split, reproduced. ONLY TWO CLASSES MIX THE TWO STYLES:
+        query/QueryServiceTest (29 tests, 3 underscore / 26 sentence) and
+        web/RequestIdFilterIT (5 tests, 4 underscore / 1 sentence).
+        CARRIED, not fixed here: two classes is a five-line change and it
+        is still a rename, which this PR is explicitly not.
 
      K3 SWAGGER/OPENAPI — PUBLISHED CONTRACT vs CODE (standard:
         "annotations verified ACCURATE against what the code does")
@@ -927,9 +960,11 @@ Open rows carried below.
         MEASURED 2026-08-28, TWO WAYS. From the CI crop: content box
         1056px, one row needs 1176px — overflow 119px, because the new
         entry needs 144 and the header carried 25px of slack. From a
-        render with the pinned image's font, per role and language,
-        overflow EN/DE: Techniker ~+135/+160px, Schichtleiter
-        ~+350/+380, Admin ~+90/+80.
+        header replica rendered in headless Chromium with Liberation Sans
+        — the font the pinned image resolves system-ui to — calibrated
+        against the baseline crop to within 6px; measured by the
+        architect, not in the pinned image. Overflow EN/DE: Techniker
+        ~+135/+160px, Schichtleiter ~+350/+380, Admin ~+90/+80.
         SO THE SCHICHTLEITER'S AND THE ADMIN'S HEADERS HAVE BEEN TWO ROWS
         SINCE v1.2.0 and nobody had seen it, because no full-page
         baseline framed either of them. The Techniker did not break the
@@ -2193,6 +2228,21 @@ Open rows carried below.
    rule because the tokens were already there.
 
 5. PHASE 5 — EVOLUTION CANDIDATES (unchanged list, optional):
+   RULED 2026-08-28 — TWO-STAGE REVIEW FOR TECHNIKER PROTOCOLS, scheduled
+   after Part 5 closes. Techniker uploads, Schichtleiter forwards or
+   amends, Admin approves; a Schichtleiter's OWN upload skips the first
+   stage, because the forward exists so a second person reads what the
+   Techniker wrote and the Schichtleiter is already that person. A
+   Schichtleiter delete with a reason ENDS THE CHAIN without reaching the
+   Admin — a protocol withdrawn before review needs no approval decision.
+   IT IS NOT A CSS-SIZED CHANGE, which is why it is dated and parked
+   rather than started: it needs an ADR-006 revision, A THIRD APPROVAL
+   STATE (the V5 CHECK constraint is two-valued today, so the schema
+   refuses the state before any code does), a forward endpoint, a split
+   of the moderation queue into "waiting for a Schichtleiter" and
+   "waiting for the Admin", and e2e for both paths. It is the natural
+   completion of decision 3: the Techniker writes, and this is what
+   happens to what they wrote.
    ADDED 2026-08-28 from Part 4's S1 ruling: @NullMarked ADOPTION, per
    package. The survey's 18 boundary warnings were ACCEPTED rather than
    fixed because annotating them one site at a time is churn; declaring

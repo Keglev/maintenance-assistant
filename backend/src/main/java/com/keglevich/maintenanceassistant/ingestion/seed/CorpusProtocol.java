@@ -45,6 +45,15 @@ record CorpusProtocol(
          */
         boolean approved) {
 
+    /**
+     * Reads one corpus entry, refusing the file rather than repairing it.
+     *
+     * <p>The identity and machine fields use {@code get(...)} and will throw on a missing key,
+     * while the prose fields go through {@code text(...)} and tolerate absence. That split is the
+     * contract: a seed row with no id or no machine cannot be inserted at all, but a protocol with
+     * no {@code parts_used} is an ordinary protocol. A loader that defaulted the first group would
+     * seed rows nothing can cite.
+     */
     static CorpusProtocol from(JsonNode node) {
         return new CorpusProtocol(
                 UUID.fromString(node.get("id").asText()),

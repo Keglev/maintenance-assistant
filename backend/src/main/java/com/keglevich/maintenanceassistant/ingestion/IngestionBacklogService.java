@@ -117,6 +117,13 @@ public class IngestionBacklogService {
         return embeddingProperties.dailyCallBudget();
     }
 
+    /**
+     * How many protocols sit in one indexing state, as the status endpoint reports them.
+     *
+     * <p>{@code status} is the database's own string rather than an enum: the set is owned by the
+     * schema and a new state added there should surface in the operator view without a code change
+     * that only renames it.
+     */
     public record StatusCount(String status, long count) {
     }
 

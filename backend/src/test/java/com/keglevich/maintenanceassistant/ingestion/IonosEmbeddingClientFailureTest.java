@@ -40,6 +40,24 @@ import static org.mockito.Mockito.verifyNoInteractions;
  *
  * <p>OUT OF SCOPE: the happy paths (IonosEmbeddingClientTest) and the backoff's timing.
  *
+ * <p>THE 401 CASE, IN FULL, because it is the one that changed meaning. A revoked or mistyped key
+ * is the 4xx most likely to happen in production and the one the ops runbook is written around.
+ * Until the transport swap it was also the ONLY status whose explanation never reached
+ * {@code failure_reason}: measured by status against this same stub, 400, 403, 404, 429 and 500
+ * all delivered a body and 401 alone arrived empty, because {@code HttpURLConnection} — under the
+ * {@code SimpleClientHttpRequestFactory} both clients used to build their {@code RestClient} on —
+ * discards the error body of a 401 as part of its own authentication handling. On
+ * {@code JdkClientHttpRequestFactory} the provider's own sentence arrives, so the assertion is
+ * inverted: the operator now reads <em>invalid api key</em> instead of <em>(no body)</em>. That
+ * inversion makes this class the swap's vacuity guard — revert the factory in either client and it
+ * is the assertion that fails.
+ *
+ * <p>ITS COMPANION IS THE EMPTY-BODY CASE, and it is not padding: {@code "(no body)"} used to be
+ * reached only by the swallowed 401 above, so fixing that defect left the fallback with nothing
+ * exercising it. It still has work to do — a gateway in front of the provider can reject with an
+ * empty body of its own — and the message must stay readable when it does rather than trailing off
+ * after the status code.
+ *
  * <p>SIBLING: IonosEmbeddingClientTest, sharing EmbeddingClientFixtures.
  */
 class IonosEmbeddingClientFailureTest {
@@ -177,24 +195,6 @@ class IonosEmbeddingClientFailureTest {
         verifyNoInteractions(budget);
     }
 
-    /**
-     * The 401 body, and why this test used to assert the opposite.
-     *
-     * <p>A revoked or mistyped key is the 4xx most likely to happen in production, and the one the
-     * ops runbook is written around. Until this transport swap it was also the ONLY status whose
-     * explanation never reached {@code failure_reason}: measured by status against this same stub,
-     * 400, 403, 404, 429 and 500 all delivered a body and 401 alone arrived empty, because
-     * {@code HttpURLConnection} — under the {@code SimpleClientHttpRequestFactory} both clients
-     * used to build their {@code RestClient} on — discards the error body of a 401 as part of its
-     * own authentication handling. The finding was pinned as {@code "(no body)"} rather than fixed,
-     * so the defect could not quietly change shape while it waited.
-     *
-     * <p>It no longer holds. On {@code JdkClientHttpRequestFactory} (java.net.http) the provider's
-     * own sentence arrives, so the assertion is inverted: the operator now reads
-     * <em>invalid api key</em> instead of <em>(no body)</em>. That inversion is the whole point of
-     * the swap, which makes this test its vacuity guard — revert the factory in either client and
-     * this is the assertion that fails.
-     */
     @Test
     void embed_unauthorized_failsTerminallyCarryingTheProvidersReason() {
         provider.enqueueJson(401, EmbeddingClientFixtures.error("invalid api key"));
@@ -210,15 +210,6 @@ class IonosEmbeddingClientFailureTest {
         verifyNoInteractions(budget);
     }
 
-    /**
-     * A rejection that genuinely carries no body still names its status.
-     *
-     * <p>Added with the transport swap, and not padding: {@code "(no body)"} used to be reached
-     * only by the swallowed 401 above, so fixing that defect left the fallback with nothing
-     * exercising it. It still has work to do — a gateway in front of the provider can reject with
-     * an empty body of its own — and the message must stay readable when it does, rather than
-     * trailing off after the status code.
-     */
     @Test
     void embed_rejectionWithNoBodyAtAll_stillNamesTheStatus() {
         provider.enqueue(400, "application/json", "");

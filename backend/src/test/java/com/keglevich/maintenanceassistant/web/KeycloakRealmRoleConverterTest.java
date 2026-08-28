@@ -9,6 +9,20 @@ import org.junit.jupiter.api.Test;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.jwt.Jwt;
 
+/**
+ * The claim-to-authority mapping, including every shape of token that is not the happy one.
+ *
+ * <p>THE TOLERANCE CASES ARE THE POINT. This converter reads a claim written by another system, so
+ * a missing, malformed or half-empty {@code realm_access} is an input it will meet rather than a
+ * hypothetical. It answers with NO AUTHORITIES rather than throwing, because a converter that
+ * fails turns an authorisation question into a 500 — a caller who holds no roles must be refused,
+ * not met with an error that says nothing about why.
+ *
+ * <p>A unit test with no Spring context, deliberately: the mapping is a pure function of the token
+ * and the surrounding chain is covered by {@link HelloControllerIT}.
+ *
+ * <p>OUT OF SCOPE: which authority may reach which endpoint ({@link RoleMatrixIT}).
+ */
 class KeycloakRealmRoleConverterTest {
 
   private final KeycloakRealmRoleConverter converter = new KeycloakRealmRoleConverter();

@@ -188,6 +188,13 @@ public class ProtocolDocumentService {
     public record ProtocolDocument(Resource resource, String downloadName, String contentType, long sizeBytes) {
     }
 
+    /**
+     * The row behind a download, read before the file is opened.
+     *
+     * <p>{@code machineNo} and {@code title} are here to BUILD THE DOWNLOAD NAME, not to be shown:
+     * the name a reader saves has to say which machine and which protocol it came from, and the
+     * stored filename on the volume is a timestamped identifier that says neither.
+     */
     private record StoredProtocol(String title, String sourceFile, String language, String machineNo) {
     }
 }

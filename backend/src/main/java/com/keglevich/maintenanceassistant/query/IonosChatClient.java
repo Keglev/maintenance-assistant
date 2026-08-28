@@ -249,14 +249,17 @@ class IonosChatClient implements ChatClient {
     @JsonIgnoreProperties(ignoreUnknown = true)
     record ChatResponse(List<Choice> choices, Usage usage) {
 
+        /** Provider field {@code choices[]}: {@code finish_reason} is what tells a cap hit ("length") from a real answer ("stop"). */
         @JsonIgnoreProperties(ignoreUnknown = true)
         record Choice(Message message, String finish_reason) {
         }
 
+        /** Provider field {@code choices[].message}: {@code content} is the JSON answer body this client parses. */
         @JsonIgnoreProperties(ignoreUnknown = true)
         record Message(String content) {
         }
 
+        /** Provider field {@code usage}: feeds {@link ChatBudget#logUsage} and the truncation WARN's token counts. */
         @JsonIgnoreProperties(ignoreUnknown = true)
         record Usage(Long prompt_tokens, Long completion_tokens) {
         }

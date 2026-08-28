@@ -174,6 +174,13 @@ class ProtocolIndexer {
                 .optional();
     }
 
+    /**
+     * Everything one indexing run needs about a protocol, in a single read.
+     *
+     * <p>{@code machineNo} and {@code errorCode} travel with the text because they are PREPENDED
+     * to each chunk before embedding: a chunk that does not name its machine retrieves for the
+     * wrong press, and the error code is the phrase a shop-floor question is most often typed with.
+     */
     private record ProtocolRow(UUID id, UUID machineId, String machineNo, String errorCode,
                                String title, String language, String sourceFile) {
     }

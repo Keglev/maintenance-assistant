@@ -463,6 +463,16 @@ public class ProtocolModerationService {
     /** The stable code a client matches on when a moderation act arrives without its reason. */
     public static final String COMMENT_REQUIRED = "MODERATION_COMMENT_REQUIRED";
 
+    /**
+     * Returns the stripped comment, or refuses the moderation act for want of one.
+     *
+     * <p>ONE GATE FOR EVERY DESTRUCTIVE VERB, rather than a check per endpoint: delete, edit and
+     * approve all write a reason into a ledger that outlives the protocol, and a rule enforced in
+     * three places is a rule that will hold in two of them. Refuses rather than defaulting,
+     * because a generated reason is a worse record than none.
+     *
+     * @throws InvalidModerationRequestException with {@code MODERATION_COMMENT_REQUIRED}
+     */
     static String requireComment(String comment) {
         if (comment == null || comment.isBlank()) {
             // Blank counts as missing. A comment box someone tabbed past is not a stated reason,
@@ -545,6 +555,12 @@ public class ProtocolModerationService {
             }
         }
 
+        /**
+         * The unfiltered list, which is the plain corpus view rather than a special case.
+         *
+         * <p>Named so callers do not build an all-nulls filter by hand and so the machine-first
+         * rule in the canonical constructor keeps its single entry point.
+         */
         public static ProtocolFilter none() {
             return new ProtocolFilter(null, null, null, null, null);
         }
@@ -634,6 +650,13 @@ public class ProtocolModerationService {
             String deleteComment) {
     }
 
+    /**
+     * An archived protocol as the delete path needs it, read before the row is soft-deleted.
+     *
+     * <p>{@code sourceFile} travels with it because the FILE is not deleted: the volume archive is
+     * the only copy of what a writer uploaded, and the insider-threat chain needs the evidence to
+     * outlive the removal (ADR-006).
+     */
     private record DeletedProtocol(String title, String sourceFile, UUID machineId, String machineNo) {
     }
 

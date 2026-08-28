@@ -144,12 +144,26 @@ public class EmbeddingProvenanceVerifier {
                 .single();
     }
 
+    /**
+     * One chunk as stored, carrying the text the verifier re-embeds to compare against.
+     *
+     * <p>{@code content} is read back from the database rather than re-derived from the source
+     * file, because the question this class answers is whether the STORED vector matches the
+     * STORED text — re-chunking the file would test the chunker instead.
+     */
     private record StoredChunk(UUID id, UUID protocolId, String content, String title) {
     }
 
     /** One chunk's agreement between its stored vector and a fresh embedding of its own text. */
     public record Probe(UUID protocolId, String title, double agreement) {
 
+        /**
+         * Whether this chunk's stored vector belongs to some other text.
+         *
+         * <p>A threshold rather than an equality test, and the gap is what makes it safe: the same
+         * text re-embeds at ~0.9999 while a foreign vector scores at most ~0.04, so anything near
+         * the floor is a mis-stored vector and not a rounding difference.
+         */
         public boolean foreign() {
             return agreement < AGREEMENT_FLOOR;
         }
@@ -158,10 +172,17 @@ public class EmbeddingProvenanceVerifier {
     /** What the scan found. */
     public record Report(List<Probe> probes) {
 
+        /** The probes that failed, which is what an operator reads first and a test asserts on. */
         public List<Probe> foreign() {
             return probes.stream().filter(Probe::foreign).toList();
         }
 
+        /**
+         * Whether the scan found nothing wrong.
+         *
+         * <p>Named for the answer rather than for the count so a caller reads the verdict instead
+         * of re-deriving it; an empty foreign list is the definition of clean, not a coincidence.
+         */
         public boolean clean() {
             return foreign().isEmpty();
         }

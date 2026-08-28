@@ -41,6 +41,11 @@ import org.springframework.test.context.ActiveProfiles;
  *
  * <p>VACUITY: remove the property from application.yml and the first case fails with
  * {@code http://localhost:<port>}, which is the assertion earning its keep. Verified 2026-08-25.
+ *
+ * <p>THE SECOND CASE IS THE OTHER HALF OF THE CONTRACT, and the reason the property is safe on the
+ * default profile: a request that carries no forwarded headers — a developer's
+ * {@code mvn spring-boot:run}, or the Angular dev-server proxy, which sets none — is described by
+ * itself. The filter falls back to the actual request rather than inventing a scheme.
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
@@ -65,12 +70,6 @@ class ForwardedHeadersIT {
         .isEqualTo("https://" + PUBLIC_HOST);
   }
 
-  /**
-   * The other half of the contract, and the reason the property is safe on the default profile: a
-   * request that carries no forwarded headers — a developer's `mvn spring-boot:run`, or the Angular
-   * dev-server proxy, which sets none — is described by itself. The filter falls back to the actual
-   * request rather than inventing a scheme.
-   */
   @Test
   @DisplayName("servers[0].url describes the actual request when no proxy headers are sent")
   void serverUrl_noForwardedHeaders_usesTheActualRequest() throws Exception {

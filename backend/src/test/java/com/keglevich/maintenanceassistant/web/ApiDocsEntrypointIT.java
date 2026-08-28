@@ -29,6 +29,13 @@ import org.springframework.test.context.ActiveProfiles;
  *
  * <p>The reported symptom was {@code curl -sI https://…/swagger-ui} answering 401 while a browser
  * opened the same URL happily. {@code -I} sends HEAD; the matcher permitted GET only.
+ *
+ * <p><b>What the two cases cover.</b> GET takes every spelling of the entry point a reader might
+ * type or bookmark — a redirect into the UI and the UI itself both count as reachable, 401 does
+ * not. HEAD is the regression itself: it is how every {@code curl -I}, uptime probe and link
+ * checker asks whether a URL is there, and it answered 401 on the API documentation and on the
+ * health endpoint alike, which would have shown a monitoring system a permanently unauthorised
+ * health check.
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
@@ -41,10 +48,6 @@ class ApiDocsEntrypointIT {
       .connectTimeout(Duration.ofSeconds(5))
       .build();
 
-  /**
-   * Every spelling of the entry point a reader might type or bookmark. A redirect into the UI and
-   * the UI itself both count as reachable; 401 does not.
-   */
   @ParameterizedTest(name = "GET {0} is reachable without a token")
   @ValueSource(
       strings = {
@@ -84,13 +87,6 @@ class ApiDocsEntrypointIT {
     assertThat(spec.body()).contains("https://maintenance.smartsupply.com.de/");
   }
 
-  /**
-   * The regression this pull request exists for.
-   *
-   * <p>HEAD is how every {@code curl -I}, uptime probe and link checker asks whether a URL is
-   * there. It answered 401 on the API documentation and on the health endpoint alike, which would
-   * have shown a monitoring system a permanently unauthorised health check.
-   */
   @ParameterizedTest(name = "HEAD {0} is reachable without a token")
   @ValueSource(strings = {"/swagger-ui", "/swagger-ui/index.html", "/v3/api-docs", "/api/health"})
   void headIsPublicToo(String path) throws Exception {

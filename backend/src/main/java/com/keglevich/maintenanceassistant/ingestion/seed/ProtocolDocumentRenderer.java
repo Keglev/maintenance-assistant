@@ -21,6 +21,14 @@ final class ProtocolDocumentRenderer {
     private ProtocolDocumentRenderer() {
     }
 
+    /**
+     * Renders the protocol as the plain-text document a reader downloads behind a citation.
+     *
+     * <p>IN THE PROTOCOL'S OWN LANGUAGE, never translated: the labels follow {@code language} so a
+     * German protocol reads as one, which is the same rule the retrieval path follows (texts are
+     * stored as written; the multilingual embedding bridges DE and EN). A rendered document that
+     * disagreed with the stored text would make a citation uncheckable.
+     */
     static String render(CorpusProtocol p) {
         boolean de = "de".equals(p.language());
         StringBuilder out = new StringBuilder();

@@ -248,10 +248,12 @@ class IonosEmbeddingClient implements EmbeddingClient {
     @JsonIgnoreProperties(ignoreUnknown = true)
     record EmbeddingResponse(List<Item> data, Usage usage, String model) {
 
+        /** Provider field {@code data[]}: {@code embedding} is the vector written to {@code chunk.embedding}. */
         @JsonIgnoreProperties(ignoreUnknown = true)
         record Item(List<Double> embedding) {
         }
 
+        /** Provider field {@code usage}: {@code prompt_tokens} feeds {@link EmbeddingBudget#record}, which bills per call. */
         @JsonIgnoreProperties(ignoreUnknown = true)
         record Usage(Long prompt_tokens, Long total_tokens) {
         }

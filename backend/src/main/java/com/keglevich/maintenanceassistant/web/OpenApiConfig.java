@@ -4,7 +4,9 @@ import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.info.License;
+import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
+import java.util.List;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -15,6 +17,14 @@ import org.springframework.context.annotation.Configuration;
  * <p>Both are readable without a token, because an API documentation nobody can reach documents
  * nothing — reachable API docs were explicit recruiter feedback. The described endpoints stay
  * protected either way.
+ *
+ * <p>THE BEARER REQUIREMENT IS DECLARED GLOBALLY (Part 5 ruling, K3.1, 2026-08-28). Every
+ * operation is protected by {@code @PreAuthorize} except the health probe, and until this bean
+ * declared it the published document said the opposite: sixteen of seventeen protected operations
+ * appeared unauthenticated, and Swagger UI would not attach a token from Authorize. A contract
+ * that understates an enforced constraint is worse than one that omits it, because a reader who
+ * believes it writes a client that fails on the first call. {@link HealthController} clears the
+ * requirement for its own operation, and it is the only one that may.
  */
 @Configuration
 class OpenApiConfig {
@@ -32,6 +42,12 @@ class OpenApiConfig {
     return new OpenAPI()
         .info(new Info()
             .title("maintenance-assistant API")
+            // "v1" IS THE CONTRACT GENERATION, NOT THE RELEASE (Part 5 ruling, K3.5, 2026-08-28).
+            // The paths are unversioned, so this number moves only when the contract breaks — not
+            // when the application ships. The APPLICATION version is BuildProperties, reported by
+            // GET /api/health and read from the build-info goal. Binding this field to it was
+            // considered and rejected: it would move the contract generation on every release that
+            // does not change the contract, which is the opposite of what a generation means.
             .version("v1")
             // Markdown, which Swagger UI renders in place. The two back-links are the only
             // navigation out of the documentation: the UI is a page of its own with no header of
@@ -58,6 +74,10 @@ class OpenApiConfig {
                 [← Back to the application](https://maintenance.smartsupply.com.de/) · \
                 [Documentation site](https://keglev.github.io/maintenance-assistant/)""")
             .license(new License().name("MIT").url("https://opensource.org/licenses/MIT")))
-        .components(new Components().addSecuritySchemes("keycloak", keycloak));
+        .components(new Components().addSecuritySchemes("keycloak", keycloak))
+        // Applied to every operation that does not clear it. Declared here rather than annotated on
+        // each controller because the default is the safe one: a new endpoint inherits the
+        // requirement by existing, and opting out is the act that has to be written down.
+        .security(List.of(new SecurityRequirement().addList("keycloak")));
   }
 }

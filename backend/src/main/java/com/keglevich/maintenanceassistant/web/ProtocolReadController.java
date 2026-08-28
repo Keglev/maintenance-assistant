@@ -79,6 +79,7 @@ class ProtocolReadController {
             description = "The 50 most recent uploads of the calling user, newest first, with "
                     + "status RECEIVED / INDEXED / FAILED and the failure reason. Upload answers "
                     + "202, so this is where a document becoming searchable is actually visible.")
+    @ApiResponse(responseCode = "403", description = "Caller is not a Schichtleiter")
     List<ProtocolStatusService.UploadStatus> myUploads(@AuthenticationPrincipal Jwt jwt) {
         // The username claim, matching what the upload path writes into uploaded_by (ADR-003).
         // Taken from the token and never from a parameter: "show me someone else's uploads" is not

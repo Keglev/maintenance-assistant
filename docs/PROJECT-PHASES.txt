@@ -732,6 +732,10 @@ Open rows carried below.
         RULED 2026-08-28: ALL FIVE SUB-ROWS AS SURVEYED, in one PR, and
         that PR is first in the fix order; each sub-row carries its own
         ruling below.
+        DONE (#136), K3.1/K3.3/K3.4/K3.5. K3.2 IS NOT IN IT — its two
+        stale sentences belong to the K4 feature PR, which decides what
+        they should say, and rewriting them here would be guessing at
+        that ruling's wording a PR early.
         Defects, in severity order:
         K3.1 SECURITY REQUIREMENT MISSING ON 16 OF 17 PROTECTED
              OPERATIONS. OpenApiConfig defines the `keycloak` bearer
@@ -754,6 +758,17 @@ Open rows carried below.
              operation except health. The assertion is also a Part 6
              verification row, because it outlives the one-line bean
              change it verifies.
+             DONE (#136), RE-MEASURED FROM THE SERVED DOCUMENT: operations
+             carrying a security requirement 1/19 -> 18/19. The one
+             without it is GET /api/health, which clears the global
+             requirement with an empty @SecurityRequirements and is now
+             the only operation in the spec that may. HelloController's
+             own @SecurityRequirement was REMOVED rather than kept: the
+             document was re-read after the change and /api/hello carries
+             no operation-level security, so it inherits the global one —
+             checked, not assumed, because a redundant annotation that
+             turns out to be load-bearing is how this class of defect
+             starts.
         K3.2 ProtocolUploadController: class Javadoc says "Schichtleiter
              only" and the 403 says "Caller is not a Schichtleiter",
              while @PreAuthorize grants TECHNIKER and SCHICHTLEITER
@@ -774,8 +789,17 @@ Open rows carried below.
              (they are reached via the class, not the spec) and explicit
              @ApiResponse 400 on the two operations that really answer it
              (list, edit/approve already declare theirs). Re-measure in
-             the PR: 400 advertised 8 -> 3. Fix PR pending, first in
-             order.
+             the PR: 400 advertised 8 -> 3.
+             DONE (#136), AND THE SURVEY'S PREDICTED FIGURE WAS WRONG:
+             moderation operations advertising 400 went 9 -> 4, not
+             8 -> 3, and API-wide 11 -> 6. The four that keep it are the
+             four that can raise the exception — the list
+             (MACHINE_REQUIRED_FOR_FILTER), PUT /{id}, DELETE /{id} and
+             PUT /{id}/approval — and ALL FOUR ALREADY DECLARED IT, so
+             the ruling's "add explicit @ApiResponse 400" turned out to
+             need no addition at all: @Hidden on the two handlers was the
+             whole change. The five read-only GETs named above no longer
+             advertise 400, confirmed from the document.
         K3.4 403 DECLARED ON 12 OF 17 PROTECTED OPERATIONS, absent on
              /api/protocols/mine, /api/ingestion/status,
              /api/ingestion/backlog, /api/machines,
@@ -786,6 +810,16 @@ Open rows carried below.
              them anyway is that a reader comparing two operations should
              not have to decide whether an absent 403 means "cannot
              happen" or "nobody wrote it".
+             DONE (#136), RE-MEASURED: 403 declared 12/19 -> 17/19. The
+             five added carry the phrase their own @PreAuthorize makes
+             true rather than a house sentence — "Caller is not a
+             Schichtleiter" for /protocols/mine, "neither an
+             administrator nor a Schichtleiter" for /ingestion/status,
+             "not an administrator" for /ingestion/backlog, and "holds no
+             shop-floor role and is not an administrator" for the two
+             machine reads, which admit all four roles. The two still
+             without a 403 are GET /api/health and GET /api/hello, and
+             neither can answer one.
         K3.5 info.version is "v1" while the application is v1.4.0.
              Deliberate? Nothing in DECISIONS says. RULED 2026-08-28:
              KEEP "v1" as the API version — the paths are unversioned, so
@@ -793,8 +827,12 @@ Open rows carried below.
              WRITE THAT SENTENCE INTO OpenApiConfig, which is the half
              that closes the row. Binding it to BuildProperties is
              rejected: it would make the contract's version move on every
-             release that does not change the contract. Fix PR pending,
-             first in order.
+             release that does not change the contract.
+             DONE (#136): the sentence is in OpenApiConfig beside the
+             .version("v1") call, and it names BuildProperties as where
+             the application version lives so the next reader does not
+             have to rediscover which of the two numbers they are looking
+             at.
 
      K4 DECISION DRIFT ACROSS LAYERS — found by reading the contract,
         outside Part 5's remit to fix, recorded because a comment audit
@@ -961,6 +999,12 @@ Open rows carried below.
         (K3.1, K3.3, K3.4, K3.5) — contract fixes, OpenApiSpecIT
         extended. FIRST, because it is the one row where the published
         contract understates an enforced constraint.
+        DONE #136. Three assertion methods added to OpenApiSpecIT: the
+        top-level requirement exists and names keycloak; every operation
+        but GET /api/health carries it; no moderation GET but the list
+        advertises 400. They assert the DOCUMENT, not the annotations,
+        because that is where both defects were visible and neither was
+        visible in the code.
      2. feat: decision 3 reaches the UI (K4) — canUpload and the /upload
         roleGuard widen to techniker, GET /api/protocols/mine widens to
         techniker for its own uploads, RoleMatrixIT expectations updated,

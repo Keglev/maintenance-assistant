@@ -1,7 +1,6 @@
 package com.keglevich.maintenanceassistant.web;
 
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 import org.springframework.security.core.Authentication;
@@ -25,8 +24,9 @@ class HelloController {
   @GetMapping("/hello")
   @Operation(
       summary = "Identity as the backend sees it",
-      description = "Requires a valid Keycloak access token for the maintenance realm.",
-      security = @SecurityRequirement(name = "keycloak"))
+      // The bearer requirement is not repeated here: OpenApiConfig declares it globally, and this
+      // operation inherits it like every other. Asserted from the served document by OpenApiSpecIT.
+      description = "Requires a valid Keycloak access token for the maintenance realm.")
   HelloResponse hello(Authentication authentication) {
     // Spring Security 7 also grants authentication-factor authorities such as FACTOR_BEARER.
     // Those describe *how* the caller authenticated, not what they are allowed to do, so only

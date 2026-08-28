@@ -6,6 +6,7 @@ import com.keglevich.maintenanceassistant.ingestion.ProtocolEditService;
 import com.keglevich.maintenanceassistant.ingestion.ProtocolIntakeService;
 import com.keglevich.maintenanceassistant.ingestion.ProtocolModerationService;
 import com.keglevich.maintenanceassistant.ingestion.ProtocolSimilarityService;
+import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -452,6 +453,7 @@ class ModerationController {
      * needs authorising a second time — but nothing here should be reachable without a token.
      */
     @PreAuthorize("isAuthenticated()")
+    @Hidden
     @ExceptionHandler(ProtocolModerationService.InvalidModerationRequestException.class)
     ResponseEntity<Map<String, String>> onInvalidRequest(
             ProtocolModerationService.InvalidModerationRequestException e) {
@@ -472,6 +474,7 @@ class ModerationController {
      * handler an unauthorised-for-the-class caller may not invoke is a handler that does not run.
      */
     @PreAuthorize("isAuthenticated()")
+    @Hidden
     @ExceptionHandler(ProtocolIntakeService.InvalidProtocolException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     Map<String, String> onInvalidContent(ProtocolIntakeService.InvalidProtocolException e) {

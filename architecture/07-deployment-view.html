@@ -720,10 +720,10 @@ drwxr-xr-x 2 0 0 …            touch: Permission denied</code></pre>
         <code>backend/src/main/resources/corpus/protocols.ndjson</code>
         by re-running the seed, so the repository is already their
         backup. It stops being redundant the moment the upload endpoint
-        ships (PR 3): a file a Schichtleiter uploads exists nowhere
-        else, and from that point the volume archive is its only copy.
-        The archive is in place now rather than later precisely so that
-        switch-over needs no action.</p>
+        ships (PR 3): a file a writer uploads exists nowhere else, and
+        from that point the volume archive is its only copy. The archive
+        is in place now rather than later precisely so that switch-over
+        needs no action.</p>
         <p><strong>Design decisions worth stating:</strong></p>
         <ul>
         <li><strong>A systemd timer, not cron.</strong>

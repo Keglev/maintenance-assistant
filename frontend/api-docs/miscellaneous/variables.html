@@ -2326,9 +2326,10 @@ form should have prevented.</div>
   {
     path: &#x27;upload&#x27;,
     loadComponent: () &#x3D;&gt; &quot;import(&#x27;./features/upload/upload&#x27;).then((m) &#x3D;&gt; m.Upload)&quot;,
-    // Write access is one role&#x27;s by decision (DECISIONS.txt). The backend enforces it; this keeps
-    // an operator who followed a bookmark out of a form that would 403 after they chose a file.
-    canActivate: [&quot;roleGuard(&#x27;schichtleiter&#x27;)&quot;],
+    // Write access is two roles&#x27; by decision: decision 3 of 2026-08-11 added the Techniker to the
+    // Schichtleiter, and this guard caught up on 2026-08-28. The backend enforces it; this keeps an
+    // operator who followed a bookmark out of a form that would 403 after they chose a file.
+    canActivate: [&quot;roleGuard(&#x27;techniker&#x27;, &#x27;schichtleiter&#x27;)&quot;],
     title: &#x27;Protokoll hochladen · Wartungsassistent&#x27;,
   },
   {

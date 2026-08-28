@@ -2185,7 +2185,8 @@ message. Search is not a view an admin can use at all: they may not ask question
                 <td class="col-md-4">
                         <div class="io-description"><p>Keeps a route out of the hands of roles that have no business on it.</p>
 <p>Like <a href="../guards/authGuard.html">authGuard</a>, this is convenience and not security: the upload endpoint refuses anyone
-but a Schichtleiter server-side, which is the only place the decision counts (NFR-3). What this
+but a Techniker or a Schichtleiter server-side, which is the only place the decision counts
+(NFR-3). What this
 buys is that an operator following a bookmarked <code>/upload</code> link gets their own view rather than a
 form that produces a 403 after they have chosen a file — and that an admin who types <code>/search</code>
 gets the view they can use rather than a machine picker that cannot be filled.</p>
@@ -2520,7 +2521,7 @@ something the server did not.</p>
 <code>&lt;machineNo&gt;-&lt;yyyyMMdd-HHmmss&gt;-eingabe.txt</code>.</p>
 <p>ASCII only, and not for tidiness: this name travels to the volume and comes back in
 <code>Content-Disposition</code> when the viewer offers the download, and every layer in between has its own
-opinion about non-ASCII filenames. The machine number is the useful half — a Schichtleiter
+opinion about non-ASCII filenames. The machine number is the useful half — an uploader
 scanning the uploads list wants to see which press it was — and the timestamp to the second is
 what keeps two protocols typed in the same shift apart.</p>
 <p>Local time rather than UTC, deliberately: the name is read by the person who typed it, and 22:14

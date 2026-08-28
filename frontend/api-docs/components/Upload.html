@@ -155,17 +155,19 @@
         <h3>Description</h3>
     </p>
     <p class="comment">
-        <p>The Schichtleiter&#39;s upload view.</p>
-<p>Write access belongs to one role by decision (DECISIONS.txt: quality, consistency,
-anti-garbage), and the route is guarded accordingly — but the guard is convenience. The backend
-refuses the upload for anyone else, which is the check that counts (NFR-3).</p>
+        <p>The writers&#39; upload view — the Techniker&#39;s and the Schichtleiter&#39;s.</p>
+<p>Write access belongs to two roles by decision (DECISIONS.txt: quality, consistency,
+anti-garbage; then decision 3 of 2026-08-11, which added the Techniker), and the route is
+guarded accordingly — but the guard is convenience. The backend refuses the upload for anyone
+else, which is the check that counts (NFR-3). Correcting is not here and is not theirs: it lives
+in the protocol view and belongs to the Schichtleiter alone.</p>
 <p>The view is built around the fact that upload answers <strong>202, not 201</strong>: the protocol exists but
 is not searchable until a worker has chunked and embedded it. Hiding that behind a success
-message would teach a Schichtleiter that uploading and being findable are the same event, and the
+message would teach a writer that uploading and being findable are the same event, and the
 first time indexing failed they would have no idea. So the status list is part of the view, and
 it shows the failure reason rather than only the failure.</p>
 <p><strong>A protocol can be typed here as well as uploaded.</strong> Requiring a <code>.txt</code> described a workflow that
-does not exist: the Schichtleiter writes the protocol at the end of the shift, and nobody opens an
+does not exist: the writer types the protocol at the end of the shift, and nobody opens an
 editor, saves a file and then picks it. Typing is the normal case and the file was the special one.</p>
 <p>The typed text is wrapped into a <code>File</code> in the browser and sent through the <strong>same multipart
 call</strong>, which is why this is a frontend-only change: the endpoint, the ingestion pipeline, the
@@ -509,7 +511,7 @@ have been a second write path to keep in step with the first, for no gain the us
                 </tr>
                         <tr>
                             <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="121" class="link-to-prism">src/app/features/upload/upload.ts:121</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="123" class="link-to-prism">src/app/features/upload/upload.ts:123</a></div>
                             </td>
                         </tr>
 
@@ -548,8 +550,8 @@ have been a second write path to keep in step with the first, for no gain the us
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="210"
-                                    class="link-to-prism">src/app/features/upload/upload.ts:210</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="212"
+                                    class="link-to-prism">src/app/features/upload/upload.ts:212</a></div>
                         </td>
                     </tr>
 
@@ -587,8 +589,8 @@ have been a second write path to keep in step with the first, for no gain the us
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="257"
-                                    class="link-to-prism">src/app/features/upload/upload.ts:257</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="259"
+                                    class="link-to-prism">src/app/features/upload/upload.ts:259</a></div>
                         </td>
                     </tr>
 
@@ -658,8 +660,8 @@ have been a second write path to keep in step with the first, for no gain the us
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="265"
-                                    class="link-to-prism">src/app/features/upload/upload.ts:265</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="267"
+                                    class="link-to-prism">src/app/features/upload/upload.ts:267</a></div>
                         </td>
                     </tr>
 
@@ -697,8 +699,8 @@ have been a second write path to keep in step with the first, for no gain the us
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="128"
-                                    class="link-to-prism">src/app/features/upload/upload.ts:128</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="130"
+                                    class="link-to-prism">src/app/features/upload/upload.ts:130</a></div>
                         </td>
                     </tr>
 
@@ -766,8 +768,8 @@ have been a second write path to keep in step with the first, for no gain the us
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="261"
-                                    class="link-to-prism">src/app/features/upload/upload.ts:261</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="263"
+                                    class="link-to-prism">src/app/features/upload/upload.ts:263</a></div>
                         </td>
                     </tr>
 
@@ -805,8 +807,8 @@ have been a second write path to keep in step with the first, for no gain the us
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="225"
-                                    class="link-to-prism">src/app/features/upload/upload.ts:225</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="227"
+                                    class="link-to-prism">src/app/features/upload/upload.ts:227</a></div>
                         </td>
                     </tr>
 
@@ -850,8 +852,8 @@ than a timer somebody has to remember to clear.</p>
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="244"
-                                    class="link-to-prism">src/app/features/upload/upload.ts:244</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="246"
+                                    class="link-to-prism">src/app/features/upload/upload.ts:246</a></div>
                         </td>
                     </tr>
 
@@ -919,8 +921,8 @@ than a timer somebody has to remember to clear.</p>
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="150"
-                                    class="link-to-prism">src/app/features/upload/upload.ts:150</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="152"
+                                    class="link-to-prism">src/app/features/upload/upload.ts:152</a></div>
                         </td>
                     </tr>
 
@@ -958,8 +960,8 @@ than a timer somebody has to remember to clear.</p>
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="204"
-                                    class="link-to-prism">src/app/features/upload/upload.ts:204</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="206"
+                                    class="link-to-prism">src/app/features/upload/upload.ts:206</a></div>
                         </td>
                     </tr>
 
@@ -1002,8 +1004,8 @@ difference, which is the whole design.</p>
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="140"
-                                    class="link-to-prism">src/app/features/upload/upload.ts:140</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="142"
+                                    class="link-to-prism">src/app/features/upload/upload.ts:142</a></div>
                         </td>
                     </tr>
 
@@ -1087,7 +1089,7 @@ attached. Cheaper to lose one input on an explicit mode switch than to submit a 
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="68" class="link-to-prism">src/app/features/upload/upload.ts:68</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="70" class="link-to-prism">src/app/features/upload/upload.ts:70</a></div>
                         </td>
                     </tr>
 
@@ -1120,7 +1122,7 @@ attached. Cheaper to lose one input on an explicit mode switch than to submit a 
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="50" class="link-to-prism">src/app/features/upload/upload.ts:50</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="52" class="link-to-prism">src/app/features/upload/upload.ts:52</a></div>
                         </td>
                     </tr>
 
@@ -1158,7 +1160,7 @@ attached. Cheaper to lose one input on an explicit mode switch than to submit a 
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="116" class="link-to-prism">src/app/features/upload/upload.ts:116</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="118" class="link-to-prism">src/app/features/upload/upload.ts:118</a></div>
                         </td>
                     </tr>
 
@@ -1167,7 +1169,7 @@ attached. Cheaper to lose one input on an explicit mode switch than to submit a 
                     <div class="io-description"><p>Whether there is something to submit.</p>
 <p>A machine, a title, and content in whichever mode is active. The title is required in both
 modes because a protocol without one cannot be reviewed in any list — &quot;Meine Uploads&quot; would
-show a machine number and a date, and the Schichtleiter would have to open each row to find out
+show a machine number and a date, and the uploader would have to open each row to find out
 which one is which.</p>
 <p>Deliberately shallow beyond that: size caps and rate limits belong to the upload-guards work
 and are not smuggled in here — a validation rule that exists only in the browser is a
@@ -1204,7 +1206,7 @@ suggestion, and the place to make it a rule is the backend.</p>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="64" class="link-to-prism">src/app/features/upload/upload.ts:64</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="66" class="link-to-prism">src/app/features/upload/upload.ts:66</a></div>
                         </td>
                     </tr>
 
@@ -1237,7 +1239,7 @@ suggestion, and the place to make it a rule is the backend.</p>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="69" class="link-to-prism">src/app/features/upload/upload.ts:69</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="71" class="link-to-prism">src/app/features/upload/upload.ts:71</a></div>
                         </td>
                     </tr>
 
@@ -1270,7 +1272,7 @@ suggestion, and the place to make it a rule is the backend.</p>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="59" class="link-to-prism">src/app/features/upload/upload.ts:59</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="61" class="link-to-prism">src/app/features/upload/upload.ts:61</a></div>
                         </td>
                     </tr>
 
@@ -1303,7 +1305,7 @@ suggestion, and the place to make it a rule is the backend.</p>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="102" class="link-to-prism">src/app/features/upload/upload.ts:102</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="104" class="link-to-prism">src/app/features/upload/upload.ts:104</a></div>
                         </td>
                     </tr>
 
@@ -1344,7 +1346,7 @@ and the form would be telling the user one thing while holding another.</p>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="51" class="link-to-prism">src/app/features/upload/upload.ts:51</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="53" class="link-to-prism">src/app/features/upload/upload.ts:53</a></div>
                         </td>
                     </tr>
 
@@ -1377,7 +1379,7 @@ and the form would be telling the user one thing while holding another.</p>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="72" class="link-to-prism">src/app/features/upload/upload.ts:72</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="74" class="link-to-prism">src/app/features/upload/upload.ts:74</a></div>
                         </td>
                     </tr>
 
@@ -1416,7 +1418,7 @@ and the form would be telling the user one thing while holding another.</p>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="61" class="link-to-prism">src/app/features/upload/upload.ts:61</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="63" class="link-to-prism">src/app/features/upload/upload.ts:63</a></div>
                         </td>
                     </tr>
 
@@ -1449,7 +1451,7 @@ and the form would be telling the user one thing while holding another.</p>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="55" class="link-to-prism">src/app/features/upload/upload.ts:55</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="57" class="link-to-prism">src/app/features/upload/upload.ts:57</a></div>
                         </td>
                     </tr>
 
@@ -1482,7 +1484,7 @@ and the form would be telling the user one thing while holding another.</p>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="58" class="link-to-prism">src/app/features/upload/upload.ts:58</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="60" class="link-to-prism">src/app/features/upload/upload.ts:60</a></div>
                         </td>
                     </tr>
 
@@ -1515,7 +1517,7 @@ and the form would be telling the user one thing while holding another.</p>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="75" class="link-to-prism">src/app/features/upload/upload.ts:75</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="77" class="link-to-prism">src/app/features/upload/upload.ts:77</a></div>
                         </td>
                     </tr>
 
@@ -1556,7 +1558,7 @@ and the form would be telling the user one thing while holding another.</p>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="77" class="link-to-prism">src/app/features/upload/upload.ts:77</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="79" class="link-to-prism">src/app/features/upload/upload.ts:79</a></div>
                         </td>
                     </tr>
 
@@ -1592,7 +1594,7 @@ and the form would be telling the user one thing while holding another.</p>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="91" class="link-to-prism">src/app/features/upload/upload.ts:91</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="93" class="link-to-prism">src/app/features/upload/upload.ts:93</a></div>
                         </td>
                     </tr>
 
@@ -1637,7 +1639,7 @@ client-side paging of a truncated list would quietly page through the wrong fift
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="67" class="link-to-prism">src/app/features/upload/upload.ts:67</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="69" class="link-to-prism">src/app/features/upload/upload.ts:69</a></div>
                         </td>
                     </tr>
 
@@ -1670,7 +1672,7 @@ client-side paging of a truncated list would quietly page through the wrong fift
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="66" class="link-to-prism">src/app/features/upload/upload.ts:66</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="68" class="link-to-prism">src/app/features/upload/upload.ts:68</a></div>
                         </td>
                     </tr>
 
@@ -1703,7 +1705,7 @@ client-side paging of a truncated list would quietly page through the wrong fift
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="53" class="link-to-prism">src/app/features/upload/upload.ts:53</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="55" class="link-to-prism">src/app/features/upload/upload.ts:55</a></div>
                         </td>
                     </tr>
 
@@ -1736,7 +1738,7 @@ client-side paging of a truncated list would quietly page through the wrong fift
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="60" class="link-to-prism">src/app/features/upload/upload.ts:60</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="62" class="link-to-prism">src/app/features/upload/upload.ts:62</a></div>
                         </td>
                     </tr>
 
@@ -1769,7 +1771,7 @@ client-side paging of a truncated list would quietly page through the wrong fift
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="63" class="link-to-prism">src/app/features/upload/upload.ts:63</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="65" class="link-to-prism">src/app/features/upload/upload.ts:65</a></div>
                         </td>
                     </tr>
 
@@ -1802,7 +1804,7 @@ client-side paging of a truncated list would quietly page through the wrong fift
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="62" class="link-to-prism">src/app/features/upload/upload.ts:62</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="64" class="link-to-prism">src/app/features/upload/upload.ts:64</a></div>
                         </td>
                     </tr>
 
@@ -1835,7 +1837,7 @@ client-side paging of a truncated list would quietly page through the wrong fift
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="56" class="link-to-prism">src/app/features/upload/upload.ts:56</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="58" class="link-to-prism">src/app/features/upload/upload.ts:58</a></div>
                         </td>
                     </tr>
 
@@ -1868,20 +1870,22 @@ type InputMode &#x3D; &#x27;file&#x27; | &#x27;text&#x27;;
 const PAGE_SIZE &#x3D; 5;
 
 /**
- * The Schichtleiter&#x27;s upload view.
+ * The writers&#x27; upload view — the Techniker&#x27;s and the Schichtleiter&#x27;s.
  *
- * Write access belongs to one role by decision (DECISIONS.txt: quality, consistency,
- * anti-garbage), and the route is guarded accordingly — but the guard is convenience. The backend
- * refuses the upload for anyone else, which is the check that counts (NFR-3).
+ * Write access belongs to two roles by decision (DECISIONS.txt: quality, consistency,
+ * anti-garbage; then decision 3 of 2026-08-11, which added the Techniker), and the route is
+ * guarded accordingly — but the guard is convenience. The backend refuses the upload for anyone
+ * else, which is the check that counts (NFR-3). Correcting is not here and is not theirs: it lives
+ * in the protocol view and belongs to the Schichtleiter alone.
  *
  * The view is built around the fact that upload answers **202, not 201**: the protocol exists but
  * is not searchable until a worker has chunked and embedded it. Hiding that behind a success
- * message would teach a Schichtleiter that uploading and being findable are the same event, and the
+ * message would teach a writer that uploading and being findable are the same event, and the
  * first time indexing failed they would have no idea. So the status list is part of the view, and
  * it shows the failure reason rather than only the failure.
  *
  * **A protocol can be typed here as well as uploaded.** Requiring a &#x60;.txt&#x60; described a workflow that
- * does not exist: the Schichtleiter writes the protocol at the end of the shift, and nobody opens an
+ * does not exist: the writer types the protocol at the end of the shift, and nobody opens an
  * editor, saves a file and then picks it. Typing is the normal case and the file was the special one.
  *
  * The typed text is wrapped into a &#x60;File&#x60; in the browser and sent through the **same multipart
@@ -1956,7 +1960,7 @@ export class Upload {
    *
    * A machine, a title, and content in whichever mode is active. The title is required in both
    * modes because a protocol without one cannot be reviewed in any list — &quot;Meine Uploads&quot; would
-   * show a machine number and a date, and the Schichtleiter would have to open each row to find out
+   * show a machine number and a date, and the uploader would have to open each row to find out
    * which one is which.
    *
    * Deliberately shallow beyond that: size caps and rate limits belong to the upload-guards work
@@ -2017,7 +2021,7 @@ export class Upload {
     form.append(&#x27;type&#x27;, this.type());
     // No &#x60;language&#x60; part. Retrieval is language-agnostic by architecture — bge-m3 embeds DE and EN
     // into one space and the answer is pinned to the QUESTION&#x27;s language — so the column never
-    // reached a decision, and asking a Schichtleiter to classify their own prose was a question
+    // reached a decision, and asking a writer to classify their own prose was a question
     // whose answer nothing read. The endpoint declares the parameter optional; see DECISIONS.txt.
     form.append(&#x27;title&#x27;, this.title().trim());
     if (this.errorCode().trim()) {
@@ -2123,7 +2127,7 @@ export class Upload {
  *
  * ASCII only, and not for tidiness: this name travels to the volume and comes back in
  * &#x60;Content-Disposition&#x60; when the viewer offers the download, and every layer in between has its own
- * opinion about non-ASCII filenames. The machine number is the useful half — a Schichtleiter
+ * opinion about non-ASCII filenames. The machine number is the useful half — an uploader
  * scanning the uploads list wants to see which press it was — and the timestamp to the second is
  * what keeps two protocols typed in the same shift apart.
  *

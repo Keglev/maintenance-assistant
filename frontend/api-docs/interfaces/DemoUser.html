@@ -292,7 +292,7 @@ import { I18nService } from &#x27;../../core/i18n/i18n.service&#x27;;
 import { ThemeToggle } from &#x27;../../shared/theme/theme-toggle&#x27;;
 
 /** The demo accounts, exactly as the realm ships them (DECISIONS.txt). */
-export const DEMO_PASSWORD &#x3D; &#x27;demo1234&#x27;;
+const DEMO_PASSWORD &#x3D; &#x27;demo1234&#x27;;
 
 /**
  * One demo account, as the landing page offers it.
@@ -300,12 +300,12 @@ export const DEMO_PASSWORD &#x3D; &#x27;demo1234&#x27;;
  * The username is the realm&#x27;s and is never translated — it is what Keycloak matches and what the
  * visitor would otherwise type. Only the description comes from the dictionary.
  */
-export interface DemoUser {
+interface DemoUser {
   readonly username: string;
   readonly describe: (t: Dictionary) &#x3D;&gt; string;
 }
 
-export const DEMO_USERS: readonly DemoUser[] &#x3D; [
+const DEMO_USERS: readonly DemoUser[] &#x3D; [
   { username: &#x27;operator&#x27;, describe: (t) &#x3D;&gt; t.demo.operator },
   { username: &#x27;techniker&#x27;, describe: (t) &#x3D;&gt; t.demo.techniker },
   { username: &#x27;schichtleiter&#x27;, describe: (t) &#x3D;&gt; t.demo.schichtleiter },

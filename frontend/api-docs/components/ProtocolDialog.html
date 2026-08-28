@@ -1840,7 +1840,7 @@ import { ProtocolDocument, filenameOf, parseProtocol } from &#x27;./protocol-doc
  * answer 404 for it. A single endpoint with a flag would put that distinction in a parameter
  * instead of in the URL, where the authorisation rule can be read.
  */
-export type DocumentSource &#x3D; &#x27;citation&#x27; | &#x27;moderation&#x27; | &#x27;archive&#x27;;
+type DocumentSource &#x3D; &#x27;citation&#x27; | &#x27;moderation&#x27; | &#x27;archive&#x27;;
 
 /** Kept as a map so adding a fourth path cannot become a third arm of a nested conditional. */
 const DOCUMENT_SOURCES: Record&lt;

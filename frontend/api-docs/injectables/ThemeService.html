@@ -705,7 +705,7 @@ import { Injectable, computed, effect, inject, signal } from &#x27;@angular/core
 export type ThemeChoice &#x3D; &#x27;light&#x27; | &#x27;dark&#x27; | &#x27;system&#x27;;
 
 /** What is actually on screen once &#x60;system&#x60; has been resolved against the operating system. */
-export type ResolvedTheme &#x3D; &#x27;light&#x27; | &#x27;dark&#x27;;
+type ResolvedTheme &#x3D; &#x27;light&#x27; | &#x27;dark&#x27;;
 
 /**
  * Where the choice is remembered. Shared with &#x60;public/theme-init.js&#x60;, which reads the same key

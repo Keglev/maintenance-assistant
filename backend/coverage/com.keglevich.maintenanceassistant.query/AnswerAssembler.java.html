@@ -186,23 +186,52 @@ import java.util.regex.Pattern;
     // package is shared by both, which is what makes @JsonProperty safe here.
     // -----------------------------------------------------------------------------------------
 
+    /**
+     * Mode A's answer as the model returns it: every sentence a claim with a source.
+     *
+     * &lt;p&gt;{@code answer_language} is the model's own report of what it wrote in, and it is bound
+     * because the UI labels the answer with it — a German answer rendered under an English heading
+     * reads as a bug in the retrieval rather than in the label.
+     */
     @JsonIgnoreProperties(ignoreUnknown = true)
-<span class="fc" id="L190">    record GroundedAnswer(@JsonProperty(&quot;answer_language&quot;) String answerLanguage, List&lt;Claim&gt; claims) {</span>
+<span class="fc" id="L197">    record GroundedAnswer(@JsonProperty(&quot;answer_language&quot;) String answerLanguage, List&lt;Claim&gt; claims) {</span>
 
+        /**
+         * One statement and the protocol it came from.
+         *
+         * &lt;p&gt;{@code source} is the whole promise of Mode A: a claim whose source does not resolve
+         * to a retrieved protocol is dropped rather than shown, because an uncheckable citation is
+         * worse than no citation.
+         */
         @JsonIgnoreProperties(ignoreUnknown = true)
-<span class="fc" id="L193">        record Claim(String text, String source) {</span>
+<span class="fc" id="L207">        record Claim(String text, String source) {</span>
         }
 
+        /**
+         * The claims, never null.
+         *
+         * &lt;p&gt;A model that answers with the field absent is not an error to propagate: it is an
+         * answer with nothing attributable, which the caller already handles as the no-citation
+         * fall-through to Mode B. Returning empty keeps that one path instead of adding a second.
+         */
         List&lt;Claim&gt; safeClaims() {
-<span class="fc bfc" id="L197" title="All 2 branches covered.">            return claims == null ? List.of() : claims;</span>
+<span class="fc bfc" id="L218" title="All 2 branches covered.">            return claims == null ? List.of() : claims;</span>
         }
     }
 
+    /**
+     * Mode B's answer: numbered suggestions with no source, and labelled as such to the reader.
+     *
+     * &lt;p&gt;Steps rather than claims because there is nothing to cite — the shape differs from
+     * {@link GroundedAnswer} on purpose, so the two can never be rendered by the same code path
+     * and an ungrounded answer cannot inherit Mode A's presentation.
+     */
     @JsonIgnoreProperties(ignoreUnknown = true)
-<span class="fc" id="L202">    record UngroundedAnswer(@JsonProperty(&quot;answer_language&quot;) String answerLanguage, List&lt;String&gt; steps) {</span>
+<span class="fc" id="L230">    record UngroundedAnswer(@JsonProperty(&quot;answer_language&quot;) String answerLanguage, List&lt;String&gt; steps) {</span>
 
+        /** The steps, never null, for the same reason {@link GroundedAnswer#safeClaims()} gives. */
         List&lt;String&gt; safeSteps() {
-<span class="fc bfc" id="L205" title="All 2 branches covered.">            return steps == null ? List.of() : steps;</span>
+<span class="fc bfc" id="L234" title="All 2 branches covered.">            return steps == null ? List.of() : steps;</span>
         }
     }
 }

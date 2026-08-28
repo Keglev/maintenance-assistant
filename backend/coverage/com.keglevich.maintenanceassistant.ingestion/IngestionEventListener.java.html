@@ -28,12 +28,20 @@ class IngestionEventListener {
 <span class="fc" id="L28">        this.indexer = indexer;</span>
 <span class="fc" id="L29">    }</span>
 
+    /**
+     * Starts indexing once the upload's transaction has committed.
+     *
+     * &lt;p&gt;AFTER_COMMIT is the contract, not a default: the indexer runs on another thread and would
+     * otherwise read a protocol row that the uploading transaction has not made visible yet — and,
+     * worse, would index one that later rolled back. {@code fallbackExecution} keeps the listener
+     * working when a caller publishes outside a transaction, which the seed runner does.
+     */
     @Async(IngestionAsyncConfig.EXECUTOR)
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT, fallbackExecution = true)
     void onProtocolReceived(ProtocolReceivedEvent event) {
         // index() records its own failures as protocol state; nothing is thrown back at a thread
         // pool that has nowhere to report it.
-<span class="fc" id="L36">        indexer.index(event.protocolId());</span>
-<span class="fc" id="L37">    }</span>
+<span class="fc" id="L44">        indexer.index(event.protocolId());</span>
+<span class="fc" id="L45">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.15.202606040825</span></div></body></html>

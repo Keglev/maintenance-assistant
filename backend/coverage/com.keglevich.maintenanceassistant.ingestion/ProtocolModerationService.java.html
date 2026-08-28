@@ -463,14 +463,24 @@ public class ProtocolModerationService {
     /** The stable code a client matches on when a moderation act arrives without its reason. */
     public static final String COMMENT_REQUIRED = &quot;MODERATION_COMMENT_REQUIRED&quot;;
 
+    /**
+     * Returns the stripped comment, or refuses the moderation act for want of one.
+     *
+     * &lt;p&gt;ONE GATE FOR EVERY DESTRUCTIVE VERB, rather than a check per endpoint: delete, edit and
+     * approve all write a reason into a ledger that outlives the protocol, and a rule enforced in
+     * three places is a rule that will hold in two of them. Refuses rather than defaulting,
+     * because a generated reason is a worse record than none.
+     *
+     * @throws InvalidModerationRequestException with {@code MODERATION_COMMENT_REQUIRED}
+     */
     static String requireComment(String comment) {
-<span class="fc bfc" id="L467" title="All 4 branches covered.">        if (comment == null || comment.isBlank()) {</span>
+<span class="fc bfc" id="L477" title="All 4 branches covered.">        if (comment == null || comment.isBlank()) {</span>
             // Blank counts as missing. A comment box someone tabbed past is not a stated reason,
             // and &quot; &quot; in the ledger would be worse than an empty one — it looks like an answer.
-<span class="fc" id="L470">            throw new InvalidModerationRequestException(COMMENT_REQUIRED,</span>
+<span class="fc" id="L480">            throw new InvalidModerationRequestException(COMMENT_REQUIRED,</span>
                     &quot;a moderation comment is required: say why this protocol is being changed&quot;);
         }
-<span class="fc" id="L473">        return comment.trim();</span>
+<span class="fc" id="L483">        return comment.trim();</span>
     }
 
     /**
@@ -482,24 +492,24 @@ public class ProtocolModerationService {
      * is logged as a warning so a stale file can be swept up; nothing can reach it in the meantime.
      */
     private void deleteFile(String sourceFile) {
-<span class="pc bpc" id="L485" title="2 of 4 branches missed.">        if (sourceFile == null || sourceFile.isBlank()) {</span>
-<span class="nc" id="L486">            return;</span>
+<span class="pc bpc" id="L495" title="2 of 4 branches missed.">        if (sourceFile == null || sourceFile.isBlank()) {</span>
+<span class="nc" id="L496">            return;</span>
         }
-<span class="fc" id="L488">        Path base = Path.of(fileProperties.basePath()).toAbsolutePath().normalize();</span>
-<span class="fc" id="L489">        Path path = base.resolve(sourceFile).normalize();</span>
+<span class="fc" id="L498">        Path base = Path.of(fileProperties.basePath()).toAbsolutePath().normalize();</span>
+<span class="fc" id="L499">        Path path = base.resolve(sourceFile).normalize();</span>
         // The same containment check the read path makes, for the same reason: source_file is a
         // column, and here a bad value would delete something outside the volume.
-<span class="pc bpc" id="L492" title="1 of 2 branches missed.">        if (!path.startsWith(base)) {</span>
-<span class="nc" id="L493">            log.warn(&quot;Moderation: refusing to delete {} — outside the protocol volume&quot;, sourceFile);</span>
-<span class="nc" id="L494">            return;</span>
+<span class="pc bpc" id="L502" title="1 of 2 branches missed.">        if (!path.startsWith(base)) {</span>
+<span class="nc" id="L503">            log.warn(&quot;Moderation: refusing to delete {} — outside the protocol volume&quot;, sourceFile);</span>
+<span class="nc" id="L504">            return;</span>
         }
         try {
-<span class="fc" id="L497">            Files.deleteIfExists(path);</span>
-<span class="nc" id="L498">        } catch (IOException e) {</span>
-<span class="nc" id="L499">            log.warn(&quot;Moderation: protocol row removed but its file {} could not be deleted: {}&quot;,</span>
-<span class="nc" id="L500">                    sourceFile, e.toString());</span>
-<span class="fc" id="L501">        }</span>
-<span class="fc" id="L502">    }</span>
+<span class="fc" id="L507">            Files.deleteIfExists(path);</span>
+<span class="nc" id="L508">        } catch (IOException e) {</span>
+<span class="nc" id="L509">            log.warn(&quot;Moderation: protocol row removed but its file {} could not be deleted: {}&quot;,</span>
+<span class="nc" id="L510">                    sourceFile, e.toString());</span>
+<span class="fc" id="L511">        }</span>
+<span class="fc" id="L512">    }</span>
 
     /**
      * What the reviewer narrowed the corpus to. Every field is optional; all of them absent is the
@@ -524,35 +534,41 @@ public class ProtocolModerationService {
         /** An approval filter that is neither state. */
         public static final String UNKNOWN_APPROVAL_STATE = &quot;UNKNOWN_APPROVAL_STATE&quot;;
 
-<span class="fc" id="L527">        public ProtocolFilter {</span>
-<span class="fc" id="L528">            machineNo = blankToNull(machineNo);</span>
-<span class="fc" id="L529">            titleContains = blankToNull(titleContains);</span>
-<span class="fc" id="L530">            approvalState = blankToNull(approvalState);</span>
-<span class="fc bfc" id="L531" title="All 8 branches covered.">            if (machineNo == null &amp;&amp; (titleContains != null || from != null || to != null)) {</span>
-<span class="fc" id="L532">                throw new InvalidModerationRequestException(MACHINE_REQUIRED,</span>
+<span class="fc" id="L537">        public ProtocolFilter {</span>
+<span class="fc" id="L538">            machineNo = blankToNull(machineNo);</span>
+<span class="fc" id="L539">            titleContains = blankToNull(titleContains);</span>
+<span class="fc" id="L540">            approvalState = blankToNull(approvalState);</span>
+<span class="fc bfc" id="L541" title="All 8 branches covered.">            if (machineNo == null &amp;&amp; (titleContains != null || from != null || to != null)) {</span>
+<span class="fc" id="L542">                throw new InvalidModerationRequestException(MACHINE_REQUIRED,</span>
                         &quot;a title or date filter needs a machine: choose a machine first&quot;);
             }
-<span class="fc bfc" id="L535" title="All 2 branches covered.">            if (approvalState != null) {</span>
-<span class="fc" id="L536">                approvalState = approvalState.toUpperCase(java.util.Locale.ROOT);</span>
-<span class="fc bfc" id="L537" title="All 2 branches covered.">                if (!ProtocolApprovalService.APPROVED.equals(approvalState)</span>
-<span class="fc bfc" id="L538" title="All 2 branches covered.">                        &amp;&amp; !ProtocolApprovalService.UNAPPROVED.equals(approvalState)) {</span>
+<span class="fc bfc" id="L545" title="All 2 branches covered.">            if (approvalState != null) {</span>
+<span class="fc" id="L546">                approvalState = approvalState.toUpperCase(java.util.Locale.ROOT);</span>
+<span class="fc bfc" id="L547" title="All 2 branches covered.">                if (!ProtocolApprovalService.APPROVED.equals(approvalState)</span>
+<span class="fc bfc" id="L548" title="All 2 branches covered.">                        &amp;&amp; !ProtocolApprovalService.UNAPPROVED.equals(approvalState)) {</span>
                     // Refused rather than ignored. A typo silently answering with the unfiltered
                     // corpus would tell a reviewer their queue is the whole corpus.
-<span class="fc" id="L541">                    throw new InvalidModerationRequestException(UNKNOWN_APPROVAL_STATE,</span>
+<span class="fc" id="L551">                    throw new InvalidModerationRequestException(UNKNOWN_APPROVAL_STATE,</span>
                             &quot;approvalState must be APPROVED or UNAPPROVED, not '&quot;
                                     + approvalState + &quot;'&quot;);
                 }
             }
-<span class="fc" id="L546">        }</span>
+<span class="fc" id="L556">        }</span>
 
+        /**
+         * The unfiltered list, which is the plain corpus view rather than a special case.
+         *
+         * &lt;p&gt;Named so callers do not build an all-nulls filter by hand and so the machine-first
+         * rule in the canonical constructor keeps its single entry point.
+         */
         public static ProtocolFilter none() {
-<span class="fc" id="L549">            return new ProtocolFilter(null, null, null, null, null);</span>
+<span class="fc" id="L565">            return new ProtocolFilter(null, null, null, null, null);</span>
         }
 
         private static String blankToNull(String value) {
             // An empty query parameter is an empty form field, which is a filter the user did not
             // fill in — not a search for the empty string, and not a reason to refuse the request.
-<span class="fc bfc" id="L555" title="All 4 branches covered.">            return value == null || value.isBlank() ? null : value.trim();</span>
+<span class="fc bfc" id="L571" title="All 4 branches covered.">            return value == null || value.isBlank() ? null : value.trim();</span>
         }
     }
 
@@ -563,12 +579,12 @@ public class ProtocolModerationService {
         private final String code;
 
         public InvalidModerationRequestException(String code, String message) {
-<span class="fc" id="L566">            super(message);</span>
-<span class="fc" id="L567">            this.code = code;</span>
-<span class="fc" id="L568">        }</span>
+<span class="fc" id="L582">            super(message);</span>
+<span class="fc" id="L583">            this.code = code;</span>
+<span class="fc" id="L584">        }</span>
 
         public String code() {
-<span class="fc" id="L571">            return code;</span>
+<span class="fc" id="L587">            return code;</span>
         }
     }
 
@@ -577,7 +593,7 @@ public class ProtocolModerationService {
      * @param size      rows per page after clamping
      * @param total     protocols in the corpus, so a client can render &quot;page 3 of 16&quot;
      */
-<span class="fc" id="L580">    public record ProtocolPage(List&lt;ModeratedProtocol&gt; items, int page, int size, long total) {</span>
+<span class="fc" id="L596">    public record ProtocolPage(List&lt;ModeratedProtocol&gt; items, int page, int size, long total) {</span>
     }
 
     /**
@@ -586,7 +602,7 @@ public class ProtocolModerationService {
      * @param chunkCount how many searchable pieces this protocol contributes; 0 means it is stored
      *                   but not retrievable, which is what RECEIVED and FAILED look like
      */
-<span class="fc" id="L589">    public record ModeratedProtocol(</span>
+<span class="fc" id="L605">    public record ModeratedProtocol(</span>
             UUID id,
             String machineNo,
             String title,
@@ -610,7 +626,7 @@ public class ProtocolModerationService {
      * @param cap the per-machine ceiling, reported so the view can state it rather than hard-code a
      *            number that would drift the day the constant changes
      */
-<span class="fc" id="L613">    public record DeletedProtocolPage(List&lt;ArchivedProtocol&gt; items, int page, int size, long total,</span>
+<span class="fc" id="L629">    public record DeletedProtocolPage(List&lt;ArchivedProtocol&gt; items, int page, int size, long total,</span>
                                       int cap) {
     }
 
@@ -621,7 +637,7 @@ public class ProtocolModerationService {
      *                       other than this service, which nothing does today
      * @param deleteComment  the stated reason — the field the whole archive exists to carry
      */
-<span class="fc" id="L624">    public record ArchivedProtocol(</span>
+<span class="fc" id="L640">    public record ArchivedProtocol(</span>
             UUID id,
             String machineNo,
             String title,
@@ -634,11 +650,18 @@ public class ProtocolModerationService {
             String deleteComment) {
     }
 
-<span class="fc" id="L637">    private record DeletedProtocol(String title, String sourceFile, UUID machineId, String machineNo) {</span>
+    /**
+     * An archived protocol as the delete path needs it, read before the row is soft-deleted.
+     *
+     * &lt;p&gt;{@code sourceFile} travels with it because the FILE is not deleted: the volume archive is
+     * the only copy of what a writer uploaded, and the insider-threat chain needs the evidence to
+     * outlive the removal (ADR-006).
+     */
+<span class="fc" id="L660">    private record DeletedProtocol(String title, String sourceFile, UUID machineId, String machineNo) {</span>
     }
 
     /** What a purge needs to know: which row to drop, which file to remove, what to call it in the log. */
-<span class="fc" id="L641">    private record PurgeTarget(UUID id, String title, String sourceFile) {</span>
+<span class="fc" id="L664">    private record PurgeTarget(UUID id, String title, String sourceFile) {</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.15.202606040825</span></div></body></html>

@@ -45,6 +45,13 @@ class HealthController {
 <span class="fc" id="L45">    return new HealthResponse(&quot;UP&quot;, version);</span>
   }
 
-<span class="fc" id="L48">  record HealthResponse(String status, String version) {}</span>
+  /**
+   * What an anonymous caller may know: that the service is up, and which build answered.
+   *
+   * &lt;p&gt;{@code version} is BuildProperties, written by the build-info goal, and reads {@code dev}
+   * from an IDE start. It is the APPLICATION version and not the API contract generation, which is
+   * the {@code v1} in the OpenAPI info block — see OpenApiConfig for why those are two numbers.
+   */
+<span class="fc" id="L55">  record HealthResponse(String status, String version) {}</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.15.202606040825</span></div></body></html>

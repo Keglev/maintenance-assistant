@@ -47,32 +47,63 @@ class QueryCache {
 <span class="fc" id="L47">                .build();</span>
 <span class="fc" id="L48">    }</span>
 
+    /**
+     * The cached answer for this exact question, machine, role and scope.
+     *
+     * &lt;p&gt;ROLE AND SCOPE ARE PART OF THE KEY, and that is a correctness rule rather than a tuning
+     * one: an operator must never be served the technician's answer to the same question (NFR-3),
+     * and an approved-only search must never see a hit produced over the whole corpus.
+     */
     Optional&lt;QueryAnswer&gt; get(String question, UUID machineId, QueryRole role, boolean approvedOnly) {
-<span class="fc" id="L51">        QueryAnswer hit = cache.getIfPresent(new Key(normalise(question), machineId, role, approvedOnly));</span>
-<span class="fc bfc" id="L52" title="All 2 branches covered.">        if (hit != null) {</span>
-<span class="fc" id="L53">            log.debug(&quot;Query cache hit for machine {} as {}&quot;, machineId, role);</span>
+<span class="fc" id="L58">        QueryAnswer hit = cache.getIfPresent(new Key(normalise(question), machineId, role, approvedOnly));</span>
+<span class="fc bfc" id="L59" title="All 2 branches covered.">        if (hit != null) {</span>
+<span class="fc" id="L60">            log.debug(&quot;Query cache hit for machine {} as {}&quot;, machineId, role);</span>
         }
-<span class="fc" id="L55">        return Optional.ofNullable(hit);</span>
+<span class="fc" id="L62">        return Optional.ofNullable(hit);</span>
     }
 
+    /**
+     * Stores an answer under the same four-part key {@link #get} reads.
+     *
+     * &lt;p&gt;Entries expire by TTL and are never invalidated by an edit, which is deliberate: the
+     * corrector's re-index makes the corpus right within seconds and the window in which a stale
+     * answer can be served is the TTL, not forever. Invalidating per protocol would need a
+     * question-to-protocol index this cache does not keep.
+     */
     void put(String question, UUID machineId, QueryRole role, boolean approvedOnly, QueryAnswer answer) {
-<span class="fc" id="L59">        cache.put(new Key(normalise(question), machineId, role, approvedOnly), answer);</span>
-<span class="fc" id="L60">    }</span>
+<span class="fc" id="L74">        cache.put(new Key(normalise(question), machineId, role, approvedOnly), answer);</span>
+<span class="fc" id="L75">    }</span>
 
     /** Test seam and an operational one: a cache nobody can clear is a cache nobody can debug. */
     void clear() {
-<span class="fc" id="L64">        cache.invalidateAll();</span>
-<span class="fc" id="L65">    }</span>
+<span class="fc" id="L79">        cache.invalidateAll();</span>
+<span class="fc" id="L80">    }</span>
 
     long size() {
-<span class="nc" id="L68">        return cache.estimatedSize();</span>
+<span class="nc" id="L83">        return cache.estimatedSize();</span>
     }
 
+    /**
+     * Folds the spelling differences that do not change the question.
+     *
+     * &lt;p&gt;Trim, collapse runs of whitespace, lower-case under ROOT. Two shop-floor users typing the
+     * same fault with different spacing or capitalisation should share one answer and one LLM
+     * call, which is what makes this cache worth having. ROOT rather than the default locale so
+     * the key does not depend on the server's language settings.
+     */
     static String normalise(String question) {
-<span class="fc bfc" id="L72" title="All 2 branches covered.">        return question == null ? &quot;&quot; : question.strip().replaceAll(&quot;\\s+&quot;, &quot; &quot;).toLowerCase(Locale.ROOT);</span>
+<span class="fc bfc" id="L95" title="All 2 branches covered.">        return question == null ? &quot;&quot; : question.strip().replaceAll(&quot;\\s+&quot;, &quot; &quot;).toLowerCase(Locale.ROOT);</span>
     }
 
-<span class="fc" id="L75">    private record Key(String question, UUID machineId, QueryRole role, boolean approvedOnly) {</span>
+    /**
+     * What makes two queries the same query.
+     *
+     * &lt;p&gt;All four parts are required for the answer to be interchangeable: the normalised question,
+     * the machine it was asked about, the ROLE it was answered for, and whether the search was
+     * limited to approved protocols. Dropping either of the last two would let one user read an
+     * answer assembled under rules that do not apply to them.
+     */
+<span class="fc" id="L106">    private record Key(String question, UUID machineId, QueryRole role, boolean approvedOnly) {</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.15.202606040825</span></div></body></html>

@@ -21,42 +21,50 @@ final class ProtocolDocumentRenderer {
     private ProtocolDocumentRenderer() {
     }
 
+    /**
+     * Renders the protocol as the plain-text document a reader downloads behind a citation.
+     *
+     * &lt;p&gt;IN THE PROTOCOL'S OWN LANGUAGE, never translated: the labels follow {@code language} so a
+     * German protocol reads as one, which is the same rule the retrieval path follows (texts are
+     * stored as written; the multilingual embedding bridges DE and EN). A rendered document that
+     * disagreed with the stored text would make a citation uncheckable.
+     */
     static String render(CorpusProtocol p) {
-<span class="fc" id="L25">        boolean de = &quot;de&quot;.equals(p.language());</span>
-<span class="fc" id="L26">        StringBuilder out = new StringBuilder();</span>
+<span class="fc" id="L33">        boolean de = &quot;de&quot;.equals(p.language());</span>
+<span class="fc" id="L34">        StringBuilder out = new StringBuilder();</span>
 
-<span class="fc bfc" id="L28" title="All 2 branches covered.">        out.append(de ? &quot;WARTUNGSPROTOKOLL&quot; : &quot;MAINTENANCE PROTOCOL&quot;).append('\n');</span>
-<span class="fc bfc" id="L29" title="All 2 branches covered.">        out.append(&quot;=&quot;.repeat(de ? 17 : 20)).append(&quot;\n\n&quot;);</span>
+<span class="fc bfc" id="L36" title="All 2 branches covered.">        out.append(de ? &quot;WARTUNGSPROTOKOLL&quot; : &quot;MAINTENANCE PROTOCOL&quot;).append('\n');</span>
+<span class="fc bfc" id="L37" title="All 2 branches covered.">        out.append(&quot;=&quot;.repeat(de ? 17 : 20)).append(&quot;\n\n&quot;);</span>
 
-<span class="fc bfc" id="L31" title="All 2 branches covered.">        line(out, de ? &quot;Maschine&quot; : &quot;Machine&quot;, p.machineNo());</span>
-<span class="fc bfc" id="L32" title="All 2 branches covered.">        line(out, de ? &quot;Datum&quot; : &quot;Date&quot;, p.incidentDate().format(DATE));</span>
-<span class="fc bfc" id="L33" title="All 2 branches covered.">        line(out, de ? &quot;Art&quot; : &quot;Type&quot;, p.protocolType());</span>
-<span class="fc bfc" id="L34" title="All 2 branches covered.">        line(out, de ? &quot;Fehlercode&quot; : &quot;Error code&quot;, p.errorCode());</span>
-<span class="fc bfc" id="L35" title="All 2 branches covered.">        line(out, de ? &quot;Techniker&quot; : &quot;Technician&quot;, p.technicianInitials());</span>
-<span class="fc bfc" id="L36" title="All 2 branches covered.">        line(out, de ? &quot;Stillstand&quot; : &quot;Downtime&quot;,</span>
-<span class="fc bfc" id="L37" title="All 4 branches covered.">                p.downtimeMinutes() == null ? null : p.downtimeMinutes() + (de ? &quot; Minuten&quot; : &quot; minutes&quot;));</span>
+<span class="fc bfc" id="L39" title="All 2 branches covered.">        line(out, de ? &quot;Maschine&quot; : &quot;Machine&quot;, p.machineNo());</span>
+<span class="fc bfc" id="L40" title="All 2 branches covered.">        line(out, de ? &quot;Datum&quot; : &quot;Date&quot;, p.incidentDate().format(DATE));</span>
+<span class="fc bfc" id="L41" title="All 2 branches covered.">        line(out, de ? &quot;Art&quot; : &quot;Type&quot;, p.protocolType());</span>
+<span class="fc bfc" id="L42" title="All 2 branches covered.">        line(out, de ? &quot;Fehlercode&quot; : &quot;Error code&quot;, p.errorCode());</span>
+<span class="fc bfc" id="L43" title="All 2 branches covered.">        line(out, de ? &quot;Techniker&quot; : &quot;Technician&quot;, p.technicianInitials());</span>
+<span class="fc bfc" id="L44" title="All 2 branches covered.">        line(out, de ? &quot;Stillstand&quot; : &quot;Downtime&quot;,</span>
+<span class="fc bfc" id="L45" title="All 4 branches covered.">                p.downtimeMinutes() == null ? null : p.downtimeMinutes() + (de ? &quot; Minuten&quot; : &quot; minutes&quot;));</span>
 
-<span class="fc" id="L39">        out.append('\n').append(p.title()).append(&quot;\n\n&quot;);</span>
+<span class="fc" id="L47">        out.append('\n').append(p.title()).append(&quot;\n\n&quot;);</span>
 
-<span class="fc bfc" id="L41" title="All 2 branches covered.">        section(out, de ? &quot;Symptom&quot; : &quot;Symptom&quot;, p.symptom());</span>
-<span class="fc bfc" id="L42" title="All 2 branches covered.">        section(out, de ? &quot;Ursache&quot; : &quot;Cause&quot;, p.cause());</span>
-<span class="fc bfc" id="L43" title="All 2 branches covered.">        section(out, de ? &quot;Massnahme&quot; : &quot;Action&quot;, p.action());</span>
-<span class="fc bfc" id="L44" title="All 2 branches covered.">        section(out, de ? &quot;Ersatzteile&quot; : &quot;Parts used&quot;, p.partsUsed());</span>
+<span class="fc bfc" id="L49" title="All 2 branches covered.">        section(out, de ? &quot;Symptom&quot; : &quot;Symptom&quot;, p.symptom());</span>
+<span class="fc bfc" id="L50" title="All 2 branches covered.">        section(out, de ? &quot;Ursache&quot; : &quot;Cause&quot;, p.cause());</span>
+<span class="fc bfc" id="L51" title="All 2 branches covered.">        section(out, de ? &quot;Massnahme&quot; : &quot;Action&quot;, p.action());</span>
+<span class="fc bfc" id="L52" title="All 2 branches covered.">        section(out, de ? &quot;Ersatzteile&quot; : &quot;Parts used&quot;, p.partsUsed());</span>
 
-<span class="fc" id="L46">        return out.toString();</span>
+<span class="fc" id="L54">        return out.toString();</span>
     }
 
     /** Header line; skipped entirely when the value is absent rather than printed as empty. */
     private static void line(StringBuilder out, String label, String value) {
-<span class="fc bfc" id="L51" title="All 4 branches covered.">        if (value != null &amp;&amp; !value.isBlank()) {</span>
-<span class="fc" id="L52">            out.append(label).append(&quot;: &quot;).append(value).append('\n');</span>
+<span class="fc bfc" id="L59" title="All 4 branches covered.">        if (value != null &amp;&amp; !value.isBlank()) {</span>
+<span class="fc" id="L60">            out.append(label).append(&quot;: &quot;).append(value).append('\n');</span>
         }
-<span class="fc" id="L54">    }</span>
+<span class="fc" id="L62">    }</span>
 
     private static void section(StringBuilder out, String heading, String body) {
-<span class="fc bfc" id="L57" title="All 4 branches covered.">        if (body != null &amp;&amp; !body.isBlank()) {</span>
-<span class="fc" id="L58">            out.append(heading).append(&quot;:\n&quot;).append(body).append(&quot;\n\n&quot;);</span>
+<span class="fc bfc" id="L65" title="All 4 branches covered.">        if (body != null &amp;&amp; !body.isBlank()) {</span>
+<span class="fc" id="L66">            out.append(heading).append(&quot;:\n&quot;).append(body).append(&quot;\n\n&quot;);</span>
         }
-<span class="fc" id="L60">    }</span>
+<span class="fc" id="L68">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.15.202606040825</span></div></body></html>

@@ -188,7 +188,14 @@ public class ProtocolDocumentService {
 <span class="fc" id="L188">    public record ProtocolDocument(Resource resource, String downloadName, String contentType, long sizeBytes) {</span>
     }
 
-<span class="fc" id="L191">    private record StoredProtocol(String title, String sourceFile, String language, String machineNo) {</span>
+    /**
+     * The row behind a download, read before the file is opened.
+     *
+     * &lt;p&gt;{@code machineNo} and {@code title} are here to BUILD THE DOWNLOAD NAME, not to be shown:
+     * the name a reader saves has to say which machine and which protocol it came from, and the
+     * stored filename on the volume is a timestamped identifier that says neither.
+     */
+<span class="fc" id="L198">    private record StoredProtocol(String title, String sourceFile, String language, String machineNo) {</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.15.202606040825</span></div></body></html>

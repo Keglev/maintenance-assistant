@@ -249,36 +249,39 @@ class IonosChatClient implements ChatClient {
     @JsonIgnoreProperties(ignoreUnknown = true)
 <span class="fc" id="L250">    record ChatResponse(List&lt;Choice&gt; choices, Usage usage) {</span>
 
+        /** Provider field {@code choices[]}: {@code finish_reason} is what tells a cap hit (&quot;length&quot;) from a real answer (&quot;stop&quot;). */
         @JsonIgnoreProperties(ignoreUnknown = true)
-<span class="fc" id="L253">        record Choice(Message message, String finish_reason) {</span>
+<span class="fc" id="L254">        record Choice(Message message, String finish_reason) {</span>
         }
 
+        /** Provider field {@code choices[].message}: {@code content} is the JSON answer body this client parses. */
         @JsonIgnoreProperties(ignoreUnknown = true)
-<span class="fc" id="L257">        record Message(String content) {</span>
+<span class="fc" id="L259">        record Message(String content) {</span>
         }
 
+        /** Provider field {@code usage}: feeds {@link ChatBudget#logUsage} and the truncation WARN's token counts. */
         @JsonIgnoreProperties(ignoreUnknown = true)
-<span class="fc" id="L261">        record Usage(Long prompt_tokens, Long completion_tokens) {</span>
+<span class="fc" id="L264">        record Usage(Long prompt_tokens, Long completion_tokens) {</span>
         }
 
         String content() {
-<span class="fc bfc" id="L265" title="All 6 branches covered.">            if (choices == null || choices.isEmpty() || choices.get(0).message() == null) {</span>
-<span class="fc" id="L266">                return null;</span>
+<span class="fc bfc" id="L268" title="All 6 branches covered.">            if (choices == null || choices.isEmpty() || choices.get(0).message() == null) {</span>
+<span class="fc" id="L269">                return null;</span>
             }
-<span class="fc" id="L268">            return choices.get(0).message().content();</span>
+<span class="fc" id="L271">            return choices.get(0).message().content();</span>
         }
 
         String finishReason() {
-<span class="fc bfc" id="L272" title="All 4 branches covered.">            return choices == null || choices.isEmpty() ? &quot;none&quot; : choices.get(0).finish_reason();</span>
+<span class="fc bfc" id="L275" title="All 4 branches covered.">            return choices == null || choices.isEmpty() ? &quot;none&quot; : choices.get(0).finish_reason();</span>
         }
 
         /** Absent usage counts as zero: it costs a metric, not an answer. */
         long promptTokens() {
-<span class="fc bfc" id="L277" title="All 4 branches covered.">            return usage == null || usage.prompt_tokens() == null ? 0L : usage.prompt_tokens();</span>
+<span class="fc bfc" id="L280" title="All 4 branches covered.">            return usage == null || usage.prompt_tokens() == null ? 0L : usage.prompt_tokens();</span>
         }
 
         long completionTokens() {
-<span class="fc bfc" id="L281" title="All 4 branches covered.">            return usage == null || usage.completion_tokens() == null ? 0L : usage.completion_tokens();</span>
+<span class="fc bfc" id="L284" title="All 4 branches covered.">            return usage == null || usage.completion_tokens() == null ? 0L : usage.completion_tokens();</span>
         }
     }
 
@@ -297,11 +300,11 @@ class IonosChatClient implements ChatClient {
         // message-formatting helper and formatting helpers must not throw while an exception
         // message is being built; a NullPointerException here would replace a useful diagnosis
         // with a useless one. The uncovered branch is that ordering working.
-<span class="pc bpc" id="L300" title="2 of 4 branches missed.">        if (content == null || content.isBlank()) {</span>
-<span class="nc" id="L301">            return &quot;(empty)&quot;;</span>
+<span class="pc bpc" id="L303" title="2 of 4 branches missed.">        if (content == null || content.isBlank()) {</span>
+<span class="nc" id="L304">            return &quot;(empty)&quot;;</span>
         }
-<span class="fc" id="L303">        String collapsed = content.replaceAll(&quot;\\s+&quot;, &quot; &quot;).strip();</span>
-<span class="fc bfc" id="L304" title="All 2 branches covered.">        return collapsed.length() &lt;= 200 ? collapsed : collapsed.substring(0, 200) + &quot;…&quot;;</span>
+<span class="fc" id="L306">        String collapsed = content.replaceAll(&quot;\\s+&quot;, &quot; &quot;).strip();</span>
+<span class="fc bfc" id="L307" title="All 2 branches covered.">        return collapsed.length() &lt;= 200 ? collapsed : collapsed.substring(0, 200) + &quot;…&quot;;</span>
     }
 
     private static String firstLine(String body) {
@@ -311,22 +314,22 @@ class IonosChatClient implements ChatClient {
         // empty, so it returns &quot;&quot; and never null. The blank side IS covered, by the empty-body
         // rejection test. Keeping the null check costs nothing and keeps this helper safe to call
         // from anywhere while an exception message is being assembled.
-<span class="pc bpc" id="L314" title="1 of 4 branches missed.">        if (body == null || body.isBlank()) {</span>
-<span class="fc" id="L315">            return &quot;(no body)&quot;;</span>
+<span class="pc bpc" id="L317" title="1 of 4 branches missed.">        if (body == null || body.isBlank()) {</span>
+<span class="fc" id="L318">            return &quot;(no body)&quot;;</span>
         }
-<span class="fc" id="L317">        String trimmed = body.strip();</span>
-<span class="fc" id="L318">        int newline = trimmed.indexOf('\n');</span>
-<span class="fc bfc" id="L319" title="All 2 branches covered.">        String line = newline &lt; 0 ? trimmed : trimmed.substring(0, newline);</span>
-<span class="fc bfc" id="L320" title="All 2 branches covered.">        return line.length() &gt; 300 ? line.substring(0, 300) + &quot;…&quot; : line;</span>
+<span class="fc" id="L320">        String trimmed = body.strip();</span>
+<span class="fc" id="L321">        int newline = trimmed.indexOf('\n');</span>
+<span class="fc bfc" id="L322" title="All 2 branches covered.">        String line = newline &lt; 0 ? trimmed : trimmed.substring(0, newline);</span>
+<span class="fc bfc" id="L323" title="All 2 branches covered.">        return line.length() &gt; 300 ? line.substring(0, 300) + &quot;…&quot; : line;</span>
     }
 
     private static void sleep(Duration duration) {
         try {
-<span class="fc" id="L325">            Thread.sleep(duration.toMillis());</span>
-<span class="nc" id="L326">        } catch (InterruptedException e) {</span>
-<span class="nc" id="L327">            Thread.currentThread().interrupt();</span>
-<span class="nc" id="L328">            throw new ChatException(ChatException.Kind.TRANSPORT, &quot;interrupted while backing off&quot;, e);</span>
-<span class="fc" id="L329">        }</span>
-<span class="fc" id="L330">    }</span>
+<span class="fc" id="L328">            Thread.sleep(duration.toMillis());</span>
+<span class="nc" id="L329">        } catch (InterruptedException e) {</span>
+<span class="nc" id="L330">            Thread.currentThread().interrupt();</span>
+<span class="nc" id="L331">            throw new ChatException(ChatException.Kind.TRANSPORT, &quot;interrupted while backing off&quot;, e);</span>
+<span class="fc" id="L332">        }</span>
+<span class="fc" id="L333">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.15.202606040825</span></div></body></html>

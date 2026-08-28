@@ -112,24 +112,32 @@ class ChatBudget {
 <span class="fc" id="L112">                .single();</span>
     }
 
+    /**
+     * Writes today's spend to the log, in tokens and in euro.
+     *
+     * &lt;p&gt;NFR-7's third layer is visibility: a budget nobody can read is a budget nobody notices
+     * until it refuses work. The euro figure is an ESTIMATE from a constant rate and is logged for
+     * a sense of scale — the provider's invoice is the number that counts, and ADR-002 records
+     * that the rate is quoted in USD.
+     */
     void logUsage() {
-<span class="fc" id="L116">        Usage usage = usageToday();</span>
-<span class="fc" id="L117">        double eur = (usage.promptTokens() + usage.completionTokens()) / 1_000_000.0 * EUR_PER_MILLION_TOKENS;</span>
-<span class="fc" id="L118">        log.info(&quot;Chat usage today: {} of {} calls, {} in / {} out tokens (~EUR {})&quot;,</span>
-<span class="fc" id="L119">                usage.calls(), usage.dailyCallBudget(), usage.promptTokens(), usage.completionTokens(),</span>
-<span class="fc" id="L120">                String.format(Locale.ROOT, &quot;%.4f&quot;, eur));</span>
-<span class="fc" id="L121">    }</span>
+<span class="fc" id="L124">        Usage usage = usageToday();</span>
+<span class="fc" id="L125">        double eur = (usage.promptTokens() + usage.completionTokens()) / 1_000_000.0 * EUR_PER_MILLION_TOKENS;</span>
+<span class="fc" id="L126">        log.info(&quot;Chat usage today: {} of {} calls, {} in / {} out tokens (~EUR {})&quot;,</span>
+<span class="fc" id="L127">                usage.calls(), usage.dailyCallBudget(), usage.promptTokens(), usage.completionTokens(),</span>
+<span class="fc" id="L128">                String.format(Locale.ROOT, &quot;%.4f&quot;, eur));</span>
+<span class="fc" id="L129">    }</span>
 
     /** Today's spend, as the ingestion status endpoint reports its own. */
-<span class="fc" id="L124">    record Usage(int calls, long promptTokens, long completionTokens, int dailyCallBudget) {</span>
+<span class="fc" id="L132">    record Usage(int calls, long promptTokens, long completionTokens, int dailyCallBudget) {</span>
     }
 
     /** Thrown when today's ceiling is reached. Becomes a 503 with a readable message. */
     static class BudgetExhaustedException extends RuntimeException {
         private static final long serialVersionUID = 1L;
         BudgetExhaustedException(String message) {
-<span class="fc" id="L131">            super(message);</span>
-<span class="fc" id="L132">        }</span>
+<span class="fc" id="L139">            super(message);</span>
+<span class="fc" id="L140">        }</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.15.202606040825</span></div></body></html>

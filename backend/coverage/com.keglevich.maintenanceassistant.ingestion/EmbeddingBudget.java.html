@@ -83,18 +83,35 @@ class EmbeddingBudget {
 <span class="fc" id="L83">                .update();</span>
 <span class="fc" id="L84">    }</span>
 
+    /**
+     * Today's call count, or zero on a day nothing has been embedded yet.
+     *
+     * &lt;p&gt;{@code coalesce(max(...), 0)} rather than a plain select, and the aggregate is the whole
+     * point: there is at most one row per day, so {@code max} returns that row's value — but on a
+     * day with no row it returns one NULL row rather than none, which {@code coalesce} turns into
+     * zero. A plain select would return no rows at all and {@code single()} would throw on the
+     * first call of every day.
+     */
     int usedToday() {
-<span class="fc" id="L87">        return jdbc.sql(&quot;SELECT coalesce(max(calls), 0) FROM embedding_budget WHERE usage_date = :day&quot;)</span>
-<span class="fc" id="L88">                .param(&quot;day&quot;, LocalDate.now())</span>
-<span class="fc" id="L89">                .query(Integer.class)</span>
-<span class="fc" id="L90">                .single();</span>
+<span class="fc" id="L96">        return jdbc.sql(&quot;SELECT coalesce(max(calls), 0) FROM embedding_budget WHERE usage_date = :day&quot;)</span>
+<span class="fc" id="L97">                .param(&quot;day&quot;, LocalDate.now())</span>
+<span class="fc" id="L98">                .query(Integer.class)</span>
+<span class="fc" id="L99">                .single();</span>
     }
 
+    /**
+     * Today's prompt-token total, for the operator view rather than for the guard.
+     *
+     * &lt;p&gt;Reported and never enforced: the ceiling this class defends is a CALL count, because that
+     * is what the provider bills per request and what {@link #checkHeadroom(int)} can predict
+     * before a run. Tokens are only knowable afterwards, so a token budget would refuse work on
+     * yesterday's evidence. Same zero-on-empty-day reasoning as {@link #usedToday()}.
+     */
     long tokensToday() {
-<span class="nc" id="L94">        return jdbc.sql(&quot;SELECT coalesce(max(prompt_tokens), 0) FROM embedding_budget WHERE usage_date = :day&quot;)</span>
-<span class="nc" id="L95">                .param(&quot;day&quot;, LocalDate.now())</span>
-<span class="nc" id="L96">                .query(Long.class)</span>
-<span class="nc" id="L97">                .single();</span>
+<span class="nc" id="L111">        return jdbc.sql(&quot;SELECT coalesce(max(prompt_tokens), 0) FROM embedding_budget WHERE usage_date = :day&quot;)</span>
+<span class="nc" id="L112">                .param(&quot;day&quot;, LocalDate.now())</span>
+<span class="nc" id="L113">                .query(Long.class)</span>
+<span class="nc" id="L114">                .single();</span>
     }
 
     /**
@@ -103,19 +120,19 @@ class EmbeddingBudget {
      * that &quot;measured in cents&quot; stays a measurement and not an assumption.
      */
     void logUsage(String context) {
-<span class="nc" id="L106">        long tokens = tokensToday();</span>
-<span class="nc" id="L107">        double eur = tokens / 1_000_000.0 * 0.02;</span>
-<span class="nc" id="L108">        log.info(&quot;Embedding usage after {}: {} calls, {} input tokens today (~EUR {}), budget {}&quot;,</span>
-<span class="nc" id="L109">                context, usedToday(), tokens, String.format(java.util.Locale.ROOT, &quot;%.4f&quot;, eur),</span>
-<span class="nc" id="L110">                properties.dailyCallBudget());</span>
-<span class="nc" id="L111">    }</span>
+<span class="nc" id="L123">        long tokens = tokensToday();</span>
+<span class="nc" id="L124">        double eur = tokens / 1_000_000.0 * 0.02;</span>
+<span class="nc" id="L125">        log.info(&quot;Embedding usage after {}: {} calls, {} input tokens today (~EUR {}), budget {}&quot;,</span>
+<span class="nc" id="L126">                context, usedToday(), tokens, String.format(java.util.Locale.ROOT, &quot;%.4f&quot;, eur),</span>
+<span class="nc" id="L127">                properties.dailyCallBudget());</span>
+<span class="nc" id="L128">    }</span>
 
     /** Thrown when today's ceiling is reached. The message becomes {@code protocol.failure_reason}. */
     static class BudgetExhaustedException extends RuntimeException {
         private static final long serialVersionUID = 1L;
         BudgetExhaustedException(String message) {
-<span class="fc" id="L117">            super(message);</span>
-<span class="fc" id="L118">        }</span>
+<span class="fc" id="L134">            super(message);</span>
+<span class="fc" id="L135">        }</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.15.202606040825</span></div></body></html>

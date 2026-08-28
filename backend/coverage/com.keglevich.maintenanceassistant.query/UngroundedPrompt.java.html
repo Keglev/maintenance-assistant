@@ -27,8 +27,16 @@ final class UngroundedPrompt {
 
     static final String SCHEMA_NAME = &quot;general_suggestion&quot;;
 
+    /**
+     * The system prompt for the ungrounded path, narrowed to what this role may be told.
+     *
+     * &lt;p&gt;ROLE-DEPENDENT BECAUSE MODE B IS THE RISKIER MODE: nothing here is backed by a protocol,
+     * so an operator gets operator-safe steps and escalation advice only (NFR-3, ADR-006). The
+     * grounded path can lean on citations a reader checks; this one cannot, which is why the
+     * narrowing lives in the prompt rather than in a filter over the answer.
+     */
     static String system(QueryRole role) {
-<span class="fc" id="L31">        return &quot;&quot;&quot;</span>
+<span class="fc" id="L39">        return &quot;&quot;&quot;</span>
                 You are a maintenance assistant for an industrial plant. The plant's records contain \
                 NO protocol covering the question you are about to answer. You are answering from \
                 general engineering knowledge only.
@@ -55,7 +63,7 @@ final class UngroundedPrompt {
 
                 %s
 
-<span class="fc" id="L58">                %s&quot;&quot;&quot;.formatted(roleBlock(role), FORMAT_EXAMPLE);</span>
+<span class="fc" id="L66">                %s&quot;&quot;&quot;.formatted(roleBlock(role), FORMAT_EXAMPLE);</span>
     }
 
     /**
@@ -67,8 +75,8 @@ final class UngroundedPrompt {
      * for an Operator, Mode B is checks and escalation, full stop — the request's own words for it.
      */
     private static String roleBlock(QueryRole role) {
-<span class="fc bfc" id="L70" title="All 2 branches covered.">        if (role.isOperatorSafeOnly()) {</span>
-<span class="fc" id="L71">            return &quot;&quot;&quot;</span>
+<span class="fc bfc" id="L78" title="All 2 branches covered.">        if (role.isOperatorSafeOnly()) {</span>
+<span class="fc" id="L79">            return &quot;&quot;&quot;</span>
                     WHO IS ASKING: a machine OPERATOR, not a maintenance technician. Nothing here is \
                     documented, so the limit is absolute:
                     - Steps may ONLY be things an operator does in normal operation: looking, \
@@ -83,7 +91,7 @@ final class UngroundedPrompt {
                     instructions say so, and inform a Techniker or the Schichtleiter with what was \
                     observed.&quot;&quot;&quot;;
         }
-<span class="fc" id="L86">        return &quot;&quot;&quot;</span>
+<span class="fc" id="L94">        return &quot;&quot;&quot;</span>
                 WHO IS ASKING: a qualified maintenance technician (Techniker or Schichtleiter). \
                 Technical diagnostic steps are appropriate — measurements, component checks, likely \
                 causes to eliminate in order. Keep it a diagnostic path rather than a repair \
@@ -115,8 +123,16 @@ final class UngroundedPrompt {
             Stop after the closing bracket. Do not indent, do not add blank lines, and do not \
             write anything before or after the JSON.&quot;&quot;&quot;;
 
+    /**
+     * The user turn: the question, with the instruction to answer in its own language.
+     *
+     * &lt;p&gt;The answer is pinned to the QUESTION's language and never to the corpus's — a German
+     * question gets a German suggestion even where the model was steered by English text. Kept
+     * separate from {@link #system(QueryRole)} so the role rules and the per-question part cannot
+     * be edited into one string that drifts.
+     */
     static String user(String question) {
-<span class="fc" id="L119">        return &quot;Question: &quot; + question.strip();</span>
+<span class="fc" id="L135">        return &quot;Question: &quot; + question.strip();</span>
     }
 
     /**
@@ -124,30 +140,30 @@ final class UngroundedPrompt {
      * one. Steps are plain strings; the object has no source field and forbids extra properties.
      */
     static Map&lt;String, Object&gt; schema() {
-<span class="fc" id="L127">        Map&lt;String, Object&gt; steps = new LinkedHashMap&lt;&gt;();</span>
-<span class="fc" id="L128">        steps.put(&quot;type&quot;, &quot;array&quot;);</span>
-<span class="fc" id="L129">        steps.put(&quot;items&quot;, Map.of(&quot;type&quot;, &quot;string&quot;));</span>
+<span class="fc" id="L143">        Map&lt;String, Object&gt; steps = new LinkedHashMap&lt;&gt;();</span>
+<span class="fc" id="L144">        steps.put(&quot;type&quot;, &quot;array&quot;);</span>
+<span class="fc" id="L145">        steps.put(&quot;items&quot;, Map.of(&quot;type&quot;, &quot;string&quot;));</span>
         // The same rule as step 4 of the prompt, stated where it binds. MEASURED 2026-08-07:
         // asked in prose for at most six steps, Llama-3.3-70B ran past a 1200-token cap on the
         // Mode B demo case and came back as truncated JSON — twice. Mode A never did, and the
         // difference is that Mode A's few-shot example shows the model what &quot;done&quot; looks like
         // while an open-ended list of general advice has no natural end. Capping it in the schema
         // makes the limit a shape rather than a request.
-<span class="fc" id="L136">        steps.put(&quot;maxItems&quot;, 6);</span>
+<span class="fc" id="L152">        steps.put(&quot;maxItems&quot;, 6);</span>
         // A floor as well as a ceiling. Step 1 is the &quot;nothing is documented&quot; statement, so an
         // answer of one or two steps is a refusal wearing a list's clothes — technically valid
         // against the schema and useless to the night shift this mode exists for. Four is the
         // disclaimer plus three real steps.
-<span class="fc" id="L141">        steps.put(&quot;minItems&quot;, 4);</span>
+<span class="fc" id="L157">        steps.put(&quot;minItems&quot;, 4);</span>
 
-<span class="fc" id="L143">        Map&lt;String, Object&gt; schema = new LinkedHashMap&lt;&gt;();</span>
-<span class="fc" id="L144">        schema.put(&quot;type&quot;, &quot;object&quot;);</span>
-<span class="fc" id="L145">        schema.put(&quot;properties&quot;, Map.of(</span>
-<span class="fc" id="L146">                &quot;answer_language&quot;, Map.of(&quot;type&quot;, &quot;string&quot;, &quot;enum&quot;, List.of(&quot;de&quot;, &quot;en&quot;)),</span>
+<span class="fc" id="L159">        Map&lt;String, Object&gt; schema = new LinkedHashMap&lt;&gt;();</span>
+<span class="fc" id="L160">        schema.put(&quot;type&quot;, &quot;object&quot;);</span>
+<span class="fc" id="L161">        schema.put(&quot;properties&quot;, Map.of(</span>
+<span class="fc" id="L162">                &quot;answer_language&quot;, Map.of(&quot;type&quot;, &quot;string&quot;, &quot;enum&quot;, List.of(&quot;de&quot;, &quot;en&quot;)),</span>
                 &quot;steps&quot;, steps));
-<span class="fc" id="L148">        schema.put(&quot;required&quot;, List.of(&quot;answer_language&quot;, &quot;steps&quot;));</span>
-<span class="fc" id="L149">        schema.put(&quot;additionalProperties&quot;, false);</span>
-<span class="fc" id="L150">        return schema;</span>
+<span class="fc" id="L164">        schema.put(&quot;required&quot;, List.of(&quot;answer_language&quot;, &quot;steps&quot;));</span>
+<span class="fc" id="L165">        schema.put(&quot;additionalProperties&quot;, false);</span>
+<span class="fc" id="L166">        return schema;</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.15.202606040825</span></div></body></html>

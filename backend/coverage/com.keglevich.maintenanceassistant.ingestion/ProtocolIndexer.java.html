@@ -174,7 +174,14 @@ class ProtocolIndexer {
 <span class="fc" id="L174">                .optional();</span>
     }
 
-<span class="fc" id="L177">    private record ProtocolRow(UUID id, UUID machineId, String machineNo, String errorCode,</span>
+    /**
+     * Everything one indexing run needs about a protocol, in a single read.
+     *
+     * &lt;p&gt;{@code machineNo} and {@code errorCode} travel with the text because they are PREPENDED
+     * to each chunk before embedding: a chunk that does not name its machine retrieves for the
+     * wrong press, and the error code is the phrase a shop-floor question is most often typed with.
+     */
+<span class="fc" id="L184">    private record ProtocolRow(UUID id, UUID machineId, String machineNo, String errorCode,</span>
                                String title, String language, String sourceFile) {
     }
 }

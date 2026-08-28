@@ -80,8 +80,15 @@ public class ProtocolApprovalService {
     /** The state of one protocol's approval, as the API returns it. */
 <span class="fc" id="L81">    public record Approval(String state, String approvedBy, OffsetDateTime approvedAt) {</span>
 
+        /**
+         * Whether this protocol may be cited as approved.
+         *
+         * &lt;p&gt;Compares against the one constant rather than testing &quot;not unapproved&quot;, because the
+         * state column is three-valued in the schema and a negation would quietly promote any
+         * future third state into approved — see the V5 note on {@code CHECK}.
+         */
         public boolean approved() {
-<span class="fc" id="L84">            return APPROVED.equals(state);</span>
+<span class="fc" id="L91">            return APPROVED.equals(state);</span>
         }
     }
 
@@ -105,40 +112,40 @@ public class ProtocolApprovalService {
     @Transactional
     public Optional&lt;Approval&gt; setApproval(UUID protocolId, boolean approve, String actor,
                                           String comment) {
-<span class="fc" id="L108">        Optional&lt;Target&gt; found = load(protocolId);</span>
-<span class="fc bfc" id="L109" title="All 2 branches covered.">        if (found.isEmpty()) {</span>
-<span class="fc" id="L110">            return Optional.empty();</span>
+<span class="fc" id="L115">        Optional&lt;Target&gt; found = load(protocolId);</span>
+<span class="fc bfc" id="L116" title="All 2 branches covered.">        if (found.isEmpty()) {</span>
+<span class="fc" id="L117">            return Optional.empty();</span>
         }
-<span class="fc" id="L112">        Target target = found.get();</span>
+<span class="fc" id="L119">        Target target = found.get();</span>
 
-<span class="pc bpc" id="L114" title="1 of 2 branches missed.">        if (target.deletedAt() != null) {</span>
+<span class="pc bpc" id="L121" title="1 of 2 branches missed.">        if (target.deletedAt() != null) {</span>
             // 409, like editing an archived protocol: it exists, the same administrator can read it
             // in the archive, and &quot;no such protocol&quot; would be contradicted by their own screen.
             // Archived is final — vouching for something withdrawn from the corpus means nothing.
-<span class="nc" id="L118">            throw new ProtocolModerationService.InvalidModerationRequestException(PROTOCOL_ARCHIVED,</span>
+<span class="nc" id="L125">            throw new ProtocolModerationService.InvalidModerationRequestException(PROTOCOL_ARCHIVED,</span>
                     &quot;this protocol is in the archive; approving it would vouch for something no &quot;
                             + &quot;answer can cite&quot;);
         }
 
-<span class="fc bfc" id="L123" title="All 2 branches covered.">        boolean alreadyInState = approve == APPROVED.equals(target.approvalState());</span>
-<span class="fc bfc" id="L124" title="All 2 branches covered.">        if (alreadyInState) {</span>
-<span class="fc" id="L125">            return Optional.of(target.asApproval());</span>
+<span class="fc bfc" id="L130" title="All 2 branches covered.">        boolean alreadyInState = approve == APPROVED.equals(target.approvalState());</span>
+<span class="fc bfc" id="L131" title="All 2 branches covered.">        if (alreadyInState) {</span>
+<span class="fc" id="L132">            return Optional.of(target.asApproval());</span>
         }
 
-<span class="pc bpc" id="L128" title="1 of 4 branches missed.">        if (actor == null || actor.isBlank()) {</span>
+<span class="pc bpc" id="L135" title="1 of 4 branches missed.">        if (actor == null || actor.isBlank()) {</span>
             // An approval without an actor is not an audit record. The database says the same thing
             // with a check constraint; this catches it before the row is attempted.
-<span class="fc" id="L131">            throw new IllegalStateException(&quot;an approval must carry an actor&quot;);</span>
+<span class="fc" id="L138">            throw new IllegalStateException(&quot;an approval must carry an actor&quot;);</span>
         }
 
-<span class="fc bfc" id="L134" title="All 2 branches covered.">        if (!approve) {</span>
+<span class="fc bfc" id="L141" title="All 2 branches covered.">        if (!approve) {</span>
             // Withdrawing trust is a change to how the corpus reads, and it is the direction that
             // needs explaining.
-<span class="fc" id="L137">            comment = ProtocolModerationService.requireComment(comment);</span>
+<span class="fc" id="L144">            comment = ProtocolModerationService.requireComment(comment);</span>
         }
 
-<span class="fc" id="L140">        OffsetDateTime now = OffsetDateTime.now();</span>
-<span class="fc" id="L141">        jdbc.sql(&quot;&quot;&quot;</span>
+<span class="fc" id="L147">        OffsetDateTime now = OffsetDateTime.now();</span>
+<span class="fc" id="L148">        jdbc.sql(&quot;&quot;&quot;</span>
                         UPDATE protocol
                         SET approval_state = :state,
                             approved_by    = :approvedBy,
@@ -146,25 +153,25 @@ public class ProtocolApprovalService {
                             updated_at     = :now
                         WHERE id = :id
                         &quot;&quot;&quot;)
-<span class="fc" id="L149">                .param(&quot;id&quot;, protocolId)</span>
-<span class="fc bfc" id="L150" title="All 2 branches covered.">                .param(&quot;state&quot;, approve ? APPROVED : UNAPPROVED)</span>
-<span class="fc bfc" id="L151" title="All 2 branches covered.">                .param(&quot;approvedBy&quot;, approve ? actor : null, java.sql.Types.VARCHAR)</span>
-<span class="fc bfc" id="L152" title="All 2 branches covered.">                .param(&quot;approvedAt&quot;, approve ? now : null, java.sql.Types.TIMESTAMP_WITH_TIMEZONE)</span>
-<span class="fc" id="L153">                .param(&quot;now&quot;, now)</span>
-<span class="fc" id="L154">                .update();</span>
+<span class="fc" id="L156">                .param(&quot;id&quot;, protocolId)</span>
+<span class="fc bfc" id="L157" title="All 2 branches covered.">                .param(&quot;state&quot;, approve ? APPROVED : UNAPPROVED)</span>
+<span class="fc bfc" id="L158" title="All 2 branches covered.">                .param(&quot;approvedBy&quot;, approve ? actor : null, java.sql.Types.VARCHAR)</span>
+<span class="fc bfc" id="L159" title="All 2 branches covered.">                .param(&quot;approvedAt&quot;, approve ? now : null, java.sql.Types.TIMESTAMP_WITH_TIMEZONE)</span>
+<span class="fc" id="L160">                .param(&quot;now&quot;, now)</span>
+<span class="fc" id="L161">                .update();</span>
 
-<span class="fc bfc" id="L156" title="All 2 branches covered.">        moderation.recordEvent(protocolId, approve ? &quot;APPROVE&quot; : &quot;UNAPPROVE&quot;, actor,</span>
-<span class="fc bfc" id="L157" title="All 2 branches covered.">                approve ? approvalComment(protocolId, comment) : comment);</span>
+<span class="fc bfc" id="L163" title="All 2 branches covered.">        moderation.recordEvent(protocolId, approve ? &quot;APPROVE&quot; : &quot;UNAPPROVE&quot;, actor,</span>
+<span class="fc bfc" id="L164" title="All 2 branches covered.">                approve ? approvalComment(protocolId, comment) : comment);</span>
 
         // INFO for the same reason deletion is: this is the audit trail of the audit function, and
         // the queryable half lives in moderation_event.
-<span class="fc" id="L161">        log.info(&quot;Moderation: {} {} protocol {} ('{}', machine {})&quot;,</span>
-<span class="fc bfc" id="L162" title="All 2 branches covered.">                actor, approve ? &quot;approved&quot; : &quot;un-approved&quot;, protocolId, target.title(),</span>
-<span class="fc" id="L163">                target.machineNo());</span>
+<span class="fc" id="L168">        log.info(&quot;Moderation: {} {} protocol {} ('{}', machine {})&quot;,</span>
+<span class="fc bfc" id="L169" title="All 2 branches covered.">                actor, approve ? &quot;approved&quot; : &quot;un-approved&quot;, protocolId, target.title(),</span>
+<span class="fc" id="L170">                target.machineNo());</span>
 
-<span class="fc bfc" id="L165" title="All 2 branches covered.">        return Optional.of(approve</span>
-<span class="fc" id="L166">                ? new Approval(APPROVED, actor, now)</span>
-<span class="fc" id="L167">                : new Approval(UNAPPROVED, null, null));</span>
+<span class="fc bfc" id="L172" title="All 2 branches covered.">        return Optional.of(approve</span>
+<span class="fc" id="L173">                ? new Approval(APPROVED, actor, now)</span>
+<span class="fc" id="L174">                : new Approval(UNAPPROVED, null, null));</span>
     }
 
     /** The prefix an auditor can grep the ledger for. Stable text, like an error code. */
@@ -194,24 +201,24 @@ public class ProtocolApprovalService {
      * did not happen.
      */
     private String approvalComment(UUID protocolId, String comment) {
-<span class="fc" id="L197">        ProtocolSimilarityService.SimilarityReport report = similarity.findSimilar(protocolId);</span>
-<span class="fc bfc" id="L198" title="All 2 branches covered.">        String note = report.any()</span>
-<span class="fc" id="L199">                ? APPROVED_DESPITE + report.total() + &quot; similar protocol(s) on this machine: &quot;</span>
-<span class="fc" id="L200">                        + report.allIds().stream().map(UUID::toString)</span>
-<span class="fc" id="L201">                                .collect(java.util.stream.Collectors.joining(&quot;, &quot;))</span>
-<span class="fc" id="L202">                : null;</span>
+<span class="fc" id="L204">        ProtocolSimilarityService.SimilarityReport report = similarity.findSimilar(protocolId);</span>
+<span class="fc bfc" id="L205" title="All 2 branches covered.">        String note = report.any()</span>
+<span class="fc" id="L206">                ? APPROVED_DESPITE + report.total() + &quot; similar protocol(s) on this machine: &quot;</span>
+<span class="fc" id="L207">                        + report.allIds().stream().map(UUID::toString)</span>
+<span class="fc" id="L208">                                .collect(java.util.stream.Collectors.joining(&quot;, &quot;))</span>
+<span class="fc" id="L209">                : null;</span>
 
-<span class="pc bpc" id="L204" title="1 of 4 branches missed.">        String stated = comment == null || comment.isBlank() ? null : comment.trim();</span>
-<span class="pc bpc" id="L205" title="1 of 4 branches missed.">        if (stated != null &amp;&amp; note != null) {</span>
+<span class="pc bpc" id="L211" title="1 of 4 branches missed.">        String stated = comment == null || comment.isBlank() ? null : comment.trim();</span>
+<span class="pc bpc" id="L212" title="1 of 4 branches missed.">        if (stated != null &amp;&amp; note != null) {</span>
             // The human's words first, the system's observation after: a reader of the ledger is
             // looking for what the approver said, and a machine-generated clause in front of it
             // reads as though the system did the approving.
-<span class="fc" id="L209">            return stated + &quot; — &quot; + note;</span>
+<span class="fc" id="L216">            return stated + &quot; — &quot; + note;</span>
         }
-<span class="pc bpc" id="L211" title="1 of 2 branches missed.">        if (stated != null) {</span>
-<span class="nc" id="L212">            return stated;</span>
+<span class="pc bpc" id="L218" title="1 of 2 branches missed.">        if (stated != null) {</span>
+<span class="nc" id="L219">            return stated;</span>
         }
-<span class="fc bfc" id="L214" title="All 2 branches covered.">        return note != null ? note : &quot;approved without further comment&quot;;</span>
+<span class="fc bfc" id="L221" title="All 2 branches covered.">        return note != null ? note : &quot;approved without further comment&quot;;</span>
     }
 
     /**
@@ -222,39 +229,54 @@ public class ProtocolApprovalService {
      * showed and what the ledger recorded cannot disagree.
      */
     public ProtocolSimilarityService.SimilarityReport similarTo(UUID protocolId) {
-<span class="nc" id="L225">        return similarity.findSimilar(protocolId);</span>
+<span class="nc" id="L232">        return similarity.findSimilar(protocolId);</span>
     }
 
     /** The approval state of one protocol, for the read paths. */
     public Optional&lt;Approval&gt; find(UUID protocolId) {
-<span class="fc" id="L230">        return load(protocolId).map(Target::asApproval);</span>
+<span class="fc" id="L237">        return load(protocolId).map(Target::asApproval);</span>
     }
 
     private Optional&lt;Target&gt; load(UUID protocolId) {
-<span class="fc" id="L234">        return jdbc.sql(&quot;&quot;&quot;</span>
+<span class="fc" id="L241">        return jdbc.sql(&quot;&quot;&quot;</span>
                         SELECT p.title, p.uploaded_by, p.deleted_at,
                                p.approval_state, p.approved_by, p.approved_at, m.machine_no
                         FROM protocol p JOIN machine m ON m.id = p.machine_id
                         WHERE p.id = :id
                         &quot;&quot;&quot;)
-<span class="fc" id="L240">                .param(&quot;id&quot;, protocolId)</span>
-<span class="fc" id="L241">                .query((rs, rowNum) -&gt; new Target(</span>
-<span class="fc" id="L242">                        rs.getString(&quot;title&quot;),</span>
-<span class="fc" id="L243">                        rs.getString(&quot;uploaded_by&quot;),</span>
-<span class="fc" id="L244">                        rs.getObject(&quot;deleted_at&quot;, OffsetDateTime.class),</span>
-<span class="fc" id="L245">                        rs.getString(&quot;approval_state&quot;),</span>
-<span class="fc" id="L246">                        rs.getString(&quot;approved_by&quot;),</span>
-<span class="fc" id="L247">                        rs.getObject(&quot;approved_at&quot;, OffsetDateTime.class),</span>
-<span class="fc" id="L248">                        rs.getString(&quot;machine_no&quot;)))</span>
-<span class="fc" id="L249">                .optional();</span>
+<span class="fc" id="L247">                .param(&quot;id&quot;, protocolId)</span>
+<span class="fc" id="L248">                .query((rs, rowNum) -&gt; new Target(</span>
+<span class="fc" id="L249">                        rs.getString(&quot;title&quot;),</span>
+<span class="fc" id="L250">                        rs.getString(&quot;uploaded_by&quot;),</span>
+<span class="fc" id="L251">                        rs.getObject(&quot;deleted_at&quot;, OffsetDateTime.class),</span>
+<span class="fc" id="L252">                        rs.getString(&quot;approval_state&quot;),</span>
+<span class="fc" id="L253">                        rs.getString(&quot;approved_by&quot;),</span>
+<span class="fc" id="L254">                        rs.getObject(&quot;approved_at&quot;, OffsetDateTime.class),</span>
+<span class="fc" id="L255">                        rs.getString(&quot;machine_no&quot;)))</span>
+<span class="fc" id="L256">                .optional();</span>
     }
 
-<span class="fc" id="L252">    private record Target(String title, String uploadedBy, OffsetDateTime deletedAt,</span>
+    /**
+     * The protocol an approval request names, read once with everything the decision needs.
+     *
+     * &lt;p&gt;One query rather than several because the checks are a chain — archived, already in
+     * state, four-eyes — and each of them refuses on a different column of the SAME row. Reading
+     * them separately would let the row change between two checks that are supposed to describe
+     * one instant.
+     */
+<span class="fc" id="L267">    private record Target(String title, String uploadedBy, OffsetDateTime deletedAt,</span>
                           String approvalState, String approvedBy, OffsetDateTime approvedAt,
                           String machineNo) {
 
+        /**
+         * The unchanged state, for the idempotent path that writes nothing.
+         *
+         * &lt;p&gt;Built from the row just read rather than re-queried: a request asserting the state a
+         * protocol is already in must answer with what is true now, and a second read could only
+         * disagree with the check that just decided nothing needed doing.
+         */
         Approval asApproval() {
-<span class="fc" id="L257">            return new Approval(approvalState, approvedBy, approvedAt);</span>
+<span class="fc" id="L279">            return new Approval(approvalState, approvedBy, approvedAt);</span>
         }
     }
 }

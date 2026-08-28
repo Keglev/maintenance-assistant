@@ -248,23 +248,25 @@ class IonosEmbeddingClient implements EmbeddingClient {
     @JsonIgnoreProperties(ignoreUnknown = true)
 <span class="fc" id="L249">    record EmbeddingResponse(List&lt;Item&gt; data, Usage usage, String model) {</span>
 
+        /** Provider field {@code data[]}: {@code embedding} is the vector written to {@code chunk.embedding}. */
         @JsonIgnoreProperties(ignoreUnknown = true)
-<span class="fc" id="L252">        record Item(List&lt;Double&gt; embedding) {</span>
+<span class="fc" id="L253">        record Item(List&lt;Double&gt; embedding) {</span>
         }
 
+        /** Provider field {@code usage}: {@code prompt_tokens} feeds {@link EmbeddingBudget#record}, which bills per call. */
         @JsonIgnoreProperties(ignoreUnknown = true)
-<span class="fc" id="L256">        record Usage(Long prompt_tokens, Long total_tokens) {</span>
+<span class="fc" id="L258">        record Usage(Long prompt_tokens, Long total_tokens) {</span>
         }
 
         /** Absent usage counts as zero: it costs a metric, not a protocol. */
         long promptTokens() {
-<span class="fc bfc" id="L261" title="All 2 branches covered.">            if (usage == null) {</span>
-<span class="fc" id="L262">                return 0L;</span>
+<span class="fc bfc" id="L263" title="All 2 branches covered.">            if (usage == null) {</span>
+<span class="fc" id="L264">                return 0L;</span>
             }
-<span class="fc bfc" id="L264" title="All 4 branches covered.">            if (usage.prompt_tokens() != null &amp;&amp; usage.prompt_tokens() &gt; 0) {</span>
-<span class="fc" id="L265">                return usage.prompt_tokens();</span>
+<span class="fc bfc" id="L266" title="All 4 branches covered.">            if (usage.prompt_tokens() != null &amp;&amp; usage.prompt_tokens() &gt; 0) {</span>
+<span class="fc" id="L267">                return usage.prompt_tokens();</span>
             }
-<span class="fc bfc" id="L267" title="All 2 branches covered.">            return usage.total_tokens() == null ? 0L : usage.total_tokens();</span>
+<span class="fc bfc" id="L269" title="All 2 branches covered.">            return usage.total_tokens() == null ? 0L : usage.total_tokens();</span>
         }
     }
 
@@ -291,21 +293,21 @@ class IonosEmbeddingClient implements EmbeddingClient {
      * print it 6 times and a re-index of everything hundreds.
      */
     private void warnIfAnotherModelAnswered(EmbeddingResponse response) {
-<span class="fc" id="L294">        String answered = response.model();</span>
-<span class="fc bfc" id="L295" title="All 6 branches covered.">        if (answered == null || answered.equals(properties.model()) || !modelMismatchUnreported) {</span>
-<span class="fc" id="L296">            return;</span>
+<span class="fc" id="L296">        String answered = response.model();</span>
+<span class="fc bfc" id="L297" title="All 6 branches covered.">        if (answered == null || answered.equals(properties.model()) || !modelMismatchUnreported) {</span>
+<span class="fc" id="L298">            return;</span>
         }
-<span class="fc" id="L298">        modelMismatchUnreported = false;</span>
-<span class="fc" id="L299">        log.warn(&quot;Embedding provider answered as model '{}' but '{}' was requested at {}. &quot;</span>
+<span class="fc" id="L300">        modelMismatchUnreported = false;</span>
+<span class="fc" id="L301">        log.warn(&quot;Embedding provider answered as model '{}' but '{}' was requested at {}. &quot;</span>
                         + &quot;Vectors written now may not be comparable with vectors already stored — &quot;
                         + &quot;verify with maintenance.ops.verify-embeddings before trusting retrieval.&quot;,
-<span class="fc" id="L302">                answered, properties.model(), properties.baseUrl());</span>
-<span class="fc" id="L303">    }</span>
+<span class="fc" id="L304">                answered, properties.model(), properties.baseUrl());</span>
+<span class="fc" id="L305">    }</span>
 
     /** One provider request, counted whether or not its response could be used. */
     private void recordUsage(long promptTokens) {
-<span class="fc" id="L307">        budget.record(1, promptTokens);</span>
-<span class="fc" id="L308">    }</span>
+<span class="fc" id="L309">        budget.record(1, promptTokens);</span>
+<span class="fc" id="L310">    }</span>
 
     private static String firstLine(String body) {
         // COVERAGE WAIVER (2026-08-22, register in docs/REFACTOR-STANDARDS.txt; raised as F3 in
@@ -314,22 +316,22 @@ class IonosEmbeddingClient implements EmbeddingClient {
         // defaults to empty, so it returns &quot;&quot; and never null. The blank side IS covered, by the
         // empty-body rejection test added with #80. The check stays because this helper runs while
         // a failure_reason is being built, and that is the worst possible place to throw.
-<span class="pc bpc" id="L317" title="1 of 4 branches missed.">        if (body == null || body.isBlank()) {</span>
-<span class="fc" id="L318">            return &quot;(no body)&quot;;</span>
+<span class="pc bpc" id="L319" title="1 of 4 branches missed.">        if (body == null || body.isBlank()) {</span>
+<span class="fc" id="L320">            return &quot;(no body)&quot;;</span>
         }
-<span class="fc" id="L320">        String trimmed = body.strip();</span>
-<span class="fc" id="L321">        int newline = trimmed.indexOf('\n');</span>
-<span class="fc bfc" id="L322" title="All 2 branches covered.">        String line = newline &lt; 0 ? trimmed : trimmed.substring(0, newline);</span>
-<span class="fc bfc" id="L323" title="All 2 branches covered.">        return line.length() &gt; 300 ? line.substring(0, 300) + &quot;…&quot; : line;</span>
+<span class="fc" id="L322">        String trimmed = body.strip();</span>
+<span class="fc" id="L323">        int newline = trimmed.indexOf('\n');</span>
+<span class="fc bfc" id="L324" title="All 2 branches covered.">        String line = newline &lt; 0 ? trimmed : trimmed.substring(0, newline);</span>
+<span class="fc bfc" id="L325" title="All 2 branches covered.">        return line.length() &gt; 300 ? line.substring(0, 300) + &quot;…&quot; : line;</span>
     }
 
     private static void sleep(Duration duration) {
         try {
-<span class="fc" id="L328">            Thread.sleep(duration.toMillis());</span>
-<span class="nc" id="L329">        } catch (InterruptedException e) {</span>
-<span class="nc" id="L330">            Thread.currentThread().interrupt();</span>
-<span class="nc" id="L331">            throw new EmbeddingException(&quot;interrupted while backing off&quot;, e);</span>
-<span class="fc" id="L332">        }</span>
-<span class="fc" id="L333">    }</span>
+<span class="fc" id="L330">            Thread.sleep(duration.toMillis());</span>
+<span class="nc" id="L331">        } catch (InterruptedException e) {</span>
+<span class="nc" id="L332">            Thread.currentThread().interrupt();</span>
+<span class="nc" id="L333">            throw new EmbeddingException(&quot;interrupted while backing off&quot;, e);</span>
+<span class="fc" id="L334">        }</span>
+<span class="fc" id="L335">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.15.202606040825</span></div></body></html>

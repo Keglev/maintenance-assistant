@@ -144,39 +144,60 @@ public class EmbeddingProvenanceVerifier {
 <span class="fc" id="L144">                .single();</span>
     }
 
-<span class="fc" id="L147">    private record StoredChunk(UUID id, UUID protocolId, String content, String title) {</span>
+    /**
+     * One chunk as stored, carrying the text the verifier re-embeds to compare against.
+     *
+     * &lt;p&gt;{@code content} is read back from the database rather than re-derived from the source
+     * file, because the question this class answers is whether the STORED vector matches the
+     * STORED text — re-chunking the file would test the chunker instead.
+     */
+<span class="fc" id="L154">    private record StoredChunk(UUID id, UUID protocolId, String content, String title) {</span>
     }
 
     /** One chunk's agreement between its stored vector and a fresh embedding of its own text. */
-<span class="fc" id="L151">    public record Probe(UUID protocolId, String title, double agreement) {</span>
+<span class="fc" id="L158">    public record Probe(UUID protocolId, String title, double agreement) {</span>
 
+        /**
+         * Whether this chunk's stored vector belongs to some other text.
+         *
+         * &lt;p&gt;A threshold rather than an equality test, and the gap is what makes it safe: the same
+         * text re-embeds at ~0.9999 while a foreign vector scores at most ~0.04, so anything near
+         * the floor is a mis-stored vector and not a rounding difference.
+         */
         public boolean foreign() {
-<span class="fc bfc" id="L154" title="All 2 branches covered.">            return agreement &lt; AGREEMENT_FLOOR;</span>
+<span class="fc bfc" id="L168" title="All 2 branches covered.">            return agreement &lt; AGREEMENT_FLOOR;</span>
         }
     }
 
     /** What the scan found. */
-<span class="fc" id="L159">    public record Report(List&lt;Probe&gt; probes) {</span>
+<span class="fc" id="L173">    public record Report(List&lt;Probe&gt; probes) {</span>
 
+        /** The probes that failed, which is what an operator reads first and a test asserts on. */
         public List&lt;Probe&gt; foreign() {
-<span class="fc" id="L162">            return probes.stream().filter(Probe::foreign).toList();</span>
+<span class="fc" id="L177">            return probes.stream().filter(Probe::foreign).toList();</span>
         }
 
+        /**
+         * Whether the scan found nothing wrong.
+         *
+         * &lt;p&gt;Named for the answer rather than for the count so a caller reads the verdict instead
+         * of re-deriving it; an empty foreign list is the definition of clean, not a coincidence.
+         */
         public boolean clean() {
-<span class="fc" id="L166">            return foreign().isEmpty();</span>
+<span class="fc" id="L187">            return foreign().isEmpty();</span>
         }
 
         /** Operator-readable, and the same text in the runner's output and a test's failure. */
         public String describe() {
-<span class="fc" id="L171">            StringBuilder out = new StringBuilder(String.format(Locale.ROOT,</span>
+<span class="fc" id="L192">            StringBuilder out = new StringBuilder(String.format(Locale.ROOT,</span>
                     &quot;embedding provenance: %d chunks checked, %d foreign%n&quot;,
-<span class="fc" id="L173">                    probes.size(), foreign().size()));</span>
-<span class="fc bfc" id="L174" title="All 2 branches covered.">            for (Probe probe : probes) {</span>
-<span class="fc" id="L175">                out.append(String.format(Locale.ROOT, &quot;  %s  %.4f  %s%n&quot;,</span>
-<span class="fc bfc" id="L176" title="All 2 branches covered.">                        probe.foreign() ? &quot;FOREIGN&quot; : &quot;ok     &quot;, probe.agreement(), probe.title()));</span>
-<span class="fc" id="L177">            }</span>
-<span class="fc bfc" id="L178" title="All 2 branches covered.">            if (!clean()) {</span>
-<span class="fc" id="L179">                out.append(&quot;&quot;&quot;</span>
+<span class="fc" id="L194">                    probes.size(), foreign().size()));</span>
+<span class="fc bfc" id="L195" title="All 2 branches covered.">            for (Probe probe : probes) {</span>
+<span class="fc" id="L196">                out.append(String.format(Locale.ROOT, &quot;  %s  %.4f  %s%n&quot;,</span>
+<span class="fc bfc" id="L197" title="All 2 branches covered.">                        probe.foreign() ? &quot;FOREIGN&quot; : &quot;ok     &quot;, probe.agreement(), probe.title()));</span>
+<span class="fc" id="L198">            }</span>
+<span class="fc bfc" id="L199" title="All 2 branches covered.">            if (!clean()) {</span>
+<span class="fc" id="L200">                out.append(&quot;&quot;&quot;</span>
 
                         These chunks were written by a DIFFERENT embedding model than the one
                         configured now. They are orthogonal to every question, so their protocols
@@ -184,7 +205,7 @@ public class EmbeddingProvenanceVerifier {
                         to them. Re-index the affected protocols through the configured provider.
                         &quot;&quot;&quot;);
             }
-<span class="fc" id="L187">            return out.toString();</span>
+<span class="fc" id="L208">            return out.toString();</span>
         }
     }
 }

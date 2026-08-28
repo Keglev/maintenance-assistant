@@ -45,35 +45,44 @@ import java.util.UUID;
          */
         boolean approved) {
 
+    /**
+     * Reads one corpus entry, refusing the file rather than repairing it.
+     *
+     * &lt;p&gt;The identity and machine fields use {@code get(...)} and will throw on a missing key,
+     * while the prose fields go through {@code text(...)} and tolerate absence. That split is the
+     * contract: a seed row with no id or no machine cannot be inserted at all, but a protocol with
+     * no {@code parts_used} is an ordinary protocol. A loader that defaulted the first group would
+     * seed rows nothing can cite.
+     */
     static CorpusProtocol from(JsonNode node) {
-<span class="fc" id="L49">        return new CorpusProtocol(</span>
-<span class="fc" id="L50">                UUID.fromString(node.get(&quot;id&quot;).asText()),</span>
-<span class="fc" id="L51">                UUID.fromString(node.get(&quot;machine_id&quot;).asText()),</span>
-<span class="fc" id="L52">                node.get(&quot;machine_no&quot;).asText(),</span>
-<span class="fc" id="L53">                LocalDate.parse(node.get(&quot;incident_date&quot;).asText()),</span>
-<span class="fc" id="L54">                node.get(&quot;protocol_type&quot;).asText(),</span>
-<span class="fc" id="L55">                text(node, &quot;error_code&quot;),</span>
-<span class="fc" id="L56">                node.get(&quot;title&quot;).asText(),</span>
-<span class="fc" id="L57">                text(node, &quot;symptom&quot;),</span>
-<span class="fc" id="L58">                text(node, &quot;cause&quot;),</span>
-<span class="fc" id="L59">                text(node, &quot;action&quot;),</span>
-<span class="fc" id="L60">                text(node, &quot;parts_used&quot;),</span>
-<span class="fc" id="L61">                integer(node, &quot;downtime_minutes&quot;),</span>
-<span class="fc" id="L62">                text(node, &quot;technician_initials&quot;),</span>
-<span class="fc" id="L63">                node.get(&quot;language&quot;).asText(),</span>
-<span class="fc" id="L64">                node.get(&quot;uploaded_by&quot;).asText(),</span>
-<span class="pc bpc" id="L65" title="1 of 4 branches missed.">                node.hasNonNull(&quot;approved&quot;) &amp;&amp; node.get(&quot;approved&quot;).asBoolean());</span>
+<span class="fc" id="L58">        return new CorpusProtocol(</span>
+<span class="fc" id="L59">                UUID.fromString(node.get(&quot;id&quot;).asText()),</span>
+<span class="fc" id="L60">                UUID.fromString(node.get(&quot;machine_id&quot;).asText()),</span>
+<span class="fc" id="L61">                node.get(&quot;machine_no&quot;).asText(),</span>
+<span class="fc" id="L62">                LocalDate.parse(node.get(&quot;incident_date&quot;).asText()),</span>
+<span class="fc" id="L63">                node.get(&quot;protocol_type&quot;).asText(),</span>
+<span class="fc" id="L64">                text(node, &quot;error_code&quot;),</span>
+<span class="fc" id="L65">                node.get(&quot;title&quot;).asText(),</span>
+<span class="fc" id="L66">                text(node, &quot;symptom&quot;),</span>
+<span class="fc" id="L67">                text(node, &quot;cause&quot;),</span>
+<span class="fc" id="L68">                text(node, &quot;action&quot;),</span>
+<span class="fc" id="L69">                text(node, &quot;parts_used&quot;),</span>
+<span class="fc" id="L70">                integer(node, &quot;downtime_minutes&quot;),</span>
+<span class="fc" id="L71">                text(node, &quot;technician_initials&quot;),</span>
+<span class="fc" id="L72">                node.get(&quot;language&quot;).asText(),</span>
+<span class="fc" id="L73">                node.get(&quot;uploaded_by&quot;).asText(),</span>
+<span class="pc bpc" id="L74" title="1 of 4 branches missed.">                node.hasNonNull(&quot;approved&quot;) &amp;&amp; node.get(&quot;approved&quot;).asBoolean());</span>
     }
 
     /** Nullable string field: absent and JSON {@code null} both mean &quot;not recorded&quot;. */
     private static String text(JsonNode node, String field) {
-<span class="fc" id="L70">        JsonNode value = node.get(field);</span>
-<span class="pc bpc" id="L71" title="1 of 4 branches missed.">        return value == null || value.isNull() ? null : value.asText();</span>
+<span class="fc" id="L79">        JsonNode value = node.get(field);</span>
+<span class="pc bpc" id="L80" title="1 of 4 branches missed.">        return value == null || value.isNull() ? null : value.asText();</span>
     }
 
     private static Integer integer(JsonNode node, String field) {
-<span class="fc" id="L75">        JsonNode value = node.get(field);</span>
-<span class="pc bpc" id="L76" title="2 of 4 branches missed.">        return value == null || value.isNull() ? null : value.asInt();</span>
+<span class="fc" id="L84">        JsonNode value = node.get(field);</span>
+<span class="pc bpc" id="L85" title="2 of 4 branches missed.">        return value == null || value.isNull() ? null : value.asInt();</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.15.202606040825</span></div></body></html>

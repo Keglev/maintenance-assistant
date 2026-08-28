@@ -117,11 +117,18 @@ public class IngestionBacklogService {
 <span class="nc" id="L117">        return embeddingProperties.dailyCallBudget();</span>
     }
 
-<span class="nc" id="L120">    public record StatusCount(String status, long count) {</span>
+    /**
+     * How many protocols sit in one indexing state, as the status endpoint reports them.
+     *
+     * &lt;p&gt;{@code status} is the database's own string rather than an enum: the set is owned by the
+     * schema and a new state added there should surface in the operator view without a code change
+     * that only renames it.
+     */
+<span class="nc" id="L127">    public record StatusCount(String status, long count) {</span>
     }
 
     /** @param estimatedEur input tokens priced at the ADR-002 rate, rounded to five decimals */
-<span class="nc" id="L124">    public record Usage(int callsToday, int callsRemaining, long promptTokensToday, double estimatedEur) {</span>
+<span class="nc" id="L131">    public record Usage(int callsToday, int callsRemaining, long promptTokensToday, double estimatedEur) {</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.15.202606040825</span></div></body></html>

@@ -27,8 +27,9 @@ import java.util.UUID;
  * Reading protocols back: the source document behind a citation, and the fate of one's own uploads.
  *
  * <p>Separate from {@link ProtocolUploadController} because the authorisation rules are genuinely
- * different, not because the paths are. Writing is Schichtleiter-only by decision (DECISIONS.txt:
- * quality, consistency, anti-garbage). Reading a source is open to every shop-floor role, and has to
+ * different, not because the paths are. Writing belongs to the Techniker and the Schichtleiter
+ * (decision 3 of 2026-08-11); correcting belongs to the Schichtleiter alone, and lives under
+ * /api/moderation. Reading a source is open to every shop-floor role, and has to
  * be: Mode A's promise is that each claim names a protocol the reader can open and check, and a
  * citation nobody may follow is a citation they have to take on trust — which is the state this
  * whole application exists to end.
@@ -74,12 +75,24 @@ class ProtocolReadController {
     }
 
     @GetMapping("/mine")
-    @PreAuthorize("hasRole('SCHICHTLEITER')")
+    /*
+     * BOTH ROLES THAT MAY WRITE — decision 3 of 2026-08-11, applied here 2026-08-28.
+     *
+     * The Techniker gained the upload in v1.2.0 and did not gain this, which left a role that may
+     * file a protocol and cannot see what became of it. Upload answers 202, so this list is the
+     * only place indexing failure is visible; without it a Techniker's failed upload is silent.
+     *
+     * WIDENING THE ROLE WIDENS NOTHING ACROSS USERS. The query is self-scoped by the token's
+     * preferred_username, so each caller sees their own rows and no one else's — a second role
+     * here adds readers of their own uploads, not readers of anybody else's.
+     */
+    @PreAuthorize("hasAnyRole('TECHNIKER', 'SCHICHTLEITER')")
     @Operation(summary = "What happened to the protocols you uploaded",
             description = "The 50 most recent uploads of the calling user, newest first, with "
                     + "status RECEIVED / INDEXED / FAILED and the failure reason. Upload answers "
                     + "202, so this is where a document becoming searchable is actually visible.")
-    @ApiResponse(responseCode = "403", description = "Caller is not a Schichtleiter")
+    @ApiResponse(responseCode = "403",
+            description = "Caller is neither a Techniker nor a Schichtleiter")
     List<ProtocolStatusService.UploadStatus> myUploads(@AuthenticationPrincipal Jwt jwt) {
         // The username claim, matching what the upload path writes into uploaded_by (ADR-003).
         // Taken from the token and never from a parameter: "show me someone else's uploads" is not

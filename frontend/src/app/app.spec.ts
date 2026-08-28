@@ -58,24 +58,25 @@ describe('App', () => {
     expect(header?.textContent).toContain('Wartungsassistent');
   });
 
-  it('offers the upload view to a schichtleiter', async () => {
-    const fixture = await render(['schichtleiter']);
+  it('offers the upload view to both writers', async () => {
+    // Decision 3 of 2026-08-11 made the Techniker a writer; this entry followed on 2026-08-28.
+    for (const role of ['techniker', 'schichtleiter']) {
+      const fixture = await render([role]);
 
-    expect(
-      (fixture.nativeElement as HTMLElement).querySelector('[data-testid="nav-upload"]'),
-    ).not.toBeNull();
+      expect(
+        (fixture.nativeElement as HTMLElement).querySelector('[data-testid="nav-upload"]'),
+      ).not.toBeNull();
+    }
   });
 
-  it('hides the upload view from an operator and from a techniker', async () => {
-    for (const role of ['operator', 'techniker']) {
-      const fixture = await render([role]);
-      const element = fixture.nativeElement as HTMLElement;
+  it('hides the upload view from an operator', async () => {
+    const fixture = await render(['operator']);
+    const element = fixture.nativeElement as HTMLElement;
 
-      // Presentation, not protection — but a role that cannot upload should not be shown a door
-      // that opens onto a 403.
-      expect(element.querySelector('[data-testid="nav-upload"]')).toBeNull();
-      expect(element.querySelector('[data-testid="nav-search"]')).not.toBeNull();
-    }
+    // Presentation, not protection — but a role that cannot upload should not be shown a door
+    // that opens onto a 403.
+    expect(element.querySelector('[data-testid="nav-upload"]')).toBeNull();
+    expect(element.querySelector('[data-testid="nav-search"]')).not.toBeNull();
   });
 
   it('offers the protocol view to the two roles with a job on it, and to no others', async () => {

@@ -83,12 +83,20 @@ export class App {
   /**
    * Whether to offer the upload view at all.
    *
+   * The right to write was ONE role's by decision until 2026-08-11 and has been TWO roles' since:
+   * decision 3 gave the Techniker the upload, because the person standing at the machine when it
+   * is fixed is the person who knows what happened to it. The backend applied it in v1.2.0 and
+   * this computed did not, so until 2026-08-28 a Techniker had the permission and no door onto it.
+   * Correcting did not move and is still the Schichtleiter's.
+   *
    * Hiding the link is presentation, not protection — the route guard and, above all, the backend
-   * decide who may upload. What it buys is that the three roles who cannot upload are not shown a
+   * decide who may upload. What it buys is that the two roles who cannot upload are not shown a
    * door that opens onto a 403.
    */
   protected readonly canUpload = computed(() =>
-    this.auth.realmRoles().some((role) => role.toLowerCase() === 'schichtleiter'),
+    this.auth
+      .realmRoles()
+      .some((role) => ['techniker', 'schichtleiter'].includes(role.toLowerCase())),
   );
 
   /**

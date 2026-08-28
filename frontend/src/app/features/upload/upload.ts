@@ -18,20 +18,22 @@ type InputMode = 'file' | 'text';
 const PAGE_SIZE = 5;
 
 /**
- * The Schichtleiter's upload view.
+ * The writers' upload view — the Techniker's and the Schichtleiter's.
  *
- * Write access belongs to one role by decision (DECISIONS.txt: quality, consistency,
- * anti-garbage), and the route is guarded accordingly — but the guard is convenience. The backend
- * refuses the upload for anyone else, which is the check that counts (NFR-3).
+ * Write access belongs to two roles by decision (DECISIONS.txt: quality, consistency,
+ * anti-garbage; then decision 3 of 2026-08-11, which added the Techniker), and the route is
+ * guarded accordingly — but the guard is convenience. The backend refuses the upload for anyone
+ * else, which is the check that counts (NFR-3). Correcting is not here and is not theirs: it lives
+ * in the protocol view and belongs to the Schichtleiter alone.
  *
  * The view is built around the fact that upload answers **202, not 201**: the protocol exists but
  * is not searchable until a worker has chunked and embedded it. Hiding that behind a success
- * message would teach a Schichtleiter that uploading and being findable are the same event, and the
+ * message would teach a writer that uploading and being findable are the same event, and the
  * first time indexing failed they would have no idea. So the status list is part of the view, and
  * it shows the failure reason rather than only the failure.
  *
  * **A protocol can be typed here as well as uploaded.** Requiring a `.txt` described a workflow that
- * does not exist: the Schichtleiter writes the protocol at the end of the shift, and nobody opens an
+ * does not exist: the writer types the protocol at the end of the shift, and nobody opens an
  * editor, saves a file and then picks it. Typing is the normal case and the file was the special one.
  *
  * The typed text is wrapped into a `File` in the browser and sent through the **same multipart
@@ -106,7 +108,7 @@ export class Upload {
    *
    * A machine, a title, and content in whichever mode is active. The title is required in both
    * modes because a protocol without one cannot be reviewed in any list — "Meine Uploads" would
-   * show a machine number and a date, and the Schichtleiter would have to open each row to find out
+   * show a machine number and a date, and the uploader would have to open each row to find out
    * which one is which.
    *
    * Deliberately shallow beyond that: size caps and rate limits belong to the upload-guards work
@@ -167,7 +169,7 @@ export class Upload {
     form.append('type', this.type());
     // No `language` part. Retrieval is language-agnostic by architecture — bge-m3 embeds DE and EN
     // into one space and the answer is pinned to the QUESTION's language — so the column never
-    // reached a decision, and asking a Schichtleiter to classify their own prose was a question
+    // reached a decision, and asking a writer to classify their own prose was a question
     // whose answer nothing read. The endpoint declares the parameter optional; see DECISIONS.txt.
     form.append('title', this.title().trim());
     if (this.errorCode().trim()) {
@@ -273,7 +275,7 @@ export class Upload {
  *
  * ASCII only, and not for tidiness: this name travels to the volume and comes back in
  * `Content-Disposition` when the viewer offers the download, and every layer in between has its own
- * opinion about non-ASCII filenames. The machine number is the useful half — a Schichtleiter
+ * opinion about non-ASCII filenames. The machine number is the useful half — an uploader
  * scanning the uploads list wants to see which press it was — and the timestamp to the second is
  * what keeps two protocols typed in the same shift apart.
  *

@@ -95,6 +95,33 @@ export async function selectSearchMachine(page: Page, machineNo: string): Promis
  *
  * <p>The caller must already be signed in as an admin and on the moderation view.
  */
+/**
+ * Files a throwaway protocol through the upload view, as whichever writer is named.
+ *
+ * <p>ONE UPLOAD HARNESS FOR THE SUITE. It was local to approval.e2e.ts and hard-coded the
+ * Schichtleiter until 2026-08-28, when decision 3 reached the UI and a second writer needed the
+ * same steps. A copy would have been a second place for the test ids to drift from the template.
+ *
+ * <p>Signs in first, so the caller starts anonymous. Text mode rather than a file: it is the normal
+ * case for a writer and it needs no fixture on disk.
+ */
+export async function fileProtocol(
+  page: Page,
+  title: string,
+  user: DemoUser,
+  machineNo: string,
+  body: string,
+): Promise<void> {
+  await signIn(page, user);
+  await page.getByTestId('nav-upload').click();
+  await page.getByTestId('mode-text').click();
+  await page.getByTestId('upload-machine').selectOption(machineNo);
+  await page.getByTestId('upload-title').fill(title);
+  await page.getByTestId('text-input').fill(body);
+  await page.getByTestId('upload-button').click();
+  await expect(page.getByTestId('accepted')).toBeVisible();
+}
+
 export async function sweepThrowaways(page: Page, machineNo: string): Promise<number> {
   /**
    * Waits for the list to actually reflect the filter before anything is counted.

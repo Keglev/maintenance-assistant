@@ -26,12 +26,15 @@ import java.util.Map;
 import java.util.UUID;
 
 /**
- * Protocol upload. Schichtleiter only.
+ * Protocol upload. Techniker and Schichtleiter.
  *
- * <p>Write access is restricted to one role by decision, not by oversight: DECISIONS.txt makes the
- * Schichtleiter the sole writer as a quality control — a corpus anyone can add to is a corpus
- * nobody trusts. The check is server-side and role-based, so hiding the button in the UI is
- * presentation and this is the actual rule.
+ * <p>Write access is restricted by decision, not by oversight, and the decision moved: DECISIONS.txt
+ * made the Schichtleiter the sole writer as a quality control — a corpus anyone can add to is a
+ * corpus nobody trusts — and decision 3 of 2026-08-11 added the Techniker, because the person who
+ * fixed the machine is the person who knows what happened to it. CORRECTING DID NOT MOVE WITH IT
+ * and is still the Schichtleiter's alone; see the block comment on the handler. The check is
+ * server-side and role-based, so hiding the button in the UI is presentation and this is the actual
+ * rule.
  *
  * <p>Returns <b>202 Accepted</b> rather than 201. The protocol exists when this returns, but it is
  * not searchable yet — chunking and embedding happen on a worker (NFR-4: confirmation is
@@ -73,7 +76,8 @@ class ProtocolUploadController {
     @ApiResponses({
             @ApiResponse(responseCode = "202", description = "Accepted; indexing runs asynchronously"),
             @ApiResponse(responseCode = "400", description = "Unknown machine, bad field, or not UTF-8 text"),
-            @ApiResponse(responseCode = "403", description = "Caller is not a Schichtleiter"),
+            @ApiResponse(responseCode = "403",
+                    description = "Caller is neither a Techniker nor a Schichtleiter"),
             // THE ONLY OPERATION IN THIS API THAT CAN ANSWER 413, and it says so here rather than
             // inheriting it. UploadSizeExceededAdvice must stay GLOBAL — the container refuses an
             // oversized multipart while parsing the request, before a handler is resolved — and

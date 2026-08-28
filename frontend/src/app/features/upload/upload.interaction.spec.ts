@@ -178,7 +178,7 @@ describe('Upload — driven through the form', () => {
     await fixture.whenStable();
 
     // The button comes back and the reason is on screen. A refresh that failed silently would leave
-    // the Schichtleiter reading a list that is as old as the page and looks current.
+    // the uploader reading a list that is as old as the page and looks current.
     expect((byId(fixture, 'refresh-button') as HTMLButtonElement).disabled).toBe(false);
     expect(byId(fixture, 'upload-failure').textContent?.trim()).not.toBe('');
     // What was already read stays on screen: a failed refresh is not a reason to blank the table.

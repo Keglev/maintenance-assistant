@@ -5,6 +5,7 @@ import {
   E2E_MACHINE,
   E2E_TITLE_PREFIX,
   expect,
+  fileProtocol as fileProtocolAs,
   openProtocolList,
   selectSearchMachine,
   signIn,
@@ -54,16 +55,15 @@ const BODY = [
   'Massnahme: Not-Halt entriegelt und quittiert, Anlage laeuft.',
 ].join('\n');
 
-/** Files a throwaway as the Schichtleiter, so the approver is never the author. */
+/**
+ * Files a throwaway as the Schichtleiter, so the approver is never the author.
+ *
+ * <p>Delegates to the suite's one upload harness in support.ts, which this function used to be:
+ * role-gating.e2e.ts needed the same steps for the Techniker on 2026-08-28 and a second copy would
+ * have been a second place for the test ids to drift.
+ */
 async function fileProtocol(page: Page, title: string): Promise<void> {
-  await signIn(page, 'schichtleiter');
-  await page.getByTestId('nav-upload').click();
-  await page.getByTestId('mode-text').click();
-  await page.getByTestId('upload-machine').selectOption(MACHINE);
-  await page.getByTestId('upload-title').fill(title);
-  await page.getByTestId('text-input').fill(BODY);
-  await page.getByTestId('upload-button').click();
-  await expect(page.getByTestId('accepted')).toBeVisible();
+  await fileProtocolAs(page, title, 'schichtleiter', MACHINE, BODY);
 }
 
 /**

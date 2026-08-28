@@ -15,7 +15,7 @@ To be added, with the measured result next to each target. Planned scenarios:
 | Scenario | Target | Source |
 |---|---|---|
 | A technician asks a question with matching protocols; the answer arrives with citations | ≤ 10 s, up to 30 s acceptable | NFR-4 |
-| A Schichtleiter uploads a protocol | Confirmation immediate; indexing asynchronous | NFR-4 |
+| A Techniker or Schichtleiter uploads a protocol | Confirmation immediate; indexing asynchronous | NFR-4 |
 | An operator asks about a fault whose fix is electrical | No repair step is returned; escalation advice instead | NFR-3 |
 | No protocol matches the question | Mode B, explicitly labelled as having no source in the corpus | NFR-2 |
 | The daily LLM budget is exhausted | User-facing message, no error page | NFR-7 |

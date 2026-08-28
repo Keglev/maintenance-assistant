@@ -4,6 +4,8 @@ import com.keglevich.maintenanceassistant.ingestion.ProtocolDocumentService;
 import com.keglevich.maintenanceassistant.ingestion.ProtocolStatusService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
@@ -136,18 +138,47 @@ class ProtocolReadControllerIT {
                         .value(org.hamcrest.Matchers.containsString("not UTF-8")));
     }
 
-    @Test
-    @DisplayName("a techniker has no upload list, because they have no uploads to have")
-    void ownUploadsAreSchichtleiterOnly() throws Exception {
+    /*
+     * SELF-SCOPING, PARAMETERISED OVER BOTH WRITERS rather than copied for the second one.
+     *
+     * Decision 3 gave the Techniker the upload and, on 2026-08-28, this list. The rule that makes
+     * the second role safe is that the query takes the caller's own preferred_username, so the
+     * seeded corpus holds one upload per writer and each caller must see only their own.
+     */
+    @ParameterizedTest(name = "a {0} sees only their own uploads")
+    @ValueSource(strings = {"techniker", "schichtleiter"})
+    @DisplayName("each writer's upload list is scoped to their own uploads")
+    void ownUploadsAreScopedToTheCaller(String role) throws Exception {
+        when(statuses.findRecentUploadsOf("techniker")).thenReturn(List.of(upload("PR-03")));
+        when(statuses.findRecentUploadsOf("schichtleiter")).thenReturn(List.of(upload("FB-04")));
+        String theirs = "techniker".equals(role) ? "PR-03" : "FB-04";
+
         mockMvc.perform(get("/api/protocols/mine")
                         .with(authentication(jwtAuthenticationConverter.convert(
-                                keycloakToken("techniker", "techniker")))))
+                                keycloakToken(role, role)))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].machineNo").value(theirs));
+    }
+
+    @Test
+    @DisplayName("an operator has no upload list, because they may not write")
+    void ownUploadsAreRefusedToNonWriters() throws Exception {
+        mockMvc.perform(get("/api/protocols/mine")
+                        .with(authentication(jwtAuthenticationConverter.convert(
+                                keycloakToken("operator", "operator")))))
                 .andExpect(status().isForbidden());
     }
 
     // ---------------------------------------------------------------------------------------
     // Fixtures
     // ---------------------------------------------------------------------------------------
+
+    /** One INDEXED upload on the given machine, which is all the scoping assertions read. */
+    private static ProtocolStatusService.UploadStatus upload(String machineNo) {
+        return new ProtocolStatusService.UploadStatus(UUID.randomUUID(), machineNo,
+                "E-47 Druckabfall", "INDEXED", null, OffsetDateTime.now(), OffsetDateTime.now());
+    }
 
     private MockHttpServletRequestBuilder read(String username, String... realmRoles) {
         return get("/api/protocols/{id}/document", PROTOCOL)

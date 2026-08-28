@@ -22,7 +22,7 @@
 /** The only hosts this suite may ever talk to. */
 const ALLOWED_HOSTS = new Set(['localhost', '127.0.0.1', '::1', '[::1]']);
 
-export class ProductionGuardError extends Error {
+class ProductionGuardError extends Error {
   constructor(message: string) {
     super(message);
     this.name = 'ProductionGuardError';
@@ -35,7 +35,7 @@ export class ProductionGuardError extends Error {
  * @param label which URL this is, so the failure says which variable to fix
  * @param value the configured URL
  */
-export function requireLoopback(label: string, value: string): string {
+function requireLoopback(label: string, value: string): string {
   let url: URL;
   try {
     url = new URL(value);

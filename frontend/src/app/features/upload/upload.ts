@@ -12,7 +12,7 @@ import { I18nService } from '../../core/i18n/i18n.service';
 import { Pager } from '../../shared/pager/pager';
 
 /** How the protocol got into the form: picked as a file, or typed here. */
-export type InputMode = 'file' | 'text';
+type InputMode = 'file' | 'text';
 
 /** Rows per page in "Meine Uploads" — the same five the two moderation tables use. */
 const PAGE_SIZE = 5;

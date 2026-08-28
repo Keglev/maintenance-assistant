@@ -32,7 +32,7 @@ import { Moderation } from './moderation';
 /** The roles the signed-in reader holds. Flipped per test, because the buttons depend on them. */
 export type Roles = WritableSignal<string[]>;
 
-export interface ModerationHarness {
+interface ModerationHarness {
   readonly http: HttpTestingController;
   readonly roles: Roles;
 }

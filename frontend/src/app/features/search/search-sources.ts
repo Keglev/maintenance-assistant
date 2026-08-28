@@ -24,7 +24,7 @@ export interface SourceFocus {
 }
 
 /** Stable per protocol, so a citation marker can find its card without an index that shifts. */
-export function sourceCardId(citation: Citation): string {
+function sourceCardId(citation: Citation): string {
   return `source-${citation.protocolId}`;
 }
 

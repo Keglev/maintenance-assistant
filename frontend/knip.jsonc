@@ -1,0 +1,32 @@
+{
+  "$schema": "https://unpkg.com/knip@5/schema.json",
+
+  // Recorded by the Part 4 survey (S3, ruled 2026-08-28) so that a hand run is clean
+  // and its verdicts can be trusted. THERE IS NO CI GATE: knip is not a dependency and
+  // no workflow runs it. Adding the gate is a Part 6 verification row.
+  //
+  // WHY THE ENTRIES. Without them knip reports the e2e specs, the vitest specs and
+  // theme-init.js as unused FILES, because none is reachable from src/main.ts. That was
+  // the survey's first result and all of it was false. The vitest specs matter for a
+  // second reason: a symbol used only by a spec looks unused unless the spec is an entry.
+  //
+  // e2e/guard.ts is deliberately NOT an entry. It is imported by the specs and by
+  // playwright.config.ts, so it is already reached through them; listing it as an entry
+  // would mask genuinely unused exports inside it — which is exactly the two this survey
+  // found. src/main.ts and playwright.config.ts are omitted for the same reason in
+  // reverse: knip's Angular and Playwright plugins detect them, and naming them again
+  // makes the tool report a redundant-entry hint on every run.
+  "entry": [
+    "src/**/*.spec.ts",
+    "e2e/**/*.e2e.ts",
+    "e2e/support.ts",
+    "e2e/*.mjs",
+    "public/theme-init.js",
+  ],
+
+  "project": ["src/**/*.ts", "e2e/**/*.{ts,mjs}"],
+
+  // The provider stub is a standalone node script the e2e README documents running by
+  // hand; it has no importer by design.
+  "ignore": ["e2e/provider-stub/**"],
+}

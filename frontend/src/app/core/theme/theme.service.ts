@@ -11,7 +11,7 @@ import { Injectable, computed, effect, inject, signal } from '@angular/core';
 export type ThemeChoice = 'light' | 'dark' | 'system';
 
 /** What is actually on screen once `system` has been resolved against the operating system. */
-export type ResolvedTheme = 'light' | 'dark';
+type ResolvedTheme = 'light' | 'dark';
 
 /**
  * Where the choice is remembered. Shared with `public/theme-init.js`, which reads the same key

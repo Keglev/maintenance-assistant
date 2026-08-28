@@ -24,7 +24,7 @@ import { SearchSources, SourceFocus } from './search-sources';
  * client that second-guessed it would be a second, weaker citation check in the place least able to
  * make one.
  */
-export interface AnswerSegment {
+interface AnswerSegment {
   readonly kind: 'text' | 'marker';
   readonly value: string;
   /** For a marker: the citation it points at, when the label is one of the answer's sources. */

@@ -11,9 +11,9 @@ import { SettingsDialog } from './shared/settings/settings-dialog';
 import { ThemeToggle } from './shared/theme/theme-toggle';
 
 /** Where the footer points. Fixed URLs, so they are not worth a runtime configuration lookup. */
-export const DOCS_URL = 'https://keglev.github.io/maintenance-assistant/';
-export const REPO_URL = 'https://github.com/Keglev/maintenance-assistant';
-export const AI_USAGE_URL = 'https://github.com/Keglev/maintenance-assistant/blob/main/AI-USAGE.md';
+const DOCS_URL = 'https://keglev.github.io/maintenance-assistant/';
+const REPO_URL = 'https://github.com/Keglev/maintenance-assistant';
+const AI_USAGE_URL = 'https://github.com/Keglev/maintenance-assistant/blob/main/AI-USAGE.md';
 
 /** The realm roles this interface knows how to name, most privileged first. */
 const KNOWN_ROLES = ['admin', 'schichtleiter', 'techniker', 'operator'] as const;

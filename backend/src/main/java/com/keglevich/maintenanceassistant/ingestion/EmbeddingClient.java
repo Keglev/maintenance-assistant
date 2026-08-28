@@ -46,6 +46,7 @@ public interface EmbeddingClient {
 
     /** Anything that stops a protocol being indexed. Carries the text stored in {@code failure_reason}. */
     class EmbeddingException extends RuntimeException {
+        private static final long serialVersionUID = 1L;
         public EmbeddingException(String message) {
             super(message);
         }

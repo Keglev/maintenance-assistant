@@ -75,7 +75,7 @@ record TruncatedBody(long completionTokens, int characters, double whitespaceRat
             JsonNode node = JSON.readTree(candidate);
             JsonNode claims = node.get("claims");
             return claims != null && claims.isArray() && claims.isEmpty();
-        } catch (RuntimeException | com.fasterxml.jackson.core.JsonProcessingException e) {
+        } catch (RuntimeException | com.fasterxml.jackson.core.JsonProcessingException ignored) {
             // Unparseable even with the brace: whatever it is, it is not the refusal shape. The
             // exception is swallowed on purpose — this method runs while another exception's
             // message is being assembled, and a diagnosis helper must never replace the failure

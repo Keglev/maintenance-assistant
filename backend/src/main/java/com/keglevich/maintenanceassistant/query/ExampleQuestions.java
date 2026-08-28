@@ -67,6 +67,12 @@ public class ExampleQuestions implements InitializingBean {
         ClassPathResource resource = new ClassPathResource(RESOURCE);
         try (InputStream in = resource.getInputStream()) {
             Document document = new ObjectMapper().readValue(in, Document.class);
+            // KEPT DELIBERATELY, although the annotations mark `document == null` unreachable and
+            // JDT reports it as redundant — that warning is ACCEPTED (Part 4 survey, S1). What this
+            // guards is a HAND-EDITED CLASSPATH RESOURCE: the annotation says what Jackson promises
+            // for a well-formed document, not what an empty or malformed file produces, and the
+            // whole point of failing here is that a packaging mistake stops the application instead
+            // of surfacing as an empty picker to whoever clicks first.
             if (document == null || document.machines() == null || document.machines().isEmpty()) {
                 throw new IllegalStateException(RESOURCE + " parsed but carries no machines");
             }

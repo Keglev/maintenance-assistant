@@ -112,6 +112,7 @@ class EmbeddingBudget {
 
     /** Thrown when today's ceiling is reached. The message becomes {@code protocol.failure_reason}. */
     static class BudgetExhaustedException extends RuntimeException {
+        private static final long serialVersionUID = 1L;
         BudgetExhaustedException(String message) {
             super(message);
         }

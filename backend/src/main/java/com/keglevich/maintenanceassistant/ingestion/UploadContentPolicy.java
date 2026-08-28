@@ -32,6 +32,7 @@ public final class UploadContentPolicy {
 
     /** A rejected upload, with a code the frontend can translate. */
     public static class RejectedUploadException extends RuntimeException {
+        private static final long serialVersionUID = 1L;
 
         private final String code;
 

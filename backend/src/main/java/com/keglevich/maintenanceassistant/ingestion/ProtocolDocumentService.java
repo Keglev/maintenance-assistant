@@ -165,7 +165,7 @@ public class ProtocolDocumentService {
     private static String probe(Path path) {
         try {
             return Files.probeContentType(path);
-        } catch (IOException e) {
+        } catch (IOException ignored) {
             return null;
         }
     }
@@ -173,7 +173,7 @@ public class ProtocolDocumentService {
     private static long sizeOf(Path path) {
         try {
             return Files.size(path);
-        } catch (IOException e) {
+        } catch (IOException ignored) {
             // A length header is a courtesy; the stream is the answer.
             return -1L;
         }

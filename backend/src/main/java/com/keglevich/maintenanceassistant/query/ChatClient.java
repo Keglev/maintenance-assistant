@@ -62,6 +62,7 @@ interface ChatClient {
 
     /** Anything that stops a question being answered. */
     class ChatException extends RuntimeException {
+        private static final long serialVersionUID = 1L;
 
         /**
          * What kind of failure this is, so a log line can be grouped without reading its message.

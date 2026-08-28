@@ -558,6 +558,7 @@ public class ProtocolModerationService {
 
     /** A filter combination the endpoint does not accept. Answered as 400 with {@link #code()}. */
     public static class InvalidModerationRequestException extends RuntimeException {
+        private static final long serialVersionUID = 1L;
 
         private final String code;
 

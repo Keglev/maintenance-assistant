@@ -126,6 +126,7 @@ class ChatBudget {
 
     /** Thrown when today's ceiling is reached. Becomes a 503 with a readable message. */
     static class BudgetExhaustedException extends RuntimeException {
+        private static final long serialVersionUID = 1L;
         BudgetExhaustedException(String message) {
             super(message);
         }

@@ -420,6 +420,14 @@
         production. Image references are per service, so a rollback is a
         value change in <code>.env.prod</code> plus
         <code>docker compose up -d</code>.</p>
+        <p><strong>The OPS RULES — the six hand-deploy rules cited by
+        number throughout this repository — are defined in <a
+        href="https://github.com/Keglev/maintenance-assistant/blob/main/docker/README.md"><code>docker/README.md</code></a>,
+        section OPS RULES.</strong> Ruled 2026-08-28: this published
+        site carries the architecture, and operator rules live beside
+        the files they operate, which is docs-as-code applied rather
+        than recited. The subsections below are those rules <em>applied
+        to this deployment</em>, not the rules themselves.</p>
         <h3 id="empty-is-not-unset">Empty is not unset</h3>
         <p>Compose substitutes an <strong>empty string</strong> for
         <code>${VAR:-}</code>, and an empty string is a <em>set</em>

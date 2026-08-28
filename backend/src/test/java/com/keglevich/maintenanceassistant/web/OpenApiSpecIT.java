@@ -102,6 +102,75 @@ class OpenApiSpecIT {
     assertThat(OUTPUT).isNotEmptyFile();
   }
 
+  /*
+   * THE BEARER REQUIREMENT, ASSERTED FROM THE SERVED DOCUMENT (Part 5 ruling, K3.1).
+   *
+   * Part 5 found sixteen of seventeen protected operations published as unauthenticated: the
+   * scheme was declared, no requirement referenced it, and Swagger UI's Authorize therefore
+   * attached nothing. The three tests below are split by the question each answers, because a
+   * single failing assertion should name which half of the contract broke.
+   */
+
+  @Test
+  @DisplayName("the document declares a top-level security requirement naming keycloak")
+  void declaresGlobalSecurityRequirement() throws Exception {
+    JsonNode spec = new ObjectMapper().readTree(servedSpec());
+
+    assertThat(spec.at("/components/securitySchemes/keycloak/scheme").asText())
+        .as("the scheme the requirement points at")
+        .isEqualTo("bearer");
+    assertThat(spec.at("/security").isArray()).as("a top-level security requirement").isTrue();
+    assertThat(spec.at("/security/0").fieldNames()).toIterable()
+        .as("and it names the declared scheme")
+        .containsExactly("keycloak");
+  }
+
+  @Test
+  @DisplayName("every operation but GET /api/health carries the bearer requirement")
+  void everyOperationButHealthRequiresBearer() throws Exception {
+    JsonNode spec = new ObjectMapper().readTree(servedSpec());
+    java.util.Set<String> unprotected = new java.util.TreeSet<>();
+
+    spec.get("paths").properties().forEach(path -> path.getValue().properties().forEach(op -> {
+      // Inherited unless the operation overrides it; an empty override is the health opt-out.
+      JsonNode declared = op.getValue().get("security");
+      boolean required = declared == null ? spec.has("security") : !declared.isEmpty();
+      if (!required) {
+        unprotected.add(op.getKey().toUpperCase(java.util.Locale.ROOT) + " " + path.getKey());
+      }
+    }));
+
+    assertThat(unprotected)
+        .as("health is the only unauthenticated read, and the spec must say only that")
+        .containsExactly("GET /api/health");
+  }
+
+  @Test
+  @DisplayName("only the moderation list advertises 400; the read-only GETs no longer do")
+  void moderationReadsDoNotAdvertiseBadRequest() throws Exception {
+    JsonNode spec = new ObjectMapper().readTree(servedSpec());
+    java.util.Set<String> advertising = new java.util.TreeSet<>();
+
+    spec.get("paths").properties().stream()
+        .filter(path -> path.getKey().startsWith("/api/moderation"))
+        .filter(path -> path.getValue().has("get"))
+        .filter(path -> path.getValue().at("/get/responses").has("400"))
+        .forEach(path -> advertising.add(path.getKey()));
+
+    // The class-local @ExceptionHandler methods are @Hidden, so springdoc no longer merges their
+    // status onto sibling operations. The list keeps its own 400 because its filters really do
+    // raise MACHINE_REQUIRED_FOR_FILTER; /similar, /history, both documents and /deleted cannot.
+    assertThat(advertising)
+        .as("a GET that cannot raise the exception must not advertise its status")
+        .containsExactly("/api/moderation/protocols");
+  }
+
+  /** The document as it is served, which is the only form these assertions trust. */
+  private String servedSpec() throws Exception {
+    return mockMvc.perform(get("/v3/api-docs")).andExpect(status().isOk())
+        .andReturn().getResponse().getContentAsString();
+  }
+
   /** The response codes one operation declares, read from the document rather than the code. */
   private static java.util.Set<String> responseCodes(JsonNode spec, String path) {
     JsonNode responses = spec.at("/paths/" + path.replace("~", "~0").replace("/", "~1")

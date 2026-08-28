@@ -55,6 +55,8 @@ class MachineController {
             description = "Ordered by plant identifier. Unpaged: this is a fixed-size plant. "
                     + "Readable by an administrator too — the moderation filter needs it, and "
                     + "plant metadata carries nothing a protocol says.")
+    @ApiResponse(responseCode = "403",
+            description = "Caller holds no shop-floor role and is not an administrator")
     List<MachineCatalog.Machine> list() {
         return machines.findAll();
     }
@@ -82,6 +84,8 @@ class MachineController {
                     + "empty lists rather than an error — there is no question that works, so none "
                     + "is offered.")
     @ApiResponse(responseCode = "200", description = "The machine's examples, possibly empty")
+    @ApiResponse(responseCode = "403",
+            description = "Caller holds no shop-floor role and is not an administrator")
     @ApiResponse(responseCode = "404", description = "No machine carries this identifier",
             content = @Content)
     ResponseEntity<MachineExamples> examples(

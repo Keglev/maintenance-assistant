@@ -2,6 +2,7 @@ package com.keglevich.maintenanceassistant.web;
 
 import com.keglevich.maintenanceassistant.ingestion.IngestionBacklogService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -34,6 +35,8 @@ class IngestionAdminController {
     @GetMapping("/status")
     @PreAuthorize("hasAnyRole('ADMIN', 'SCHICHTLEITER')")
     @Operation(summary = "Protocol counts by indexing status, and today's embedding usage")
+    @ApiResponse(responseCode = "403",
+            description = "Caller is neither an administrator nor a Schichtleiter")
     Map<String, Object> status() {
         List<IngestionBacklogService.StatusCount> counts = backlog.statusCounts();
         return Map.of(
@@ -53,6 +56,7 @@ class IngestionAdminController {
             description = "Finds protocols in the given statuses and hands them to the indexer. "
                     + "Idempotent: re-indexing replaces a protocol's chunks rather than adding to them. "
                     + "Defaults to RECEIVED; pass FAILED to retry failures.")
+    @ApiResponse(responseCode = "403", description = "Caller is not an administrator")
     Map<String, Object> runBacklog(
             @RequestParam(value = "status", defaultValue = "RECEIVED") List<String> statuses,
             @RequestParam(value = "limit", required = false) Integer limit) {

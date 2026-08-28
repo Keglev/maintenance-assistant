@@ -27,8 +27,9 @@ import java.util.UUID;
  * Reading protocols back: the source document behind a citation, and the fate of one's own uploads.
  *
  * &lt;p&gt;Separate from {@link ProtocolUploadController} because the authorisation rules are genuinely
- * different, not because the paths are. Writing is Schichtleiter-only by decision (DECISIONS.txt:
- * quality, consistency, anti-garbage). Reading a source is open to every shop-floor role, and has to
+ * different, not because the paths are. Writing belongs to the Techniker and the Schichtleiter
+ * (decision 3 of 2026-08-11); correcting belongs to the Schichtleiter alone, and lives under
+ * /api/moderation. Reading a source is open to every shop-floor role, and has to
  * be: Mode A's promise is that each claim names a protocol the reader can open and check, and a
  * citation nobody may follow is a citation they have to take on trust — which is the state this
  * whole application exists to end.
@@ -41,10 +42,10 @@ class ProtocolReadController {
     private final ProtocolDocumentService documents;
     private final ProtocolStatusService statuses;
 
-<span class="fc" id="L44">    ProtocolReadController(ProtocolDocumentService documents, ProtocolStatusService statuses) {</span>
-<span class="fc" id="L45">        this.documents = documents;</span>
-<span class="fc" id="L46">        this.statuses = statuses;</span>
-<span class="fc" id="L47">    }</span>
+<span class="fc" id="L45">    ProtocolReadController(ProtocolDocumentService documents, ProtocolStatusService statuses) {</span>
+<span class="fc" id="L46">        this.documents = documents;</span>
+<span class="fc" id="L47">        this.statuses = statuses;</span>
+<span class="fc" id="L48">    }</span>
 
     @GetMapping(&quot;/{id}/document&quot;)
     @PreAuthorize(&quot;hasAnyRole('OPERATOR', 'TECHNIKER', 'SCHICHTLEITER')&quot;)
@@ -57,34 +58,46 @@ class ProtocolReadController {
             @ApiResponse(responseCode = &quot;404&quot;, description = &quot;No such protocol, or its file is gone&quot;)
     })
     ResponseEntity&lt;Resource&gt; document(@PathVariable UUID id) {
-<span class="fc" id="L60">        return documents.find(id)</span>
-<span class="fc" id="L61">                .map(document -&gt; ResponseEntity.ok()</span>
-<span class="fc" id="L62">                        .contentType(MediaType.parseMediaType(document.contentType()))</span>
+<span class="fc" id="L61">        return documents.find(id)</span>
+<span class="fc" id="L62">                .map(document -&gt; ResponseEntity.ok()</span>
+<span class="fc" id="L63">                        .contentType(MediaType.parseMediaType(document.contentType()))</span>
                         // Inline: following a citation should open the source, not start a download.
                         // The filename still travels, so saving it produces something readable.
-<span class="fc" id="L65">                        .header(HttpHeaders.CONTENT_DISPOSITION, ContentDisposition.inline()</span>
-<span class="fc" id="L66">                                .filename(document.downloadName(), StandardCharsets.UTF_8)</span>
-<span class="fc" id="L67">                                .build()</span>
-<span class="fc" id="L68">                                .toString())</span>
-<span class="fc" id="L69">                        .body(document.resource()))</span>
+<span class="fc" id="L66">                        .header(HttpHeaders.CONTENT_DISPOSITION, ContentDisposition.inline()</span>
+<span class="fc" id="L67">                                .filename(document.downloadName(), StandardCharsets.UTF_8)</span>
+<span class="fc" id="L68">                                .build()</span>
+<span class="fc" id="L69">                                .toString())</span>
+<span class="fc" id="L70">                        .body(document.resource()))</span>
                 // A protocol whose row exists but whose file does not is the same 404 as an unknown
                 // id. Distinguishing them in the response would describe the database to whoever
                 // asked, and there is nothing the caller could do differently either way.
-<span class="fc" id="L73">                .orElseGet(() -&gt; ResponseEntity.notFound().build());</span>
+<span class="fc" id="L74">                .orElseGet(() -&gt; ResponseEntity.notFound().build());</span>
     }
 
     @GetMapping(&quot;/mine&quot;)
-    @PreAuthorize(&quot;hasRole('SCHICHTLEITER')&quot;)
+    /*
+     * BOTH ROLES THAT MAY WRITE — decision 3 of 2026-08-11, applied here 2026-08-28.
+     *
+     * The Techniker gained the upload in v1.2.0 and did not gain this, which left a role that may
+     * file a protocol and cannot see what became of it. Upload answers 202, so this list is the
+     * only place indexing failure is visible; without it a Techniker's failed upload is silent.
+     *
+     * WIDENING THE ROLE WIDENS NOTHING ACROSS USERS. The query is self-scoped by the token's
+     * preferred_username, so each caller sees their own rows and no one else's — a second role
+     * here adds readers of their own uploads, not readers of anybody else's.
+     */
+    @PreAuthorize(&quot;hasAnyRole('TECHNIKER', 'SCHICHTLEITER')&quot;)
     @Operation(summary = &quot;What happened to the protocols you uploaded&quot;,
             description = &quot;The 50 most recent uploads of the calling user, newest first, with &quot;
                     + &quot;status RECEIVED / INDEXED / FAILED and the failure reason. Upload answers &quot;
                     + &quot;202, so this is where a document becoming searchable is actually visible.&quot;)
-    @ApiResponse(responseCode = &quot;403&quot;, description = &quot;Caller is not a Schichtleiter&quot;)
+    @ApiResponse(responseCode = &quot;403&quot;,
+            description = &quot;Caller is neither a Techniker nor a Schichtleiter&quot;)
     List&lt;ProtocolStatusService.UploadStatus&gt; myUploads(@AuthenticationPrincipal Jwt jwt) {
         // The username claim, matching what the upload path writes into uploaded_by (ADR-003).
         // Taken from the token and never from a parameter: &quot;show me someone else's uploads&quot; is not
         // a request this endpoint should be able to express.
-<span class="fc" id="L87">        return statuses.findRecentUploadsOf(jwt.getClaimAsString(&quot;preferred_username&quot;));</span>
+<span class="fc" id="L100">        return statuses.findRecentUploadsOf(jwt.getClaimAsString(&quot;preferred_username&quot;));</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.15.202606040825</span></div></body></html>

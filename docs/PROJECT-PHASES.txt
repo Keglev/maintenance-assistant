@@ -88,10 +88,10 @@ NEXT, IN ORDER:
      refactor-phase section below. THE FIX WAVE AWAITS CARLOS'S RULING on
      each PROPOSED disposition; nothing changes until then, and S5's
      logging fix is proposed first because it is what stops the next
-     measurement being lost. S5 RULED AND BUILT 2026-08-28; the
-     ADR-008 / A4 RULING IS ONE WEEK AFTER THAT FIX IS HAND-DEPLOYED,
-     superseding 2026-09-03 — the instrument is still unbounded until
-     then, so the clock has not started. The two rows it was told to expect, measured:
+     measurement being lost. S1 RULED 2026-08-28 (accept, waiver, keep);
+     S5 RULED, BUILT AND HAND-DEPLOYED 2026-08-28, verified by inspect
+     on all five containers. ADR-008 / A4 RULING DUE 2026-09-04, one
+     week from the container creation that started the clock. The two rows it was told to expect, measured:
        - THE JSPECIFY NULL-SAFETY WARNINGS under Boot 4 / Framework 7:
          count and classify them, AND MEASURE THEM WITH THE JDT
          COMPILER. javac reports 0 over 66 source files, so a row that
@@ -116,6 +116,11 @@ NEXT, IN ORDER:
   the login screen, on the demo accounts. Front-channel logout round
   trip suspected, nothing measured yet. NOT the Caddy change — different
   hostname, different upstream. Part 5 neighbourhood.
+
+- 2026-08-28: INVENTORY-SERVICE IS LIVE ON THE SHARED HOST. ssp-backend
+  is up and healthy with its own bounded logging (json-file, 10m x 3),
+  so ADR-012 now describes the running state rather than an intended
+  one, and api.smartsupplypro.de no longer answers 502.
 
 WHAT THIS HEADER IS FOR. It is the first thing every AI session reads,
 so it says where the project is TODAY and points at the detail rather
@@ -451,10 +456,27 @@ Open rows carried below.
         THE ROW ADR-002's BUMP PREDICTED, AND THE PREDICTION HELD: a
         count taken with javac would have read 0 and concluded there was
         nothing here. The instrument is the finding.
-        PROPOSED: boundary 18 = one PR (@NullMarked per package) OR
-        documented ACCEPT; QueryCache:45 = inspect then fix or waiver
-        with provenance; ExampleQuestions:70 = keep with a comment
-        naming why the defensive branch stays.
+        RULED 2026-08-28, three dispositions for three different things:
+        THE 18 BOUNDARY WARNINGS — ACCEPT, dated waiver. They are
+        JDT-only (javac reports none), they are all of the boundary
+        class — an unannotated library value converted to @NonNull — and
+        NOT ONE OF THEM IS A BEHAVIOURAL SITE. Accepting them costs
+        nothing today and annotating them would be a change to every
+        boundary in the application to satisfy a compiler nobody builds
+        with. @NullMarked adoption is a Part 5+ candidate, recorded
+        there rather than here, because it is a design direction and not
+        a survey finding.
+        QueryCache.java:45 — WAIVER WITH PROVENANCE, and the provenance
+        is the point: the guard is application.yml:235,
+        `cache-ttl: ${QUERY_CACHE_TTL:10m}`, which the compiler cannot
+        see. If that default is ever removed the failure is an NPE at
+        CONTEXT STARTUP — fail-fast, loud, and impossible to ship past —
+        not a silent wrong answer at query time. THE DEFAULT'S SINGLE
+        SOURCE STAYS THE YAML: a second default in Java would be two
+        places to change and one of them would be missed.
+        ExampleQuestions.java:70 — KEEP WITH COMMENT, written in the
+        code rather than only here, because the next reader of that line
+        is holding the file and not this ledger.
 
      S2 BACKEND DEAD/UNUSED (JDT dead_code+unused): 5 warnings total —
         unused exception params at UploadSizeExceededAdvice:70,
@@ -511,6 +533,15 @@ Open rows carried below.
         row above — that date assumed the clock had already restarted at
         the reboot, and it had not, because the instrument was still
         unbounded.
+        HAND-DEPLOYED 2026-08-28. VERIFIED BY INSPECT, not by reading the
+        file: all five containers report json-file with max-size 10m and
+        max-file 5. CLOCK ZERO IS THE CONTAINER CREATION TIMESTAMP —
+        2026-08-28T07:30:37 to 07:30:40 UTC — because a logging option
+        takes effect when the container is created and not when the file
+        is copied. ADR-008 / A4 RULING DUE 2026-09-04.
+        THE INSTRUMENT IS NOW BOUNDED AND SURVIVES A RECREATE, which is
+        the first time in this wave that a measurement window can be
+        expected to reach its own ruling date.
 
    DIAGNOSTICS AND PROVIDER WAVE — opened 2026-08-26, from the incident
    of 2026-08-26 07:23 UTC
@@ -1503,6 +1534,13 @@ Open rows carried below.
    rule because the tokens were already there.
 
 5. PHASE 5 — EVOLUTION CANDIDATES (unchanged list, optional):
+   ADDED 2026-08-28 from Part 4's S1 ruling: @NullMarked ADOPTION, per
+   package. The survey's 18 boundary warnings were ACCEPTED rather than
+   fixed because annotating them one site at a time is churn; declaring
+   packages @NullMarked is the change that would actually retire the
+   class, and it is a design direction with its own blast radius —
+   every unannotated library boundary becomes a warning at once. It
+   belongs to a wave that can absorb that, not to a survey.
    similar-machine search, OCR, downtime stats, PDF export (generation,
    not serving), structured Symptom/Ursache/Massnahme fields, and
    PDF/scan/.docx ingestion. The section at the bottom of this file is

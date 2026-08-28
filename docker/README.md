@@ -292,6 +292,14 @@ volume), while the *host* — these files included — is covered by the Hetzner
 
 ## Reset
 
+**Before ANY `compose down`, on any stack that has been answering queries, grep the instrument
+counters and paste the numbers into PROJECT-PHASES** — `docker logs maintenance-backend | grep -c
+"chat truncated:"` and `... | grep -c "no valid citations"`. `down` deletes the containers, and
+until the bounded json-file logging in `docker-compose.prod.yml` is deployed, the log dies with
+them. That is not hypothetical: the 2026-08-27 maintenance window took the A4 and ADR-008 counting
+windows with it, and the only surviving figure is the one somebody had already written down (Part 4
+survey, S5).
+
 ```bash
 docker compose down -v   # also drops the postgres volume — all data is gone
 ```

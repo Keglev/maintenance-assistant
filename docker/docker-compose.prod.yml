@@ -29,6 +29,30 @@
 
 name: maintenance-assistant
 
+# LOGS OUTLIVE THE CONTAINER, AND THEY ARE BOUNDED. Both halves were bought by an
+# incident rather than chosen.
+#
+# WHY THEY MUST OUTLIVE IT: with no logging options, `docker logs` reads a file the
+# daemon deletes with the container. The 2026-08-27 maintenance window ran a
+# `compose down`, and the backend logs went with it — taking the A4 and the ADR-008
+# no-citation windows, which W-2 had been built to make countable. Part 4's S5 row
+# records it. json-file with rotation keeps up to five files per container, so a
+# recreate loses nothing that has already been written to disk.
+#
+# WHY THEY MUST BE BOUNDED: this host is shared with a second project (ADR-012) and
+# has 75 GB. An unrotated json-file log is unbounded by default, and the one service
+# that would fill it first is the one whose failure loses data. 10m x 5 is 50 MB per
+# container, 250 MB for the stack — enough to hold a week of this traffic and small
+# enough that it can never be the reason the disk fills.
+#
+# APPLIED TO ALL FIVE, deliberately: an instrument that is only on some containers
+# answers "what happened" for some of an incident.
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "5"
+
 services:
   # ---------------------------------------------------------------------------
   # Reverse proxy and TLS. The only internet-facing container.
@@ -37,6 +61,7 @@ services:
     image: caddy:2.10-alpine
     container_name: maintenance-caddy
     restart: unless-stopped
+    logging: *default-logging
     ports:
       - "80:80"
       - "443:443"
@@ -63,6 +88,7 @@ services:
     image: ${FRONTEND_IMAGE:-ghcr.io/keglev/maintenance-assistant/frontend:latest}
     container_name: maintenance-frontend
     restart: unless-stopped
+    logging: *default-logging
     volumes:
       - ./frontend-config.json:/usr/share/nginx/html/config.json:ro
     # No ports: reachable only through caddy.
@@ -75,6 +101,7 @@ services:
     image: ${BACKEND_IMAGE:-ghcr.io/keglev/maintenance-assistant/backend:latest}
     container_name: maintenance-backend
     restart: unless-stopped
+    logging: *default-logging
     # --- MEMORY LIMIT — measured on the CX33, 2026-08-27 ----------------------
     # `docker stats --no-stream` reported 301.9 MiB for this container against a
     # LIMIT of 7.565 GiB, which is the host's own RAM — that is no limit at all,
@@ -166,6 +193,7 @@ services:
     image: quay.io/keycloak/keycloak:26.7
     container_name: maintenance-keycloak
     restart: unless-stopped
+    logging: *default-logging
     command: ["start", "--import-realm"]
     # --- MEMORY LIMIT — measured on the CX33, 2026-08-27 ----------------------
     # 686 MiB measured (`docker stats`). Same mechanism as the backend above: the
@@ -255,6 +283,7 @@ services:
     image: pgvector/pgvector:0.8.6-pg17
     container_name: maintenance-postgres
     restart: unless-stopped
+    logging: *default-logging
     environment:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}

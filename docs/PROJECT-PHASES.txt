@@ -88,9 +88,10 @@ NEXT, IN ORDER:
      refactor-phase section below. THE FIX WAVE AWAITS CARLOS'S RULING on
      each PROPOSED disposition; nothing changes until then, and S5's
      logging fix is proposed first because it is what stops the next
-     measurement being lost. ADR-008 / A4 RULING DUE 2026-09-03: the
-     window restarted when the maintenance reboot deleted the containers
-     the logs lived in. The two rows it was told to expect, measured:
+     measurement being lost. S5 RULED AND BUILT 2026-08-28; the
+     ADR-008 / A4 RULING IS ONE WEEK AFTER THAT FIX IS HAND-DEPLOYED,
+     superseding 2026-09-03 — the instrument is still unbounded until
+     then, so the clock has not started. The two rows it was told to expect, measured:
        - THE JSPECIFY NULL-SAFETY WARNINGS under Boot 4 / Framework 7:
          count and classify them, AND MEASURE THEM WITH THE JDT
          COMPILER. javac reports 0 over 66 source files, so a row that
@@ -496,6 +497,20 @@ Open rows carried below.
         needs a container recreate — schedule with the next deploy);
         plus one runbook line: grep the instruments before any
         compose down.
+        RULED 2026-08-28 and BUILT: json-file with max-size 10m and
+        max-file 5, as an anchor applied to all five services, plus the
+        grep-first line in docker/README.md before its compose down.
+        THE RECREATE IS ACCEPTED — the fix cannot take effect without
+        one, and a logging option is read when the container is created
+        (OPS RULE 2 in its general form). It is the last thing this wave
+        loses to a recreate rather than the first.
+        THE CLOCK RESTARTS AT THE HAND-DEPLOY, not at this merge: the
+        file is hand-deployed (OPS RULE 1), so nothing on the host
+        changes when this lands. THE ADR-008 RULING DATE IS ONE WEEK
+        AFTER THAT DEPLOY, and it supersedes the 2026-09-03 named in the
+        row above — that date assumed the clock had already restarted at
+        the reboot, and it had not, because the instrument was still
+        unbounded.
 
    DIAGNOSTICS AND PROVIDER WAVE — opened 2026-08-26, from the incident
    of 2026-08-26 07:23 UTC

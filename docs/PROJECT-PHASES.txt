@@ -36,6 +36,8 @@ REFACTOR PHASE — six read-only surveys in a fixed order, docs last.
                         knip-gate verification row S3 raised; it is in
                         the Part 4 section below with the row it came
                         from.
+2026-08-28 Part 5 survey DONE (#134), 9 rows C1–C9 PROPOSED, rulings
+pending on C1(a), C2, C4 and C7(b).
 Their close-outs are in docs/ledger/ (see the stubs below); the rows
 still open are carried under each stub in this file.
 
@@ -593,6 +595,315 @@ Open rows carried below.
         the first time in this wave that a measurement window can be
         expected to reach its own ruling date.
 
+   PART 5 SURVEY — CODE COMMENTS AGAINST THE STANDARDS, MEASURED
+   2026-08-28. Read-only. Fresh clone at a574ba8 (#133). Standards:
+   docs/REFACTOR-STANDARDS.txt (CROSS-CUTTING, BACKEND BANDS prose,
+   FRONTEND BANDS prose, SCRIPTS AND WORKFLOWS, DOCS) and
+   docs/refactor-standards.md. Every row carries a PROPOSED disposition
+   and waits on a ruling. Figures are provisional; the PR that acts on a
+   row re-measures it first.
+
+   METHOD NOTE
+     Backend member counts: javac tree API (JDK 21.0.12, com.sun.source,
+     parse only, DocTrees.getDocCommentTree per declaration). Counts
+     top-level types, nested types, non-private methods, non-private
+     constructors. Validated against ProtocolUploadController by hand (1
+     type, 1 ctor, 1 handler, 2 advice methods, 1 nested record —
+     counter agrees). Two Python regex counters and javalang 0.13 were
+     tried first and DISCARDED: regex matched SQL text blocks (VALUES,
+     CONFLICT, AND) as methods; javalang cannot parse Java 21 records and
+     text blocks (37 of 69 files failed). Reported per the counting rule:
+     a discarded counter is not read as a figure.
+     Frontend: python scan of `export (class|function|const|interface|
+     type)` with the doc test on the line above the decorator block;
+     validated against search.ts (JSDoc above @Component) after a first
+     version mis-read `styleUrl:` and reported 16 undocumented classes
+     that were documented.
+     Spec/template/script/workflow rows: grep with the commands in the
+     rows.
+     Swagger: annotations read in every controller and compared with the
+     LIVE spec at https://maintenance.smartsupply.com.de/v3/api-docs (18
+     paths, 19 operations, 24 schemas, info.version "v1"), then with the
+     handlers' code.
+
+     C1 BACKEND DOC COMMENTS (standard: "doc every public class and
+        method; omit author and version tags")
+        Measured, backend/src/main (69 files, 64 top-level types):
+          top-level types      64 total   0 undocumented
+          nested types         70 total  17 undocumented
+          non-private methods 146 total  69 undocumented
+          constructors         53 total  52 undocumented
+        @author/@version/@since tags: 0. @SuppressWarnings: 0.
+        TODO/FIXME: 0.
+        The 69 methods decompose (each list is in the survey scratch and
+        can be re-taken with the counter):
+          18  request handlers and exception advice carrying @Operation /
+              @ExceptionHandler — their prose is the OpenAPI text,
+              published
+          11  @Override implementations (Javadoc inherits from the
+              interface, which is documented: ChatClient,
+              EmbeddingClient, runners)
+           3  @Bean factory methods (SecurityConfig, OpenApiConfig,
+              AsyncConfig)
+          ~15 one-line accessors on exceptions/records (code(), kind(),
+              retryAfterSeconds(), size(), content(), finishReason() …)
+          ~22 genuine undocumented behaviour: EmbeddingBudget.usedToday/
+              tokensToday, ChatBudget.usedToday/logUsage,
+              EmbeddingProvenanceVerifier.foreign×2/clean,
+              ProtocolApprovalService.approved/asApproval,
+              ProtocolModerationService.requireComment/none,
+              QueryCache.get/put/normalise, TruncatedBody.of,
+              CorpusProtocol.from, ProtocolDocumentRenderer.render,
+              AnswerAssembler.safeClaims/safeSteps, UngroundedPrompt.
+              system/user
+        The 52 constructors are all DI wiring or exception ctors
+        (super(message) plus one field). The 17 nested types are private
+        response/row records.
+        PROPOSED: (a) amend the standard's sentence to what the code
+        already practises and the register standard should say: DI
+        constructors, trivial accessors, @Override implementations of a
+        documented interface, and handlers carrying @Operation are
+        exempt — their doc lives on the interface or in the contract.
+        (b) Doc the ~22 genuine methods and the 17 nested records in one
+        cosmetic PR, zero behaviour change. (c) Name ModerationController
+        as the register standard for controllers and ProtocolIndexer for
+        services (both carry summary + WHY + the decision date at every
+        non-obvious site). Without (a) the count says "121 missing" and
+        the fix would be 121 lines of WHAT-comments, which the
+        cross-cutting rule forbids.
+
+     C2 BACKEND TEST NAMING (standard: "method_state_expected; no doc
+        comments on test methods")
+        Measured, 453 @Test/@ParameterizedTest methods in 63 test
+        classes:
+          method_state_expected (3 parts)      154   34%
+          two-part a_b                          28    6%
+          no underscore (sentence camelCase)   271   60%
+            e.g. aNormalTextFileIsAccepted, theLimitIsPerUser,
+            anEmptyFileIsRefused
+          @DisplayName on 258 methods (57%) — the sentence is duplicated
+          there.
+        Test methods with a Javadoc directly above: 10
+        (UploadSizeLimitIT, ForwardedHeadersIT, ApiDocsEntrypointIT×2,
+        HybridRetrievalIT, RetrievalBaselineIT×2,
+        IonosChatClientFailureTest, IonosEmbeddingClientFailureTest×2).
+        Test classes without a class Javadoc: 3 (HelloControllerIT,
+        HealthControllerIT, KeycloakRealmRoleConverterTest).
+        PROPOSED: the naming rule and the code disagree at 60%, and the
+        sentence style carries the same three parts in readable order.
+        Renaming 271 tests is churn with zero assertion change and a
+        large diff nobody will read. Recommendation: AMEND the standard
+        — "method_state_expected OR a sentence in camelCase that names
+        state and expectation; mixed within one class is the finding" —
+        and measure per-class mixing in the fix PR. Move the 10
+        test-method Javadocs to the class doc or drop them (rule as
+        written). Add the 3 missing class docs. Alternative: enforce the
+        rule as written, 271 renames, own PR, byte-identical bodies
+        proven.
+
+     C3 SWAGGER/OPENAPI — PUBLISHED CONTRACT vs CODE (standard:
+        "annotations verified ACCURATE against what the code does")
+        Read: all 19 operations in 8 controllers against the live spec.
+        Accurate: 14. Defects, in severity order:
+        C3.1 SECURITY REQUIREMENT MISSING ON 16 OF 17 PROTECTED
+             OPERATIONS. OpenApiConfig defines the `keycloak` bearer
+             scheme; only HelloController.hello declares
+             @SecurityRequirement; there is no global security
+             requirement. The published spec therefore shows every
+             /api/query, /api/protocols, /api/moderation and
+             /api/ingestion operation as unauthenticated (no lock, and
+             Swagger UI's Try-it-out does not attach the token from
+             Authorize). The code protects them all (@PreAuthorize on
+             every one). Verified in the live spec: `security` absent at
+             top level and on those ops.
+             FAILURE CLASS: contract understates an enforced constraint.
+             PROPOSED: one-line fix — add `.security(List.of(new
+             SecurityRequirement().addList("keycloak")))` to the OpenAPI
+             bean (global), keep /api/health explicitly open via
+             `@SecurityRequirements({})` or leave it (health reads
+             without a token either way); extend OpenApiSpecIT to assert
+             the requirement is on every operation except health.
+             Certainty 95%.
+        C3.2 ProtocolUploadController: class Javadoc says "Schichtleiter
+             only" and the 403 says "Caller is not a Schichtleiter",
+             while @PreAuthorize grants TECHNIKER and SCHICHTLEITER
+             (decision 3 of 2026-08-11, and the block comment on the
+             handler explains the widening). Two stale sentences on one
+             endpoint. See C4 for the rest of this thread. PROPOSED:
+             rewrite both sentences in the C4 PR.
+        C3.3 CLASS-LEVEL @ExceptionHandler INFLATES 400 ONTO 5 GETs. The
+             InvalidModerationRequestException handler in
+             ModerationController makes springdoc publish 400 "Bad
+             Request" on /{id}/similar, /{id}/history, /{id}/document,
+             /deleted and /deleted/{id}/document, none of which can raise
+             it. Same failure class as the 413 finding closed in #116
+             (option D), one class further in. PROPOSED: the #116 remedy
+             — @Hidden on the two class-local handlers (they are reached
+             via the class, not the spec) and explicit @ApiResponse 400
+             on the two operations that really answer it (list,
+             edit/approve already declare theirs). Re-measure: 400
+             advertised 8 -> 3.
+        C3.4 403 DECLARED ON 12 OF 17 PROTECTED OPERATIONS, absent on
+             /api/protocols/mine, /api/ingestion/status,
+             /api/ingestion/backlog, /api/machines,
+             /api/machines/{machineNo}/examples. Inconsistency, not
+             error. PROPOSED: fold into C3.1 — with a global requirement
+             the 403 rows become optional prose; add them for symmetry or
+             drop the rule. Owner's call; I lean add, one line each.
+        C3.5 info.version is "v1" while the application is v1.4.0.
+             Deliberate? Nothing in DECISIONS says. PROPOSED: KEEP as the
+             API version (paths are unversioned; "v1" is the contract
+             generation, not the release) and write that sentence into
+             OpenApiConfig. Or bind it to BuildProperties. Either is one
+             line; the finding is that it is unstated.
+
+     C4 DECISION DRIFT ACROSS LAYERS — found by reading the contract,
+        outside Part 5's remit to fix, recorded because a comment audit
+        that ignores a false comment is not one.
+        Decision 3 (2026-08-11, ledger V1.2.0-TRUST-CHAIN.txt:336):
+        TECHNIKER MAY WRITE, NEVER EDIT. The backend applied it: POST
+        /api/protocols grants techniker + schichtleiter, RoleMatrixIT:272
+        pins that. Three places did not follow:
+          frontend app.ts:90   canUpload = role === 'schichtleiter' only
+                               — the Techniker never sees the upload
+                               entry
+          frontend app.routes.ts:37-39  roleGuard('schichtleiter') on
+                               /upload, comment: "Write access is one
+                               role's by decision" — the decision it
+                               cites has since changed
+          backend GET /api/protocols/mine  @PreAuthorize SCHICHTLEITER
+                               only, RoleMatrixIT:284 pins it — a
+                               Techniker who files a protocol has no way
+                               to see what happened to it
+        Net effect in production today: the widening exists in the API
+        and in no user's screen. Whether that is intended (tablet
+        Techniker files via a Schichtleiter's station?) is not written
+        anywhere I can find.
+        FAILURE CLASS: a decision applied to one layer; the role matrix
+        test then froze the half-applied state as correct.
+        PROPOSED: Carlos rules whether decision 3 reaches the UI. If yes:
+        one feature PR — canUpload and roleGuard widen to techniker,
+        /mine widens to techniker (its own uploads only; the query
+        already filters by uploaded_by = caller), RoleMatrixIT
+        expectations updated, e2e for a Techniker upload. If no: write
+        the narrowing as a dated decision and fix the three comments +
+        C3.2 to say "API allows, UI does not, because …". Certainty that
+        this is drift and not design: 85%.
+
+     C5 FRONTEND DOC (standard: "class and service level doc (summary +
+        WHY), not file headers")
+        Measured, 36 non-spec .ts files: classes 23/23 documented;
+        interfaces 24/27; functions 12/16; exported consts 6/10; types
+        9/9.
+        Undocumented: app.config.ts appConfig, app.routes.ts routes,
+        dictionary.ts DemoExample/Dictionary/EN/DICTIONARIES,
+        protocol-document.ts MetaRow, moderation.fixtures.ts
+        protocol/archived/page/archivePage. File headers: 6 files carry
+        one (theme-init.js, e2e helpers, provider stub — all outside
+        Compodoc's input; the standard's reason for banning file headers
+        does not apply to them).
+        PROPOSED: ACCEPT fixtures (exempt by the standard) and dictionary
+        data consts; doc the 4 remaining declarations (appConfig, routes,
+        MetaRow, Dictionary) in the C6 PR. Nothing else.
+
+     C6 FRONTEND SPEC HEADERS AND TEMPLATE HEADERS
+        Spec block comment before describe(): 21 of 24. Missing:
+        auth.guard.spec.ts, config.service.spec.ts, i18n.service.spec.ts
+        (its only block comment is at line 57, inside the suite).
+        Sibling naming where a suite is split: moderation.* (4 files) —
+        the 3 siblings name each other, moderation.spec.ts (the parent,
+        1212 lines) names none of them; upload.spec.ts does not name
+        upload.interaction.spec.ts. search.spec.ts names its 5 helpers.
+        Templates at 40+ code lines without a leading comment: 5 —
+        search.html (163), upload.html (222), protocol-dialog.html (153),
+        search-sources.html (88), settings-dialog.html (56). The 8 that
+        carry one are WHY-comments of the right kind (health-dot,
+        theme-toggle).
+        PROPOSED: one cosmetic frontend PR — 3 spec headers, 2
+        parent-sibling lines, 5 template headers, plus C5's 4 docs.
+        Header content: what the template renders that is not obvious
+        from the component doc, or the a11y/CSP reason it is shaped that
+        way; a header that restates the markup is the defect the
+        cross-cutting rule names, so if there is nothing to say, say the
+        doc is on the class and stop.
+
+     C7 SCRIPTS AND WORKFLOWS (standard: script header = what it
+        produces, how CI invokes it, failure mode; workflow trigger
+        comment carries the paths reasoning; inline shell > 5 lines
+        becomes a script)
+        Scripts (14 .sh/.mjs/.js outside src): every one carries a header
+        block; produces/invoked/failure signals present on 12. Weak:
+        docs/_theme/js/docs.js (browser runtime, no "invoked by"; the
+        band is for build-and-gate scripts — EXEMPT, say so in its
+        header); docs/scripts/generate-diagrams.sh (2 code lines,
+        delegates — fine).
+        Workflows (10): all 10 carry a file header. Trigger-block
+        comments: backend-ci (21 lines), frontend-ci (8),
+        catalogue-watch (2); the other 7 have a paths list with NO
+        reasoning comment beside it, including the documented pair rule
+        (docs.yml, docs-pr-check.yml, frontend-e2e.yml,
+        frontend-e2e-visual.yml carry paths lists that must mirror each
+        other and say nothing about it). Inline shell > 5 lines: 10 run
+        blocks — backend-deploy ×3 (11, 11, 14 lines), frontend-deploy ×3
+        (8, 9, 12), docs.yml ×2 (17, 10), frontend-e2e-visual ×1 (7),
+        catalogue-watch ×1 (41 lines). Part 3 did not rule on this row
+        (grep of the Part 3 ledger: no hit).
+        PROPOSED: (a) trigger comments on the 7 workflows, one PR,
+        docs-only in effect. (b) Inline shell: WAIVE the deploy and e2e
+        blocks with the reason in the standard's own terms — they are
+        ssh/scp steps whose only content is the remote command, and a
+        script file would be a second place to read one command; add the
+        waiver sentence beside the rule. catalogue-watch's 41-line block
+        is a genuine extraction candidate
+        (.github/scripts/catalogue-watch.sh), its own PR when the ADR-002
+        monthly run has produced one result to test against.
+
+     C8 CONFIG, ROOT, INFRA, DOCKER, SPIKE, _THEME
+        application.yml: 192 comment lines / 94 code lines, WHY-prose
+        with dates and PR numbers — the register standard for YAML.
+        Flyway migrations: 6/6 headed. pom.xml: 20 XML comments, no file
+        header (XML: header optional, the sections are commented). JSON
+        configs (package.json, angular.json, tsconfig.*) cannot carry
+        comments; frontend-config.json.example uses "_comment" — fine.
+        Dockerfiles, nginx.conf, Caddyfile, both compose files, .env
+        examples, systemd units, Keycloak theme css/ftl: all headed with
+        WHY. _theme css: 7/7 headed. spike/: adr-002 python and README
+        headed; spring-ai-boot4's Java class and application.yml carry
+        none (RESULTS.md does).
+        PROPOSED: ACCEPT all; spike files are throwaway evidence and
+        their RESULTS.md is the header. No PR.
+
+     C9 COMMENT QUALITY (WHY not WHAT) — OBSERVED, NOT COUNTED
+        Read in full: 8 controllers, 6 templates, 14 scripts, 10
+        workflows, application.yml, both compose files. The register is
+        consistently WHY-with-date ("decision 3 of 2026-08-11", "learned
+        2026-08-26 #104"). No self-evident comments found in what was
+        read; the only false comments found are the three in C3.2/C4, and
+        they are false because the decision moved, not because they
+        explain WHAT. A count would need a classifier; none exists that I
+        would trust, and the rule says a counter is validated or
+        discarded. Recorded as read.
+
+   PROPOSED PR LIST, in order (one branch each, after rulings)
+     1. fix(openapi): global security requirement + advice @Hidden
+        (C3.1, C3.3, C3.4, C3.5) — contract fixes, OpenApiSpecIT
+        extended.
+     2. C4 ruling PR — either feature (widen UI + /mine + RoleMatrixIT)
+        or docs (dated narrowing) — includes C3.2's two sentences.
+     3. chore(backend): docs on ~22 methods + 17 nested records, 3
+        test-class docs, 10 test-method Javadocs moved (C1, C2) — after
+        C1(a)/C2 rulings.
+     4. chore(frontend): spec/template headers + 4 declaration docs (C5,
+        C6).
+     5. docs(workflows): trigger comments on 7 workflows; waiver sentence
+        for inline ssh/scp shell (C7a, C7b) — catalogue-watch extraction
+        deferred.
+     6. docs(standards): the amendments rulings C1(a), C2 and C7(b)
+        produce.
+   PART 6 ROWS SEEDED: knip gate (from Part 4); OpenApiSpecIT security
+   assertion as a verification row; docs/refactor-standards.md line 113
+   (Swagger back-navigation) becomes provably true and can cite this row.
+
    PART 6 VERIFICATION ROWS CARRIED HERE, from the surveys that raised
    them. Part 6 is not open yet; these are the rows it inherits.
      - ADD A knip CI GATE, OR RULE AGAINST ONE. Added 2026-08-28 from
@@ -608,6 +919,18 @@ Open rows carried below.
        stack locally lives in frontend/e2e/README.md.
      - A SOFT DELETE LEAVES `status` AT ITS LAST REAL VALUE — one
        sentence, from the A3/M4 row below.
+     - OpenApiSpecIT ASSERTS THE SECURITY REQUIREMENT ON EVERY OPERATION
+       EXCEPT HEALTH. Seeded 2026-08-28 by Part 5's C3.1, which found the
+       published contract showing 16 of 17 protected operations as
+       unauthenticated while the code protects them all. The fix is C3.1's
+       PR; this row is the check that keeps it true, and it is a
+       verification row rather than part of that PR because the assertion
+       outlives the one-line bean change it verifies.
+     - docs/refactor-standards.md LINE 113 (Swagger back-navigation)
+       BECOMES PROVABLY TRUE AND CAN CITE PART 5'S C3 ROW. Seeded
+       2026-08-28: the claim was a read of the config until C3 compared
+       every annotation against the live spec, so the sentence now has a
+       measurement behind it to point at.
 
    DIAGNOSTICS AND PROVIDER WAVE — opened 2026-08-26, from the incident
    of 2026-08-26 07:23 UTC
@@ -1135,6 +1458,11 @@ Open rows carried below.
          where it matters. Recorded so the next reader does not chase
          them. IF CARLOS MEANT DIFFERENT WARNINGS, they are not recorded
          here — ask for them.
+       - C4 — decision 3 (Techniker writes) applied in the API only; UI
+         nav, /upload guard and /api/protocols/mine still
+         Schichtleiter-only; RULING PENDING. Added 2026-08-28 from Part
+         5's C4 row, which carries the evidence and the two branches the
+         ruling picks between.
 
    THE WAVE PLAN — D2 IS SUPERSEDED BY THE ROWS BELOW, 2026-08-26. D2
    stays as written above because it is the record of what was planned

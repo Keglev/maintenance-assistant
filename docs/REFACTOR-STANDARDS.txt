@@ -102,8 +102,18 @@ BACKEND BANDS (JAVA / SPRING) — code lines, target (alarm)
 
 - Doc every public class and method; omit the author and version tags;
   pick one exemplary file's prose as the register standard and raise
-  others TO it.
-- Test naming: method_state_expected. No doc comments on test methods.
+  others TO it. AMENDED 2026-08-28 (Part 5 ruling, K1): exempt are DI
+  constructors, one-line accessors, @Override implementations of a
+  documented interface, and handlers whose prose is the @Operation text —
+  their doc lives on the interface or in the published contract. Register
+  standards: ModerationController (controllers), ProtocolIndexer
+  (services).
+- Test naming: method_state_expected OR a camelCase sentence naming state
+  and expectation (aNormalTextFileIsAccepted). AMENDED 2026-08-28
+  (Part 5 ruling, K2): mixing both styles within one class is the
+  finding. THE NAME NEVER BUYS BODY — the test-method band above
+  (<=20 code lines) stands. No doc comments on test methods; the
+  contract sentence goes on the class.
 - Suppressions carry a same-line WHY; zero bare suppressions is the
   enforced state.
 
@@ -147,7 +157,11 @@ SCRIPTS AND WORKFLOWS
   the header states what it produces, how CI invokes it, and its failure
   mode.
 - Workflow YAML ~150 code lines. Inline shell in a workflow longer than
-  five lines becomes a script.
+  five lines becomes a script. WAIVED 2026-08-28 (Part 5 ruling, K7) for
+  run blocks whose content is a single remote command over ssh/scp and
+  for e2e invocation blocks: a script file would be a second place to
+  read one command. A block that computes, loops or branches is not
+  covered by the waiver.
 - EVERY PATH MUST BE GATED by the workflow that actually exercises it.
   If branch protection requires a named check, a path ignored by the
   main gate must be claimed by another workflow reporting that same

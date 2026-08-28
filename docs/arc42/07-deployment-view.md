@@ -144,6 +144,12 @@ The frontend image contains no hostname. It reads `/config.json` at startup, whi
 bind-mounts, so the same image tag runs locally and in production. Image references are per service,
 so a rollback is a value change in `.env.prod` plus `docker compose up -d`.
 
+**The OPS RULES — the six hand-deploy rules cited by number throughout this repository — are defined
+in [`docker/README.md`](https://github.com/Keglev/maintenance-assistant/blob/main/docker/README.md),
+section OPS RULES.** Ruled 2026-08-28: this published site carries the architecture, and operator
+rules live beside the files they operate, which is docs-as-code applied rather than recited. The
+subsections below are those rules *applied to this deployment*, not the rules themselves.
+
 ### Empty is not unset
 
 Compose substitutes an **empty string** for `${VAR:-}`, and an empty string is a *set* value.

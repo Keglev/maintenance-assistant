@@ -84,8 +84,13 @@ NEXT, IN ORDER:
      2026-08-27 20:00-20:10 UTC, kernel 7.0.0-29 -> 30. See the
      MAINTENANCE WINDOW block below; it also corrects two lines of the
      runbook wording this item carried.
-  3. THE PART 4 SURVEY — dead and redundant code. Two rows are already
-     waiting for it and must not be rediscovered:
+  3. THE PART 4 SURVEY — DONE 2026-08-28, read-only; rows S1-S5 in the
+     refactor-phase section below. THE FIX WAVE AWAITS CARLOS'S RULING on
+     each PROPOSED disposition; nothing changes until then, and S5's
+     logging fix is proposed first because it is what stops the next
+     measurement being lost. ADR-008 / A4 RULING DUE 2026-09-03: the
+     window restarted when the maintenance reboot deleted the containers
+     the logs lived in. The two rows it was told to expect, measured:
        - THE JSPECIFY NULL-SAFETY WARNINGS under Boot 4 / Framework 7:
          count and classify them, AND MEASURE THEM WITH THE JDT
          COMPILER. javac reports 0 over 66 source files, so a row that
@@ -119,6 +124,14 @@ picture that stopped being true two waves ago; #85 found it and Carlos
 ruled it replaced. IT IS NOW APPENDED TO RATHER THAN REWRITTEN, one
 dated line per event, and this rewrite is the second time that has had
 to be undone — the append habit is what turned a header into a log.
+THE CAP IS 120 LINES, fence to fence, written here 2026-08-28 so it is
+a rule and not an intention. Set in #121 and left unrecorded, so #128
+breached it at 132 with nothing to be held to. A session that would
+exceed it CONDENSES ITS OWN ENTRY FIRST; if that is not enough, the
+oldest dated lines move out to a block below rather than the cap moving
+up. THE SECTION IS OVER THE CAP TODAY and the count is stated in every
+pull request that touches it — paying it down is its own change, not a
+rider on somebody else's.
 
 THE CLOSED BLOCKS ARE NO LONGER IN THIS FILE. They are in docs/ledger/,
 byte-identical, with a two-line stub where each one was and the still-
@@ -415,6 +428,74 @@ Open rows carried below.
        OPEN. Until a backend or frontend run publishes, "a report publish
        never touches the site or the other project" is a read of the
        workflow and not a measurement.
+
+   PART 4 SURVEY — 2026-08-28. DEAD AND REDUNDANT CODE. READ-ONLY;
+   nothing was changed by the survey itself.
+   METHOD: measured on 4122fb5 with ecj 3.42.0 (the JDT batch compiler,
+   configured with the JSpecify annotation names), knip 5 and ts-prune.
+   The figures below are those tools' output and are not re-derived here
+   — a survey that restates its numbers in its own words has stopped
+   being a measurement.
+
+     S1 JSPECIFY NULL WARNINGS (JDT): javac 0 over 69 files; JDT 20.
+        18 boundary "unchecked conversion to @NonNull"
+        (IonosEmbeddingClient x4, IonosChatClient x4, QueryCache x2,
+        rate limiters, 4 web sites, application class); 1 behavioral:
+        QueryCache.java:45, @Nullable cacheTtl() into Caffeine
+        expireAfterWrite — NPE at startup if unset, guard not
+        compiler-visible; 1 redundant: ExampleQuestions.java:70,
+        document==null unreachable per annotations. Plus 13
+        serialVersionUID warnings (default set, exception classes) —
+        cosmetic, separate row.
+        THE ROW ADR-002's BUMP PREDICTED, AND THE PREDICTION HELD: a
+        count taken with javac would have read 0 and concluded there was
+        nothing here. The instrument is the finding.
+        PROPOSED: boundary 18 = one PR (@NullMarked per package) OR
+        documented ACCEPT; QueryCache:45 = inspect then fix or waiver
+        with provenance; ExampleQuestions:70 = keep with a comment
+        naming why the defensive branch stays.
+
+     S2 BACKEND DEAD/UNUSED (JDT dead_code+unused): 5 warnings total —
+        unused exception params at UploadSizeExceededAdvice:70,
+        ProtocolUploadController:145, TruncatedBody:78,
+        ProtocolDocumentService:168, :176. Effectively zero dead backend
+        code, and THAT IS THE SURVEY'S HEADLINE: the part of this phase
+        that was expected to find the most found almost nothing.
+        PROPOSED: one cosmetic PR — rename to `ignored`, add
+        serialVersionUID batch from S1.
+
+     S3 FRONTEND (knip 5, memory-capped; ts-prune): 0 unused source
+        files — knip's unused-files list is e2e specs + theme-init.js,
+        false positives from missing Playwright/index.html entries.
+        11 unused exported symbols, 7 unused exported types; ts-prune
+        marks most "used in module", so THE EXPORT KEYWORD IS THE DEAD
+        PART, NOT THE CODE.
+        PROPOSED: one PR dropping dead export modifiers; knip config
+        (entry: e2e, public/theme-init.js) recorded but CI gate
+        deferred.
+
+     S4 NOT MEASURED: mvn dependency:analyze failed in the survey
+        sandbox (compiler-plugin release-21 error not reproducing CI).
+        Recorded as not measured rather than omitted, because an
+        unmeasured row and an empty row look identical in a close-out.
+        PROPOSED: one robot row in the real environment if wanted.
+
+     S5 FINDING — INSTRUMENT LOGS DO NOT SURVIVE COMPOSE DOWN. No
+        logging: options in docker-compose.prod.yml, so backend logs
+        lived in the containers deleted at 20:07 UTC 2026-08-27. A4 and
+        ADR-008 windows RESTARTED then; 3-of-8 survives only in this
+        file; ruling date moves to 2026-09-03. Seed counts 2026-08-28
+        ~06:45 UTC: `chat truncated:` 0, `no valid citations` 0,
+        case-insensitive "mode a" 1.
+        THIS IS THE WAVE'S OWN INSTRUMENT FAILING, not a code defect:
+        W-2 was built to make these events countable, and the counting
+        window was destroyed by a routine maintenance step that nothing
+        warned about.
+        PROPOSED, FIRST FIX OF THE WAVE: logging driver json-file with
+        max-size/max-file in docker-compose.prod.yml (hand-deployed,
+        needs a container recreate — schedule with the next deploy);
+        plus one runbook line: grep the instruments before any
+        compose down.
 
    DIAGNOSTICS AND PROVIDER WAVE — opened 2026-08-26, from the incident
    of 2026-08-26 07:23 UTC

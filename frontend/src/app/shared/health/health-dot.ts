@@ -18,7 +18,7 @@ const POLL_INTERVAL_MS = 60_000;
 const REQUEST_TIMEOUT_MS = 5_000;
 
 /** Neutral until the first answer arrives; a guess before then would be a lie either way. */
-export type HealthState = 'unknown' | 'up' | 'down';
+type HealthState = 'unknown' | 'up' | 'down';
 
 /**
  * The server-status dot in the footer.

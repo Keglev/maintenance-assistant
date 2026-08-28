@@ -8,7 +8,7 @@ export type FontScale = 'normal' | 'lg' | 'xl';
  * Where the choice is remembered. Shared with `public/theme-init.js`, which reads the same key
  * before Angular exists — change one and the other stops agreeing.
  */
-export const FONT_STORAGE_KEY = 'ma-font';
+const FONT_STORAGE_KEY = 'ma-font';
 
 const SCALES: readonly FontScale[] = ['normal', 'lg', 'xl'];
 

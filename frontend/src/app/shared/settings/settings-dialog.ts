@@ -7,8 +7,8 @@ import { I18nService } from '../../core/i18n/i18n.service';
 import { Dialog } from '../dialog/dialog';
 
 /** Where the settings dialog points. Same fixed URLs the footer uses. */
-export const DOCS_URL = 'https://keglev.github.io/maintenance-assistant/';
-export const REPO_URL = 'https://github.com/Keglev/maintenance-assistant';
+const DOCS_URL = 'https://keglev.github.io/maintenance-assistant/';
+const REPO_URL = 'https://github.com/Keglev/maintenance-assistant';
 
 /** The realm roles this interface knows how to name, most privileged first. */
 const KNOWN_ROLES = ['admin', 'schichtleiter', 'techniker', 'operator'] as const;

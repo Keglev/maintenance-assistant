@@ -30,6 +30,14 @@ REFACTOR PHASE — six read-only surveys in a fixed order, docs last.
   PART 2 CODE STRUCTURE CLOSED 2026-08-24, #87-#91.
   PART 3 CONFIG/DEPLOY  CLOSED 2026-08-26, #94-#108.
   PARTS 4-6 REMAINING   dead code, comments, docs.
+    PART 6 VERIFICATION ROW, added 2026-08-28 from Part 4's S3: ADD A
+    knip CI GATE, OR RULE AGAINST ONE. The config exists and a hand run
+    is clean, so the gate is cheap now; what it needs is a decision
+    about the failure mode. knip is not a dependency today, and a gate
+    means pinning it — a new tool in the build for a class this survey
+    found eighteen instances of and zero defects in. Rule it either
+    way: an unpinned tool nobody runs is the state this row exists to
+    end.
 Their close-outs are in docs/ledger/ (see the stubs below); the rows
 still open are carried under each stub in this file.
 
@@ -493,9 +501,33 @@ Open rows carried below.
         11 unused exported symbols, 7 unused exported types; ts-prune
         marks most "used in module", so THE EXPORT KEYWORD IS THE DEAD
         PART, NOT THE CODE.
-        PROPOSED: one PR dropping dead export modifiers; knip config
-        (entry: e2e, public/theme-init.js) recorded but CI gate
-        deferred.
+        RULED 2026-08-28 AND DONE: all 18 export modifiers dropped, no
+        declaration deleted. Every one was checked for in-module use first
+        and every one had it, so nothing became a delete candidate — the
+        survey's reading held.
+        THE CONFIG IS WHAT MAKES THE NUMBERS TRUE, and writing it moved them
+        twice before they settled. frontend/knip.jsonc, with the reasoning in
+        the file: e2e specs, vitest specs, the e2e .mjs helpers and
+        public/theme-init.js as entries. Without the vitest specs a symbol
+        used only by a spec reads as unused; with e2e/guard.ts wrongly listed
+        as an ENTRY the count fell to 9, because an entry's own exports are
+        never unused. guard.ts is reached through the specs that import it and
+        is deliberately NOT an entry — which is what surfaces the two dead
+        exports inside it. 9 then 11: the second number is the survey's, and
+        it is right for the reason the config now records.
+        THE TWO IN e2e/guard.ts WERE CHECKED BY HAND before they were touched,
+        as the plan required: ProductionGuardError and requireLoopback are
+        imported by nothing — the only mention outside the file is the error
+        text quoted in e2e/README.md, which is prose and not an import.
+        BASE_URL and KEYCLOAK_URL are imported (playwright.config.ts and four
+        specs) and knip never flagged them.
+        AFTER: knip exits 0 with NO OUTPUT — no unused files, no unused
+        exports, no unused types, no configuration hints. ng build green; 321
+        vitest specs in 24 files green; coverage unchanged at 97.44 / 88.38 /
+        96.16 / 97.4, which is the evidence that dropping an export modifier
+        changed no behaviour.
+        NO CI GATE, deliberately: knip is not a dependency and no workflow
+        runs it. Adding one is a Part 6 verification row below.
 
      S4 NOT MEASURED: mvn dependency:analyze failed in the survey
         sandbox (compiler-plugin release-21 error not reproducing CI).

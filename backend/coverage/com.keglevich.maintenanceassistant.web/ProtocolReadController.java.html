@@ -79,11 +79,12 @@ class ProtocolReadController {
             description = &quot;The 50 most recent uploads of the calling user, newest first, with &quot;
                     + &quot;status RECEIVED / INDEXED / FAILED and the failure reason. Upload answers &quot;
                     + &quot;202, so this is where a document becoming searchable is actually visible.&quot;)
+    @ApiResponse(responseCode = &quot;403&quot;, description = &quot;Caller is not a Schichtleiter&quot;)
     List&lt;ProtocolStatusService.UploadStatus&gt; myUploads(@AuthenticationPrincipal Jwt jwt) {
         // The username claim, matching what the upload path writes into uploaded_by (ADR-003).
         // Taken from the token and never from a parameter: &quot;show me someone else's uploads&quot; is not
         // a request this endpoint should be able to express.
-<span class="fc" id="L86">        return statuses.findRecentUploadsOf(jwt.getClaimAsString(&quot;preferred_username&quot;));</span>
+<span class="fc" id="L87">        return statuses.findRecentUploadsOf(jwt.getClaimAsString(&quot;preferred_username&quot;));</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.15.202606040825</span></div></body></html>

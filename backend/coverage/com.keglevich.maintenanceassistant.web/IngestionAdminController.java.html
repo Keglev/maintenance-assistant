@@ -2,6 +2,7 @@
 
 import com.keglevich.maintenanceassistant.ingestion.IngestionBacklogService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -27,24 +28,26 @@ class IngestionAdminController {
 
     private final IngestionBacklogService backlog;
 
-<span class="fc" id="L30">    IngestionAdminController(IngestionBacklogService backlog) {</span>
-<span class="fc" id="L31">        this.backlog = backlog;</span>
-<span class="fc" id="L32">    }</span>
+<span class="fc" id="L31">    IngestionAdminController(IngestionBacklogService backlog) {</span>
+<span class="fc" id="L32">        this.backlog = backlog;</span>
+<span class="fc" id="L33">    }</span>
 
     @GetMapping(&quot;/status&quot;)
     @PreAuthorize(&quot;hasAnyRole('ADMIN', 'SCHICHTLEITER')&quot;)
     @Operation(summary = &quot;Protocol counts by indexing status, and today's embedding usage&quot;)
+    @ApiResponse(responseCode = &quot;403&quot;,
+            description = &quot;Caller is neither an administrator nor a Schichtleiter&quot;)
     Map&lt;String, Object&gt; status() {
-<span class="nc" id="L38">        List&lt;IngestionBacklogService.StatusCount&gt; counts = backlog.statusCounts();</span>
-<span class="nc" id="L39">        return Map.of(</span>
-<span class="nc" id="L40">                &quot;counts&quot;, counts.stream().collect(</span>
-<span class="nc" id="L41">                        java.util.stream.Collectors.toMap(</span>
+<span class="nc" id="L41">        List&lt;IngestionBacklogService.StatusCount&gt; counts = backlog.statusCounts();</span>
+<span class="nc" id="L42">        return Map.of(</span>
+<span class="nc" id="L43">                &quot;counts&quot;, counts.stream().collect(</span>
+<span class="nc" id="L44">                        java.util.stream.Collectors.toMap(</span>
                                 IngestionBacklogService.StatusCount::status,
                                 IngestionBacklogService.StatusCount::count)),
-<span class="nc" id="L44">                &quot;total&quot;, counts.stream().mapToLong(IngestionBacklogService.StatusCount::count).sum(),</span>
+<span class="nc" id="L47">                &quot;total&quot;, counts.stream().mapToLong(IngestionBacklogService.StatusCount::count).sum(),</span>
                 // NFR-7's third layer is visibility. A spend figure that needs a database session
                 // to read is not visible to whoever is deciding whether to run a re-index.
-<span class="nc" id="L47">                &quot;usageToday&quot;, backlog.usageToday());</span>
+<span class="nc" id="L50">                &quot;usageToday&quot;, backlog.usageToday());</span>
     }
 
     @PostMapping(&quot;/backlog&quot;)
@@ -53,19 +56,20 @@ class IngestionAdminController {
             description = &quot;Finds protocols in the given statuses and hands them to the indexer. &quot;
                     + &quot;Idempotent: re-indexing replaces a protocol's chunks rather than adding to them. &quot;
                     + &quot;Defaults to RECEIVED; pass FAILED to retry failures.&quot;)
+    @ApiResponse(responseCode = &quot;403&quot;, description = &quot;Caller is not an administrator&quot;)
     Map&lt;String, Object&gt; runBacklog(
             @RequestParam(value = &quot;status&quot;, defaultValue = &quot;RECEIVED&quot;) List&lt;String&gt; statuses,
             @RequestParam(value = &quot;limit&quot;, required = false) Integer limit) {
 
-<span class="fc" id="L60">        List&lt;String&gt; requested = statuses.stream().map(String::toUpperCase).toList();</span>
-<span class="pc bpc" id="L61" title="1 of 2 branches missed.">        for (String status : requested) {</span>
-<span class="pc bpc" id="L62" title="1 of 2 branches missed.">            if (!List.of(&quot;RECEIVED&quot;, &quot;FAILED&quot;).contains(status)) {</span>
-<span class="nc" id="L63">                throw new IllegalArgumentException(</span>
+<span class="fc" id="L64">        List&lt;String&gt; requested = statuses.stream().map(String::toUpperCase).toList();</span>
+<span class="pc bpc" id="L65" title="1 of 2 branches missed.">        for (String status : requested) {</span>
+<span class="pc bpc" id="L66" title="1 of 2 branches missed.">            if (!List.of(&quot;RECEIVED&quot;, &quot;FAILED&quot;).contains(status)) {</span>
+<span class="nc" id="L67">                throw new IllegalArgumentException(</span>
                         &quot;status must be RECEIVED or FAILED; INDEXED protocols are re-queued by id, not in bulk&quot;);
             }
-<span class="fc" id="L66">        }</span>
-<span class="nc" id="L67">        int enqueued = backlog.enqueue(requested, limit);</span>
-<span class="nc" id="L68">        return Map.of(&quot;enqueued&quot;, enqueued, &quot;statuses&quot;, requested);</span>
+<span class="fc" id="L70">        }</span>
+<span class="nc" id="L71">        int enqueued = backlog.enqueue(requested, limit);</span>
+<span class="nc" id="L72">        return Map.of(&quot;enqueued&quot;, enqueued, &quot;statuses&quot;, requested);</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.15.202606040825</span></div></body></html>

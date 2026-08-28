@@ -55,8 +55,10 @@ class MachineController {
             description = &quot;Ordered by plant identifier. Unpaged: this is a fixed-size plant. &quot;
                     + &quot;Readable by an administrator too — the moderation filter needs it, and &quot;
                     + &quot;plant metadata carries nothing a protocol says.&quot;)
+    @ApiResponse(responseCode = &quot;403&quot;,
+            description = &quot;Caller holds no shop-floor role and is not an administrator&quot;)
     List&lt;MachineCatalog.Machine&gt; list() {
-<span class="fc" id="L59">        return machines.findAll();</span>
+<span class="fc" id="L61">        return machines.findAll();</span>
     }
 
     /**
@@ -82,18 +84,20 @@ class MachineController {
                     + &quot;empty lists rather than an error — there is no question that works, so none &quot;
                     + &quot;is offered.&quot;)
     @ApiResponse(responseCode = &quot;200&quot;, description = &quot;The machine's examples, possibly empty&quot;)
+    @ApiResponse(responseCode = &quot;403&quot;,
+            description = &quot;Caller holds no shop-floor role and is not an administrator&quot;)
     @ApiResponse(responseCode = &quot;404&quot;, description = &quot;No machine carries this identifier&quot;,
             content = @Content)
     ResponseEntity&lt;MachineExamples&gt; examples(
             @Parameter(description = &quot;The plant identifier, e.g. PR-03&quot;, example = &quot;PR-03&quot;)
             @PathVariable String machineNo) {
 
-<span class="fc" id="L91">        return machines.findByMachineNo(machineNo)</span>
-<span class="fc" id="L92">                .map(machine -&gt; ResponseEntity.ok(new MachineExamples(</span>
-<span class="fc" id="L93">                        machine.machineNo(),</span>
-<span class="fc" id="L94">                        machines.countLiveProtocols(machine.id()),</span>
-<span class="fc" id="L95">                        examples.forMachine(machine.machineNo()))))</span>
-<span class="fc" id="L96">                .orElseGet(() -&gt; ResponseEntity.notFound().build());</span>
+<span class="fc" id="L95">        return machines.findByMachineNo(machineNo)</span>
+<span class="fc" id="L96">                .map(machine -&gt; ResponseEntity.ok(new MachineExamples(</span>
+<span class="fc" id="L97">                        machine.machineNo(),</span>
+<span class="fc" id="L98">                        machines.countLiveProtocols(machine.id()),</span>
+<span class="fc" id="L99">                        examples.forMachine(machine.machineNo()))))</span>
+<span class="fc" id="L100">                .orElseGet(() -&gt; ResponseEntity.notFound().build());</span>
     }
 
     /**
@@ -102,7 +106,7 @@ class MachineController {
      * @param protocolCount how many protocols a question about this machine could reach
      * @param examples      the questions, by language
      */
-<span class="fc" id="L105">    record MachineExamples(</span>
+<span class="fc" id="L109">    record MachineExamples(</span>
             @Schema(description = &quot;The plant identifier this list belongs to&quot;, example = &quot;PR-03&quot;)
             String machineNo,
 

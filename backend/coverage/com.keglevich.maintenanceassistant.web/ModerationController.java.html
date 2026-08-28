@@ -6,6 +6,7 @@ import com.keglevich.maintenanceassistant.ingestion.ProtocolEditService;
 import com.keglevich.maintenanceassistant.ingestion.ProtocolIntakeService;
 import com.keglevich.maintenanceassistant.ingestion.ProtocolModerationService;
 import com.keglevich.maintenanceassistant.ingestion.ProtocolSimilarityService;
+import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -100,12 +101,12 @@ class ModerationController {
     private final ProtocolApprovalService approvals;
 
     ModerationController(ProtocolModerationService moderation, ProtocolEditService edits,
-<span class="fc" id="L103">                         ProtocolDocumentService documents, ProtocolApprovalService approvals) {</span>
-<span class="fc" id="L104">        this.moderation = moderation;</span>
-<span class="fc" id="L105">        this.edits = edits;</span>
-<span class="fc" id="L106">        this.documents = documents;</span>
-<span class="fc" id="L107">        this.approvals = approvals;</span>
-<span class="fc" id="L108">    }</span>
+<span class="fc" id="L104">                         ProtocolDocumentService documents, ProtocolApprovalService approvals) {</span>
+<span class="fc" id="L105">        this.moderation = moderation;</span>
+<span class="fc" id="L106">        this.edits = edits;</span>
+<span class="fc" id="L107">        this.documents = documents;</span>
+<span class="fc" id="L108">        this.approvals = approvals;</span>
+<span class="fc" id="L109">    }</span>
 
     @GetMapping
     @Operation(summary = &quot;List every protocol in the corpus, newest first&quot;,
@@ -149,7 +150,7 @@ class ModerationController {
             @RequestParam(required = false) String approvalState) {
         // The record's constructor is where the machine-first rule lives, so it holds for any caller
         // rather than for this method signature only.
-<span class="fc" id="L152">        return moderation.list(page, size, new ProtocolModerationService.ProtocolFilter(</span>
+<span class="fc" id="L153">        return moderation.list(page, size, new ProtocolModerationService.ProtocolFilter(</span>
                 machineNo, titleContains, from, to, approvalState));
     }
 
@@ -181,20 +182,20 @@ class ModerationController {
         // The live document. An archived protocol answers 404 here, exactly as a stale citation
         // does on the shop-floor path — the archive changed who can still read a removed protocol,
         // not whether the ordinary routes to it keep working.
-<span class="fc" id="L184">        return documents.find(id)</span>
-<span class="fc" id="L185">                .map(ModerationController::inline)</span>
-<span class="fc" id="L186">                .orElseGet(() -&gt; ResponseEntity.notFound().build());</span>
+<span class="fc" id="L185">        return documents.find(id)</span>
+<span class="fc" id="L186">                .map(ModerationController::inline)</span>
+<span class="fc" id="L187">                .orElseGet(() -&gt; ResponseEntity.notFound().build());</span>
     }
 
     /** Served for reading, not downloading, with a filename that still travels for a save. */
     private static ResponseEntity&lt;Resource&gt; inline(ProtocolDocumentService.ProtocolDocument document) {
-<span class="fc" id="L191">        return ResponseEntity.ok()</span>
-<span class="fc" id="L192">                .contentType(MediaType.parseMediaType(document.contentType()))</span>
-<span class="fc" id="L193">                .header(HttpHeaders.CONTENT_DISPOSITION, ContentDisposition.inline()</span>
-<span class="fc" id="L194">                        .filename(document.downloadName(), StandardCharsets.UTF_8)</span>
-<span class="fc" id="L195">                        .build()</span>
-<span class="fc" id="L196">                        .toString())</span>
-<span class="fc" id="L197">                .body(document.resource());</span>
+<span class="fc" id="L192">        return ResponseEntity.ok()</span>
+<span class="fc" id="L193">                .contentType(MediaType.parseMediaType(document.contentType()))</span>
+<span class="fc" id="L194">                .header(HttpHeaders.CONTENT_DISPOSITION, ContentDisposition.inline()</span>
+<span class="fc" id="L195">                        .filename(document.downloadName(), StandardCharsets.UTF_8)</span>
+<span class="fc" id="L196">                        .build()</span>
+<span class="fc" id="L197">                        .toString())</span>
+<span class="fc" id="L198">                .body(document.resource());</span>
     }
 
     @GetMapping(&quot;/{id}/history&quot;)
@@ -231,7 +232,7 @@ class ModerationController {
      */
     @PreAuthorize(&quot;hasAnyRole('ADMIN', 'SCHICHTLEITER')&quot;)
     ProtocolModerationService.ProtocolHistory history(@PathVariable UUID id) {
-<span class="fc" id="L234">        return moderation.history(id);</span>
+<span class="fc" id="L235">        return moderation.history(id);</span>
     }
 
     @PutMapping(&quot;/{id}&quot;)
@@ -275,12 +276,12 @@ class ModerationController {
     ResponseEntity&lt;Map&lt;String, String&gt;&gt; edit(@PathVariable UUID id,
                                              @RequestBody ProtocolEditService.Correction correction,
                                              @AuthenticationPrincipal Jwt jwt) {
-<span class="fc" id="L278">        return edits.edit(id, correction, jwt.getClaimAsString(&quot;preferred_username&quot;))</span>
-<span class="fc" id="L279">                .map(edited -&gt; ResponseEntity.accepted().body(Map.of(</span>
-<span class="fc" id="L280">                        &quot;id&quot;, edited.toString(),</span>
+<span class="fc" id="L279">        return edits.edit(id, correction, jwt.getClaimAsString(&quot;preferred_username&quot;))</span>
+<span class="fc" id="L280">                .map(edited -&gt; ResponseEntity.accepted().body(Map.of(</span>
+<span class="fc" id="L281">                        &quot;id&quot;, edited.toString(),</span>
                         &quot;status&quot;, &quot;RECEIVED&quot;,
                         &quot;message&quot;, &quot;Protocol corrected and queued for re-indexing&quot;)))
-<span class="fc" id="L283">                .orElseGet(() -&gt; ResponseEntity.notFound().build());</span>
+<span class="fc" id="L284">                .orElseGet(() -&gt; ResponseEntity.notFound().build());</span>
     }
 
     @DeleteMapping(&quot;/{id}&quot;)
@@ -306,13 +307,13 @@ class ModerationController {
                                 @AuthenticationPrincipal Jwt jwt) {
         // The username rather than the subject: it is what uploaded_by stores, so the deletion log
         // and the authorship it is judging are written in the same identity.
-<span class="fc" id="L309">        boolean removed = moderation.delete(id, jwt.getClaimAsString(&quot;preferred_username&quot;),</span>
-<span class="pc bpc" id="L310" title="1 of 2 branches missed.">                request == null ? null : request.comment());</span>
-<span class="fc bfc" id="L311" title="All 2 branches covered.">        return removed ? ResponseEntity.noContent().build() : ResponseEntity.notFound().build();</span>
+<span class="fc" id="L310">        boolean removed = moderation.delete(id, jwt.getClaimAsString(&quot;preferred_username&quot;),</span>
+<span class="pc bpc" id="L311" title="1 of 2 branches missed.">                request == null ? null : request.comment());</span>
+<span class="fc bfc" id="L312" title="All 2 branches covered.">        return removed ? ResponseEntity.noContent().build() : ResponseEntity.notFound().build();</span>
     }
 
     /** @param comment why this protocol is being removed. Required; blank counts as missing. */
-<span class="fc" id="L315">    record DeleteRequest(String comment) {</span>
+<span class="fc" id="L316">    record DeleteRequest(String comment) {</span>
     }
 
     @PutMapping(&quot;/{id}/approval&quot;)
@@ -340,11 +341,11 @@ class ModerationController {
             @PathVariable UUID id,
             @RequestBody ApprovalRequest request,
             @AuthenticationPrincipal Jwt jwt) {
-<span class="pc bpc" id="L343" title="2 of 4 branches missed.">        return approvals.setApproval(id, request != null &amp;&amp; request.approved(),</span>
-<span class="fc" id="L344">                        jwt.getClaimAsString(&quot;preferred_username&quot;),</span>
-<span class="pc bpc" id="L345" title="1 of 2 branches missed.">                        request == null ? null : request.comment())</span>
-<span class="fc" id="L346">                .map(ResponseEntity::ok)</span>
-<span class="fc" id="L347">                .orElseGet(() -&gt; ResponseEntity.notFound().build());</span>
+<span class="pc bpc" id="L344" title="2 of 4 branches missed.">        return approvals.setApproval(id, request != null &amp;&amp; request.approved(),</span>
+<span class="fc" id="L345">                        jwt.getClaimAsString(&quot;preferred_username&quot;),</span>
+<span class="pc bpc" id="L346" title="1 of 2 branches missed.">                        request == null ? null : request.comment())</span>
+<span class="fc" id="L347">                .map(ResponseEntity::ok)</span>
+<span class="fc" id="L348">                .orElseGet(() -&gt; ResponseEntity.notFound().build());</span>
     }
 
     /**
@@ -356,7 +357,7 @@ class ModerationController {
      *                 parameter for the same reason the delete comment is: it can name a
      *                 colleague's mistake, and a query string lands in access logs.
      */
-<span class="fc" id="L359">    record ApprovalRequest(boolean approved, String comment) {</span>
+<span class="fc" id="L360">    record ApprovalRequest(boolean approved, String comment) {</span>
     }
 
     @GetMapping(&quot;/{id}/similar&quot;)
@@ -390,7 +391,7 @@ class ModerationController {
      * about to approve.
      */
     ProtocolSimilarityService.SimilarityReport similar(@PathVariable UUID id) {
-<span class="fc" id="L393">        return approvals.similarTo(id);</span>
+<span class="fc" id="L394">        return approvals.similarTo(id);</span>
     }
 
     @GetMapping(&quot;/deleted&quot;)
@@ -409,7 +410,7 @@ class ModerationController {
             @RequestParam(defaultValue = &quot;10&quot;) int size) {
         // No machine-first rule here, unlike the live list: there is one optional filter rather than
         // four, so there is no combination that could answer with noise.
-<span class="fc" id="L412">        return moderation.listDeleted(machineNo, page, size);</span>
+<span class="fc" id="L413">        return moderation.listDeleted(machineNo, page, size);</span>
     }
 
     @GetMapping(&quot;/deleted/{id}/document&quot;)
@@ -424,9 +425,9 @@ class ModerationController {
                     description = &quot;No such archived protocol — a live one is not served here either&quot;)
     })
     ResponseEntity&lt;Resource&gt; archivedDocument(@PathVariable UUID id) {
-<span class="fc" id="L427">        return documents.findArchived(id)</span>
-<span class="fc" id="L428">                .map(ModerationController::inline)</span>
-<span class="fc" id="L429">                .orElseGet(() -&gt; ResponseEntity.notFound().build());</span>
+<span class="fc" id="L428">        return documents.findArchived(id)</span>
+<span class="fc" id="L429">                .map(ModerationController::inline)</span>
+<span class="fc" id="L430">                .orElseGet(() -&gt; ResponseEntity.notFound().build());</span>
     }
 
     /**
@@ -452,13 +453,14 @@ class ModerationController {
      * needs authorising a second time — but nothing here should be reachable without a token.
      */
     @PreAuthorize(&quot;isAuthenticated()&quot;)
+    @Hidden
     @ExceptionHandler(ProtocolModerationService.InvalidModerationRequestException.class)
     ResponseEntity&lt;Map&lt;String, String&gt;&gt; onInvalidRequest(
             ProtocolModerationService.InvalidModerationRequestException e) {
-<span class="fc bfc" id="L458" title="All 2 branches covered.">        HttpStatus status = ProtocolEditService.PROTOCOL_ARCHIVED.equals(e.code())</span>
-<span class="fc" id="L459">                ? HttpStatus.CONFLICT</span>
-<span class="fc" id="L460">                : HttpStatus.BAD_REQUEST;</span>
-<span class="fc" id="L461">        return ResponseEntity.status(status).body(Map.of(&quot;reason&quot;, e.code(), &quot;error&quot;, e.getMessage()));</span>
+<span class="fc bfc" id="L460" title="All 2 branches covered.">        HttpStatus status = ProtocolEditService.PROTOCOL_ARCHIVED.equals(e.code())</span>
+<span class="fc" id="L461">                ? HttpStatus.CONFLICT</span>
+<span class="fc" id="L462">                : HttpStatus.BAD_REQUEST;</span>
+<span class="fc" id="L463">        return ResponseEntity.status(status).body(Map.of(&quot;reason&quot;, e.code(), &quot;error&quot;, e.getMessage()));</span>
     }
 
     /**
@@ -472,10 +474,11 @@ class ModerationController {
      * handler an unauthorised-for-the-class caller may not invoke is a handler that does not run.
      */
     @PreAuthorize(&quot;isAuthenticated()&quot;)
+    @Hidden
     @ExceptionHandler(ProtocolIntakeService.InvalidProtocolException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     Map&lt;String, String&gt; onInvalidContent(ProtocolIntakeService.InvalidProtocolException e) {
-<span class="fc" id="L478">        return Map.of(&quot;reason&quot;, &quot;INVALID_CONTENT&quot;, &quot;error&quot;, e.getMessage());</span>
+<span class="fc" id="L481">        return Map.of(&quot;reason&quot;, &quot;INVALID_CONTENT&quot;, &quot;error&quot;, e.getMessage());</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.15.202606040825</span></div></body></html>

@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>HelloController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">maintenance-assistant</a> &gt; <a href="index.source.html" class="el_package">com.keglevich.maintenanceassistant.web</a> &gt; <span class="el_source">HelloController.java</span></div><h1>HelloController.java</h1><pre class="source lang-java linenums">package com.keglevich.maintenanceassistant.web;
 
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 import org.springframework.security.core.Authentication;
@@ -20,13 +19,14 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping(&quot;/api&quot;)
 @Tag(name = &quot;System&quot;, description = &quot;Public service information&quot;)
-<span class="fc" id="L23">class HelloController {</span>
+<span class="fc" id="L22">class HelloController {</span>
 
   @GetMapping(&quot;/hello&quot;)
   @Operation(
       summary = &quot;Identity as the backend sees it&quot;,
-      description = &quot;Requires a valid Keycloak access token for the maintenance realm.&quot;,
-      security = @SecurityRequirement(name = &quot;keycloak&quot;))
+      // The bearer requirement is not repeated here: OpenApiConfig declares it globally, and this
+      // operation inherits it like every other. Asserted from the served document by OpenApiSpecIT.
+      description = &quot;Requires a valid Keycloak access token for the maintenance realm.&quot;)
   HelloResponse hello(Authentication authentication) {
     // Spring Security 7 also grants authentication-factor authorities such as FACTOR_BEARER.
     // Those describe *how* the caller authenticated, not what they are allowed to do, so only

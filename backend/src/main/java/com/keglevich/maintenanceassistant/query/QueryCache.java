@@ -47,6 +47,13 @@ class QueryCache {
                 .build();
     }
 
+    /**
+     * The cached answer for this exact question, machine, role and scope.
+     *
+     * <p>ROLE AND SCOPE ARE PART OF THE KEY, and that is a correctness rule rather than a tuning
+     * one: an operator must never be served the technician's answer to the same question (NFR-3),
+     * and an approved-only search must never see a hit produced over the whole corpus.
+     */
     Optional<QueryAnswer> get(String question, UUID machineId, QueryRole role, boolean approvedOnly) {
         QueryAnswer hit = cache.getIfPresent(new Key(normalise(question), machineId, role, approvedOnly));
         if (hit != null) {
@@ -55,6 +62,14 @@ class QueryCache {
         return Optional.ofNullable(hit);
     }
 
+    /**
+     * Stores an answer under the same four-part key {@link #get} reads.
+     *
+     * <p>Entries expire by TTL and are never invalidated by an edit, which is deliberate: the
+     * corrector's re-index makes the corpus right within seconds and the window in which a stale
+     * answer can be served is the TTL, not forever. Invalidating per protocol would need a
+     * question-to-protocol index this cache does not keep.
+     */
     void put(String question, UUID machineId, QueryRole role, boolean approvedOnly, QueryAnswer answer) {
         cache.put(new Key(normalise(question), machineId, role, approvedOnly), answer);
     }
@@ -68,10 +83,26 @@ class QueryCache {
         return cache.estimatedSize();
     }
 
+    /**
+     * Folds the spelling differences that do not change the question.
+     *
+     * <p>Trim, collapse runs of whitespace, lower-case under ROOT. Two shop-floor users typing the
+     * same fault with different spacing or capitalisation should share one answer and one LLM
+     * call, which is what makes this cache worth having. ROOT rather than the default locale so
+     * the key does not depend on the server's language settings.
+     */
     static String normalise(String question) {
         return question == null ? "" : question.strip().replaceAll("\\s+", " ").toLowerCase(Locale.ROOT);
     }
 
+    /**
+     * What makes two queries the same query.
+     *
+     * <p>All four parts are required for the answer to be interchangeable: the normalised question,
+     * the machine it was asked about, the ROLE it was answered for, and whether the search was
+     * limited to approved protocols. Dropping either of the last two would let one user read an
+     * answer assembled under rules that do not apply to them.
+     */
     private record Key(String question, UUID machineId, QueryRole role, boolean approvedOnly) {
     }
 }

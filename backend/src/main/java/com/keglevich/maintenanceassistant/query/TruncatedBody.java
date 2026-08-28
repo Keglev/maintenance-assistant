@@ -39,6 +39,15 @@ record TruncatedBody(long completionTokens, int characters, double whitespaceRat
     private static final int TAIL_LENGTH = 200;
     private static final ObjectMapper JSON = new ObjectMapper();
 
+    /**
+     * Measures a truncated response body so the WARN can be read without the body itself.
+     *
+     * <p>THE ANATOMY IS THE EVIDENCE FOR A4: a whitespace ratio near 1 with a refusal-shaped tail
+     * says the model emitted its empty claims list and then padded to the cap, which a bigger cap
+     * would not fix; a tail of real prose says the answer genuinely ran out of room, which it
+     * would. Only the last {@code TAIL_LENGTH} characters are kept, because a log line is not a
+     * place to put a user's document.
+     */
     static TruncatedBody of(String content, long completionTokens) {
         String body = content == null ? "" : content;
         int whitespace = 0;

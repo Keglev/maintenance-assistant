@@ -80,6 +80,13 @@ public class ProtocolApprovalService {
     /** The state of one protocol's approval, as the API returns it. */
     public record Approval(String state, String approvedBy, OffsetDateTime approvedAt) {
 
+        /**
+         * Whether this protocol may be cited as approved.
+         *
+         * <p>Compares against the one constant rather than testing "not unapproved", because the
+         * state column is three-valued in the schema and a negation would quietly promote any
+         * future third state into approved — see the V5 note on {@code CHECK}.
+         */
         public boolean approved() {
             return APPROVED.equals(state);
         }
@@ -249,10 +256,25 @@ public class ProtocolApprovalService {
                 .optional();
     }
 
+    /**
+     * The protocol an approval request names, read once with everything the decision needs.
+     *
+     * <p>One query rather than several because the checks are a chain — archived, already in
+     * state, four-eyes — and each of them refuses on a different column of the SAME row. Reading
+     * them separately would let the row change between two checks that are supposed to describe
+     * one instant.
+     */
     private record Target(String title, String uploadedBy, OffsetDateTime deletedAt,
                           String approvalState, String approvedBy, OffsetDateTime approvedAt,
                           String machineNo) {
 
+        /**
+         * The unchanged state, for the idempotent path that writes nothing.
+         *
+         * <p>Built from the row just read rather than re-queried: a request asserting the state a
+         * protocol is already in must answer with what is true now, and a second read could only
+         * disagree with the check that just decided nothing needed doing.
+         */
         Approval asApproval() {
             return new Approval(approvalState, approvedBy, approvedAt);
         }

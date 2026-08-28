@@ -17,6 +17,14 @@ import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 @ConfigurationPropertiesScan
 public class MaintenanceAssistantApplication {
 
+  /**
+   * Starts the application.
+   *
+   * <p>Nothing is configured here on purpose: component and
+   * {@code @ConfigurationProperties} scanning are declared on the class above, so a reader looking
+   * for what the application switches on finds it in one place rather than split between an
+   * annotation and a builder chain.
+   */
   public static void main(String[] args) {
     SpringApplication.run(MaintenanceAssistantApplication.class, args);
   }

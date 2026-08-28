@@ -27,6 +27,14 @@ final class UngroundedPrompt {
 
     static final String SCHEMA_NAME = "general_suggestion";
 
+    /**
+     * The system prompt for the ungrounded path, narrowed to what this role may be told.
+     *
+     * <p>ROLE-DEPENDENT BECAUSE MODE B IS THE RISKIER MODE: nothing here is backed by a protocol,
+     * so an operator gets operator-safe steps and escalation advice only (NFR-3, ADR-006). The
+     * grounded path can lean on citations a reader checks; this one cannot, which is why the
+     * narrowing lives in the prompt rather than in a filter over the answer.
+     */
     static String system(QueryRole role) {
         return """
                 You are a maintenance assistant for an industrial plant. The plant's records contain \
@@ -115,6 +123,14 @@ final class UngroundedPrompt {
             Stop after the closing bracket. Do not indent, do not add blank lines, and do not \
             write anything before or after the JSON.""";
 
+    /**
+     * The user turn: the question, with the instruction to answer in its own language.
+     *
+     * <p>The answer is pinned to the QUESTION's language and never to the corpus's — a German
+     * question gets a German suggestion even where the model was steered by English text. Kept
+     * separate from {@link #system(QueryRole)} so the role rules and the per-question part cannot
+     * be edited into one string that drifts.
+     */
     static String user(String question) {
         return "Question: " + question.strip();
     }

@@ -112,6 +112,14 @@ class ChatBudget {
                 .single();
     }
 
+    /**
+     * Writes today's spend to the log, in tokens and in euro.
+     *
+     * <p>NFR-7's third layer is visibility: a budget nobody can read is a budget nobody notices
+     * until it refuses work. The euro figure is an ESTIMATE from a constant rate and is logged for
+     * a sense of scale — the provider's invoice is the number that counts, and ADR-002 records
+     * that the rate is quoted in USD.
+     */
     void logUsage() {
         Usage usage = usageToday();
         double eur = (usage.promptTokens() + usage.completionTokens()) / 1_000_000.0 * EUR_PER_MILLION_TOKENS;

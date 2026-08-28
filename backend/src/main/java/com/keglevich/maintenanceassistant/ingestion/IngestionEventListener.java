@@ -28,6 +28,14 @@ class IngestionEventListener {
         this.indexer = indexer;
     }
 
+    /**
+     * Starts indexing once the upload's transaction has committed.
+     *
+     * <p>AFTER_COMMIT is the contract, not a default: the indexer runs on another thread and would
+     * otherwise read a protocol row that the uploading transaction has not made visible yet — and,
+     * worse, would index one that later rolled back. {@code fallbackExecution} keeps the listener
+     * working when a caller publishes outside a transaction, which the seed runner does.
+     */
     @Async(IngestionAsyncConfig.EXECUTOR)
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT, fallbackExecution = true)
     void onProtocolReceived(ProtocolReceivedEvent event) {

@@ -250,6 +250,14 @@ public class ProtocolEditService {
         return value == null || value.isBlank() ? null : value.strip();
     }
 
+    /**
+     * The protocol as it stands before a correction, read once for the checks and the ledger.
+     *
+     * <p>{@code deletedAt} and {@code approvalState} are read with the text because an edit refuses
+     * on both — an archived protocol is a 409 and an approved one loses its approval — and the
+     * BEFORE values are what the history row records. Re-reading them after the update would
+     * record the result rather than the change.
+     */
     private record Stored(String title, String protocolType, String sourceFile,
                           OffsetDateTime deletedAt, String approvalState, String machineNo) {
     }

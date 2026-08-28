@@ -186,21 +186,50 @@ class AnswerAssembler {
     // package is shared by both, which is what makes @JsonProperty safe here.
     // -----------------------------------------------------------------------------------------
 
+    /**
+     * Mode A's answer as the model returns it: every sentence a claim with a source.
+     *
+     * <p>{@code answer_language} is the model's own report of what it wrote in, and it is bound
+     * because the UI labels the answer with it — a German answer rendered under an English heading
+     * reads as a bug in the retrieval rather than in the label.
+     */
     @JsonIgnoreProperties(ignoreUnknown = true)
     record GroundedAnswer(@JsonProperty("answer_language") String answerLanguage, List<Claim> claims) {
 
+        /**
+         * One statement and the protocol it came from.
+         *
+         * <p>{@code source} is the whole promise of Mode A: a claim whose source does not resolve
+         * to a retrieved protocol is dropped rather than shown, because an uncheckable citation is
+         * worse than no citation.
+         */
         @JsonIgnoreProperties(ignoreUnknown = true)
         record Claim(String text, String source) {
         }
 
+        /**
+         * The claims, never null.
+         *
+         * <p>A model that answers with the field absent is not an error to propagate: it is an
+         * answer with nothing attributable, which the caller already handles as the no-citation
+         * fall-through to Mode B. Returning empty keeps that one path instead of adding a second.
+         */
         List<Claim> safeClaims() {
             return claims == null ? List.of() : claims;
         }
     }
 
+    /**
+     * Mode B's answer: numbered suggestions with no source, and labelled as such to the reader.
+     *
+     * <p>Steps rather than claims because there is nothing to cite — the shape differs from
+     * {@link GroundedAnswer} on purpose, so the two can never be rendered by the same code path
+     * and an ungrounded answer cannot inherit Mode A's presentation.
+     */
     @JsonIgnoreProperties(ignoreUnknown = true)
     record UngroundedAnswer(@JsonProperty("answer_language") String answerLanguage, List<String> steps) {
 
+        /** The steps, never null, for the same reason {@link GroundedAnswer#safeClaims()} gives. */
         List<String> safeSteps() {
             return steps == null ? List.of() : steps;
         }

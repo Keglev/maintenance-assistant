@@ -66,6 +66,25 @@ import static org.assertj.core.api.Assertions.assertThat;
  * <b>ratified by Carlos on 2026-08-20</b>, so every number below is measured against a ruled set
  * rather than against a draft. The limits above are about the set's SIZE and SOURCE, which
  * ratification does not change. See ADR-008.
+ *
+ * <p><b>THE ONLY ASSERTIONS IN THIS CLASS ARE ABOUT THE INSTRUMENT</b>, and both assert-bearing
+ * cases are here rather than each explaining itself beside its own method. Each would fail on a
+ * broken MEASUREMENT — a fixture that has drifted away from the corpus, a corpus that is not the
+ * one the numbers claim, a question about a machine that does not exist. None fails on a bad
+ * RESULT: recall may drop to zero and this stays green, because a falling number is news for a
+ * person to read and not a build to break. If someone later adds
+ * {@code assertThat(recall).isGreaterThan(...)}, the set stops being a measurement and becomes a
+ * target — the one failure mode ADR-008 names.
+ *
+ * <p>The second of the two is INDEX HEALTH, and it exists because nothing in the schema records
+ * which model wrote a row: an index embedded by two different models is <b>silently</b>
+ * half-unsearchable — rows present, {@code status} INDEXED, vectors unit-length and well-formed,
+ * and every one orthogonal to every question. No count, no health endpoint and no functional test
+ * can see it. The check is direct rather than statistical: re-embed a chunk's own stored text with
+ * the model configured RIGHT NOW and compare with the vector stored beside it; same model and same
+ * text give ~1.0, and anything materially lower means something else wrote the row. A baseline
+ * taken over an index outside the query model's space is not a reading of retrieval but a reading
+ * of an accident.
  */
 @SpringBootTest
 @ActiveProfiles("demo")
@@ -188,16 +207,6 @@ class RetrievalBaselineIT {
         System.out.println("written: " + REPORT.toAbsolutePath());
     }
 
-    /**
-     * The only assertions in this class, and every one of them is about the instrument.
-     *
-     * <p>Each would fail on a broken MEASUREMENT — a fixture that has drifted away from the corpus, a
-     * corpus that is not the one the numbers claim, a question about a machine that does not exist.
-     * None of them fails on a bad RESULT: recall may drop to zero and this test stays green, because
-     * a falling number is news for a person to read and not a build to break. If someone later adds
-     * {@code assertThat(recall).isGreaterThan(...)} here, the set stops being a measurement and
-     * becomes a target — the one failure mode ADR-008 names.
-     */
     @Test
     @DisplayName("instrument — the fixture matches the corpus and the corpus matches the file")
     void theInstrumentIsSound() throws Exception {
@@ -231,23 +240,6 @@ class RetrievalBaselineIT {
                 .isEmpty();
     }
 
-    /**
-     * IS THE INDEX IN THE MODEL'S SPACE? — the check this baseline had to grow, on its first run.
-     *
-     * <p>A stored vector is only comparable with a question vector if both came out of the same
-     * model. Nothing in the schema records which model wrote a row, so an index embedded by two
-     * different models is <b>silently</b> half-unsearchable: the rows are present, {@code status} is
-     * {@code INDEXED}, the vectors are unit-length and well-formed, and every one of them is
-     * orthogonal to every question. No count, no health endpoint and no functional test can see it.
-     *
-     * <p>The check is direct rather than statistical: re-embed a chunk's own stored text with the
-     * model configured RIGHT NOW and compare with the vector stored beside it. Same model, same text
-     * gives ~1.0. Anything materially lower means the row was written by something else.
-     *
-     * <p>It asserts, and the assertion is about the INSTRUMENT, not about quality: a baseline taken
-     * over an index that is not in the query model's space is not a reading of retrieval, it is a
-     * reading of an accident. Key-gated like the rest of this class, so it can never gate CI.
-     */
     @Test
     @DisplayName("index health — stored vectors belong to the currently configured embedding model")
     void theIndexIsInTheModelsSpace() {

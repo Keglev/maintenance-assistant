@@ -67,7 +67,7 @@ class UploadSizeExceededAdvice {
     // CONTENT_TOO_LARGE, not PAYLOAD_TOO_LARGE: same 413, and the older constant is deprecated as of
     // Spring 7 (the RFC renamed the status).
     @ResponseStatus(HttpStatus.CONTENT_TOO_LARGE)
-    Map<String, String> onTooLarge(MaxUploadSizeExceededException e) {
+    Map<String, String> onTooLarge(MaxUploadSizeExceededException ignored) {
         return Map.of(
                 "reason", "FILE_TOO_LARGE",
                 "limit", maxFileSize,

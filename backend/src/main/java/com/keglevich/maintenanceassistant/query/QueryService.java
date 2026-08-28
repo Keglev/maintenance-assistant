@@ -339,6 +339,7 @@ public class QueryService {
 
     /** The caller's mistake: an empty question, a missing or unknown machine. Becomes a 400. */
     public static class InvalidQueryException extends RuntimeException {
+        private static final long serialVersionUID = 1L;
         InvalidQueryException(String message) {
             super(message);
         }
@@ -346,6 +347,7 @@ public class QueryService {
 
     /** This user is asking too fast (NFR-7). Becomes a 429 with a Retry-After. */
     public static class RateLimitedException extends RuntimeException {
+        private static final long serialVersionUID = 1L;
 
         private final long retryAfterSeconds;
 
@@ -361,6 +363,7 @@ public class QueryService {
 
     /** Today's global answer budget is spent (NFR-7). Becomes a 503, gracefully. */
     public static class BudgetExhaustedException extends RuntimeException {
+        private static final long serialVersionUID = 1L;
         BudgetExhaustedException(String message) {
             super(message);
         }
@@ -368,6 +371,7 @@ public class QueryService {
 
     /** Answering is impossible right now — no key, or the provider is unreachable. Becomes a 503. */
     public static class ProviderUnavailableException extends RuntimeException {
+        private static final long serialVersionUID = 1L;
         ProviderUnavailableException(String message) {
             super(message);
         }

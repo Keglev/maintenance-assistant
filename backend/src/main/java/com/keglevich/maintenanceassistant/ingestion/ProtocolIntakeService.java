@@ -59,6 +59,7 @@ public class ProtocolIntakeService {
 
     /** Rejected input that is the caller's fault; the web layer maps this to 400. */
     public static class InvalidProtocolException extends RuntimeException {
+        private static final long serialVersionUID = 1L;
         public InvalidProtocolException(String message) {
             super(message);
         }

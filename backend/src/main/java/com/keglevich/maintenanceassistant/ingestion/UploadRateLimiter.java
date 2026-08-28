@@ -78,6 +78,7 @@ public class UploadRateLimiter {
 
     /** Thrown when a user is over their upload limit. Becomes a 429 with {@code Retry-After}. */
     public static class UploadRateLimitExceededException extends RuntimeException {
+        private static final long serialVersionUID = 1L;
 
         private final long retryAfterSeconds;
 

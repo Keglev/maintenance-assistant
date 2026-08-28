@@ -76,6 +76,7 @@ class QueryRateLimiter {
 
     /** Thrown when a user is over their limit. Becomes a 429. */
     static class RateLimitExceededException extends RuntimeException {
+        private static final long serialVersionUID = 1L;
 
         private final long retryAfterSeconds;
 

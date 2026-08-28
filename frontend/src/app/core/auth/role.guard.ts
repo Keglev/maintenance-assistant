@@ -21,7 +21,8 @@ export function homePath(realmRoles: readonly string[]): string {
  * Keeps a route out of the hands of roles that have no business on it.
  *
  * Like {@link authGuard}, this is convenience and not security: the upload endpoint refuses anyone
- * but a Schichtleiter server-side, which is the only place the decision counts (NFR-3). What this
+ * but a Techniker or a Schichtleiter server-side, which is the only place the decision counts
+ * (NFR-3). What this
  * buys is that an operator following a bookmarked `/upload` link gets their own view rather than a
  * form that produces a 403 after they have chosen a file — and that an admin who types `/search`
  * gets the view they can use rather than a machine picker that cannot be filled.

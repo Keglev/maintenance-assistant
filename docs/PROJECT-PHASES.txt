@@ -73,6 +73,12 @@ is not restated here; it is in the dated rows below.
      nothing needed regenerating, and the next intentional design
      change will not. A mirror, another network or a CI regeneration
      job is a decision, not a cleanup. Detail with the Playwright row.
+     AND IT IS NOT ONLY THE CONTAINER, 2026-08-28: since #124 the machine
+     also lacks the BROWSER BUILD the pin needs — 1194 cached, 1234
+     required by Playwright 1.62.1 — `npx playwright install` stalls, and
+     so does a 47 MB artefact where a 10 MB one arrives: a third CDN
+     path. REGENERATION HAS A PATH SINCE 2026-08-28 — a failed CI
+     compare's actual PNGs come from the pinned image (K4, #137; ADR-007).
   4. WATCH, 2026-08-28: maintenance LOGOUT shows a ~3-4 s blank page
      before the login screen, on the demo accounts. Front-channel
      logout round trip suspected, nothing measured yet. NOT the Caddy
@@ -878,6 +884,77 @@ Open rows carried below.
         changed — it is being applied, not revised — and the dated
         sentence goes into the code comments the feature PR rewrites,
         beside the guard it explains.
+        DONE (#137). THE SITES CHANGED, all of them named because a
+        half-applied decision is what this row exists to record:
+          BACKEND — ProtocolReadController GET /mine @PreAuthorize to
+            hasAnyRole('TECHNIKER','SCHICHTLEITER'), its 403 text, and a
+            block comment saying the query is self-scoped by the token's
+            preferred_username, so the second role reads its own rows and
+            nobody else's; the class Javadoc's "writing is
+            Schichtleiter-only" sentence; ProtocolUploadController's
+            class Javadoc and its 403 text (K3.2's two stale sentences,
+            deliberately left out of #136 and closed here).
+          TESTS — RoleMatrixIT's expectation for GET /mine; the /mine
+            ownership test PARAMETERISED over both writers rather than
+            copied, seeded one upload per writer so each caller must see
+            only their own; the "a techniker has no upload list" test
+            replaced by an operator one, since the refusal it asserted is
+            now the operator's and not the Techniker's.
+          FRONTEND — app.ts canUpload; app.routes.ts /upload guard (the
+            guard was ALREADY VARIADIC, so only the call site moved);
+            role.guard.ts's doc sentence claiming the endpoint refuses
+            anyone but a Schichtleiter; upload.ts's class doc and five
+            prose sentences that named the Schichtleiter as the person
+            doing what either writer now does; two spec comments of the
+            same class.
+          E2E — role-gating's "a technician may not reach the upload
+            view" FLIPPED, plus a new case filing a protocol as the
+            Techniker and finding it in "Meine Uploads". The upload steps
+            moved OUT of approval.e2e.ts into support.ts so there is one
+            harness and not two; approval.e2e.ts now delegates to it.
+          DOCS — DECISIONS.txt gains the dated line; arc42 R-2 (the
+            "fixer is not the documenter" risk this decision retires),
+            the NFR-4 upload scenario, one deployment sentence and the
+            context diagram's Techniker node.
+        NOT IN IT: the moderation views, which do not change, and
+        correcting, which stays the Schichtleiter's.
+        THE TWO search-mode-a BASELINES MOVED, and the reason is not a
+        regression: THE HEADER WRAPS AT 1280 ONCE A ROLE HOLDS TWO NAV
+        ENTRIES. "Protokoll hochladen" joined "Suche" for the Techniker,
+        the right-hand cluster dropped to a second line and the page grew
+        50px. Two of eighteen went red, and only two because they are the
+        only full-page shots taken as a Techniker.
+        MEASURED 2026-08-28, TWO WAYS. From the CI crop: content box
+        1056px, one row needs 1176px — overflow 119px, because the new
+        entry needs 144 and the header carried 25px of slack. From a
+        render with the pinned image's font, per role and language,
+        overflow EN/DE: Techniker ~+135/+160px, Schichtleiter
+        ~+350/+380, Admin ~+90/+80.
+        SO THE SCHICHTLEITER'S AND THE ADMIN'S HEADERS HAVE BEEN TWO ROWS
+        SINCE v1.2.0 and nobody had seen it, because no full-page
+        baseline framed either of them. The Techniker did not break the
+        header; the Techniker is the first role whose two-row header was
+        photographed. A one-row header is K11 below, PROPOSED and
+        deferred.
+        BASELINES REGENERATED FROM THE CI RUN'S ACTUAL PNGs, in their own
+        commit — the first use of that path, and the ADR-007 note beside
+        it says why an image rendered on the runner satisfies the
+        one-authority rule.
+        FAILURE CLASS: the layout was never sized for the roles that
+        exist, and the widest role was never photographed. Both halves
+        were needed to hide it for two releases.
+        THE SITES, listed because a half-applied decision is what this
+        row exists to record. UPLOAD VIEW, 8: upload.ts's class doc and
+        five prose sentences naming the Schichtleiter as the person doing
+        what either writer now does (~29 teach, ~34 writes, ~109 open
+        each row, ~170 classify, ~276 scanning), plus two spec comments
+        of the same class. upload.html was READ AND LEFT — it carries no
+        role text at all — and the i18n role descriptions were confirmed
+        already correct and not touched. ARC42, 4: R-2, the "fixer is not
+        the documenter" risk this decision RETIRES; the NFR-4 upload
+        scenario; one deployment sentence; the context diagram's Techniker
+        node. Six other arc42 hits were read and left because they were
+        already right (01:39, 01:40, 03:13, 05:88, 12-glossary:9,10).
 
      K5 FRONTEND DOC (standard: "class and service level doc (summary +
         WHY), not file headers")
@@ -993,6 +1070,39 @@ Open rows carried below.
         disposition for a row whose instrument does not exist — a
         classifier nobody has validated would put a number on this and
         the number would be worth nothing.
+
+     K10 THE PUBLISHED VERSION IS A SNAPSHOT — found 2026-08-28 while
+        writing K3.5's comment, and added as its own row because it is a
+        release-process finding and not a comment one.
+        GET /api/health REPORTS 0.1.0-SNAPSHOT IN PRODUCTION. The pom
+        version has never been bumped; releases live in tags only, so
+        BuildProperties carries the placeholder the build was started
+        with. K3.5's comment — "the application version lives in
+        BuildProperties" — is TRUE OF THE MECHANISM AND FALSE OF THE
+        VALUE, which is the more interesting half: the wiring is right
+        and the number it carries is not, so nothing in the code looks
+        wrong.
+        PROPOSED: pom = release version, bumped as a written release
+        step; a health assertion in the release checklist so the next
+        drill reads the value rather than trusting the mechanism. NOT
+        FIXED HERE — a version bump is a release act and belongs to
+        whoever runs the next one.
+
+     K11 THE HEADER IS TWO ROWS AT 1280 FOR EVERY ROLE BUT THE OPERATOR —
+        found 2026-08-28 by K4's baselines and recorded here rather than
+        fixed, because one row is a DESIGN DECISION and not a CSS bug.
+        WHAT MAKES IT ONE: the tagline sets the brand width at ~315px,
+        --page-max is 68rem, and the nav labels are full words. Nothing
+        can be reclaimed without changing one of those three — tightening
+        the header gap and the nav padding yields 32px against overflows
+        of 80 to 380.
+        CANDIDATES, none costed: the tagline hidden below 80rem; the nav
+        labels shortened; --page-max raised for the shell only. ANY OF
+        THEM MOVES EVERY BASELINE, which is the reason this is deferred
+        rather than ridden along with a feature.
+        PROPOSED: decide it with the recruiter view in mind — the header
+        is the first thing that page shows, and a two-row header is not
+        obviously wrong, only unintended.
 
    FIX PR LIST, in order, all six authorised by the rulings above
      1. fix(openapi): global security requirement + advice @Hidden
@@ -1585,6 +1695,9 @@ Open rows carried below.
          2026-08-28 from Part 5's K4 row, which carries the evidence and
          the branch the ruling took; the feature PR is second in the Part
          5 fix order.
+         DONE 2026-08-28 (#137). The nav entry, the /upload guard and
+         GET /api/protocols/mine all take the Techniker now, and the
+         K4 row above lists every site. CLOSED.
 
    THE WAVE PLAN — D2 IS SUPERSEDED BY THE ROWS BELOW, 2026-08-26. D2
    stays as written above because it is the record of what was planned

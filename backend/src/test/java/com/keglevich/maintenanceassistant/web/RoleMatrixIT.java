@@ -281,7 +281,11 @@ class RoleMatrixIT {
         expected.put("GET /api/moderation/protocols/deleted/{id}/document", Set.of("admin"));
         expected.put("POST /api/query", Set.of("operator", "techniker", "schichtleiter"));
         expected.put("GET /api/protocols/{id}/document", Set.of("operator", "techniker", "schichtleiter"));
-        expected.put("GET /api/protocols/mine", Set.of("schichtleiter"));
+        // Both writers, since 2026-08-28: decision 3 gave the Techniker the upload in v1.2.0 and
+        // this list is what makes a 202 legible, so a writer who cannot read it cannot see their
+        // own failed indexing. Self-scoped by preferred_username, so the second role reads its own
+        // rows and nobody else's.
+        expected.put("GET /api/protocols/mine", Set.of("techniker", "schichtleiter"));
         expected.put("GET /api/machines", Set.of("operator", "techniker", "schichtleiter", "admin"));
         // All four, deliberately (ADR-011): an example is a QUESTION, and the answer path is where
         // an operator's view of a protocol is narrowed. Note what this row does NOT do — it gives

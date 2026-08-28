@@ -34,9 +34,10 @@ export const routes: Routes = [
   {
     path: 'upload',
     loadComponent: () => import('./features/upload/upload').then((m) => m.Upload),
-    // Write access is one role's by decision (DECISIONS.txt). The backend enforces it; this keeps
-    // an operator who followed a bookmark out of a form that would 403 after they chose a file.
-    canActivate: [roleGuard('schichtleiter')],
+    // Write access is two roles' by decision: decision 3 of 2026-08-11 added the Techniker to the
+    // Schichtleiter, and this guard caught up on 2026-08-28. The backend enforces it; this keeps an
+    // operator who followed a bookmark out of a form that would 403 after they chose a file.
+    canActivate: [roleGuard('techniker', 'schichtleiter')],
     title: 'Protokoll hochladen · Wartungsassistent',
   },
   {

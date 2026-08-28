@@ -354,7 +354,7 @@ whose `source_file` points at nothing.
 For the **synthetic corpus the volume archive is redundant** — those documents are regenerated from
 `backend/src/main/resources/corpus/protocols.ndjson` by re-running the seed, so the repository is
 already their backup. It stops being redundant the moment the upload endpoint ships (PR 3): a file
-a Schichtleiter uploads exists nowhere else, and from that point the volume archive is its only
+a writer uploads exists nowhere else, and from that point the volume archive is its only
 copy. The archive is in place now rather than later precisely so that switch-over needs no action.
 
 **Design decisions worth stating:**

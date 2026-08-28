@@ -51,6 +51,22 @@ describe('roleGuard', () => {
     expect(runGuard(['schichtleiter'], '/upload')).toBe(true);
   });
 
+  it('lets either named role through when a route names two', () => {
+    // /upload names both writers since decision 3 reached the UI on 2026-08-28. The guard was
+    // already variadic, so this asserts the route's list rather than a new capability.
+    for (const role of ['techniker', 'schichtleiter']) {
+      roles = [role];
+
+      expect(runGuard(['techniker', 'schichtleiter'], '/upload')).toBe(true);
+    }
+  });
+
+  it('refuses a role neither writer role covers', () => {
+    roles = ['operator'];
+
+    expect(runGuard(['techniker', 'schichtleiter'], '/upload')).not.toBe(true);
+  });
+
   it('matches roles case-insensitively', () => {
     // A realm export that capitalises a role must not lock everybody out of a view.
     roles = ['Schichtleiter'];

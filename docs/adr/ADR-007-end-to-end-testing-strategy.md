@@ -321,6 +321,27 @@ bridge forwards loopback into the container. It exists so that **the production 
 as strict as it is** — pointing the tests at `host.docker.internal` would have been two lines shorter
 and would have traded a safety property for a screenshot.
 
+**Note, 2026-08-28 — a second way to reach the one authority, when the maintainer's machine cannot.**
+The rule above is about the IMAGE, not about who runs it: a baseline is trustworthy because it was
+rendered inside the pinned container, wherever that container ran. CI runs it. So the `*-actual.png`
+files a failed compare uploads in its artefact were produced by the one authority, and they are the
+same bytes `--update-snapshots` would have written locally — which makes them valid baselines.
+
+This is not a convenience. The maintainer's machine can reach neither the image nor, since #124, the
+browser build the pin needs, and a 47 MB artefact stalls where a 10 MB one arrives (PROJECT-PHASES,
+NEXT item 3). Without this path, regeneration had no route at all and the alternative was a
+permanently red job — the exact outcome the stability constraint above exists to prevent. First used
+for K4 (#137), where the Techniker's second nav entry wrapped the header and moved two full-page
+baselines.
+
+**What does not change.** A baseline rendered anywhere but inside the pinned image is still refused.
+"The diff looked fine" is still not a reason to regenerate — the question is always whether the
+change was intended, and for K4 the answer came from measuring the overflow per role, not from
+looking at the picture. And the rule above still holds that new baselines belong in the same pull
+request as the change that caused them; they are a separate COMMIT there, so the diff can be read
+without the PNGs on top of it. A dispatch job that runs `--update-snapshots` and uploads the result
+is the formal version of this and remains a decision rather than a cleanup.
+
 ### Tolerance
 
 `maxDiffPixelRatio: 0.002` — two pixels per thousand, about 2,400 at this viewport. Chosen from what

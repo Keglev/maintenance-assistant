@@ -12,6 +12,11 @@ Status: v1.3.1 released; refactor phase, Part 3 closed 2026-08-26; diagnostics w
   since 2026-08-10 the corpus moderator: reads and deletes any protocol — ADR-006)
 - Write access restricted to Schichtleiter: quality + consistency + anti-garbage.
   Known limitation (documented): fixer != documenter, depends on shift handover.
+- 2026-08-28: applied to the UI and /mine (#137); it had reached the API only in v1.2.0.
+  This is decision 3 of 2026-08-11 — TECHNIKER MAY WRITE, NEVER EDIT — and it SUPERSEDES the
+  two lines above: write access is the Techniker's and the Schichtleiter's, and the
+  fixer != documenter limitation is retired, because the fixer now files. Correcting did not
+  move: a writer may never correct their own protocol, which is where the quality control went.
 - Two answer modes, visually distinct (anti-hallucination):
   Mode A "Belegte Antwort" = grounded, every claim cited
   Mode B "Allgemeiner Vorschlag - keine Quelle im Bestand" = labeled ungrounded troubleshooting;

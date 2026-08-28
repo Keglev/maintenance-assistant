@@ -95,6 +95,100 @@ docker compose cp keycloak:/tmp/export/maintenance-realm.json ./keycloak/realm-e
 
 Review the diff before committing — the export contains generated ids and timestamps that add noise.
 
+## OPS RULES
+
+Authoritative since 2026-08-27 (#127); until then rules 1-5 were recorded in PROJECT-PHASES.txt and
+are now in `docs/ledger/STATUS-2026-08-08.txt` as history.
+
+Six rules, each bought by an incident and each carrying what it cost. Eighteen citations by number in
+nine other files resolve here; this section is what they resolve to. The wording of 1-5 is the
+wording they were written in — copied, not restated, because a rule reworded is a rule re-decided,
+and these were decided by incidents rather than by editing.
+
+- **OPS RULE 1** (learned the hard way, cost ~12 min): the deploy pipeline
+  pulls IMAGES ONLY — it never syncs docker-compose.prod.yml or
+  .env.prod to the host. Any merged change to those files must be
+  applied on the server BY HAND before/with the next deploy (#22 was
+  merged in git but absent on the host until an ops session copied
+  it; rollback copy at docker-compose.prod.yml.bak-20260807-162246).
+  DOCS DEBT: DONE — arc42 07, "CI deploys images, never configuration",
+  including the .bak rule.
+- **OPS RULE 2:** an .env.prod edit is INERT until the container is
+  recreated (`up -d --force-recreate backend`); env freezes at
+  container creation. A container once ran 150 calls into a 401 with
+  a stale key while the file was already correct. DOCS DEBT: DONE —
+  arc42 §7.4, "An .env.prod edit is inert until the container is
+  recreated", with the printenv check.
+- **OPS RULE 3** (learned 2026-08-08, cost one failed deploy round): the
+  prod compose bind-mounts the Caddyfile as a SINGLE FILE
+  (./caddy/Caddyfile:/etc/caddy/Caddyfile:ro), and a single-file bind
+  mount tracks the file's INODE, not its path. Replacing the host file
+  with `mv` gives it a NEW inode, and the container keeps reading the
+  OLD one. Nothing reports this: `caddy validate` and `caddy reload`
+  run INSIDE the container and both happily operate on the stale
+  content, and the reload reports success. Measured: a grep inside the
+  container found 0 CSP lines while the host file had 2. REMEDY: `cp`
+  OVER the existing file (same inode), or
+  `up -d --force-recreate caddy`. Never `mv`. The same trap applies to
+  any single-file bind mount — frontend-config.json is the other one
+  in this stack. DOCS DEBT: DONE — arc42 §7.4, next to the .env rule.
+
+  APPLIED TO THIS STACK — the four single-file mounts, rows 3, 4, 5 and 7 of the table in
+  *Files the pipeline never deploys* below. A single-file bind mount tracks the file's INODE,
+  not its path: replacing the host file with `mv` gives it a new inode and the container keeps
+  reading the old one, silently — `caddy validate` and `caddy reload` run INSIDE the container
+  and both happily report success against stale content. **Always `cp` OVER the existing file**,
+  or `up -d --force-recreate <service>`. Never `mv`. The theme (row 6) is a directory mount and
+  does not carry the trap, though theme caching means it still needs a force-recreate to take
+  effect.
+- **OPS RULE 4** (learned 2026-08-27, cost one root console mid-deploy):
+  BEFORE A HAND-DEPLOY, `ls -l` THE TARGET. The deploy account has no
+  sudo, so a root-owned file on the host CANNOT be replaced from it, and
+  the failure arrives halfway through a session rather than at its
+  start. docker-compose.prod.yml was found root:root 644, sixteen days
+  after a root session created it and did not hand it over — invisible
+  until a deploy finally needed to write that file. A file that is not
+  deploy:deploy needs the root console, and gets `chown deploy:deploy`
+  while you are there. DOCS DEBT: DONE — docker/README.md, above the
+  OPS RULE 3 note, with the ls -l command.
+- **OPS RULE 5, THE SHARED-HOST RULE** (2026-08-27): ROOT CREATES AND HANDS
+  OVER, deploy OPERATES. /opt is root-owned, and `deploy` is not in
+  sudoers at all — infra/provision.sh builds it that way on purpose
+  (adduser --disabled-password, passwd -l, docker group, no sudoers
+  entry). So a second project's directory needs exactly one root action
+  to exist, plus a chown, and everything after that is deploy's. This is
+  the design working rather than a gap: the account that runs containers
+  every day is not the account that can rewrite the machine.
+  NOTE THAT docker GROUP MEMBERSHIP IS ROOT-EQUIVALENT in practice, and
+  the rule stands anyway — a boundary that is trivially crossable is
+  still the written statement of who is supposed to do what, and using
+  the docker socket to sidestep sudoers is how an operator surprises the
+  next one.
+
+**OPS RULE 6 — A BACKUP IS NAMED FOR ITS CONTENT DATE, NOT FOR THE DAY IT WAS COPIED.**
+
+```bash
+f=docker-compose.prod.yml; cp -pn "$f" "$f.bak.of-$(date -r "$f" +%F)"
+```
+
+The name is `<file>.bak.of-<YYYY-MM-DD>`, and the date comes from the SOURCE FILE'S mtime
+(`date -r FILE +%F`) — never from today. `cp -p` preserves that mtime onto the copy, so the name
+and the timestamp on disk agree and a later `ls -l` corroborates the filename instead of
+contradicting it. Two backups of the same content taken on different days collide by design;
+`cp -n` refuses the second, which is the right answer, because they are the same bytes.
+
+**Why, measured 2026-08-27.** The host held `.env.prod.bak-2026-08-27`,
+`docker-compose.prod.yml.bak-2026-08-27` and `Caddyfile.bak-2026-08-27` whose contents were from
+**2026-08-19, 2026-08-11 and 2026-08-08**. Every one of them was named for the day somebody ran
+`cp`, and every one of them was wrong about what it contained. **A backup named for the wrong day is
+restored with confidence**, which is worse than no backup at all — the operator does not stop to
+check, because the filename already answered the question.
+
+NUMBERED 6 BECAUSE 4 AND 5 ARE TAKEN: OPS RULE 4 is "before a hand-deploy, `ls -l` the target" and
+OPS RULE 5 is the shared-host rule, both written 2026-08-27. Rule 6 was written straight into this
+file on 2026-08-27 because rules 1-5 had no home to be written into; that is what this section
+fixes.
+
 ## Files the pipeline never deploys
 
 CI ships **images and nothing else**. Every file below lives on the host, is edited there by
@@ -134,13 +228,8 @@ A file that is not `deploy:deploy` cannot be replaced from the deploy account. I
 console** — and while you are there, `chown deploy:deploy` it, so the next person does not meet the
 same wall. **Root creates and hands over; `deploy` operates.**
 
-**OPS RULE 3 applies to all four single-file mounts (3, 4, 5, 7).** A single-file bind mount
-tracks the file's INODE, not its path: replacing the host file with `mv` gives it a new inode
-and the container keeps reading the old one, silently — `caddy validate` and `caddy reload` run
-INSIDE the container and both happily report success against stale content. **Always `cp` OVER
-the existing file**, or `up -d --force-recreate <service>`. Never `mv`. The theme (6) is a
-directory mount and does not carry the trap, though theme caching means it still needs a
-force-recreate to take effect.
+**OPS RULE 3 applies to rows 3, 4, 5 and 7** — the four single-file mounts. The inode trap, the
+remedy and why the theme (row 6) escapes it are stated once, under OPS RULE 3 above.
 
 ### caddy/Caddyfile
 
@@ -165,30 +254,6 @@ Three things follow, and all three have bitten somebody somewhere:
 - **Removing inventory-service from this host means removing the block.** A `reverse_proxy` to a
   name that no longer resolves fails at request time, not at reload, so `caddy validate` will keep
   reporting a valid configuration while the site returns 502 forever.
-
-**OPS RULE 6 — A BACKUP IS NAMED FOR ITS CONTENT DATE, NOT FOR THE DAY IT WAS COPIED.**
-
-```bash
-f=docker-compose.prod.yml; cp -pn "$f" "$f.bak.of-$(date -r "$f" +%F)"
-```
-
-The name is `<file>.bak.of-<YYYY-MM-DD>`, and the date comes from the SOURCE FILE'S mtime
-(`date -r FILE +%F`) — never from today. `cp -p` preserves that mtime onto the copy, so the name
-and the timestamp on disk agree and a later `ls -l` corroborates the filename instead of
-contradicting it. Two backups of the same content taken on different days collide by design;
-`cp -n` refuses the second, which is the right answer, because they are the same bytes.
-
-**Why, measured 2026-08-27.** The host held `.env.prod.bak-2026-08-27`,
-`docker-compose.prod.yml.bak-2026-08-27` and `Caddyfile.bak-2026-08-27` whose contents were from
-**2026-08-19, 2026-08-11 and 2026-08-08**. Every one of them was named for the day somebody ran
-`cp`, and every one of them was wrong about what it contained. **A backup named for the wrong day is
-restored with confidence**, which is worse than no backup at all — the operator does not stop to
-check, because the filename already answered the question.
-
-NUMBERED 6 BECAUSE 4 AND 5 ARE TAKEN: OPS RULE 4 is "before a hand-deploy, `ls -l` the target" and
-OPS RULE 5 is the shared-host rule, both written 2026-08-27. The canonical list currently sits in
-`docs/ledger/STATUS-2026-08-08.txt` — see the note in PROJECT-PHASES; that placement is a defect of
-the ledger rotation, not a statement that these rules are history.
 
 ### frontend-config.json
 

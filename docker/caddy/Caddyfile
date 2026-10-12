@@ -191,6 +191,33 @@
 # ---------------------------------------------------------------------------
 api.smartsupplypro.de {
 	encode gzip
+	# TEMPORARY access log for this site only (inventory-service EPA: which
+	# endpoints are called, by browsers via Koyeb or directly). Without this block
+	# Caddy skips the host. Remove the block and /data/access-logs after the
+	# 14-day window: Caddy rolls by size only, so it cannot age out the active file
+	# itself. IPs are masked: browser traffic is told from direct calls by the
+	# X-Forwarded-Host header nginx adds, so no full address is needed. The OAuth
+	# callback code/state, the redirect Location and the Referer are dropped;
+	# Cookie, Set-Cookie and Authorization are redacted by Caddy by default.
+	log ssp_api {
+		output file /data/access-logs/ssp-api.log {
+			roll_size 10MiB
+			roll_keep 5
+			roll_keep_for 336h
+		}
+		format filter {
+			request>remote_ip ip_mask 16 32
+			request>client_ip ip_mask 16 32
+			request>headers>X-Forwarded-For ip_mask 16 32
+			request>headers>Referer delete
+			request>uri query {
+				delete code
+				delete state
+			}
+			resp_headers>Location delete
+			wrap json
+		}
+	}
 	# The backend derives OAuth2 redirect URIs from X-Forwarded-Host. Caddy treats
 	# the Koyeb proxy as untrusted and would replace the forwarded host with this
 	# one; the canonical origin is the www host (inventory-service ADR-0010).

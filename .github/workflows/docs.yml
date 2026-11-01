@@ -75,7 +75,7 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
           node-version: 22
 
@@ -185,7 +185,7 @@ jobs:
       # CI uploads them only from main, so pull requests can never publish.
       # The paths match what build-openapi-docs.sh looks for.
       - name: Download coverage
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         with:
           name: ${{ steps.project.outputs.name }}-coverage
           path: target/reports/${{ steps.project.outputs.name }}-coverage
@@ -193,7 +193,7 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Download API documentation
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         with:
           name: ${{ steps.project.outputs.name }}-api-docs
           path: target/reports/${{ steps.project.outputs.name }}-api-docs
@@ -203,7 +203,7 @@ jobs:
       # The backend artifact is a raw OpenAPI document, which is not something a
       # reviewer reads. Redocly renders it through the same script the site build
       # calls, so the published page cannot drift from a local build.
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         if: steps.project.outputs.name == 'backend'
         with:
           node-version: 22

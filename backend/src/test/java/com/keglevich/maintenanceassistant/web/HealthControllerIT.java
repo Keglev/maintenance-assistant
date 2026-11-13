@@ -39,6 +39,9 @@ class HealthControllerIT {
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.status").value("UP"))
         // The version comes from build-info.properties; only its presence is contractual.
-        .andExpect(jsonPath("$.version").isNotEmpty());
+        .andExpect(jsonPath("$.version").isNotEmpty())
+        // The commit is what the deploy workflow compares against the sha it deployed;
+        // only its presence is contractual here, since a test build reads the default.
+        .andExpect(jsonPath("$.commit").isNotEmpty());
   }
 }

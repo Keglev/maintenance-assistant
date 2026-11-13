@@ -14,8 +14,12 @@ COPY pom.xml ./
 RUN mvn -B -ntp dependency:go-offline
 
 COPY src ./src
+# The commit this image is built from, reported by /api/health so a deploy can
+# verify WHICH build is live rather than only that one is up. backend-deploy.yml
+# passes it; a local build without it reads "local" — never a stale sha.
+ARG GIT_COMMIT=local
 # Tests run in CI against the full stack; the image build only produces the artifact.
-RUN mvn -B -ntp clean package -DskipTests
+RUN mvn -B -ntp clean package -DskipTests -Dgit.commit="$GIT_COMMIT"
 
 # --- runtime ----------------------------------------------------------------
 FROM eclipse-temurin:21-jre-noble AS runtime

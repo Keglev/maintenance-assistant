@@ -78,6 +78,11 @@ jobs:
       - uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7
         with:
           context: backend
+          # The commit baked into build-info.properties and reported by /api/health,
+          # so a deploy can verify WHICH build answers. Same resolution as the
+          # checkout ref above: the CI-validated commit, or the dispatch ref's.
+          build-args: |
+            GIT_COMMIT=${{ github.event.workflow_run.head_sha || github.sha }}
           # amd64 only. Production is x86_64 and the ARM rationale expired with Hetzner's 2026-06
           # price restructuring, so the arm64 leg was building an image with no consumer — under
           # qemu emulation, at roughly double the wall clock. Re-adding it is this one line, or a

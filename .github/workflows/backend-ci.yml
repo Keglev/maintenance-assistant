@@ -11,6 +11,13 @@ name: backend-ci
 # and methods each below 0.85 at BUNDLE level halt the build. The floors and the
 # reasoning behind them live in backend/pom.xml beside the rule itself.
 #
+# SINCE 2026-11-13 IT CAN ALSO FAIL ON THE E2E SUITE. frontend-e2e.yml runs as a job
+# of this workflow behind a relevance gate (.github/scripts/e2e-relevant.sh), and the
+# aggregator at the bottom — the job that carries the required check name — fails
+# when the suite fails and passes when the gate skipped it. That is also what gates
+# the deploy: backend-deploy triggers on this workflow's conclusion, which now
+# includes the suite. ADR-007's dated revision records the promotion.
+#
 # ONE FAILURE MODE WORTH KNOWING BEFORE IT HAPPENS: this project's coverage depends on
 # the Testcontainers integration tests, so a runner that cannot start Docker fails the
 # COVERAGE rule rather than reporting a Docker problem. Measured with -DskipITs while
@@ -57,13 +64,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build-and-test:
-    # The job id IS the status-check name GitHub reports, and branch protection
-    # requires exactly one name: build-and-test. frontend-ci.yml and
-    # docs-pr-check.yml use the same id on purpose, so whichever side a PR
-    # touches, a job with the required name reports on it. Do not add a `name:`
-    # key here — it would override the id and the required check would never
-    # appear, blocking every merge.
+  build:
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -112,3 +113,55 @@ jobs:
             backend/target/failsafe-reports
           if-no-files-found: ignore
           retention-days: 7
+
+  # Decides whether this change can affect the rendered suites. Full history,
+  # because the script diffs against the merge base.
+  e2e-gate:
+    runs-on: ubuntu-latest
+    outputs:
+      run: ${{ steps.decide.outputs.run }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 0
+      - id: decide
+        env:
+          # On a pull request, the PR's own base and head; on a push to main, the
+          # commits the push moved between.
+          BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+          HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: bash .github/scripts/e2e-relevant.sh "$BASE" "$HEAD"
+
+  e2e:
+    needs: e2e-gate
+    if: needs.e2e-gate.outputs.run == 'true'
+    uses: ./.github/workflows/frontend-e2e.yml
+
+  # The job id IS the status-check name GitHub reports, and branch protection
+  # requires exactly one name: build-and-test. frontend-ci.yml and
+  # docs-pr-check.yml use the same id on purpose, so whichever side a PR
+  # touches, a job with the required name reports on it. Do not add a `name:`
+  # key here — it would override the id and the required check would never
+  # appear, blocking every merge.
+  #
+  # if: always(), because a skipped aggregator REPORTS SUCCESS to branch
+  # protection — the one outcome this job exists to prevent. It fails when the
+  # gate itself failed (a gate that cannot answer must not skip the suites
+  # silently), fails when the build or the suite failed, and passes when the
+  # gate said the change cannot affect the suite.
+  build-and-test:
+    needs: [build, e2e-gate, e2e]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Aggregate the gate results
+        env:
+          BUILD: ${{ needs.build.result }}
+          GATE: ${{ needs.e2e-gate.result }}
+          E2E: ${{ needs.e2e.result }}
+        run: |
+          set -eu
+          [ "$GATE" = "success" ] || { echo "::error::the e2e relevance gate did not succeed ($GATE)"; exit 1; }
+          [ "$BUILD" = "success" ] || { echo "::error::the backend build did not succeed ($BUILD)"; exit 1; }
+          case "$E2E" in success|skipped) ;; *) echo "::error::the e2e suite did not succeed ($E2E)"; exit 1 ;; esac
+          echo "backend build green; e2e: $E2E"

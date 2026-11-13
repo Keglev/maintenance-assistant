@@ -4,7 +4,6 @@
 
 [![Backend CI](https://github.com/Keglev/maintenance-assistant/actions/workflows/backend-ci.yml/badge.svg)](https://github.com/Keglev/maintenance-assistant/actions/workflows/backend-ci.yml)
 [![Frontend CI](https://github.com/Keglev/maintenance-assistant/actions/workflows/frontend-ci.yml/badge.svg)](https://github.com/Keglev/maintenance-assistant/actions/workflows/frontend-ci.yml)
-[![End-to-end](https://github.com/Keglev/maintenance-assistant/actions/workflows/frontend-e2e.yml/badge.svg)](https://github.com/Keglev/maintenance-assistant/actions/workflows/frontend-e2e.yml)
 [![Docs](https://github.com/Keglev/maintenance-assistant/actions/workflows/docs.yml/badge.svg)](https://github.com/Keglev/maintenance-assistant/actions/workflows/docs.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 

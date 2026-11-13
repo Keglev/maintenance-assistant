@@ -418,3 +418,34 @@ on the way are worth keeping:
   not pull on the maintainer's machine for the second time (DECISIONS.txt, 2026-08-27), so the
   regeneration in #124 could not have been run locally had it been needed, and the pass was measured
   on the runner instead. That is a WATCH against this ADR's mechanism, not a change to it.
+
+## Revision 2026-11-13 — both suites are promoted to gates
+
+**The e2e suite now blocks merges and deploys.** The promotion bar above — ten consecutive green
+pull-request runs without an infrastructure-caused failure — was measured met on 2026-11-12: the last
+eleven non-Dependabot pull-request runs were green. Three red runs since 2026-08-27 were all one
+Dependabot pull request failing at "Install dependencies", a change the bump itself caused, not the
+stack flaking; counting them blindly would have hidden that the bar was met, which is why the failing
+step of every red run in the window was read before counting.
+
+**How it gates.** `frontend-e2e.yml` is now a reusable workflow with no triggers of its own, run as a
+job inside `backend-ci` and `frontend-ci` behind a relevance gate (`.github/scripts/e2e-relevant.sh`):
+a change that cannot affect the suite skips it and moves on. Each CI's last job aggregates the build,
+the gate and the suite under the required check name, so a red suite makes the pull request
+unmergeable — and because the deploys trigger on the CI workflows' conclusion, a red suite on main
+now also stops the deploy, which the standalone workflow never could: on one main commit the frontend
+deploy finished three minutes before the suite did.
+
+**The suites also run again on main, after the merge.** The deploy is gated by the merge commit's own
+CI run, and only a run on main can be that gate. Pros: the artefact that deploys is the one the suite
+tested, and two pull requests that were each green but conflict semantically are caught before the
+deploy rather than in production. Cons: every merge pays the stack provision twice (once on the pull
+request, once on main), and an infrastructure flake on main blocks the deploy until the run is
+retried. Accepted: a blocked deploy is a visible, retryable state; a deployed regression is neither.
+
+**The visual suite is confirmed as a gate too**, by decision despite its shorter streak (two
+consecutive green non-Dependabot runs at promotion, against the ten-run bar) and despite the known
+cost that a Playwright bump turns the check red until the baselines are regenerated. The reasoning:
+the suite's first run already proved its worth by catching two CI-stack defects, its failure artefacts
+make a red run cheap to judge, and leaving it advisory forever would repeat the mistake this record
+exists to end. It joins the same aggregators with the same skip rule in a follow-up change.

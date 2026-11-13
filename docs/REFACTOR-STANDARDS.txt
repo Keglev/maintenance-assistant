@@ -4,6 +4,12 @@ Repo: https://github.com/Keglev/maintenance-assistant
 session as context. This one is NORMATIVE: where a review, a survey or a
 PR disagrees with it, this file wins until the owner rules otherwise.)
 
+AMENDED 2026-11-13 (workflow review wave, ruled by the owner): this file
+is confirmed as THE project's own standards and size file. The
+SCRIPTS AND WORKFLOWS section moves from paired path lists to the
+claimant model — one required check per family, a reusable claimant
+gate, aggregators, and reusable workflows for shared checks.
+
 PROVENANCE — adapted 2026-08-20 from the portable template distilled
 from the StockEase standards (rev 14 / template v2). The bands are
 adjusted to this project's stacks; the MECHANISMS are kept in substance,
@@ -163,11 +169,29 @@ SCRIPTS AND WORKFLOWS
   read one command. A block that computes, loops or branches is not
   covered by the waiver.
 - EVERY PATH MUST BE GATED by the workflow that actually exercises it.
-  If branch protection requires a named check, a path ignored by the
-  main gate must be claimed by another workflow reporting that same
-  check name — a no-op job is the honest gate for a change that cannot
-  break anything. Maintain the paths and paths-ignore lists as
-  documented pairs, with the reasoning in the trigger comment.
+  AMENDED 2026-11-13: the mechanism is now CLAIMANTS, not paired path
+  lists. Three claimant workflows (backend-ci, frontend-ci,
+  docs-pr-check) each own one required check (build-and-test-backend,
+  -frontend, -docs) and run on EVERY pull request with NO pull_request
+  path filter — a workflow skipped by a path filter never reports its
+  required check and the PR can never merge. Each claimant's first job
+  calls the reusable claimant-gate.yml (claimant-gate.sh), which decides
+  from the PR's diff whether the family is touched; push triggers on
+  main keep their path filters. The partition lives in claimant-gate.sh
+  alone: no path belongs to two families, and BACKEND IS THE CATCH-ALL,
+  so a new path is gated by default rather than stranded.
+- THE AGGREGATOR is each claimant's last job, carries the required check
+  name, and runs under if: always(), because a skipped job reports
+  success to branch protection. Its verdict is a shared script
+  (aggregate-required-check.sh): fail when the claimant gate itself did
+  not succeed, pass when the gate says the family is untouched,
+  otherwise require the family's build to succeed and every conditional
+  suite (e2e, visual) to succeed or be skipped by its own gate.
+- A check that more than one claimant needs is a REUSABLE WORKFLOW the
+  claimants call behind a diff gate (frontend-e2e.yml and
+  frontend-e2e-visual.yml behind e2e-relevant.sh), never a copy. A
+  gate's deny/skip list enumerates only what the check never reads; an
+  unknown path defaults to RUN.
 - CHECKS MUST FAIL LOUDLY. A check that passes for the wrong reason
   (wrong directory, line-ending-blind comparison, a probe that never
   ran) is discarded, not read as green.

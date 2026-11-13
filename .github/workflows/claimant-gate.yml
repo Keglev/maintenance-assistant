@@ -1,0 +1,39 @@
+name: claimant-gate
+
+# The first job of every claimant workflow (backend-ci, frontend-ci,
+# docs-pr-check): answers whether the pull request touches the caller's family,
+# so the claimant can run on EVERY pull request — which is what makes its
+# required check always report — while spending a full suite only on changes
+# that can affect it. The partition itself lives in claimant-gate.sh, in one
+# place instead of three hand-paired path lists.
+on:
+  workflow_call:
+    inputs:
+      family:
+        description: 'backend, frontend or docs — backend is the catch-all'
+        required: true
+        type: string
+    outputs:
+      run:
+        description: 'true when the pull request touches this family'
+        value: ${{ jobs.changes.outputs.run }}
+
+permissions:
+  contents: read
+
+jobs:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      run: ${{ steps.decide.outputs.run }}
+    steps:
+      # Full history, because the script diffs against the merge base.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 0
+      - id: decide
+        env:
+          FAMILY: ${{ inputs.family }}
+          BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+          HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: bash .github/scripts/claimant-gate.sh "$FAMILY" "$BASE" "$HEAD"

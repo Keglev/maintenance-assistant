@@ -25,27 +25,13 @@ name: backend-ci
 on:
   pull_request:
     branches: [main]
-    # This is the catch-all gate. A path may be ignored here ONLY if another
-    # workflow gives that PR a check named build-and-test — the required one. A
-    # path ignored by every workflow leaves its PRs with no such check and
-    # permanently blocked from merging, so this list is not a matter of taste.
-    #
-    # Two workflows earn entries. frontend/** is covered by frontend-ci.yml. The
-    # docs paths are covered by docs-pr-check.yml; they are that workflow's
-    # CONTENT trigger paths and must stay in step with them. Its gate-adjacent
-    # paths — its own file and .github/scripts/docs/** — are deliberately absent
-    # below, so those run both gates (see that workflow's header). Everything else
-    # falls through to this job — including README.md, .gitignore, AI-USAGE.md,
-    # LICENSE and docker/**, which deliberately stay here rather than joining the
-    # docs list: they are outside docs/, so the docs build never reads them and
-    # would gate them on nothing.
-    #
-    # frontend-ci.yml's and docs-pr-check.yml's own files are deliberately absent
-    # below, so editing a gate runs the backend suite as well as that gate.
-    paths-ignore:
-      - 'frontend/**'
-      - 'docs/**'
-      - '.github/workflows/docs.yml'
+    # NO PATH FILTER, deliberately: a workflow skipped by a path filter never
+    # reports its required check and the PR can never merge. Every claimant runs
+    # on every pull request; the `changes` job below decides from the diff
+    # whether this FAMILY is touched, and the aggregator passes a family the
+    # change never touched. The partition lives in claimant-gate.sh — backend is
+    # the catch-all, so README.md, docker/**, .github/** and anything in no
+    # other family is gated here rather than stranded.
   push:
     branches: [main]
     # Unlike the pull_request trigger above, this list is NOT a partition. A push
@@ -64,7 +50,16 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  # Does this pull request touch this claimant's family at all? On a push the
+  # trigger's path filters already decided and the gate answers true.
+  changes:
+    uses: ./.github/workflows/claimant-gate.yml
+    with:
+      family: backend
+
   build:
+    needs: changes
+    if: needs.changes.outputs.run == 'true'
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -117,6 +112,8 @@ jobs:
   # Decides whether this change can affect the rendered suites. Full history,
   # because the script diffs against the merge base.
   e2e-gate:
+    needs: changes
+    if: needs.changes.outputs.run == 'true'
     runs-on: ubuntu-latest
     outputs:
       run: ${{ steps.decide.outputs.run }}
@@ -144,33 +141,25 @@ jobs:
     if: needs.e2e-gate.outputs.run == 'true'
     uses: ./.github/workflows/frontend-e2e-visual.yml
 
-  # The job id IS the status-check name GitHub reports, and branch protection
-  # requires exactly one name: build-and-test. frontend-ci.yml and
-  # docs-pr-check.yml use the same id on purpose, so whichever side a PR
-  # touches, a job with the required name reports on it. Do not add a `name:`
-  # key here — it would override the id and the required check would never
-  # appear, blocking every merge.
-  #
-  # if: always(), because a skipped aggregator REPORTS SUCCESS to branch
-  # protection — the one outcome this job exists to prevent. It fails when the
-  # gate itself failed (a gate that cannot answer must not skip the suites
-  # silently), fails when the build or the suite failed, and passes when the
-  # gate said the change cannot affect the suite.
-  build-and-test:
-    needs: [build, e2e-gate, e2e, visual]
+  # The job id IS the status-check name: one required check per family, and this
+  # is the backend family's (the ruleset requires build-and-test-backend,
+  # -frontend and -docs). if: always(), because a skipped aggregator REPORTS
+  # SUCCESS to branch protection — the one outcome this job exists to prevent.
+  # The verdict itself lives in aggregate-required-check.sh, shared by all
+  # three claimants.
+  build-and-test-backend:
+    needs: [changes, build, e2e-gate, e2e, visual]
     if: always()
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - name: Aggregate the gate results
         env:
-          BUILD: ${{ needs.build.result }}
-          GATE: ${{ needs.e2e-gate.result }}
-          E2E: ${{ needs.e2e.result }}
-          VISUAL: ${{ needs.visual.result }}
-        run: |
-          set -eu
-          [ "$GATE" = "success" ] || { echo "::error::the e2e relevance gate did not succeed ($GATE)"; exit 1; }
-          [ "$BUILD" = "success" ] || { echo "::error::the backend build did not succeed ($BUILD)"; exit 1; }
-          case "$E2E" in success|skipped) ;; *) echo "::error::the e2e suite did not succeed ($E2E)"; exit 1 ;; esac
-          case "$VISUAL" in success|skipped) ;; *) echo "::error::the visual suite did not succeed ($VISUAL)"; exit 1 ;; esac
-          echo "backend build green; e2e: $E2E; visual: $VISUAL"
+          CHANGES_RESULT: ${{ needs.changes.result }}
+          CHANGES_RUN: ${{ needs.changes.outputs.run }}
+          BUILD_RESULT: ${{ needs.build.result }}
+          OPTIONAL_RESULTS: >-
+            e2e-gate=${{ needs.e2e-gate.result }}
+            e2e=${{ needs.e2e.result }}
+            visual=${{ needs.visual.result }}
+        run: bash .github/scripts/aggregate-required-check.sh

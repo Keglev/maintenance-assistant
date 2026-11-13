@@ -13,17 +13,11 @@ name: frontend-ci
 on:
   pull_request:
     branches: [main]
-    # Maintained as a pair with backend-ci.yml's pull_request paths-ignore: every
-    # path listed here is ignored there, and everything else falls through to that
-    # catch-all job. A path in neither list produces a PR with no build-and-test
-    # check at all, which is unmergeable — see the comment on that trigger.
-    #
-    # This workflow's own file is deliberately NOT ignored by backend-ci.yml.
-    # Editing the frontend gate should run both checks, because getting it wrong
-    # is how the repository loses its ability to merge.
-    paths:
-      - 'frontend/**'
-      - '.github/workflows/frontend-ci.yml'
+    # NO PATH FILTER, deliberately: a workflow skipped by a path filter never
+    # reports its required check and the PR can never merge. Every claimant runs
+    # on every pull request; the `changes` job below decides from the diff
+    # whether the frontend family is touched, and the aggregator passes a family
+    # the change never touched. The partition lives in claimant-gate.sh.
   push:
     branches: [main]
     paths:
@@ -38,7 +32,16 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  # Does this pull request touch this claimant's family at all? On a push the
+  # trigger's path filters already decided and the gate answers true.
+  changes:
+    uses: ./.github/workflows/claimant-gate.yml
+    with:
+      family: frontend
+
   build:
+    needs: changes
+    if: needs.changes.outputs.run == 'true'
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -97,6 +100,8 @@ jobs:
   # Decides whether this change can affect the rendered suites. Full history,
   # because the script diffs against the merge base.
   e2e-gate:
+    needs: changes
+    if: needs.changes.outputs.run == 'true'
     runs-on: ubuntu-latest
     outputs:
       run: ${{ steps.decide.outputs.run }}
@@ -124,34 +129,25 @@ jobs:
     if: needs.e2e-gate.outputs.run == 'true'
     uses: ./.github/workflows/frontend-e2e-visual.yml
 
-  # The job id IS the status-check name GitHub reports, and branch protection
-  # requires exactly one name: build-and-test. backend-ci.yml and
-  # docs-pr-check.yml use the same id on purpose, so whichever side a PR
-  # touches, a job with the required name reports on it. A PR touching both
-  # frontend and backend gets two checks under this name, and both must pass.
-  # Do not add a `name:` key — it would override the id and hide the required
-  # check.
-  #
-  # if: always(), because a skipped aggregator REPORTS SUCCESS to branch
-  # protection — the one outcome this job exists to prevent. It fails when the
-  # gate itself failed (a gate that cannot answer must not skip the suites
-  # silently), fails when the build or the suite failed, and passes when the
-  # gate said the change cannot affect the suite.
-  build-and-test:
-    needs: [build, e2e-gate, e2e, visual]
+  # The job id IS the status-check name: one required check per family, and this
+  # is the frontend family's (the ruleset requires build-and-test-backend,
+  # -frontend and -docs). if: always(), because a skipped aggregator REPORTS
+  # SUCCESS to branch protection — the one outcome this job exists to prevent.
+  # The verdict itself lives in aggregate-required-check.sh, shared by all
+  # three claimants.
+  build-and-test-frontend:
+    needs: [changes, build, e2e-gate, e2e, visual]
     if: always()
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - name: Aggregate the gate results
         env:
-          BUILD: ${{ needs.build.result }}
-          GATE: ${{ needs.e2e-gate.result }}
-          E2E: ${{ needs.e2e.result }}
-          VISUAL: ${{ needs.visual.result }}
-        run: |
-          set -eu
-          [ "$GATE" = "success" ] || { echo "::error::the e2e relevance gate did not succeed ($GATE)"; exit 1; }
-          [ "$BUILD" = "success" ] || { echo "::error::the frontend build did not succeed ($BUILD)"; exit 1; }
-          case "$E2E" in success|skipped) ;; *) echo "::error::the e2e suite did not succeed ($E2E)"; exit 1 ;; esac
-          case "$VISUAL" in success|skipped) ;; *) echo "::error::the visual suite did not succeed ($VISUAL)"; exit 1 ;; esac
-          echo "frontend build green; e2e: $E2E; visual: $VISUAL"
+          CHANGES_RESULT: ${{ needs.changes.result }}
+          CHANGES_RUN: ${{ needs.changes.outputs.run }}
+          BUILD_RESULT: ${{ needs.build.result }}
+          OPTIONAL_RESULTS: >-
+            e2e-gate=${{ needs.e2e-gate.result }}
+            e2e=${{ needs.e2e.result }}
+            visual=${{ needs.visual.result }}
+        run: bash .github/scripts/aggregate-required-check.sh

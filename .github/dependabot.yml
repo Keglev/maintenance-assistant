@@ -43,7 +43,13 @@ updates:
   # step, and one PR per major is fine here because there are twelve actions and
   # they move slowly.
   - package-ecosystem: github-actions
-    directory: /
+    # BOTH LOCATIONS, because `directory: /` means .github/workflows ONLY — composite
+    # actions are not under it. Learned when the 2026-11-10 batch moved the workflow
+    # pins (setup-java to v6.1.0) and left .github/actions/e2e-stack on v5: the pins
+    # Dependabot cannot see are the ones that silently freeze.
+    directories:
+      - /
+      - /.github/actions/e2e-stack
     schedule:
       interval: monthly
     groups:

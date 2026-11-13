@@ -28,21 +28,26 @@ import org.springframework.web.bind.annotation.RestController;
 class HealthController {
 
   private final String version;
+  private final String commit;
 
-<span class="fc" id="L32">  HealthController(ObjectProvider&lt;BuildProperties&gt; buildProperties) {</span>
+<span class="fc" id="L33">  HealthController(ObjectProvider&lt;BuildProperties&gt; buildProperties) {</span>
     // Written by the spring-boot-maven-plugin build-info goal; absent when the class is started
     // straight from an IDE, which is not worth failing over.
-<span class="pc bpc" id="L35" title="1 of 2 branches missed.">    this.version = buildProperties.getIfAvailable() != null</span>
-<span class="fc" id="L36">        ? buildProperties.getObject().getVersion()</span>
-<span class="pc" id="L37">        : &quot;dev&quot;;</span>
-<span class="fc" id="L38">  }</span>
+<span class="fc" id="L36">    BuildProperties properties = buildProperties.getIfAvailable();</span>
+<span class="pc bpc" id="L37" title="1 of 2 branches missed.">    this.version = properties != null ? properties.getVersion() : &quot;dev&quot;;</span>
+    // The additionalProperties entry of the build-info goal, fed by -Dgit.commit. The image
+    // build sets it to the CI-validated sha; everything else reads the pom default &quot;local&quot;.
+<span class="pc bpc" id="L40" title="2 of 4 branches missed.">    this.commit = properties != null &amp;&amp; properties.get(&quot;commit&quot;) != null</span>
+<span class="fc" id="L41">        ? properties.get(&quot;commit&quot;)</span>
+<span class="pc" id="L42">        : &quot;local&quot;;</span>
+<span class="fc" id="L43">  }</span>
 
   @GetMapping(&quot;/health&quot;)
   @Operation(summary = &quot;Service status and version&quot;, description = &quot;Public — no token required.&quot;)
   // Clears the global bearer requirement from OpenApiConfig for this operation only.
   @SecurityRequirements
   HealthResponse health() {
-<span class="fc" id="L45">    return new HealthResponse(&quot;UP&quot;, version);</span>
+<span class="fc" id="L50">    return new HealthResponse(&quot;UP&quot;, version, commit);</span>
   }
 
   /**
@@ -51,7 +56,13 @@ class HealthController {
    * &lt;p&gt;{@code version} is BuildProperties, written by the build-info goal, and reads {@code dev}
    * from an IDE start. It is the APPLICATION version and not the API contract generation, which is
    * the {@code v1} in the OpenAPI info block — see OpenApiConfig for why those are two numbers.
+   *
+   * &lt;p&gt;{@code commit} is what makes the field a deploy check: a version alone cannot tell two
+   * builds of 0.1.0-SNAPSHOT apart, so &quot;is the thing I deployed the thing that answers&quot; was
+   * unanswerable until the sha itself was reported. The deploy workflow compares this value with
+   * the commit it deployed. Public by the same reasoning as the endpoint: the sha of an open
+   * repository's main branch is not a secret.
    */
-<span class="fc" id="L55">  record HealthResponse(String status, String version) {}</span>
+<span class="fc" id="L66">  record HealthResponse(String status, String version, String commit) {}</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.16.202610240946</span></div></body></html>

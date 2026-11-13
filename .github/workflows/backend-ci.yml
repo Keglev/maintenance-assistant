@@ -137,6 +137,13 @@ jobs:
     if: needs.e2e-gate.outputs.run == 'true'
     uses: ./.github/workflows/frontend-e2e.yml
 
+  # Same gate, same skip rule: a change that cannot affect the rendered suites
+  # skips both of them.
+  visual:
+    needs: e2e-gate
+    if: needs.e2e-gate.outputs.run == 'true'
+    uses: ./.github/workflows/frontend-e2e-visual.yml
+
   # The job id IS the status-check name GitHub reports, and branch protection
   # requires exactly one name: build-and-test. frontend-ci.yml and
   # docs-pr-check.yml use the same id on purpose, so whichever side a PR
@@ -150,7 +157,7 @@ jobs:
   # silently), fails when the build or the suite failed, and passes when the
   # gate said the change cannot affect the suite.
   build-and-test:
-    needs: [build, e2e-gate, e2e]
+    needs: [build, e2e-gate, e2e, visual]
     if: always()
     runs-on: ubuntu-latest
     steps:
@@ -159,9 +166,11 @@ jobs:
           BUILD: ${{ needs.build.result }}
           GATE: ${{ needs.e2e-gate.result }}
           E2E: ${{ needs.e2e.result }}
+          VISUAL: ${{ needs.visual.result }}
         run: |
           set -eu
           [ "$GATE" = "success" ] || { echo "::error::the e2e relevance gate did not succeed ($GATE)"; exit 1; }
           [ "$BUILD" = "success" ] || { echo "::error::the backend build did not succeed ($BUILD)"; exit 1; }
           case "$E2E" in success|skipped) ;; *) echo "::error::the e2e suite did not succeed ($E2E)"; exit 1 ;; esac
-          echo "backend build green; e2e: $E2E"
+          case "$VISUAL" in success|skipped) ;; *) echo "::error::the visual suite did not succeed ($VISUAL)"; exit 1 ;; esac
+          echo "backend build green; e2e: $E2E; visual: $VISUAL"

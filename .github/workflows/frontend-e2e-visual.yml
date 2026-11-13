@@ -2,7 +2,12 @@ name: frontend-e2e-visual
 
 # VISUAL REGRESSION — baseline screenshots compared per run (ADR-007, dated section 2026-08-13).
 #
-# ITS OWN WORKFLOW, AND ITS OWN CHECK, and that is the point rather than an accident of layout. A
+# A REUSABLE WORKFLOW SINCE 2026-11-13, run as the `visual` job inside backend-ci and frontend-ci
+# behind the same relevance gate as the functional suite (.github/scripts/e2e-relevant.sh), and a
+# GATE: each CI's aggregator — the required check — fails when this fails. ADR-007's dated revision
+# records the promotion, by decision despite the shorter green streak.
+#
+# ITS OWN JOB, AND ITS OWN CHECK LINE, and that is the point rather than an accident of layout. A
 # pixel diff and a broken flow are different news for different people: "the source list moved four
 # pixels" wants a designer's eye, "the citation click 401s" wants a fix before anything else ships.
 # Folded into the functional job, a red baseline would hide a green suite behind one amber word, and
@@ -19,29 +24,10 @@ name: frontend-e2e-visual
 # `mcr.microsoft.com/playwright:v1.62.1-noble` image this job uses — so the only environment that
 # ever produces or checks a baseline is that one image. See frontend/e2e/README.md.
 on:
-  pull_request:
-    branches: [main]
-    paths:
-      - 'frontend/**'
-      - 'backend/**'
-      - 'docker/keycloak/**'
-      - '.github/workflows/frontend-e2e-visual.yml'
-      - '.github/actions/e2e-stack/**'
-  push:
-    branches: [main]
-    paths:
-      - 'frontend/**'
-      - 'backend/**'
-      - 'docker/keycloak/**'
-      - '.github/workflows/frontend-e2e-visual.yml'
-      - '.github/actions/e2e-stack/**'
+  workflow_call:
 
 permissions:
   contents: read
-
-concurrency:
-  group: frontend-e2e-visual-${{ github.ref }}
-  cancel-in-progress: true
 
 jobs:
   visual:
@@ -94,7 +80,7 @@ jobs:
         if: failure()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
-          name: visual-diffs
+          name: visual-diffs-${{ github.run_id }}-${{ github.run_attempt }}
           path: |
             frontend/test-results
             frontend/playwright-report

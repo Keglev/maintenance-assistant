@@ -2,36 +2,29 @@ name: docs-pr-check
 
 # Gives documentation pull requests a check of their own.
 #
-# The required branch-protection check is a *name*, `build-and-test`, not a workflow: a PR with no
-# job reporting under that name can never merge. Without this workflow, the only way to give a docs
-# PR that name would be to let the backend test suite run on it — so changing a Markdown file would
-# build and test a Spring Boot application, which proves nothing about the change and fails for
-# reasons that have nothing to do with it. This runs the docs checks instead, under the same
-# required name, so a docs PR is gated by something that can actually be wrong about it.
+# A required branch-protection check is a *name*, not a workflow: a PR with no job
+# reporting under it can never merge. This workflow owns the docs family's name,
+# `build-and-test-docs`. Without it, the only way to gate a docs PR would be to let
+# the backend test suite run on it — so changing a Markdown file would build and
+# test a Spring Boot application, which proves nothing about the change and fails
+# for reasons that have nothing to do with it. This runs the docs checks instead,
+# so a docs PR is gated by something that can actually be wrong about it.
 #
-# The paths below and backend-ci.yml's pull_request paths-ignore are maintained as a pair. Every
-# CONTENT path in this list is ignored there, and everything else falls through to the backend job.
-# A path that ended up in neither would produce a PR with no `build-and-test` check at all, which is
-# unmergeable — see the comment on that trigger.
+# NO PATH FILTER on the pull_request trigger, deliberately: a workflow skipped by
+# a path filter never reports its required check and the PR can never merge. Every
+# claimant runs on every pull request; the `changes` job decides from the diff
+# whether the docs family is touched (docs/**, docs.yml, this file,
+# .github/scripts/docs/** — the partition lives in claimant-gate.sh), and the
+# aggregator passes a family the change never touched.
 #
-# THE GATE-ADJACENT PATHS ARE THE EXCEPTION, AND THEY ARE DOUBLE-GATED ON PURPOSE. This workflow's
-# own file and `.github/scripts/docs/**` are triggers here and are deliberately NOT ignored by
-# backend-ci.yml, so editing the docs gate or the scripts it runs reports under `build-and-test`
-# twice. Getting either wrong is how the repository loses its ability to merge, and one check that
-# has to be right is worth less than two.
-#
-# `.github/scripts/docs/**` was added 2026-08-21 because it was gated by `mvn verify` — a check that
-# never executes a single one of those scripts. It could not fail on a broken docs build, so it
-# passed for reasons that had nothing to do with the change.
+# `.github/scripts/docs/**` joined the docs family because it was once gated by
+# `mvn verify` — a check that never executes a single one of those scripts. It
+# could not fail on a broken docs build, so it passed for reasons that had
+# nothing to do with the change.
 
 on:
   pull_request:
     branches: [main]
-    paths:
-      - 'docs/**'
-      - '.github/workflows/docs.yml'
-      - '.github/workflows/docs-pr-check.yml'
-      - '.github/scripts/docs/**'
   workflow_dispatch:
 
 permissions:
@@ -42,11 +35,16 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build-and-test:
-    # Same job id as backend-ci.yml and frontend-ci.yml on purpose: the required branch-protection
-    # check matches this name, so whichever side a PR touches, a job with the required name reports
-    # on it. A PR touching both docs and backend gets two checks under this name, and both must
-    # pass. Do not add a `name:` key — it would override the id and hide the required check.
+  # Does this pull request touch the docs family at all? On a workflow_dispatch
+  # the gate answers true.
+  changes:
+    uses: ./.github/workflows/claimant-gate.yml
+    with:
+      family: docs
+
+  build:
+    needs: changes
+    if: needs.changes.outputs.run == 'true'
     runs-on: ubuntu-latest
 
     steps:
@@ -141,3 +139,21 @@ jobs:
             --config lychee.toml
             --root-dir "${{ github.workspace }}/target/link-check"
             "target/link-check/maintenance-assistant/**/*.html"
+
+  # The job id IS the status-check name: one required check per family, and this
+  # is the docs family's (the ruleset requires build-and-test-backend, -frontend
+  # and -docs). if: always(), because a skipped aggregator REPORTS SUCCESS to
+  # branch protection — the one outcome this job exists to prevent. The verdict
+  # itself lives in aggregate-required-check.sh, shared by all three claimants.
+  build-and-test-docs:
+    needs: [changes, build]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - name: Aggregate the gate results
+        env:
+          CHANGES_RESULT: ${{ needs.changes.result }}
+          CHANGES_RUN: ${{ needs.changes.outputs.run }}
+          BUILD_RESULT: ${{ needs.build.result }}
+        run: bash .github/scripts/aggregate-required-check.sh

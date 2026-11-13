@@ -28,13 +28,18 @@ import org.springframework.web.bind.annotation.RestController;
 class HealthController {
 
   private final String version;
+  private final String commit;
 
   HealthController(ObjectProvider<BuildProperties> buildProperties) {
     // Written by the spring-boot-maven-plugin build-info goal; absent when the class is started
     // straight from an IDE, which is not worth failing over.
-    this.version = buildProperties.getIfAvailable() != null
-        ? buildProperties.getObject().getVersion()
-        : "dev";
+    BuildProperties properties = buildProperties.getIfAvailable();
+    this.version = properties != null ? properties.getVersion() : "dev";
+    // The additionalProperties entry of the build-info goal, fed by -Dgit.commit. The image
+    // build sets it to the CI-validated sha; everything else reads the pom default "local".
+    this.commit = properties != null && properties.get("commit") != null
+        ? properties.get("commit")
+        : "local";
   }
 
   @GetMapping("/health")
@@ -42,7 +47,7 @@ class HealthController {
   // Clears the global bearer requirement from OpenApiConfig for this operation only.
   @SecurityRequirements
   HealthResponse health() {
-    return new HealthResponse("UP", version);
+    return new HealthResponse("UP", version, commit);
   }
 
   /**
@@ -51,6 +56,12 @@ class HealthController {
    * <p>{@code version} is BuildProperties, written by the build-info goal, and reads {@code dev}
    * from an IDE start. It is the APPLICATION version and not the API contract generation, which is
    * the {@code v1} in the OpenAPI info block — see OpenApiConfig for why those are two numbers.
+   *
+   * <p>{@code commit} is what makes the field a deploy check: a version alone cannot tell two
+   * builds of 0.1.0-SNAPSHOT apart, so "is the thing I deployed the thing that answers" was
+   * unanswerable until the sha itself was reported. The deploy workflow compares this value with
+   * the commit it deployed. Public by the same reasoning as the endpoint: the sha of an open
+   * repository's main branch is not a secret.
    */
-  record HealthResponse(String status, String version) {}
+  record HealthResponse(String status, String version, String commit) {}
 }

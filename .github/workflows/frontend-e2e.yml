@@ -1,19 +1,20 @@
 name: frontend-e2e
 
-# The rendered half of the test stack (ADR-007). Runs on pull requests that touch the frontend, the
-# backend or the Keycloak theme, because all three can break a flow this suite asserts.
+# The rendered half of the test stack (ADR-007, revised 2026-11-13). A REUSABLE WORKFLOW: it has no
+# triggers of its own and runs only as the `e2e` job inside backend-ci and frontend-ci, behind a
+# relevance gate (.github/scripts/e2e-relevant.sh). That is what makes it a merge gate — the required
+# check is each CI's aggregator job, which fails when this fails and passes when the gate skipped it —
+# and what makes it a deploy gate, because the deploys trigger on the CI runs that now contain it.
 #
-# THIS JOB IS DELIBERATELY NOT NAMED `build-and-test`. That name is the one required status check in
-# branch protection, and every workflow that uses it is promising "if this is red, the PR is not
-# mergeable". This job cannot make that promise yet: it provisions Postgres, Keycloak and a Spring
-# Boot backend inside the runner, and an infrastructure flake here would block merges for a reason
-# that has nothing to do with the change under review.
+# It lived here as a standalone workflow with its own pull_request/push triggers until 2026-11-13,
+# reporting under an advisory check named `e2e` that gated nothing: the deploys waited only for the
+# CI workflows, and on one main commit the frontend deploy finished three minutes before this suite
+# did. ADR-007's promotion bar (ten consecutive green non-Dependabot pull-request runs) was measured
+# met at eleven on 2026-11-12, so the advisory era ended by decision, not drift — the dated revision
+# in ADR-007 records it.
 #
-# So it reports under its own name, `e2e`, and a failure is ADVISORY TODAY. That is stated out loud
-# in ADR-007 rather than left to be discovered from this file, together with the condition for
-# changing it: make it required once it has run green on ten consecutive pull requests without an
-# infrastructure-caused failure. Leaving it advisory forever would repeat, in a new form, exactly the
-# mistake that produced the defects it exists to catch.
+# Concurrency is the caller's: a reusable workflow runs inside the calling run, so backend-ci's and
+# frontend-ci's groups already serialise it per ref.
 #
 # NO CREDENTIALS ARE WRITTEN DOWN IN THIS FILE. The database and the Keycloak admin get a random
 # value generated at run time, masked in the log and passed through the environment. The containers
@@ -21,29 +22,10 @@ name: frontend-e2e
 # a literal password in a versioned file is a pattern a reader cannot distinguish from a real leak at
 # a glance, and neither can a secret scanner. This costs one `openssl rand` and removes the question.
 on:
-  pull_request:
-    branches: [main]
-    paths:
-      - 'frontend/**'
-      - 'backend/**'
-      - 'docker/keycloak/**'
-      - '.github/workflows/frontend-e2e.yml'
-      - '.github/actions/e2e-stack/**'
-  push:
-    branches: [main]
-    paths:
-      - 'frontend/**'
-      - 'backend/**'
-      - 'docker/keycloak/**'
-      - '.github/workflows/frontend-e2e.yml'
-      - '.github/actions/e2e-stack/**'
+  workflow_call:
 
 permissions:
   contents: read
-
-concurrency:
-  group: frontend-e2e-${{ github.ref }}
-  cancel-in-progress: true
 
 jobs:
   e2e:
@@ -79,7 +61,7 @@ jobs:
         if: failure()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
-          name: playwright-report
+          name: playwright-report-${{ github.run_id }}-${{ github.run_attempt }}
           path: |
             frontend/playwright-report
             frontend/test-results

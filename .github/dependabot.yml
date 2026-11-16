@@ -30,6 +30,11 @@
 # before it is mergeable. Nothing here is auto-merged. #104 is the proof that
 # this works: it was caught by CI, not by a reviewer reading a diff.
 #
+# A SEVEN-DAY COOLDOWN IN EVERY ECOSYSTEM. A version update is proposed only once
+# the release is a week old, so a compromised or broken release has time to be
+# reported and pulled before it reaches a pull request here. Security updates
+# are not delayed: the cooldown applies to version updates only.
+#
 # IGNORE RULES ARE FOR PEER CONSTRAINTS AND CHOSEN RELEASE LINES ONLY, never for
 # convenience. Each one below names the constraint or the line it encodes (an LTS
 # line, the nginx stable line, a Spring Boot line), so it can be revisited when
@@ -56,6 +61,8 @@ updates:
       - /.github/actions/e2e-stack
     schedule:
       interval: monthly
+    cooldown:
+      default-days: 7
     groups:
       actions:
         patterns:
@@ -73,6 +80,8 @@ updates:
     directory: /frontend
     schedule:
       interval: monthly
+    cooldown:
+      default-days: 7
     groups:
       # FIRST, AND THE ORDER IS LOAD-BEARING: "If a dependency matches more than
       # one rule, it's included in the first group that it matches." Below the
@@ -128,6 +137,8 @@ updates:
     directory: /backend
     schedule:
       interval: monthly
+    cooldown:
+      default-days: 7
     groups:
       backend-patch-minor:
         patterns:
@@ -163,6 +174,8 @@ updates:
       - /frontend
     schedule:
       interval: monthly
+    cooldown:
+      default-days: 7
     groups:
       docker-patch-minor:
         patterns:

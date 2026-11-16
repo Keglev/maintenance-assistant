@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Global settings for every Maven run started in backend/ (picked up through
+  .mvn/maven.config): CI, the e2e stack, the live provider tests, the image build and
+  a local build alike. Your own ~/.m2/settings.xml still applies on top of this file.
+
+  Flyway's parent pom declares two extra repositories, Redgate's MavenFeed and
+  flyway-community-db-support on GitHub Packages. Both answer 401 without credentials,
+  and Maven warns on every build when it asks them for their prefix index. Every
+  artifact this build needs is on Maven Central, so the two ids are mirrored there.
+  Drop condition: a Flyway release whose pom no longer declares either repository.
+-->
+<settings xmlns="http://maven.apache.org/SETTINGS/1.2.0"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.2.0 https://maven.apache.org/xsd/settings-1.2.0.xsd">
+  <mirrors>
+    <mirror>
+      <id>flyway-repositories-via-central</id>
+      <mirrorOf>MavenFeed,flyway-community-db-support</mirrorOf>
+      <url>https://repo.maven.apache.org/maven2</url>
+    </mirror>
+  </mirrors>
+</settings>

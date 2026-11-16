@@ -1,36 +1,35 @@
 name: catalogue-watch
 
-# Watches the IONOS AI Model Hub catalogue for the three model ids this project
-# depends on, and turns their disappearance into a red run instead of an incident.
+# catalogue-watch.yml - checks that the IONOS AI Model Hub still lists the three model
+# ids this project depends on, and turns a disappearance into a red run instead of an
+# incident. ADR-002, revision 2026-08-27, section 5 records the decision.
 #
-# WHY THIS EXISTS AT ALL. On 2026-08-26 Nebius announced by EMAIL that it was
-# retiring meta-llama/Llama-3.3-70B-Instruct on 2026-08-31 — the model ADR-002
-# named as the documented fallback. Nothing in this repository would have noticed;
-# the plan someone reaches for during an incident had quietly stopped existing.
+# Usage: runs by itself monthly; workflow_dispatch for the day somebody wants to know now.
+# Produces: the served catalogue in the log, with its size and the count of *-migration
+# aliases (a change in that count hints that the catalogue moved).
 #
-# WHY THE API CANNOT TELL US (PROJECT-PHASES, diagnostics wave A1, measured
-# 2026-08-26 16:31:30 UTC). Every entry of /v1/models carries exactly four keys —
-# created, id, object, owned_by. There is no lifecycle field, no deprecation flag
-# and no retirement date, and `created` reads the SAME value for all twenty entries
-# because it is the response timestamp. A model going away is visible only as an id
-# that stopped being listed. That absence is the only signal there is, so it is the
-# one this job watches.
+# WHY ABSENCE IS THE SIGNAL. /v1/models entries carry only created, id, object and
+# owned_by: no lifecycle field, no deprecation flag, no retirement date, and `created`
+# is the response timestamp. A model going away shows only as an id no longer listed
+# (measured; ADR-002, revision 2026-08-27, section 5).
 #
-# WHY MONTHLY. A retirement is announced weeks ahead on a documentation page whose
-# lifecycle columns are "Scheduled to Retire On" / "Retired On" / "Alternative", or
-# by email. A monthly check is early enough to act on and rare enough that a red run
-# means something. workflow_dispatch covers the day somebody wants to know now.
+# WHY THE FALLBACK IS CHECKED HERE. The monthly live provider tests call only the
+# configured chat and embedding models. openai/gpt-oss-120b, ADR-002's documented
+# fallback, is watched by this job alone.
 #
-# WHAT A RED RUN MEANS: read https://docs.ionos.com/cloud/ai/ai-model-hub/models,
-# then OPEN A LEDGER ROW. It does NOT mean production is down — the deployed backend
-# keeps calling whatever it is configured with, and a model that vanishes from the
-# catalogue listing fails at call time with its own error. This job is early warning,
-# never an outage alarm, and nothing pages anyone.
+# WHY MONTHLY. Retirements are announced weeks ahead, by email or on the provider's
+# models page ("Scheduled to Retire On" / "Retired On" / "Alternative"). Monthly is
+# early enough to act on and rare enough that a red run means something.
 #
-# SECRET: LLM_API_KEY, the same repository secret the rest of the project uses. It is
-# passed to curl through the step environment and never interpolated into a command
-# line (backend-deploy.yml:108-109 records why), and `set +x` keeps the shell from
-# echoing the request.
+# FAILURE MODE. Red with "no longer listed": read
+# https://docs.ionos.com/cloud/ai/ai-model-hub/models and open a ledger row; production
+# is not down, the backend keeps calling its configured model until that call fails.
+# Red with "HTTP <code>": the catalogue could not be read, so nothing was checked.
+# Green: all three ids are listed. Nothing pages anyone.
+#
+# SECRET: LLM_API_KEY, shared with the backend. It reaches curl through the step
+# environment, never interpolated into the command line, so it cannot appear in the
+# rendered script; `set +x` keeps the shell from echoing the request.
 
 on:
   schedule:
@@ -49,12 +48,10 @@ concurrency:
 jobs:
   models:
     name: the three ids this project depends on
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
 
-    # NO CHECKOUT STEP, deliberately. This job reads a provider catalogue, not the
-    # repository: the ids it checks are written into the script below, so a checkout
-    # would grant contents access for nothing. It also means this workflow pins no
-    # third-party action, which is why C16's SHA-pinning rule finds nothing to apply.
+    # No checkout: the ids are written into the script below, so the repository is
+    # never read, and the workflow pins no third-party action at all.
     steps:
       - name: Check the IONOS catalogue
         env:

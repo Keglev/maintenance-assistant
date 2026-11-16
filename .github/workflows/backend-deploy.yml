@@ -33,7 +33,7 @@ jobs:
     if: >-
       github.event_name == 'workflow_dispatch' ||
       github.event.workflow_run.conclusion == 'success'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
 
     steps:
       # checkout v7 refuses to check out fork pull-request code under workflow_run
@@ -46,17 +46,6 @@ jobs:
           # A manual dispatch has no such commit and uses the ref it was started on.
           ref: ${{ github.event.workflow_run.head_sha || github.ref }}
 
-      # QEMU is set up here for a build that no longer emulates anything: since
-      # 2026-08-10 the published image is linux/amd64 only (DECISIONS.txt, "REVISED
-      # AGAIN 2026-08-10"), and the step below says so. The BASE images stay
-      # multi-arch, which is what lets the source build on either laptop; the
-      # PUBLISHED one does not. Returning to an arm64 host is a build-platform
-      # change — one line in the build-push step, or better a native arm64 runner —
-      # and still not a code change.
-      #
-      # This comment claimed the opposite until 2026-08-26 and was contradicted by
-      # its own file twenty lines down. Part 3, C12.
-      - uses: docker/setup-qemu-action@99012661954931238ded8c8b007157a8430204e1 # v4
       - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4
 
       # The image is scanned BEFORE the registry login below, so no registry
@@ -108,10 +97,9 @@ jobs:
           # checkout ref above: the CI-validated commit, or the dispatch ref's.
           build-args: |
             GIT_COMMIT=${{ github.event.workflow_run.head_sha || github.sha }}
-          # amd64 only. Production is x86_64 and the ARM rationale expired with Hetzner's 2026-06
-          # price restructuring, so the arm64 leg was building an image with no consumer — under
-          # qemu emulation, at roughly double the wall clock. Re-adding it is this one line, or a
-          # native arm64 runner. See DECISIONS.txt == COSTS & OPERATIONS ==.
+          # amd64 only: production is x86_64, so an arm64 image would have no consumer. Adding
+          # one takes a native arm64 runner, or docker/setup-qemu-action before buildx plus this
+          # line. See DECISIONS.txt == COSTS & OPERATIONS ==.
           platforms: linux/amd64
           push: true
           tags: ${{ steps.meta.outputs.tags }}
@@ -126,7 +114,7 @@ jobs:
   deploy:
     name: deploy to Hetzner
     needs: image
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
 
     # Shared with frontend-deploy on purpose: both run `docker compose up` against
     # the same host, and two of those at once race over the same containers and

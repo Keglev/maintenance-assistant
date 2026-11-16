@@ -693,6 +693,19 @@ drwxr-xr-x 2 0 0 …            touch: Permission denied</code></pre>
         <code>DEPLOY_USER</code>. It is written from the step
         environment rather than interpolated into a command line, and
         deleted in a step that runs even when the deploy fails.</p>
+        <p>The host’s identity is pinned the same way.
+        <code>DEPLOY_HOST_KEY</code> holds one <code>known_hosts</code>
+        line (the IP, then the ed25519 host key, read on the server from
+        <code>/etc/ssh/ssh_host_ed25519_key.pub</code>; fingerprint
+        <code>SHA256:9qbddMYgi/Jbfxau2prdJhCRUSJZZjOYALucV0qqCok</code>),
+        and the deploy connects with
+        <code>StrictHostKeyChecking=yes</code>. Nothing is fetched with
+        <code>ssh-keyscan</code> at deploy time, so a host that presents
+        another key is refused. <strong>Rotation:</strong> after the
+        server’s host key changes (a rebuild or a reinstall), read the
+        new <code>.pub</code> file on the server, check its fingerprint,
+        and replace the secret; until then every deploy fails with “Host
+        key verification failed”, which is the intended signal.</p>
         <h2 id="backup-and-recovery">7.6 Backup and recovery</h2>
         <p>Two mechanisms, covering different failures: a
         <strong>nightly backup</strong> on the host for data loss, and a

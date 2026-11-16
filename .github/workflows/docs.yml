@@ -203,14 +203,23 @@ jobs:
           run-id: ${{ github.event.workflow_run.id }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
-      # The backend artifact is a raw OpenAPI document, which is not something a
-      # reviewer reads. Redocly renders it through the same script the site build
-      # calls, so the published page cannot drift from a local build.
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
-        if: steps.project.outputs.name == 'backend'
         with:
           node-version: 22
 
+      # Two runs over the same code must give the same tree, or every publish
+      # rewrites dated pages and an unchanged report is never a no-op. Before the
+      # injection and the staging, which copy these directories as they stand.
+      - name: Normalise the reports
+        env:
+          NAME: ${{ steps.project.outputs.name }}
+        run: |
+          node .github/scripts/docs/normalize-reports.mjs \
+            "target/reports/$NAME-coverage" "target/reports/$NAME-api-docs"
+
+      # The backend artifact is a raw OpenAPI document, which is not something a
+      # reviewer reads. Redocly renders it through the same script the site build
+      # calls, so the published page cannot drift from a local build.
       - name: Render the OpenAPI reference
         if: steps.project.outputs.name == 'backend'
         run: bash .github/scripts/docs/build-openapi-docs.sh .

@@ -36,7 +36,6 @@ jobs:
         with:
           ref: ${{ github.event.workflow_run.head_sha || github.ref }}
 
-      - uses: docker/setup-qemu-action@99012661954931238ded8c8b007157a8430204e1 # v4
       - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4
 
       # The image is scanned BEFORE the registry login below, so no registry
@@ -86,10 +85,9 @@ jobs:
           # ref's.
           build-args: |
             GIT_COMMIT=${{ github.event.workflow_run.head_sha || github.sha }}
-          # amd64 only — and this is the leg that actually broke: `npm ci` under qemu-emulated
-          # arm64 died with "uncaught target signal 4 (Illegal instruction)" after 13 minutes on
-          # 2026-08-10. Node under qemu is a known failure mode, and the image it was building had
-          # no consumer. See DECISIONS.txt == COSTS & OPERATIONS ==.
+          # amd64 only, as in backend-deploy.yml. Emulation is no way back to arm64 here: `npm ci`
+          # under qemu-emulated arm64 dies with "Illegal instruction", so an arm64 image needs a
+          # native arm64 runner. See DECISIONS.txt == COSTS & OPERATIONS ==.
           platforms: linux/amd64
           push: true
           tags: ${{ steps.meta.outputs.tags }}

@@ -7,7 +7,7 @@ name: docs
 #   b) frontend-ci / backend-ci succeeded on main -> publish their coverage and
 #      API documentation into subfolders
 #
-# TWO publish steps are declared below and EXACTLY ONE RUNS PER RUN (I4), because
+# TWO publish steps are declared below and AT MOST ONE RUNS PER RUN (I4), because
 # the two jobs are mutually exclusive on event name. NEITHER SETS keep_files.
 #
 # keep_files WAS THE OLD ANSWER AND IT MADE THE SITE APPEND-ONLY. Four publish
@@ -31,10 +31,13 @@ name: docs
 #   I3  Anything at the root the site build did not produce is deleted on the
 #       next site publish. This is the point of the change, not a side effect;
 #       .nojekyll therefore comes from build-docs.sh now.
-#   I4  Exactly one publish step runs per workflow run.
+#   I4  At most one publish step runs per workflow run; none when I6 skips it.
 #   I5  A run that cannot find the report subtrees to carry over FAILS rather
 #       than publishing a site without them. The one exception is a first-ever
 #       publish, where gh-pages does not exist at all — see that step.
+#   I6  A run never replaces a newer publish of its area: each area records its
+#       commit in published-commit.txt, and publish-guard.sh skips a run whose
+#       commit the recorded one already contains (queued runs start in any order).
 on:
   push:
     branches: [main]
@@ -76,7 +79,11 @@ jobs:
     runs-on: ubuntu-24.04
 
     steps:
+      # Full history: the publish guard tests whether the published commit
+      # already contains this one.
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 0
 
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
@@ -150,9 +157,18 @@ jobs:
           done
           [ "$missing" -eq 0 ]
 
+      # Queued runs may start out of order; an older commit must not replace a
+      # newer site. Writes the marker the next run compares against.
+      - name: Guard against an out-of-order publish
+        id: guard
+        env:
+          SHA: ${{ github.sha }}
+        run: bash .github/scripts/docs/publish-guard.sh published-commit.txt "$SHA" target/docs
+
       # No keep_files and no destination_dir: the branch becomes this directory.
       # That is only safe because the step above put the reports back into it.
       - name: Publish site to gh-pages
+        if: steps.guard.outputs.stale != 'true'
         uses: peaceiris/actions-gh-pages@84c30a85c19949d7eee79c4ff27748b70285e453 # v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
@@ -171,9 +187,11 @@ jobs:
     runs-on: ubuntu-24.04
 
     steps:
-      # The OpenAPI render needs the build script, so the repository is checked
-      # out here as well as in the site job.
+      # The OpenAPI render needs the build script, and the publish guard the full
+      # history, so the repository is checked out here as well as in the site job.
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 0
 
       - name: Identify the source project
         id: project
@@ -261,12 +279,23 @@ jobs:
           echo "staged $NAME: $(find "target/publish/$NAME" -type f | wc -l) files"
           find "target/publish/$NAME" -maxdepth 1 -mindepth 1 -type d | sort
 
+      # The CI commit, not github.sha: under workflow_run that is main's head.
+      - name: Guard against an out-of-order publish
+        id: guard
+        env:
+          NAME: ${{ steps.project.outputs.name }}
+          SHA: ${{ github.event.workflow_run.head_sha }}
+        run: |
+          bash .github/scripts/docs/publish-guard.sh "$NAME/published-commit.txt" "$SHA" \
+            "target/publish/$NAME"
+
       # I2. destination_dir scopes the deletion to this project's subtree, so the
       # site at the root and the other project's reports cannot be touched — see
       # the README quotation in the header. A page that stops being generated is
       # now removed rather than kept forever: the first run of this deletes two
       # JaCoCo pages for a class that no longer exists.
       - name: Publish ${{ steps.project.outputs.name }} reports to gh-pages
+        if: steps.guard.outputs.stale != 'true'
         uses: peaceiris/actions-gh-pages@84c30a85c19949d7eee79c4ff27748b70285e453 # v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}

@@ -270,16 +270,26 @@ docker run --rm -v maintenance-assistant_protocol-files:/d alpine chown -R 1001:
 ## 7.5 Delivery
 
 CI owns the rollout. When `backend-ci` or `frontend-ci` succeeds on `main`, the matching deploy
-workflow builds a `linux/amd64` image, pushes it to GHCR, then connects to the host as the `deploy`
-user and runs `docker compose pull <service> && docker compose up -d <service>` for that one
-service. Both workflows also accept a manual `workflow_dispatch`, which redeploys whatever tag
-`.env.prod` currently names — the button for a config change or a stuck container.
+workflow builds a `linux/amd64` image, pushes it to GHCR as `:latest` and `:sha-<commit>`, then
+connects to the host as the `deploy` user and runs `.github/scripts/deploy-rollout.sh` there for
+that one service. The script writes the commit's image tag into that service's line of `.env.prod`
+(a guarded one-line edit that keeps `.env.prod.bak`), then runs `docker compose pull <service> &&
+docker compose up -d <service>`. `.env.prod` therefore always names the image that runs, and every
+manual compose command keeps it. Both workflows also accept a manual `workflow_dispatch`, which
+redeploys whatever tag `.env.prod` currently names — the button for a config change or a stuck
+container.
 
 The rollout is verified from the runner against the **public** URL rather than on the host, because
-a container can be up while DNS, TLS or the proxy in front of it is broken; the job fails if the
-endpoint does not come back healthy. Both deploy jobs share one concurrency group with cancelling
-disabled, so two rollouts never race over the same containers and a superseded build never
-interrupts one in flight.
+a container can be up while DNS, TLS or the proxy in front of it is broken. It is verified **by
+commit**: the job fails unless `/api/health` (backend) or `/build-info.json` (frontend) reports the
+commit it deployed, because a healthy answer alone cannot tell the new build from the old one.
+
+Both deploy jobs share one concurrency group that queues every rollout and cancels none, so two
+rollouts never race over the same containers. Main's CI runs are never cancelled by a later merge
+either. GitHub does not promise the start order of queued runs, so before the rollout the job reads
+the live commit: if it already contains the commit being deployed — an older deploy that started
+late — the rollout is skipped and the run stays green with a notice. Nothing is lost, because the
+live build includes the older commit.
 
 ### CI deploys images, never configuration
 
@@ -293,7 +303,7 @@ deploy:
 | Backend or frontend code | CI, automatically |
 | `docker/docker-compose.prod.yml` | **a person, by hand** |
 | `docker/caddy/Caddyfile` | **a person, by hand** — bind-mounted from the host, same as the compose file |
-| `.env.prod` (documented by `.env.prod.example`) | **a person, by hand** — it is not in the repo at all |
+| `.env.prod` (documented by `.env.prod.example`) | **a person, by hand** — it is not in the repo at all. The one exception: each deploy rewrites its own `BACKEND_IMAGE` / `FRONTEND_IMAGE` line |
 
 The failure mode is quiet and was met in practice: PR #22 fixed the file-volume wiring, merged, and
 deployed nothing, because the host kept running the compose file it already had. The stack looked

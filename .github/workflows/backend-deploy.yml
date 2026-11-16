@@ -21,11 +21,9 @@ permissions:
   contents: read
   packages: write
 
-concurrency:
-  # Build-side only. The deploy job below carries its own group, shared with
-  # frontend-deploy, so cancelling a superseded build never cancels a rollout.
-  group: backend-deploy-${{ github.event.workflow_run.head_branch || github.ref }}
-  cancel-in-progress: true
+# No workflow-level concurrency group on purpose: builds of different commits
+# may run side by side, and cancelling a superseded run would also cancel the
+# rollout waiting inside it. Only the deploy job below is serialised.
 
 jobs:
   image:
@@ -111,16 +109,37 @@ jobs:
     concurrency:
       group: hetzner-deploy
       cancel-in-progress: false
+      # Every deploy waits its turn; without it a newer pending deploy replaces
+      # an older one. GitHub does not promise the start order of waiting runs,
+      # which is why the rollout checks the served commit before and after.
+      queue: max
 
     env:
       # Public URL, so it is not a secret and stays readable in the log.
       HEALTH_URL: https://maintenance.smartsupply.com.de/api/health
+      # The commit CI validated, deployed by its own image tag. Empty on a manual
+      # redeploy, which rolls out whatever image .env.prod already names.
+      COMMIT: ${{ github.event.workflow_run.head_sha }}
 
     steps:
+      # The scripts below, and the history the order check reads.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.ref }}
+          fetch-depth: 0
+
+      # Skips the rollout, green, when the live commit already contains this one
+      # (an older deploy that started late); deploys in every other case.
+      - name: Check the deploy order against the live commit
+        id: order
+        if: env.COMMIT != ''
+        run: bash .github/scripts/deploy-commit-check.sh stale "$HEALTH_URL" "$COMMIT"
+
       # The key is written from a secret through the environment rather than
       # interpolated into the script, so it never becomes part of the command
       # line. `set -x` is deliberately absent from every step in this job.
       - name: Install the deploy key
+        if: steps.order.outputs.stale != 'true'
         env:
           DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
           DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
@@ -137,43 +156,34 @@ jobs:
           ssh-keyscan -T 15 "$DEPLOY_HOST" >> ~/.ssh/known_hosts 2>/dev/null
           chmod 600 ~/.ssh/known_hosts
 
-      - name: Pull and restart the backend service
+      # deploy-rollout.sh runs on the host: it records the image in .env.prod
+      # (guarded edit, .bak kept), pulls, recreates the service and reports the
+      # image now configured. The commit is read back from that report, so a
+      # manual redeploy is verified against what .env.prod actually names.
+      - name: Roll out the backend service
+        id: rollout
+        if: steps.order.outputs.stale != 'true'
         env:
           DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
           DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
         run: |
-          set -eu
-          ssh -i ~/.ssh/deploy_key -o IdentitiesOnly=yes -o BatchMode=yes \
-            "${DEPLOY_USER}@${DEPLOY_HOST}" \
-            'set -eu
-             cd /opt/maintenance-assistant
-             COMPOSE="docker compose -f /opt/maintenance-assistant/docker-compose.prod.yml --env-file /opt/maintenance-assistant/.env.prod"
-             $COMPOSE pull backend
-             $COMPOSE up -d backend
-             # Superseded layers accumulate on a 75 GB disk otherwise. Dangling
-             # only: tagged images are what a rollback needs.
-             docker image prune -f >/dev/null'
+          set -euo pipefail
+          image=${COMMIT:+ghcr.io/${GITHUB_REPOSITORY,,}/backend:sha-$COMMIT}
+          ssh -i ~/.ssh/deploy_key -o IdentitiesOnly=yes -o BatchMode=yes "${DEPLOY_USER}@${DEPLOY_HOST}" \
+            "bash -s -- backend BACKEND_IMAGE $image" < .github/scripts/deploy-rollout.sh | tee "$RUNNER_TEMP/rollout.log"
+          deployed=$(sed -n 's/^deployed-image=//p' "$RUNNER_TEMP/rollout.log")
+          if [[ "$deployed" == *:sha-* ]]; then echo "commit=${deployed##*:sha-}" >> "$GITHUB_OUTPUT"; fi
 
-      # Checked from the runner over the public internet, not on the host: that
-      # exercises DNS, TLS and the reverse proxy as well as the container, which
-      # is what "deployed" has to mean. A container can be up while the path to it
-      # is broken.
-      - name: Verify the deployed backend is healthy
+      # From the runner over the public internet, so DNS, TLS and the reverse
+      # proxy are part of what passes. Only an image tagged by commit can be
+      # checked by commit; an image named :latest gets a notice instead.
+      - name: Verify the live backend serves the deployed commit
+        if: steps.order.outputs.stale != 'true'
+        env:
+          DEPLOYED: ${{ steps.rollout.outputs.commit }}
         run: |
-          set -eu
-          for attempt in $(seq 1 20); do
-            body=$(curl -fsS --max-time 10 "$HEALTH_URL" 2>/dev/null || true)
-            case "$body" in
-              *'"status":"UP"'*)
-                echo "healthy after ${attempt} attempt(s): $body"
-                exit 0
-                ;;
-            esac
-            echo "attempt ${attempt}: not healthy yet"
-            sleep 6
-          done
-          echo "::error::Backend did not report UP at ${HEALTH_URL} after 20 attempts"
-          exit 1
+          if [ -z "$DEPLOYED" ]; then echo "::notice::.env.prod names no commit tag; commit not verified"; exit 0; fi
+          bash .github/scripts/deploy-commit-check.sh served "$HEALTH_URL" "$DEPLOYED"
 
       - name: Remove the deploy key
         # Runs even when a step above failed: the key must not survive the job on

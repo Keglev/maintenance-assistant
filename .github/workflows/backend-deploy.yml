@@ -169,18 +169,17 @@ jobs:
         if: steps.order.outputs.stale != 'true'
         env:
           DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
-          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_HOST_KEY: ${{ secrets.DEPLOY_HOST_KEY }}
         run: |
           set -eu
           mkdir -p ~/.ssh
           chmod 700 ~/.ssh
           printf '%s\n' "$DEPLOY_SSH_KEY" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
-          # Trust on first use. Pinning a known host key would be stronger, but it
-          # would need a fourth secret and rotating the host key would then break
-          # every deploy silently; the connection is to a fixed IP over SSH either
-          # way, and the key it presents is checked for the rest of the session.
-          ssh-keyscan -T 15 "$DEPLOY_HOST" >> ~/.ssh/known_hosts 2>/dev/null
+          # The host key is pinned: the known_hosts line comes from a secret, read
+          # on the server itself, never fetched over the network at deploy time.
+          [ -n "$DEPLOY_HOST_KEY" ] || { echo "::error::DEPLOY_HOST_KEY is not set"; exit 1; }
+          printf '%s\n' "$DEPLOY_HOST_KEY" > ~/.ssh/known_hosts
           chmod 600 ~/.ssh/known_hosts
 
       # deploy-rollout.sh runs on the host: it records the image in .env.prod
@@ -196,7 +195,8 @@ jobs:
         run: |
           set -euo pipefail
           image=${COMMIT:+ghcr.io/${GITHUB_REPOSITORY,,}/backend:sha-$COMMIT}
-          ssh -i ~/.ssh/deploy_key -o IdentitiesOnly=yes -o BatchMode=yes "${DEPLOY_USER}@${DEPLOY_HOST}" \
+          ssh -i ~/.ssh/deploy_key -o IdentitiesOnly=yes -o BatchMode=yes -o StrictHostKeyChecking=yes \
+            "${DEPLOY_USER}@${DEPLOY_HOST}" \
             "bash -s -- backend BACKEND_IMAGE $image" < .github/scripts/deploy-rollout.sh | tee "$RUNNER_TEMP/rollout.log"
           deployed=$(sed -n 's/^deployed-image=//p' "$RUNNER_TEMP/rollout.log")
           if [[ "$deployed" == *:sha-* ]]; then echo "commit=${deployed##*:sha-}" >> "$GITHUB_OUTPUT"; fi

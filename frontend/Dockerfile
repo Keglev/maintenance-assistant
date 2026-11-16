@@ -17,6 +17,14 @@ COPY . .
 # Tests run in CI with a real browser; the image build only produces the bundle.
 RUN npm run build
 
+# The commit this image was built from, served as /build-info.json so a deploy can
+# check which build answers (frontend-deploy.yml sets it; a local build says
+# "local"). Declared after the bundle build so a new commit does not invalidate the
+# cached npm layers above.
+ARG GIT_COMMIT=local
+RUN printf '{"commit":"%s"}\n' "$GIT_COMMIT" \
+      > dist/maintenance-assistant-frontend/browser/build-info.json
+
 # --- runtime ----------------------------------------------------------------
 # The unprivileged variant runs as uid 101 and listens on 8080 out of the box. The
 # stock nginx image cannot simply be given a USER: its master process needs to create

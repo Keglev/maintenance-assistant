@@ -46,7 +46,10 @@ permissions:
   contents: read
 
 concurrency:
-  group: backend-ci-${{ github.ref }}
+  # A newer push to a pull request cancels the older run: only the head is
+  # merged. On main every commit gets a group of its own instead, so a fast
+  # second merge never cancels the first one's CI and, through it, its deploy.
+  group: backend-ci-${{ github.event_name == 'push' && github.sha || github.ref }}
   cancel-in-progress: true
 
 jobs:

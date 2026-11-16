@@ -62,6 +62,9 @@ permissions:
 concurrency:
   group: gh-pages
   cancel-in-progress: false
+  # Without it only one run may wait and a newer one replaces it, so a publish
+  # would be skipped; with it up to 100 wait (GitHub's limit).
+  queue: max
 
 jobs:
   # ---------------------------------------------------------------------------

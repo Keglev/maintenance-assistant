@@ -284,6 +284,13 @@ a container can be up while DNS, TLS or the proxy in front of it is broken. It i
 commit**: the job fails unless `/api/health` (backend) or `/build-info.json` (frontend) reports the
 commit it deployed, because a healthy answer alone cannot tell the new build from the old one.
 
+Before any of that, every image is scanned: on each pull request by `backend-ci` and
+`frontend-ci` (the image is built but never pushed), and again in the deploy workflow before it
+logs in to the registry and pushes. The scan writes a CycloneDX SBOM as a build artifact and fails
+on a CRITICAL or HIGH vulnerability that has a fix, unless `.trivyignore` accepts it with a reason
+and a review date. After a frontend rollout the job also confirms that the public URL sends the
+security headers Caddy sets.
+
 Both deploy jobs share one concurrency group that queues every rollout and cancels none, so two
 rollouts never race over the same containers. Main's CI runs are never cancelled by a later merge
 either. GitHub does not promise the start order of queued runs, so before the rollout the job reads

@@ -2,6 +2,7 @@
 # =============================================================================
 # aggregate-required-check.sh — The verdict behind each claimant's required check
 # Usage: CHANGES_RESULT=... CHANGES_RUN=... BUILD_RESULT=... \
+#        [REQUIRED_RESULTS="image=success ..."] \
 #        [OPTIONAL_RESULTS="e2e=success visual=skipped ..."] \
 #        .github/scripts/aggregate-required-check.sh
 #
@@ -11,8 +12,9 @@
 #
 # The verdict, in order: the claimant gate itself must have succeeded (a gate
 # that cannot answer must never pass a family silently); a family the change
-# does not touch passes; otherwise the family's build must have succeeded and
-# every optional suite must have succeeded or been skipped by its own gate.
+# does not touch passes; otherwise the family's build and every required job
+# (the image scan) must have succeeded, and every optional suite must have
+# succeeded or been skipped by its own gate.
 #
 # FAILURE MODE: any unexpected result — failure, cancelled, or a skip where a
 # run was due — exits non-zero and the required check goes red.
@@ -30,6 +32,11 @@ fi
 [ "${BUILD_RESULT:?}" = "success" ] || {
   echo "::error::the build did not succeed (${BUILD_RESULT})"; exit 1; }
 
+for pair in ${REQUIRED_RESULTS:-}; do
+  [ "${pair#*=}" = "success" ] || {
+    echo "::error::${pair%%=*} did not succeed (${pair#*=})"; exit 1; }
+done
+
 for pair in ${OPTIONAL_RESULTS:-}; do
   name="${pair%%=*}"
   result="${pair#*=}"
@@ -39,4 +46,4 @@ for pair in ${OPTIONAL_RESULTS:-}; do
   esac
 done
 
-echo "required check green (build: success; optional: ${OPTIONAL_RESULTS:-none})"
+echo "required check green (build: success; required: ${REQUIRED_RESULTS:-none}; optional: ${OPTIONAL_RESULTS:-none})"

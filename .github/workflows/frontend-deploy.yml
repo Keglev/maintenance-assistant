@@ -39,6 +39,31 @@ jobs:
       - uses: docker/setup-qemu-action@99012661954931238ded8c8b007157a8430204e1 # v4
       - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4
 
+      # The image is scanned BEFORE the registry login below, so no registry
+      # credential exists in the job while the scanner runs (image-scan.sh says
+      # why that matters). The push build further down reuses these layers
+      # from the cache.
+      - name: Build the image for the scan
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7
+        with:
+          context: frontend
+          platforms: linux/amd64
+          load: true
+          push: false
+          tags: frontend:scan
+          cache-from: type=gha
+      - name: Scan the image
+        run: bash .github/scripts/image-scan.sh frontend:scan "$RUNNER_TEMP/frontend-sbom.cdx.json"
+      - name: Upload the SBOM
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: frontend-sbom-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/frontend-sbom.cdx.json
+          if-no-files-found: warn
+          retention-days: 90
+
+
       - uses: docker/login-action@8aa5831fb8d48d8f76594c7ddde61ae58019f550 # v4
         with:
           registry: ghcr.io
@@ -169,6 +194,11 @@ jobs:
         run: |
           curl -fsS --max-time 10 --retry 5 --retry-delay 6 --retry-all-errors -o "$RUNNER_TEMP/index.html" "$APP_URL"
           grep -q '<app-root' "$RUNNER_TEMP/index.html" || { echo "::error::no application shell at $APP_URL"; exit 1; }
+
+      # Set by Caddy at the edge, so checked where a visitor receives them.
+      - name: Verify the public security headers
+        if: steps.order.outputs.stale != 'true'
+        run: bash .github/scripts/check-security-headers.sh "$APP_URL"
 
       - name: Remove the deploy key
         # Runs even when a step above failed: the key must not survive the job on

@@ -198,6 +198,18 @@ SCRIPTS AND WORKFLOWS
   runs it on demand against a freshly indexed corpus (workflow_dispatch;
   a schedule only once the measured cost of a run justifies one). See
   docs/live-provider-tests.md.
+- EVERY IMAGE IS SCANNED BEFORE IT CAN MERGE OR PUBLISH. backend-ci and
+  frontend-ci build their image on every pull request (never pushed),
+  the deploy workflows build it again on main and scan it before the
+  registry login and the push. image-scan.sh writes a CycloneDX SBOM
+  (artifact) and fails on a CRITICAL or HIGH finding that has a fix,
+  unless .trivyignore accepts it with a reason, who and when, and a
+  review date. The image job is REQUIRED in the aggregator: a skip where
+  the family runs is red. Trivy is a pinned release with its SHA-256 in
+  the script, never the trivy-action or setup-trivy (tags hijacked
+  2026-03-19, CVE-2026-33634). The frontend image also passes its
+  contract (nginx -t, non-root user); its security headers are set by
+  Caddy and checked at the public URL after each deploy.
 - CHECKS MUST FAIL LOUDLY. A check that passes for the wrong reason
   (wrong directory, line-ending-blind comparison, a probe that never
   ran) is discarded, not read as green.

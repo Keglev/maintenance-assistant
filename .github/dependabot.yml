@@ -20,6 +20,9 @@
 # ecosystem: a batch is a convenience for changes that need no thought, and a
 # major version is never one of those. Dependabot opens an individual pull
 # request for anything that matches no group, which is exactly the shape wanted.
+# The one exception is a group of packages that must move together (playwright
+# with its browser image, vitest with its coverage plugin): it admits every
+# update type, so a major of the set still arrives as one pull request.
 #
 # DEPENDABOT PULL REQUESTS GO THROUGH THE SAME REQUIRED CHECKS as any other —
 # they report under `build-and-test` from whichever workflow owns their paths,
@@ -27,10 +30,11 @@
 # before it is mergeable. Nothing here is auto-merged. #104 is the proof that
 # this works: it was caught by CI, not by a reviewer reading a diff.
 #
-# IGNORE RULES ARE FOR PEER-CONSTRAINED VERSIONS ONLY, never for convenience.
-# Each one below names the constraint it encodes, so it can be revisited when
-# the constraint moves. A dependency ignored for any other reason belongs in a
-# ledger entry, where it can be argued with.
+# IGNORE RULES ARE FOR PEER CONSTRAINTS AND CHOSEN RELEASE LINES ONLY, never for
+# convenience. Each one below names the constraint or the line it encodes (an LTS
+# line, the nginx stable line, a Spring Boot line), so it can be revisited when
+# that moves. A dependency ignored for any other reason belongs in a ledger
+# entry, where it can be argued with.
 version: 2
 
 updates:
@@ -142,6 +146,41 @@ updates:
         update-types:
           - 'version-update:semver-major'
           - 'version-update:semver-minor'
+    open-pull-requests-limit: 3
+    commit-message:
+      prefix: build(deps)
+    labels: []
+
+  # BASE IMAGES of the two Dockerfiles. Without this entry no base image was ever
+  # proposed, which is how the frontend sat on nginx 1.29 after its line stopped
+  # being rebuilt. The compose images under docker/ stay out on purpose: no
+  # pipeline syncs docker-compose.prod.yml to the host, and their tags are also
+  # pinned in the integration tests and the e2e stack, which Dependabot would not
+  # move with them.
+  - package-ecosystem: docker
+    directories:
+      - /backend
+      - /frontend
+    schedule:
+      interval: monthly
+    groups:
+      docker-patch-minor:
+        patterns:
+          - '*'
+        update-types:
+          - minor
+          - patch
+    ignore:
+      # Node 22 and Temurin 21 are the chosen LTS lines; leaving one is a decision.
+      - dependency-name: '*'
+        update-types:
+          - 'version-update:semver-major'
+      # nginx odd minors are the mainline; frontend/Dockerfile stays on the stable
+      # (even) line. Extend this list when 1.33 approaches.
+      - dependency-name: 'nginxinc/nginx-unprivileged'
+        versions:
+          - '>= 1.31, < 1.32'
+          - '>= 1.33, < 1.34'
     open-pull-requests-limit: 3
     commit-message:
       prefix: build(deps)

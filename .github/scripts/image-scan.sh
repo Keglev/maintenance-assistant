@@ -48,7 +48,9 @@ trivy="$bin_dir/trivy"
 echo "SBOM written: $sbom"
 
 # Report first, so a red gate is read next to every serious finding, fixable or not.
-"$trivy" image --quiet --skip-db-update --severity CRITICAL,HIGH --format table "$image"
+# This run downloads the vulnerability database: the SBOM run above does not
+# need it and leaves none behind, so it cannot skip the update.
+"$trivy" image --quiet --severity CRITICAL,HIGH --format table "$image"
 
 "$trivy" image --quiet --skip-db-update --severity CRITICAL,HIGH --ignore-unfixed \
   --ignorefile .trivyignore --exit-code 1 --format table "$image" > /dev/null || {

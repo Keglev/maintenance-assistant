@@ -65,3 +65,13 @@
 /* Rendered diagram SVGs (mermaid pre-rendered by generate-diagrams.mjs) sit in
    the flow like an image and must not overflow the measure. */
 .doc-body img, .doc-body svg { max-width: 100%; height: auto; }
+
+/* The diagram SVGs are rendered once, with Mermaid's light default theme and a
+   transparent background, and CSS cannot reach inside an <img>. On the dark
+   theme they sit on a light panel, or their dark lines and labels would vanish
+   into the page. */
+:root[data-theme="dark"] .doc-body img[src$=".svg"] {
+  background: #f8fafc;
+  border-radius: var(--radius-sm);
+  padding: 12px;
+}

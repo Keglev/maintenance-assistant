@@ -1,0 +1,16 @@
+sequenceDiagram
+    autonumber
+    actor A as Admin
+    participant W as IngestionAdminController
+    participant B as IngestionBacklogService
+    participant DB as Postgres
+    participant L as IngestionEventListener
+
+    A->>W: POST /api/ingestion/backlog?status=RECEIVED
+    W->>W: role check: ROLE_ADMIN
+    W->>B: enqueue(statuses)
+    B->>DB: SELECT id WHERE status IN (…) ORDER BY created_at
+    loop per protocol
+        B-->>L: publish ProtocolReceivedEvent(id)
+    end
+    W-->>A: { enqueued: n }

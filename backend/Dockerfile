@@ -11,6 +11,9 @@ WORKDIR /build
 # Dependencies resolve in their own layer, so editing sources does not re-download
 # the world on every image build.
 COPY pom.xml ./
+# .mvn carries maven.config and the settings it names, so the image build resolves
+# through the same mirror as every other build.
+COPY .mvn ./.mvn
 RUN mvn -B -ntp dependency:go-offline
 
 COPY src ./src

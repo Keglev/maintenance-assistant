@@ -33,10 +33,6 @@
   --code-bg: #f1f5f9;
   --code-border: rgba(13, 148, 136, 0.18);
 
-  /* Diagram edge/arrow color. Node fills are set per-layer in each diagram's
-     classDef (medium tones that read on both themes), not via tokens. */
-  --layer-edge: #0d9488;
-
   /* --- Layout --- */
   --radius: 12px;
   --radius-sm: 8px;
@@ -65,8 +61,6 @@
 
   --code-bg: #0b1424;
   --code-border: rgba(94, 234, 212, 0.18);
-
-  --layer-edge: #5eead4;
 
   --shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
 }
@@ -681,60 +675,13 @@ button:focus-visible {
 /* Rendered diagram SVGs (mermaid pre-rendered by generate-diagrams.mjs) sit in
    the flow like an image and must not overflow the measure. */
 .doc-body img, .doc-body svg { max-width: 100%; height: auto; }
-/* =============================================================================
-   maintenance-assistant Docs — Mermaid
-   Node fills and label colors are set per-layer in each diagram's classDef
-   (medium tones chosen to read on BOTH light and dark backgrounds). This file
-   deliberately does NOT override node fills or label text, so it never fights
-   the classDef. It themes only the parts a classDef cannot reach: edges,
-   arrowheads, edge labels, clusters, and sequence diagrams. Those use
-   !important because Mermaid writes them as inline styles.
-   ========================================================================== */
 
-/* Wrap wide diagrams so they scroll instead of shrinking to an unreadable size. */
-.diagram-scroll { overflow-x: auto; }
-
-.mermaid { background: transparent; overflow-x: auto; }
-
-/* Edges and arrowheads: one themed color so flow stays legible on either bg. */
-.mermaid .edgePath path,
-.mermaid .flowchart-link,
-.mermaid svg line[stroke] {
-  stroke: var(--layer-edge) !important;
-  stroke-width: 2px !important;
-}
-.mermaid .arrowheadPath,
-.mermaid svg marker path,
-.mermaid svg marker polygon {
-  fill: var(--layer-edge) !important;
-  stroke: var(--layer-edge) !important;
-}
-
-/* Edge labels (e.g. "validate JWT"): readable chip on the page bg. */
-.mermaid .edgeLabel {
-  background-color: var(--surface) !important;
-  color: var(--text) !important;
-  padding: 2px 6px;
+/* The diagram SVGs are rendered once, with Mermaid's light default theme and a
+   transparent background, and CSS cannot reach inside an <img>. On the dark
+   theme they sit on a light panel, or their dark lines and labels would vanish
+   into the page. */
+:root[data-theme="dark"] .doc-body img[src$=".svg"] {
+  background: #f8fafc;
   border-radius: var(--radius-sm);
+  padding: 12px;
 }
-
-/* Subgraph clusters: dashed accent border over a faint tint. */
-.mermaid .cluster rect {
-  stroke: var(--accent) !important;
-  stroke-dasharray: 4 3;
-  fill: var(--surface-2) !important;
-}
-
-/* Sequence diagrams have no classDef, so theme their parts directly. */
-.mermaid .actor {
-  fill: var(--surface-2) !important;
-  stroke: var(--accent) !important;
-}
-.mermaid text.actor,
-.mermaid text.actor > tspan { fill: var(--text) !important; stroke: none !important; }
-.mermaid .actor-line { stroke: var(--muted) !important; }
-.mermaid .messageLine0,
-.mermaid .messageLine1 { stroke: var(--layer-edge) !important; stroke-width: 2px !important; }
-.mermaid .messageText { fill: var(--text) !important; }
-.mermaid .note rect { fill: var(--surface-2) !important; stroke: var(--accent) !important; }
-.mermaid .note text { fill: var(--text) !important; }

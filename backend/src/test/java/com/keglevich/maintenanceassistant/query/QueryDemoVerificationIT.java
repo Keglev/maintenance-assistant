@@ -1,9 +1,9 @@
 package com.keglevich.maintenanceassistant.query;
 
 import com.keglevich.maintenanceassistant.ingestion.EmbeddingClient;
+import com.keglevich.maintenanceassistant.support.LiveProviderTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.jdbc.core.simple.JdbcClient;
@@ -17,8 +17,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * The three demo cases, measured against the <b>real</b> provider and the real indexed corpus.
  *
- * <p>Skipped unless {@code LLM_API_KEY} is set, so CI never runs it and it never spends money by
- * accident. It exists because the numbers this project quotes — 0.695, 0.577, 0.502 and the 0.55
+ * <p>A {@link LiveProviderTest}: no normal build runs it, so it never spends money by accident.
+ * It exists because the numbers this project quotes — 0.695, 0.577, 0.502 and the 0.55
  * threshold between them — are measurements, and a measurement that cannot be re-taken is a claim.
  * Running this is how the claim stays honest after a prompt change, a model change or an
  * embedding-model change, and it is the same code path production runs rather than a script that
@@ -28,13 +28,12 @@ import static org.assertj.core.api.Assertions.assertThat;
  * the realm deliberately does not issue by password grant; that layer is covered by
  * {@code QueryControllerIT}.
  *
- * <p>Reproduce: see the header of {@code application-demo.yml}. Requires the local development
- * Postgres with the corpus already indexed.
+ * <p>Reproduce: see the header of {@code application-demo.yml}, or start the
+ * {@code backend-llm-live-it} workflow. Requires a Postgres with the corpus already indexed.
  */
 @SpringBootTest
 @ActiveProfiles("demo")
-@EnabledIfEnvironmentVariable(named = "LLM_API_KEY", matches = ".+",
-        disabledReason = "needs a real provider key; set LLM_API_KEY to run")
+@LiveProviderTest
 class QueryDemoVerificationIT {
 
     /** The E-47 demo: German question, German protocols, four of them on this machine. */

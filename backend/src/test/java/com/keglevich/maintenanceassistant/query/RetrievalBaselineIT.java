@@ -4,9 +4,9 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.keglevich.maintenanceassistant.ingestion.EmbeddingClient;
 import com.keglevich.maintenanceassistant.ingestion.EmbeddingProvenanceVerifier;
+import com.keglevich.maintenanceassistant.support.LiveProviderTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -41,16 +41,17 @@ import static org.assertj.core.api.Assertions.assertThat;
  * reads. The assertions in this class are about the INSTRUMENT, not the result — see
  * {@link #theInstrumentIsSound()}.
  *
- * <p>Skipped unless {@code LLM_API_KEY} is set, the same gate as {@link QueryDemoVerificationIT} and
- * {@code DuplicateSimilarityCalibrationIT}, so CI never runs it and it never spends money by
- * accident. Like both of those it needs the local development Postgres with the corpus indexed and
- * the real provider — a stubbed embedding would measure the stub.
+ * <p>A {@link LiveProviderTest}, like {@link QueryDemoVerificationIT} and
+ * {@code DuplicateSimilarityCalibrationIT}: no normal build runs it, so it never spends money by
+ * accident. Like both of those it needs a Postgres with the corpus indexed and the real provider —
+ * a stubbed embedding would measure the stub. The {@code backend-llm-live-it} workflow provides
+ * both on demand.
  *
  * <p><b>Reproduce</b> (PowerShell, from {@code backend/}), local stack up and corpus indexed:
  * <pre>
  *   $env:LLM_API_KEY = (Select-String -Path ..\spike\adr-002\.env -Pattern '^IONOS_API_KEY=').Line.Split('=')[1]
  *   $env:LLM_CHAT_MODEL = 'meta-llama/Llama-3.3-70B-Instruct'
- *   mvn verify -Dit.test=RetrievalBaselineIT
+ *   mvn verify -P llm-live -Dit.test=RetrievalBaselineIT
  * </pre>
  *
  * <p>It rewrites {@code src/test/resources/retrieval/baseline.md} on every run, and that file is
@@ -88,8 +89,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 @SpringBootTest
 @ActiveProfiles("demo")
-@EnabledIfEnvironmentVariable(named = "LLM_API_KEY", matches = ".+",
-        disabledReason = "needs a real provider key; set LLM_API_KEY to run")
+@LiveProviderTest
 class RetrievalBaselineIT {
 
     /** Committed, and diffed by the PRs that follow. Relative to {@code backend/}. */

@@ -34,6 +34,13 @@
          plugins below extend it with @{argLine}, which fails to resolve if nothing
          ever set it - as happens with -Djacoco.skip=true. -->
     <argLine></argLine>
+
+    <!-- Tests that call the paid LLM provider carry the JUnit tag llm-live. By default
+         failsafe leaves them out entirely, so they are not run, not counted and not logged
+         as skipped; the llm-live profile below selects only them. A blank value means "no
+         filter". See docs/live-provider-tests.md. -->
+    <failsafe.groups></failsafe.groups>
+    <failsafe.excludedGroups>llm-live</failsafe.excludedGroups>
   </properties>
 
   <dependencyManagement>
@@ -238,6 +245,8 @@
           <!-- Same agents as surefire: the integration tests run in their own JVM, which
                inherits nothing from the unit-test one. -->
           <argLine>@{argLine} -javaagent:${org.mockito:mockito-core:jar}</argLine>
+          <groups>${failsafe.groups}</groups>
+          <excludedGroups>${failsafe.excludedGroups}</excludedGroups>
         </configuration>
         <executions>
           <execution>
@@ -325,4 +334,19 @@
       </plugin>
     </plugins>
   </build>
+
+  <profiles>
+    <profile>
+      <!-- Runs only the llm-live tests, against the real provider. They still skip
+           themselves without LLM_API_KEY. JaCoCo is off: with only these tests in the
+           integration phase the coverage ratchet would read a collapse and fail a run
+           whose purpose is a measurement. Usage: mvn verify -P llm-live -->
+      <id>llm-live</id>
+      <properties>
+        <failsafe.groups>llm-live</failsafe.groups>
+        <failsafe.excludedGroups></failsafe.excludedGroups>
+        <jacoco.skip>true</jacoco.skip>
+      </properties>
+    </profile>
+  </profiles>
 </project>

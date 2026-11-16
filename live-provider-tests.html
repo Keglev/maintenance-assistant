@@ -201,12 +201,14 @@
         run, since a run of these tests alone is a measurement, not a
         coverage report.</p>
         <h2 id="running-them-in-github">Running them in GitHub</h2>
-        <p>The workflow <strong>backend-llm-live-it</strong> runs only
-        when started by hand (Actions, backend-llm-live-it, Run
-        workflow). It brings up a fresh pgvector database, seeds the
-        corpus from the checked-out commit, indexes it through the
-        provider (<code>.github/scripts/index-live-corpus.sh</code>) and
-        then runs <code>mvn verify -P llm-live</code>. It reads the
+        <p>The workflow <strong>backend-llm-live-it</strong> runs
+        monthly and whenever it is started by hand (Actions,
+        backend-llm-live-it, Run workflow; see <a
+        href="#when-they-run">When they run</a>). It brings up a fresh
+        pgvector database, seeds the corpus from the checked-out commit,
+        indexes it through the provider
+        (<code>.github/scripts/index-live-corpus.sh</code>) and then
+        runs <code>mvn verify -P llm-live</code>. It reads the
         repository secret <code>LLM_API_KEY</code> and fails at once if
         the secret is missing, so a run can never be green while
         measuring nothing.</p>
@@ -234,12 +236,16 @@
         test that needs data beyond the seeded corpus has to create it
         and remove it again, as
         <code>DuplicateSimilarityCalibrationIT</code> does.</p>
-        <h2 id="running-them-on-a-schedule">Running them on a
-        schedule</h2>
-        <p>The workflow has no schedule on purpose. Adding one is a
-        single <code>schedule:</code> entry under <code>on:</code> in
-        <code>.github/workflows/backend-llm-live-it.yml</code>; decide
-        the frequency from the measured cost of a run.</p>
+        <h2 id="when-they-run">When they run</h2>
+        <p>Once a month, on the 2nd at 03:40 UTC, and by hand after any
+        change to the chat model, the prompt or the embedding model. One
+        run costs roughly EUR 0.03 (measured on 2026-11-16: the
+        embedding of the test queries is priced in the run’s report; the
+        indexing and the chat answers follow from the unit costs in <a
+        href="adr/ADR-002-eu-hosted-llm-provider.html">ADR-002</a>). The
+        schedule is the <code>schedule:</code> entry under
+        <code>on:</code> in
+        <code>.github/workflows/backend-llm-live-it.yml</code>.</p>
         <p><a href="overview.html">Back to the overview</a></p>
       </article>
     </main>
@@ -262,9 +268,8 @@
       <li><a href="#adding-a-live-provider-test"
       id="toc-adding-a-live-provider-test">Adding a live provider
       test</a></li>
-      <li><a href="#running-them-on-a-schedule"
-      id="toc-running-them-on-a-schedule">Running them on a
-      schedule</a></li>
+      <li><a href="#when-they-run" id="toc-when-they-run">When they
+      run</a></li>
       </ul></li>
       </ul>
     </nav>

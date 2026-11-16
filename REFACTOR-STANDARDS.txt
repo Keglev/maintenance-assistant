@@ -195,8 +195,8 @@ SCRIPTS AND WORKFLOWS
 - A TEST THAT CALLS THE PAID PROVIDER NEVER GATES A MERGE. It carries
   @LiveProviderTest: failsafe excludes the llm-live tag by default, the
   llm-live Maven profile selects only it, and backend-llm-live-it.yml
-  runs it on demand against a freshly indexed corpus (workflow_dispatch;
-  a schedule only once the measured cost of a run justifies one). See
+  runs it against a freshly indexed corpus monthly and by hand
+  (workflow_dispatch) after a model, prompt or embedding change. See
   docs/live-provider-tests.md.
 - EVERY IMAGE IS SCANNED BEFORE IT CAN MERGE OR PUBLISH. backend-ci and
   frontend-ci build their image on every pull request (never pushed),

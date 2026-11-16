@@ -139,3 +139,38 @@ updates:
     commit-message:
       prefix: build(deps)
     labels: []
+
+  # BASE IMAGES of the two Dockerfiles. Without this entry no base image was ever
+  # proposed, which is how the frontend sat on nginx 1.29 after its line stopped
+  # being rebuilt. The compose images under docker/ stay out on purpose: no
+  # pipeline syncs docker-compose.prod.yml to the host, and their tags are also
+  # pinned in the integration tests and the e2e stack, which Dependabot would not
+  # move with them.
+  - package-ecosystem: docker
+    directories:
+      - /backend
+      - /frontend
+    schedule:
+      interval: monthly
+    groups:
+      docker-patch-minor:
+        patterns:
+          - '*'
+        update-types:
+          - minor
+          - patch
+    ignore:
+      # Node 22 and Temurin 21 are the chosen LTS lines; leaving one is a decision.
+      - dependency-name: '*'
+        update-types:
+          - 'version-update:semver-major'
+      # nginx odd minors are the mainline; frontend/Dockerfile stays on the stable
+      # (even) line. Extend this list when 1.33 approaches.
+      - dependency-name: 'nginxinc/nginx-unprivileged'
+        versions:
+          - '>= 1.31, < 1.32'
+          - '>= 1.33, < 1.34'
+    open-pull-requests-limit: 3
+    commit-message:
+      prefix: build(deps)
+    labels: []

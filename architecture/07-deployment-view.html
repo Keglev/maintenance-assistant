@@ -597,6 +597,15 @@ drwxr-xr-x 2 0 0 …            touch: Permission denied</code></pre>
         <code>/build-info.json</code> (frontend) reports the commit it
         deployed, because a healthy answer alone cannot tell the new
         build from the old one.</p>
+        <p>Before any of that, every image is scanned: on each pull
+        request by <code>backend-ci</code> and <code>frontend-ci</code>
+        (the image is built but never pushed), and again in the deploy
+        workflow before it logs in to the registry and pushes. The scan
+        writes a CycloneDX SBOM as a build artifact and fails on a
+        CRITICAL or HIGH vulnerability that has a fix, unless
+        <code>.trivyignore</code> accepts it with a reason and a review
+        date. After a frontend rollout the job also confirms that the
+        public URL sends the security headers Caddy sets.</p>
         <p>Both deploy jobs share one concurrency group that queues
         every rollout and cancels none, so two rollouts never race over
         the same containers. Main’s CI runs are never cancelled by a

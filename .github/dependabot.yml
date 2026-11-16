@@ -20,6 +20,9 @@
 # ecosystem: a batch is a convenience for changes that need no thought, and a
 # major version is never one of those. Dependabot opens an individual pull
 # request for anything that matches no group, which is exactly the shape wanted.
+# The one exception is a group of packages that must move together (playwright
+# with its browser image, vitest with its coverage plugin): it admits every
+# update type, so a major of the set still arrives as one pull request.
 #
 # DEPENDABOT PULL REQUESTS GO THROUGH THE SAME REQUIRED CHECKS as any other —
 # they report under `build-and-test` from whichever workflow owns their paths,
@@ -27,10 +30,11 @@
 # before it is mergeable. Nothing here is auto-merged. #104 is the proof that
 # this works: it was caught by CI, not by a reviewer reading a diff.
 #
-# IGNORE RULES ARE FOR PEER-CONSTRAINED VERSIONS ONLY, never for convenience.
-# Each one below names the constraint it encodes, so it can be revisited when
-# the constraint moves. A dependency ignored for any other reason belongs in a
-# ledger entry, where it can be argued with.
+# IGNORE RULES ARE FOR PEER CONSTRAINTS AND CHOSEN RELEASE LINES ONLY, never for
+# convenience. Each one below names the constraint or the line it encodes (an LTS
+# line, the nginx stable line, a Spring Boot line), so it can be revisited when
+# that moves. A dependency ignored for any other reason belongs in a ledger
+# entry, where it can be argued with.
 version: 2
 
 updates:

@@ -138,8 +138,47 @@ jobs:
   # SUCCESS to branch protection — the one outcome this job exists to prevent.
   # The verdict itself lives in aggregate-required-check.sh, shared by all
   # three claimants.
+  # Builds the frontend image on every run of the family (never pushed from
+  # here), writes its SBOM and gates on fixable CRITICAL/HIGH CVEs; see
+  # image-scan.sh. No secrets are used in this job.
+  image:
+    needs: changes
+    if: needs.changes.outputs.run == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4
+      - name: Build the image
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7
+        with:
+          context: frontend
+          platforms: linux/amd64
+          load: true
+          push: false
+          tags: frontend:ci
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      # The image contract (before the scan): the nginx configuration is valid
+      # and the container does not run as root. The security headers are set by
+      # Caddy, not here; frontend-deploy checks them at the public URL.
+      - name: Check the nginx image contract
+        run: |
+          docker run --rm --entrypoint nginx frontend:ci -t
+          uid=$(docker run --rm --entrypoint id frontend:ci -u)
+          [ "$uid" != 0 ] || { echo "::error::the frontend image runs as root"; exit 1; }
+      - name: Scan the image
+        run: bash .github/scripts/image-scan.sh frontend:ci "$RUNNER_TEMP/frontend-sbom.cdx.json"
+      - name: Upload the SBOM
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: frontend-sbom-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/frontend-sbom.cdx.json
+          if-no-files-found: warn
+          retention-days: 30
+
   build-and-test-frontend:
-    needs: [changes, build, e2e-gate, e2e, visual]
+    needs: [changes, build, image, e2e-gate, e2e, visual]
     if: always()
     runs-on: ubuntu-latest
     steps:
@@ -149,6 +188,7 @@ jobs:
           CHANGES_RESULT: ${{ needs.changes.result }}
           CHANGES_RUN: ${{ needs.changes.outputs.run }}
           BUILD_RESULT: ${{ needs.build.result }}
+          REQUIRED_RESULTS: image=${{ needs.image.result }}
           OPTIONAL_RESULTS: >-
             e2e-gate=${{ needs.e2e-gate.result }}
             e2e=${{ needs.e2e.result }}

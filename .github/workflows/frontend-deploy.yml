@@ -27,7 +27,7 @@ jobs:
     if: >-
       github.event_name == 'workflow_dispatch' ||
       github.event.workflow_run.conclusion == 'success'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
 
     steps:
       # See backend-deploy.yml: checkout v7 blocks fork-PR code under workflow_run,
@@ -104,7 +104,7 @@ jobs:
   deploy:
     name: deploy to Hetzner
     needs: image
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
 
     # Shared with backend-deploy on purpose: both run `docker compose up` against
     # the same host, and two of those at once race over the same containers and

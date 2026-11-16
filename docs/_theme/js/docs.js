@@ -1,14 +1,9 @@
 // =============================================================================
 // maintenance-assistant Docs — Runtime
-// Theme toggle, mobile nav drawer, active-link marking, and Mermaid init.
+// Theme toggle, mobile nav drawer and active-link marking.
 // Lives outside the Pandoc template so regex/`$` characters never collide with
 // Pandoc's variable syntax during the build.
 // =============================================================================
-
-// Guarded: the landing pages load docs.js but no Mermaid, so the global is absent.
-if (typeof mermaid !== "undefined") {
-  mermaid.initialize({ startOnLoad: true });
-}
 
 // Theme toggle flips the attribute tokens.css keys off and persists the choice.
 var toggle = document.querySelector(".theme-toggle");

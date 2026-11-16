@@ -1,0 +1,44 @@
+erDiagram
+    MACHINE ||--o{ PROTOCOL : has
+    PROTOCOL ||--o{ CHUNK : "split into"
+
+    MACHINE {
+        uuid id PK
+        string machine_no "e.g. PR-03"
+        string name "e.g. Presse 3"
+        string type "e.g. Hydraulikpresse"
+        string manufacturer
+        int year_built "legacy: 15-20 y possible"
+        string control_type "PLC | SCADA | CNC | TERMINAL"
+        string location "hall / line"
+    }
+
+    PROTOCOL {
+        uuid id PK
+        uuid machine_id FK
+        date incident_date
+        string protocol_type "STOERUNG | WARTUNG"
+        string error_code "e.g. E-47, nullable"
+        string title
+        text symptom "what was observed"
+        text cause "Ursache"
+        text action "Massnahme / fix"
+        text parts_used "Ersatzteile, nullable"
+        int downtime_minutes "nullable"
+        string technician_initials
+        string language "de | en"
+        string source_file "path on volume, nullable"
+        string status "RECEIVED | INDEXED | FAILED"
+        string uploaded_by "Keycloak username"
+        timestamp created_at
+    }
+
+    CHUNK {
+        uuid id PK
+        uuid protocol_id FK
+        text content
+        vector embedding "pgvector"
+        string language
+        uuid machine_id "denormalized for filtering"
+        string error_code "denormalized, nullable"
+    }

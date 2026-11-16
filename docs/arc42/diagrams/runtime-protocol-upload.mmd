@@ -1,0 +1,31 @@
+sequenceDiagram
+    autonumber
+    actor SL as Schichtleiter
+    participant W as web<br/>ProtocolUploadController
+    participant I as ingestion<br/>ProtocolIntakeService
+    participant V as Volume
+    participant DB as Postgres
+    participant L as IngestionEventListener<br/>(ingest-N thread)
+    participant X as ProtocolIndexer
+    participant P as IONOS<br/>bge-m3
+
+    SL->>W: POST /api/protocols (multipart)
+    W->>W: role check: ROLE_SCHICHTLEITER
+    W->>W: decode strict UTF-8 (PDF fails here)
+    W->>I: accept(NewProtocol)
+    I->>V: write document
+    I->>DB: INSERT protocol … status RECEIVED
+    I-->>L: publish ProtocolReceivedEvent(id)
+    W-->>SL: 202 Accepted { id, status: RECEIVED }
+
+    Note over L,P: after commit, on the ingestion pool
+    L->>X: index(id)
+    X->>DB: SELECT protocol + machine
+    X->>V: read document
+    X->>X: chunk (paragraphs + context prefix)
+    X->>DB: budget headroom? (NFR-7)
+    X->>P: POST /v1/embeddings (encoding_format=float)
+    P-->>X: 1024-dim vectors + usage
+    X->>DB: record provider usage
+    X->>X: assert dimensions == 1024
+    X->>DB: DELETE chunks, INSERT chunks, status INDEXED

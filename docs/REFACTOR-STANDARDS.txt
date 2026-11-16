@@ -268,7 +268,10 @@ DOCS
   fine; the rule flags filler, not brevity. The plain-text planning
   documents (this file, DECISIONS.txt, PROJECT-PHASES.txt) are ledgers
   and are EXEMPT — they grow by append and are read by search.
-- Mermaid over ASCII art; diagrams at or under 15-20 nodes.
+- Mermaid over ASCII art; diagrams at or under 15-20 nodes. A diagram is
+  a .mmd file in a diagrams/ directory, rendered to SVG at build time
+  (generate-diagrams.mjs) and embedded as an image; pages load no diagram
+  script and no CDN. build-docs.sh fails on an inline mermaid block.
 - PUBLISHED PROSE STATES ONLY WHAT THE CHECKOUT SHOWS. Figures carry
   provenance. No aspirational content. A claim needing a survey is
   omitted, not generalised.

@@ -12,26 +12,9 @@ The README now carries only the request path; this is where the containers are d
 the module table they decompose into. The deployment topology proper, with volumes, published ports
 and certificate issuance, is [§7](07-deployment-view.md).
 
-```mermaid
-flowchart LR
-    B["Browser<br/>Angular 22 · PKCE"]
-    C["Caddy<br/>TLS · security headers"]
-    F["frontend<br/>nginx + SPA bundle"]
-    A["backend<br/>Spring Boot 4.1 · Java 21<br/>ingestion · query · web"]
-    K["Keycloak<br/>realm: maintenance"]
-    P[("PostgreSQL 17<br/>+ pgvector")]
-    V[["protocol files<br/>volume"]]
-    L["IONOS AI Model Hub<br/>Berlin · bge-m3 + Llama-3.3-70B"]
+![Container view](diagrams/building-blocks.svg)
 
-    B -->|HTTPS| C
-    B -->|OIDC Auth Code + PKCE| K
-    C -->|"/"| F
-    C -->|"/api/*, /swagger-ui*"| A
-    A -->|validates JWT via JWKS| K
-    A -->|"SQL: machine filter + vector rank"| P
-    A --> V
-    A -->|embeddings · chat| L
-```
+*Diagram source: [`diagrams/building-blocks.mmd`](diagrams/building-blocks.mmd).*
 
 ### Modules
 

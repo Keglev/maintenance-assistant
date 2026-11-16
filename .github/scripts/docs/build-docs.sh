@@ -35,7 +35,7 @@ SCRIPTS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # ---------------------------------------------------------------------------
 # Lua filter — owned here to avoid duplication across sibling scripts.
-# Converts .md links to .html and wraps mermaid blocks in a div for the browser.
+# Converts .md links to .html.
 #
 # THE RULE: relative links are the filter's business, absolute links are not.
 # A source page becomes a page on the site, so a link to a sibling .md has to
@@ -62,14 +62,6 @@ function Link(el)
   el.target = el.target:gsub("%.md$", ".html")
   return el
 end
-
-function CodeBlock(el)
-  if el.classes:includes('mermaid') then
-    local html = '<div class="mermaid">\n' .. el.text .. '\n</div>'
-    return pandoc.RawBlock('html', html)
-  end
-  return el
-end
 LUA
   echo "✓ Lua filter written"
 }
@@ -78,7 +70,7 @@ LUA
 # Theme assets — concatenate the CSS partials into one stylesheet and copy the
 # runtime JS. Templates reference these at /assets/docs.css and /assets/docs.js.
 # Concat order is the cascade order: tokens first (defines the variables every
-# later partial consumes), mermaid last.
+# later partial consumes).
 # ---------------------------------------------------------------------------
 build_theme_assets() {
   mkdir -p "$ASSETS_DIR"
@@ -89,7 +81,6 @@ build_theme_assets() {
     "$THEME_DIR/css/components.css" \
     "$THEME_DIR/css/landing.css" \
     "$THEME_DIR/css/content.css" \
-    "$THEME_DIR/css/mermaid.css" \
     > "$ASSETS_DIR/docs.css"
   cp "$THEME_DIR/js/docs.js" "$ASSETS_DIR/docs.js"
   echo "✓ Theme assets built (docs.css, docs.js)"
@@ -106,16 +97,36 @@ copy_landing_pages() {
 # rendered before the site build and copied next to the pages that embed them.
 # The .mmd sources travel with them: pages link to the source as the thing worth
 # reading when the rendering is ambiguous, and that link has to resolve.
+# Two diagram directories, one per place a page that embeds them is published:
+# docs/arc42/diagrams beside the architecture pages, docs/diagrams beside the
+# top-level pages.
 copy_diagrams() {
-  local SRC="$DOCS_DIR/arc42/diagrams"
-  local DEST="$OUTPUT_DIR/architecture/diagrams"
-  if [ -d "$SRC" ] && compgen -G "$SRC/*.svg" > /dev/null; then
-    mkdir -p "$DEST"
-    cp "$SRC"/*.svg "$DEST/"
-    compgen -G "$SRC/*.mmd" > /dev/null && cp "$SRC"/*.mmd "$DEST/"
-    echo "✓ Diagrams copied (svg + mmd sources)"
-  else
-    echo "ℹ️  No rendered diagrams found — run docs/scripts/generate-diagrams.mjs first"
+  local pair SRC DEST
+  for pair in "arc42/diagrams:architecture/diagrams" "diagrams:diagrams"; do
+    SRC="$DOCS_DIR/${pair%%:*}"
+    DEST="$OUTPUT_DIR/${pair##*:}"
+    [ -d "$SRC" ] || continue
+    if compgen -G "$SRC/*.svg" > /dev/null; then
+      mkdir -p "$DEST"
+      cp "$SRC"/*.svg "$DEST/"
+      compgen -G "$SRC/*.mmd" > /dev/null && cp "$SRC"/*.mmd "$DEST/"
+      echo "✓ Diagrams copied from ${pair%%:*} (svg + mmd sources)"
+    else
+      echo "ℹ️  No rendered diagrams in ${pair%%:*} — run docs/scripts/generate-diagrams.mjs first"
+    fi
+  done
+}
+
+# Diagrams are rendered to SVG at build time and the pages load no diagram
+# script, so a ```mermaid block in a page would publish as raw source text.
+# Fails the build instead; the fix is a .mmd file beside the page's diagrams.
+reject_inline_mermaid() {
+  local found
+  found=$(grep -rlE '^\s*(```|~~~) *\{?\.?mermaid' --include='*.md' "$DOCS_DIR" || true)
+  if [ -n "$found" ]; then
+    echo "✗ Inline mermaid blocks found; move each into a .mmd file under a diagrams/ directory:" >&2
+    echo "$found" >&2
+    exit 1
   fi
 }
 
@@ -203,6 +214,7 @@ verify_absolute_links_survived() {
 echo "==> [build-docs] Starting (PROJECT_DIR=$PROJECT_DIR)"
 mkdir -p "$OUTPUT_DIR"
 
+reject_inline_mermaid
 write_lua_filter
 build_theme_assets
 copy_landing_pages

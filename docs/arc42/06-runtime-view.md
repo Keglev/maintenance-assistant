@@ -7,39 +7,9 @@
 The one flow that exists end to end today. Two halves, deliberately separated: the caller's half
 finishes in milliseconds, the expensive half runs on a worker.
 
-```mermaid
-sequenceDiagram
-    autonumber
-    actor SL as Schichtleiter
-    participant W as web<br/>ProtocolUploadController
-    participant I as ingestion<br/>ProtocolIntakeService
-    participant V as Volume
-    participant DB as Postgres
-    participant L as IngestionEventListener<br/>(ingest-N thread)
-    participant X as ProtocolIndexer
-    participant P as IONOS<br/>bge-m3
+![Upload and indexing sequence](diagrams/runtime-protocol-upload.svg)
 
-    SL->>W: POST /api/protocols (multipart)
-    W->>W: role check: ROLE_SCHICHTLEITER
-    W->>W: decode strict UTF-8 (PDF fails here)
-    W->>I: accept(NewProtocol)
-    I->>V: write document
-    I->>DB: INSERT protocol … status RECEIVED
-    I-->>L: publish ProtocolReceivedEvent(id)
-    W-->>SL: 202 Accepted { id, status: RECEIVED }
-
-    Note over L,P: after commit, on the ingestion pool
-    L->>X: index(id)
-    X->>DB: SELECT protocol + machine
-    X->>V: read document
-    X->>X: chunk (paragraphs + context prefix)
-    X->>DB: budget headroom? (NFR-7)
-    X->>P: POST /v1/embeddings (encoding_format=float)
-    P-->>X: 1024-dim vectors + usage
-    X->>DB: record provider usage
-    X->>X: assert dimensions == 1024
-    X->>DB: DELETE chunks, INSERT chunks, status INDEXED
-```
+*Diagram source: [`diagrams/runtime-protocol-upload.mmd`](diagrams/runtime-protocol-upload.mmd).*
 
 **Why 202 and not 201.** The protocol exists when the call returns; it is not searchable yet.
 NFR-4 makes confirmation immediate, so the HTTP thread hands the work over and the returned id is
@@ -60,24 +30,9 @@ corrupt file without reproducing the failure and paying for it again.
 
 ### Catch-up
 
-```mermaid
-sequenceDiagram
-    autonumber
-    actor A as Admin
-    participant W as IngestionAdminController
-    participant B as IngestionBacklogService
-    participant DB as Postgres
-    participant L as IngestionEventListener
+![Backlog catch-up sequence](diagrams/runtime-ingestion-backlog.svg)
 
-    A->>W: POST /api/ingestion/backlog?status=RECEIVED
-    W->>W: role check: ROLE_ADMIN
-    W->>B: enqueue(statuses)
-    B->>DB: SELECT id WHERE status IN (…) ORDER BY created_at
-    loop per protocol
-        B-->>L: publish ProtocolReceivedEvent(id)
-    end
-    W-->>A: { enqueued: n }
-```
+*Diagram source: [`diagrams/runtime-ingestion-backlog.mmd`](diagrams/runtime-ingestion-backlog.mmd).*
 
 The same event and the same indexer as the upload path — one indexing path, not two. It finds work
 by **state** because the 150 seeded protocols never produced an event and a protocol that failed

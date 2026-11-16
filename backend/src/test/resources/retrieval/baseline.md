@@ -5,8 +5,8 @@ the class javadoc) and commit the diff.
 
 | | |
 |---|---|
-| Questions | 19, all `ratified: false` |
-| Corpus in the database | 166 live protocols, 182 chunks |
+| Questions | 19, all ratified (Carlos, 2026-08-20) |
+| Corpus in the database | 165 live protocols, 181 chunks |
 | Corpus file | 165 protocols |
 | Query threshold (configured) | 0.550 |
 | top-k | 5 |
@@ -14,7 +14,7 @@ the class javadoc) and commit the diff.
 
 ## Index health
 
-182 sampled chunks re-embedded with the configured model and compared with their stored
+181 sampled chunks re-embedded with the configured model and compared with their stored
 vector: all agree (>= 0.95). The index is in the query model's space.
 
 ## Per question
@@ -29,25 +29,25 @@ contain them. A question is grounded by either.
 
 | id | case | lang | machine | rank | best sim | sim of expected | lexical | mode | citation | ok |
 |---|---|---|---|---|---|---|---|---|---|---|
-| G01 | plain | de | PR-03 | 1 | 0.5935 | 0.5935 | - | A | expected | OK |
-| G02 | plain | de | FR-01 | 1 | 0.6628 | 0.6628 | - | A | expected | OK |
-| G03 | plain | de | KP-01 | 1 | 0.7040 | 0.7040 | - | A | expected | OK |
-| G04 | plain | de | VP-01 | 1 | 0.6688 | 0.6688 | - | A | expected | OK |
-| G05 | plain | de | RB-02 | 1 | 0.7076 | 0.7076 | - | A | expected | OK |
-| G06 | plain | en | SP-05 | 1 | 0.5958 | 0.5958 | - | A | expected | OK |
-| G07 | plain | de | LS-01 | 1 | 0.6525 | 0.6525 | - | A | expected | OK |
-| G08 | plain | de | FB-04 | 1 | 0.6688 | 0.6688 | - | A | expected | OK |
-| G09 | e47-set | de | PR-03 | 1 | 0.6401 | 0.6401 | `e-47` in 5 | A | expected | OK |
-| G10 | cross-lingual | de | KP-01 | 1 | 0.7027 | 0.7027 | - | A | expected | OK |
-| G11 | cross-lingual | en | FR-01 | 1 | 0.5582 | 0.5582 | - | A | expected | OK |
-| G12 | exact-term | de | FR-01 | 1 | 0.5843 | 0.5843 | `sv0410` in 3 | A | expected | OK |
-| G13 | exact-term | de | PR-07 | 1 | 0.4288 | 0.4288 | `kom-04` in 1 | A | expected | OK |
+| G01 | plain | de | PR-03 | 1 | 0.5929 | 0.5929 | - | A | expected | OK |
+| G02 | plain | de | FR-01 | 1 | 0.6625 | 0.6625 | - | A | expected | OK |
+| G03 | plain | de | KP-01 | 1 | 0.7036 | 0.7036 | - | A | expected | OK |
+| G04 | plain | de | VP-01 | 1 | 0.6696 | 0.6696 | - | A | expected | OK |
+| G05 | plain | de | RB-02 | 1 | 0.7090 | 0.7090 | - | A | expected | OK |
+| G06 | plain | en | SP-05 | 1 | 0.5951 | 0.5951 | - | A | expected | OK |
+| G07 | plain | de | LS-01 | 1 | 0.6519 | 0.6519 | - | A | expected | OK |
+| G08 | plain | de | FB-04 | 1 | 0.6686 | 0.6686 | - | A | expected | OK |
+| G09 | e47-set | de | PR-03 | 1 | 0.6420 | 0.6420 | `e-47` in 5 | A | expected | OK |
+| G10 | cross-lingual | de | KP-01 | 1 | 0.7020 | 0.7020 | - | A | expected | OK |
+| G11 | cross-lingual | en | FR-01 | 1 | 0.5580 | 0.5580 | - | A | expected | OK |
+| G12 | exact-term | de | FR-01 | 1 | 0.5852 | 0.5852 | `sv0410` in 3 | A | expected | OK |
+| G13 | exact-term | de | PR-07 | 1 | 0.4290 | 0.4290 | `kom-04` in 1 | A | expected | OK |
 | G14 | exact-term | de | FB-04 | 1 | 0.6000 | 0.6000 | - | A | expected | OK |
-| G15 | mode-b | de | AB-02 | - | 0.4588 | - | - | B | none (right) | OK |
-| G16 | mode-b | de | SP-05 | - | 0.4771 | - | - | B | none (right) | OK |
-| G17 | v12-seed | de | PR-03 | 1 | 0.6412 | 0.6412 | - | A | expected | OK |
-| G18 | v12-seed | de | FB-04 | 5 | 0.5771 | 0.5503 | - | A | expected | OK |
-| G19 | v12-seed | de | VP-01 | 1 | 0.7033 | 0.7033 | - | A | expected | OK |
+| G15 | mode-b | de | AB-02 | - | 0.4606 | - | - | B | none (right) | OK |
+| G16 | mode-b | de | SP-05 | - | 0.4782 | - | - | B | none (right) | OK |
+| G17 | v12-seed | de | PR-03 | 1 | 0.6414 | 0.6414 | - | A | expected | OK |
+| G18 | v12-seed | de | FB-04 | 5 | 0.5775 | 0.5502 | - | A | expected | OK |
+| G19 | v12-seed | de | VP-01 | 1 | 0.7034 | 0.7034 | - | A | expected | OK |
 
 ## Aggregates
 
@@ -98,7 +98,7 @@ so a protocol below the line cannot be cited even when the question stays Mode A
 | 0.43 | 19 | 0 | 2 | 16 / 17 |  |
 | 0.44 | 19 | 0 | 2 | 16 / 17 |  |
 | 0.45 | 19 | 0 | 2 | 16 / 17 |  |
-| 0.46 | 18 | 0 | 1 | 16 / 17 |  |
+| 0.46 | 19 | 0 | 2 | 16 / 17 |  |
 | 0.47 | 18 | 0 | 1 | 16 / 17 |  |
 | 0.48 | 17 | 0 | 0 | 16 / 17 |  |
 | 0.49 | 17 | 0 | 0 | 16 / 17 |  |
@@ -138,42 +138,38 @@ here.
 
 | | |
 |---|---|
-| Same-machine pairs | 1393 |
-| Mean over all pairs | 0.6612 |
+| Same-machine pairs | 1369 |
+| Mean over all pairs | 0.6639 |
 | Configured threshold | 0.920 |
-| **Highest legitimate pair** | **0.9151** |
-| Margin, threshold - ceiling | 0.0049 |
+| **Highest legitimate pair** | **0.9159** |
+| Margin, threshold - ceiling | 0.0041 |
 
 Top pairs:
 
 | similarity | machine | a | b |
 |---|---|---|---|
-| 0.9151 | PR-07 | Halbjahreswartung Presse 7 | Jahreswartung Presse 7 |
-| 0.8787 | VP-01 | Meldung Sensor defekt an der Einlaufkontrolle | VP-22 erneut, diesmal Sensor wirklich defekt |
-| 0.8740 | VP-01 | Anlage lief nicht an, Hauptschalter | geht nicht an |
-| 0.8713 | SP-05 | Maschine steht, Trichter leer | Maschine läuft, produziert aber nichts |
-| 0.8622 | SP-05 | Heizband Zone 3 ausgefallen, Übergangslösung bis Ersatz da ist | Heizband Zone 3 getauscht, Provisorium beendet |
-| 0.8485 | RB-02 | Quartalswartung Schweißzelle | Absaugung und Zellenreinigung |
-| 0.8443 | VP-01 | Vakuum wird nicht erreicht, Behelfslösung über reduzierte Taktzahl | Vakuumpumpe getauscht, Behelfslösung beendet |
-| 0.8397 | FR-01 | SV0410 Schleppfehler X-Achse, angeblich Servomotor defekt | SV0410 erneut, diesmal Verstärker |
+| 0.9159 | PR-07 | Halbjahreswartung Presse 7 | Jahreswartung Presse 7 |
+| 0.8801 | VP-01 | Meldung Sensor defekt an der Einlaufkontrolle | VP-22 erneut, diesmal Sensor wirklich defekt |
+| 0.8745 | VP-01 | Anlage lief nicht an, Hauptschalter | geht nicht an |
+| 0.8717 | SP-05 | Maschine steht, Trichter leer | Maschine läuft, produziert aber nichts |
+| 0.8618 | SP-05 | Heizband Zone 3 ausgefallen, Übergangslösung bis Ersatz da ist | Heizband Zone 3 getauscht, Provisorium beendet |
+| 0.8493 | RB-02 | Quartalswartung Schweißzelle | Absaugung und Zellenreinigung |
+| 0.8451 | VP-01 | Vakuum wird nicht erreicht, Behelfslösung über reduzierte Taktzahl | Vakuumpumpe getauscht, Behelfslösung beendet |
+| 0.8405 | FR-01 | SV0410 Schleppfehler X-Achse, angeblich Servomotor defekt | SV0410 erneut, diesmal Verstärker |
 
 ## Runtime and cost of one run
 
 | | |
 |---|---|
-| Wall clock | 153 s |
-| Embedding provider calls | 220 (268 prompt tokens) |
-| Embedding cost | EUR 0.000005 |
+| Wall clock | 190 s |
+| Embedding provider calls | 219 (306 prompt tokens) |
+| Embedding cost | EUR 0.000006 |
 | Chat calls | 19, one answer per question (a Mode A fall-through would add one) |
 
 The chat calls are the expensive half and are NOT priced here, because this run does not
 see the provider's token accounting for them. The figure that matters for re-running it is
 that it spends 19 answers out of the 400/day budget in `maintenance.chat`.
 
-## Corpus drift — READ THIS BEFORE COMPARING RUNS
+## Corpus drift
 
-The database this was measured against is NOT exactly the corpus file. Every number above
-is a reading of what was actually there.
-
-- extra in the database: `2ac072da-fa0f-4557-baba-1af701f290bb` - Klopfen aus dem Pumpenaggregat
-
+None. The database holds exactly the corpus file.

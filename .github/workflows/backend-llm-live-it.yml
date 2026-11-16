@@ -72,13 +72,15 @@ jobs:
       run:
         working-directory: backend
     steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      # After the checkout: every run step works in backend/ (job defaults), which
+      # does not exist before it.
       - name: Require the provider key
         run: |
           if [ -z "$LLM_API_KEY" ]; then
             echo "LLM_API_KEY is not set: every llm-live test would skip and measure nothing" >&2
             exit 1
           fi
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - uses: actions/setup-java@77dd5b2ce225ea11469928ac317850245a74ae78 # v6.2.0
         with:
           distribution: temurin
@@ -94,8 +96,9 @@ jobs:
         run: mvn -B -ntp verify -P llm-live
       - name: Write the baseline report to the run summary
         if: always()
+        working-directory: .
         run: |
-          report=src/test/resources/retrieval/baseline.md
+          report=backend/src/test/resources/retrieval/baseline.md
           if [ -f "$report" ]; then cat "$report" >> "$GITHUB_STEP_SUMMARY"; fi
       - name: Upload the report
         if: always()

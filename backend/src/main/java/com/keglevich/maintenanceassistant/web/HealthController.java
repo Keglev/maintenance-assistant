@@ -58,7 +58,7 @@ class HealthController {
    * the {@code v1} in the OpenAPI info block — see OpenApiConfig for why those are two numbers.
    *
    * <p>{@code commit} is what makes the field a deploy check: a version alone cannot tell two
-   * builds of 0.1.0-SNAPSHOT apart, so "is the thing I deployed the thing that answers" was
+   * builds of the same version apart, so "is the thing I deployed the thing that answers" was
    * unanswerable until the sha itself was reported. The deploy workflow compares this value with
    * the commit it deployed. Public by the same reasoning as the endpoint: the sha of an open
    * repository's main branch is not a secret.

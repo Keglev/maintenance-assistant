@@ -576,21 +576,36 @@ drwxr-xr-x 2 0 0 …            touch: Permission denied</code></pre>
         <p>CI owns the rollout. When <code>backend-ci</code> or
         <code>frontend-ci</code> succeeds on <code>main</code>, the
         matching deploy workflow builds a <code>linux/amd64</code>
-        image, pushes it to GHCR, then connects to the host as the
-        <code>deploy</code> user and runs
-        <code>docker compose pull &lt;service&gt; &amp;&amp; docker compose up -d &lt;service&gt;</code>
-        for that one service. Both workflows also accept a manual
-        <code>workflow_dispatch</code>, which redeploys whatever tag
-        <code>.env.prod</code> currently names — the button for a config
-        change or a stuck container.</p>
+        image, pushes it to GHCR as <code>:latest</code> and
+        <code>:sha-&lt;commit&gt;</code>, then connects to the host as
+        the <code>deploy</code> user and runs
+        <code>.github/scripts/deploy-rollout.sh</code> there for that
+        one service. The script writes the commit’s image tag into that
+        service’s line of <code>.env.prod</code> (a guarded one-line
+        edit that keeps <code>.env.prod.bak</code>), then runs
+        <code>docker compose pull &lt;service&gt; &amp;&amp; docker compose up -d &lt;service&gt;</code>.
+        <code>.env.prod</code> therefore always names the image that
+        runs, and every manual compose command keeps it. Both workflows
+        also accept a manual <code>workflow_dispatch</code>, which
+        redeploys whatever tag <code>.env.prod</code> currently names —
+        the button for a config change or a stuck container.</p>
         <p>The rollout is verified from the runner against the
         <strong>public</strong> URL rather than on the host, because a
         container can be up while DNS, TLS or the proxy in front of it
-        is broken; the job fails if the endpoint does not come back
-        healthy. Both deploy jobs share one concurrency group with
-        cancelling disabled, so two rollouts never race over the same
-        containers and a superseded build never interrupts one in
-        flight.</p>
+        is broken. It is verified <strong>by commit</strong>: the job
+        fails unless <code>/api/health</code> (backend) or
+        <code>/build-info.json</code> (frontend) reports the commit it
+        deployed, because a healthy answer alone cannot tell the new
+        build from the old one.</p>
+        <p>Both deploy jobs share one concurrency group that queues
+        every rollout and cancels none, so two rollouts never race over
+        the same containers. Main’s CI runs are never cancelled by a
+        later merge either. GitHub does not promise the start order of
+        queued runs, so before the rollout the job reads the live
+        commit: if it already contains the commit being deployed — an
+        older deploy that started late — the rollout is skipped and the
+        run stays green with a notice. Nothing is lost, because the live
+        build includes the older commit.</p>
         <h3 id="ci-deploys-images-never-configuration">CI deploys
         images, never configuration</h3>
         <p>The pipeline runs
@@ -629,7 +644,9 @@ drwxr-xr-x 2 0 0 …            touch: Permission denied</code></pre>
         <td><code>.env.prod</code> (documented by
         <code>.env.prod.example</code>)</td>
         <td><strong>a person, by hand</strong> — it is not in the repo
-        at all</td>
+        at all. The one exception: each deploy rewrites its own
+        <code>BACKEND_IMAGE</code> / <code>FRONTEND_IMAGE</code>
+        line</td>
         </tr>
         </tbody>
         </table>

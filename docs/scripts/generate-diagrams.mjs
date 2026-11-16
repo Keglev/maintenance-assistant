@@ -65,6 +65,11 @@ function render(source, target) {
     ? ['--puppeteerConfigFile', quote(puppeteerConfig)]
     : [];
 
+  // Seeded so every render is byte-identical: Mermaid 11 draws erDiagram through rough.js
+  // and handDrawnSeed 0, the default, is random (Mermaid config schema). Drop when two
+  // unseeded renders of docs/diagrams/domain-model.mmd match.
+  const mermaidConfig = join(dirname(fileURLToPath(import.meta.url)), 'mermaid-config.json');
+
   return new Promise((done, fail) => {
     const child = spawn(
       onWindows ? 'npx.cmd' : 'npx',
@@ -73,6 +78,7 @@ function render(source, target) {
         '--input', quote(source),
         '--output', quote(target),
         '--backgroundColor', 'transparent',
+        '--configFile', quote(mermaidConfig),
         ...puppeteerArgs,
       ],
       { stdio: 'inherit', shell: onWindows },

@@ -40,8 +40,9 @@ off for that run, since a run of these tests alone is a measurement, not a cover
 
 ## Running them in GitHub
 
-The workflow **backend-llm-live-it** runs only when started by hand (Actions, backend-llm-live-it,
-Run workflow). It brings up a fresh pgvector database, seeds the corpus from the checked-out commit,
+The workflow **backend-llm-live-it** runs monthly and whenever it is started by hand (Actions,
+backend-llm-live-it, Run workflow; see [When they run](#when-they-run)). It brings up a fresh
+pgvector database, seeds the corpus from the checked-out commit,
 indexes it through the provider (`.github/scripts/index-live-corpus.sh`) and then runs
 `mvn verify -P llm-live`. It reads the repository secret `LLM_API_KEY` and fails at once if the
 secret is missing, so a run can never be green while measuring nothing.
@@ -70,9 +71,12 @@ Annotate the class with `@LiveProviderTest` and name it `*IT`. Nothing else chan
 build ignores it, and the profile and the workflow pick it up. A test that needs data beyond the
 seeded corpus has to create it and remove it again, as `DuplicateSimilarityCalibrationIT` does.
 
-## Running them on a schedule
+## When they run
 
-The workflow has no schedule on purpose. Adding one is a single `schedule:` entry under `on:` in
-`.github/workflows/backend-llm-live-it.yml`; decide the frequency from the measured cost of a run.
+Once a month, on the 2nd at 03:40 UTC, and by hand after any change to the chat model, the prompt
+or the embedding model. One run costs roughly EUR 0.03 (measured on 2026-11-16: the embedding of
+the test queries is priced in the run's report; the indexing and the chat answers follow from the
+unit costs in [ADR-002](adr/ADR-002-eu-hosted-llm-provider.html)). The schedule is the `schedule:`
+entry under `on:` in `.github/workflows/backend-llm-live-it.yml`.
 
 [Back to the overview](overview.html)

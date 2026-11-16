@@ -10,8 +10,10 @@ name: backend-llm-live-it
 # runs them, and an outage or rate limit at the provider can never block a
 # merge. See docs/live-provider-tests.md.
 #
-# WHY ONLY BY HAND. No schedule until the cost of one run has been measured; the
-# report this run uploads carries that cost line.
+# WHEN. Monthly, and by hand after a change to the model, the prompt or the
+# embedding model. The first measured run (2026-11-16) put one run at roughly
+# EUR 0.03, so a monthly re-measurement costs nothing worth weighing, while a
+# per-push run would still make the provider a merge dependency.
 #
 # WHAT A RUN DOES. A fresh pgvector database; index-live-corpus.sh seeds the
 # corpus from the repository and indexes it through the provider; then
@@ -29,6 +31,10 @@ name: backend-llm-live-it
 # SECRET: LLM_API_KEY, the repository secret catalogue-watch also reads.
 
 on:
+  schedule:
+    # 03:40 UTC on the 2nd: away from catalogue-watch on the 1st and off the
+    # full hour, where GitHub's scheduler queues heavily.
+    - cron: "40 3 2 * *"
   workflow_dispatch:
 
 permissions:

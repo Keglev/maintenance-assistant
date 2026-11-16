@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Docs · live-provider-tests · maintenance-assistant Docs</title>
+
+  <!-- Set the theme before the stylesheet paints, otherwise the page flashes
+       the default theme for one frame before the saved choice applies. -->
+  <script>
+    (function () {
+      try {
+        var t = localStorage.getItem("maintenance-assistant-theme") ||
+          (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+        document.documentElement.setAttribute("data-theme", t);
+      } catch (e) {
+        document.documentElement.setAttribute("data-theme", "light");
+      }
+    })();
+  </script>
+
+  <link rel="stylesheet" href="/maintenance-assistant/assets/docs.css" />
+</head>
+
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <header class="topbar">
+    <div class="topbar-inner">
+      <button class="menu-btn" aria-label="Toggle navigation">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="18" x2="21" y2="18" />
+        </svg>
+      </button>
+
+      <a href="/maintenance-assistant/" class="brand">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <path d="M14.7 6.3a5 5 0 0 0-6.6 6.6l-5 5a2 2 0 1 0 2.8 2.8l5-5a5 5 0 0 0 6.6-6.6l-2.9 2.9-2.1-2.1 2.2-3.6z" />
+        </svg>
+        maintenance-assistant Docs
+      </a>
+
+      <div class="topbar-tools">
+        <span class="lang-switch">
+          <a href="/maintenance-assistant/" aria-current="true">EN</a>
+          <a href="/maintenance-assistant/index-de.html">DE</a>
+        </span>
+        <button class="theme-toggle" aria-label="Toggle light or dark theme">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <circle cx="12" cy="12" r="9" /><path d="M12 3a9 9 0 0 0 0 18z" fill="currentColor" stroke="none" />
+          </svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <div class="layout">
+    <!-- Sidebar navigation, included by app-docs.html as a Pandoc partial. One
+         sidebar serves the whole site: this repository has a single arc42 tree and a
+         single decision log, so the per-tier sidebars the sibling repositories need
+         would be three copies of the same list here. The active link is marked at
+         runtime by docs.js. Do not put template syntax in this comment - a partial
+         is itself a template. -->
+    <aside class="sidebar">
+      <p class="nav-title">Docs</p>
+      <ul>
+        <li><a href="/maintenance-assistant/">Docs home</a></li>
+        <li><a href="/maintenance-assistant/overview.html">Overview</a></li>
+        <li><a href="/maintenance-assistant/overview-de.html">&Uuml;berblick (DE)</a></li>
+        <li><a href="/maintenance-assistant/llm-approach.html">AI &amp; LLM approach</a></li>
+      </ul>
+
+      <p class="nav-title">Requirements</p>
+      <ul>
+        <li><a href="/maintenance-assistant/requirements.html">Requirements &amp; NFRs</a></li>
+        <li><a href="/maintenance-assistant/domain-model.html">Domain model</a></li>
+      </ul>
+
+      <details class="nav-group">
+        <summary>Architecture (arc42)</summary>
+        <ul>
+          <li><a href="/maintenance-assistant/architecture/index.html">Architecture index</a></li>
+          <li><a href="/maintenance-assistant/architecture/01-introduction-and-goals.html">1 &middot; Introduction &amp; Goals</a></li>
+          <li><a href="/maintenance-assistant/architecture/02-architecture-constraints.html">2 &middot; Constraints</a></li>
+          <li><a href="/maintenance-assistant/architecture/03-context-and-scope.html">3 &middot; Context &amp; Scope</a></li>
+          <li><a href="/maintenance-assistant/architecture/04-solution-strategy.html">4 &middot; Solution Strategy</a></li>
+          <li><a href="/maintenance-assistant/architecture/05-building-block-view.html">5 &middot; Building Blocks</a></li>
+          <li><a href="/maintenance-assistant/architecture/06-runtime-view.html">6 &middot; Runtime View</a></li>
+          <li><a href="/maintenance-assistant/architecture/07-deployment-view.html">7 &middot; Deployment</a></li>
+          <li><a href="/maintenance-assistant/architecture/08-crosscutting-concepts.html">8 &middot; Concepts</a></li>
+          <li><a href="/maintenance-assistant/architecture/09-architecture-decisions.html">9 &middot; Decisions</a></li>
+          <li><a href="/maintenance-assistant/architecture/10-quality-requirements.html">10 &middot; Quality Requirements</a></li>
+          <li><a href="/maintenance-assistant/architecture/11-risks-and-technical-debt.html">11 &middot; Risks &amp; Debt</a></li>
+          <li><a href="/maintenance-assistant/architecture/12-glossary.html">12 &middot; Glossary</a></li>
+        </ul>
+      </details>
+
+      <details class="nav-group">
+        <summary>Decisions (ADRs)</summary>
+        <ul>
+          <li><a href="/maintenance-assistant/adr/index.html">Decision index</a></li>
+          <li><a href="/maintenance-assistant/adr/ADR-001-modular-monolith-first.html">ADR-001 Modular monolith</a></li>
+          <li><a href="/maintenance-assistant/adr/ADR-002-eu-hosted-llm-provider.html">ADR-002 EU LLM provider</a></li>
+          <li><a href="/maintenance-assistant/adr/ADR-003-keycloak-for-iam.html">ADR-003 Keycloak as IdP</a></li>
+          <li><a href="/maintenance-assistant/adr/ADR-004-pgvector-for-vector-search.html">ADR-004 pgvector</a></li>
+          <li><a href="/maintenance-assistant/adr/ADR-010-docs-tree-conventions.html">ADR-010 Docs tree conventions</a></li>
+          <li><a href="/maintenance-assistant/adr/ADR-011-guided-questions.html">ADR-011 Guided questions</a></li>
+        </ul>
+      </details>
+
+      <p class="nav-title">Frontend</p>
+      <ul>
+        <li><a href="/maintenance-assistant/frontend-architecture.html">Frontend architecture</a></li>
+      </ul>
+
+      <p class="nav-title">Quality</p>
+      <ul>
+        <li><a href="/maintenance-assistant/refactor-standards.html">Refactor standards</a></li>
+        <li><a href="/maintenance-assistant/backend/api-docs/index.html">Backend API</a></li>
+        <li><a href="/maintenance-assistant/frontend/api-docs/index.html">Frontend API</a></li>
+        <li><a href="/maintenance-assistant/backend/coverage/index.html">Backend coverage</a></li>
+        <li><a href="/maintenance-assistant/frontend/coverage/index.html">Frontend coverage</a></li>
+      </ul>
+    </aside>
+    <main class="content" id="main">
+      <article class="doc-body">
+        <h1 id="live-provider-tests">Live provider tests</h1>
+        <p>Most of the backend’s tests run against stubs and a throwaway
+        database, on every pull request. A small group does not: the
+        <strong>live provider tests</strong> call the real, paid LLM
+        provider against the fully indexed corpus. They re-take the
+        measurements this project quotes, so that a number in a decision
+        record stays something anyone can reproduce rather than a
+        claim.</p>
+        <table>
+        <colgroup>
+        <col style="width: 50%" />
+        <col style="width: 50%" />
+        </colgroup>
+        <thead>
+        <tr class="header">
+        <th>Test class</th>
+        <th>What it measures</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr class="odd">
+        <td><code>QueryDemoVerificationIT</code></td>
+        <td>the three demo cases and their similarity scores (<a
+        href="adr/ADR-002-eu-hosted-llm-provider.html">ADR-002</a>)</td>
+        </tr>
+        <tr class="even">
+        <td><code>RetrievalBaselineIT</code></td>
+        <td>retrieval over the full question set; writes
+        <code>backend/src/test/resources/retrieval/baseline.md</code>
+        (<a
+        href="adr/ADR-008-retrieval-measurement.html">ADR-008</a>)</td>
+        </tr>
+        <tr class="odd">
+        <td><code>DuplicateSimilarityCalibrationIT</code></td>
+        <td>where the duplicate-detection threshold comes from (<a
+        href="adr/ADR-006-insider-threat-and-protocol-moderation.html">ADR-006</a>)</td>
+        </tr>
+        </tbody>
+        </table>
+        <h2 id="why-they-are-not-part-of-ci">Why they are not part of
+        CI</h2>
+        <ul>
+        <li><strong>Every run costs money.</strong> The provider bills
+        per call, and a pull request would pay again on every push.</li>
+        <li><strong>They depend on an outside service.</strong> A
+        provider outage or rate limit would turn a merge gate red for a
+        reason that has nothing to do with the change under review.</li>
+        <li><strong>They need an indexed corpus.</strong> A normal build
+        starts from an empty database; these tests need every protocol
+        chunked and embedded through the real provider first.</li>
+        <li><strong>Dependabot pull requests cannot read repository
+        secrets.</strong> Without the key the tests would skip there, so
+        a gate built on them would not even run on every pull
+        request.</li>
+        </ul>
+        <p>What every pull request does test is the same code paths
+        against the local provider stub: the unit and integration tests,
+        and the end-to-end suite, which uses a stub of the provider
+        API.</p>
+        <h2 id="how-they-are-kept-out">How they are kept out</h2>
+        <p>Each class carries the <code>@LiveProviderTest</code>
+        annotation (<code>backend/src/test/java/.../support</code>),
+        which combines two guards:</p>
+        <ol type="1">
+        <li><strong>The JUnit tag <code>llm-live</code>.</strong>
+        Failsafe excludes it by default (<code>backend/pom.xml</code>,
+        <code>failsafe.excludedGroups</code>), so a normal build does
+        not run, count or report these tests at all.</li>
+        <li><strong>A condition on <code>LLM_API_KEY</code>.</strong>
+        Without the key the tests skip, so running the profile on a
+        machine without a key spends nothing.</li>
+        </ol>
+        <p>The Maven profile <code>llm-live</code> reverses the filter:
+        it runs only the tagged tests, and turns JaCoCo off for that
+        run, since a run of these tests alone is a measurement, not a
+        coverage report.</p>
+        <h2 id="running-them-in-github">Running them in GitHub</h2>
+        <p>The workflow <strong>backend-llm-live-it</strong> runs only
+        when started by hand (Actions, backend-llm-live-it, Run
+        workflow). It brings up a fresh pgvector database, seeds the
+        corpus from the checked-out commit, indexes it through the
+        provider (<code>.github/scripts/index-live-corpus.sh</code>) and
+        then runs <code>mvn verify -P llm-live</code>. It reads the
+        repository secret <code>LLM_API_KEY</code> and fails at once if
+        the secret is missing, so a run can never be green while
+        measuring nothing.</p>
+        <p>Each run uploads the artifact
+        <code>llm-live-report-&lt;run&gt;</code>: the retrieval baseline
+        report (also shown on the run summary page, including its cost
+        line), the failsafe reports and the application logs of the
+        indexing phases.</p>
+        <h2 id="running-them-locally">Running them locally</h2>
+        <p>From <code>backend/</code>, with the development stack
+        running and the corpus indexed (<code>docker/README.md</code> in
+        the repository):</p>
+        <div class="sourceCode" id="cb1"><pre
+        class="sourceCode powershell"><code class="sourceCode powershell"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="va">$env</span><span class="op">:</span>LLM_API_KEY <span class="op">=</span> <span class="st">&#39;&lt;your provider key&gt;&#39;</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>mvn verify <span class="op">-</span>P llm<span class="op">-</span>live                                      <span class="co"># all live provider tests</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>mvn verify <span class="op">-</span>P llm<span class="op">-</span>live <span class="st">&quot;-Dit.test=QueryDemoVerificationIT&quot;</span>  <span class="co"># one class</span></span></code></pre></div>
+        <p>Without <code>-P llm-live</code> an <code>-Dit.test=</code>
+        naming one of these classes finds nothing to run, because the
+        default build excludes the tag.</p>
+        <h2 id="adding-a-live-provider-test">Adding a live provider
+        test</h2>
+        <p>Annotate the class with <code>@LiveProviderTest</code> and
+        name it <code>*IT</code>. Nothing else changes: the default
+        build ignores it, and the profile and the workflow pick it up. A
+        test that needs data beyond the seeded corpus has to create it
+        and remove it again, as
+        <code>DuplicateSimilarityCalibrationIT</code> does.</p>
+        <h2 id="running-them-on-a-schedule">Running them on a
+        schedule</h2>
+        <p>The workflow has no schedule on purpose. Adding one is a
+        single <code>schedule:</code> entry under <code>on:</code> in
+        <code>.github/workflows/backend-llm-live-it.yml</code>; decide
+        the frequency from the measured cost of a run.</p>
+        <p><a href="overview.html">Back to the overview</a></p>
+      </article>
+    </main>
+
+        <nav class="toc" aria-label="On this page">
+      <p class="toc-title">On this page</p>
+      <ul>
+      <li><a href="#live-provider-tests"
+      id="toc-live-provider-tests">Live provider tests</a>
+      <ul>
+      <li><a href="#why-they-are-not-part-of-ci"
+      id="toc-why-they-are-not-part-of-ci">Why they are not part of
+      CI</a></li>
+      <li><a href="#how-they-are-kept-out"
+      id="toc-how-they-are-kept-out">How they are kept out</a></li>
+      <li><a href="#running-them-in-github"
+      id="toc-running-them-in-github">Running them in GitHub</a></li>
+      <li><a href="#running-them-locally"
+      id="toc-running-them-locally">Running them locally</a></li>
+      <li><a href="#adding-a-live-provider-test"
+      id="toc-adding-a-live-provider-test">Adding a live provider
+      test</a></li>
+      <li><a href="#running-them-on-a-schedule"
+      id="toc-running-them-on-a-schedule">Running them on a
+      schedule</a></li>
+      </ul></li>
+      </ul>
+    </nav>
+      </div>
+
+  <footer class="footer">
+    maintenance-assistant · Generated by the docs pipeline
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <script src="/maintenance-assistant/assets/docs.js"></script>
+</body>
+</html>

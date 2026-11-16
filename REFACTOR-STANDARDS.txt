@@ -78,10 +78,10 @@ COVERAGE TARGETS
   figure becomes a claim.
 - THE FIGURE THAT COUNTS IS THE ONE CI PUBLISHES TO gh-pages. A local
   run is a working tool, not evidence.
-- Key-gated integration tests (LLM_API_KEY) DO NOT RUN IN CI and
-  therefore cover nothing as far as this target is concerned. Code whose
-  only tests are gated is UNCOVERED, and saying otherwise is the counter
-  lying about what it measured.
+- Live provider tests (@LiveProviderTest, JUnit tag llm-live) DO NOT
+  RUN IN CI and therefore cover nothing as far as this target is
+  concerned. Code whose only tests are those is UNCOVERED, and saying
+  otherwise is the counter lying about what it measured.
 - Enforcement is a RATCHET, armed only once the targets are met: jacoco
   check and vitest thresholds at the achieved numbers, so a regression
   fails the build. Arming it early would only break CI.
@@ -192,6 +192,12 @@ SCRIPTS AND WORKFLOWS
   frontend-e2e-visual.yml behind e2e-relevant.sh), never a copy. A
   gate's deny/skip list enumerates only what the check never reads; an
   unknown path defaults to RUN.
+- A TEST THAT CALLS THE PAID PROVIDER NEVER GATES A MERGE. It carries
+  @LiveProviderTest: failsafe excludes the llm-live tag by default, the
+  llm-live Maven profile selects only it, and backend-llm-live-it.yml
+  runs it on demand against a freshly indexed corpus (workflow_dispatch;
+  a schedule only once the measured cost of a run justifies one). See
+  docs/live-provider-tests.md.
 - CHECKS MUST FAIL LOUDLY. A check that passes for the wrong reason
   (wrong directory, line-ending-blind comparison, a probe that never
   ran) is discarded, not read as green.

@@ -345,6 +345,14 @@ CI authenticates with a dedicated ed25519 key that exists only for this purpose,
 step environment rather than interpolated into a command line, and deleted in a step that runs even
 when the deploy fails.
 
+The host's identity is pinned the same way. `DEPLOY_HOST_KEY` holds one `known_hosts` line (the IP,
+then the ed25519 host key, read on the server from `/etc/ssh/ssh_host_ed25519_key.pub`;
+fingerprint `SHA256:9qbddMYgi/Jbfxau2prdJhCRUSJZZjOYALucV0qqCok`), and the deploy connects with
+`StrictHostKeyChecking=yes`. Nothing is fetched with `ssh-keyscan` at deploy time, so a host that
+presents another key is refused. **Rotation:** after the server's host key changes (a rebuild or
+a reinstall), read the new `.pub` file on the server, check its fingerprint, and replace the secret;
+until then every deploy fails with "Host key verification failed", which is the intended signal.
+
 ## 7.6 Backup and recovery
 
 Two mechanisms, covering different failures: a **nightly backup** on the host for data loss, and a

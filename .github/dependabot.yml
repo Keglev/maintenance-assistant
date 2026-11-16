@@ -91,6 +91,13 @@ updates:
         patterns:
           - '@playwright/*'
           - 'playwright'
+      # Before the catch-all, for the same reason as playwright. The coverage
+      # plugin peers on the exact vitest version, so a major of either alone
+      # cannot install; grouped, every update type moves both together.
+      vitest:
+        patterns:
+          - 'vitest'
+          - '@vitest/*'
       # Everything else, minor and patch only. A major arrives on its own.
       frontend-patch-minor:
         patterns:

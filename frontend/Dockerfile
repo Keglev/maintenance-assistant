@@ -34,6 +34,15 @@ RUN printf '{"commit":"%s"}\n' "$GIT_COMMIT" \
 # fails the image scan (image-scan.sh); bump the minor deliberately when it does.
 FROM nginxinc/nginx-unprivileged:1.30-alpine AS runtime
 
+# The base image lags Alpine's security fixes by days, and the image scan reads a
+# fresh vulnerability database every run, so packages are upgraded at build time.
+# Unpinned on purpose: Alpine drops superseded versions within weeks, and a pin
+# would freeze exactly what this step exists to move. The image runs as uid 101;
+# root is taken for this one step and dropped again (the CI contract checks it).
+USER root
+RUN apk upgrade --no-cache
+USER 101
+
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 COPY --from=build /build/dist/maintenance-assistant-frontend/browser /usr/share/nginx/html
 

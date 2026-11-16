@@ -1,8 +1,9 @@
 package com.keglevich.maintenanceassistant.ingestion;
 
+import com.keglevich.maintenanceassistant.support.LiveProviderTest;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.jdbc.core.simple.JdbcClient;
@@ -20,8 +21,8 @@ import static org.awaitility.Awaitility.await;
 /**
  * Where {@code maintenance.duplicates.similarity-threshold} comes from — measured, not chosen.
  *
- * <p>Skipped unless {@code LLM_API_KEY} is set, exactly like {@link
- * com.keglevich.maintenanceassistant.query.QueryDemoVerificationIT}, so CI never runs it and it
+ * <p>A {@link LiveProviderTest}, exactly like {@link
+ * com.keglevich.maintenanceassistant.query.QueryDemoVerificationIT}: no normal build runs it, so it
  * never spends money by accident. It exists for the same reason that one does: the numbers this
  * project quotes are measurements, and a measurement that cannot be re-taken is a claim. Re-run it
  * after any change to the embedding model, to the chunker, or to the corpus.
@@ -45,13 +46,12 @@ import static org.awaitility.Awaitility.await;
  * already indexed:
  * <pre>
  *   $env:LLM_API_KEY = (Select-String -Path ..\spike\adr-002\.env -Pattern '^IONOS_API_KEY=').Line.Split('=')[1]
- *   mvn verify -Dit.test=DuplicateSimilarityCalibrationIT
+ *   mvn verify -P llm-live -Dit.test=DuplicateSimilarityCalibrationIT
  * </pre>
  */
 @SpringBootTest
 @ActiveProfiles("demo")
-@EnabledIfEnvironmentVariable(named = "LLM_API_KEY", matches = ".+",
-        disabledReason = "needs a real provider key; set LLM_API_KEY to run")
+@LiveProviderTest
 class DuplicateSimilarityCalibrationIT {
 
     /** E-47 Druckabfall im Presshub — the incident both synthetic protocols are about. */

@@ -127,9 +127,10 @@ into a claim:
 the friendlier of the two would be a choice presented as a measurement.
 
 *The figure that counts is the one CI publishes.* A local run is a working tool, not
-evidence. It follows that key-gated integration tests — the ones needing a provider API key,
-which CI skips — cover nothing as far as this target is concerned. Code whose only tests are
-gated is uncovered, however green it looks on a laptop with the key set.
+evidence. It follows that the [live provider tests](live-provider-tests.md) — the ones calling
+the paid provider, which every CI build excludes — cover nothing as far as this target is
+concerned. Code whose only tests are those is uncovered, however green it looks on a laptop with
+the key set.
 
 Enforcement is a **ratchet, armed last**: once the targets are met, `jacoco:check` and
 Vitest thresholds are set at the achieved numbers so a regression fails the build. Arming

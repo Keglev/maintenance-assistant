@@ -1,0 +1,110 @@
+name: backend-llm-live-it
+
+# backend-llm-live-it.yml — Runs the llm-live integration tests against the real
+# provider, on demand.
+#
+# WHY A SEPARATE WORKFLOW. These tests measure retrieval and the demo answers
+# against the paid provider (ADR-002, ADR-008), so every run costs money and
+# depends on an outside API. They are tagged llm-live and excluded from every
+# normal build (backend/pom.xml, failsafe excludedGroups): a pull request never
+# runs them, and an outage or rate limit at the provider can never block a
+# merge. See docs/live-provider-tests.md.
+#
+# WHY ONLY BY HAND. No schedule until the cost of one run has been measured; the
+# report this run uploads carries that cost line.
+#
+# WHAT A RUN DOES. A fresh pgvector database; index-live-corpus.sh seeds the
+# corpus from the repository and indexes it through the provider; then
+# `mvn verify -P llm-live` runs only the tagged tests. The run measures exactly
+# the corpus the checked-out commit holds, never a local database.
+#
+# PRODUCES: the artifact llm-live-report (RetrievalBaselineIT's baseline.md,
+# the failsafe reports and the application logs of the indexing phases); the
+# baseline report is also written to the run summary.
+#
+# FAILURE MODE: red when indexing fails or times out, or when a tagged test
+# fails. A missing LLM_API_KEY fails the first step: without the key every
+# test would skip and the run would be green while measuring nothing.
+#
+# SECRET: LLM_API_KEY, the repository secret catalogue-watch also reads.
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: backend-llm-live-it
+  cancel-in-progress: false
+
+jobs:
+  live-tests:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    services:
+      postgres:
+        image: pgvector/pgvector:0.8.6-pg17
+        env:
+          POSTGRES_DB: maintenance
+          POSTGRES_USER: maintenance
+          POSTGRES_PASSWORD: live-tests-only
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U maintenance -d maintenance"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+    env:
+      LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
+      SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/maintenance
+      SPRING_DATASOURCE_USERNAME: maintenance
+      SPRING_DATASOURCE_PASSWORD: live-tests-only
+      MAINTENANCE_FILES_PATH: target/llm-live/protocol-files
+      LIVE_LOG_DIR: target/llm-live/logs
+      PGHOST: localhost
+      PGPORT: '5432'
+      PGUSER: maintenance
+      PGPASSWORD: live-tests-only
+      PGDATABASE: maintenance
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - name: Require the provider key
+        run: |
+          if [ -z "$LLM_API_KEY" ]; then
+            echo "LLM_API_KEY is not set: every llm-live test would skip and measure nothing" >&2
+            exit 1
+          fi
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/setup-java@77dd5b2ce225ea11469928ac317850245a74ae78 # v6.2.0
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+      - name: Package the application
+        run: mvn -B -ntp -DskipTests package
+      - name: Seed and index the corpus
+        run: |
+          jar=$(ls target/maintenance-assistant-*.jar)
+          bash ../.github/scripts/index-live-corpus.sh "$jar" src/main/resources/corpus/protocols.ndjson
+      - name: Run the llm-live tests
+        run: mvn -B -ntp verify -P llm-live
+      - name: Write the baseline report to the run summary
+        if: always()
+        run: |
+          report=src/test/resources/retrieval/baseline.md
+          if [ -f "$report" ]; then cat "$report" >> "$GITHUB_STEP_SUMMARY"; fi
+      - name: Upload the report
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: llm-live-report-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            backend/src/test/resources/retrieval/baseline.md
+            backend/target/failsafe-reports
+            backend/target/llm-live/logs
+          if-no-files-found: warn
+          retention-days: 30

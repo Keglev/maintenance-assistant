@@ -1,7 +1,7 @@
 SIZE, STYLE AND REFACTOR STANDARDS — maintenance-assistant
 Repo: https://github.com/Keglev/maintenance-assistant
-(This file, DECISIONS.txt and PROJECT-PHASES.txt are handed to every AI
-session as context. This one is NORMATIVE: where a review, a survey or a
+(This file and DECISIONS.txt are handed to every AI session as
+context. This one is NORMATIVE: where a review, a survey or a
 PR disagrees with it, this file wins until the owner rules otherwise.)
 
 AMENDED 2026-11-13 (workflow review wave, ruled by the owner): this file
@@ -278,7 +278,7 @@ DOCS
 =====================================================================
 - 150-250 lines max per markdown file; one file, one topic. Short is
   fine; the rule flags filler, not brevity. The plain-text planning
-  documents (this file, DECISIONS.txt, PROJECT-PHASES.txt) are ledgers
+  documents (this file, DECISIONS.txt) are ledgers
   and are EXEMPT — they grow by append and are read by search.
 - Mermaid over ASCII art; diagrams at or under 15-20 nodes. A diagram is
   a .mmd file in a diagrams/ directory, rendered to SVG at build time
@@ -362,7 +362,8 @@ WORKING PRACTICES (the process rules that paid for themselves)
 OPS
 =====================================================================
 Two rules, both bought on 2026-08-27 by the shared-host hand-deploy.
-The operational log of that session is in PROJECT-PHASES; what is here
+The operational log of that session is in the project handover archived
+under git tag archive/handover-2026-11; what is here
 is only the part that generalises.
 
 - A SECRETS FILE IS VALIDATED BY BYTE CHECKS BEFORE IT IS DEPLOYED,

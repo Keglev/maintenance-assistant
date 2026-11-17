@@ -1,7 +1,7 @@
 <!--
   DEPLOY RUNBOOK — the login theme is a HAND-DEPLOYED ARTIFACT.
   CI ships application images only. It never syncs compose files or anything they mount, so this
-  directory reaches the server the same way the Caddyfile does: by hand (PROJECT-PHASES, OPS RULES).
+  directory reaches the server the same way the Caddyfile does: by hand (docker/README.md, OPS RULES).
 
     1. On the server, in /opt/maintenance-assistant:  git pull        (the theme directory arrives)
     2. f=docker-compose.prod.yml; cp -pn "$f" "$f.bak.of-$(date -r "$f" +%F)"

@@ -33,7 +33,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * parses the request — before the dispatcher resolves a handler, and therefore before anything
  * MockMvc simulates. A MockMvc suite would pass with the limit unset, with the limit set to
  * anything, and with no handler for the failure at all; it simply cannot reach the code path. This
- * is the same shape as the HEAD defect recorded in PROJECT-PHASES: the test that could see it had to
+ * is the same shape as the HEAD defect of 2026-08-08: the test that could see it had to
  * be a real request against a real container.
  *
  * <p><b>The requests carry a token, and the first version of this test did not — which is how the

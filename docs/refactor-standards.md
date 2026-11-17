@@ -167,6 +167,6 @@ them. That is worth stating plainly rather than leaving 85% to read as if it wer
 
 ## Where the rest lives
 
-The phase plan, its rulings and the pull-request order are in `PROJECT-PHASES.txt` under
-the refactor phase. The bands, the full test-conduct rules and the waiver register are in
+Open work is tracked in the repository's GitHub issues; the refactor phase's plan, rulings and
+pull-request order are history, kept in the project handover archived under git tag `archive/handover-2026-11`. The bands, the full test-conduct rules and the waiver register are in
 [`REFACTOR-STANDARDS.txt`](/maintenance-assistant/REFACTOR-STANDARDS.txt).

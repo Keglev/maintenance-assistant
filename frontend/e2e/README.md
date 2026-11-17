@@ -314,7 +314,7 @@ becoming visible, a button becoming enabled, a status reaching `INDEXIERT`. Inde
 guess about a machine's speed, and the flake it produces lands on whoever runs the suite next.
 
 **4. Known defects are `test.fail()`, never `test.skip()`.** Two tests here document real defects in
-existing code (see the PR and the v1.1.1 list in PROJECT-PHASES). They **run** on every CI run, they
+existing code (see the pull request that added them). They **run** on every CI run, they
 measure the real value, and they turn the build **red the day someone fixes the underlying issue** —
 which is the signal to delete them. A skip would rot silently.
 

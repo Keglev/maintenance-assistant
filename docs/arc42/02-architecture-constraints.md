@@ -19,9 +19,9 @@
 
 | # | Constraint | Background |
 |---|---|---|
-| OC-1 | **Solo developer, 3–4 week budget**, split into phases 1–4 with an optional phase 5. | PROJECT-PHASES.txt. Rules out anything that multiplies operational surface — see [ADR-001](../adr/ADR-001-modular-monolith-first.md). |
+| OC-1 | **Solo developer, 3–4 week budget**, split into phases 1–4 with an optional phase 5. | The project plan (handover archived under git tag `archive/handover-2026-11`). Rules out anything that multiplies operational surface — see [ADR-001](../adr/ADR-001-modular-monolith-first.md). |
 | OC-2 | **The demo must always work**, and is tested before every application sent out. | A personal rule following concrete recruiter feedback about a broken demo. |
-| OC-3 | **Every architecture change gets an ADR.** | PROJECT-PHASES.txt, rules carried across sessions. |
+| OC-3 | **Every architecture change gets an ADR.** | A rule carried across every session since the project plan; [ADR template](../adr/ADR-TEMPLATE.md). |
 | OC-4 | **Synthetic data only.** ~150 generated protocols, no real customer documents. | NFR-1; also removes any confidentiality question from the public demo. |
 | OC-5 | **AI usage is documented** in [`docs/ai-usage.md`](../ai-usage.md). | NFR-6. |
 

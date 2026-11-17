@@ -43,8 +43,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  *
  * <p>The container's own size limit is NOT tested here and cannot be: MockMvc does not run Tomcat's
  * multipart parser, so an oversized part never gets refused in this harness. That case lives in
- * {@code UploadSizeLimitIT} against a real container — the same lesson the HEAD defect taught in
- * PROJECT-PHASES.
+ * {@code UploadSizeLimitIT} against a real container — the same lesson the HEAD defect taught: only
+ * a real request reaches the server's own handling.
  */
 @SpringBootTest
 @AutoConfigureMockMvc

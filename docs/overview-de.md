@@ -51,6 +51,25 @@ Laufzeit über den Antwortmodus; der Modus ist Verhalten, kein gespeicherter Zus
 Drei Container tragen den gesamten Stack — Anwendung, PostgreSQL, Keycloak — auf einem einzigen
 8-GB-VPS mit einem `docker compose up`.
 
+## In zwei Minuten ausprobieren
+
+Auf [maintenance.smartsupply.com.de](https://maintenance.smartsupply.com.de) als `techniker` anmelden;
+das Passwort steht auf der Anmeldeseite.
+
+1. **Presse 3 (PR-03) wählen und eine Beispielfrage anklicken.** Unter dem Fragefeld erscheinen vier
+   Vorschläge in der Sprache der Oberfläche. Ein Klick füllt das Feld und schickt die Frage nicht ab: Man
+   liest sie selbst und drückt selbst auf „Fragen“, und was man dabei lernt, ist die Form einer Frage, die
+   funktioniert. Die Antwort kommt mit ihren Quellen als aufklappbare Karten.
+   [ADR-011](adr/ADR-011-guided-questions.html) (englisch) · [die Fragen selbst](https://github.com/Keglev/maintenance-assistant/blob/main/backend/src/main/resources/examples/example-questions.json)
+2. **Oberfläche auf EN stellen, Kompressor 1 (KP-01) wählen und auf Deutsch fragen:** *„Kompressor
+   schaltet nach einer halben Stunde wegen zu hoher Temperatur ab“*. Das Protokoll zu diesem Fehler ist
+   auf Englisch geschrieben. Es gibt nirgends einen Übersetzungsschritt: Ein Embedding-Modell hält beide
+   Sprachen in einem Raum. [Die Golden Questions](https://github.com/Keglev/maintenance-assistant/blob/main/backend/src/test/resources/retrieval/golden-questions.json), Fall G10
+3. **Auf Kompressor 1 bleiben und „sensor fehler“ fragen.** Keines seiner 14 Protokolle handelt von einem
+   Sensor. Die Antwort kommt als allgemeiner Vorschlag zurück, als nicht belegt gekennzeichnet, ganz ohne
+   Quellenbereich, und sie nennt, wie viele Protokolle die Maschine tatsächlich hat.
+   [Der Korpus](https://github.com/Keglev/maintenance-assistant/blob/main/backend/src/main/resources/corpus/protocols.ndjson) · [die zwei Antwortmodi](llm-approach.html) (englisch)
+
 ## Weiterlesen
 
 - [Architekturentscheidungen (ADRs)](adr/index.html) — warum diese Entscheidungen, und was verworfen wurde

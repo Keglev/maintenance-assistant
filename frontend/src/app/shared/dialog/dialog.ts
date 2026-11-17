@@ -1,5 +1,15 @@
 import { DOCUMENT } from '@angular/common';
-import { Component, ElementRef, effect, inject, input, output, viewChild } from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  Injector,
+  afterNextRender,
+  effect,
+  inject,
+  input,
+  output,
+  viewChild,
+} from '@angular/core';
 
 import { I18nService } from '../../core/i18n/i18n.service';
 
@@ -29,6 +39,7 @@ let sequence = 0;
 export class Dialog {
   private readonly i18n = inject(I18nService);
   private readonly document = inject(DOCUMENT);
+  private readonly injector = inject(Injector);
 
   protected readonly t = this.i18n.t;
 
@@ -49,10 +60,11 @@ export class Dialog {
   private opener: HTMLElement | null = null;
 
   constructor() {
-    effect(() => {
+    effect((onCleanup) => {
       if (this.open()) {
         this.opener = this.document.activeElement as HTMLElement | null;
-        // The panel is rendered in the same change-detection pass, so the focus move waits a tick.
+        // The panel exists only once the render this change starts has finished, so the focus move
+        // waits for it.
         //
         // FALLING BACK TO THE PANEL IS NOT DEFENSIVE PROGRAMMING, it is the fix for a real defect
         // (found by the e2e suite, PR #50). The protocol viewer's first projected control is a
@@ -62,7 +74,12 @@ export class Dialog {
         // Escape and the tab trap never ran. `focusables()` now refuses disabled controls, and when
         // a dialog opens with none that are usable the PANEL takes focus instead: it is
         // `tabindex="-1"`, so it is a focus target without joining the tab ring.
-        setTimeout(() => (this.focusables()[0] ?? this.panel()?.nativeElement)?.focus());
+        const focusMove = afterNextRender(
+          () => (this.focusables()[0] ?? this.panel()?.nativeElement)?.focus(),
+          { injector: this.injector },
+        );
+        // A dialog closed or destroyed before that render has no panel to focus; the move is dropped.
+        onCleanup(() => focusMove.destroy());
       } else {
         this.opener?.focus();
         this.opener = null;

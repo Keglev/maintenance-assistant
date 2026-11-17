@@ -218,6 +218,41 @@
         <p>Drei Container tragen den gesamten Stack — Anwendung,
         PostgreSQL, Keycloak — auf einem einzigen 8-GB-VPS mit einem
         <code>docker compose up</code>.</p>
+        <h2 id="in-zwei-minuten-ausprobieren">In zwei Minuten
+        ausprobieren</h2>
+        <p>Auf <a
+        href="https://maintenance.smartsupply.com.de">maintenance.smartsupply.com.de</a>
+        als <code>techniker</code> anmelden; das Passwort steht auf der
+        Anmeldeseite.</p>
+        <ol type="1">
+        <li><strong>Presse 3 (PR-03) wählen und eine Beispielfrage
+        anklicken.</strong> Unter dem Fragefeld erscheinen vier
+        Vorschläge in der Sprache der Oberfläche. Ein Klick füllt das
+        Feld und schickt die Frage nicht ab: Man liest sie selbst und
+        drückt selbst auf „Fragen“, und was man dabei lernt, ist die
+        Form einer Frage, die funktioniert. Die Antwort kommt mit ihren
+        Quellen als aufklappbare Karten. <a
+        href="adr/ADR-011-guided-questions.html">ADR-011</a> (englisch)
+        · <a
+        href="https://github.com/Keglev/maintenance-assistant/blob/main/backend/src/main/resources/examples/example-questions.json">die
+        Fragen selbst</a></li>
+        <li><strong>Oberfläche auf EN stellen, Kompressor 1 (KP-01)
+        wählen und auf Deutsch fragen:</strong> <em>„Kompressor schaltet
+        nach einer halben Stunde wegen zu hoher Temperatur ab“</em>. Das
+        Protokoll zu diesem Fehler ist auf Englisch geschrieben. Es gibt
+        nirgends einen Übersetzungsschritt: Ein Embedding-Modell hält
+        beide Sprachen in einem Raum. <a
+        href="https://github.com/Keglev/maintenance-assistant/blob/main/backend/src/test/resources/retrieval/golden-questions.json">Die
+        Golden Questions</a>, Fall G10</li>
+        <li><strong>Auf Kompressor 1 bleiben und „sensor fehler“
+        fragen.</strong> Keines seiner 14 Protokolle handelt von einem
+        Sensor. Die Antwort kommt als allgemeiner Vorschlag zurück, als
+        nicht belegt gekennzeichnet, ganz ohne Quellenbereich, und sie
+        nennt, wie viele Protokolle die Maschine tatsächlich hat. <a
+        href="https://github.com/Keglev/maintenance-assistant/blob/main/backend/src/main/resources/corpus/protocols.ndjson">Der
+        Korpus</a> · <a href="llm-approach.html">die zwei
+        Antwortmodi</a> (englisch)</li>
+        </ol>
         <h2 id="weiterlesen">Weiterlesen</h2>
         <ul>
         <li><a href="adr/index.html">Architekturentscheidungen
@@ -245,6 +280,9 @@
       id="toc-systemkontext">Systemkontext</a></li>
       <li><a href="#lösungsstrategie"
       id="toc-lösungsstrategie">Lösungsstrategie</a></li>
+      <li><a href="#in-zwei-minuten-ausprobieren"
+      id="toc-in-zwei-minuten-ausprobieren">In zwei Minuten
+      ausprobieren</a></li>
       <li><a href="#weiterlesen"
       id="toc-weiterlesen">Weiterlesen</a></li>
       </ul></li>

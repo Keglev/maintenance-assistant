@@ -509,10 +509,18 @@ button:focus-visible {
   margin-bottom: 1.75rem;
 }
 
+/* Four short sections in two columns, then the two-minute line across both, so
+   the cards below start after one scroll rather than four. One column on narrow
+   screens. Detail lives on the pages the cards open, not here. */
 .overview {
-  margin-top: 3.5rem;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: 3rem;
+  margin-top: 3rem;
+  margin-bottom: 2rem;
 }
 .overview > h2 {
+  grid-column: 1 / -1;
   font-size: 1.5rem;
   font-weight: 700;
   color: var(--heading);
@@ -520,93 +528,29 @@ button:focus-visible {
 }
 
 .overview-item {
-  padding: 1.75rem 0;
+  padding: 1.25rem 0 0.5rem;
   border-top: 1px solid var(--border);
 }
+.overview-item:last-child {
+  grid-column: 1 / -1;
+}
 .overview-item h3 {
-  font-size: 1.15rem;
+  font-size: 1.1rem;
   font-weight: 600;
   color: var(--heading);
-  margin: 0 0 0.75rem;
+  margin: 0 0 0.6rem;
 }
 .overview-item p {
   max-width: 78ch;
-  margin: 0 0 1rem;
-  color: var(--text);
-  line-height: 1.7;
-}
-/* Provenance and caveats — the sentences that qualify a claim rather than make
-   one. Muted and smaller so they read as a footnote without being hidden. */
-.overview-item p.note {
-  font-size: 0.88rem;
-  color: var(--muted);
-}
-
-/* The rule list (section 2) and the evidence list (section 4). Each item opens
-   with a <strong> claim and closes with the links that check it, so the marker
-   is dropped: the bold opening already does the work a bullet would. */
-.ruleset {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: grid;
-  gap: 1.1rem;
-}
-.ruleset > li {
-  max-width: 78ch;
-  padding-left: 1rem;
-  border-left: 3px solid var(--accent);
+  margin: 0 0 0.75rem;
   color: var(--text);
   line-height: 1.7;
 }
 
-/* The three-line working method and the three-step tour keep their numbers:
-   in both the ORDER is part of the content. */
-.method,
-.tour {
-  max-width: 78ch;
-  margin: 0 0 1rem;
-  padding-left: 1.3rem;
-  color: var(--text);
-  line-height: 1.7;
-}
-.method > li,
-.tour > li {
-  margin-bottom: 0.85rem;
-}
-
-/* Counted facts. A <div> per pair so dt and dd stay together in the grid —
-   a bare dl would lay its terms and definitions out as independent cells. */
-.facts {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
-  gap: 1rem;
-  margin: 0 0 1.25rem;
-}
-.facts > div {
-  padding: 0.9rem 1rem;
-  background: var(--surface-2);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-}
-.facts dt {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: var(--accent);
-  line-height: 1.2;
-}
-.facts dd {
-  margin: 0.25rem 0 0;
-  font-size: 0.85rem;
-  color: var(--muted);
-  line-height: 1.5;
-}
-
-/* Dark mode: the same lift the cards get, and for the same reason — the page
-   background and --surface-2 sit close together in this palette. */
-:root[data-theme="dark"] .facts > div {
-  background: #111f33;
-  border-color: rgba(148, 163, 184, 0.40);
+@media (max-width: 760px) {
+  .overview {
+    grid-template-columns: 1fr;
+  }
 }
 /* =============================================================================
    maintenance-assistant Docs — Content

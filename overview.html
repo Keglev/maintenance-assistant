@@ -214,6 +214,38 @@
         <p>Three containers run the whole stack — application,
         PostgreSQL, Keycloak — on a single 8 GB VPS via one
         <code>docker compose up</code>.</p>
+        <h2 id="try-it-in-two-minutes">Try it in two minutes</h2>
+        <p>Sign in at <a
+        href="https://maintenance.smartsupply.com.de">maintenance.smartsupply.com.de</a>
+        as <code>techniker</code>; the password is on the sign-in
+        page.</p>
+        <ol type="1">
+        <li><strong>Pick Presse 3 (PR-03) and click an example
+        question.</strong> Four suggestions appear under the question
+        box in the interface language. A click fills the box and does
+        not submit: you still read the question and press Ask yourself,
+        so what you learn is the shape of a question that works. The
+        answer arrives with its sources as cards you can open. <a
+        href="adr/ADR-011-guided-questions.html">ADR-011</a> · <a
+        href="https://github.com/Keglev/maintenance-assistant/blob/main/backend/src/main/resources/examples/example-questions.json">the
+        questions themselves</a></li>
+        <li><strong>Switch the interface to EN, pick Kompressor 1
+        (KP-01), and ask in German:</strong> <em>“Kompressor schaltet
+        nach einer halben Stunde wegen zu hoher Temperatur ab”</em>. The
+        protocol behind that fault is written in English. There is no
+        translation step anywhere: one embedding model holds both
+        languages in one space. <a
+        href="https://github.com/Keglev/maintenance-assistant/blob/main/backend/src/test/resources/retrieval/golden-questions.json">The
+        golden questions</a>, case G10</li>
+        <li><strong>Stay on Kompressor 1 and ask “sensor
+        fehler”.</strong> None of its 14 protocols is about a sensor.
+        The answer comes back as a general suggestion, labelled
+        ungrounded, with no source area at all, and it says how many
+        protocols the machine does have. <a
+        href="https://github.com/Keglev/maintenance-assistant/blob/main/backend/src/main/resources/corpus/protocols.ndjson">The
+        corpus</a> · <a href="llm-approach.html">the two answer
+        modes</a></li>
+        </ol>
         <h2 id="where-to-go-next">Where to go next</h2>
         <ul>
         <li><a href="adr/index.html">Architecture Decision Records</a> —
@@ -245,6 +277,8 @@
       context</a></li>
       <li><a href="#solution-strategy"
       id="toc-solution-strategy">Solution strategy</a></li>
+      <li><a href="#try-it-in-two-minutes"
+      id="toc-try-it-in-two-minutes">Try it in two minutes</a></li>
       <li><a href="#where-to-go-next" id="toc-where-to-go-next">Where to
       go next</a></li>
       </ul></li>

@@ -97,8 +97,8 @@ Review the diff before committing — the export contains generated ids and time
 
 ## OPS RULES
 
-Authoritative since 2026-08-27 (#127); until then rules 1-5 were recorded in PROJECT-PHASES.txt and
-are now in `docs/ledger/STATUS-2026-08-08.txt` as history.
+Authoritative since 2026-08-27 (#127). The older wording of rules 1-5 is history, kept in the
+project handover archived under git tag `archive/handover-2026-11`.
 
 Six rules, each bought by an incident and each carrying what it cost. Eighteen citations by number in
 nine other files resolve here; this section is what they resolve to. The wording of 1-5 is the
@@ -293,7 +293,7 @@ volume), while the *host* — these files included — is covered by the Hetzner
 ## Reset
 
 **Before ANY `compose down`, on any stack that has been answering queries, grep the instrument
-counters and paste the numbers into PROJECT-PHASES** — `docker logs maintenance-backend | grep -c
+counters and record the numbers in the issue that tracks the diagnostics** — `docker logs maintenance-backend | grep -c
 "chat truncated:"` and `... | grep -c "no valid citations"`. `down` deletes the containers, and
 until the bounded json-file logging in `docker-compose.prod.yml` is deployed, the log dies with
 them. That is not hypothetical: the 2026-08-27 maintenance window took the A4 and ADR-008 counting

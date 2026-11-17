@@ -16,7 +16,8 @@ the difference does not matter.
 **Self-written (human):**
 
 - All design documents and the decisions in them: `docs/requirements.md`, `docs/domain-model.md`,
-  `docs/DECISIONS.txt`, `docs/PROJECT-PHASES.txt`.
+  `docs/DECISIONS.txt`, and the project handover `docs/PROJECT-PHASES.txt` (archived under
+  git tag `archive/handover-2026-11`).
 - Every architecture decision recorded in `docs/adr/` — the trade-offs, the rejected alternatives
   and the reasoning are mine; a model helped phrase them.
 - The problem statement, the role model and the operator-safety rule, which come from my own

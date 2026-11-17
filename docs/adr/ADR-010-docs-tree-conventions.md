@@ -178,3 +178,13 @@ are.
   HTML referencing theme assets, they would sit among markdown sources that the converter walks, and
   the build would still need the same special case — the same exception, in a less obvious place.
   *Rejected.*
+
+### Note, 2026-11-17 — the handover and the ledger leave the repository
+
+The owner ruled on 2026-11-17 that `docs/PROJECT-PHASES.txt`, the whole of `docs/ledger/` and the
+executed runbook `docs/runbooks/seed-v12-protocols.md` leave the repository. They are not lost:
+the git tag `archive/handover-2026-11` points at the last commit that holds them, and GitHub
+serves every file under that tag. The open rows they carried became GitHub issues; the session
+handover is kept outside the repository. Point 4 of the Decision and the addendum of 2026-08-27
+above therefore describe the tree as it was until this date, not the current checkout. The session
+inputs that stay in `docs/` are `DECISIONS.txt` and `REFACTOR-STANDARDS.txt`.

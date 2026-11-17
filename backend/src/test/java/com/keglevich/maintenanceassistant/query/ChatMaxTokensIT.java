@@ -23,8 +23,8 @@ import static org.assertj.core.api.Assertions.assertThat;
  *
  * <p>THE NUMBER IS SIZED FOR THE FALLBACK MODEL, not for the deployed one: the incumbent measured a
  * 95th percentile of 575 completion tokens and did not use more room when it was given 3000, while
- * openai/gpt-oss-120b qualified as the fallback at 3000 and failed at 1200. The tables are in
- * PROJECT-PHASES under the diagnostics wave, A3.
+ * openai/gpt-oss-120b qualified as the fallback at 3000 and failed at 1200. The tables are in the
+ * archived handover (git tag archive/handover-2026-11, docs/PROJECT-PHASES.txt, diagnostics wave A3).
  *
  * <p>The second case is the escape hatch the deployment relies on: the cap is
  * {@code ${LLM_CHAT_MAX_TOKENS:2100}}, and nothing in docker-compose.prod.yml or .env.prod.example

@@ -113,10 +113,10 @@ maintenance:
     # "none" on its own, or the model spends its whole output budget thinking and
     # returns empty content (ADR-002 caveat 3).
     model: ${LLM_CHAT_MODEL:meta-llama/Llama-3.3-70B-Instruct}
-    # NFR-7, and RE-MEASURED 2026-08-26 (PROJECT-PHASES, diagnostics wave A3 and ruling
-    # R1). The arithmetic, which was the rule stated before the measurement rather than a
-    # number chosen after it — the 95th percentile of the longest QUALIFYING model, times
-    # 1.25, rounded to 100:
+    # NFR-7, and RE-MEASURED 2026-08-26 (diagnostics wave A3 and ruling R1, in the handover
+    # archived under git tag archive/handover-2026-11). The arithmetic, which was the rule
+    # stated before the measurement rather than a number chosen after it — the 95th
+    # percentile of the longest QUALIFYING model, times 1.25, rounded to 100:
     #     1642 x 1.25 = 2052.5 -> 2100
     # SIZED FOR THE DOCUMENTED FALLBACK MODEL; THE INCUMBENT'S p95 IS 575 (A3). Llama-3.3
     # measured a maximum of 586 completion tokens over 21 samples and did not move when
@@ -149,7 +149,7 @@ maintenance:
     #
     # verify-embeddings re-embeds stored chunk text and compares it with the stored vector, which
     # is the only way to tell which model wrote a row: a vector's width, norm and status column say
-    # nothing about its provenance. See ADR-008 and docs/runbooks/seed-v12-protocols.md.
+    # nothing about its provenance. See ADR-008.
     #
     # Sample 0 = every chunk. A full scan of the present corpus is 182 chunks in 6 batched calls
     # (~EUR 0.0007), so there is no reason to sample it today; the setting is for the corpus this
@@ -176,7 +176,7 @@ maintenance:
     #     yearly and the annual service — one template, one technician, different work
     #     (RE-MEASURED 2026-08-19, ADR-008: unchanged to four decimals. The earlier text
     #     here named "the 4000 h and 8000 h services"; those are KP-01's and are not the
-    #     top pair. PROJECT-PHASES had it right.)
+    #     top pair.)
     #   a re-narration of one incident by a
     #     second person (the REALISTIC duplicate)  0.9305
     #   a verbatim re-file under a new title       0.9778  (not 1.0: the chunker

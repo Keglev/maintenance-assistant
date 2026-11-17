@@ -13,8 +13,9 @@ import java.util.Locale;
  * natural reading of that — a long answer that ran out of room — could not be checked from the log.
  * The measurement that followed made it doubtful: the deployed model REFUSES that question in ten
  * tokens, six times of six, so a 1200-token body is unlikely to have been an answer at all. The
- * standing hypothesis (PROJECT-PHASES, diagnostics wave A4) is a constrained-decoding degeneration
- * AFTER the refusal — under a strict json_schema the whitespace between JSON tokens is unbounded,
+ * standing hypothesis (diagnostics wave A4, in the handover archived under git tag
+ * archive/handover-2026-11) is a constrained-decoding degeneration AFTER the refusal — under a
+ * strict json_schema the whitespace between JSON tokens is unbounded,
  * so a model that has already emitted an empty claims list can run to the cap emitting padding.
  *
  * <p>A first-characters preview cannot tell those two apart, because they have the same first

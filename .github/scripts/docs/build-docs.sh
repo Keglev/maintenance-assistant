@@ -42,7 +42,7 @@ SCRIPTS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # follow it to .html. A link to github.com points at a file in the repository,
 # which is not published and never becomes .html — rewriting it produces a URL
 # GitHub does not serve. Two such links were live and 404ing before this rule
-# existed; see PROJECT-PHASES 2026-08-19.
+# existed.
 # ---------------------------------------------------------------------------
 write_lua_filter() {
   mkdir -p "$(dirname "$LUA_FILTER")"

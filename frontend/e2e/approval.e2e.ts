@@ -18,7 +18,7 @@ import {
  * THE TRUST CHAIN, in a browser.
  *
  * <p>v1.2's approval workflow is the most navigation-heavy feature in the project, which is exactly
- * why the e2e foundation was built BEFORE it (PROJECT-PHASES, steps 1 and 2 swapped on 2026-08-11):
+ * why the e2e foundation was built BEFORE it (the roadmap put it first on 2026-08-11):
  * it is developed against a rendered safety net rather than given one afterwards. This is that net's
  * first new case.
  *

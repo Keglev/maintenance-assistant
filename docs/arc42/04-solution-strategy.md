@@ -49,5 +49,5 @@ query. Details and rationale: [domain-model.md](../domain-model.md).
 
 A walking skeleton first: Phase 1 ends when hello-world *with login* runs on the VPS through the
 pipeline. Data and ingestion follow in Phase 2, the RAG query and answer modes in Phase 3, tests,
-OpenAPI, deployment and the demo walkthrough in Phase 4. Full plan:
-[PROJECT-PHASES.txt](../PROJECT-PHASES.txt).
+OpenAPI, deployment and the demo walkthrough in Phase 4. The plan as it was carried out is kept
+in the project handover archived under git tag `archive/handover-2026-11`; open work is in the GitHub issues.

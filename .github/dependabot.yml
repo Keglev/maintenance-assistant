@@ -188,6 +188,10 @@ updates:
       - dependency-name: '*'
         update-types:
           - 'version-update:semver-major'
+      # Dependabot reads maven:3.9-eclipse-temurin-21 as version 3.9.21 (docker/tag.rb), so a
+      # newer JDK looks like a patch and the major ignore misses it. Drop this when Dependabot
+      # treats the JDK number as part of the tag suffix.
+      - dependency-name: 'maven'
       # nginx odd minors are the mainline; frontend/Dockerfile stays on the stable
       # (even) line. Extend this list when 1.33 approaches.
       - dependency-name: 'nginxinc/nginx-unprivileged'

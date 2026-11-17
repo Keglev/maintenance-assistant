@@ -74,6 +74,7 @@ Outputs:
 Properties:
 - `document: unknown = inject(DOCUMENT)`
 - `i18n: unknown = inject(I18nService)`
+- `injector: unknown = inject(Injector)`
 - `opener: HTMLElement | null = null` — Whoever opened the dialog, so focus can be handed back where it came from.
 - `panel: unknown = viewChild<ElementRef<HTMLElement>>('panel')`
 - `t: unknown = this.i18n.t`

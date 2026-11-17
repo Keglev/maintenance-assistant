@@ -34,30 +34,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">95.55% </span>
+                <span class="strong">95.83% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>43/45</span>
+                <span class='fraction'>46/48</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">87.09% </span>
+                <span class="strong">80.64% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>27/31</span>
+                <span class='fraction'>25/31</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">88.88% </span>
+                <span class="strong">90% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>8/9</span>
+                <span class='fraction'>9/10</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">97.43% </span>
+                <span class="strong">97.61% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>38/39</span>
+                <span class='fraction'>41/42</span>
             </div>
         
             
@@ -213,7 +213,34 @@
 <a name='L137'></a><a href='#L137'>137</a>
 <a name='L138'></a><a href='#L138'>138</a>
 <a name='L139'></a><a href='#L139'>139</a>
-<a name='L140'></a><a href='#L140'>140</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L140'></a><a href='#L140'>140</a>
+<a name='L141'></a><a href='#L141'>141</a>
+<a name='L142'></a><a href='#L142'>142</a>
+<a name='L143'></a><a href='#L143'>143</a>
+<a name='L144'></a><a href='#L144'>144</a>
+<a name='L145'></a><a href='#L145'>145</a>
+<a name='L146'></a><a href='#L146'>146</a>
+<a name='L147'></a><a href='#L147'>147</a>
+<a name='L148'></a><a href='#L148'>148</a>
+<a name='L149'></a><a href='#L149'>149</a>
+<a name='L150'></a><a href='#L150'>150</a>
+<a name='L151'></a><a href='#L151'>151</a>
+<a name='L152'></a><a href='#L152'>152</a>
+<a name='L153'></a><a href='#L153'>153</a>
+<a name='L154'></a><a href='#L154'>154</a>
+<a name='L155'></a><a href='#L155'>155</a>
+<a name='L156'></a><a href='#L156'>156</a>
+<a name='L157'></a><a href='#L157'>157</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -242,6 +269,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1593x</span>
+<span class="cline-any cline-yes">718x</span>
 <span class="cline-any cline-yes">718x</span>
 <span class="cline-any cline-yes">718x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -274,6 +302,12 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">96x</span>
+<span class="cline-any cline-yes">96x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -353,7 +387,17 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { DOCUMENT } from '@angular/common';
-import { Component, ElementRef, effect, inject, input, output, viewChild } from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  Injector,
+  afterNextRender,
+  effect,
+  inject,
+  input,
+  output,
+  viewChild,
+} from '@angular/core';
 &nbsp;
 import { I18nService } from '../../core/i18n/i18n.service';
 &nbsp;
@@ -383,6 +427,7 @@ let sequence = 0;
 export class Dialog {
   private readonly i18n = inject(I18nService);
   private readonly document = inject(DOCUMENT);
+  private readonly injector = inject(Injector);
 &nbsp;
   protected readonly t = this.i18n.t;
 &nbsp;
@@ -403,10 +448,11 @@ export class Dialog {
   private opener: HTMLElement | null = null;
 &nbsp;
   constructor() {
-    effect(() =&gt; {
+    effect((onCleanup) =&gt; {
       if (this.open()) {
         this.opener = this.document.activeElement as HTMLElement | null;
-        // The panel is rendered in the same change-detection pass, so the focus move waits a tick.
+        // The panel exists only once the render this change starts has finished, so the focus move
+        // waits for it.
         //
         // FALLING BACK TO THE PANEL IS NOT DEFENSIVE PROGRAMMING, it is the fix for a real defect
         // (found by the e2e suite, PR #50). The protocol viewer's first projected control is a
@@ -416,7 +462,12 @@ export class Dialog {
         // Escape and the tab trap never ran. `focusables()` now refuses disabled controls, and when
         // a dialog opens with none that are usable the PANEL takes focus instead: it is
         // `tabindex="-1"`, so it is a focus target without joining the tab ring.
-        setTimeout(() =&gt; (this.focusables()[0] ?? this.panel()?.nativeElement)?.focus());
+        const focusMove = afterNextRender(
+          () =&gt; (this.focusables()[0] ?? <span class="branch-1 cbranch-no" title="branch not covered" >this.panel()?.nativeElement)?.f</span>ocus(),
+          { injector: this.injector },
+        );
+        // A dialog closed or destroyed before that render has no panel to focus; the move is dropped.
+        onCleanup(() =&gt; focusMove.destroy());
       } else {
         this.opener?.focus();
         this.opener = null;
@@ -488,7 +539,7 @@ export class Dialog {
               'textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
           ),
         ]
-      : [];
+      : <span class="branch-1 cbranch-no" title="branch not covered" >[];</span>
   }
 }
 &nbsp;</pre></td></tr></table></pre>

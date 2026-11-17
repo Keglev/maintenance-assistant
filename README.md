@@ -108,7 +108,7 @@ An answer is only as trustworthy as the protocol under it, so the corpus has a r
 - **[API reference](https://keglev.github.io/maintenance-assistant/backend/api-docs/)** — the REST API rendered from the OpenAPI specification: endpoints, schemas and the bearer-token security scheme.
 - **[Live API (Swagger UI)](https://maintenance.smartsupply.com.de/swagger-ui)** — the same API on the running deployment, interactive and public: expand an endpoint and send a request.
 - **Coverage** — [backend](https://keglev.github.io/maintenance-assistant/backend/coverage/) (JaCoCo) and [frontend](https://keglev.github.io/maintenance-assistant/frontend/coverage/) (vitest).
-- **[AI-USAGE.md](AI-USAGE.md)** — which parts of this repository were written with AI assistance, and how they were verified.
+- **[docs/ai-usage.md](docs/ai-usage.md)** — which parts of this repository were written with AI assistance, and how they were verified.
 
 ---
 
@@ -145,7 +145,7 @@ The division of labour is the point. The design documents, the seven decision re
 
 The controls are what make that checkable rather than a claim. Every pull request is read before merge and merged by hand, so nothing lands on `main` unread. CI gates both suites on every push. Anything the browser performs itself is verified in a browser, which is why the rendered and visual layers above exist rather than jsdom alone. Each pull request states what was verified and what was left unverified.
 
-[AI-USAGE.md](AI-USAGE.md) records it per session: what was generated, what it was given as the source of truth, how it was checked, and the defects that only running it found.
+[docs/ai-usage.md](docs/ai-usage.md) records it per session: what was generated, what it was given as the source of truth, how it was checked, and the defects that only running it found.
 
 ---
 

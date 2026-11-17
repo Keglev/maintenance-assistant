@@ -23,7 +23,7 @@
 | OC-2 | **The demo must always work**, and is tested before every application sent out. | A personal rule following concrete recruiter feedback about a broken demo. |
 | OC-3 | **Every architecture change gets an ADR.** | PROJECT-PHASES.txt, rules carried across sessions. |
 | OC-4 | **Synthetic data only.** ~150 generated protocols, no real customer documents. | NFR-1; also removes any confidentiality question from the public demo. |
-| OC-5 | **AI usage is documented** in `AI-USAGE.md`. | NFR-6. |
+| OC-5 | **AI usage is documented** in [`docs/ai-usage.md`](../ai-usage.md). | NFR-6. |
 
 ## 2.3 Conventions
 

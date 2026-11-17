@@ -3,7 +3,7 @@
 `protocols.ndjson` holds the ~150 maintenance protocols this demo runs on. It is **data, not
 code** — nothing generates protocols at runtime, and the file is the record of what the corpus is.
 
-The protocols are synthetic and were generated for this project (see `AI-USAGE.md`). No real
+The protocols are synthetic and were generated for this project (see `docs/ai-usage.md`). No real
 customer document is used anywhere in this repository.
 
 ## Why NDJSON, and why on the classpath

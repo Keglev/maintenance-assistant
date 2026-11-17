@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Docs · ai-usage · maintenance-assistant Docs</title>
+
+  <!-- Set the theme before the stylesheet paints, otherwise the page flashes
+       the default theme for one frame before the saved choice applies. -->
+  <script>
+    (function () {
+      try {
+        var t = localStorage.getItem("maintenance-assistant-theme") ||
+          (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+        document.documentElement.setAttribute("data-theme", t);
+      } catch (e) {
+        document.documentElement.setAttribute("data-theme", "light");
+      }
+    })();
+  </script>
+
+  <link rel="stylesheet" href="/maintenance-assistant/assets/docs.css" />
+</head>
+
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <header class="topbar">
+    <div class="topbar-inner">
+      <button class="menu-btn" aria-label="Toggle navigation">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="18" x2="21" y2="18" />
+        </svg>
+      </button>
+
+      <a href="/maintenance-assistant/" class="brand">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <path d="M14.7 6.3a5 5 0 0 0-6.6 6.6l-5 5a2 2 0 1 0 2.8 2.8l5-5a5 5 0 0 0 6.6-6.6l-2.9 2.9-2.1-2.1 2.2-3.6z" />
+        </svg>
+        maintenance-assistant Docs
+      </a>
+
+      <div class="topbar-tools">
+        <span class="lang-switch">
+          <a href="/maintenance-assistant/" aria-current="true">EN</a>
+          <a href="/maintenance-assistant/index-de.html">DE</a>
+        </span>
+        <button class="theme-toggle" aria-label="Toggle light or dark theme">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <circle cx="12" cy="12" r="9" /><path d="M12 3a9 9 0 0 0 0 18z" fill="currentColor" stroke="none" />
+          </svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <div class="layout">
+    <!-- Sidebar navigation, included by app-docs.html as a Pandoc partial. One
+         sidebar serves the whole site: this repository has a single arc42 tree and a
+         single decision log, so the per-tier sidebars the sibling repositories need
+         would be three copies of the same list here. The active link is marked at
+         runtime by docs.js. Do not put template syntax in this comment - a partial
+         is itself a template. -->
+    <aside class="sidebar">
+      <p class="nav-title">Docs</p>
+      <ul>
+        <li><a href="/maintenance-assistant/">Docs home</a></li>
+        <li><a href="/maintenance-assistant/overview.html">Overview</a></li>
+        <li><a href="/maintenance-assistant/overview-de.html">&Uuml;berblick (DE)</a></li>
+        <li><a href="/maintenance-assistant/llm-approach.html">AI &amp; LLM approach</a></li>
+      </ul>
+
+      <p class="nav-title">Requirements</p>
+      <ul>
+        <li><a href="/maintenance-assistant/requirements.html">Requirements &amp; NFRs</a></li>
+        <li><a href="/maintenance-assistant/domain-model.html">Domain model</a></li>
+      </ul>
+
+      <details class="nav-group">
+        <summary>Architecture (arc42)</summary>
+        <ul>
+          <li><a href="/maintenance-assistant/architecture/index.html">Architecture index</a></li>
+          <li><a href="/maintenance-assistant/architecture/01-introduction-and-goals.html">1 &middot; Introduction &amp; Goals</a></li>
+          <li><a href="/maintenance-assistant/architecture/02-architecture-constraints.html">2 &middot; Constraints</a></li>
+          <li><a href="/maintenance-assistant/architecture/03-context-and-scope.html">3 &middot; Context &amp; Scope</a></li>
+          <li><a href="/maintenance-assistant/architecture/04-solution-strategy.html">4 &middot; Solution Strategy</a></li>
+          <li><a href="/maintenance-assistant/architecture/05-building-block-view.html">5 &middot; Building Blocks</a></li>
+          <li><a href="/maintenance-assistant/architecture/06-runtime-view.html">6 &middot; Runtime View</a></li>
+          <li><a href="/maintenance-assistant/architecture/07-deployment-view.html">7 &middot; Deployment</a></li>
+          <li><a href="/maintenance-assistant/architecture/08-crosscutting-concepts.html">8 &middot; Concepts</a></li>
+          <li><a href="/maintenance-assistant/architecture/09-architecture-decisions.html">9 &middot; Decisions</a></li>
+          <li><a href="/maintenance-assistant/architecture/10-quality-requirements.html">10 &middot; Quality Requirements</a></li>
+          <li><a href="/maintenance-assistant/architecture/11-risks-and-technical-debt.html">11 &middot; Risks &amp; Debt</a></li>
+          <li><a href="/maintenance-assistant/architecture/12-glossary.html">12 &middot; Glossary</a></li>
+        </ul>
+      </details>
+
+      <details class="nav-group">
+        <summary>Decisions (ADRs)</summary>
+        <ul>
+          <li><a href="/maintenance-assistant/adr/index.html">Decision index</a></li>
+          <li><a href="/maintenance-assistant/adr/ADR-001-modular-monolith-first.html">ADR-001 Modular monolith</a></li>
+          <li><a href="/maintenance-assistant/adr/ADR-002-eu-hosted-llm-provider.html">ADR-002 EU LLM provider</a></li>
+          <li><a href="/maintenance-assistant/adr/ADR-003-keycloak-for-iam.html">ADR-003 Keycloak as IdP</a></li>
+          <li><a href="/maintenance-assistant/adr/ADR-004-pgvector-for-vector-search.html">ADR-004 pgvector</a></li>
+          <li><a href="/maintenance-assistant/adr/ADR-010-docs-tree-conventions.html">ADR-010 Docs tree conventions</a></li>
+          <li><a href="/maintenance-assistant/adr/ADR-011-guided-questions.html">ADR-011 Guided questions</a></li>
+        </ul>
+      </details>
+
+      <p class="nav-title">Frontend</p>
+      <ul>
+        <li><a href="/maintenance-assistant/frontend-architecture.html">Frontend architecture</a></li>
+      </ul>
+
+      <p class="nav-title">Quality</p>
+      <ul>
+        <li><a href="/maintenance-assistant/refactor-standards.html">Refactor standards</a></li>
+        <li><a href="/maintenance-assistant/backend/api-docs/index.html">Backend API</a></li>
+        <li><a href="/maintenance-assistant/frontend/api-docs/index.html">Frontend API</a></li>
+        <li><a href="/maintenance-assistant/backend/coverage/index.html">Backend coverage</a></li>
+        <li><a href="/maintenance-assistant/frontend/coverage/index.html">Frontend coverage</a></li>
+      </ul>
+    </aside>
+    <main class="content" id="main">
+      <article class="doc-body">
+        <h1 id="ai-usage">AI Usage</h1>
+        <p>This repository uses AI assistance and says so plainly
+        (NFR-6). The point of this file is that a reviewer can tell
+        which parts I wrote, which parts a model produced, and what I
+        did to make sure the difference does not matter.</p>
+        <h2 id="tools-used">Tools used</h2>
+        <table>
+        <colgroup>
+        <col style="width: 50%" />
+        <col style="width: 50%" />
+        </colgroup>
+        <thead>
+        <tr class="header">
+        <th>Tool</th>
+        <th>Used for</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr class="odd">
+        <td><strong>Claude (Claude Code in VS Code)</strong></td>
+        <td>Repository scaffolding, documentation restructuring,
+        boilerplate and config files. Later: implementation support and
+        test scaffolding.</td>
+        </tr>
+        <tr class="even">
+        <td><strong>Claude (chat)</strong></td>
+        <td>Sparring partner while writing the design documents —
+        challenging my decisions, not making them.</td>
+        </tr>
+        </tbody>
+        </table>
+        <h2 id="generated-vs.-self-written">Generated
+        vs. self-written</h2>
+        <p><strong>Self-written (human):</strong></p>
+        <ul>
+        <li>All design documents and the decisions in them:
+        <code>docs/requirements.md</code>,
+        <code>docs/domain-model.md</code>,
+        <code>docs/DECISIONS.txt</code>,
+        <code>docs/PROJECT-PHASES.txt</code>.</li>
+        <li>Every architecture decision recorded in
+        <code>docs/adr/</code> — the trade-offs, the rejected
+        alternatives and the reasoning are mine; a model helped phrase
+        them.</li>
+        <li>The problem statement, the role model and the
+        operator-safety rule, which come from my own experience with
+        maintenance documentation in US and German manufacturing.</li>
+        </ul>
+        <p><strong>AI-generated:</strong></p>
+        <ul>
+        <li>This repository scaffold: directory structure,
+        <code>.gitignore</code>, <code>README.md</code> prose, the arc42
+        skeleton in <code>docs/arc42/</code>, the docs theme, the
+        diagram script, <code>docker/docker-compose.yml</code> and the
+        Keycloak realm export — generated by Claude in VS Code
+        <strong>from the human-written design documents above</strong>,
+        which were given to it as the source of truth.</li>
+        <li>The synthetic protocol corpus (~150 documents, Phase 2). It
+        is generated data by design: no real customer documents are used
+        anywhere in this project.</li>
+        <li>Implementation code and tests from Phase 1 onward will be
+        AI-assisted; this file is updated as that happens.</li>
+        </ul>
+        <h3 id="phase-1-sessions-backend-frontend-ci">Phase 1 sessions
+        (backend, frontend, CI)</h3>
+        <p>Three further AI-assisted sessions, each delivered as one
+        branch and one pull request:</p>
+        <table>
+        <colgroup>
+        <col style="width: 33%" />
+        <col style="width: 33%" />
+        <col style="width: 33%" />
+        </colgroup>
+        <thead>
+        <tr class="header">
+        <th>Session</th>
+        <th>Generated</th>
+        <th>Reviewed and verified by hand</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr class="odd">
+        <td><strong>Backend skeleton</strong> — Spring Boot 4.1, module
+        packages, OAuth2 resource server, <code>/api/health</code> +
+        <code>/api/hello</code>, JaCoCo, Dockerfile</td>
+        <td>All of it</td>
+        <td>Ran the compose stack, fetched a <strong>real Keycloak
+        token</strong> for <code>techniker</code> and
+        <code>operator</code>, and confirmed <code>/api/hello</code>
+        returned the right username and <code>ROLE_*</code>; confirmed
+        401 without and with an invalid token. PR read line by line
+        before merge.</td>
+        </tr>
+        <tr class="even">
+        <td><strong>Frontend skeleton</strong> — Angular 22 standalone,
+        OIDC login with PKCE, guarded <code>/home</code>, specs,
+        Compodoc</td>
+        <td>All of it</td>
+        <td>Ran the dev server against live Keycloak and the backend;
+        checked the proxy, the 401 path, and that Keycloak accepted the
+        real authorization request with our redirect URI and PKCE
+        challenge. PR reviewed before merge.</td>
+        </tr>
+        <tr class="odd">
+        <td><strong>CI/CD pipelines</strong> — six workflows, OpenAPI
+        export test, frontend image</td>
+        <td>All of it</td>
+        <td>Linted every workflow with <code>actionlint</code>; built
+        and ran the frontend image to check the SPA fallback; confirmed
+        the OpenAPI spec is produced without a database or Keycloak.
+        Workflow behaviour that only exists after merge
+        (<code>workflow_run</code> triggers) was called out as
+        unverified in the PR rather than claimed as working.</td>
+        </tr>
+        </tbody>
+        </table>
+        <h3 id="production-deployment-session">Production deployment
+        session</h3>
+        <p>The provisioning script, the production compose stack, the
+        Caddy configuration and the frontend’s runtime-config change
+        were AI-generated; the hosting decision behind them (CX33 over
+        the planned CAX21) is mine and is recorded in DECISIONS.txt.</p>
+        <p>Verification was the deployment itself, against the live
+        server: TLS certificates checked for issuer and validity, and a
+        <strong>complete Authorization Code + PKCE login driven end to
+        end with curl</strong> for all four demo users — real login
+        form, real authorization code, real token exchange — then each
+        token used against the deployed <code>/api/hello</code> to
+        confirm the roles came back. Nothing about the walkthrough was
+        assumed from configuration.</p>
+        <p>Three defects surfaced only by running it, and all three were
+        fixed rather than worked around: the provisioning script’s
+        <code>sshd -t</code> validation failed because socket-activated
+        sshd has no <code>/run/sshd</code>; the frontend container
+        reported unhealthy because its healthcheck asked for
+        <code>localhost</code> while nginx listens on IPv4 only; and the
+        published frontend image had a placeholder Keycloak URL compiled
+        into it, which is what prompted the move to runtime
+        configuration.</p>
+        <p>One thing was deliberately <em>not</em> done: the corrected
+        frontend image could not be pushed to GHCR, because the
+        available token lacks <code>write:packages</code>. It was built
+        on the server from the repository Dockerfile instead, and the PR
+        says so rather than implying the registry holds it.</p>
+        <h3
+        id="phase-2-database-migrations-flyway-v1-machine-seed">Phase 2
+        — database migrations (Flyway V1 + machine seed)</h3>
+        <p>The Flyway baseline schema, the index set, the repeatable
+        machine seed and the schema documentation in
+        <code>docs/arc42/08-crosscutting-concepts.md</code> were
+        AI-generated from <code>docs/domain-model.md</code> and
+        <code>docs/DECISIONS.txt</code>, which were handed over as the
+        source of truth. The domain model itself — three entities, users
+        outside the database, files on a volume, denormalized
+        <code>machine_id</code> on the chunk, <code>error_code</code> as
+        free text — is mine and predates this session.</p>
+        <p>One decision was genuinely open and was made here:
+        <strong>HNSW over IVFFlat</strong> for the vector index. The
+        argument that settled it is that the migration runs against an
+        empty table, where IVFFlat’s k-means <code>lists</code> would be
+        trained on no data and would need rebuilding after every
+        ingestion run. It is recorded as a dated note in ADR-004’s
+        <em>Consequences</em> rather than as a new ADR, because it
+        implements that ADR instead of changing it — and the note states
+        plainly that at ~150 protocols the index is headroom, not a
+        measured speed-up.</p>
+        <p>Verification was running it, not asserting it: the compose
+        Postgres was started, the application was launched so Flyway
+        applied the migrations, and the result was read back out of
+        <code>psql</code> — <code>pg_extension</code> for pgvector,
+        <code>\dt</code> for the tables, <code>pg_attribute</code>
+        proving <code>embedding</code> is <code>vector(1024)</code> and
+        not merely declared so, and <code>pg_indexes</code> for all
+        seven relational indexes plus the HNSW one. A transactional
+        smoke test then inserted a real 1024-dimension vector, ran the
+        ADR-004 retrieval query against it, and confirmed that a
+        3-dimension vector and an invalid <code>status</code> are both
+        rejected by the database rather than only by the application.
+        Starting the application a second time confirmed the repeatable
+        seed does not duplicate rows.</p>
+        <p>Two things were caught this way rather than assumed. The
+        German umlauts in the seed round-tripped correctly, but only
+        because <code>spring.flyway.encoding</code> is now stated
+        explicitly — the default would have depended on the JVM’s
+        platform charset. And the second application start initially
+        failed on a port clash, not on anything schema-related; the
+        Flyway output from that run is still valid evidence and is
+        reported as such rather than quietly re-run and presented as
+        clean.</p>
+        <h3 id="phase-2-the-synthetic-protocol-corpus">Phase 2 — the
+        synthetic protocol corpus</h3>
+        <p>The ~150 maintenance protocols in
+        <code>backend/src/main/resources/corpus/protocols.ndjson</code>
+        were generated by Claude, and this is the largest single piece
+        of generated content in the repository. It is worth being
+        precise about what that means.</p>
+        <p><strong>What the model produced:</strong> the protocol texts
+        themselves — symptom, cause, action, parts, in German and
+        English — the seed loader, and the corpus documentation.</p>
+        <p><strong>What it was given, and did not decide:</strong> the
+        ten machines, the fault taxonomy and its intended distribution,
+        the demo scenarios, the quality mix, and the instruction that
+        protocols must read like plant documentation rather than like a
+        textbook. Those come from <code>docs/domain-model.md</code> and
+        <code>docs/DECISIONS.txt</code>, and behind them from my own
+        experience with maintenance documentation in US and German
+        manufacturing — including the specific insistence that a real
+        plant’s faults are <em>not</em> all technician-level defects,
+        that alarm codes routinely point at the wrong component, and
+        that some faults are simply never explained.</p>
+        <p><strong>Why synthetic at all:</strong> no real customer
+        document is used anywhere in this project, by design. That is a
+        data-protection decision, not a convenience one. The trade-off
+        is stated plainly: a generated corpus is internally consistent
+        in a way a real one is not, so retrieval quality measured
+        against it is an optimistic figure. The threshold from ADR-002
+        (0.583) still has to be re-validated against this corpus in
+        Phase 3, and a good result here is not proof of a good result on
+        real documents.</p>
+        <p><strong>How it was validated:</strong></p>
+        <ul>
+        <li><em>Distribution counted, not estimated.</em> Every figure
+        in domain-model.md §4 is counted from the file. The first pass
+        came out at 79% clean prose against the ~60/30/10 quality mix
+        that DECISIONS.txt calls for — measuring it is what caught that,
+        and 40 protocols were rewritten into shift-note and
+        short-unhelpful form before this was committed.</li>
+        <li><em>The demo scenarios were checked against the database
+        with SQL, not assumed.</em> The Mode B gap was verified by
+        querying the whole corpus for any mention of dosing or fill
+        volume; the two hits are on a different machine (injection
+        moulding dosing time) and are unreachable from a query scoped to
+        the filling line. The cross-language demo was verified the same
+        way: belt mistracking appears in English only, on the intended
+        machine, with no German protocol covering it.</li>
+        <li><em>Read for plausibility by me,</em> which is the part no
+        test replaces. Machine-specific vocabulary, realistic part names
+        and downtime figures, and the resolution pattern
+        (operator-fixable cases close with no parts and short downtime;
+        technical faults name the part) are the things a corpus gets
+        wrong when it is generated without domain input.</li>
+        <li><em><code>CorpusIntegrityTest</code></em> guards what the
+        schema cannot: unique protocol UUIDs, machine references that
+        exist in the machine seed, one root-cause class per fault, and
+        the continued presence of the demo protocols — so that a future
+        reword cannot quietly break a scripted demo.</li>
+        <li><em>The loader was run,</em> twice, against the compose
+        stack: 150 rows and 150 documents on the first run, 0 and 0 on
+        the second. Umlauts were checked by reading rows back out of
+        <code>psql</code>, not by trusting the file.</li>
+        </ul>
+        <p>One deviation is worth recording rather than hiding: the
+        corpus is 72% German against a planned 70%, and the per-machine
+        counts are shaped by what each machine plausibly produces rather
+        than by an even split. Both were judgement calls made while
+        writing, and both are reported as they are.</p>
+        <h3 id="phase-2-the-ingestion-pipeline">Phase 2 — the ingestion
+        pipeline</h3>
+        <p>Upload → volume → chunk → embed → <code>INDEXED</code>, the
+        embedding client, the chunker, the budget counter and the
+        Testcontainers suite were AI-generated. The decisions they
+        implement are not: the module boundaries come from ADR-001, the
+        provider and its caveats from ADR-002, the role model from
+        DECISIONS.txt.</p>
+        <p>One genuinely open decision was settled here, by measurement
+        rather than preference: <strong>Spring AI vs a plain
+        <code>RestClient</code> on Boot 4.1</strong>. It is worth being
+        precise, because the convenient story would have been “Spring AI
+        does not work on Boot 4”. It does. Spring AI 2.0.0
+        auto-configured and returned correct vectors from IONOS. It was
+        declined on proportion — a large transitive surface for one POST
+        — and <code>spike/spring-ai-boot4/RESULTS.md</code> says so in
+        those terms, including what would change the decision back.</p>
+        <p><strong>Three defects were found only by running it against
+        the live provider</strong>, and all three are the kind that a
+        green test suite would not have caught:</p>
+        <ol type="1">
+        <li><strong>Boot 4.1 ships Jackson 3</strong> as the
+        message-converter default while Jackson 2 is still on the
+        classpath through other libraries. Asking a
+        <code>RestClient</code> for a <code>com.fasterxml</code>
+        <code>JsonNode</code> fails at runtime with a type-definition
+        error. The first live corpus run failed <strong>all 150
+        protocols</strong> on it.</li>
+        <li><strong>The budget counter never saw those 150
+        calls.</strong> They were made, served and billed; usage was
+        recorded by the caller <em>after</em> a successful embed, and no
+        embed succeeded. That is precisely the case NFR-7’s ceiling
+        exists to catch, so the recording moved into the client, where
+        it happens as each request is answered. The fix is in the code
+        and the reason is in the interface’s contract, because the next
+        implementer needs to know it is not optional.</li>
+        <li><strong><code>@PreAuthorize("hasRole('admin')")</code>
+        silently denied everyone.</strong> The existing converter
+        uppercases realm roles into <code>ROLE_ADMIN</code>. Every
+        request returned 403 — a failure that looks exactly like correct
+        security until someone checks that the <em>right</em> people are
+        also refused.</li>
+        </ol>
+        <p>Verification was the full corpus against the real IONOS
+        endpoint: 150 protocols → 167 chunks, all 1024-dimensional, 150
+        provider calls, 27,713 tokens, <strong>EUR 0.00055</strong>.
+        Then retrieval was checked with real query embeddings and SQL
+        rather than asserted — the E-47 protocols rank top on Presse 3,
+        and a German query returns the English mistracking protocol
+        first, which is the multilingual claim in ADR-002 tested rather
+        than repeated.</p>
+        <p>That run also produced a result that <strong>contradicts a
+        documented number</strong>: at ADR-002’s 0.583 threshold, the
+        cross-language demo (0.577) would be refused as ungrounded. The
+        threshold needs to be nearer 0.55. It is recorded in ADR-002 as
+        measured evidence rather than quietly adjusted, because the
+        threshold belongs to the query path and this work ships
+        none.</p>
+        <p>Two earlier defects were found the same way, which is the
+        argument for doing it: the Keycloak demo users could not log in
+        at all (missing email tripped user-profile validation and forced
+        an update-profile screen), and the frontend container refused to
+        start as a non-root user. Both were fixed before the respective
+        PR was opened.</p>
+        <h3 id="phase-3-the-query-path-and-the-search-interface">Phase 3
+        — the query path and the search interface</h3>
+        <p>The query module (embed → machine-filtered pgvector top-5 →
+        threshold → Mode A or Mode B), the two prompt classes, the NFR-7
+        guards and the Angular search and upload views were
+        AI-generated. The decisions they implement are older than the
+        sessions that wrote them: the two answer modes and the rule that
+        Mode B shows <em>no</em> source area come from DECISIONS.txt,
+        the provider and the language pinning from ADR-002, the role
+        model from ADR-003.</p>
+        <p>Three results came out of running it rather than reasoning
+        about it, and all three changed the code or the
+        configuration:</p>
+        <ol type="1">
+        <li><strong>The 0.583 threshold from the spike was too high
+        against the real corpus.</strong> The cross-language demo scored
+        0.577 and would have been refused as ungrounded. Threshold 0.55
+        ships instead, and the margin is now the sharpest number in the
+        project: the demo clears it by 0.0066.</li>
+        <li><strong>The smaller chat model was rejected on evidence, not
+        on taste.</strong> <code>Qwen3.5-9B</code> failed to ground the
+        cross-language case; the structured-JSON contract is what caught
+        it, because an ungrounded answer failed citation validation
+        instead of reading plausibly. <code>Llama-3.3-70B</code> serves
+        every role.</li>
+        <li><strong>Mode B needed a shape example of its own.</strong>
+        Without one, constrained decoding ran away on whitespace —
+        measured twice, at two different token caps. The two prompts
+        live in two classes so the citation few-shot cannot leak into
+        the refusal path.</li>
+        </ol>
+        <h3
+        id="phase-4-redesign-hardening-and-the-two-defects-a-browser-found">Phase
+        4 — redesign, hardening, and the two defects a browser
+        found</h3>
+        <p>The design token system, the landing page, the help dialog,
+        the security headers and ADR-005 were AI-assisted. Two defects
+        in this phase are worth recording because of <em>how</em> they
+        were found, which is the point of this file.</p>
+        <p><strong>A source link that answered 401 for every click
+        (#26).</strong> The citation links shipped in #25 with a live
+        verification that passed — the documents were fetched from the
+        deployed API with <code>curl</code> and a real token. In a
+        browser every click returned 401, because a browser-followed
+        <code>&lt;a href&gt;</code> is a fresh navigation that never
+        reaches Angular’s interceptor and therefore carries no bearer
+        token, and the API is a stateless resource server with no cookie
+        fallback. <strong>An API call is not a click.</strong> Anything
+        the browser performs itself — anchor navigation, form action,
+        <code>img/src</code>, <code>window.open</code> of an API URL —
+        has to be verified in a browser. The regression guard asserts on
+        the rendered DOM, not on the request, because a test that opened
+        the document through <code>HttpClient</code> is exactly what let
+        the defect ship.</p>
+        <p><strong>A Content-Security-Policy that would have shipped an
+        unstyled application.</strong> Angular’s critical-CSS inlining
+        emits <code>&lt;link … onload="this.media='all'"&gt;</code>, an
+        inline event handler that <code>script-src 'self'</code>
+        refuses, leaving the stylesheet at <code>media="print"</code>.
+        No <code>curl</code> against the deployment would have shown it.
+        It was caught by reading the built <code>index.html</code>
+        before deploying the header, and the production build now emits
+        a plain stylesheet link instead. In the same session the header
+        configuration was tested by running the real Caddyfile against a
+        stub upstream that sent a <em>wrong</em>
+        <code>X-Content-Type-Options</code>; the proxied response still
+        carried <code>nosniff</code>, which proved the
+        <code>defer</code> behaviour rather than assuming it.</p>
+        <p>Two smaller ones from the same phase, both reported rather
+        than smoothed over:</p>
+        <ul>
+        <li><strong>A wrong diagnosis, corrected by the test that was
+        written to prove it.</strong> The deployed
+        <code>/swagger-ui</code> answered 401, and the first explanation
+        was that a 404 was being masked by a guarded error dispatch. A
+        test asserting 404 failed: authorization runs <em>before</em>
+        dispatch, so any unpermitted path answers 401 whether or not a
+        handler exists. The real cause was a missing mapping. The
+        unnecessary security change was reverted and the test now pins
+        the behaviour that is actually there.</li>
+        <li><strong>The Caddyfile deployed successfully and changed
+        nothing.</strong> A single-file bind mount follows the file’s
+        inode, so replacing the host file with <code>mv</code> left the
+        container reading the old one — while
+        <code>caddy validate</code> and <code>caddy reload</code>, both
+        executed inside that container, read the stale file and reported
+        success. It is written down as an operations rule because no
+        command in that sequence hints at it.</li>
+        </ul>
+        <p>Verification for the phase was a full browser walkthrough on
+        2026-08-08 at a 390 px mobile viewport with the console open:
+        login round trip, the E-47 answer with its four citations
+        resolving, a clicked source opening the protocol in a
+        <code>blob:</code> tab, the help dialog, the language switch and
+        sign-out — zero CSP violations. That walkthrough is what found
+        the Swagger defect.</p>
+        <p><strong>Correction to an earlier claim:</strong> the first
+        version of this file said the scaffold was verified by “human
+        diff review on every PR before merge + CI tests”. At that point
+        CI did not exist yet — it was built in the third session above.
+        Diff review was real; the CI half only became true
+        afterwards.</p>
+        <p>Rule of thumb for this repository: <strong>AI writes prose
+        and boilerplate, humans make decisions.</strong> Where a model
+        proposed a decision, it is recorded as an ADR and I own it.</p>
+        <h2 id="verification-process">Verification process</h2>
+        <ul>
+        <li><strong>Human diff review on every pull request before
+        merge.</strong> Nothing lands on <code>main</code> unread. This
+        is the primary control — generated code is treated exactly like
+        code from an unfamiliar contributor.</li>
+        <li><strong>CI on every push:</strong> build plus automated
+        tests (JUnit/Mockito). A red pipeline blocks the merge.</li>
+        <li><strong>Anything executable is run before it is
+        committed</strong> — the diagram script and the compose stack
+        were verified locally, not assumed to work.</li>
+        <li><strong>The demo is tested before every application sent
+        out</strong>; a walkthrough that breaks is treated as a defect,
+        not a detail.</li>
+        <li><strong>Generated documentation is checked against the
+        design documents.</strong> They are the source of truth; where
+        generated text contradicted them, the generated text was wrong
+        and got fixed.</li>
+        <li><strong>Anything the browser does itself is verified in a
+        browser.</strong> Added after #26 shipped a citation link that
+        passed a <code>curl</code> verification and answered 401 on
+        every real click. An API call is not a click, and the
+        walkthrough is run at a phone viewport with the console
+        open.</li>
+        </ul>
+        <h2 id="standing-statement-on-the-data">Standing statement on
+        the data</h2>
+        <p><strong>No real customer or plant document is used anywhere
+        in this repository.</strong> The 165 protocols behind every
+        demo, screenshot and measurement in this project are synthetic,
+        generated for it from a fault taxonomy and a set of demo
+        scenarios that are mine. The four demo accounts are public and
+        hold nothing worth stealing. Two honest consequences: retrieval
+        quality measured against a generated corpus is an optimistic
+        figure, because such a corpus is internally consistent in a way
+        a real one is not — and the security posture recorded in <a
+        href="adr/ADR-005-spa-token-handling.html">ADR-005</a> is
+        proportionate to a demo, which it says in as many words.</p>
+        <h3
+        id="v1.2-fifteen-more-protocols-deliberately-easier-and-deliberately-unreviewed">v1.2
+        — fifteen more protocols, deliberately easier and deliberately
+        unreviewed</h3>
+        <p><code>protocols.ndjson</code> grew from 150 to 165 in the
+        approval PR. The fifteen new records were written the same way
+        as the original corpus and are documented here for the same
+        reason: <strong>the corpus is generated data, and a reader is
+        owed the ability to tell which parts were generated and
+        why.</strong></p>
+        <p><strong>Why they exist.</strong> The trust chain needs a real
+        approval queue — an administrator with nothing to review cannot
+        demonstrate reviewing. They are seeded
+        <code>approved: false</code> while the original 150 are
+        <code>approved: true</code>, so a fresh environment comes up
+        with 150 vouched-for protocols and 15 waiting.</p>
+        <p><strong>Why they are EASIER faults.</strong> The existing
+        corpus leans specialist: pressure loss at a relief valve, servo
+        drift, hydraulic leakage. An operator’s actual first question is
+        “the machine does not start” — and until now the corpus had
+        little to answer it with. The fifteen cover exactly that
+        register: machine does not start, stops without warning, no
+        display, button does nothing, runs but produces nothing. Causes
+        are the mundane ones that dominate a real shift log — a latched
+        emergency stop, a blown fuse, a key switch left on Service, an
+        empty hopper, a safety gate not reconnected after maintenance, a
+        clogged cabinet filter.</p>
+        <p>Spread over all ten machines, thirteen German and two
+        English, matching the existing mix. <strong>Three are
+        deliberately messy</strong> — lower case, no structure, “nix
+        getauscht” — because the corpus is meant to contain the protocol
+        somebody typed at the end of a long shift as well as the tidy
+        ones, and a form that could only produce tidy records would add
+        only the tidy half of reality.</p>
+        <p>They are <strong>retrievable, not filler</strong>: asked
+        “Maschine startet nicht, keine Reaktion beim Einschalten”
+        against Presse 3, the top hit is one of them, well clear of the
+        field.</p>
+      </article>
+    </main>
+
+        <nav class="toc" aria-label="On this page">
+      <p class="toc-title">On this page</p>
+      <ul>
+      <li><a href="#ai-usage" id="toc-ai-usage">AI Usage</a>
+      <ul>
+      <li><a href="#tools-used" id="toc-tools-used">Tools used</a></li>
+      <li><a href="#generated-vs.-self-written"
+      id="toc-generated-vs.-self-written">Generated vs. self-written</a>
+      <ul>
+      <li><a href="#phase-1-sessions-backend-frontend-ci"
+      id="toc-phase-1-sessions-backend-frontend-ci">Phase 1 sessions
+      (backend, frontend, CI)</a></li>
+      <li><a href="#production-deployment-session"
+      id="toc-production-deployment-session">Production deployment
+      session</a></li>
+      <li><a href="#phase-2-database-migrations-flyway-v1-machine-seed"
+      id="toc-phase-2-database-migrations-flyway-v1-machine-seed">Phase
+      2 — database migrations (Flyway V1 + machine seed)</a></li>
+      <li><a href="#phase-2-the-synthetic-protocol-corpus"
+      id="toc-phase-2-the-synthetic-protocol-corpus">Phase 2 — the
+      synthetic protocol corpus</a></li>
+      <li><a href="#phase-2-the-ingestion-pipeline"
+      id="toc-phase-2-the-ingestion-pipeline">Phase 2 — the ingestion
+      pipeline</a></li>
+      <li><a href="#phase-3-the-query-path-and-the-search-interface"
+      id="toc-phase-3-the-query-path-and-the-search-interface">Phase 3 —
+      the query path and the search interface</a></li>
+      <li><a
+      href="#phase-4-redesign-hardening-and-the-two-defects-a-browser-found"
+      id="toc-phase-4-redesign-hardening-and-the-two-defects-a-browser-found">Phase
+      4 — redesign, hardening, and the two defects a browser
+      found</a></li>
+      </ul></li>
+      <li><a href="#verification-process"
+      id="toc-verification-process">Verification process</a></li>
+      <li><a href="#standing-statement-on-the-data"
+      id="toc-standing-statement-on-the-data">Standing statement on the
+      data</a>
+      <ul>
+      <li><a
+      href="#v1.2-fifteen-more-protocols-deliberately-easier-and-deliberately-unreviewed"
+      id="toc-v1.2-fifteen-more-protocols-deliberately-easier-and-deliberately-unreviewed">v1.2
+      — fifteen more protocols, deliberately easier and deliberately
+      unreviewed</a></li>
+      </ul></li>
+      </ul></li>
+      </ul>
+    </nav>
+      </div>
+
+  <footer class="footer">
+    maintenance-assistant · Generated by the docs pipeline
+  </footer>
+
+  <script src="/maintenance-assistant/assets/docs.js"></script>
+</body>
+</html>

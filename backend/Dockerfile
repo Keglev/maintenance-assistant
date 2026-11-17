@@ -5,7 +5,9 @@
 # and backend-deploy.yml's build-push step records why the arm64 leg was dropped.
 
 # --- build ------------------------------------------------------------------
-FROM maven:3.9-eclipse-temurin-26 AS build
+# The build JDK stays on the runtime's Temurin 21 LTS line; .github/dependabot.yml
+# says why Dependabot does not propose this image.
+FROM maven:3.9-eclipse-temurin-21 AS build
 WORKDIR /build
 
 # Dependencies resolve in their own layer, so editing sources does not re-download

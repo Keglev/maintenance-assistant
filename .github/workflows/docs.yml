@@ -38,6 +38,8 @@ name: docs
 #   I6  A run never replaces a newer publish of its area: each area records its
 #       commit in published-commit.txt, and publish-guard.sh skips a run whose
 #       commit the recorded one already contains (queued runs start in any order).
+#       It also skips a run whose output equals the published area, so an
+#       unchanged area gets no commit and keeps its marker.
 on:
   push:
     branches: [main]
@@ -158,8 +160,9 @@ jobs:
           [ "$missing" -eq 0 ]
 
       # Queued runs may start out of order; an older commit must not replace a
-      # newer site. Writes the marker the next run compares against.
-      - name: Guard against an out-of-order publish
+      # newer site, and an unchanged site is not committed again (I6). Writes the
+      # marker the next run compares against when it decides to publish.
+      - name: Skip an out-of-order or unchanged publish
         id: guard
         env:
           SHA: ${{ github.sha }}
@@ -168,7 +171,7 @@ jobs:
       # No keep_files and no destination_dir: the branch becomes this directory.
       # That is only safe because the step above put the reports back into it.
       - name: Publish site to gh-pages
-        if: steps.guard.outputs.stale != 'true'
+        if: steps.guard.outputs.publish == 'true'
         uses: peaceiris/actions-gh-pages@84c30a85c19949d7eee79c4ff27748b70285e453 # v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
@@ -280,7 +283,7 @@ jobs:
           find "target/publish/$NAME" -maxdepth 1 -mindepth 1 -type d | sort
 
       # The CI commit, not github.sha: under workflow_run that is main's head.
-      - name: Guard against an out-of-order publish
+      - name: Skip an out-of-order or unchanged publish
         id: guard
         env:
           NAME: ${{ steps.project.outputs.name }}
@@ -295,7 +298,7 @@ jobs:
       # now removed rather than kept forever: the first run of this deletes two
       # JaCoCo pages for a class that no longer exists.
       - name: Publish ${{ steps.project.outputs.name }} reports to gh-pages
-        if: steps.guard.outputs.stale != 'true'
+        if: steps.guard.outputs.publish == 'true'
         uses: peaceiris/actions-gh-pages@84c30a85c19949d7eee79c4ff27748b70285e453 # v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}

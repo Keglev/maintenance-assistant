@@ -41,9 +41,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">80.64% </span>
+                <span class="strong">87.09% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>25/31</span>
+                <span class='fraction'>27/31</span>
             </div>
         
             
@@ -416,7 +416,7 @@ export class Dialog {
         // Escape and the tab trap never ran. `focusables()` now refuses disabled controls, and when
         // a dialog opens with none that are usable the PANEL takes focus instead: it is
         // `tabindex="-1"`, so it is a focus target without joining the tab ring.
-        setTimeout(() =&gt; (this.focusables()[0] ?? <span class="branch-1 cbranch-no" title="branch not covered" >this.panel()?.nativeElement)?.f</span>ocus());
+        setTimeout(() =&gt; (this.focusables()[0] ?? this.panel()?.nativeElement)?.focus());
       } else {
         this.opener?.focus();
         this.opener = null;
@@ -488,7 +488,7 @@ export class Dialog {
               'textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
           ),
         ]
-      : <span class="branch-1 cbranch-no" title="branch not covered" >[];</span>
+      : [];
   }
 }
 &nbsp;</pre></td></tr></table></pre>

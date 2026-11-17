@@ -461,3 +461,12 @@ The *Decision* section lists three measured caveats the code must carry. The mea
 
 Together they say something worth carrying beyond these two models: **`reasoning_effort` is a
 per-model property, measured per candidate, and never inferred from a family name.**
+
+### Note, 2026-11-17 — the support ticket is sent
+
+The ticket drafted on 2026-08-26 for `Qwen/Qwen3.5-397B-A17B` (section 3 above) went to IONOS on
+2026-11-17, sent by the owner. It carries the measurement of 2026-08-26 as recorded: the failing
+combination, the two controls, the request times and the completion id, and it asks either for the
+combination to work or for a 4xx that names the parameter. IONOS has not issued a reference number
+yet; it is added here when it exists. The rule in section 3 stands: the model is not re-measured
+until IONOS answers, because a deterministic 500 re-run costs money and proves nothing new.

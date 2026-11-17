@@ -47,7 +47,7 @@ When a machine stops, the standard escalation applies (e.g. Operator → call Te
 - **NFR-3 Security:** Authentication/authorization via Keycloak (OIDC, Authorization Code Flow + PKCE). Backend as OAuth2 Resource Server; role-based access **and role-based answer filtering** enforced server-side.
 - **NFR-4 Performance:** Target ≤ 10 s per answer; up to 30 s acceptable. Upload confirmation immediate, indexing asynchronous.
 - **NFR-5 Operability:** Full stack runs via one `docker compose up` on a single VPS (~8 GB RAM). CI/CD via GitHub Actions with automated tests (JUnit/Mockito) on every push.
-- **NFR-6 AI transparency:** Repo contains `AI-USAGE.md` documenting AI tools used, generated vs. self-written code, and the verification process.
+- **NFR-6 AI transparency:** Repo contains `docs/ai-usage.md` documenting AI tools used, generated vs. self-written code, and the verification process.
 - **NFR-7 Cost control (public demo):** LLM spend is bounded at three layers: provider-side billing controls, per-user rate limiting + global daily call budget + capped answer length + query caching (application), and daily token-usage logging (visibility). Budget exhaustion degrades gracefully with a user-facing message, never with an error page. **Amended 2026-08-06 (ADR-002):** the chosen provider offers **cost alerts only, no hard spending cap** (a €7 alert is configured), so layer 1 detects rather than prevents and the application layer is the real ceiling. The requirement stands; the measured cost per query (a fraction of a cent) is what makes carrying it in the application acceptable.
 
 ## 5. Out of Scope (Phase 1)

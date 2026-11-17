@@ -23,7 +23,7 @@
 | Languages | ~70% German, ~30% English (US plant flavor for the EN ones) |
 | Quality mix | ~60% structured, ~30% free-text/messy, ~10% short and unhelpful ("repariert, läuft wieder") — realistic |
 | Demo seeds | Error E-47 on Presse 3 appears 2–3x with consistent cause/fix (US-1/US-2 demo). One machine has deliberately NO protocol for a common error → Mode B demo. One DE query must match an EN protocol (multilingual demo). Operator-safe cases: sensor cleaning, material jam, program change. |
-| Generation | Generated with Claude, structure based on my own experience with maintenance documentation in US and German manufacturing. Documented in AI-USAGE.md. |
+| Generation | Generated with Claude, structure based on my own experience with maintenance documentation in US and German manufacturing. Documented on the [AI usage](ai-usage.md) page. |
 
 ## 4. The corpus as built (2026-08-07)
 

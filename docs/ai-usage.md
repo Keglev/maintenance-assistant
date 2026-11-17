@@ -287,7 +287,7 @@ taxonomy and a set of demo scenarios that are mine. The four demo accounts are p
 nothing worth stealing. Two honest consequences: retrieval quality measured against a generated
 corpus is an optimistic figure, because such a corpus is internally consistent in a way a real one
 is not — and the security posture recorded in
-[ADR-005](docs/adr/ADR-005-spa-token-handling.md) is proportionate to a demo, which it says in as
+[ADR-005](adr/ADR-005-spa-token-handling.md) is proportionate to a demo, which it says in as
 many words.
 
 ### v1.2 — fifteen more protocols, deliberately easier and deliberately unreviewed

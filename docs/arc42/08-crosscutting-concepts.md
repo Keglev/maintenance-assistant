@@ -155,5 +155,8 @@ resource server, and the UI hiding a button has never been the control (NFR-3).
   is added, it stores role, timestamp and answer mode — never the username).
 - **Error handling** — a failed indexing run ends in status `FAILED` and stays visible to the
   Schichtleiter; budget exhaustion and provider outages degrade to a message, never an error page.
+- **Development concepts** — how the system was built: a chat model challenged the design, an
+  editor agent implemented against the written decisions, and every pull request was reviewed before
+  merge. The full account, per session, is the [AI usage](../ai-usage.md) page.
 - **Testing** — JUnit/Mockito on every push; the minimum set is mode routing, role filtering and the
   budget guard.

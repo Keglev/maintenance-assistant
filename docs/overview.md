@@ -22,8 +22,8 @@ ticketing or CMMS system; the escalation chain is organisational context, not a 
 | Role | What they get |
 |---|---|
 | **Operator** | Search; operator-safe instructions only — clean a sensor, remove material, change a program — never electrical or mechanical repair steps. Told to escalate immediately when a Fachkraft is required. |
-| **Techniker** | Search; full technical answers including repair steps, with citations to verify against and a machine filter to keep results relevant. |
-| **Schichtleiter** | All of the above, plus the sole write access: creates and uploads protocols and sees their processing status. |
+| **Techniker** | Search; full technical answers including repair steps, with citations to verify against and a machine filter to keep results relevant. Uploads protocols, but never edits one. |
+| **Schichtleiter** | All of the above, plus correcting: the only role that may edit a protocol, and sees the processing status of uploads. |
 | **Admin** | Manages users and role assignments in Keycloak, without code changes. |
 
 ## System context

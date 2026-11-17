@@ -21,6 +21,11 @@ When a machine stops, the standard escalation applies (e.g. Operator → call Te
 
 **Design decision:** Write access is restricted to Schichtleiter to guarantee protocol consistency and quality (language, structure, correctness) and to prevent a polluted knowledge base. Known limitation: the person who fixed the fault (Techniker) is not the person documenting it — knowledge capture depends on the shift handover.
 
+> **Correction 2026-11-17** — [DECISIONS.txt](DECISIONS.txt), decision 3 of 2026-08-11, widened write
+> access: a Techniker may upload a protocol too, because the person who fixed the machine knows what
+> happened to it. Correcting a protocol stays with the Schichtleiter alone. The role table above and
+> US-5 describe requirements v0.2 as written; the server-side rule is in `ProtocolUploadController`.
+
 ## 3. User Stories (MVP / Phase 1)
 
 - **US-1** — As an *Operator*, I enter an error code or message and receive only actions I am allowed and able to perform (e.g. "Sensor A3 reinigen", "Material A2 entfernen", "Programm T5 laden"). If the fix requires a Fachkraft, the system tells me to escalate — immediately, not after 40 wasted minutes.

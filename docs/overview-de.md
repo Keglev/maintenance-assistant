@@ -22,8 +22,8 @@ Ticket- oder CMMS-System; die Eskalationskette ist organisatorischer Kontext, ke
 | Rolle | Was sie erhält |
 |---|---|
 | **Operator** | Suche; ausschließlich bedienerseitig zulässige Maßnahmen — Sensor reinigen, Material entfernen, Programm wechseln — niemals elektrische oder mechanische Reparaturschritte. Bei Bedarf sofort der Hinweis zu eskalieren. |
-| **Techniker** | Suche; vollständige technische Antworten inklusive Reparaturschritten, mit Quellenangaben zur Überprüfung und Filter auf die Maschine. |
-| **Schichtleiter** | Alles Vorgenannte, dazu als Einziger Schreibrechte: legt Protokolle an, lädt sie hoch und sieht ihren Verarbeitungsstatus. |
+| **Techniker** | Suche; vollständige technische Antworten inklusive Reparaturschritten, mit Quellenangaben zur Überprüfung und Filter auf die Maschine. Lädt Protokolle hoch, bearbeitet aber keines. |
+| **Schichtleiter** | Alles Vorgenannte, dazu das Korrigieren: als einzige Rolle darf er Protokolle bearbeiten, und er sieht den Verarbeitungsstatus der Uploads. |
 | **Admin** | Verwaltet Benutzer und Rollenzuordnungen in Keycloak, ohne Codeänderung. |
 
 ## Systemkontext

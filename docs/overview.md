@@ -51,6 +51,25 @@ means for the answers themselves.
 Three containers run the whole stack — application, PostgreSQL, Keycloak — on a single 8 GB VPS via
 one `docker compose up`.
 
+## Try it in two minutes
+
+Sign in at [maintenance.smartsupply.com.de](https://maintenance.smartsupply.com.de) as `techniker`; the
+password is on the sign-in page.
+
+1. **Pick Presse 3 (PR-03) and click an example question.** Four suggestions appear under the question
+   box in the interface language. A click fills the box and does not submit: you still read the question
+   and press Ask yourself, so what you learn is the shape of a question that works. The answer arrives
+   with its sources as cards you can open. [ADR-011](adr/ADR-011-guided-questions.html) ·
+   [the questions themselves](https://github.com/Keglev/maintenance-assistant/blob/main/backend/src/main/resources/examples/example-questions.json)
+2. **Switch the interface to EN, pick Kompressor 1 (KP-01), and ask in German:** *"Kompressor schaltet
+   nach einer halben Stunde wegen zu hoher Temperatur ab"*. The protocol behind that fault is written in
+   English. There is no translation step anywhere: one embedding model holds both languages in one
+   space. [The golden questions](https://github.com/Keglev/maintenance-assistant/blob/main/backend/src/test/resources/retrieval/golden-questions.json), case G10
+3. **Stay on Kompressor 1 and ask "sensor fehler".** None of its 14 protocols is about a sensor. The
+   answer comes back as a general suggestion, labelled ungrounded, with no source area at all, and it
+   says how many protocols the machine does have. [The corpus](https://github.com/Keglev/maintenance-assistant/blob/main/backend/src/main/resources/corpus/protocols.ndjson) ·
+   [the two answer modes](llm-approach.html)
+
 ## Where to go next
 
 - [Architecture Decision Records](adr/index.html) — why each of those choices, and what was rejected

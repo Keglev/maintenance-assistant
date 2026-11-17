@@ -91,6 +91,7 @@
           "builder": "@angular/build:unit-test",
           "options": {
             "runner": "vitest",
+            "setupFiles": ["src/test-setup.ts"],
             "coverageReporters": ["html", "lcovonly", "text-summary"],
             // THE RATCHET (docs/REFACTOR-STANDARDS.txt, "Enforcement is a RATCHET").
             // Armed 2026-08-24, once the targets were actually met, so a regression fails

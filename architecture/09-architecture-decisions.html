@@ -131,23 +131,21 @@
       <article class="doc-body">
         <h1 id="architecture-decisions">9. Architecture Decisions</h1>
         <p>Decisions live as individual records in <a
-        href="../adr/"><code>docs/adr/</code></a>. Every architecture
-        change gets an ADR; records are immutable once accepted, and a
-        changed decision becomes a new record that supersedes the old
-        one.</p>
+        href="../adr/"><code>docs/adr/</code></a>, which also holds
+        their index. Every architecture change gets an ADR; records are
+        immutable once accepted, and a changed decision becomes a new
+        record or a dated revision inside the record.</p>
         <table>
         <colgroup>
-        <col style="width: 25%" />
-        <col style="width: 25%" />
-        <col style="width: 25%" />
-        <col style="width: 25%" />
+        <col style="width: 33%" />
+        <col style="width: 33%" />
+        <col style="width: 33%" />
         </colgroup>
         <thead>
         <tr class="header">
         <th>ADR</th>
         <th>Decision</th>
         <th>Status</th>
-        <th>Drives</th>
         </tr>
         </thead>
         <tbody>
@@ -155,20 +153,19 @@
         <td><a
         href="../adr/ADR-001-modular-monolith-first.html">ADR-001</a></td>
         <td>Modular monolith first (<code>ingestion</code> /
-        <code>query</code> / <code>web</code>, Spring events); extract
-        the ingestion service with Kafka in Phase 2</td>
+        <code>query</code> / <code>web</code>, Spring events); the
+        ingestion service is extracted later</td>
         <td>Accepted</td>
-        <td>§4.1, §5, §7</td>
         </tr>
         <tr class="even">
         <td><a
         href="../adr/ADR-002-eu-hosted-llm-provider.html">ADR-002</a></td>
-        <td>EU-hosted LLM and embedding provider: IONOS AI Model Hub
-        primary, Nebius Token Factory documented fallback;
-        <code>bge-m3</code> embeddings at 1024 dimensions, similarity
-        threshold as a configuration property</td>
-        <td>Accepted</td>
-        <td>§3.2, §4, NFR-1, NFR-2, NFR-7</td>
+        <td>EU-hosted LLM and embedding provider: IONOS AI Model Hub,
+        with a second IONOS model as the documented fallback;
+        <code>bge-m3</code> embeddings at 1024 dimensions; provider
+        calls through a plain <code>RestClient</code>, not Spring
+        AI</td>
+        <td>Accepted (revised 2026-08-27)</td>
         </tr>
         <tr class="odd">
         <td><a
@@ -177,7 +174,6 @@
         PKCE in the browser, OAuth2 Resource Server in the backend;
         realm exported and versioned</td>
         <td>Accepted</td>
-        <td>§3.2, §8, NFR-3</td>
         </tr>
         <tr class="even">
         <td><a
@@ -185,25 +181,86 @@
         <td>PostgreSQL + pgvector rather than a dedicated vector
         database; relational filter and vector ranking in one query</td>
         <td>Accepted</td>
-        <td>§4.3, §7, US-3</td>
+        </tr>
+        <tr class="odd">
+        <td><a
+        href="../adr/ADR-005-spa-token-handling.html">ADR-005</a></td>
+        <td>Keep the public-client SPA, harden it with security headers,
+        and document the backend-for-frontend alternative</td>
+        <td>Accepted</td>
+        </tr>
+        <tr class="even">
+        <td><a
+        href="../adr/ADR-006-insider-threat-and-protocol-moderation.html">ADR-006</a></td>
+        <td>Answer the insider threat with traceability and moderation,
+        not with approval before indexing; duplicate detection warns and
+        never blocks</td>
+        <td>Accepted</td>
+        </tr>
+        <tr class="odd">
+        <td><a
+        href="../adr/ADR-007-end-to-end-testing-strategy.html">ADR-007</a></td>
+        <td>Test the rendered application in a browser with Playwright
+        against a real stack; the e2e and visual suites gate merges and
+        deploys</td>
+        <td>Accepted (revised 2026-11-13)</td>
+        </tr>
+        <tr class="even">
+        <td><a
+        href="../adr/ADR-008-retrieval-measurement.html">ADR-008</a></td>
+        <td>Measure retrieval against a golden question set before
+        changing it</td>
+        <td>Accepted</td>
+        </tr>
+        <tr class="odd">
+        <td><a
+        href="../adr/ADR-009-hybrid-retrieval.html">ADR-009</a></td>
+        <td>Ground an answer on an exact term without re-calibrating the
+        similarity threshold</td>
+        <td>Accepted</td>
+        </tr>
+        <tr class="even">
+        <td><a
+        href="../adr/ADR-010-docs-tree-conventions.html">ADR-010</a></td>
+        <td>Name docs pages by what they are, and freeze citations that
+        a checksum guards</td>
+        <td>Accepted (amended by ADR-013)</td>
+        </tr>
+        <tr class="odd">
+        <td><a
+        href="../adr/ADR-011-guided-questions.html">ADR-011</a></td>
+        <td>Show the user a question that works</td>
+        <td>Accepted</td>
+        </tr>
+        <tr class="even">
+        <td><a
+        href="../adr/ADR-012-shared-host-two-projects.html">ADR-012</a></td>
+        <td>Run two portfolio projects on one host, and state what that
+        costs</td>
+        <td>Accepted</td>
+        </tr>
+        <tr class="odd">
+        <td><a
+        href="../adr/ADR-013-markdown-only-docs.html">ADR-013</a></td>
+        <td>Write every document as linked markdown pages, never as
+        plain text</td>
+        <td>Accepted</td>
         </tr>
         </tbody>
         </table>
-        <p><strong>Planned:</strong> ADR-005 will record the Phase 5
-        extraction of the ingestion service and the introduction of
-        Kafka, once that change is actually made.</p>
-        <p><strong>All four records are accepted.</strong> ADR-002 was
-        decided on a measured two-round provider spike (<a
+        <p><strong>Planned:</strong> the extraction of the ingestion
+        service and the introduction of Kafka take the next free ADR
+        number once that change is actually made.</p>
+        <p>ADR-002 was decided on a measured two-round provider spike
+        (<a
         href="https://github.com/Keglev/maintenance-assistant/blob/main/docs/evidence/adr-002/RESULTS.md"><code>docs/evidence/adr-002/RESULTS.md</code></a>,
         <a
         href="https://github.com/Keglev/maintenance-assistant/pull/14">PR
-        #14</a>) which reversed its original proposal. Two of its
-        questions stay open by design and are tracked in the record:
-        Spring AI compatibility with Spring Boot 4.1 (deferred to Phase
-        3 — the spike was Python, so it measured the provider and not
-        the Java integration), and the fact that no provider-side hard
-        spending cap exists, which leaves NFR-7 resting on the
-        application layer.</p>
+        #14</a>) which reversed its original proposal. One of its
+        questions stays open by design: no provider-side hard spending
+        cap exists, which leaves NFR-7 resting on the application
+        layer.</p>
+        <p><a href="./">Back to the arc42 overview</a></p>
       </article>
     </main>
 

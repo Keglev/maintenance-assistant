@@ -188,3 +188,12 @@ serves every file under that tag. The open rows they carried became GitHub issue
 handover is kept outside the repository. Point 4 of the Decision and the addendum of 2026-08-27
 above therefore describe the tree as it was until this date, not the current checkout. The session
 inputs that stay in `docs/` are `DECISIONS.txt` and `REFACTOR-STANDARDS.txt`.
+
+### Note, 2026-11-18 — the ledgers become markdown
+
+The owner ruled on 2026-11-18 that no document in the repository is a `.txt` file. The part of
+decision 1 that keeps `DECISIONS.txt` and `REFACTOR-STANDARDS.txt` as SCREAMING plain-text ledgers
+is replaced by [ADR-013](ADR-013-markdown-only-docs.md): both become linked markdown pages under the
+lowercase-kebab rule, split where they exceed the docs band. The rest of this record stands: the
+casing rule for explanatory pages, the SCREAMING names of the ADR files, the frozen citations in
+applied Flyway migrations and the place of the landing pages.

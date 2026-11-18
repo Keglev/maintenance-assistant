@@ -2,7 +2,7 @@
 
 Playwright, in Chromium, against a **real application, a real Keycloak and a real backend**.
 
-This is the rendered half of the test stack. The other half — 218 vitest specs in jsdom — is faster,
+This is the rendered half of the test stack. The other half — the vitest specs in jsdom — is faster,
 cheaper and covers far more; see
 [ADR-007](../../docs/adr/ADR-007-end-to-end-testing-strategy.md) for what
 belongs where and why this exists at all.
@@ -79,13 +79,14 @@ pieces of geometry: cards recessed on `--c-sunken` inside a dialog surface, and 
 rendered inside a card rather than in a table cell.
 
 > **It was flaky on its very first run, and the cause generalises.** The shared dialog moves focus
-> to its first control from a `setTimeout`, one tick after the panel renders — so a screenshot taken
+> to its first usable control after the panel renders (`afterNextRender`) — so a screenshot taken
 > on `toBeVisible()` caught the panel with or without a focus ring depending on the scheduler.
 > **Visible is not settled.** The test now waits for focus to land, and any future baseline of a
 > dialog needs the same line — or, where *which* element wins is itself a race, places focus
-> explicitly. The protocol viewer is that second case: its first focusable is a Download button that
-> is disabled until the document arrives, so the panel takes focus instead (the #50 fix) and the
-> winner depends on whether the fetch beat the timer.
+> explicitly. The protocol viewer is that second case: its first control is a Download button that
+> is disabled until the document arrives, so the close button takes focus instead, and which of the
+> two wins depends on whether the fetch beat the render. The panel itself takes focus only when a
+> dialog has no usable control at all.
 
 The ninth, added in v1.2's fifth pull request, is the **protocol viewer's history section** — where
 provenance went when Carlos's production drill found the records table's approval column truncating.
@@ -191,38 +192,24 @@ prove pixels *changed*; a human still decides whether they changed for the bette
 
 An unmasked clock makes a baseline that fails tomorrow morning for no reason at all.
 
-## Is the CI check blocking yet?
+## Is the CI check blocking?
 
-**No. It is advisory: a red `e2e` job does not stop a merge.** ADR-007 sets the bar for promoting it
-to a required check at **ten consecutive green runs with no infrastructure-caused failure**.
+**Yes. Both suites gate merges and deploys.** The `e2e` and `visual` jobs run inside `backend-ci`
+and `frontend-ci`, behind the relevance gate `.github/scripts/e2e-relevant.sh`: a change that cannot
+affect the suites skips them. Each CI's last job aggregates the build, the gate and both suites under
+the required check name, so a red suite makes the pull request unmergeable. The suites run again on
+main after the merge, and the deploys trigger on that run, so a red suite on main stops the deploy.
+The promotion and its reasoning are in
+[ADR-007's revision of 2026-11-13](../../docs/adr/ADR-007-end-to-end-testing-strategy.md).
 
-| | |
-|---|---|
-| **Consecutive green runs of the CURRENT `e2e` job** | **0** — reset 2026-08-24, see below |
-| Previous entry | 2, from the restart on 2026-08-12 |
-| Green runs of the job shape before that | 4 (three on #50, one on main after merge) |
-| Why the count restarted on 2026-08-12 | That job had no throwaway database, no provider stub, an unindexed corpus and skipped the re-index test. A streak counts runs of the same thing. |
-| **Why the count is 0 again on 2026-08-24** | `approval.e2e.ts` went red on its FIRST attempt on #75, #80 and #82, each time going green on a re-run of the identical commit. **A first-attempt red is a failed run.** The bar is ten consecutive green runs *with no infrastructure-caused failure*, and this was not infrastructure — it was a defect in the test, fixed in #84. Counting those runs as green because a second attempt passed would be the streak measuring our patience rather than the suite's reliability. |
-| **`visual` job** | Separate check, also advisory. **2 consecutive green runs** (2026-08-13). The set grew to 16 and then 18 on 2026-08-14; adding a surface does not restart the count, because the rest are compared against the same bytes they always were — a *shape* change does, as it did for `e2e` on 2026-08-12. |
+> **A first-attempt red is a failed run.** A re-run that passes does not make the first one green.
+> A red check that everyone re-runs by reflex is a check that will eventually wave a real failure
+> through; read the failing step before deciding the cause was infrastructure.
 
-**The 2026-08-24 reset is a reset, not a restart.** The job's shape did not change: the same stack,
-the same throwaway database, the same stub. What changed is that `approval.e2e.ts` stopped depending
-on whether the duplicates dialog happened to open — so the runs being counted from here are runs of
-the same thing, and the count simply begins again from the last failure rather than from a new
-baseline. The first eligible run is the first green `e2e` on main after #84 merges.
-
-> **A re-run that passes does not advance this count, and it does not repair the one before it.**
-> The reason is written down here because the temptation is real and was acted on three times: a red
-> check that everyone re-runs by reflex is a check that will eventually wave a real failure through.
-
-The `visual` job is deliberately a **separate check**: a pixel diff and a broken flow are different
+The `visual` job is deliberately a **separate job**: a pixel diff and a broken flow are different
 news for different people, and a red `visual` beside a green `e2e` says exactly what it means — it
 works, and it looks different. Folding them together would also mean the usual reaction to a noisy
 visual check (disable the job) takes the functional tests with it.
-
-**Update this table when the job changes shape or the streak advances.** It lives here rather than
-only in the ADR because this is the file someone opens when they wonder why a red check did not stop
-them.
 
 ## CI differs from a laptop in exactly one way
 

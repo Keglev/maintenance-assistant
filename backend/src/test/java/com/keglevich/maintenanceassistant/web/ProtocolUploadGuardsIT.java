@@ -119,7 +119,7 @@ class ProtocolUploadGuardsIT {
     @DisplayName("a .md file is refused now that protocols can be typed in the app")
     void markdownIsNoLongerAccepted() throws Exception {
         // Markdown was a developer convenience from when writing a file was the only way in. Typed
-        // entry replaced that, so the extension no longer has to accommodate it (DECISIONS.txt).
+        // entry replaced that, so the extension no longer has to accommodate it (docs/decisions-architecture.md).
         mockMvc.perform(upload("notizen.md", "# Protokoll\n\nKein Druck.\n"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.reason").value("UNSUPPORTED_TYPE"));

@@ -157,7 +157,7 @@ public class ProtocolIntakeService {
 
     private static String detectOrValidateLanguage(String language) {
         if (language == null || language.isBlank()) {
-            // Nothing is translated (DECISIONS.txt), so the value only tags what was written.
+            // Nothing is translated (docs/decisions.md), so the value only tags what was written.
             // German is the plant's language and the safe default for an unlabelled note.
             return "de";
         }

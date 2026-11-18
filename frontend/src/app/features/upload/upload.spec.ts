@@ -435,7 +435,7 @@ describe('Upload', () => {
       expect(body.get('title')).toBe('E-47 Druckabfall');
       // No language part at all. Retrieval is language-agnostic by architecture and the answer is
       // pinned to the QUESTION's language, so the field asked the writer a question whose
-      // answer nothing read (DECISIONS.txt, 2026-08-10).
+      // answer nothing read (docs/decisions-architecture.md, 2026-08-10).
       expect(body.get('language')).toBeNull();
 
       request.flush(

@@ -110,7 +110,7 @@ describe('Landing', () => {
 
     // A hint on the standard Auth Code + PKCE request, nothing else: Keycloak prefills the username
     // and the visitor types the password there. The password grant and a credential-filling login
-    // theme were both considered and rejected (DECISIONS.txt).
+    // theme were both considered and rejected (docs/decisions-architecture.md).
     expect(login).toHaveBeenCalledWith('techniker');
   });
 

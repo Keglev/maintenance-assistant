@@ -6,7 +6,7 @@ import java.util.UUID;
 /**
  * One retrieved chunk and everything an answer needs to cite it.
  *
- * <p>The chunk is the search unit and the protocol is the citation unit (DECISIONS.txt, DATA MODEL),
+ * <p>The chunk is the search unit and the protocol is the citation unit (docs/decisions.md, Data model),
  * which is why this record carries both: the model reasons over {@link #content()} and the answer
  * points at {@link #protocolId()}. Title, error code and date come from the protocol row rather than
  * from the chunk text, so a citation says the same thing whichever chunk of a protocol was matched.

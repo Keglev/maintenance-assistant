@@ -28,7 +28,7 @@ in Phase 2 that transport becomes Kafka topics without a change to the domain mo
 
 Java 21 · Spring Boot 4.1 (3.x EOL since 2026-06-30) · Angular + TypeScript, thin · PostgreSQL +
 pgvector · Keycloak · EU-hosted LLM via an OpenAI-compatible API · Docker Compose · GitHub Actions ·
-Hetzner CX33 (x86_64, 8 GB; revised from CAX/arm64, see DECISIONS.txt). Inference runs on the
+Hetzner CX33 (x86_64, 8 GB; revised from CAX/arm64, see the [product decisions](../decisions.md#costs)). Inference runs on the
 **IONOS AI Model Hub**: `BAAI/bge-m3` for embeddings (**1024 dimensions**, which fixes the pgvector
 column width) and `meta-llama/Llama-3.3-70B-Instruct` / `Qwen/Qwen3.5-9B` for generation, with the
 per-role choice made in Phase 3 ([ADR-002](../adr/ADR-002-eu-hosted-llm-provider.md)). Spring AI is

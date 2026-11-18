@@ -9,8 +9,7 @@ DEPLOYED system; `docker-compose.prod.yml` is where all of them run together.
 
 The **base** images are published for `linux/amd64` **and** `linux/arm64`, so this file runs
 unchanged on a laptop of either architecture. The images CI publishes for production are
-`linux/amd64` only — the arm64 leg was removed on 2026-08-10 (DECISIONS.txt, "REVISED AGAIN
-2026-08-10") because production is a CX33 x86_64 and the emulated build was crashing.
+`linux/amd64` only — the arm64 leg was removed on 2026-08-10 (docs/decisions.md, Costs) because production is a CX33 x86_64 and the emulated build was crashing.
 
 ## Start
 
@@ -105,7 +104,7 @@ apply to.
 
 CI ships **images and nothing else**. Every file below lives on the host, is edited there by
 hand, and is invisible to a merge — a change committed here is not live until someone copies it
-across. This is OPS RULE 1 in DECISIONS.txt, and it has cost a failed deploy round more than
+across. This is OPS RULE 1 in [chapter 7a](../docs/arc42/07a-ops-rules.md), and it has cost a failed deploy round more than
 once.
 
 SEVEN, MEASURED 2026-08-25 from the bind mounts in `docker-compose.prod.yml` and from the host

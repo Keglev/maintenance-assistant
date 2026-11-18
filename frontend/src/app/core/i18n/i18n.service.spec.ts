@@ -45,7 +45,7 @@ describe('I18nService', () => {
     expect(keysOf(DE)).toEqual(keysOf(EN));
   });
 
-  it('names the two answer modes the way DECISIONS.txt names them', () => {
+  it('names the two answer modes the way docs/decisions.md names them', () => {
     // The badge wording is the anti-hallucination mechanism's visible half; it should not drift
     // away from the vocabulary the rest of the project uses.
     expect(DE.modeA.badge).toBe('Belegte Antwort');

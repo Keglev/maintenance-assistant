@@ -99,7 +99,7 @@ jobs:
             GIT_COMMIT=${{ github.event.workflow_run.head_sha || github.sha }}
           # amd64 only: production is x86_64, so an arm64 image would have no consumer. Adding
           # one takes a native arm64 runner, or docker/setup-qemu-action before buildx plus this
-          # line. See DECISIONS.txt == COSTS & OPERATIONS ==.
+          # line. See docs/decisions.md, Costs.
           platforms: linux/amd64
           push: true
           tags: ${{ steps.meta.outputs.tags }}

@@ -16,7 +16,7 @@ the difference does not matter.
 **Self-written (human):**
 
 - All design documents and the decisions in them: `docs/requirements.md`, `docs/domain-model.md`,
-  `docs/DECISIONS.txt`, and the project handover `docs/PROJECT-PHASES.txt` (archived under
+  the [product decisions](decisions.md), and the project handover `docs/PROJECT-PHASES.txt` (archived under
   git tag `archive/handover-2026-11`).
 - Every architecture decision recorded in `docs/adr/` — the trade-offs, the rejected alternatives
   and the reasoning are mine; a model helped phrase them.
@@ -48,7 +48,7 @@ Three further AI-assisted sessions, each delivered as one branch and one pull re
 
 The provisioning script, the production compose stack, the Caddy configuration and the frontend's
 runtime-config change were AI-generated; the hosting decision behind them (CX33 over the planned
-CAX21) is mine and is recorded in DECISIONS.txt.
+CAX21) is mine and is recorded in the [product decisions](decisions.md#costs).
 
 Verification was the deployment itself, against the live server: TLS certificates checked for issuer
 and validity, and a **complete Authorization Code + PKCE login driven end to end with curl** for all
@@ -70,7 +70,7 @@ Dockerfile instead, and the PR says so rather than implying the registry holds i
 
 The Flyway baseline schema, the index set, the repeatable machine seed and the schema
 documentation in `docs/arc42/08-crosscutting-concepts.md` were AI-generated from
-`docs/domain-model.md` and `docs/DECISIONS.txt`, which were handed over as the source of truth.
+`docs/domain-model.md` and the product decisions, which were handed over as the source of truth.
 The domain model itself — three entities, users outside the database, files on a volume,
 denormalized `machine_id` on the chunk, `error_code` as free text — is mine and predates this
 session.
@@ -109,7 +109,7 @@ German and English — the seed loader, and the corpus documentation.
 **What it was given, and did not decide:** the ten machines, the fault taxonomy and its intended
 distribution, the demo scenarios, the quality mix, and the instruction that protocols must read
 like plant documentation rather than like a textbook. Those come from `docs/domain-model.md` and
-`docs/DECISIONS.txt`, and behind them from my own experience with maintenance documentation in US
+the product decisions, and behind them from my own experience with maintenance documentation in US
 and German manufacturing — including the specific insistence that a real plant's faults are *not*
 all technician-level defects, that alarm codes routinely point at the wrong component, and that
 some faults are simply never explained.
@@ -125,7 +125,7 @@ documents.
 
 - *Distribution counted, not estimated.* Every figure in domain-model.md §4 is counted from the
   file. The first pass came out at 79% clean prose against the ~60/30/10 quality mix that
-  DECISIONS.txt calls for — measuring it is what caught that, and 40 protocols were rewritten into
+  the product decisions call for — measuring it is what caught that, and 40 protocols were rewritten into
   shift-note and short-unhelpful form before this was committed.
 - *The demo scenarios were checked against the database with SQL, not assumed.* The Mode B gap was
   verified by querying the whole corpus for any mention of dosing or fill volume; the two hits are
@@ -152,7 +152,7 @@ an even split. Both were judgement calls made while writing, and both are report
 Upload → volume → chunk → embed → `INDEXED`, the embedding client, the chunker, the budget counter
 and the Testcontainers suite were AI-generated. The decisions they implement are not: the module
 boundaries come from ADR-001, the provider and its caveats from ADR-002, the role model from
-DECISIONS.txt.
+the [product decisions](decisions.md#product).
 
 One genuinely open decision was settled here, by measurement rather than preference: **Spring AI vs
 a plain `RestClient` on Boot 4.1**. It is worth being precise, because the convenient story would
@@ -197,7 +197,7 @@ start as a non-root user. Both were fixed before the respective PR was opened.
 The query module (embed → machine-filtered pgvector top-5 → threshold → Mode A or Mode B), the two
 prompt classes, the NFR-7 guards and the Angular search and upload views were AI-generated. The
 decisions they implement are older than the sessions that wrote them: the two answer modes and the
-rule that Mode B shows *no* source area come from DECISIONS.txt, the provider and the language
+rule that Mode B shows *no* source area come from the product decisions, the provider and the language
 pinning from ADR-002, the role model from ADR-003.
 
 Three results came out of running it rather than reasoning about it, and all three changed the code

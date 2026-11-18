@@ -87,7 +87,7 @@ jobs:
             GIT_COMMIT=${{ github.event.workflow_run.head_sha || github.sha }}
           # amd64 only, as in backend-deploy.yml. Emulation is no way back to arm64 here: `npm ci`
           # under qemu-emulated arm64 dies with "Illegal instruction", so an arm64 image needs a
-          # native arm64 runner. See DECISIONS.txt == COSTS & OPERATIONS ==.
+          # native arm64 runner. See docs/decisions.md, Costs.
           platforms: linux/amd64
           push: true
           tags: ${{ steps.meta.outputs.tags }}

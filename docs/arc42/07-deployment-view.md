@@ -14,12 +14,12 @@ internet; everything else exists solely on the compose network.
 | **Host** | Hetzner CX33 — x86_64, 4 vCPU, 8 GB RAM, 75 GB disk, Ubuntu 26.04 LTS, Nuremberg |
 | **Application** | <https://maintenance.smartsupply.com.de> |
 | **Identity provider** | <https://auth.smartsupply.com.de> |
-| **Images** | `ghcr.io/keglev/maintenance-assistant/{backend,frontend}`, built `linux/amd64` only since 2026-08-10 (DECISIONS.txt, "REVISED AGAIN 2026-08-10"); the base images stay multi-arch |
+| **Images** | `ghcr.io/keglev/maintenance-assistant/{backend,frontend}`, built `linux/amd64` only since 2026-08-10 ([product decisions](../decisions.md#costs)); the base images stay multi-arch |
 | **Stack definition** | [`docker/docker-compose.prod.yml`](https://github.com/Keglev/maintenance-assistant/blob/main/docker/docker-compose.prod.yml), deployed to `/opt/maintenance-assistant/` |
 | **Host preparation** | [`infra/provision.sh`](https://github.com/Keglev/maintenance-assistant/blob/main/infra/provision.sh), idempotent |
 
 The host was planned as a CAX21 (arm64) and is a CX33 (x86_64); the reasoning and date are recorded
-in DECISIONS.txt. That revision changed a purchase order and nothing else — but the follow-on did
+in the [product decisions](../decisions.md#costs). That revision changed a purchase order and nothing else — but the follow-on did
 cost something, and the record says so: on 2026-08-10 the arm64 build leg was removed because it
 had no consumer and was crashing under QEMU. Moving back to an arm64 host is now a purchase
 order PLUS restoring one line in each deploy workflow, or adding a native arm64 runner.
@@ -434,7 +434,7 @@ the difference between "restore the protocols" and "have the demo working again"
 full — stopping it saves nothing. The only way to stop paying for a server is to snapshot it and
 **delete** the server; the snapshot itself costs cents per month. Recreating from a snapshot gives a
 new IP, so the DNS records for both hostnames must be repointed before Caddy can renew a
-certificate. Per DECISIONS.txt the standing decision is to **pay during application phases and
+certificate. Per the [product decisions](../decisions.md#costs) the standing decision is to **pay during application phases and
 snapshot only in a real pause** — and never to delete the server while applications are out, because
 the demo link in them has to keep working.
 

@@ -173,13 +173,13 @@
         <tr class="odd">
         <td><strong>Stack definition</strong></td>
         <td><a
-        href="https://github.com/Keglev/maintenance-assistant/blob/main/docker/docker-compose.prod.yml"><code>docker/docker-compose.prod.yml</code></a>,
+        href="https://github.com/Keglev/maintenance-assistant/blob/main/ops/docker-compose.prod.yml"><code>ops/docker-compose.prod.yml</code></a>,
         deployed to <code>/opt/maintenance-assistant/</code></td>
         </tr>
         <tr class="even">
         <td><strong>Host preparation</strong></td>
         <td><a
-        href="https://github.com/Keglev/maintenance-assistant/blob/main/infra/provision.sh"><code>infra/provision.sh</code></a>,
+        href="https://github.com/Keglev/maintenance-assistant/blob/main/ops/host/provision.sh"><code>ops/host/provision.sh</code></a>,
         idempotent</td>
         </tr>
         </tbody>
@@ -243,7 +243,7 @@
         afterwards.</p>
         <p>If inventory-service ever leaves this host, the removal is
         the site block in <a
-        href="https://github.com/Keglev/maintenance-assistant/blob/main/docker/caddy/Caddyfile"><code>docker/caddy/Caddyfile</code></a>
+        href="https://github.com/Keglev/maintenance-assistant/blob/main/ops/caddy/Caddyfile"><code>ops/caddy/Caddyfile</code></a>
         and nothing else here.</p>
         <h4
         id="memory-limits-and-why-they-arrived-with-the-second-project">Memory
@@ -416,7 +416,7 @@
         <code>/opt/maintenance-assistant/.env.prod</code>, which is mode
         0600, owned by the unprivileged <code>deploy</code> user, and
         never committed — <a
-        href="https://github.com/Keglev/maintenance-assistant/blob/main/docker/.env.prod.example"><code>docker/.env.prod.example</code></a>
+        href="https://github.com/Keglev/maintenance-assistant/blob/main/ops/.env.prod.example"><code>ops/.env.prod.example</code></a>
         documents every variable. Database and Keycloak admin passwords
         were generated on the host.</p>
         <p>The frontend image contains no hostname. It reads
@@ -643,11 +643,11 @@ drwxr-xr-x 2 0 0 …            touch: Permission denied</code></pre>
         <td>CI, automatically</td>
         </tr>
         <tr class="even">
-        <td><code>docker/docker-compose.prod.yml</code></td>
+        <td><code>ops/docker-compose.prod.yml</code></td>
         <td><strong>a person, by hand</strong></td>
         </tr>
         <tr class="odd">
-        <td><code>docker/caddy/Caddyfile</code></td>
+        <td><code>ops/caddy/Caddyfile</code></td>
         <td><strong>a person, by hand</strong> — bind-mounted from the
         host, same as the compose file</td>
         </tr>
@@ -714,10 +714,10 @@ drwxr-xr-x 2 0 0 …            touch: Permission denied</code></pre>
         <strong>Hetzner snapshot</strong> for the host itself.</p>
         <h3 id="nightly-backup">7.6.1 Nightly backup</h3>
         <p><a
-        href="https://github.com/Keglev/maintenance-assistant/blob/main/infra/backup.sh"><code>infra/backup.sh</code></a>,
+        href="https://github.com/Keglev/maintenance-assistant/blob/main/ops/host/backup.sh"><code>ops/host/backup.sh</code></a>,
         installed as <code>/usr/local/bin/maintenance-backup</code> by
         <a
-        href="https://github.com/Keglev/maintenance-assistant/blob/main/infra/install-backup.sh"><code>infra/install-backup.sh</code></a>
+        href="https://github.com/Keglev/maintenance-assistant/blob/main/ops/host/install-backup.sh"><code>ops/host/install-backup.sh</code></a>
         and driven by a systemd timer at <strong>03:15 UTC</strong>. It
         writes two artefacts to
         <code>/opt/maintenance-assistant/backups/</code>, mode 0700:</p>
@@ -852,7 +852,7 @@ drwxr-xr-x 2 0 0 …            touch: Permission denied</code></pre>
         snapshot from Sunday plus Wednesday’s dump beats either
         alone.</p>
         <h2 id="host-hardening">7.7 Host hardening</h2>
-        <p><code>infra/provision.sh</code> is the record of what the
+        <p><code>ops/host/provision.sh</code> is the record of what the
         host is, and is safe to re-run: unattended security upgrades;
         Docker from the official repository; an unprivileged
         <code>deploy</code> user that owns the stack; sshd with

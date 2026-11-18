@@ -153,13 +153,13 @@
         <tbody>
         <tr class="odd">
         <td>PostgreSQL + pgvector</td>
-        <td><code>docker compose -f docker/docker-compose.yml up -d postgres</code></td>
+        <td><code>docker compose -f ops/docker-compose.yml up -d postgres</code></td>
         <td>5432 by default; 5433 if <code>POSTGRES_PORT=5433</code> is
-        set in <code>docker/.env</code></td>
+        set in <code>ops/.env</code></td>
         </tr>
         <tr class="even">
         <td>Keycloak, realm <code>maintenance</code>, themed</td>
-        <td><code>docker compose -f docker/docker-compose.yml up -d keycloak</code></td>
+        <td><code>docker compose -f ops/docker-compose.yml up -d keycloak</code></td>
         <td>8081</td>
         </tr>
         <tr class="odd">
@@ -175,14 +175,14 @@
         </tr>
         </tbody>
         </table>
-        <p>Before the first start, copy <code>docker/.env.example</code>
-        to <code>docker/.env</code>. What a healthy start looks like,
-        the demo users and how to change the realm are in <a
-        href="https://github.com/Keglev/maintenance-assistant/blob/main/docker/README.md"><code>docker/README.md</code></a>.</p>
-        <p>The backend reads nothing from <code>docker/.env</code>.
-        Every setting has a working default in
-        <code>application.yml</code>; to override one, export it in the
-        shell that starts the backend.</p>
+        <p>Before the first start, copy <code>ops/.env.example</code> to
+        <code>ops/.env</code>. What a healthy start looks like, the demo
+        users and how to change the realm are in <a
+        href="https://github.com/Keglev/maintenance-assistant/blob/main/ops/README.md"><code>ops/README.md</code></a>.</p>
+        <p>The backend reads nothing from <code>ops/.env</code>. Every
+        setting has a working default in <code>application.yml</code>;
+        to override one, export it in the shell that starts the
+        backend.</p>
         <h2 id="no-llm-key-is-required">No LLM key is required</h2>
         <p>Indexing needs an embedding and a query needs an answer, but
         neither has to be a <em>paid</em> one: point the backend at the

@@ -137,7 +137,7 @@
         page is what those citations resolve to. <a
         href="07-deployment-view.html">Chapter 7</a> shows the rules
         applied to this deployment, and <a
-        href="https://github.com/Keglev/maintenance-assistant/blob/main/docker/README.md"><code>docker/README.md</code></a>
+        href="https://github.com/Keglev/maintenance-assistant/blob/main/ops/README.md"><code>ops/README.md</code></a>
         lists the files on the host they apply to.</p>
         <p>The wording of rules 1-5 is the wording they were written in
         — copied, not restated, because a rule reworded is a rule
@@ -175,7 +175,7 @@
         <p>APPLIED TO THIS STACK — the four single-file mounts, rows 3,
         4, 5 and 7 of the table in <em>Files the pipeline never
         deploys</em> in <a
-        href="https://github.com/Keglev/maintenance-assistant/blob/main/docker/README.md"><code>docker/README.md</code></a>.
+        href="https://github.com/Keglev/maintenance-assistant/blob/main/ops/README.md"><code>ops/README.md</code></a>.
         A single-file bind mount tracks the file’s INODE, not its path:
         replacing the host file with <code>mv</code> gives it a new
         inode and the container keeps reading the old one, silently —
@@ -200,7 +200,7 @@
         <li><p><strong>OPS RULE 5, THE SHARED-HOST RULE</strong>
         (2026-08-27): ROOT CREATES AND HANDS OVER, deploy OPERATES. /opt
         is root-owned, and <code>deploy</code> is not in sudoers at all
-        — infra/provision.sh builds it that way on purpose (adduser
+        — ops/host/provision.sh builds it that way on purpose (adduser
         –disabled-password, passwd -l, docker group, no sudoers entry).
         So a second project’s directory needs exactly one root action to
         exist, plus a chown, and everything after that is deploy’s. This

@@ -77,7 +77,7 @@ test.describe('re-index after an edit', () => {
   test.skip(
     !RUN,
     'needs a working LLM_API_KEY on the backend — set E2E_LLM=1 to run it. Everything else in ' +
-      'this suite runs without one; see e2e/README.md.',
+      'this suite runs without one; see docs/run-locally.md.',
   );
 
   test('an edited protocol changes the answer it is cited in', async ({ page }) => {

@@ -75,3 +75,4 @@ das Passwort steht auf der Anmeldeseite.
 - [Architekturentscheidungen (ADRs)](adr/index.html) — warum diese Entscheidungen, und was verworfen wurde
 - [Architektur (arc42)](architecture/index.html) — die vollständige Dokumentation
 - [Anforderungen](requirements.html) — User Stories und die sieben nicht-funktionalen Anforderungen
+- [Lokal starten](run-locally.html) — die ganze Anwendung auf einem Arbeitsplatzrechner, mit einem kostenlosen Provider-Stub (englisch)

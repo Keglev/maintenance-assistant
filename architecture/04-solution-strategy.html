@@ -76,6 +76,7 @@
       <ul>
         <li><a href="/maintenance-assistant/requirements.html">Requirements &amp; NFRs</a></li>
         <li><a href="/maintenance-assistant/domain-model.html">Domain model</a></li>
+        <li><a href="/maintenance-assistant/decisions.html">Product decisions</a></li>
       </ul>
 
       <details class="nav-group">
@@ -230,12 +231,12 @@
         Angular + TypeScript, thin · PostgreSQL + pgvector · Keycloak ·
         EU-hosted LLM via an OpenAI-compatible API · Docker Compose ·
         GitHub Actions · Hetzner CX33 (x86_64, 8 GB; revised from
-        CAX/arm64, see DECISIONS.txt). Inference runs on the
-        <strong>IONOS AI Model Hub</strong>: <code>BAAI/bge-m3</code>
-        for embeddings (<strong>1024 dimensions</strong>, which fixes
-        the pgvector column width) and
-        <code>meta-llama/Llama-3.3-70B-Instruct</code> /
-        <code>Qwen/Qwen3.5-9B</code> for generation, with the per-role
+        CAX/arm64, see the <a href="../decisions.html#costs">product
+        decisions</a>). Inference runs on the <strong>IONOS AI Model
+        Hub</strong>: <code>BAAI/bge-m3</code> for embeddings
+        (<strong>1024 dimensions</strong>, which fixes the pgvector
+        column width) and <code>meta-llama/Llama-3.3-70B-Instruct</code>
+        / <code>Qwen/Qwen3.5-9B</code> for generation, with the per-role
         choice made in Phase 3 (<a
         href="../adr/ADR-002-eu-hosted-llm-provider.html">ADR-002</a>).
         Spring AI is adopted only if it is compatible with Boot 4.1;

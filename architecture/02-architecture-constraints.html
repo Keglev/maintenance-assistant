@@ -76,6 +76,7 @@
       <ul>
         <li><a href="/maintenance-assistant/requirements.html">Requirements &amp; NFRs</a></li>
         <li><a href="/maintenance-assistant/domain-model.html">Domain model</a></li>
+        <li><a href="/maintenance-assistant/decisions.html">Product decisions</a></li>
       </ul>
 
       <details class="nav-group">
@@ -156,9 +157,9 @@
         <tr class="even">
         <td>TC-2</td>
         <td><strong>Single VPS, ~8 GB RAM</strong> (Hetzner CX33, x86_64
-        — revised from the planned CAX21/arm64 on 2026-08-06, see
-        DECISIONS.txt). Full stack via one
-        <code>docker compose up</code>.</td>
+        — revised from the planned CAX21/arm64 on 2026-08-06, see the <a
+        href="../decisions.html#costs">product decisions</a>). Full
+        stack via one <code>docker compose up</code>.</td>
         <td>NFR-5 and the cost decisions: 4 GB was rejected (OOM risk
         during indexing), 8 GB confirmed.</td>
         </tr>
@@ -172,12 +173,13 @@
         <td>AMENDED 2026-08-25. The constraint used to read “every image
         is published for amd64 <strong>and</strong> arm64” — untrue
         since 2026-08-10, when both deploy workflows dropped the arm64
-        leg (DECISIONS.txt, “REVISED AGAIN 2026-08-10”): the arm64 image
-        had no consumer, and building it under QEMU emulation hung 13+
-        minutes before dying on <code>npm ci</code> with “qemu: uncaught
-        target signal 4 (Illegal instruction)”. Moving to an arm64 host
-        is therefore a build-platform change — one line per workflow, or
-        better a native arm64 runner — and still not a code change.</td>
+        leg (<a href="../decisions.html#costs">product decisions</a>):
+        the arm64 image had no consumer, and building it under QEMU
+        emulation hung 13+ minutes before dying on <code>npm ci</code>
+        with “qemu: uncaught target signal 4 (Illegal instruction)”.
+        Moving to an arm64 host is therefore a build-platform change —
+        one line per workflow, or better a native arm64 runner — and
+        still not a code change.</td>
         </tr>
         <tr class="even">
         <td>TC-4</td>
@@ -214,7 +216,8 @@
         requirement.</strong> Nothing is translated anywhere; texts are
         stored as written and DE↔︎EN is bridged by the embedding
         space.</td>
-        <td>DECISIONS.txt; <a
+        <td><a href="../decisions.html#product">Product decisions</a>;
+        <a
         href="../adr/ADR-002-eu-hosted-llm-provider.html">ADR-002</a>.</td>
         </tr>
         <tr class="odd">

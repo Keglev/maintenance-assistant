@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Docs · decisions · maintenance-assistant Docs</title>
+
+  <!-- Set the theme before the stylesheet paints, otherwise the page flashes
+       the default theme for one frame before the saved choice applies. -->
+  <script>
+    (function () {
+      try {
+        var t = localStorage.getItem("maintenance-assistant-theme") ||
+          (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+        document.documentElement.setAttribute("data-theme", t);
+      } catch (e) {
+        document.documentElement.setAttribute("data-theme", "light");
+      }
+    })();
+  </script>
+
+  <link rel="stylesheet" href="/maintenance-assistant/assets/docs.css" />
+</head>
+
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <header class="topbar">
+    <div class="topbar-inner">
+      <button class="menu-btn" aria-label="Toggle navigation">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="18" x2="21" y2="18" />
+        </svg>
+      </button>
+
+      <a href="/maintenance-assistant/" class="brand">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <path d="M14.7 6.3a5 5 0 0 0-6.6 6.6l-5 5a2 2 0 1 0 2.8 2.8l5-5a5 5 0 0 0 6.6-6.6l-2.9 2.9-2.1-2.1 2.2-3.6z" />
+        </svg>
+        maintenance-assistant Docs
+      </a>
+
+      <div class="topbar-tools">
+        <span class="lang-switch">
+          <a href="/maintenance-assistant/" aria-current="true">EN</a>
+          <a href="/maintenance-assistant/index-de.html">DE</a>
+        </span>
+        <button class="theme-toggle" aria-label="Toggle light or dark theme">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <circle cx="12" cy="12" r="9" /><path d="M12 3a9 9 0 0 0 0 18z" fill="currentColor" stroke="none" />
+          </svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <div class="layout">
+    <!-- Sidebar navigation, included by app-docs.html as a Pandoc partial. One
+         sidebar serves the whole site: this repository has a single arc42 tree and a
+         single decision log, so the per-tier sidebars the sibling repositories need
+         would be three copies of the same list here. The active link is marked at
+         runtime by docs.js. Do not put template syntax in this comment - a partial
+         is itself a template. -->
+    <aside class="sidebar">
+      <p class="nav-title">Docs</p>
+      <ul>
+        <li><a href="/maintenance-assistant/">Docs home</a></li>
+        <li><a href="/maintenance-assistant/overview.html">Overview</a></li>
+        <li><a href="/maintenance-assistant/overview-de.html">&Uuml;berblick (DE)</a></li>
+        <li><a href="/maintenance-assistant/llm-approach.html">AI &amp; LLM approach</a></li>
+        <li><a href="/maintenance-assistant/run-locally.html">Run it locally</a></li>
+      </ul>
+
+      <p class="nav-title">Requirements</p>
+      <ul>
+        <li><a href="/maintenance-assistant/requirements.html">Requirements &amp; NFRs</a></li>
+        <li><a href="/maintenance-assistant/domain-model.html">Domain model</a></li>
+        <li><a href="/maintenance-assistant/decisions.html">Product decisions</a></li>
+      </ul>
+
+      <details class="nav-group">
+        <summary>Architecture (arc42)</summary>
+        <ul>
+          <li><a href="/maintenance-assistant/architecture/index.html">Architecture index</a></li>
+          <li><a href="/maintenance-assistant/architecture/01-introduction-and-goals.html">1 &middot; Introduction &amp; Goals</a></li>
+          <li><a href="/maintenance-assistant/architecture/02-architecture-constraints.html">2 &middot; Constraints</a></li>
+          <li><a href="/maintenance-assistant/architecture/03-context-and-scope.html">3 &middot; Context &amp; Scope</a></li>
+          <li><a href="/maintenance-assistant/architecture/04-solution-strategy.html">4 &middot; Solution Strategy</a></li>
+          <li><a href="/maintenance-assistant/architecture/05-building-block-view.html">5 &middot; Building Blocks</a></li>
+          <li><a href="/maintenance-assistant/architecture/06-runtime-view.html">6 &middot; Runtime View</a></li>
+          <li><a href="/maintenance-assistant/architecture/07-deployment-view.html">7 &middot; Deployment</a></li>
+          <li><a href="/maintenance-assistant/architecture/07a-ops-rules.html">7a &middot; Ops rules</a></li>
+          <li><a href="/maintenance-assistant/architecture/08-crosscutting-concepts.html">8 &middot; Concepts</a></li>
+          <li><a href="/maintenance-assistant/architecture/09-architecture-decisions.html">9 &middot; Decisions</a></li>
+          <li><a href="/maintenance-assistant/architecture/10-quality-requirements.html">10 &middot; Quality Requirements</a></li>
+          <li><a href="/maintenance-assistant/architecture/11-risks-and-technical-debt.html">11 &middot; Risks &amp; Debt</a></li>
+          <li><a href="/maintenance-assistant/architecture/12-glossary.html">12 &middot; Glossary</a></li>
+        </ul>
+      </details>
+
+      <details class="nav-group">
+        <summary>Decisions (ADRs)</summary>
+        <ul>
+          <li><a href="/maintenance-assistant/adr/index.html">Decision index</a></li>
+          <li><a href="/maintenance-assistant/adr/ADR-001-modular-monolith-first.html">ADR-001 Modular monolith</a></li>
+          <li><a href="/maintenance-assistant/adr/ADR-002-eu-hosted-llm-provider.html">ADR-002 EU LLM provider</a></li>
+          <li><a href="/maintenance-assistant/adr/ADR-003-keycloak-for-iam.html">ADR-003 Keycloak as IdP</a></li>
+          <li><a href="/maintenance-assistant/adr/ADR-004-pgvector-for-vector-search.html">ADR-004 pgvector</a></li>
+          <li><a href="/maintenance-assistant/adr/ADR-010-docs-tree-conventions.html">ADR-010 Docs tree conventions</a></li>
+          <li><a href="/maintenance-assistant/adr/ADR-011-guided-questions.html">ADR-011 Guided questions</a></li>
+          <li><a href="/maintenance-assistant/adr/ADR-013-markdown-only-docs.html">ADR-013 Markdown-only docs</a></li>
+        </ul>
+      </details>
+
+      <p class="nav-title">Frontend</p>
+      <ul>
+        <li><a href="/maintenance-assistant/frontend-architecture.html">Frontend architecture</a></li>
+      </ul>
+
+      <p class="nav-title">Quality</p>
+      <ul>
+        <li><a href="/maintenance-assistant/refactor-standards.html">Refactor standards</a></li>
+        <li><a href="/maintenance-assistant/backend/api-docs/index.html">Backend API</a></li>
+        <li><a href="/maintenance-assistant/frontend/api-docs/index.html">Frontend API</a></li>
+        <li><a href="/maintenance-assistant/backend/coverage/index.html">Backend coverage</a></li>
+        <li><a href="/maintenance-assistant/frontend/coverage/index.html">Frontend coverage</a></li>
+      </ul>
+    </aside>
+    <main class="content" id="main">
+      <article class="doc-body">
+        <h1 id="product-decisions">Product decisions</h1>
+        <p>The decisions that shape the product, in short form: what was
+        decided and why, one point each. The formal records with
+        context, options and consequences are the <a
+        href="adr/index.html">architecture decision records</a>; where a
+        point here summarises an ADR, the ADR is the one that decides.
+        <a href="requirements.html">Requirements</a> and the <a
+        href="domain-model.html">domain model</a> hold the details.</p>
+        <table>
+        <colgroup>
+        <col style="width: 50%" />
+        <col style="width: 50%" />
+        </colgroup>
+        <thead>
+        <tr class="header">
+        <th>Page</th>
+        <th>Covers</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr class="odd">
+        <td>This page</td>
+        <td>Product scope, roles, answer modes, corpus, data model,
+        costs</td>
+        </tr>
+        <tr class="even">
+        <td><a href="decisions-architecture.html">Architecture and
+        ingestion</a></td>
+        <td>Stack, provider, identity, upload rules, ingestion
+        pipeline</td>
+        </tr>
+        <tr class="odd">
+        <td><a href="decisions-query-and-ui.html">Query path and
+        UI</a></td>
+        <td>Retrieval and answers, retrieval quality, interface, browser
+        security</td>
+        </tr>
+        </tbody>
+        </table>
+        <h2 id="product">Product</h2>
+        <ul>
+        <li><strong>Domain:</strong> industrial maintenance
+        (Instandhaltung), not procurement.</li>
+        <li><strong>Problem:</strong> maintenance knowledge is trapped
+        in PDFs, scans, paper and people’s heads; the night shift runs
+        without a technician; faults get re-diagnosed although they were
+        solved last month.</li>
+        <li><strong>Not a ticketing or CMMS system;</strong> the
+        escalation chain is context only.</li>
+        <li><strong>Roles:</strong> Operator (operator-safe answers
+        only), Techniker (full answers, files protocols), Schichtleiter
+        (full answers, files and corrects protocols), Admin (Keycloak IT
+        role and the corpus moderator: reads and archives any protocol,
+        <a
+        href="adr/ADR-006-insider-threat-and-protocol-moderation.html">ADR-006</a>;
+        no query access, it has no maintenance question to ask).</li>
+        <li><strong>Techniker may write, never edit</strong> (decision 3
+        of 2026-08-11). Write access is the Techniker’s and the
+        Schichtleiter’s, so the person who fixed a fault files it.
+        Correcting stays with the Schichtleiter, and nobody corrects
+        their own protocol: that is where the quality control sits.</li>
+        <li><strong>Two answer modes, visually distinct</strong> (the
+        anti-hallucination mechanism): Mode A “Belegte Antwort” is
+        grounded, every claim cited; Mode B “Allgemeiner Vorschlag —
+        keine Quelle im Bestand” is labelled ungrounded troubleshooting.
+        Operators get operator-safe steps and escalation advice
+        only.</li>
+        <li><strong>Corpus:</strong> synthetic protocols (generated with
+        Claude, documented in <a href="ai-usage.html">AI usage</a>),
+        about 70% German and 30% English, with a quality mix that
+        includes messy ones. Demo seeds: E-47 on Presse 3 (three
+        protocols), one Mode B gap, one German question that matches an
+        English protocol.</li>
+        <li><strong>No translation anywhere:</strong> texts are stored
+        as written; multilingual embeddings bridge German and
+        English.</li>
+        <li><strong>Search scope:</strong> the exact machine only;
+        “similar machines” is a candidate for later.</li>
+        <li><strong>Protocol types:</strong> STOERUNG and WARTUNG.
+        INSPEKTION is not a type; inspections live in the manufacturers’
+        manuals.</li>
+        <li><strong>UI:</strong> bilingual DE/EN.</li>
+        </ul>
+        <h2 id="data-model">Data model</h2>
+        <ul>
+        <li>Three entities: MACHINE -&gt; PROTOCOL -&gt; CHUNK. The
+        chunk is the search unit, the protocol the citation unit, the
+        machine the filter unit.</li>
+        <li>Users are not in the database: Keycloak claims only;
+        <code>uploaded_by</code> is the username string.</li>
+        <li>Original files live on a Docker volume with their path in
+        the database, no BLOBs.</li>
+        <li>CHUNK carries a denormalised <code>machine_id</code> and
+        <code>error_code</code>, so a filtered vector search is one
+        query.</li>
+        <li><code>error_code</code> is free text: real plants mix
+        catalogues, and a code sometimes points to the wrong problem, so
+        semantic search on the symptom text is the actual retrieval path
+        and the code only a hint.</li>
+        <li>Status lifecycle: RECEIVED -&gt; INDEXED / FAILED.</li>
+        </ul>
+        <h2 id="costs">Costs</h2>
+        <ul>
+        <li><strong>Monthly:</strong> the VPS is about 95% of the cost,
+        the LLM API about 5%. Corpus size is not a cost: embedding the
+        whole corpus costs under a cent once, and the cost per query
+        does not depend on corpus size. So the corpus is kept large for
+        a richer demo.</li>
+        <li><strong>Server:</strong> Hetzner CX33 (x86_64, 4 vCPU, 8
+        GB). ARM was chosen first and dropped: the price advantage
+        disappeared in Hetzner’s 2026-06 restructuring and CAX was out
+        of stock. The deploy workflows build <code>linux/amd64</code>
+        only: an arm64 image built under emulation crashed a deploy
+        (<code>qemu: uncaught target signal 4</code> during
+        <code>npm ci</code>) and had no consumer. Moving to ARM is a
+        server swap plus one line per deploy workflow, better with a
+        native arm64 runner.</li>
+        <li><strong>Not shrinking to 4 GB:</strong> about EUR 5 a month
+        saved against an out-of-memory risk during indexing, which is a
+        broken-demo risk.</li>
+        <li><strong>Pausing</strong> means snapshot, then delete the
+        server (a stopped server still bills in full); pay during
+        application phases, snapshot only in real pauses.</li>
+        <li><strong>Token abuse protection</strong> (NFR-7), three
+        layers: the provider’s cost alerts (there is no hard spending
+        cap at IONOS), the application’s limits (per-user rate limit,
+        daily call budgets in Postgres, capped output tokens, an answer
+        cache), and daily usage logging. Worst case, a thousand spam
+        queries cost a few euros: the risk is surprise, not ruin.</li>
+        </ul>
+        <p><a href="index.html">Back to the docs home</a></p>
+      </article>
+    </main>
+
+        <nav class="toc" aria-label="On this page">
+      <p class="toc-title">On this page</p>
+      <ul>
+      <li><a href="#product-decisions"
+      id="toc-product-decisions">Product decisions</a>
+      <ul>
+      <li><a href="#product" id="toc-product">Product</a></li>
+      <li><a href="#data-model" id="toc-data-model">Data model</a></li>
+      <li><a href="#costs" id="toc-costs">Costs</a></li>
+      </ul></li>
+      </ul>
+    </nav>
+      </div>
+
+  <footer class="footer">
+    maintenance-assistant · Generated by the docs pipeline
+  </footer>
+
+  <script src="/maintenance-assistant/assets/docs.js"></script>
+</body>
+</html>

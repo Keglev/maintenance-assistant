@@ -75,6 +75,7 @@
       <ul>
         <li><a href="/maintenance-assistant/requirements.html">Requirements &amp; NFRs</a></li>
         <li><a href="/maintenance-assistant/domain-model.html">Domain model</a></li>
+        <li><a href="/maintenance-assistant/decisions.html">Product decisions</a></li>
       </ul>
 
       <details class="nav-group">
@@ -164,10 +165,10 @@
         <ul>
         <li>All design documents and the decisions in them:
         <code>docs/requirements.md</code>,
-        <code>docs/domain-model.md</code>,
-        <code>docs/DECISIONS.txt</code>, and the project handover
-        <code>docs/PROJECT-PHASES.txt</code> (archived under git tag
-        <code>archive/handover-2026-11</code>).</li>
+        <code>docs/domain-model.md</code>, the <a
+        href="decisions.html">product decisions</a>, and the project
+        handover <code>docs/PROJECT-PHASES.txt</code> (archived under
+        git tag <code>archive/handover-2026-11</code>).</li>
         <li>Every architecture decision recorded in
         <code>docs/adr/</code> — the trade-offs, the rejected
         alternatives and the reasoning are mine; a model helped phrase
@@ -249,7 +250,8 @@
         <p>The provisioning script, the production compose stack, the
         Caddy configuration and the frontend’s runtime-config change
         were AI-generated; the hosting decision behind them (CX33 over
-        the planned CAX21) is mine and is recorded in DECISIONS.txt.</p>
+        the planned CAX21) is mine and is recorded in the <a
+        href="decisions.html#costs">product decisions</a>.</p>
         <p>Verification was the deployment itself, against the live
         server: TLS certificates checked for issuer and validity, and a
         <strong>complete Authorization Code + PKCE login driven end to
@@ -278,10 +280,10 @@
         <p>The Flyway baseline schema, the index set, the repeatable
         machine seed and the schema documentation in
         <code>docs/arc42/08-crosscutting-concepts.md</code> were
-        AI-generated from <code>docs/domain-model.md</code> and
-        <code>docs/DECISIONS.txt</code>, which were handed over as the
-        source of truth. The domain model itself — three entities, users
-        outside the database, files on a volume, denormalized
+        AI-generated from <code>docs/domain-model.md</code> and the
+        product decisions, which were handed over as the source of
+        truth. The domain model itself — three entities, users outside
+        the database, files on a volume, denormalized
         <code>machine_id</code> on the chunk, <code>error_code</code> as
         free text — is mine and predates this session.</p>
         <p>One decision was genuinely open and was made here:
@@ -332,12 +334,12 @@
         the demo scenarios, the quality mix, and the instruction that
         protocols must read like plant documentation rather than like a
         textbook. Those come from <code>docs/domain-model.md</code> and
-        <code>docs/DECISIONS.txt</code>, and behind them from my own
-        experience with maintenance documentation in US and German
-        manufacturing — including the specific insistence that a real
-        plant’s faults are <em>not</em> all technician-level defects,
-        that alarm codes routinely point at the wrong component, and
-        that some faults are simply never explained.</p>
+        the product decisions, and behind them from my own experience
+        with maintenance documentation in US and German manufacturing —
+        including the specific insistence that a real plant’s faults are
+        <em>not</em> all technician-level defects, that alarm codes
+        routinely point at the wrong component, and that some faults are
+        simply never explained.</p>
         <p><strong>Why synthetic at all:</strong> no real customer
         document is used anywhere in this project, by design. That is a
         data-protection decision, not a convenience one. The trade-off
@@ -352,8 +354,8 @@
         <li><em>Distribution counted, not estimated.</em> Every figure
         in domain-model.md §4 is counted from the file. The first pass
         came out at 79% clean prose against the ~60/30/10 quality mix
-        that DECISIONS.txt calls for — measuring it is what caught that,
-        and 40 protocols were rewritten into shift-note and
+        that the product decisions call for — measuring it is what
+        caught that, and 40 protocols were rewritten into shift-note and
         short-unhelpful form before this was committed.</li>
         <li><em>The demo scenarios were checked against the database
         with SQL, not assumed.</em> The Mode B gap was verified by
@@ -390,8 +392,8 @@
         embedding client, the chunker, the budget counter and the
         Testcontainers suite were AI-generated. The decisions they
         implement are not: the module boundaries come from ADR-001, the
-        provider and its caveats from ADR-002, the role model from
-        DECISIONS.txt.</p>
+        provider and its caveats from ADR-002, the role model from the
+        <a href="decisions.html#product">product decisions</a>.</p>
         <p>One genuinely open decision was settled here, by measurement
         rather than preference: <strong>Spring AI vs a plain
         <code>RestClient</code> on Boot 4.1</strong>. It is worth being
@@ -456,9 +458,9 @@
         guards and the Angular search and upload views were
         AI-generated. The decisions they implement are older than the
         sessions that wrote them: the two answer modes and the rule that
-        Mode B shows <em>no</em> source area come from DECISIONS.txt,
-        the provider and the language pinning from ADR-002, the role
-        model from ADR-003.</p>
+        Mode B shows <em>no</em> source area come from the product
+        decisions, the provider and the language pinning from ADR-002,
+        the role model from ADR-003.</p>
         <p>Three results came out of running it rather than reasoning
         about it, and all three changed the code or the
         configuration:</p>

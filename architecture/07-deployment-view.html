@@ -76,6 +76,7 @@
       <ul>
         <li><a href="/maintenance-assistant/requirements.html">Requirements &amp; NFRs</a></li>
         <li><a href="/maintenance-assistant/domain-model.html">Domain model</a></li>
+        <li><a href="/maintenance-assistant/decisions.html">Product decisions</a></li>
       </ul>
 
       <details class="nav-group">
@@ -165,9 +166,9 @@
         <tr class="even">
         <td><strong>Images</strong></td>
         <td><code>ghcr.io/keglev/maintenance-assistant/{backend,frontend}</code>,
-        built <code>linux/amd64</code> only since 2026-08-10
-        (DECISIONS.txt, “REVISED AGAIN 2026-08-10”); the base images
-        stay multi-arch</td>
+        built <code>linux/amd64</code> only since 2026-08-10 (<a
+        href="../decisions.html#costs">product decisions</a>); the base
+        images stay multi-arch</td>
         </tr>
         <tr class="odd">
         <td><strong>Stack definition</strong></td>
@@ -184,9 +185,10 @@
         </tbody>
         </table>
         <p>The host was planned as a CAX21 (arm64) and is a CX33
-        (x86_64); the reasoning and date are recorded in DECISIONS.txt.
-        That revision changed a purchase order and nothing else — but
-        the follow-on did cost something, and the record says so: on
+        (x86_64); the reasoning and date are recorded in the <a
+        href="../decisions.html#costs">product decisions</a>. That
+        revision changed a purchase order and nothing else — but the
+        follow-on did cost something, and the record says so: on
         2026-08-10 the arm64 build leg was removed because it had no
         consumer and was crashing under QEMU. Moving back to an arm64
         host is now a purchase order PLUS restoring one line in each
@@ -838,11 +840,11 @@ drwxr-xr-x 2 0 0 …            touch: Permission denied</code></pre>
         server; the snapshot itself costs cents per month. Recreating
         from a snapshot gives a new IP, so the DNS records for both
         hostnames must be repointed before Caddy can renew a
-        certificate. Per DECISIONS.txt the standing decision is to
-        <strong>pay during application phases and snapshot only in a
-        real pause</strong> — and never to delete the server while
-        applications are out, because the demo link in them has to keep
-        working.</p>
+        certificate. Per the <a href="../decisions.html#costs">product
+        decisions</a> the standing decision is to <strong>pay during
+        application phases and snapshot only in a real pause</strong> —
+        and never to delete the server while applications are out,
+        because the demo link in them has to keep working.</p>
         <p><strong>Restoring</strong> is a Hetzner console action:
         create a server from the snapshot, repoint DNS, and let Caddy
         re-issue. The application data is then whatever the snapshot

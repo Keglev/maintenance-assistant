@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Docs ·
+decisions-architecture · maintenance-assistant Docs</title>
+
+  <!-- Set the theme before the stylesheet paints, otherwise the page flashes
+       the default theme for one frame before the saved choice applies. -->
+  <script>
+    (function () {
+      try {
+        var t = localStorage.getItem("maintenance-assistant-theme") ||
+          (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+        document.documentElement.setAttribute("data-theme", t);
+      } catch (e) {
+        document.documentElement.setAttribute("data-theme", "light");
+      }
+    })();
+  </script>
+
+  <link rel="stylesheet" href="/maintenance-assistant/assets/docs.css" />
+</head>
+
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <header class="topbar">
+    <div class="topbar-inner">
+      <button class="menu-btn" aria-label="Toggle navigation">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="18" x2="21" y2="18" />
+        </svg>
+      </button>
+
+      <a href="/maintenance-assistant/" class="brand">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <path d="M14.7 6.3a5 5 0 0 0-6.6 6.6l-5 5a2 2 0 1 0 2.8 2.8l5-5a5 5 0 0 0 6.6-6.6l-2.9 2.9-2.1-2.1 2.2-3.6z" />
+        </svg>
+        maintenance-assistant Docs
+      </a>
+
+      <div class="topbar-tools">
+        <span class="lang-switch">
+          <a href="/maintenance-assistant/" aria-current="true">EN</a>
+          <a href="/maintenance-assistant/index-de.html">DE</a>
+        </span>
+        <button class="theme-toggle" aria-label="Toggle light or dark theme">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <circle cx="12" cy="12" r="9" /><path d="M12 3a9 9 0 0 0 0 18z" fill="currentColor" stroke="none" />
+          </svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <div class="layout">
+    <!-- Sidebar navigation, included by app-docs.html as a Pandoc partial. One
+         sidebar serves the whole site: this repository has a single arc42 tree and a
+         single decision log, so the per-tier sidebars the sibling repositories need
+         would be three copies of the same list here. The active link is marked at
+         runtime by docs.js. Do not put template syntax in this comment - a partial
+         is itself a template. -->
+    <aside class="sidebar">
+      <p class="nav-title">Docs</p>
+      <ul>
+        <li><a href="/maintenance-assistant/">Docs home</a></li>
+        <li><a href="/maintenance-assistant/overview.html">Overview</a></li>
+        <li><a href="/maintenance-assistant/overview-de.html">&Uuml;berblick (DE)</a></li>
+        <li><a href="/maintenance-assistant/llm-approach.html">AI &amp; LLM approach</a></li>
+        <li><a href="/maintenance-assistant/run-locally.html">Run it locally</a></li>
+      </ul>
+
+      <p class="nav-title">Requirements</p>
+      <ul>
+        <li><a href="/maintenance-assistant/requirements.html">Requirements &amp; NFRs</a></li>
+        <li><a href="/maintenance-assistant/domain-model.html">Domain model</a></li>
+        <li><a href="/maintenance-assistant/decisions.html">Product decisions</a></li>
+      </ul>
+
+      <details class="nav-group">
+        <summary>Architecture (arc42)</summary>
+        <ul>
+          <li><a href="/maintenance-assistant/architecture/index.html">Architecture index</a></li>
+          <li><a href="/maintenance-assistant/architecture/01-introduction-and-goals.html">1 &middot; Introduction &amp; Goals</a></li>
+          <li><a href="/maintenance-assistant/architecture/02-architecture-constraints.html">2 &middot; Constraints</a></li>
+          <li><a href="/maintenance-assistant/architecture/03-context-and-scope.html">3 &middot; Context &amp; Scope</a></li>
+          <li><a href="/maintenance-assistant/architecture/04-solution-strategy.html">4 &middot; Solution Strategy</a></li>
+          <li><a href="/maintenance-assistant/architecture/05-building-block-view.html">5 &middot; Building Blocks</a></li>
+          <li><a href="/maintenance-assistant/architecture/06-runtime-view.html">6 &middot; Runtime View</a></li>
+          <li><a href="/maintenance-assistant/architecture/07-deployment-view.html">7 &middot; Deployment</a></li>
+          <li><a href="/maintenance-assistant/architecture/07a-ops-rules.html">7a &middot; Ops rules</a></li>
+          <li><a href="/maintenance-assistant/architecture/08-crosscutting-concepts.html">8 &middot; Concepts</a></li>
+          <li><a href="/maintenance-assistant/architecture/09-architecture-decisions.html">9 &middot; Decisions</a></li>
+          <li><a href="/maintenance-assistant/architecture/10-quality-requirements.html">10 &middot; Quality Requirements</a></li>
+          <li><a href="/maintenance-assistant/architecture/11-risks-and-technical-debt.html">11 &middot; Risks &amp; Debt</a></li>
+          <li><a href="/maintenance-assistant/architecture/12-glossary.html">12 &middot; Glossary</a></li>
+        </ul>
+      </details>
+
+      <details class="nav-group">
+        <summary>Decisions (ADRs)</summary>
+        <ul>
+          <li><a href="/maintenance-assistant/adr/index.html">Decision index</a></li>
+          <li><a href="/maintenance-assistant/adr/ADR-001-modular-monolith-first.html">ADR-001 Modular monolith</a></li>
+          <li><a href="/maintenance-assistant/adr/ADR-002-eu-hosted-llm-provider.html">ADR-002 EU LLM provider</a></li>
+          <li><a href="/maintenance-assistant/adr/ADR-003-keycloak-for-iam.html">ADR-003 Keycloak as IdP</a></li>
+          <li><a href="/maintenance-assistant/adr/ADR-004-pgvector-for-vector-search.html">ADR-004 pgvector</a></li>
+          <li><a href="/maintenance-assistant/adr/ADR-010-docs-tree-conventions.html">ADR-010 Docs tree conventions</a></li>
+          <li><a href="/maintenance-assistant/adr/ADR-011-guided-questions.html">ADR-011 Guided questions</a></li>
+          <li><a href="/maintenance-assistant/adr/ADR-013-markdown-only-docs.html">ADR-013 Markdown-only docs</a></li>
+        </ul>
+      </details>
+
+      <p class="nav-title">Frontend</p>
+      <ul>
+        <li><a href="/maintenance-assistant/frontend-architecture.html">Frontend architecture</a></li>
+      </ul>
+
+      <p class="nav-title">Quality</p>
+      <ul>
+        <li><a href="/maintenance-assistant/refactor-standards.html">Refactor standards</a></li>
+        <li><a href="/maintenance-assistant/backend/api-docs/index.html">Backend API</a></li>
+        <li><a href="/maintenance-assistant/frontend/api-docs/index.html">Frontend API</a></li>
+        <li><a href="/maintenance-assistant/backend/coverage/index.html">Backend coverage</a></li>
+        <li><a href="/maintenance-assistant/frontend/coverage/index.html">Frontend coverage</a></li>
+      </ul>
+    </aside>
+    <main class="content" id="main">
+      <article class="doc-body">
+        <h1 id="architecture-and-ingestion-decisions">Architecture and
+        ingestion decisions</h1>
+        <p>Part of the <a href="decisions.html">product decisions</a>.
+        Each point that summarises an ADR links it; the ADR decides.</p>
+        <h2 id="stack-and-structure">Stack and structure</h2>
+        <ul>
+        <li><strong>Stack:</strong> Java 21, Spring Boot 4 (3.x is end
+        of life since 2026-06-30), Angular and TypeScript, PostgreSQL
+        with pgvector, Keycloak, Docker Compose, GitHub Actions, a
+        Hetzner VPS.</li>
+        <li><strong>Modular monolith first</strong> (<a
+        href="adr/ADR-001-modular-monolith-first.html">ADR-001</a>):
+        packages <code>ingestion</code>, <code>query</code>,
+        <code>web</code>, Spring events for asynchronous work;
+        extracting the ingestion service with Kafka is a later step that
+        needs its own ADR.</li>
+        <li><strong>pgvector inside Postgres, no dedicated vector
+        database</strong> (<a
+        href="adr/ADR-004-pgvector-for-vector-search.html">ADR-004</a>):
+        relational filter and vector ranking in one query, one backup,
+        no cross-store consistency problem. The scale ceiling is
+        documented.</li>
+        <li><strong>The Java base package stays
+        <code>com.keglevich.maintenanceassistant</code>.</strong> A
+        rename would touch every file for no functional gain and muddy
+        the history. Robots must not rename it.</li>
+        </ul>
+        <h2 id="provider">Provider</h2>
+        <ul>
+        <li><strong>IONOS AI Model Hub</strong> (<a
+        href="adr/ADR-002-eu-hosted-llm-provider.html">ADR-002</a>),
+        decided on a measured two-round spike. A multilingual embedding
+        model is a hard requirement. The documented fallback is a second
+        IONOS model, <code>openai/gpt-oss-120b</code> (ADR-002, revision
+        of 2026-08-27).</li>
+        <li><strong>Embeddings:</strong> BAAI/bge-m3, 1024 dimensions,
+        so the pgvector column is <code>vector(1024)</code>.</li>
+        <li><strong>Chat:</strong> meta-llama/Llama-3.3-70B-Instruct for
+        every role (details on <a
+        href="decisions-query-and-ui.html">Query path and UI</a>).</li>
+        <li><strong>A provider swap stays a configuration
+        change</strong> (OpenAI-compatible API), with three caveats:
+        IONOS needs an explicit <code>encoding_format</code> (the
+        gateway answers 500 to the SDK’s base64 default), the
+        <code>*-migration</code> model aliases are ignored, and Qwen3.5
+        models need <code>reasoning_effort="none"</code> or they return
+        empty content.</li>
+        <li><strong>Plain RestClient, not Spring AI.</strong> Spring AI
+        2.0 is compatible with Boot 4.1 (measured in the <a
+        href="https://github.com/Keglev/maintenance-assistant/blob/main/docs/evidence/spring-ai-boot4/RESULTS.md">Spring
+        AI spike</a>) and is declined on proportion: the need is one
+        POST per call, the starter pulls a large dependency tree none of
+        which is used, and both failures in the spike came from the
+        client assuming real OpenAI. The provider is OpenAI-compatible,
+        not OpenAI. The call sits behind narrow
+        <code>EmbeddingClient</code> and <code>ChatClient</code>
+        interfaces, so adopting a framework later is a second
+        implementation, not a rewrite.</li>
+        <li><strong>Typed records for provider responses.</strong> Boot
+        4.1 ships Jackson 3 as the message-converter default while
+        Jackson 2 is still on the classpath, so asking a RestClient for
+        a <code>com.fasterxml</code> <code>JsonNode</code> fails at
+        runtime; typed records bind under either.</li>
+        </ul>
+        <h2 id="identity-and-demo-login">Identity and demo login</h2>
+        <ul>
+        <li><strong>Keycloak as identity provider</strong> (<a
+        href="adr/ADR-003-keycloak-for-iam.html">ADR-003</a>):
+        Authorization Code Flow with PKCE in the SPA, OAuth2 Resource
+        Server in the backend, realm configuration exported and
+        versioned. “Keycloak vs OAuth2” is a category error: OAuth2 and
+        OIDC are protocols, Keycloak is an implementation.</li>
+        <li><strong>Demo login uses <code>login_hint</code>.</strong>
+        The landing page offers one button per demo user that starts the
+        normal Code + PKCE redirect with the username prefilled; the
+        visitor types only the shared password. Full one-click login was
+        rejected both ways: the password grant would expose the realm’s
+        token endpoint to password spraying against every user, and an
+        autofilling login theme is a hand-deployed artifact bought for a
+        cosmetic gain. The demo box states the boundary: isolated realm,
+        synthetic data only, rate-limited, 15-minute sessions.</li>
+        </ul>
+        <h2 id="upload-rules">Upload rules</h2>
+        <ul>
+        <li><strong>No document-language field.</strong> Retrieval is
+        language-agnostic by architecture (bge-m3 embeds German and
+        English into one vector space) and the answer language follows
+        the question, never the document. A field nobody reads, whose
+        wrong answer would be invisible, is worse than none. If a
+        language ever earns a retrieval role, it is detected from the
+        text, not asked for.</li>
+        <li><strong>Four upload guards, all configuration
+        properties:</strong> explicit multipart limits (256 KB file, 512
+        KB request), content validation before anything is stored
+        (empty, not <code>.txt</code>, NUL byte in the first 8 KB), and
+        10 uploads per minute per user with 429 and Retry-After. A
+        refused upload leaves no row and no file. Markdown files are not
+        accepted. The per-user bucket is in memory; the real ceiling is
+        the durable daily embedding budget in Postgres. The numbers are
+        in arc42 section 11.1, “Upload abuse, quantified”.</li>
+        <li>Measured while building the guards: a controller-local
+        <code>@ExceptionHandler</code> never sees
+        <code>MaxUploadSizeExceededException</code> (it must be
+        <code>@ControllerAdvice</code>), its
+        <code>getMaxUploadSize()</code> returns -1, and an
+        unauthenticated oversized upload answers 401, not 413, because
+        the security filter chain runs before multipart parsing.</li>
+        </ul>
+        <h2 id="ingestion">Ingestion</h2>
+        <ul>
+        <li><strong>Pipeline:</strong> upload -&gt; file on the volume
+        -&gt; RECEIVED row -&gt; Spring event -&gt; worker pool -&gt;
+        chunk -&gt; embed -&gt; chunks written -&gt; INDEXED. Any
+        failure -&gt; FAILED with a stored reason, row and file kept.
+        The event carries only a protocol id: that is the seam for a
+        later Kafka extraction.</li>
+        <li><strong>Upload returns 202, not 201:</strong> the protocol
+        exists but is not searchable yet (NFR-4).</li>
+        <li><strong>The transaction does not span the embedding
+        call;</strong> a slow provider would otherwise hold a pooled
+        connection the web layer needs.</li>
+        <li><strong>Chunking is paragraph-based</strong>, not fixed
+        windows: the documents are short and their paragraphs are the
+        labelled sections (Symptom / Ursache / Massnahme). Small
+        sections merge up to about 900 characters, an oversized section
+        splits on sentence ends with 150 characters of overlap, and
+        every chunk is prefixed with “machine - error code - title” so
+        it still says what it is about once separated from its row.</li>
+        <li><strong>Re-indexing is delete-then-write per
+        protocol,</strong> so the catch-up path and any retry are
+        idempotent.</li>
+        <li><strong>The embedding budget is a global daily counter in
+        Postgres</strong> (<code>embedding_budget</code>): ingestion is
+        background load, so the abuse shape is a re-index storm, not one
+        person clicking. The client counts each request as it is served,
+        not the caller on success: the first live run made 150 paid
+        calls that a caller-side counter never saw because every one
+        failed while parsing the response.</li>
+        <li>Embedding the whole corpus cost hundredths of a cent when
+        measured; cents was the estimate.</li>
+        </ul>
+        <p><a href="decisions.html">Back to the product
+        decisions</a></p>
+      </article>
+    </main>
+
+        <nav class="toc" aria-label="On this page">
+      <p class="toc-title">On this page</p>
+      <ul>
+      <li><a href="#architecture-and-ingestion-decisions"
+      id="toc-architecture-and-ingestion-decisions">Architecture and
+      ingestion decisions</a>
+      <ul>
+      <li><a href="#stack-and-structure"
+      id="toc-stack-and-structure">Stack and structure</a></li>
+      <li><a href="#provider" id="toc-provider">Provider</a></li>
+      <li><a href="#identity-and-demo-login"
+      id="toc-identity-and-demo-login">Identity and demo login</a></li>
+      <li><a href="#upload-rules" id="toc-upload-rules">Upload
+      rules</a></li>
+      <li><a href="#ingestion" id="toc-ingestion">Ingestion</a></li>
+      </ul></li>
+      </ul>
+    </nav>
+      </div>
+
+  <footer class="footer">
+    maintenance-assistant · Generated by the docs pipeline
+  </footer>
+
+  <script src="/maintenance-assistant/assets/docs.js"></script>
+</body>
+</html>

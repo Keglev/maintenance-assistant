@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Docs ·
+decisions-query-and-ui · maintenance-assistant Docs</title>
+
+  <!-- Set the theme before the stylesheet paints, otherwise the page flashes
+       the default theme for one frame before the saved choice applies. -->
+  <script>
+    (function () {
+      try {
+        var t = localStorage.getItem("maintenance-assistant-theme") ||
+          (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+        document.documentElement.setAttribute("data-theme", t);
+      } catch (e) {
+        document.documentElement.setAttribute("data-theme", "light");
+      }
+    })();
+  </script>
+
+  <link rel="stylesheet" href="/maintenance-assistant/assets/docs.css" />
+</head>
+
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <header class="topbar">
+    <div class="topbar-inner">
+      <button class="menu-btn" aria-label="Toggle navigation">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="18" x2="21" y2="18" />
+        </svg>
+      </button>
+
+      <a href="/maintenance-assistant/" class="brand">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <path d="M14.7 6.3a5 5 0 0 0-6.6 6.6l-5 5a2 2 0 1 0 2.8 2.8l5-5a5 5 0 0 0 6.6-6.6l-2.9 2.9-2.1-2.1 2.2-3.6z" />
+        </svg>
+        maintenance-assistant Docs
+      </a>
+
+      <div class="topbar-tools">
+        <span class="lang-switch">
+          <a href="/maintenance-assistant/" aria-current="true">EN</a>
+          <a href="/maintenance-assistant/index-de.html">DE</a>
+        </span>
+        <button class="theme-toggle" aria-label="Toggle light or dark theme">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <circle cx="12" cy="12" r="9" /><path d="M12 3a9 9 0 0 0 0 18z" fill="currentColor" stroke="none" />
+          </svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <div class="layout">
+    <!-- Sidebar navigation, included by app-docs.html as a Pandoc partial. One
+         sidebar serves the whole site: this repository has a single arc42 tree and a
+         single decision log, so the per-tier sidebars the sibling repositories need
+         would be three copies of the same list here. The active link is marked at
+         runtime by docs.js. Do not put template syntax in this comment - a partial
+         is itself a template. -->
+    <aside class="sidebar">
+      <p class="nav-title">Docs</p>
+      <ul>
+        <li><a href="/maintenance-assistant/">Docs home</a></li>
+        <li><a href="/maintenance-assistant/overview.html">Overview</a></li>
+        <li><a href="/maintenance-assistant/overview-de.html">&Uuml;berblick (DE)</a></li>
+        <li><a href="/maintenance-assistant/llm-approach.html">AI &amp; LLM approach</a></li>
+        <li><a href="/maintenance-assistant/run-locally.html">Run it locally</a></li>
+      </ul>
+
+      <p class="nav-title">Requirements</p>
+      <ul>
+        <li><a href="/maintenance-assistant/requirements.html">Requirements &amp; NFRs</a></li>
+        <li><a href="/maintenance-assistant/domain-model.html">Domain model</a></li>
+        <li><a href="/maintenance-assistant/decisions.html">Product decisions</a></li>
+      </ul>
+
+      <details class="nav-group">
+        <summary>Architecture (arc42)</summary>
+        <ul>
+          <li><a href="/maintenance-assistant/architecture/index.html">Architecture index</a></li>
+          <li><a href="/maintenance-assistant/architecture/01-introduction-and-goals.html">1 &middot; Introduction &amp; Goals</a></li>
+          <li><a href="/maintenance-assistant/architecture/02-architecture-constraints.html">2 &middot; Constraints</a></li>
+          <li><a href="/maintenance-assistant/architecture/03-context-and-scope.html">3 &middot; Context &amp; Scope</a></li>
+          <li><a href="/maintenance-assistant/architecture/04-solution-strategy.html">4 &middot; Solution Strategy</a></li>
+          <li><a href="/maintenance-assistant/architecture/05-building-block-view.html">5 &middot; Building Blocks</a></li>
+          <li><a href="/maintenance-assistant/architecture/06-runtime-view.html">6 &middot; Runtime View</a></li>
+          <li><a href="/maintenance-assistant/architecture/07-deployment-view.html">7 &middot; Deployment</a></li>
+          <li><a href="/maintenance-assistant/architecture/07a-ops-rules.html">7a &middot; Ops rules</a></li>
+          <li><a href="/maintenance-assistant/architecture/08-crosscutting-concepts.html">8 &middot; Concepts</a></li>
+          <li><a href="/maintenance-assistant/architecture/09-architecture-decisions.html">9 &middot; Decisions</a></li>
+          <li><a href="/maintenance-assistant/architecture/10-quality-requirements.html">10 &middot; Quality Requirements</a></li>
+          <li><a href="/maintenance-assistant/architecture/11-risks-and-technical-debt.html">11 &middot; Risks &amp; Debt</a></li>
+          <li><a href="/maintenance-assistant/architecture/12-glossary.html">12 &middot; Glossary</a></li>
+        </ul>
+      </details>
+
+      <details class="nav-group">
+        <summary>Decisions (ADRs)</summary>
+        <ul>
+          <li><a href="/maintenance-assistant/adr/index.html">Decision index</a></li>
+          <li><a href="/maintenance-assistant/adr/ADR-001-modular-monolith-first.html">ADR-001 Modular monolith</a></li>
+          <li><a href="/maintenance-assistant/adr/ADR-002-eu-hosted-llm-provider.html">ADR-002 EU LLM provider</a></li>
+          <li><a href="/maintenance-assistant/adr/ADR-003-keycloak-for-iam.html">ADR-003 Keycloak as IdP</a></li>
+          <li><a href="/maintenance-assistant/adr/ADR-004-pgvector-for-vector-search.html">ADR-004 pgvector</a></li>
+          <li><a href="/maintenance-assistant/adr/ADR-010-docs-tree-conventions.html">ADR-010 Docs tree conventions</a></li>
+          <li><a href="/maintenance-assistant/adr/ADR-011-guided-questions.html">ADR-011 Guided questions</a></li>
+          <li><a href="/maintenance-assistant/adr/ADR-013-markdown-only-docs.html">ADR-013 Markdown-only docs</a></li>
+        </ul>
+      </details>
+
+      <p class="nav-title">Frontend</p>
+      <ul>
+        <li><a href="/maintenance-assistant/frontend-architecture.html">Frontend architecture</a></li>
+      </ul>
+
+      <p class="nav-title">Quality</p>
+      <ul>
+        <li><a href="/maintenance-assistant/refactor-standards.html">Refactor standards</a></li>
+        <li><a href="/maintenance-assistant/backend/api-docs/index.html">Backend API</a></li>
+        <li><a href="/maintenance-assistant/frontend/api-docs/index.html">Frontend API</a></li>
+        <li><a href="/maintenance-assistant/backend/coverage/index.html">Backend coverage</a></li>
+        <li><a href="/maintenance-assistant/frontend/coverage/index.html">Frontend coverage</a></li>
+      </ul>
+    </aside>
+    <main class="content" id="main">
+      <article class="doc-body">
+        <h1 id="query-path-and-ui-decisions">Query path and UI
+        decisions</h1>
+        <p>Part of the <a href="decisions.html">product
+        decisions</a>.</p>
+        <h2 id="answering-a-question">Answering a question</h2>
+        <ul>
+        <li><strong>Chat call: plain RestClient</strong>, for the same
+        proportion reason as embeddings. There is no conversation to
+        remember (every question is answered from the retrieved chunks
+        alone), no tool to call, and citation enforcement has to be
+        checked against this query’s retrieved chunks, which no
+        framework can know.</li>
+        <li><strong>Similarity threshold 0.55,</strong> measured against
+        the real corpus through the production path. The sweep is flat
+        from 0.48 to 0.55, so moving it inside the plateau changes
+        nothing observable. The floor is measured and named so nobody
+        optimises toward it: below 0.48 a Mode B question acquires a
+        citation. The value is bge-m3-specific; any change to chunking,
+        corpus or embedding model means re-measuring it first, starting
+        with the cross-language cases, which clear it by the smallest
+        margins. See <a
+        href="adr/ADR-008-retrieval-measurement.html">ADR-008</a> and <a
+        href="adr/ADR-009-hybrid-retrieval.html">ADR-009</a>.</li>
+        <li><strong>One chat model for every role,</strong>
+        Llama-3.3-70B-Instruct. Qwen3.5-9B was measured worse on the
+        production prompt where it matters: it failed to ground the
+        cross-language case and fragmented answers into many more
+        claims. It stays a configuration swap.</li>
+        <li><strong>Two prompts, not one with a flag.</strong> The
+        citation few-shot cannot reach the Mode B path because it is not
+        in that file, and Mode B’s schema has no source field, so a
+        leaked citation is a shape the provider will not emit. Mode B
+        carries a shape example; without one, constrained decoding
+        emitted the opening brace and then spent the whole output budget
+        on whitespace.</li>
+        <li><strong>Citations are per protocol, not per chunk:</strong>
+        the chunk is the search unit, the protocol the citation unit.
+        Labelling per chunk cited one protocol twice as if it were two
+        pieces of evidence.</li>
+        <li><strong>Three layers enforce the citation rule,</strong> and
+        only the last does not depend on the model: a few-shot example,
+        a JSON schema in which an uncited claim cannot be represented,
+        and validation against the chunks this query retrieved. A Mode A
+        answer whose claims all fail validation falls through to Mode
+        B.</li>
+        <li><strong>The output cap is 2100 tokens,</strong> runaway
+        protection sized for the documented fallback model, and a
+        truncated grounded answer is reported as a degradation, not an
+        outage.</li>
+        <li><strong>Query guards (NFR-7):</strong> 10 questions per
+        minute per user, keyed by the token’s subject, in memory; a
+        daily chat budget in its own table, separate from the embedding
+        budget, so a re-index storm cannot exhaust the day’s answers;
+        the output cap set in the client so no prompt can forget it; an
+        answer cache keyed by normalised question, machine and role,
+        checked before the budget. The role is in the cache key because
+        an operator served a technician’s answer would get repair steps,
+        a safety bug invisible in testing.</li>
+        <li><strong>The role comes from the token, never from the
+        request:</strong> it decides what the answer may contain.</li>
+        <li><strong>Latency:</strong> variance comes from provider
+        queueing, not from any network path (identical requests,
+        identical token counts, twice the time minutes apart). NFR-4 is
+        met at the median and at the worst observed; a slow outlier on a
+        bad queue day stays possible on shared serverless capacity with
+        no SLA, and the mitigations are the client timeout, the “still
+        working” state and the output cap.</li>
+        </ul>
+        <h2 id="retrieval-quality">Retrieval quality</h2>
+        <ul>
+        <li><strong>The golden question set is ratified by the
+        owner</strong> (all expectations ruled KEEP in one act), so the
+        metrics rest on expectations the measuring agent did not write
+        and grade itself. The harness requires the set to be ratified: a
+        question added later is caught as a proposal before the
+        aggregates can quote it.</li>
+        <li>Two standing conditions live in the data: G16 flips to a
+        Mode A case in the same change that seeds Einlagerung protocols,
+        and G19 stays single-answer, because “bleibt stehen” (was
+        running) and “geht nicht an” (never started) are different
+        machine states.</li>
+        <li>The set measures direction, not quality, and can still be
+        over-fitted to.</li>
+        <li><strong>The help panel is part of retrieval’s contract with
+        the reader,</strong> so a change to <code>LexicalTerms</code> is
+        a change to the panel: a term needs at least one letter and one
+        digit to be matched literally, which is why “E-47” and “SV0410”
+        work alone and “frei” does not. Two specs pin both halves.</li>
+        <li><strong>Query completeness-gating is rejected and not
+        re-proposed:</strong> “e-47” is a lazy query that works, and
+        Mode B already handles the harmless ones.</li>
+        </ul>
+        <h2 id="interface">Interface</h2>
+        <ul>
+        <li><strong>The two answer modes are two visually distinct
+        blocks,</strong> a requirement, not styling (NFR-2): Mode A
+        green with a check and inline [P1] markers linking into a source
+        list; Mode B amber with a hatched top edge, its badge, and no
+        source area at all, because an empty “Quellen” heading invites
+        the reader to assume sources are merely missing. Badge text,
+        border weight and icon carry the difference as well as hue, so
+        it survives monochrome and colour blindness.</li>
+        <li><strong>The client renders the answer and does not re-read
+        it:</strong> the backend already validated every citation; a
+        marker with no matching citation stays plain text.</li>
+        <li><strong>DE/EN is a runtime dictionary,</strong> not
+        build-time i18n: two builds and a routing decision would make
+        the language a property of the URL rather than of the person,
+        and switching would lose the answer on screen. A key missing
+        from one dictionary is a compile error.</li>
+        <li><strong>UI language is independent of answer
+        language:</strong> an English interface still shows a German
+        answer, and the answer element carries its own <code>lang</code>
+        attribute.</li>
+        <li><strong>The upload view is honest about the 202:</strong> a
+        status list with the failure reason, refreshed by a button, no
+        polling loop.</li>
+        <li><strong>Protocols open in an in-app viewer,</strong> fetched
+        with the token and rendered as typed segments, never as HTML;
+        anything unrecognisable falls back to the raw text, so the
+        dialog is never blank.</li>
+        <li><strong>Role gating in the UI is presentation, never
+        protection</strong> (NFR-3): a control is hidden from a role
+        that would get a 403, and the backend refuses regardless.</li>
+        <li><strong>Contrast is measured on every consumer of a token
+        before the token moves.</strong> The faint-ink token failed AA
+        on five light surfaces, not one, and one value change fixed all
+        five; inactive controls keep their own lower-contrast token,
+        which WCAG exempts.</li>
+        <li><strong>Parked permanently:</strong> the dark locale select
+        on the Keycloak page uses PatternFly’s grey. It passes AA and
+        the file is hand-deployed; reopen only alongside a theme change
+        that is deployed anyway.</li>
+        </ul>
+        <h2 id="browser-security-and-token-handling-adr-005">Browser
+        security and token handling (<a
+        href="adr/ADR-005-spa-token-handling.html">ADR-005</a>)</h2>
+        <ul>
+        <li><strong>The threat split is the decision:</strong> malware
+        on the user’s machine is out of scope for every web application;
+        XSS reading the token out of the SPA is in scope.</li>
+        <li><strong>The public client stays:</strong> access token in
+        sessionStorage (tab-scoped), 15-minute lifetime, Code Flow with
+        PKCE S256, no implicit or password grants. The lifetime is the
+        ceiling on what a stolen token is worth.</li>
+        <li><strong>A backend-for-frontend is the enterprise answer and
+        is rejected here:</strong> a session store, CSRF handling and
+        one more service on a small host, to protect a 15-minute token
+        over a synthetic corpus. Documented as the production-grade
+        evolution.</li>
+        <li><strong>Security headers live at Caddy,</strong> one place
+        for the SPA, the API and the OpenAPI UI: CSP, X-Frame-Options,
+        nosniff, Referrer-Policy, Permissions-Policy, HSTS without
+        includeSubDomains. Keycloak’s hostname keeps its own CSP.</li>
+        <li><strong>style-src keeps ‘unsafe-inline’:</strong> Angular
+        injects component styles at runtime, and a per-request nonce
+        cannot come from a statically served bundle. Angular’s
+        critical-CSS inlining is off in production builds, because its
+        inline <code>onload</code> handler breaks a strict CSP.</li>
+        <li><strong>Recorded, not fixed:</strong> refresh-token rotation
+        is off and the SPA does not refresh, so a session simply ends;
+        no token binding or DPoP.</li>
+        <li><strong>The Caddyfile deploys by hand,</strong> like the
+        compose file (<a href="architecture/07a-ops-rules.html">ops
+        rules</a>).</li>
+        </ul>
+        <p><a href="decisions.html">Back to the product
+        decisions</a></p>
+      </article>
+    </main>
+
+        <nav class="toc" aria-label="On this page">
+      <p class="toc-title">On this page</p>
+      <ul>
+      <li><a href="#query-path-and-ui-decisions"
+      id="toc-query-path-and-ui-decisions">Query path and UI
+      decisions</a>
+      <ul>
+      <li><a href="#answering-a-question"
+      id="toc-answering-a-question">Answering a question</a></li>
+      <li><a href="#retrieval-quality"
+      id="toc-retrieval-quality">Retrieval quality</a></li>
+      <li><a href="#interface" id="toc-interface">Interface</a></li>
+      <li><a href="#browser-security-and-token-handling-adr-005"
+      id="toc-browser-security-and-token-handling-adr-005">Browser
+      security and token handling (ADR-005)</a></li>
+      </ul></li>
+      </ul>
+    </nav>
+      </div>
+
+  <footer class="footer">
+    maintenance-assistant · Generated by the docs pipeline
+  </footer>
+
+  <script src="/maintenance-assistant/assets/docs.js"></script>
+</body>
+</html>

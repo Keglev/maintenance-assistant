@@ -107,7 +107,7 @@ import java.util.List;
 <span class="fc" id="L107">        List&lt;String&gt; parts = new ArrayList&lt;&gt;();</span>
 <span class="fc" id="L108">        int from = 0;</span>
 
-        // COVERAGE WAIVER U1 (2026-08-22, register in docs/REFACTOR-STANDARDS.txt). The false side
+        // COVERAGE WAIVER U1 (2026-08-22, register in docs/standards-waivers.md). The false side
         // of this condition never runs, and that is the loop being correct rather than a gap in the
         // tests: every iteration that does not exit through the break below leaves `from` strictly
         // inside the section, so the only way out is the break. Reaching the condition as false
@@ -135,7 +135,7 @@ import java.util.List;
     private static int lastSentenceEnd(String text, int from, int to) {
 <span class="fc bfc" id="L136" title="All 2 branches covered.">        for (int i = to - 1; i &gt; from; i--) {</span>
 <span class="fc" id="L137">            char c = text.charAt(i);</span>
-            // COVERAGE WAIVER U2 (2026-08-22, register in docs/REFACTOR-STANDARDS.txt). The false
+            // COVERAGE WAIVER U2 (2026-08-22, register in docs/standards-waivers.md). The false
             // side of `i + 1 &lt; text.length()` never runs because the only caller passes a window
             // that stops short of the end, so `i` can never be the last character. It is kept as a
             // bounds check on a method that reads one character past `i`: the guarantee lives in

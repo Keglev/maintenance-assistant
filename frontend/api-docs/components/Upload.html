@@ -156,7 +156,7 @@
     </p>
     <p class="comment">
         <p>The writers&#39; upload view — the Techniker&#39;s and the Schichtleiter&#39;s.</p>
-<p>Write access belongs to two roles by decision (DECISIONS.txt: quality, consistency,
+<p>Write access belongs to two roles by decision (docs/decisions.md: quality, consistency,
 anti-garbage; then decision 3 of 2026-08-11, which added the Techniker), and the route is
 guarded accordingly — but the guard is convenience. The backend refuses the upload for anyone
 else, which is the check that counts (NFR-3). Correcting is not here and is not theirs: it lives
@@ -1872,7 +1872,7 @@ const PAGE_SIZE &#x3D; 5;
 /**
  * The writers&#x27; upload view — the Techniker&#x27;s and the Schichtleiter&#x27;s.
  *
- * Write access belongs to two roles by decision (DECISIONS.txt: quality, consistency,
+ * Write access belongs to two roles by decision (docs/decisions.md: quality, consistency,
  * anti-garbage; then decision 3 of 2026-08-11, which added the Techniker), and the route is
  * guarded accordingly — but the guard is convenience. The backend refuses the upload for anyone
  * else, which is the check that counts (NFR-3). Correcting is not here and is not theirs: it lives
@@ -2022,7 +2022,7 @@ export class Upload {
     // No &#x60;language&#x60; part. Retrieval is language-agnostic by architecture — bge-m3 embeds DE and EN
     // into one space and the answer is pinned to the QUESTION&#x27;s language — so the column never
     // reached a decision, and asking a writer to classify their own prose was a question
-    // whose answer nothing read. The endpoint declares the parameter optional; see DECISIONS.txt.
+    // whose answer nothing read. The endpoint declares the parameter optional; see docs/decisions-architecture.md.
     form.append(&#x27;title&#x27;, this.title().trim());
     if (this.errorCode().trim()) {
       form.append(&#x27;errorCode&#x27;, this.errorCode().trim());

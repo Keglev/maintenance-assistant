@@ -146,7 +146,7 @@ Properties:
 
 Methods:
 - `jumpToDemo(): void` — Takes the visitor to the demo accounts further down the page. Focus moves with the scroll, not only the viewport. A scroll that leaves the keyboard where it was sends the next Tab back to the top of the page, and a screen reader never learns that anything happened — the button would work for a mouse and silently fail for everyone else. The target carries tabindex="-1" so it can receive focus without joining the tab order. Smooth unless the operating system asked for less motion, in which case it jumps: a full-page scroll is exactly the kind of movement that setting exists to stop.
-- `signIn(username?: string): void` — Starts the redirect to Keycloak on an explicit click rather than on load: an automatic redirect turns any transient Keycloak error into a loop the visitor cannot escape. With a username it is the same redirect carrying login\_hint , so Keycloak prefills the field and the visitor only types the password. It is emphatically not a one-click login: see DECISIONS.txt on why the password grant and a credential-filling login theme were both rejected.
+- `signIn(username?: string): void` — Starts the redirect to Keycloak on an explicit click rather than on load: an automatic redirect turns any transient Keycloak error into a loop the visitor cannot escape. With a username it is the same redirect carrying login\_hint , so Keycloak prefills the field and the visitor only types the password. It is emphatically not a one-click login: see docs/decisions-architecture.md on why the password grant and a credential-filling login theme were both rejected.
 
 ### Moderation
 
@@ -508,7 +508,7 @@ Selector: `app-upload`
 Standalone: yes
 Change detection: `ChangeDetectionStrategy.OnPush`
 
-Description: The writers' upload view — the Techniker's and the Schichtleiter's. Write access belongs to two roles by decision (DECISIONS.txt: quality, consistency, anti-garbage; then decision 3 of 2026-08-11, which added the Techniker), and the route is guarded accordingly — but the guard is convenience. The backend refuses the upload for anyone else, which is the check that counts (NFR-3). Correcting is not here and is not theirs: it lives in the protocol view and belongs to the Schichtleiter alone. The view is built around the fact that upload answers 202, not 201 : the protocol exists but is not searchable until a worker has chunked and embedded it. Hiding that behind a success message would teach a writer that uploading and being findable are the same event, and the first time indexing failed they would have no idea. So the status list is part of the view, and it shows the failure reason rather than only the failure. A protocol can be typed here as well as uploaded. Requiring a .txt described a workflow that does not exist: the writer types the protocol at the end of the shift, and nobody opens an editor, saves a file and then picks it. Typing is the normal case and the file was the special one. The typed text is wrapped into a File in the browser and sent through the same multipart call , which is why this is a frontend-only change: the endpoint, the ingestion pipeline, the volume, the citation path and the download all stay unaware, and a typed protocol is indistinguishable from an uploaded one the moment it is submitted. A backend "text" field would have been a second write path to keep in step with the first, for no gain the user can see.
+Description: The writers' upload view — the Techniker's and the Schichtleiter's. Write access belongs to two roles by decision (docs/decisions.md: quality, consistency, anti-garbage; then decision 3 of 2026-08-11, which added the Techniker), and the route is guarded accordingly — but the guard is convenience. The backend refuses the upload for anyone else, which is the check that counts (NFR-3). Correcting is not here and is not theirs: it lives in the protocol view and belongs to the Schichtleiter alone. The view is built around the fact that upload answers 202, not 201 : the protocol exists but is not searchable until a worker has chunked and embedded it. Hiding that behind a success message would teach a writer that uploading and being findable are the same event, and the first time indexing failed they would have no idea. So the status list is part of the view, and it shows the failure reason rather than only the failure. A protocol can be typed here as well as uploaded. Requiring a .txt described a workflow that does not exist: the writer types the protocol at the end of the shift, and nobody opens an editor, saves a file and then picks it. Typing is the normal case and the file was the special one. The typed text is wrapped into a File in the browser and sent through the same multipart call , which is why this is a frontend-only change: the endpoint, the ingestion pipeline, the volume, the citation path and the download all stay unaware, and a typed protocol is indistinguishable from an uploaded one the moment it is submitted. A backend "text" field would have been a second write path to keep in step with the first, for no gain the user can see.
 
 Properties:
 - `accepted: unknown = signal(false)`
@@ -1157,7 +1157,7 @@ Properties:
 - `type ResolvedTheme = "light" | "dark"` — What is actually on screen once system has been resolved against the operating system.
 - `type Roles = WritableSignal<string[]>` — The roles the signed-in reader holds. Flipped per test, because the buttons depend on them.
 - `type ThemeChoice = "light" | "dark" | "system"` — What the user chose, which is not the same as what is painted. system is the absence of a choice rather than a third button. The control offers light and dark; until one of them is pressed the application silently follows the operating system, which is what a first visit should do without spending a third of a segmented control saying so.
-- `type UiLanguage = "de" | "en"` — The two languages the interface is offered in (DECISIONS.txt: bilingual DE/EN).
+- `type UiLanguage = "de" | "en"` — The two languages the interface is offered in (docs/decisions.md: bilingual DE/EN).
 
 ## Public variables
 
@@ -1175,9 +1175,9 @@ Properties:
   Defined in `src/app/core/theme/theme.service.ts`
 - `DATES: unknown = new DatePipe('en-US')`
   Defined in `src/app/core/i18n/app-date.pipe.ts`
-- `DE: Dictionary = { appTitle: 'Wartungsassistent', appTagline: 'Antworten aus den Protokollen Ihrer Anlage — mit Quelle.', common: { close: 'Schließen', cancel: 'Abbrechen', }, t…` — German. The plant's language and the default the demo is shown in. Written without an eszett in the answer-mode badge on purpose — it has to match the wording in DECISIONS.txt, which is what the two modes are called throughout the project's documentation.
+- `DE: Dictionary = { appTitle: 'Wartungsassistent', appTagline: 'Antworten aus den Protokollen Ihrer Anlage — mit Quelle.', common: { close: 'Schließen', cancel: 'Abbrechen', }, t…` — German. The plant's language and the default the demo is shown in. Written without an eszett in the answer-mode badge on purpose — it has to match the wording in docs/decisions.md, which is what the two modes are called throughout the project's documentation.
   Defined in `src/app/core/i18n/dictionary.ts`
-- `DEMO_PASSWORD: string = 'demo1234'` — The demo accounts, exactly as the realm ships them (DECISIONS.txt).
+- `DEMO_PASSWORD: string = 'demo1234'` — The demo accounts, exactly as the realm ships them (docs/decisions-architecture.md).
   Defined in `src/app/features/landing/landing.ts`
 - `DEMO_USERS: readonly DemoUser[] = [ { username: 'operator', describe: (t) => t.demo.operator }, { username: 'techniker', describe: (t) => t.demo.techniker }, { username: 'schichtleiter', describ…`
   Defined in `src/app/features/landing/landing.ts`
@@ -1207,10 +1207,10 @@ Properties:
   Defined in `src/app/shared/protocol/protocol-document.ts`
 - `NO_FILTER: ProtocolFilter = { machineNo: '', titleContains: '', from: '', to: '', approvalState: '', }` — The unfiltered corpus: what the view shows until someone narrows it.
   Defined in `src/app/core/api/api.types.ts`
-- `PAGE_SIZE: number = 5` — Rows per page in "Meine Uploads" — the same five the two moderation tables use.
-  Defined in `src/app/features/upload/upload.ts`
 - `PAGE_SIZE: number = 5` — Rows per page. Five, not ten: on a tablet held upright ten rows push the pager below the fold, so the control that says there is more is only reachable by scrolling past everything it is offering. Five rows and a pager both fit.
   Defined in `src/app/features/moderation/moderation.ts`
+- `PAGE_SIZE: number = 5` — Rows per page in "Meine Uploads" — the same five the two moderation tables use.
+  Defined in `src/app/features/upload/upload.ts`
 - `PATTERNS: Readonly<Record<UiLanguage, string>> = { de: 'dd.MM.yyyy', en: 'MM/dd/yyyy', }` — The date format each language actually expects. Written out rather than left to 'shortDate' , which gives dd.MM.yy in German — a two-digit year on a maintenance record is the one place ambiguity is not worth the four characters it saves. Both patterns are the everyday civil format of their language, not an ISO compromise neither side reads naturally.
   Defined in `src/app/core/i18n/app-date.pipe.ts`
 - `PATTERNS_WITH_TIME: Readonly<Record<UiLanguage, string>> = { de: "dd.MM.yyyy, HH:mm 'Uhr'", en: 'MM/dd/yyyy, h:mm a', }` — The same day, with the clock time on it. Added for the protocol viewer's history section, where the day alone is not enough: two corrections on one afternoon are a different story from two a month apart, and a ledger that showed both as "14.08.2026" would hide the sequence a reader is there to reconstruct. The moderation table keeps the day-only format — a column of timestamps is noise in a list somebody is scanning for a title. 24-hour for German and 12-hour with am/pm for English, because that is what each language reads without converting in their head. No seconds: the ledger records an act by a person, and nobody needs to know which second they pressed the button.

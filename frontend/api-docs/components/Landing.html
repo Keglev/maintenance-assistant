@@ -469,7 +469,7 @@ scroll is exactly the kind of movement that setting exists to stop.</p>
 turns any transient Keycloak error into a loop the visitor cannot escape.</p>
 <p>With a username it is the same redirect carrying <code>login_hint</code>, so Keycloak prefills the field
 and the visitor only types the password. It is emphatically not a one-click login: see
-DECISIONS.txt on why the password grant and a credential-filling login theme were both rejected.</p>
+docs/decisions-architecture.md on why the password grant and a credential-filling login theme were both rejected.</p>
 </div>
 
                             <div class="io-description">
@@ -835,7 +835,7 @@ import { Dictionary } from &#x27;../../core/i18n/dictionary&#x27;;
 import { I18nService } from &#x27;../../core/i18n/i18n.service&#x27;;
 import { ThemeToggle } from &#x27;../../shared/theme/theme-toggle&#x27;;
 
-/** The demo accounts, exactly as the realm ships them (DECISIONS.txt). */
+/** The demo accounts, exactly as the realm ships them (docs/decisions-architecture.md). */
 const DEMO_PASSWORD &#x3D; &#x27;demo1234&#x27;;
 
 /**
@@ -907,7 +907,7 @@ export class Landing {
    *
    * With a username it is the same redirect carrying &#x60;login_hint&#x60;, so Keycloak prefills the field
    * and the visitor only types the password. It is emphatically not a one-click login: see
-   * DECISIONS.txt on why the password grant and a credential-filling login theme were both rejected.
+   * docs/decisions-architecture.md on why the password grant and a credential-filling login theme were both rejected.
    */
   protected signIn(username?: string): void {
     this.auth.login(username);

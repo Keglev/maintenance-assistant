@@ -234,7 +234,7 @@ shipped as code and not as data** — so there were no corrupt vectors there to 
 was a local matter. The consequence that mattered more is that production has no `UNAPPROVED`
 protocol at all, so the v1.2 trust chain cannot be demonstrated by clicking.
 `seed-v12-protocols.md`, in
-[`docs/runbooks/`](https://github.com/Keglev/maintenance-assistant/tree/main/docs/runbooks), is the
+[`docs/runbooks/`](https://github.com/Keglev/maintenance-assistant/tree/5813b213bc54c611171a93ed04c796f942664ff5/docs/runbooks), is the
 procedure for that, and it is a proposal until Carlos runs it. (Runbooks are repository documents
 and are not published to the site. The link points at the *directory* on purpose: the site build's
 Lua filter rewrites every link ending in `.md` to `.html`, including absolute ones, so a GitHub URL

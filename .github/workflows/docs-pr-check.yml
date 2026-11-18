@@ -151,6 +151,10 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      # Here and not in `build`, because this job runs on every pull request: moving a file
+      # outside docs/ breaks the docs' absolute links to it without touching the docs family.
+      - name: Check repository URLs in the docs
+        run: bash .github/scripts/docs/check-repo-urls.sh
       - name: Aggregate the gate results
         env:
           CHANGES_RESULT: ${{ needs.changes.result }}

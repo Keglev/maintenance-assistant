@@ -37,8 +37,9 @@ import static org.assertj.core.api.Assertions.assertThat;
  * that archived protocols are gone, that the ledger records what happened, and that a pair scoring
  * what the E-47 four actually score is <em>not</em> reported. It runs on every push and needs no key.
  *
- * <p>The angles are taken from the calibration run of 2026-11-16, so if the measurement changes the
- * two suites disagree loudly instead of drifting apart quietly.
+ * <p>The angles are taken from the calibration runs of 2026-11-16 (fault reports) and 2026-11-18
+ * (maintenance), so if the measurement changes the two suites disagree loudly instead of drifting
+ * apart quietly.
  */
 @SpringBootTest
 @ActiveProfiles("it")
@@ -77,10 +78,13 @@ class ProtocolDuplicateIT {
      * Between the two thresholds: reported when a fault report is checked, not when a maintenance
      * protocol is. Chosen, not measured — it exists to show which threshold applies.
      */
-    private static final double BETWEEN_THE_THRESHOLDS = 0.93;
+    private static final double BETWEEN_THE_THRESHOLDS = 0.925;
 
     /** A re-narration of one incident by a second person — what a real duplicate scores. */
     private static final double REALISTIC_DUPLICATE = 0.9310;
+
+    /** One planned service written up by a second technician — a real maintenance duplicate. */
+    private static final double REALISTIC_MAINTENANCE_DUPLICATE = 0.9493;
 
     /** The protocol every other one is positioned against: itself, so an angle of zero. */
     private static final double SUBJECT = 1.0;
@@ -138,6 +142,21 @@ class ProtocolDuplicateIT {
         assertThat(properties.maintenanceSimilarityThreshold()).isGreaterThan(MAINTENANCE_CEILING);
         assertThat(report.threshold()).isEqualTo(properties.maintenanceSimilarityThreshold());
         assertThat(report.any()).isFalse();
+    }
+
+    @Test
+    @DisplayName("a maintenance protocol written up twice IS reported, at the maintenance threshold")
+    void aMaintenanceDuplicateIsReported() {
+        UUID subject = maintenance(pressB, "Jährliche Wartung Presse 7", SUBJECT);
+        UUID original = maintenance(pressB, "Jahreswartung Presse 7", REALISTIC_MAINTENANCE_DUPLICATE);
+
+        ProtocolSimilarityService.SimilarityReport report = similarity.findSimilar(subject);
+
+        assertThat(report.threshold()).isEqualTo(properties.maintenanceSimilarityThreshold());
+        assertThat(report.candidates()).singleElement().satisfies(candidate -> {
+            assertThat(candidate.id()).isEqualTo(original);
+            assertThat(candidate.similarity()).isCloseTo(REALISTIC_MAINTENANCE_DUPLICATE, within(0.0005));
+        });
     }
 
     @Test

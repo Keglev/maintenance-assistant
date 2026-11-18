@@ -176,7 +176,8 @@ maintenance:
     # side a margin of 0.0041. Each type now has a threshold measured against its own
     # closest legitimate pair and its own re-narrated duplicate.
     #
-    # MEASURED 2026-11-16, protocol centroids, cosine, bge-m3, 165-protocol corpus:
+    # MEASURED, protocol centroids, cosine, bge-m3, 165-protocol corpus (fault side
+    # 2026-11-16, maintenance side 2026-11-18; the fault figures re-took within 0.0001):
     #   fault reports (similarity-threshold)
     #     closest legitimate pair with a fault report       0.8801
     #     the E-47 four against each other                  0.7597 - 0.8332
@@ -184,13 +185,17 @@ maintenance:
     #     a verbatim re-file under a new title              0.9781
     #   scheduled maintenance (maintenance-similarity-threshold)
     #     closest legitimate pair with a maintenance protocol  0.9159
-    #     re-narration and re-file: PROVISIONAL, set by the calibration run of this change
+    #     one service written up by a second technician        0.9493
+    #     a verbatim re-file under a new title                 0.9869
+    #
+    # 0.92 sits 0.0399 above the fault ceiling and 0.0110 below the re-narration; 0.93
+    # sits 0.0141 above the maintenance ceiling and 0.0193 below its re-narration.
     #
     # Each threshold sits low in its window on purpose: a false positive costs one card
     # an approver dismisses, a false negative costs the warning entirely, and this
     # feature WARNS AND NEVER BLOCKS, which is what makes a narrow window survivable.
     similarity-threshold: ${DUPLICATE_SIMILARITY_THRESHOLD:0.92}
-    maintenance-similarity-threshold: ${DUPLICATE_MAINTENANCE_SIMILARITY_THRESHOLD:0.95}
+    maintenance-similarity-threshold: ${DUPLICATE_MAINTENANCE_SIMILARITY_THRESHOLD:0.93}
     # Three: a prompt to compare, not a report to read. An approver handed ten links
     # opens none. The COUNT of everything above the threshold is reported separately,
     # so a long tail is visible rather than silently cut to three.

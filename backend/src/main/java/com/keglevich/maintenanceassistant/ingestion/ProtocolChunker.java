@@ -107,7 +107,7 @@ class ProtocolChunker {
         List<String> parts = new ArrayList<>();
         int from = 0;
 
-        // COVERAGE WAIVER U1 (2026-08-22, register in docs/REFACTOR-STANDARDS.txt). The false side
+        // COVERAGE WAIVER U1 (2026-08-22, register in docs/standards-waivers.md). The false side
         // of this condition never runs, and that is the loop being correct rather than a gap in the
         // tests: every iteration that does not exit through the break below leaves `from` strictly
         // inside the section, so the only way out is the break. Reaching the condition as false
@@ -135,7 +135,7 @@ class ProtocolChunker {
     private static int lastSentenceEnd(String text, int from, int to) {
         for (int i = to - 1; i > from; i--) {
             char c = text.charAt(i);
-            // COVERAGE WAIVER U2 (2026-08-22, register in docs/REFACTOR-STANDARDS.txt). The false
+            // COVERAGE WAIVER U2 (2026-08-22, register in docs/standards-waivers.md). The false
             // side of `i + 1 < text.length()` never runs because the only caller passes a window
             // that stops short of the end, so `i` can never be the last character. It is kept as a
             // bounds check on a method that reads one character past `i`: the guarantee lives in

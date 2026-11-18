@@ -3,7 +3,7 @@
 Two services: PostgreSQL + pgvector and Keycloak. The application is not one of them — the
 backend runs outside compose (`cd backend && mvn spring-boot:run`, or from the IDE) and the
 frontend on the Angular dev server, which is the stack
-[the e2e suite documents](../frontend/e2e/README.md#what-it-needs-running).
+[Run it locally](../docs/run-locally.md) describes.
 [ADR-001](../docs/adr/ADR-001-modular-monolith-first.md) counts three containers for the
 DEPLOYED system; `docker-compose.prod.yml` is where all of them run together.
 
@@ -36,7 +36,7 @@ Check status with `docker compose ps` — both services should read `healthy`.
 There is no `app` service here. A commented-out one survived until 2026-08-25 saying it would be
 "enabled in Phase 1, once backend/ contains a Spring Boot app" — which had been true for one
 week of this project and false ever since. Start the backend yourself against the two services
-above; `frontend/e2e/README.md` lists the ports.
+above; [Run it locally](../docs/run-locally.md) lists the ports.
 
 **If port 5432 is already taken** by a PostgreSQL installed on the host, the container fails to
 bind. Set `POSTGRES_PORT=5433` in `.env` — only the host-side port changes; inside the compose

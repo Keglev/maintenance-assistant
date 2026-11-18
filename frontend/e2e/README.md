@@ -16,58 +16,17 @@ npm run e2e:report   # the HTML report of the last run
 ## What it needs running
 
 The suite starts **only the Angular dev server** (Playwright's `webServer`, reusing one you already
-have). Everything below it is the stack a developer already runs:
-
-| Piece | How | Port |
-|---|---|---|
-| PostgreSQL + pgvector | `docker compose -f docker/docker-compose.yml up -d postgres` | 5432 by default; 5433 if `POSTGRES_PORT=5433` is set in `docker/.env` — see [docker/README.md](../../docker/README.md) |
-| Keycloak, realm `maintenance`, themed | `docker compose -f docker/docker-compose.yml up -d keycloak` | 8081 |
-| Backend | `cd backend && mvn spring-boot:run` | 8080 |
-| Frontend | started by Playwright | 4200 |
+have). Everything below it is the local stack described in [Run it locally](../../docs/run-locally.md):
+PostgreSQL and Keycloak in compose, the backend from Maven, and optionally the free provider stub in
+[`provider-stub/`](provider-stub/server.mjs) instead of a paid LLM key.
 
 If any of it is missing the run stops on the **first** test with a sentence naming what is
 unreachable, rather than thirty seconds of timeouts per test — that is what the `stack` fixture in
 `support.ts` is for.
 
-**No LLM key is required — for anything, including `reindex.e2e.ts`.** That test needs an embedding
-and an answer, not necessarily a *paid* one: point the backend at the stub in
-[`provider-stub/`](provider-stub/server.mjs) and run the whole suite for free.
-
-```bash
-# one terminal
-node e2e/provider-stub/server.mjs --port 8099
-
-# the backend, against the stub — see the stub's header for what is and is not faked
-LLM_BASE_URL=http://127.0.0.1:8099/v1 LLM_API_KEY=stub \
-INGESTION_BACKLOG_ON_STARTUP=true CORPUS_SEED_ENABLED=true \
-QUERY_SIMILARITY_THRESHOLD=0.30 mvn spring-boot:run
-
-# and the suite, with the re-index test switched on
-E2E_LLM=1 npm run e2e
-```
-
-Against a **real** provider instead, set `LLM_API_KEY` and leave `LLM_BASE_URL` alone. Both were
-exercised; the re-index test passes in ~33 s against IONOS and ~11 s against the stub.
-
-> **WARNING — running this against the local dev stack WRITES STUB VECTORS INTO THE DEVELOPMENT
-> DATABASE.** `CORPUS_SEED_ENABLED=true INGESTION_BACKLOG_ON_STARTUP=true` with `LLM_BASE_URL`
-> pointed at the stub indexes protocols with hashed trigrams instead of bge-m3. Those vectors are
-> orthogonal to every real question, so the affected protocols become **unretrievable** while every
-> row still reads `INDEXED` — the defect ADR-008 found and #62 repaired, which reached the database
-> exactly this way. If you run the suite locally, afterwards run the provenance check and re-index
-> anything it names:
->
-> ```bash
-> MAINTENANCE_OPS_VERIFY_EMBEDDINGS=true mvn spring-boot:run    # exits 1 when the index is mixed
-> ```
->
-> CI is unaffected: `.github/actions/e2e-stack` brings up a throwaway database per run.
-
-> **The threshold override is not a cheat.** `application.yml` records that 0.55 is *bge-m3-specific*
-> and that any embedding-model change invalidates it. The stub is a different embedding model, so it
-> gets its own calibration — measured at 0.42–0.45 for a relevant question and 0.10–0.13 for an
-> irrelevant one, which leaves 0.30 comfortably inside the gap. The Mode A / Mode B distinction is
-> preserved, not disabled.
+`reindex.e2e.ts` and the duplicate check in `approval.e2e.ts` need indexed vectors and run only with
+`E2E_LLM=1`; against the stub they are free. Read the stub-vector warning on that page before running
+them against your development database.
 
 ## The environment decision
 

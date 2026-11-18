@@ -244,7 +244,7 @@ test.describe('the approve workflow', () => {
     //
     // NEEDS AN EMBEDDING, so it runs only with E2E_LLM set, like the re-index test: a protocol with
     // no vectors has nothing to compare and the check correctly reports "not comparable". Free
-    // against the provider stub — see e2e/README.md.
+    // against the provider stub — see docs/run-locally.md.
     test.skip(!process.env.E2E_LLM, 'needs indexed vectors; set E2E_LLM=1 (the stub is free)');
 
     const first = `${throwawayTitle()} A`;

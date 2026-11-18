@@ -5,7 +5,7 @@
 # TWO services, and the application is deliberately not one of them: PostgreSQL +
 # pgvector and Keycloak run here, while the backend runs outside compose
 # (`cd backend && mvn spring-boot:run`, or from the IDE) and the frontend on the
-# Angular dev server. That is the stack frontend/e2e/README.md documents and the
+# Angular dev server. That is the stack docs/run-locally.md documents and the
 # e2e suite assumes. ADR-001 counts three containers for the DEPLOYED system; the
 # production stack in docker-compose.prod.yml is where all of them run together.
 # All images below are published for linux/amd64 and linux/arm64, so the same file runs

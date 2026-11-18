@@ -352,7 +352,7 @@ export const test = base.extend<{ stack: void }>({
         throw new Error(
           `The e2e stack is not ready, so nothing below would be a real result:\n` +
             problems.map((p) => `  - ${p}`).join('\n') +
-            `\n\nStart it as described in frontend/e2e/README.md.`,
+            `\n\nStart it as described in docs/run-locally.md.`,
         );
       }
 

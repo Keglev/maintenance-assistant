@@ -14,7 +14,7 @@ unchanged on a laptop of either architecture. The images CI publishes for produc
 ## Start
 
 ```bash
-cd docker
+cd ops
 cp .env.example .env        # never commit .env — it is git-ignored
 docker compose up
 ```
@@ -121,7 +121,7 @@ itself — not three, and not the four the survey expected:
 | 7 | `postgres/init-keycloak-db.sh` | runs once, on an empty data directory | single file |
 
 **THEY ARE OWNED BY `deploy`, AND ONE OF THEM WAS NOT.** The account that runs `docker compose` on
-the host is `deploy`, and it has **no sudo** — that is `infra/provision.sh` working as designed, not
+the host is `deploy`, and it has **no sudo** — that is `ops/host/provision.sh` working as designed, not
 an omission. So every file above has to be `deploy:deploy` for a hand-deploy to be possible at all.
 On 2026-08-27 `docker-compose.prod.yml` turned out to be `root:root 644`, and had been since the
 first manual deploy on 2026-08-11: it was created by a root session and never handed over. Nothing
@@ -196,7 +196,7 @@ docker compose -f docker-compose.prod.yml --env-file .env.prod up -d --force-rec
 `jq empty frontend-config.json` is the shorter check where `jq` is installed; it is not on this
 host, which is why the Python one-liner is written out.
 
-**Backups.** None of these seven are in the nightly `infra/backup.sh`, and that is deliberate
+**Backups.** None of these seven are in the nightly `ops/host/backup.sh`, and that is deliberate
 rather than an omission: the script protects the *data* (a `pg_dump` and the protocol-files
 volume), while the *host* — these files included — is covered by the Hetzner snapshot. arc42
 §7.6.2 says so in as many words: "A snapshot protects the *host* — the compose files,

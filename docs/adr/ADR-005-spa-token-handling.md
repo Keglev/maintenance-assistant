@@ -5,7 +5,7 @@
 | **Status** | Accepted |
 | **Date** | 2026-08-08 |
 | **Deciders** | Project owner (solo) |
-| **Related** | Follows [ADR-003](ADR-003-keycloak-for-iam.md) (Keycloak, public client + PKCE); implements NFR-3; headers in [`docker/caddy/Caddyfile`](https://github.com/Keglev/maintenance-assistant/blob/main/docker/caddy/Caddyfile); realm in [`docker/keycloak/realm-export.json`](https://github.com/Keglev/maintenance-assistant/blob/main/docker/keycloak/realm-export.json) |
+| **Related** | Follows [ADR-003](ADR-003-keycloak-for-iam.md) (Keycloak, public client + PKCE); implements NFR-3; headers in [`docker/caddy/Caddyfile`](https://github.com/Keglev/maintenance-assistant/blob/e3efbe54cdfd61175a748008edc24c5cef994393/docker/caddy/Caddyfile); realm in [`docker/keycloak/realm-export.json`](https://github.com/Keglev/maintenance-assistant/blob/e3efbe54cdfd61175a748008edc24c5cef994393/docker/keycloak/realm-export.json) |
 
 ## Context
 

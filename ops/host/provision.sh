@@ -4,7 +4,7 @@
 # stack. Idempotent: every step checks its own end state, so re-running it is a
 # no-op rather than a second installation.
 #
-#   scp infra/provision.sh root@<host>:/tmp/ && ssh root@<host> 'bash /tmp/provision.sh'
+#   scp ops/host/provision.sh root@<host>:/tmp/ && ssh root@<host> 'bash /tmp/provision.sh'
 #
 # What it does NOT do: deploy the application. It only produces a host that can
 # run it — Docker, an unprivileged deploy user, a hardened sshd, fail2ban, and
@@ -114,7 +114,7 @@ log "SSH hardening"
 # that file and a package upgrade may rewrite it, while drop-ins survive and are
 # read last. Ubuntu 26.04's sshd_config includes /etc/ssh/sshd_config.d/*.conf.
 cat > /etc/ssh/sshd_config.d/10-hardening.conf <<'CONF'
-# Managed by infra/provision.sh — edit there, not here.
+# Managed by ops/host/provision.sh — edit there, not here.
 PasswordAuthentication no
 PermitRootLogin prohibit-password
 KbdInteractiveAuthentication no
@@ -144,7 +144,7 @@ log "fail2ban"
 # Ubuntu ships the sshd jail disabled by default; this enables it and nothing
 # else. Defaults for bantime/findtime/maxretry are deliberately untouched.
 cat > /etc/fail2ban/jail.d/sshd.local <<'CONF'
-# Managed by infra/provision.sh — edit there, not here.
+# Managed by ops/host/provision.sh — edit there, not here.
 [sshd]
 enabled = true
 backend = systemd

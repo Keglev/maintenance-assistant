@@ -15,8 +15,8 @@ internet; everything else exists solely on the compose network.
 | **Application** | <https://maintenance.smartsupply.com.de> |
 | **Identity provider** | <https://auth.smartsupply.com.de> |
 | **Images** | `ghcr.io/keglev/maintenance-assistant/{backend,frontend}`, built `linux/amd64` only since 2026-08-10 ([product decisions](../decisions.md#costs)); the base images stay multi-arch |
-| **Stack definition** | [`docker/docker-compose.prod.yml`](https://github.com/Keglev/maintenance-assistant/blob/main/docker/docker-compose.prod.yml), deployed to `/opt/maintenance-assistant/` |
-| **Host preparation** | [`infra/provision.sh`](https://github.com/Keglev/maintenance-assistant/blob/main/infra/provision.sh), idempotent |
+| **Stack definition** | [`ops/docker-compose.prod.yml`](https://github.com/Keglev/maintenance-assistant/blob/main/ops/docker-compose.prod.yml), deployed to `/opt/maintenance-assistant/` |
+| **Host preparation** | [`ops/host/provision.sh`](https://github.com/Keglev/maintenance-assistant/blob/main/ops/host/provision.sh), idempotent |
 
 The host was planned as a CAX21 (arm64) and is a CX33 (x86_64); the reasoning and date are recorded
 in the [product decisions](../decisions.md#costs). That revision changed a purchase order and nothing else — but the follow-on did
@@ -57,7 +57,7 @@ private: **the upstream's own security configuration has to be right before its 
 not shortly afterwards.
 
 If inventory-service ever leaves this host, the removal is the site block in
-[`docker/caddy/Caddyfile`](https://github.com/Keglev/maintenance-assistant/blob/main/docker/caddy/Caddyfile)
+[`ops/caddy/Caddyfile`](https://github.com/Keglev/maintenance-assistant/blob/main/ops/caddy/Caddyfile)
 and nothing else here.
 
 #### Memory limits, and why they arrived with the second project
@@ -137,7 +137,7 @@ issues carry the address the browser actually used. That matters because the bac
 
 Configuration is environment variables from `/opt/maintenance-assistant/.env.prod`, which is mode
 0600, owned by the unprivileged `deploy` user, and never committed —
-[`docker/.env.prod.example`](https://github.com/Keglev/maintenance-assistant/blob/main/docker/.env.prod.example)
+[`ops/.env.prod.example`](https://github.com/Keglev/maintenance-assistant/blob/main/ops/.env.prod.example)
 documents every variable. Database and Keycloak admin passwords were generated on the host.
 
 The frontend image contains no hostname. It reads `/config.json` at startup, which the deployment
@@ -306,8 +306,8 @@ deploy:
 | Changed in a merged PR | Reaches the host by |
 |---|---|
 | Backend or frontend code | CI, automatically |
-| `docker/docker-compose.prod.yml` | **a person, by hand** |
-| `docker/caddy/Caddyfile` | **a person, by hand** — bind-mounted from the host, same as the compose file |
+| `ops/docker-compose.prod.yml` | **a person, by hand** |
+| `ops/caddy/Caddyfile` | **a person, by hand** — bind-mounted from the host, same as the compose file |
 | `.env.prod` (documented by `.env.prod.example`) | **a person, by hand** — it is not in the repo at all. The one exception: each deploy rewrites its own `BACKEND_IMAGE` / `FRONTEND_IMAGE` line |
 
 The failure mode is quiet and was met in practice: PR #22 fixed the file-volume wiring, merged, and
@@ -358,9 +358,9 @@ Two mechanisms, covering different failures: a **nightly backup** on the host fo
 
 ### 7.6.1 Nightly backup
 
-[`infra/backup.sh`](https://github.com/Keglev/maintenance-assistant/blob/main/infra/backup.sh),
+[`ops/host/backup.sh`](https://github.com/Keglev/maintenance-assistant/blob/main/ops/host/backup.sh),
 installed as `/usr/local/bin/maintenance-backup` by
-[`infra/install-backup.sh`](https://github.com/Keglev/maintenance-assistant/blob/main/infra/install-backup.sh)
+[`ops/host/install-backup.sh`](https://github.com/Keglev/maintenance-assistant/blob/main/ops/host/install-backup.sh)
 and driven by a systemd timer at **03:15 UTC**. It writes two artefacts to
 `/opt/maintenance-assistant/backups/`, mode 0700:
 
@@ -444,7 +444,7 @@ nightly dump exists alongside it — a snapshot from Sunday plus Wednesday's dum
 
 ## 7.7 Host hardening
 
-`infra/provision.sh` is the record of what the host is, and is safe to re-run:
+`ops/host/provision.sh` is the record of what the host is, and is safe to re-run:
 unattended security upgrades; Docker from the official repository; an unprivileged `deploy` user
 that owns the stack; sshd with `PasswordAuthentication no` and `PermitRootLogin prohibit-password`
 via a drop-in that survives package upgrades; fail2ban on the sshd jail.

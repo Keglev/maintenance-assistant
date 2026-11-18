@@ -53,7 +53,7 @@ the indexing phases.
 
 ## Running them locally
 
-From `backend/`, with the development stack running and the corpus indexed (`docker/README.md`
+From `backend/`, with the development stack running and the corpus indexed (`ops/README.md`
 in the repository):
 
 ```powershell

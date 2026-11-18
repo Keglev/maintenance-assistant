@@ -5,7 +5,7 @@
 | **Status** | Accepted |
 | **Date** | 2026-08-05 |
 | **Deciders** | Project owner (solo) |
-| **Related** | Implements NFR-3; realm configuration in [`docker/keycloak/realm-export.json`](https://github.com/Keglev/maintenance-assistant/blob/main/docker/keycloak/realm-export.json) |
+| **Related** | Implements NFR-3; realm configuration in [`docker/keycloak/realm-export.json`](https://github.com/Keglev/maintenance-assistant/blob/e3efbe54cdfd61175a748008edc24c5cef994393/docker/keycloak/realm-export.json) |
 
 ## Context
 

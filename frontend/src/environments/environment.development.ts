@@ -1,5 +1,5 @@
 /**
- * Local development environment, matching the compose stack in docker/.
+ * Local development environment, matching the compose stack in ops/.
  *
  * Keycloak is reached directly on port 8081, while /api goes through the dev-server proxy
  * (proxy.conf.json) so the browser sees a single origin and the backend needs no CORS setup.

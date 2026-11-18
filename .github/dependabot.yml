@@ -164,7 +164,7 @@ updates:
 
   # BASE IMAGES of the two Dockerfiles. Without this entry no base image was ever
   # proposed, which is how the frontend sat on nginx 1.29 after its line stopped
-  # being rebuilt. The compose images under docker/ stay out on purpose: no
+  # being rebuilt. The compose images under ops/ stay out on purpose: no
   # pipeline syncs docker-compose.prod.yml to the host, and their tags are also
   # pinned in the integration tests and the e2e stack, which Dependabot would not
   # move with them.

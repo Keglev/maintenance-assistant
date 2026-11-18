@@ -43,7 +43,7 @@ trim_trailing_whitespace = false
 [Caddyfile]
 indent_style = tab
 
-# DO NOT LET AN EDITOR CONVERT THE TABS IN docker/postgres/init-keycloak-db.sh.
+# DO NOT LET AN EDITOR CONVERT THE TABS IN ops/postgres/init-keycloak-db.sh.
 # Its heredoc opens with `<<-SQL`, and `<<-` strips leading TABS ONLY: spaces
 # there leave the SQL body indented and the terminator unrecognised. The three
 # lines inside that heredoc are functional whitespace, not style. No section is

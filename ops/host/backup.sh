@@ -11,7 +11,7 @@
 # volume. A database dump on its own restores rows whose source_file points at
 # nothing.
 #
-# Installed by infra/install-backup.sh as /usr/local/bin/maintenance-backup and
+# Installed by ops/host/install-backup.sh as /usr/local/bin/maintenance-backup and
 # run by the maintenance-backup.timer systemd unit. Safe to run by hand:
 #
 #   ssh deploy@<host> maintenance-backup

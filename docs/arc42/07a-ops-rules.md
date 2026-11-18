@@ -4,7 +4,7 @@ The six rules for operating the production host by hand. Each was bought by an i
 what it cost. They are cited by number across the repository (compose files, the Caddyfile, the
 Keycloak theme notes, ADRs, code comments); this page is what those citations resolve to.
 [Chapter 7](07-deployment-view.md) shows the rules applied to this deployment, and
-[`docker/README.md`](https://github.com/Keglev/maintenance-assistant/blob/main/docker/README.md)
+[`ops/README.md`](https://github.com/Keglev/maintenance-assistant/blob/main/ops/README.md)
 lists the files on the host they apply to.
 
 The wording of rules 1-5 is the wording they were written in — copied, not restated, because a rule
@@ -37,7 +37,7 @@ numbered 6 because rules 4 and 5 were written the same day.
 
   APPLIED TO THIS STACK — the four single-file mounts, rows 3, 4, 5 and 7 of the table in
   *Files the pipeline never deploys* in
-  [`docker/README.md`](https://github.com/Keglev/maintenance-assistant/blob/main/docker/README.md).
+  [`ops/README.md`](https://github.com/Keglev/maintenance-assistant/blob/main/ops/README.md).
   A single-file bind mount tracks the file's INODE, not its path: replacing the host file with `mv` gives it a new inode and the container keeps
   reading the old one, silently — `caddy validate` and `caddy reload` run INSIDE the container
   and both happily report success against stale content. **Always `cp` OVER the existing file**,
@@ -55,7 +55,7 @@ numbered 6 because rules 4 and 5 were written the same day.
   while you are there.
 - **OPS RULE 5, THE SHARED-HOST RULE** (2026-08-27): ROOT CREATES AND HANDS
   OVER, deploy OPERATES. /opt is root-owned, and `deploy` is not in
-  sudoers at all — infra/provision.sh builds it that way on purpose
+  sudoers at all — ops/host/provision.sh builds it that way on purpose
   (adduser --disabled-password, passwd -l, docker group, no sudoers
   entry). So a second project's directory needs exactly one root action
   to exist, plus a chown, and everything after that is deploy's. This is

@@ -15,9 +15,10 @@ than an edit to history.
 | [ADR-007](ADR-007-end-to-end-testing-strategy.md) | Test the rendered application in a browser | Accepted |
 | [ADR-008](ADR-008-retrieval-measurement.md) | Measure retrieval against a golden question set before changing it | Accepted |
 | [ADR-009](ADR-009-hybrid-retrieval.md) | Ground an answer on an exact term, without re-calibrating the threshold | Accepted |
-| [ADR-010](ADR-010-docs-tree-conventions.md) | Name docs pages by what they are, and freeze citations that a checksum guards | Accepted |
+| [ADR-010](ADR-010-docs-tree-conventions.md) | Name docs pages by what they are, and freeze citations that a checksum guards | Accepted (amended 2026-11-18 by ADR-013) |
 | [ADR-011](ADR-011-guided-questions.md) | Show the user a question that works | Accepted |
 | [ADR-012](ADR-012-shared-host-two-projects.md) | Run two portfolio projects on one host, and say what that costs | Accepted |
+| [ADR-013](ADR-013-markdown-only-docs.md) | Write every document as linked markdown pages, never as plain text | Accepted |
 
 New records start from [ADR-TEMPLATE.md](ADR-TEMPLATE.md). Numbering is sequential and never
 reused. Planned: the Phase 5 extraction of the ingestion service and Kafka takes the next free

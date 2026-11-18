@@ -78,7 +78,7 @@ jobs:
       # Maven's local repository, keyed on the backend pom alone (the spike's pom under docs/ is
       # never built). restore-keys falls back to the newest earlier entry when the pom changes, so
       # an edit fetches only what changed instead of everything from Maven Central (HTTP 429, #218).
-      - uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5.1.0
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ~/.m2/repository
           key: maven-${{ runner.os }}-${{ hashFiles('backend/pom.xml') }}
@@ -168,7 +168,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       # The runner's Maven repository (same cache as the build job) seeds the image's
       # build stage through the "m2" build context, so go-offline fetches only the delta.
-      - uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5.1.0
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ~/.m2/repository
           key: maven-${{ runner.os }}-${{ hashFiles('backend/pom.xml') }}

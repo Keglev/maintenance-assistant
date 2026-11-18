@@ -37,7 +37,6 @@ import java.util.Locale;
 record TruncatedBody(long completionTokens, int characters, double whitespaceRatio,
                      String tail, boolean refusalShaped) {
 
-    private static final int TAIL_LENGTH = 200;
     private static final ObjectMapper JSON = new ObjectMapper();
 
     /**
@@ -46,7 +45,7 @@ record TruncatedBody(long completionTokens, int characters, double whitespaceRat
      * <p>THE ANATOMY IS THE EVIDENCE FOR A4: a whitespace ratio near 1 with a refusal-shaped tail
      * says the model emitted its empty claims list and then padded to the cap, which a bigger cap
      * would not fix; a tail of real prose says the answer genuinely ran out of room, which it
-     * would. Only the last {@code TAIL_LENGTH} characters are kept, because a log line is not a
+     * would. Only the last {@link LogText#MAX} characters are kept, because a log line is not a
      * place to put a user's document.
      */
     static TruncatedBody of(String content, long completionTokens) {
@@ -61,7 +60,7 @@ record TruncatedBody(long completionTokens, int characters, double whitespaceRat
         // German developer machine would make the same log line unsearchable.
         double ratio = body.isEmpty() ? 0.0
                 : Double.parseDouble(String.format(Locale.ROOT, "%.2f", (double) whitespace / body.length()));
-        return new TruncatedBody(completionTokens, body.length(), ratio, tailOf(body), isRefusalShaped(body));
+        return new TruncatedBody(completionTokens, body.length(), ratio, LogText.tail(body), isRefusalShaped(body));
     }
 
     /**
@@ -92,12 +91,6 @@ record TruncatedBody(long completionTokens, int characters, double whitespaceRat
             // it was called to describe.
             return false;
         }
-    }
-
-    /** Newlines escaped rather than stripped: a log line that wraps is a log line nobody greps. */
-    private static String tailOf(String body) {
-        String tail = body.length() <= TAIL_LENGTH ? body : body.substring(body.length() - TAIL_LENGTH);
-        return tail.replace("\\", "\\\\").replace("\n", "\\n").replace("\r", "\\r").replace("\t", "\\t");
     }
 
     /**

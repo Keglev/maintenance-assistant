@@ -222,8 +222,12 @@ public class QueryService {
         // Nothing the model said was attributable to a retrieved source. Retrieval thought it had an
         // answer and generation could not produce a grounded one, so the honest output is the
         // labelled general suggestion rather than a Mode A answer with no claims in it. Rare enough
-        // to be worth a warning, and cheap enough to be worth the second call.
-        log.warn("Mode A produced no valid citations; falling through to Mode B");
+        // to be worth a warning, and cheap enough to be worth the second call. The warning carries
+        // the head of what the model said, because "no valid citations" covers an empty claims
+        // list, a cited label that was not offered and malformed output, and the next step differs.
+        log.warn("Mode A produced no valid citations; falling through to Mode B "
+                        + "(completionTokens={}, content=\"{}\")",
+                completion.completionTokens(), LogText.head(completion.content()));
         return answerUngrounded(question, machineId, role);
     }
 

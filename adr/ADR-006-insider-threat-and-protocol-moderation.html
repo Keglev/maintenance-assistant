@@ -1640,6 +1640,107 @@ has to be redesigned — not this test relaxed.</code></pre>
         a property is <em>guarded</em>, not of the property. The three
         roles and their three jobs are exactly as decision 3 of
         2026-08-11 set them.</p>
+        <h2
+        id="revision-2026-11-18-a-duplicate-threshold-per-protocol-type">Revision
+        — 2026-11-18: a duplicate threshold per protocol type</h2>
+        <p>The 2026-08-14 revision chose one threshold, 0.92, and found
+        that the constraint on it was scheduled maintenance, not the
+        E-47 four. The retrieval baseline of 2026-11-16 re-measured that
+        constraint at 0.9159 (PR-07’s half-yearly and annual services),
+        which left a margin of 0.0041. Both protocols are
+        <code>WARTUNG</code>; the closest legitimate pair that includes
+        a fault report is 0.8801. One number was serving two populations
+        and was set by the tighter one.</p>
+        <h3
+        id="the-decision-the-type-of-the-protocol-being-checked-chooses-the-threshold">The
+        decision: the type of the protocol being checked chooses the
+        threshold</h3>
+        <p>A protocol is compared, against every other protocol on its
+        machine, at the threshold of its own type:
+        <code>maintenance.duplicates.similarity-threshold</code> for a
+        fault report (<code>STOERUNG</code>), unchanged at
+        <strong>0.92</strong>, and the new
+        <code>maintenance.duplicates.maintenance-similarity-threshold</code>
+        for a maintenance protocol (<code>WARTUNG</code>),
+        <strong>0.93</strong>. The report still carries the one
+        threshold that decided it, so the approval dialog and the API
+        are unchanged. Similarity still warns and never blocks.</p>
+        <h3 id="the-measurement">The measurement</h3>
+        <p><code>DuplicateSimilarityCalibrationIT</code>, live provider,
+        <code>bge-m3</code>, the 165-protocol corpus. The fault side is
+        the run of 2026-11-16, re-taken on 2026-11-18 within 0.0001; the
+        maintenance side is new. The maintenance duplicates are a second
+        technician’s write-up of the annual service on PR-07 and a
+        verbatim re-file under a new title.</p>
+        <table>
+        <colgroup>
+        <col style="width: 33%" />
+        <col style="width: 33%" />
+        <col style="width: 33%" />
+        </colgroup>
+        <thead>
+        <tr class="header">
+        <th></th>
+        <th>fault reports</th>
+        <th>maintenance</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr class="odd">
+        <td>closest legitimate pair (at least one protocol of the
+        type)</td>
+        <td>0.8801</td>
+        <td>0.9159</td>
+        </tr>
+        <tr class="even">
+        <td>the same event written up by a second person</td>
+        <td>0.9310</td>
+        <td>0.9493</td>
+        </tr>
+        <tr class="odd">
+        <td>a verbatim re-file under a new title</td>
+        <td>0.9781</td>
+        <td>0.9869</td>
+        </tr>
+        <tr class="even">
+        <td>threshold</td>
+        <td>0.92</td>
+        <td>0.93</td>
+        </tr>
+        <tr class="odd">
+        <td>margin above the closest legitimate pair</td>
+        <td>0.0399</td>
+        <td>0.0141</td>
+        </tr>
+        <tr class="even">
+        <td>margin below the re-narration</td>
+        <td>0.0110</td>
+        <td>0.0193</td>
+        </tr>
+        </tbody>
+        </table>
+        <p>Both thresholds sit low in their windows for the reason the
+        2026-08-14 revision gives: a false positive costs one card an
+        approver dismisses, a false negative costs the warning entirely.
+        The first calibration run used a provisional 0.95 and failed on
+        it by 0.0007, which is how the maintenance window was found to
+        end at 0.9493 rather than assumed.</p>
+        <h3 id="the-asymmetry-accepted">The asymmetry, accepted</h3>
+        <p>The threshold belongs to the protocol being checked, so one
+        pair of different types is judged at 0.92 from the fault
+        report’s side and at 0.93 from the maintenance protocol’s side.
+        No measured pair of different types comes near either number
+        (the closest is 0.8618), and <code>ProtocolDuplicateIT</code>
+        states the behaviour as a test. Judging each pair by both types
+        was the alternative; it would give one report several
+        thresholds, which the approval dialog would have to explain.</p>
+        <h3 id="what-would-make-this-stale">What would make this
+        stale</h3>
+        <p>If maintenance stops setting the corpus-wide ceiling, one
+        threshold would do again; the calibration test asserts that the
+        maintenance ceiling is above the fault ceiling, so that change
+        fails loudly. Re-run the calibration after any change to the
+        embedding model, the chunker or the corpus, as before.</p>
       </article>
     </main>
 
@@ -1877,6 +1978,24 @@ has to be redesigned — not this test relaxed.</code></pre>
       data: nothing is migrated, and that is deliberate</a></li>
       <li><a href="#what-is-not-changed"
       id="toc-what-is-not-changed">What is NOT changed</a></li>
+      </ul></li>
+      <li><a
+      href="#revision-2026-11-18-a-duplicate-threshold-per-protocol-type"
+      id="toc-revision-2026-11-18-a-duplicate-threshold-per-protocol-type">Revision
+      — 2026-11-18: a duplicate threshold per protocol type</a>
+      <ul>
+      <li><a
+      href="#the-decision-the-type-of-the-protocol-being-checked-chooses-the-threshold"
+      id="toc-the-decision-the-type-of-the-protocol-being-checked-chooses-the-threshold">The
+      decision: the type of the protocol being checked chooses the
+      threshold</a></li>
+      <li><a href="#the-measurement" id="toc-the-measurement">The
+      measurement</a></li>
+      <li><a href="#the-asymmetry-accepted"
+      id="toc-the-asymmetry-accepted">The asymmetry, accepted</a></li>
+      <li><a href="#what-would-make-this-stale"
+      id="toc-what-would-make-this-stale">What would make this
+      stale</a></li>
       </ul></li>
       </ul></li>
       </ul>

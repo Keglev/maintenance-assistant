@@ -5,7 +5,7 @@ import java.util.List;
 /**
  * The one call this application makes to the LLM provider during ingestion.
  *
- * &lt;p&gt;Narrow on purpose. The spike in {@code spike/spring-ai-boot4/} established that Spring AI 2.0
+ * &lt;p&gt;Narrow on purpose. The spike in {@code docs/evidence/spring-ai-boot4/} established that Spring AI 2.0
  * works on Boot 4.1 but is a large dependency for a single POST, and that its abstraction leaks
  * precisely where the provider is OpenAI-&lt;em&gt;compatible&lt;/em&gt; rather than OpenAI. Keeping the
  * contract this small means adopting it later — for the Phase 3 chat path, where it earns its

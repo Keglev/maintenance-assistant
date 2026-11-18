@@ -293,6 +293,14 @@ DOCS
   closes: corrections go in a new record or a dated amendment block; the
   decision, status and alternatives are never edited. Number them, index
   them, and keep the nav in step.
+  AMENDED 2026-11-18 (ruled by the owner): ONE EXCEPTION, FOR LINK
+  TARGETS. When a repository file an ADR links to moves or is removed,
+  the link is re-pointed to a permalink pinned to the last commit before
+  the change (blob/<sha>/... or tree/<sha>/...), so it shows exactly the
+  file the decision rested on and never breaks again. The link text and
+  every word around it stay as they are. check-repo-urls.sh in
+  docs-pr-check fails on a blob/main or tree/main URL whose path is
+  missing from the checkout, so a move cannot leave one behind.
 - EVERY PUBLISHED SURFACE CARRIES THE SAME ANCHOR HOME. A report tree
   reached from the docs site must offer the way back to it.
 - Explanatory markdown pages under docs/ are lowercase-kebab; the .txt

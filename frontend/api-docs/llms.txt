@@ -1207,10 +1207,10 @@ Properties:
   Defined in `src/app/shared/protocol/protocol-document.ts`
 - `NO_FILTER: ProtocolFilter = { machineNo: '', titleContains: '', from: '', to: '', approvalState: '', }` — The unfiltered corpus: what the view shows until someone narrows it.
   Defined in `src/app/core/api/api.types.ts`
-- `PAGE_SIZE: number = 5` — Rows per page. Five, not ten: on a tablet held upright ten rows push the pager below the fold, so the control that says there is more is only reachable by scrolling past everything it is offering. Five rows and a pager both fit.
-  Defined in `src/app/features/moderation/moderation.ts`
 - `PAGE_SIZE: number = 5` — Rows per page in "Meine Uploads" — the same five the two moderation tables use.
   Defined in `src/app/features/upload/upload.ts`
+- `PAGE_SIZE: number = 5` — Rows per page. Five, not ten: on a tablet held upright ten rows push the pager below the fold, so the control that says there is more is only reachable by scrolling past everything it is offering. Five rows and a pager both fit.
+  Defined in `src/app/features/moderation/moderation.ts`
 - `PATTERNS: Readonly<Record<UiLanguage, string>> = { de: 'dd.MM.yyyy', en: 'MM/dd/yyyy', }` — The date format each language actually expects. Written out rather than left to 'shortDate' , which gives dd.MM.yy in German — a two-digit year on a maintenance record is the one place ambiguity is not worth the four characters it saves. Both patterns are the everyday civil format of their language, not an ISO compromise neither side reads naturally.
   Defined in `src/app/core/i18n/app-date.pipe.ts`
 - `PATTERNS_WITH_TIME: Readonly<Record<UiLanguage, string>> = { de: "dd.MM.yyyy, HH:mm 'Uhr'", en: 'MM/dd/yyyy, h:mm a', }` — The same day, with the clock time on it. Added for the protocol viewer's history section, where the day alone is not enough: two corrections on one afternoon are a different story from two a month apart, and a ledger that showed both as "14.08.2026" would hide the sequence a reader is there to reconstruct. The moderation table keeps the day-only format — a column of timestamps is noise in a list somebody is scanning for a title. 24-hour for German and 12-hour with am/pm for English, because that is what each language reads without converting in their head. No seconds: the ledger records an act by a person, and nobody needs to know which second they pressed the button.

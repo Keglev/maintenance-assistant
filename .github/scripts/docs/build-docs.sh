@@ -130,16 +130,6 @@ reject_inline_mermaid() {
   fi
 }
 
-# The planning documents are plain text, not markdown, so pandoc does not touch
-# them. They are copied verbatim because the architecture pages cite them as the
-# source of truth and those links have to resolve.
-copy_plain_text_docs() {
-  if compgen -G "$DOCS_DIR/*.txt" > /dev/null; then
-    cp "$DOCS_DIR"/*.txt "$OUTPUT_DIR/"
-    echo "✓ Plain-text planning documents copied"
-  fi
-}
-
 # GITHUB PAGES MUST NOT RUN JEKYLL OVER PANDOC OUTPUT. Without this file Pages
 # jekylls the branch: directories beginning with an underscore and files beginning
 # with a dot are dropped, and the site loses whatever happens to be named that way.
@@ -219,7 +209,6 @@ write_lua_filter
 build_theme_assets
 copy_landing_pages
 copy_diagrams
-copy_plain_text_docs
 bash "$SCRIPTS_DIR/build-markdown-docs.sh" "$PROJECT_DIR"
 bash "$SCRIPTS_DIR/build-openapi-docs.sh"  "$PROJECT_DIR"
 copy_report backend-coverage  backend/coverage

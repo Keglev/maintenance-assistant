@@ -49,7 +49,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  *
  * <p><b>Reproduce</b> (PowerShell, from {@code backend/}), local stack up and corpus indexed:
  * <pre>
- *   $env:LLM_API_KEY = (Select-String -Path ..\spike\adr-002\.env -Pattern '^IONOS_API_KEY=').Line.Split('=')[1]
+ *   $env:LLM_API_KEY = (Select-String -Path ..\docs\evidence\adr-002\.env -Pattern '^IONOS_API_KEY=').Line.Split('=')[1]
  *   $env:LLM_CHAT_MODEL = 'meta-llama/Llama-3.3-70B-Instruct'
  *   mvn verify -P llm-live -Dit.test=RetrievalBaselineIT
  * </pre>

@@ -15,7 +15,7 @@ supersedes the old one.
 introduction of Kafka, once that change is actually made.
 
 **All four records are accepted.** ADR-002 was decided on a measured two-round provider spike
-([`spike/adr-002/RESULTS.md`](https://github.com/Keglev/maintenance-assistant/blob/main/spike/adr-002/RESULTS.md),
+([`docs/evidence/adr-002/RESULTS.md`](https://github.com/Keglev/maintenance-assistant/blob/main/docs/evidence/adr-002/RESULTS.md),
 [PR #14](https://github.com/Keglev/maintenance-assistant/pull/14)) which reversed its original
 proposal. Two of its questions stay open by design and are tracked in the record: Spring AI
 compatibility with Spring Boot 4.1 (deferred to Phase 3 — the spike was Python, so it measured the

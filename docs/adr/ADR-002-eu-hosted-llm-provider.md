@@ -5,7 +5,7 @@
 | **Status** | **Accepted** — decided on the measured spike, see *Evidence* |
 | **Date** | 2026-08-06 (proposed 2026-08-05) |
 | **Deciders** | Project owner (solo) |
-| **Related** | Implements NFR-1 (data residency) and NFR-7 (cost control); constrains NFR-2 (answer modes) and NFR-4 (latency). Evidence: [`spike/adr-002/RESULTS.md`](https://github.com/Keglev/maintenance-assistant/blob/main/spike/adr-002/RESULTS.md), [PR #14](https://github.com/Keglev/maintenance-assistant/pull/14) |
+| **Related** | Implements NFR-1 (data residency) and NFR-7 (cost control); constrains NFR-2 (answer modes) and NFR-4 (latency). Evidence: [`spike/adr-002/RESULTS.md`](https://github.com/Keglev/maintenance-assistant/blob/fecdfdf85eee58879911d771796ba0e5d3d37e4a/spike/adr-002/RESULTS.md), [PR #14](https://github.com/Keglev/maintenance-assistant/pull/14) |
 
 ## Context
 
@@ -66,9 +66,9 @@ with three measured caveats that the code must carry:
 
 ## Evidence
 
-Measured in [`spike/adr-002/`](https://github.com/Keglev/maintenance-assistant/tree/main/spike/adr-002)
+Measured in [`spike/adr-002/`](https://github.com/Keglev/maintenance-assistant/tree/fecdfdf85eee58879911d771796ba0e5d3d37e4a/spike/adr-002)
 over two rounds against both live APIs; full numbers in
-[`RESULTS.md`](https://github.com/Keglev/maintenance-assistant/blob/main/spike/adr-002/RESULTS.md),
+[`RESULTS.md`](https://github.com/Keglev/maintenance-assistant/blob/fecdfdf85eee58879911d771796ba0e5d3d37e4a/spike/adr-002/RESULTS.md),
 review discussion in [PR #14](https://github.com/Keglev/maintenance-assistant/pull/14).
 
 **IONOS won retrieval on every query.** Its cross-language penalty — the score a German query
@@ -157,7 +157,7 @@ month at demo volume, against a VPS that costs an order of magnitude more.
 ### Note, 2026-08-07 — the Java integration, measured
 
 This ADR left two things open that only running the Java side could settle. Both are now measured;
-the evidence is in [`spike/spring-ai-boot4/RESULTS.md`](https://github.com/Keglev/maintenance-assistant/blob/main/spike/spring-ai-boot4/RESULTS.md).
+the evidence is in [`spike/spring-ai-boot4/RESULTS.md`](https://github.com/Keglev/maintenance-assistant/blob/fecdfdf85eee58879911d771796ba0e5d3d37e4a/spike/spring-ai-boot4/RESULTS.md).
 
 **Spring AI vs a plain `RestClient` → `RestClient`.** Not for incompatibility: Spring AI 2.0.0, the
 first generation on Spring Framework 7, auto-configures cleanly on Boot 4.1 and returned correct

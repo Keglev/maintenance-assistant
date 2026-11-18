@@ -42,7 +42,7 @@ import static org.awaitility.Awaitility.await;
  * <p>The embedding client is a fake producing deterministic vectors. No call leaves the machine:
  * tests must not depend on a provider being up, on a key being present, or spend money to run. What
  * the fake cannot cover — that IONOS accepts our request shape — is covered by
- * {@code spike/spring-ai-boot4/} and by the manual corpus run recorded in the pull request.
+ * {@code docs/evidence/spring-ai-boot4/} and by the manual corpus run recorded in the pull request.
  */
 @SpringBootTest
 @ActiveProfiles("it")

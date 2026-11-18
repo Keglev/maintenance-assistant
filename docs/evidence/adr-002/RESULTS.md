@@ -742,8 +742,8 @@ directory: a measurement nobody else can repeat is an assertion.
 - **Docker**, and nothing else — the commands below run the spike inside `python:3.12-slim`, so no
   local Python installation is involved and no virtual environment has to be managed. Python **3.12**
   is what the recorded runs used. Running it with a locally installed Python works too
-  (`pip install -r requirements.txt`, then `python spike.py`); 3.11 or newer is sufficient for the
-  two dependencies, which are pinned in `requirements.txt` (`openai==2.9.0`, `numpy==2.3.4`).
+  (`pip install -r requirements.md`, then `python spike.py`); 3.11 or newer is sufficient for the
+  two dependencies, which are pinned in `requirements.md` (`openai==2.9.0`, `numpy==2.3.4`).
 - **Two provider API keys**, in a `.env` file created from `.env.example`:
   - `NEBIUS_API_KEY` — Nebius Token Factory, <https://tokenfactory.nebius.com/>. The recorded runs
     used a trial key.
@@ -761,17 +761,17 @@ directory: a measurement nobody else can repeat is an assertion.
 ### The commands
 
 ```powershell
-cd spike/adr-002
+cd docs/evidence/adr-002
 cp .env.example .env    # paste NEBIUS_API_KEY and IONOS_API_KEY
 
 # round 1 — both providers (or `python spike.py ionos` for one; results.json
 # is merged, so a single-provider re-run keeps the other provider's record)
 docker run --rm -v "${PWD}:/spike" -w /spike --env-file .env python:3.12-slim `
-  sh -c "pip install -q -r requirements.txt && python spike.py"
+  sh -c "pip install -q -r requirements.md && python spike.py"
 
 # round 2 — reads the top-3 hits out of results.json, so run round 1 first
 docker run --rm -v "${PWD}:/spike" -w /spike --env-file .env python:3.12-slim `
-  sh -c "pip install -q -r requirements.txt && python round2.py"
+  sh -c "pip install -q -r requirements.md && python round2.py"
 ```
 
 Round 2 takes 15–25 minutes: 44 generation calls, and Nebius' Llama-3.3-70B

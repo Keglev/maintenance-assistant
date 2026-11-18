@@ -1,7 +1,7 @@
 # ADR-002 spike — EU-hosted LLM provider evaluation
 
 Self-contained evidence gathering for
-[ADR-002](../../docs/adr/ADR-002-eu-hosted-llm-provider.md): **Nebius Token
+[ADR-002](../../adr/ADR-002-eu-hosted-llm-provider.md): **Nebius Token
 Factory** vs **IONOS AI Model Hub**. It answers the ADR's open questions with
 measurements against the live APIs rather than with vendor claims.
 
@@ -53,7 +53,7 @@ cp .env.example .env   # then paste the keys
 With Python 3.12+ on the machine:
 
 ```bash
-pip install -r requirements.txt
+pip install -r requirements.md
 set -a && . ./.env && set +a     # PowerShell: see below
 python spike.py                  # round 1; optional arg: `nebius` or `ionos`
 python round2.py                 # round 2; same optional provider filter
@@ -63,7 +63,7 @@ Without a local Python — the way this run was done — through Docker:
 
 ```powershell
 docker run --rm -v "${PWD}:/spike" -w /spike --env-file .env python:3.12-slim `
-  sh -c "pip install -q -r requirements.txt && python spike.py"
+  sh -c "pip install -q -r requirements.md && python spike.py"
 ```
 
 Note for `--env-file`: Docker does not strip quotes, so write `KEY=value`

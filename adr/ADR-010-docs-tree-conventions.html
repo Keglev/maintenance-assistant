@@ -108,6 +108,7 @@ ADR-010-docs-tree-conventions · maintenance-assistant Docs</title>
           <li><a href="/maintenance-assistant/adr/ADR-004-pgvector-for-vector-search.html">ADR-004 pgvector</a></li>
           <li><a href="/maintenance-assistant/adr/ADR-010-docs-tree-conventions.html">ADR-010 Docs tree conventions</a></li>
           <li><a href="/maintenance-assistant/adr/ADR-011-guided-questions.html">ADR-011 Guided questions</a></li>
+          <li><a href="/maintenance-assistant/adr/ADR-013-markdown-only-docs.html">ADR-013 Markdown-only docs</a></li>
         </ul>
       </details>
 
@@ -421,6 +422,19 @@ R__seed_machines.sql:1       -- Repeatable seed — the 10 machines of the demo 
         inputs that stay in <code>docs/</code> are
         <code>DECISIONS.txt</code> and
         <code>REFACTOR-STANDARDS.txt</code>.</p>
+        <h3 id="note-2026-11-18-the-ledgers-become-markdown">Note,
+        2026-11-18 — the ledgers become markdown</h3>
+        <p>The owner ruled on 2026-11-18 that no document in the
+        repository is a <code>.txt</code> file. The part of decision 1
+        that keeps <code>DECISIONS.txt</code> and
+        <code>REFACTOR-STANDARDS.txt</code> as SCREAMING plain-text
+        ledgers is replaced by <a
+        href="ADR-013-markdown-only-docs.html">ADR-013</a>: both become
+        linked markdown pages under the lowercase-kebab rule, split
+        where they exceed the docs band. The rest of this record stands:
+        the casing rule for explanatory pages, the SCREAMING names of
+        the ADR files, the frozen citations in applied Flyway migrations
+        and the place of the landing pages.</p>
       </article>
     </main>
 
@@ -458,6 +472,9 @@ R__seed_machines.sql:1       -- Repeatable seed — the 10 machines of the demo 
       id="toc-note-2026-11-17-the-handover-and-the-ledger-leave-the-repository">Note,
       2026-11-17 — the handover and the ledger leave the
       repository</a></li>
+      <li><a href="#note-2026-11-18-the-ledgers-become-markdown"
+      id="toc-note-2026-11-18-the-ledgers-become-markdown">Note,
+      2026-11-18 — the ledgers become markdown</a></li>
       </ul></li>
       </ul></li>
       </ul>

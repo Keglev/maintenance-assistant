@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Decisions ·
+ADR-013-markdown-only-docs · maintenance-assistant Docs</title>
+
+  <!-- Set the theme before the stylesheet paints, otherwise the page flashes
+       the default theme for one frame before the saved choice applies. -->
+  <script>
+    (function () {
+      try {
+        var t = localStorage.getItem("maintenance-assistant-theme") ||
+          (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+        document.documentElement.setAttribute("data-theme", t);
+      } catch (e) {
+        document.documentElement.setAttribute("data-theme", "light");
+      }
+    })();
+  </script>
+
+  <link rel="stylesheet" href="/maintenance-assistant/assets/docs.css" />
+</head>
+
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <header class="topbar">
+    <div class="topbar-inner">
+      <button class="menu-btn" aria-label="Toggle navigation">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="18" x2="21" y2="18" />
+        </svg>
+      </button>
+
+      <a href="/maintenance-assistant/" class="brand">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <path d="M14.7 6.3a5 5 0 0 0-6.6 6.6l-5 5a2 2 0 1 0 2.8 2.8l5-5a5 5 0 0 0 6.6-6.6l-2.9 2.9-2.1-2.1 2.2-3.6z" />
+        </svg>
+        maintenance-assistant Docs
+      </a>
+
+      <div class="topbar-tools">
+        <span class="lang-switch">
+          <a href="/maintenance-assistant/" aria-current="true">EN</a>
+          <a href="/maintenance-assistant/index-de.html">DE</a>
+        </span>
+        <button class="theme-toggle" aria-label="Toggle light or dark theme">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <circle cx="12" cy="12" r="9" /><path d="M12 3a9 9 0 0 0 0 18z" fill="currentColor" stroke="none" />
+          </svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <div class="layout">
+    <!-- Sidebar navigation, included by app-docs.html as a Pandoc partial. One
+         sidebar serves the whole site: this repository has a single arc42 tree and a
+         single decision log, so the per-tier sidebars the sibling repositories need
+         would be three copies of the same list here. The active link is marked at
+         runtime by docs.js. Do not put template syntax in this comment - a partial
+         is itself a template. -->
+    <aside class="sidebar">
+      <p class="nav-title">Docs</p>
+      <ul>
+        <li><a href="/maintenance-assistant/">Docs home</a></li>
+        <li><a href="/maintenance-assistant/overview.html">Overview</a></li>
+        <li><a href="/maintenance-assistant/overview-de.html">&Uuml;berblick (DE)</a></li>
+        <li><a href="/maintenance-assistant/llm-approach.html">AI &amp; LLM approach</a></li>
+        <li><a href="/maintenance-assistant/run-locally.html">Run it locally</a></li>
+      </ul>
+
+      <p class="nav-title">Requirements</p>
+      <ul>
+        <li><a href="/maintenance-assistant/requirements.html">Requirements &amp; NFRs</a></li>
+        <li><a href="/maintenance-assistant/domain-model.html">Domain model</a></li>
+      </ul>
+
+      <details class="nav-group">
+        <summary>Architecture (arc42)</summary>
+        <ul>
+          <li><a href="/maintenance-assistant/architecture/index.html">Architecture index</a></li>
+          <li><a href="/maintenance-assistant/architecture/01-introduction-and-goals.html">1 &middot; Introduction &amp; Goals</a></li>
+          <li><a href="/maintenance-assistant/architecture/02-architecture-constraints.html">2 &middot; Constraints</a></li>
+          <li><a href="/maintenance-assistant/architecture/03-context-and-scope.html">3 &middot; Context &amp; Scope</a></li>
+          <li><a href="/maintenance-assistant/architecture/04-solution-strategy.html">4 &middot; Solution Strategy</a></li>
+          <li><a href="/maintenance-assistant/architecture/05-building-block-view.html">5 &middot; Building Blocks</a></li>
+          <li><a href="/maintenance-assistant/architecture/06-runtime-view.html">6 &middot; Runtime View</a></li>
+          <li><a href="/maintenance-assistant/architecture/07-deployment-view.html">7 &middot; Deployment</a></li>
+          <li><a href="/maintenance-assistant/architecture/07a-ops-rules.html">7a &middot; Ops rules</a></li>
+          <li><a href="/maintenance-assistant/architecture/08-crosscutting-concepts.html">8 &middot; Concepts</a></li>
+          <li><a href="/maintenance-assistant/architecture/09-architecture-decisions.html">9 &middot; Decisions</a></li>
+          <li><a href="/maintenance-assistant/architecture/10-quality-requirements.html">10 &middot; Quality Requirements</a></li>
+          <li><a href="/maintenance-assistant/architecture/11-risks-and-technical-debt.html">11 &middot; Risks &amp; Debt</a></li>
+          <li><a href="/maintenance-assistant/architecture/12-glossary.html">12 &middot; Glossary</a></li>
+        </ul>
+      </details>
+
+      <details class="nav-group">
+        <summary>Decisions (ADRs)</summary>
+        <ul>
+          <li><a href="/maintenance-assistant/adr/index.html">Decision index</a></li>
+          <li><a href="/maintenance-assistant/adr/ADR-001-modular-monolith-first.html">ADR-001 Modular monolith</a></li>
+          <li><a href="/maintenance-assistant/adr/ADR-002-eu-hosted-llm-provider.html">ADR-002 EU LLM provider</a></li>
+          <li><a href="/maintenance-assistant/adr/ADR-003-keycloak-for-iam.html">ADR-003 Keycloak as IdP</a></li>
+          <li><a href="/maintenance-assistant/adr/ADR-004-pgvector-for-vector-search.html">ADR-004 pgvector</a></li>
+          <li><a href="/maintenance-assistant/adr/ADR-010-docs-tree-conventions.html">ADR-010 Docs tree conventions</a></li>
+          <li><a href="/maintenance-assistant/adr/ADR-011-guided-questions.html">ADR-011 Guided questions</a></li>
+          <li><a href="/maintenance-assistant/adr/ADR-013-markdown-only-docs.html">ADR-013 Markdown-only docs</a></li>
+        </ul>
+      </details>
+
+      <p class="nav-title">Frontend</p>
+      <ul>
+        <li><a href="/maintenance-assistant/frontend-architecture.html">Frontend architecture</a></li>
+      </ul>
+
+      <p class="nav-title">Quality</p>
+      <ul>
+        <li><a href="/maintenance-assistant/refactor-standards.html">Refactor standards</a></li>
+        <li><a href="/maintenance-assistant/backend/api-docs/index.html">Backend API</a></li>
+        <li><a href="/maintenance-assistant/frontend/api-docs/index.html">Frontend API</a></li>
+        <li><a href="/maintenance-assistant/backend/coverage/index.html">Backend coverage</a></li>
+        <li><a href="/maintenance-assistant/frontend/coverage/index.html">Frontend coverage</a></li>
+      </ul>
+    </aside>
+    <main class="content" id="main">
+      <article class="doc-body">
+        <h1
+        id="adr-013-write-every-document-as-linked-markdown-pages-never-as-plain-text">ADR-013:
+        Write every document as linked markdown pages, never as plain
+        text</h1>
+        <table>
+        <colgroup>
+        <col style="width: 50%" />
+        <col style="width: 50%" />
+        </colgroup>
+        <tbody>
+        <tr class="odd">
+        <td><strong>Status</strong></td>
+        <td>Accepted</td>
+        </tr>
+        <tr class="even">
+        <td><strong>Date</strong></td>
+        <td>2026-11-18</td>
+        </tr>
+        <tr class="odd">
+        <td><strong>Deciders</strong></td>
+        <td>Carlos Keglevich</td>
+        </tr>
+        <tr class="even">
+        <td><strong>Related</strong></td>
+        <td>Amends <a
+        href="ADR-010-docs-tree-conventions.html">ADR-010</a> decision 1
+        (the plain-text ledgers); GitHub issue #203 (organizing the
+        scattered documentation files);
+        <code>.github/scripts/docs/build-docs.sh</code> (copies
+        <code>docs/*.txt</code> to the site)</td>
+        </tr>
+        </tbody>
+        </table>
+        <h2 id="context">Context</h2>
+        <p><a href="ADR-010-docs-tree-conventions.html">ADR-010</a> kept
+        three plain-text ledgers in <code>docs/</code>
+        (<code>DECISIONS.txt</code>, <code>PROJECT-PHASES.txt</code>,
+        <code>REFACTOR-STANDARDS.txt</code>) as SCREAMING
+        <code>.txt</code> files, because they were normative records
+        read by search and grown by append, not explanatory pages.
+        <code>PROJECT-PHASES.txt</code> left the repository on
+        2026-11-17. The two that remain are still the only documents a
+        reader of the published site meets as raw text: the build copies
+        them verbatim, so a link to them opens a page with no theme, no
+        navigation and no way back to where the reader came from.</p>
+        <p>The 2026-11-17 survey of scattered documentation (issue #203)
+        found the same split in a second form:
+        <code>REFACTOR-STANDARDS.txt</code> (normative, about 520 lines)
+        and <code>refactor-standards.md</code> (the published page that
+        summarises it) are two files for one topic, and a reader has to
+        know which of the two decides.</p>
+        <p>The forces:</p>
+        <ul>
+        <li><strong>Navigation.</strong> A site page carries the sidebar
+        and its links; a <code>.txt</code> file does not. Every link
+        into a <code>.txt</code> file is a dead end in the site.</li>
+        <li><strong>Size.</strong> The docs band is 150-250 lines per
+        page, one topic. ADR-010 exempted the ledgers from it because
+        they were plain text; converted as they are, they would exceed
+        it two to four times.</li>
+        <li><strong>One source per topic.</strong> A normative file plus
+        a page explaining it drift apart.</li>
+        </ul>
+        <h2 id="decision">Decision</h2>
+        <p><strong>1. No document in this repository is a
+        <code>.txt</code> file, and no page links to one.</strong>
+        Documentation is markdown: prose, rules, records and evidence
+        alike. This includes
+        <code>spike/adr-002/requirements.txt</code>, which becomes
+        <code>requirements.md</code> (pip reads a requirements file by
+        path, not by extension). Data is not documentation: text files
+        that are inputs or outputs of the application are not
+        covered.</p>
+        <p><strong>2. A document too large for the docs band becomes a
+        small set of linked pages</strong>, not one page with a waiver:
+        an index page that says what each part covers and links to it,
+        and part pages that each cover one topic. A normative document
+        and a page explaining it are merged into that one set.</p>
+        <p><strong>3. Every page is reachable through a link from
+        another page.</strong> A new page is linked from its parent (the
+        index of its section, or the page that introduces its topic) and
+        links back to it, so a reader moves through the docs as HTML
+        pages and never lands on a page with no way in or out.</p>
+        <p><code>REFACTOR-STANDARDS.txt</code> and
+        <code>refactor-standards.md</code> are the first pair converted
+        under this decision; <code>DECISIONS.txt</code> follows once its
+        shape is ruled.</p>
+        <h2 id="consequences">Consequences</h2>
+        <p><strong>Positive</strong></p>
+        <ul>
+        <li>Every document a reader can reach carries the site’s
+        navigation, theme and back links.</li>
+        <li>One source per topic: the standards are no longer a
+        normative file and a summary of it.</li>
+        <li>The size band applies to every page again; no exemption
+        class remains.</li>
+        </ul>
+        <p><strong>Negative</strong></p>
+        <ul>
+        <li>Code comments, ADRs and pages that cite the
+        <code>.txt</code> paths have to be updated, in the change that
+        converts each file; links in ADRs are re-pointed under the
+        link-target exception the standards allow, their wording
+        untouched.</li>
+        <li>Splitting a long document means a reader who searched one
+        file now searches several pages.</li>
+        <li>The published URLs of the two <code>.txt</code> files stop
+        answering once both are converted.</li>
+        </ul>
+        <h2 id="alternatives-considered">Alternatives considered</h2>
+        <ul>
+        <li><strong>Keep the <code>.txt</code> ledgers and state the
+        split in both headers.</strong> Cheapest; the issue #203 survey
+        proposed it as one option. Rejected by the owner: it keeps the
+        dead ends in the site and two files for one topic.
+        <em>Rejected.</em></li>
+        <li><strong>Convert each ledger to one large markdown page with
+        a size waiver.</strong> One page to search, no new links.
+        Rejected: pages of 500 to 1000 lines are the shape the docs band
+        exists to prevent, and a waiver would be an exception for the
+        two most-read documents. <em>Rejected.</em></li>
+        </ul>
+      </article>
+    </main>
+
+        <nav class="toc" aria-label="On this page">
+      <p class="toc-title">On this page</p>
+      <ul>
+      <li><a
+      href="#adr-013-write-every-document-as-linked-markdown-pages-never-as-plain-text"
+      id="toc-adr-013-write-every-document-as-linked-markdown-pages-never-as-plain-text">ADR-013:
+      Write every document as linked markdown pages, never as plain
+      text</a>
+      <ul>
+      <li><a href="#context" id="toc-context">Context</a></li>
+      <li><a href="#decision" id="toc-decision">Decision</a></li>
+      <li><a href="#consequences"
+      id="toc-consequences">Consequences</a></li>
+      <li><a href="#alternatives-considered"
+      id="toc-alternatives-considered">Alternatives considered</a></li>
+      </ul></li>
+      </ul>
+    </nav>
+      </div>
+
+  <footer class="footer">
+    maintenance-assistant · Generated by the docs pipeline
+  </footer>
+
+  <script src="/maintenance-assistant/assets/docs.js"></script>
+</body>
+</html>

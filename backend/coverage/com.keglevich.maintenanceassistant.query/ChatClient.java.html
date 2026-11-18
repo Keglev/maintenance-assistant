@@ -7,7 +7,7 @@ import java.util.Map;
  *
  * &lt;p&gt;Narrow, and narrow for the same reason {@code EmbeddingClient} is: what the query path needs is
  * a single {@code POST /v1/chat/completions} with a system prompt, a user prompt, an output cap and
- * a response schema. DECISIONS.txt closed Spring AI for the embedding path on proportion rather than
+ * a response schema. docs/decisions-architecture.md closed Spring AI for the embedding path on proportion rather than
  * on compatibility, and the chat path was named there as the place that decision would be revisited
  * — the place where advisors, chat memory and tool calling would earn their weight. This
  * implementation uses none of them: there is no conversation to remember (every question is

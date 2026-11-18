@@ -157,7 +157,7 @@ public class ProtocolIntakeService {
 
     private static String detectOrValidateLanguage(String language) {
 <span class="pc bpc" id="L159" title="2 of 4 branches missed.">        if (language == null || language.isBlank()) {</span>
-            // Nothing is translated (DECISIONS.txt), so the value only tags what was written.
+            // Nothing is translated (docs/decisions.md), so the value only tags what was written.
             // German is the plant's language and the safe default for an unlabelled note.
 <span class="nc" id="L162">            return &quot;de&quot;;</span>
         }

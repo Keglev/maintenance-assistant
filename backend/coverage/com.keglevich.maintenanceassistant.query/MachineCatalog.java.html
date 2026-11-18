@@ -11,7 +11,7 @@ import java.util.UUID;
  * The machines a question can be asked about.
  *
  * &lt;p&gt;In the query module rather than in ingestion, because that is what it is &lt;em&gt;for&lt;/em&gt;: search
- * is scoped to exactly one machine (DECISIONS.txt), {@link QueryService} takes a machine id, and
+ * is scoped to exactly one machine (docs/decisions.md), {@link QueryService} takes a machine id, and
  * without a way to list them a client would have to know UUIDs it has no way to learn. Machine
  * master data is written by a Flyway seed and by nothing at runtime, so there is no writing side to
  * put this next to.

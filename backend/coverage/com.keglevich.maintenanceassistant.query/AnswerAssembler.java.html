@@ -28,7 +28,7 @@ import java.util.regex.Pattern;
  *
  * &lt;p&gt;Its own {@link JsonMapper} rather than the injected one. Boot 4.1 ships Jackson 3 as the
  * message-converter default with Jackson 2 still on the classpath through other libraries, and
- * DECISIONS.txt records what that cost the first time it was discovered at runtime. Constructing the
+ * docs/decisions-architecture.md records what that cost the first time it was discovered at runtime. Constructing the
  * mapper here says which generation parses this string, in the file where the parsing happens.
  */
 @Component

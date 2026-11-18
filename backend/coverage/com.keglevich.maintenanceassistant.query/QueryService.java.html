@@ -222,9 +222,13 @@ public class QueryService {
         // Nothing the model said was attributable to a retrieved source. Retrieval thought it had an
         // answer and generation could not produce a grounded one, so the honest output is the
         // labelled general suggestion rather than a Mode A answer with no claims in it. Rare enough
-        // to be worth a warning, and cheap enough to be worth the second call.
-<span class="fc" id="L226">        log.warn(&quot;Mode A produced no valid citations; falling through to Mode B&quot;);</span>
-<span class="fc" id="L227">        return answerUngrounded(question, machineId, role);</span>
+        // to be worth a warning, and cheap enough to be worth the second call. The warning carries
+        // the head of what the model said, because &quot;no valid citations&quot; covers an empty claims
+        // list, a cited label that was not offered and malformed output, and the next step differs.
+<span class="fc" id="L228">        log.warn(&quot;Mode A produced no valid citations; falling through to Mode B &quot;</span>
+                        + &quot;(completionTokens={}, content=\&quot;{}\&quot;)&quot;,
+<span class="fc" id="L230">                completion.completionTokens(), LogText.head(completion.content()));</span>
+<span class="fc" id="L231">        return answerUngrounded(question, machineId, role);</span>
     }
 
     /**
@@ -237,10 +241,10 @@ public class QueryService {
      * the hypothesis answerable once these lines exist in production.
      */
     private static String classify(TruncatedBody truncation) {
-<span class="pc bpc" id="L240" title="1 of 2 branches missed.">        if (truncation == null) {</span>
-<span class="nc" id="L241">            return &quot;unknown&quot;;</span>
+<span class="pc bpc" id="L244" title="1 of 2 branches missed.">        if (truncation == null) {</span>
+<span class="nc" id="L245">            return &quot;unknown&quot;;</span>
         }
-<span class="fc bfc" id="L243" title="All 2 branches covered.">        return truncation.refusalShaped() ? &quot;refusalShaped&quot; : &quot;overrun&quot;;</span>
+<span class="fc bfc" id="L247" title="All 2 branches covered.">        return truncation.refusalShaped() ? &quot;refusalShaped&quot; : &quot;overrun&quot;;</span>
     }
 
     /**
@@ -252,42 +256,42 @@ public class QueryService {
      * as though it were two independent pieces of evidence.
      */
     private List&lt;GroundedPrompt.LabelledSource&gt; labelByProtocol(List&lt;RetrievedChunk&gt; hits) {
-<span class="fc" id="L255">        LinkedHashMap&lt;UUID, List&lt;RetrievedChunk&gt;&gt; byProtocol = new LinkedHashMap&lt;&gt;();</span>
-<span class="fc bfc" id="L256" title="All 2 branches covered.">        for (RetrievedChunk hit : hits) {</span>
+<span class="fc" id="L259">        LinkedHashMap&lt;UUID, List&lt;RetrievedChunk&gt;&gt; byProtocol = new LinkedHashMap&lt;&gt;();</span>
+<span class="fc bfc" id="L260" title="All 2 branches covered.">        for (RetrievedChunk hit : hits) {</span>
             // Above the threshold, OR carrying an exact term the question asked for. The second
             // clause has to be here as well as at the gate: a question grounded ONLY by its code —
             // &quot;Was bedeutet KOM-04?&quot;, whose protocol scores 0.4288 — would otherwise be routed to
             // Mode A and then offered no sources at all, produce no citation, and fall through to
             // Mode B anyway. The gate and the source list must agree on what counts as evidence.
-<span class="pc bpc" id="L262" title="1 of 4 branches missed.">            if (hit.similarity() &gt;= properties.similarityThreshold() || hit.lexicalMatches() &gt; 0) {</span>
-<span class="fc" id="L263">                byProtocol.computeIfAbsent(hit.protocolId(), key -&gt; new ArrayList&lt;&gt;()).add(hit);</span>
+<span class="pc bpc" id="L266" title="1 of 4 branches missed.">            if (hit.similarity() &gt;= properties.similarityThreshold() || hit.lexicalMatches() &gt; 0) {</span>
+<span class="fc" id="L267">                byProtocol.computeIfAbsent(hit.protocolId(), key -&gt; new ArrayList&lt;&gt;()).add(hit);</span>
             }
-<span class="fc" id="L265">        }</span>
-<span class="fc" id="L266">        List&lt;GroundedPrompt.LabelledSource&gt; sources = new ArrayList&lt;&gt;();</span>
-<span class="fc" id="L267">        int label = 1;</span>
-<span class="fc bfc" id="L268" title="All 2 branches covered.">        for (List&lt;RetrievedChunk&gt; chunks : byProtocol.values()) {</span>
+<span class="fc" id="L269">        }</span>
+<span class="fc" id="L270">        List&lt;GroundedPrompt.LabelledSource&gt; sources = new ArrayList&lt;&gt;();</span>
+<span class="fc" id="L271">        int label = 1;</span>
+<span class="fc bfc" id="L272" title="All 2 branches covered.">        for (List&lt;RetrievedChunk&gt; chunks : byProtocol.values()) {</span>
             // The head carries the protocol's identity — title, code, date and approval are the same
             // on every chunk of one protocol — but NOT its score. Since ADR-009 the list is ordered
             // by the fused score, so the two numbers a reader decomposes are taken across the
             // protocol's chunks rather than off whichever one happened to rank first.
-<span class="fc" id="L273">            RetrievedChunk head = chunks.get(0);</span>
-<span class="fc" id="L274">            double similarity = chunks.stream().mapToDouble(RetrievedChunk::similarity).max().orElseThrow();</span>
-<span class="fc" id="L275">            int lexicalMatches = chunks.stream().mapToInt(RetrievedChunk::lexicalMatches).max().orElse(0);</span>
-<span class="fc" id="L276">            sources.add(new GroundedPrompt.LabelledSource(</span>
-<span class="fc" id="L277">                    &quot;P&quot; + label++, head.protocolId(), head.title(), head.errorCode(),</span>
-<span class="fc" id="L278">                    head.incidentDate(), similarity, lexicalMatches,</span>
-<span class="fc" id="L279">                    chunks.stream().map(RetrievedChunk::content).toList(),</span>
-<span class="fc" id="L280">                    head.approved()));</span>
-<span class="fc" id="L281">        }</span>
-<span class="fc" id="L282">        return sources;</span>
+<span class="fc" id="L277">            RetrievedChunk head = chunks.get(0);</span>
+<span class="fc" id="L278">            double similarity = chunks.stream().mapToDouble(RetrievedChunk::similarity).max().orElseThrow();</span>
+<span class="fc" id="L279">            int lexicalMatches = chunks.stream().mapToInt(RetrievedChunk::lexicalMatches).max().orElse(0);</span>
+<span class="fc" id="L280">            sources.add(new GroundedPrompt.LabelledSource(</span>
+<span class="fc" id="L281">                    &quot;P&quot; + label++, head.protocolId(), head.title(), head.errorCode(),</span>
+<span class="fc" id="L282">                    head.incidentDate(), similarity, lexicalMatches,</span>
+<span class="fc" id="L283">                    chunks.stream().map(RetrievedChunk::content).toList(),</span>
+<span class="fc" id="L284">                    head.approved()));</span>
+<span class="fc" id="L285">        }</span>
+<span class="fc" id="L286">        return sources;</span>
     }
 
     private QueryAnswer answerUngrounded(String question, UUID machineId, QueryRole role) {
-<span class="fc" id="L286">        ChatClient.Completion completion = chatClient.complete(new ChatClient.Prompt(</span>
-<span class="fc" id="L287">                UngroundedPrompt.system(role),</span>
-<span class="fc" id="L288">                UngroundedPrompt.user(question),</span>
+<span class="fc" id="L290">        ChatClient.Completion completion = chatClient.complete(new ChatClient.Prompt(</span>
+<span class="fc" id="L291">                UngroundedPrompt.system(role),</span>
+<span class="fc" id="L292">                UngroundedPrompt.user(question),</span>
                 UngroundedPrompt.SCHEMA_NAME,
-<span class="fc" id="L290">                UngroundedPrompt.schema()));</span>
+<span class="fc" id="L294">                UngroundedPrompt.schema()));</span>
         // THE COUNT IS ATTACHED HERE AND NOWHERE ELSE, so every route to Mode B carries it:
         // retrieval below the threshold, a truncated grounded answer, and a grounded answer
         // with no attributable citation all arrive through this method. Attaching it at the
@@ -295,8 +299,8 @@ public class QueryService {
         //
         // It is a SECOND read of the database on a path that has just made a provider call, so
         // it costs nothing anyone can measure against the seconds the answer took.
-<span class="fc" id="L298">        return assembler.assembleUngrounded(completion.content())</span>
-<span class="fc" id="L299">                .withProtocolCount(machines.countLiveProtocols(machineId));</span>
+<span class="fc" id="L302">        return assembler.assembleUngrounded(completion.content())</span>
+<span class="fc" id="L303">                .withProtocolCount(machines.countLiveProtocols(machineId));</span>
     }
 
     /**
@@ -311,20 +315,20 @@ public class QueryService {
     private float[] embed(String question) {
         EmbeddingClient.EmbeddingBatch batch;
         try {
-<span class="fc" id="L314">            batch = embeddingClient.embed(List.of(question));</span>
-<span class="nc" id="L315">        } catch (EmbeddingClient.EmbeddingException e) {</span>
-<span class="nc" id="L316">            log.warn(&quot;Question embedding failed: {}&quot;, e.getMessage(), e);</span>
-<span class="nc" id="L317">            throw new ProviderUnavailableException(&quot;the search service is temporarily unavailable: &quot; + e.getMessage());</span>
-<span class="fc" id="L318">        }</span>
-<span class="pc bpc" id="L319" title="1 of 2 branches missed.">        if (batch.vectors().size() != 1) {</span>
+<span class="fc" id="L318">            batch = embeddingClient.embed(List.of(question));</span>
+<span class="nc" id="L319">        } catch (EmbeddingClient.EmbeddingException e) {</span>
+<span class="nc" id="L320">            log.warn(&quot;Question embedding failed: {}&quot;, e.getMessage(), e);</span>
+<span class="nc" id="L321">            throw new ProviderUnavailableException(&quot;the search service is temporarily unavailable: &quot; + e.getMessage());</span>
+<span class="fc" id="L322">        }</span>
+<span class="pc bpc" id="L323" title="1 of 2 branches missed.">        if (batch.vectors().size() != 1) {</span>
             // Also silent until now, and the count is the whole diagnosis: a batch of one that
             // came back empty is a different provider fault from one that came back with three,
             // and neither is visible from the 503 the caller receives.
-<span class="nc" id="L323">            log.warn(&quot;Question embedding returned {} vectors for 1 input; expected exactly 1&quot;,</span>
-<span class="nc" id="L324">                    batch.vectors().size());</span>
-<span class="nc" id="L325">            throw new ProviderUnavailableException(&quot;embedding provider returned no vector for the question&quot;);</span>
+<span class="nc" id="L327">            log.warn(&quot;Question embedding returned {} vectors for 1 input; expected exactly 1&quot;,</span>
+<span class="nc" id="L328">                    batch.vectors().size());</span>
+<span class="nc" id="L329">            throw new ProviderUnavailableException(&quot;embedding provider returned no vector for the question&quot;);</span>
         }
-<span class="fc" id="L327">        return batch.vectors().get(0);</span>
+<span class="fc" id="L331">        return batch.vectors().get(0);</span>
     }
 
     // ---------------------------------------------------------------------------------------
@@ -341,8 +345,8 @@ public class QueryService {
     public static class InvalidQueryException extends RuntimeException {
         private static final long serialVersionUID = 1L;
         InvalidQueryException(String message) {
-<span class="fc" id="L344">            super(message);</span>
-<span class="fc" id="L345">        }</span>
+<span class="fc" id="L348">            super(message);</span>
+<span class="fc" id="L349">        }</span>
     }
 
     /** This user is asking too fast (NFR-7). Becomes a 429 with a Retry-After. */
@@ -352,12 +356,12 @@ public class QueryService {
         private final long retryAfterSeconds;
 
         RateLimitedException(long retryAfterSeconds, String message) {
-<span class="fc" id="L355">            super(message);</span>
-<span class="fc" id="L356">            this.retryAfterSeconds = retryAfterSeconds;</span>
-<span class="fc" id="L357">        }</span>
+<span class="fc" id="L359">            super(message);</span>
+<span class="fc" id="L360">            this.retryAfterSeconds = retryAfterSeconds;</span>
+<span class="fc" id="L361">        }</span>
 
         public long retryAfterSeconds() {
-<span class="fc" id="L360">            return retryAfterSeconds;</span>
+<span class="fc" id="L364">            return retryAfterSeconds;</span>
         }
     }
 
@@ -365,16 +369,16 @@ public class QueryService {
     public static class BudgetExhaustedException extends RuntimeException {
         private static final long serialVersionUID = 1L;
         BudgetExhaustedException(String message) {
-<span class="fc" id="L368">            super(message);</span>
-<span class="fc" id="L369">        }</span>
+<span class="fc" id="L372">            super(message);</span>
+<span class="fc" id="L373">        }</span>
     }
 
     /** Answering is impossible right now — no key, or the provider is unreachable. Becomes a 503. */
     public static class ProviderUnavailableException extends RuntimeException {
         private static final long serialVersionUID = 1L;
         ProviderUnavailableException(String message) {
-<span class="fc" id="L376">            super(message);</span>
-<span class="fc" id="L377">        }</span>
+<span class="fc" id="L380">            super(message);</span>
+<span class="fc" id="L381">        }</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.16.202610240946</span></div></body></html>

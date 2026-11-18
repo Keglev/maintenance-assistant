@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>LogText.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">maintenance-assistant</a> &gt; <a href="index.source.html" class="el_package">com.keglevich.maintenanceassistant.query</a> &gt; <span class="el_source">LogText.java</span></div><h1>LogText.java</h1><pre class="source lang-java linenums">package com.keglevich.maintenanceassistant.query;
+
+/**
+ * Model output made safe to put on one log line: escaped, and never more than a fixed length.
+ *
+ * &lt;p&gt;Two diagnoses log what the model said, the tail of a truncated answer ({@link TruncatedBody})
+ * and the head of a grounded answer that produced no valid citation ({@link QueryService}). Both
+ * need the same two guarantees, so they live here once: newlines are escaped rather than stripped,
+ * because a log line that wraps is a log line nobody greps, and only {@link #MAX} characters are
+ * kept, because a log line is not a place to put a user's document.
+ */
+final class LogText {
+
+    /** The most characters of model output a single log line carries. */
+    static final int MAX = 200;
+
+    private LogText() {
+    }
+
+    /**
+     * The first {@link #MAX} characters of {@code text}, on one line.
+     *
+     * @param text model output; {@code null} is logged as the empty string
+     * @return the escaped head
+     */
+    static String head(String text) {
+<span class="fc bfc" id="L27" title="All 2 branches covered.">        String body = text == null ? &quot;&quot; : text;</span>
+<span class="fc bfc" id="L28" title="All 2 branches covered.">        return oneLine(body.length() &lt;= MAX ? body : body.substring(0, MAX));</span>
+    }
+
+    /**
+     * The last {@link #MAX} characters of {@code text}, on one line.
+     *
+     * @param text model output; {@code null} is logged as the empty string
+     * @return the escaped tail
+     */
+    static String tail(String text) {
+<span class="fc bfc" id="L38" title="All 2 branches covered.">        String body = text == null ? &quot;&quot; : text;</span>
+<span class="fc bfc" id="L39" title="All 2 branches covered.">        return oneLine(body.length() &lt;= MAX ? body : body.substring(body.length() - MAX));</span>
+    }
+
+    /** Backslash first, so the escapes added afterwards are not escaped a second time. */
+    private static String oneLine(String text) {
+<span class="fc" id="L44">        return text.replace(&quot;\\&quot;, &quot;\\\\&quot;).replace(&quot;\n&quot;, &quot;\\n&quot;).replace(&quot;\r&quot;, &quot;\\r&quot;).replace(&quot;\t&quot;, &quot;\\t&quot;);</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.16.202610240946</span></div></body></html>

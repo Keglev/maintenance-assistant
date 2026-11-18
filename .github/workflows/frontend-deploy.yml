@@ -73,9 +73,12 @@ jobs:
         uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6
         with:
           images: ghcr.io/${{ github.repository }}/frontend
+          # Tagged with the CI-validated commit that was built. type=sha reads github.sha,
+          # which under workflow_run is main's head when the run starts: after two quick
+          # merges a newer commit, so the deploy job asked for a tag never pushed.
           tags: |
             type=raw,value=latest
-            type=sha,format=long
+            type=raw,value=sha-${{ github.event.workflow_run.head_sha || github.sha }}
 
       - uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7
         with:

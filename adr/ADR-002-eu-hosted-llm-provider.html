@@ -922,6 +922,43 @@ into Go struct field Embedding.data.embedding of type []float32</code></pre>
         stands: the model is not re-measured until IONOS answers,
         because a deterministic 500 re-run costs money and proves
         nothing new.</p>
+        <h3
+        id="note-2026-11-18-ionos-answers-and-the-combination-works">Note,
+        2026-11-18 — IONOS answers, and the combination works</h3>
+        <p>IONOS issued the reference number 208027322 for the ticket.
+        On 2026-11-18 their ML inference team answered that they could
+        not reproduce the failure with
+        <code>Qwen/Qwen3.5-397B-A17B</code>: fourteen requests combining
+        <code>reasoning_effort: "none"</code> with a strict
+        <code>json_schema</code> all returned HTTP 200. They asked
+        whether the failure still occurs and, if so, for the request and
+        response bodies, the response headers (including the trace
+        identifiers) and the exact time.</p>
+        <p>The owner re-ran it the same day, 14:38–14:39 UTC, against
+        the application’s endpoint: three requests with the combination
+        and one control for each parameter alone, using the
+        application’s answer schema (<code>grounded_answer</code>,
+        strict) and its <code>max_tokens</code> and
+        <code>temperature</code>. <strong>All five returned HTTP
+        200.</strong> The answer to a combined request followed the
+        schema, cited its source, and reported
+        <code>reasoning_tokens: 0</code>, so the parameter still does
+        what caveat 3 says it is for.</p>
+        <p>What this changes, and what it does not:</p>
+        <ul>
+        <li>Caveat 5 (section 6) no longer holds as of 2026-11-18. It
+        stays in the text as the record of what was measured on
+        2026-08-26.</li>
+        <li>The reason section 3 gave for rejecting
+        <code>Qwen/Qwen3.5-397B-A17B</code> is gone. That does not make
+        it a fallback: it has not been measured against the golden
+        questions, NFR-4’s 30 s or the token cap, and the gap section 3
+        states (no tested fallback for a full IONOS outage) is
+        unchanged. Whether to measure it is an open decision, tracked as
+        issue #242.</li>
+        <li>Nothing in the application changes: the production model and
+        the documented fallback stay as this record sets them.</li>
+        </ul>
       </article>
     </main>
 
@@ -980,6 +1017,10 @@ into Go struct field Embedding.data.embedding of type []float32</code></pre>
       <li><a href="#note-2026-11-17-the-support-ticket-is-sent"
       id="toc-note-2026-11-17-the-support-ticket-is-sent">Note,
       2026-11-17 — the support ticket is sent</a></li>
+      <li><a
+      href="#note-2026-11-18-ionos-answers-and-the-combination-works"
+      id="toc-note-2026-11-18-ionos-answers-and-the-combination-works">Note,
+      2026-11-18 — IONOS answers, and the combination works</a></li>
       </ul></li>
       </ul></li>
       </ul>

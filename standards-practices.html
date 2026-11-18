@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Docs · standards-practices · maintenance-assistant Docs</title>
+
+  <!-- Set the theme before the stylesheet paints, otherwise the page flashes
+       the default theme for one frame before the saved choice applies. -->
+  <script>
+    (function () {
+      try {
+        var t = localStorage.getItem("maintenance-assistant-theme") ||
+          (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+        document.documentElement.setAttribute("data-theme", t);
+      } catch (e) {
+        document.documentElement.setAttribute("data-theme", "light");
+      }
+    })();
+  </script>
+
+  <link rel="stylesheet" href="/maintenance-assistant/assets/docs.css" />
+</head>
+
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <header class="topbar">
+    <div class="topbar-inner">
+      <button class="menu-btn" aria-label="Toggle navigation">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="18" x2="21" y2="18" />
+        </svg>
+      </button>
+
+      <a href="/maintenance-assistant/" class="brand">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <path d="M14.7 6.3a5 5 0 0 0-6.6 6.6l-5 5a2 2 0 1 0 2.8 2.8l5-5a5 5 0 0 0 6.6-6.6l-2.9 2.9-2.1-2.1 2.2-3.6z" />
+        </svg>
+        maintenance-assistant Docs
+      </a>
+
+      <div class="topbar-tools">
+        <span class="lang-switch">
+          <a href="/maintenance-assistant/" aria-current="true">EN</a>
+          <a href="/maintenance-assistant/index-de.html">DE</a>
+        </span>
+        <button class="theme-toggle" aria-label="Toggle light or dark theme">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <circle cx="12" cy="12" r="9" /><path d="M12 3a9 9 0 0 0 0 18z" fill="currentColor" stroke="none" />
+          </svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <div class="layout">
+    <!-- Sidebar navigation, included by app-docs.html as a Pandoc partial. One
+         sidebar serves the whole site: this repository has a single arc42 tree and a
+         single decision log, so the per-tier sidebars the sibling repositories need
+         would be three copies of the same list here. The active link is marked at
+         runtime by docs.js. Do not put template syntax in this comment - a partial
+         is itself a template. -->
+    <aside class="sidebar">
+      <p class="nav-title">Docs</p>
+      <ul>
+        <li><a href="/maintenance-assistant/">Docs home</a></li>
+        <li><a href="/maintenance-assistant/overview.html">Overview</a></li>
+        <li><a href="/maintenance-assistant/overview-de.html">&Uuml;berblick (DE)</a></li>
+        <li><a href="/maintenance-assistant/llm-approach.html">AI &amp; LLM approach</a></li>
+        <li><a href="/maintenance-assistant/run-locally.html">Run it locally</a></li>
+      </ul>
+
+      <p class="nav-title">Requirements</p>
+      <ul>
+        <li><a href="/maintenance-assistant/requirements.html">Requirements &amp; NFRs</a></li>
+        <li><a href="/maintenance-assistant/domain-model.html">Domain model</a></li>
+      </ul>
+
+      <details class="nav-group">
+        <summary>Architecture (arc42)</summary>
+        <ul>
+          <li><a href="/maintenance-assistant/architecture/index.html">Architecture index</a></li>
+          <li><a href="/maintenance-assistant/architecture/01-introduction-and-goals.html">1 &middot; Introduction &amp; Goals</a></li>
+          <li><a href="/maintenance-assistant/architecture/02-architecture-constraints.html">2 &middot; Constraints</a></li>
+          <li><a href="/maintenance-assistant/architecture/03-context-and-scope.html">3 &middot; Context &amp; Scope</a></li>
+          <li><a href="/maintenance-assistant/architecture/04-solution-strategy.html">4 &middot; Solution Strategy</a></li>
+          <li><a href="/maintenance-assistant/architecture/05-building-block-view.html">5 &middot; Building Blocks</a></li>
+          <li><a href="/maintenance-assistant/architecture/06-runtime-view.html">6 &middot; Runtime View</a></li>
+          <li><a href="/maintenance-assistant/architecture/07-deployment-view.html">7 &middot; Deployment</a></li>
+          <li><a href="/maintenance-assistant/architecture/07a-ops-rules.html">7a &middot; Ops rules</a></li>
+          <li><a href="/maintenance-assistant/architecture/08-crosscutting-concepts.html">8 &middot; Concepts</a></li>
+          <li><a href="/maintenance-assistant/architecture/09-architecture-decisions.html">9 &middot; Decisions</a></li>
+          <li><a href="/maintenance-assistant/architecture/10-quality-requirements.html">10 &middot; Quality Requirements</a></li>
+          <li><a href="/maintenance-assistant/architecture/11-risks-and-technical-debt.html">11 &middot; Risks &amp; Debt</a></li>
+          <li><a href="/maintenance-assistant/architecture/12-glossary.html">12 &middot; Glossary</a></li>
+        </ul>
+      </details>
+
+      <details class="nav-group">
+        <summary>Decisions (ADRs)</summary>
+        <ul>
+          <li><a href="/maintenance-assistant/adr/index.html">Decision index</a></li>
+          <li><a href="/maintenance-assistant/adr/ADR-001-modular-monolith-first.html">ADR-001 Modular monolith</a></li>
+          <li><a href="/maintenance-assistant/adr/ADR-002-eu-hosted-llm-provider.html">ADR-002 EU LLM provider</a></li>
+          <li><a href="/maintenance-assistant/adr/ADR-003-keycloak-for-iam.html">ADR-003 Keycloak as IdP</a></li>
+          <li><a href="/maintenance-assistant/adr/ADR-004-pgvector-for-vector-search.html">ADR-004 pgvector</a></li>
+          <li><a href="/maintenance-assistant/adr/ADR-010-docs-tree-conventions.html">ADR-010 Docs tree conventions</a></li>
+          <li><a href="/maintenance-assistant/adr/ADR-011-guided-questions.html">ADR-011 Guided questions</a></li>
+          <li><a href="/maintenance-assistant/adr/ADR-013-markdown-only-docs.html">ADR-013 Markdown-only docs</a></li>
+        </ul>
+      </details>
+
+      <p class="nav-title">Frontend</p>
+      <ul>
+        <li><a href="/maintenance-assistant/frontend-architecture.html">Frontend architecture</a></li>
+      </ul>
+
+      <p class="nav-title">Quality</p>
+      <ul>
+        <li><a href="/maintenance-assistant/refactor-standards.html">Refactor standards</a></li>
+        <li><a href="/maintenance-assistant/backend/api-docs/index.html">Backend API</a></li>
+        <li><a href="/maintenance-assistant/frontend/api-docs/index.html">Frontend API</a></li>
+        <li><a href="/maintenance-assistant/backend/coverage/index.html">Backend coverage</a></li>
+        <li><a href="/maintenance-assistant/frontend/coverage/index.html">Frontend coverage</a></li>
+      </ul>
+    </aside>
+    <main class="content" id="main">
+      <article class="doc-body">
+        <h1 id="working-practices">Working practices</h1>
+        <p>The process rules that paid for themselves, and the two ops
+        rules that generalise beyond this host. Part of the <a
+        href="refactor-standards.html">refactor standards</a>.</p>
+        <h2 id="process">Process</h2>
+        <ol type="1">
+        <li><strong>Read first:</strong> verify every premise against
+        the checkout before designing a change. A prompt or a plan
+        states what its author verified and marks what it did not.</li>
+        <li>One mission in flight at a time; no manual edits alongside
+        an automated one.</li>
+        <li>Surveys deliver findings tables BEFORE any fix is designed;
+        findings carry evidence and proposed severity (FIX / WATCH /
+        ACCEPT).</li>
+        <li>Main is confirmed by CONTENT, not commit titles; re-fetch
+        before concluding a merge failed.</li>
+        <li><strong>Stop-and-report beats guessing:</strong> when a
+        member resists classification or a rule conflicts, the executor
+        stops with evidence and options; the owner rules.</li>
+        <li>One logical change per PR; squash merges; commit messages
+        explain WHY to a future reader, never internal ticket
+        codes.</li>
+        <li><strong>The gate is CI, not local runs:</strong> run only
+        what you touched locally; the full suite gates the merge.
+        CI-shaped proofs need CI-shaped environments, with provenance
+        stated. This project has the lesson on record: local green is
+        not commit green — a package-private constructor passed from the
+        working tree and failed in CI (#39).</li>
+        <li><strong>No predicted outcome numbers in
+        instructions</strong> — measure, then report what you observed;
+        never tune a result to meet an expectation.</li>
+        <li>Errors in the record get corrected in the record (PR bodies,
+        comments, ADRs, these pages), not silently left because the code
+        moved on.</li>
+        <li><strong>Robots never tag</strong>, and robots never grant
+        themselves a waiver.</li>
+        <li><strong>A bulk reformat is its own commit</strong>, and its
+        SHA goes in <code>.git-blame-ignore-revs</code> at the
+        repository root. Reviewing a gate must not mean reading a
+        thousand lines of re-indentation, and blame must keep answering
+        “who last changed what this line MEANS” rather than “who ran the
+        formatter”. The file is not automatic: git reads it only for a
+        reader who has set it, once per clone —
+        <code>git config blame.ignoreRevsFile .git-blame-ignore-revs</code>
+        — and unset, blame simply behaves as it always did. GitHub’s
+        blame view applies it without being asked. Added 2026-08-25 with
+        the prettier gate, which is the first reformat this rule had to
+        cover. <strong>Under squash merge, the entry is always the merge
+        commit on main, added in the PR after the reformat
+        lands.</strong> A branch commit is unreachable from main once
+        the pull request is squashed, and git ignores an entry it cannot
+        resolve WITHOUT SAYING SO — the file still exists, still looks
+        right, and does nothing. Learned 2026-08-26, one pull request
+        after the rule was written.</li>
+        <li>Two rules from the diagnosis of 2026-08-26, both learned
+        when a reachable provider was reported as an outage: <strong>log
+        redaction redacts in place and never drops a whole
+        line</strong>, because a dropped line takes the timestamp, the
+        level and the cause with the secret and leaves an incident with
+        a hole where its evidence was. <strong>Every incident time
+        carries a zone</strong>, and the host is UTC — a bare clock time
+        is two different moments to the two people reading it.</li>
+        </ol>
+        <h2 id="ops">Ops</h2>
+        <p>Two rules, both bought on 2026-08-27 by the shared-host
+        hand-deploy. The operational log of that session is in the
+        project handover archived under git tag
+        <code>archive/handover-2026-11</code>; what is here is only the
+        part that generalises. The rules for this host are in the <a
+        href="architecture/07-deployment-view.html">deployment
+        view</a>.</p>
+        <ul>
+        <li><strong>A secrets file is validated by byte checks before it
+        is deployed, never by eye:</strong> line count, CR/LF, BOM, and
+        one KEY=VALUE per line, each asserted by a command rather than
+        looked at. Learned from an export pipeline on Windows that
+        produced a 44,081-byte file with EVERY NEWLINE STRIPPED — 12
+        keys concatenated onto the ends of the preceding values, on one
+        line. It opened in an editor, it was the right size, and it was
+        undeployable; a bare regex found 3 of its 12 keys, because a key
+        preceded by an alphanumeric character is invisible to one.
+        <strong>The failure is silent on both sides:</strong> nothing
+        about the file announces it, and a container started from it
+        fails later and elsewhere. The checks cost one command;
+        <code>file</code> alone is not enough, because “ASCII text, with
+        very long lines” is also what a correct wallet line looks like.
+        <strong>A value is never printed to check it.</strong> Names,
+        lengths and counts answer every question above, and a length
+        that matches a previously measured length is a stronger check
+        than a value somebody read.</li>
+        <li><strong>Before a hand-deploy, <code>ls -l</code> the target;
+        ownership is part of the precondition</strong>, not something to
+        discover from a permission error halfway through. The deploy
+        account has no sudo by provisioning design, so a root-owned file
+        on the host cannot be replaced from it. <strong>Root creates and
+        hands over; deploy operates</strong> — a file or directory that
+        root creates is <code>chown</code>ed to deploy in the same
+        session, or it becomes a wall the next operator meets instead.
+        Learned when docker-compose.prod.yml was found root:root 644,
+        sixteen days after a root session created it and did not hand it
+        over, and only because a deploy that day finally needed to
+        overwrite it.</li>
+        </ul>
+        <p><a href="refactor-standards.html">Back to the refactor
+        standards</a></p>
+      </article>
+    </main>
+
+        <nav class="toc" aria-label="On this page">
+      <p class="toc-title">On this page</p>
+      <ul>
+      <li><a href="#working-practices"
+      id="toc-working-practices">Working practices</a>
+      <ul>
+      <li><a href="#process" id="toc-process">Process</a></li>
+      <li><a href="#ops" id="toc-ops">Ops</a></li>
+      </ul></li>
+      </ul>
+    </nav>
+      </div>
+
+  <footer class="footer">
+    maintenance-assistant · Generated by the docs pipeline
+  </footer>
+
+  <script src="/maintenance-assistant/assets/docs.js"></script>
+</body>
+</html>

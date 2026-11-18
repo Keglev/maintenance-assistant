@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Docs ·
+standards-test-conduct · maintenance-assistant Docs</title>
+
+  <!-- Set the theme before the stylesheet paints, otherwise the page flashes
+       the default theme for one frame before the saved choice applies. -->
+  <script>
+    (function () {
+      try {
+        var t = localStorage.getItem("maintenance-assistant-theme") ||
+          (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+        document.documentElement.setAttribute("data-theme", t);
+      } catch (e) {
+        document.documentElement.setAttribute("data-theme", "light");
+      }
+    })();
+  </script>
+
+  <link rel="stylesheet" href="/maintenance-assistant/assets/docs.css" />
+</head>
+
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <header class="topbar">
+    <div class="topbar-inner">
+      <button class="menu-btn" aria-label="Toggle navigation">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="18" x2="21" y2="18" />
+        </svg>
+      </button>
+
+      <a href="/maintenance-assistant/" class="brand">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <path d="M14.7 6.3a5 5 0 0 0-6.6 6.6l-5 5a2 2 0 1 0 2.8 2.8l5-5a5 5 0 0 0 6.6-6.6l-2.9 2.9-2.1-2.1 2.2-3.6z" />
+        </svg>
+        maintenance-assistant Docs
+      </a>
+
+      <div class="topbar-tools">
+        <span class="lang-switch">
+          <a href="/maintenance-assistant/" aria-current="true">EN</a>
+          <a href="/maintenance-assistant/index-de.html">DE</a>
+        </span>
+        <button class="theme-toggle" aria-label="Toggle light or dark theme">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <circle cx="12" cy="12" r="9" /><path d="M12 3a9 9 0 0 0 0 18z" fill="currentColor" stroke="none" />
+          </svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <div class="layout">
+    <!-- Sidebar navigation, included by app-docs.html as a Pandoc partial. One
+         sidebar serves the whole site: this repository has a single arc42 tree and a
+         single decision log, so the per-tier sidebars the sibling repositories need
+         would be three copies of the same list here. The active link is marked at
+         runtime by docs.js. Do not put template syntax in this comment - a partial
+         is itself a template. -->
+    <aside class="sidebar">
+      <p class="nav-title">Docs</p>
+      <ul>
+        <li><a href="/maintenance-assistant/">Docs home</a></li>
+        <li><a href="/maintenance-assistant/overview.html">Overview</a></li>
+        <li><a href="/maintenance-assistant/overview-de.html">&Uuml;berblick (DE)</a></li>
+        <li><a href="/maintenance-assistant/llm-approach.html">AI &amp; LLM approach</a></li>
+        <li><a href="/maintenance-assistant/run-locally.html">Run it locally</a></li>
+      </ul>
+
+      <p class="nav-title">Requirements</p>
+      <ul>
+        <li><a href="/maintenance-assistant/requirements.html">Requirements &amp; NFRs</a></li>
+        <li><a href="/maintenance-assistant/domain-model.html">Domain model</a></li>
+      </ul>
+
+      <details class="nav-group">
+        <summary>Architecture (arc42)</summary>
+        <ul>
+          <li><a href="/maintenance-assistant/architecture/index.html">Architecture index</a></li>
+          <li><a href="/maintenance-assistant/architecture/01-introduction-and-goals.html">1 &middot; Introduction &amp; Goals</a></li>
+          <li><a href="/maintenance-assistant/architecture/02-architecture-constraints.html">2 &middot; Constraints</a></li>
+          <li><a href="/maintenance-assistant/architecture/03-context-and-scope.html">3 &middot; Context &amp; Scope</a></li>
+          <li><a href="/maintenance-assistant/architecture/04-solution-strategy.html">4 &middot; Solution Strategy</a></li>
+          <li><a href="/maintenance-assistant/architecture/05-building-block-view.html">5 &middot; Building Blocks</a></li>
+          <li><a href="/maintenance-assistant/architecture/06-runtime-view.html">6 &middot; Runtime View</a></li>
+          <li><a href="/maintenance-assistant/architecture/07-deployment-view.html">7 &middot; Deployment</a></li>
+          <li><a href="/maintenance-assistant/architecture/07a-ops-rules.html">7a &middot; Ops rules</a></li>
+          <li><a href="/maintenance-assistant/architecture/08-crosscutting-concepts.html">8 &middot; Concepts</a></li>
+          <li><a href="/maintenance-assistant/architecture/09-architecture-decisions.html">9 &middot; Decisions</a></li>
+          <li><a href="/maintenance-assistant/architecture/10-quality-requirements.html">10 &middot; Quality Requirements</a></li>
+          <li><a href="/maintenance-assistant/architecture/11-risks-and-technical-debt.html">11 &middot; Risks &amp; Debt</a></li>
+          <li><a href="/maintenance-assistant/architecture/12-glossary.html">12 &middot; Glossary</a></li>
+        </ul>
+      </details>
+
+      <details class="nav-group">
+        <summary>Decisions (ADRs)</summary>
+        <ul>
+          <li><a href="/maintenance-assistant/adr/index.html">Decision index</a></li>
+          <li><a href="/maintenance-assistant/adr/ADR-001-modular-monolith-first.html">ADR-001 Modular monolith</a></li>
+          <li><a href="/maintenance-assistant/adr/ADR-002-eu-hosted-llm-provider.html">ADR-002 EU LLM provider</a></li>
+          <li><a href="/maintenance-assistant/adr/ADR-003-keycloak-for-iam.html">ADR-003 Keycloak as IdP</a></li>
+          <li><a href="/maintenance-assistant/adr/ADR-004-pgvector-for-vector-search.html">ADR-004 pgvector</a></li>
+          <li><a href="/maintenance-assistant/adr/ADR-010-docs-tree-conventions.html">ADR-010 Docs tree conventions</a></li>
+          <li><a href="/maintenance-assistant/adr/ADR-011-guided-questions.html">ADR-011 Guided questions</a></li>
+          <li><a href="/maintenance-assistant/adr/ADR-013-markdown-only-docs.html">ADR-013 Markdown-only docs</a></li>
+        </ul>
+      </details>
+
+      <p class="nav-title">Frontend</p>
+      <ul>
+        <li><a href="/maintenance-assistant/frontend-architecture.html">Frontend architecture</a></li>
+      </ul>
+
+      <p class="nav-title">Quality</p>
+      <ul>
+        <li><a href="/maintenance-assistant/refactor-standards.html">Refactor standards</a></li>
+        <li><a href="/maintenance-assistant/backend/api-docs/index.html">Backend API</a></li>
+        <li><a href="/maintenance-assistant/frontend/api-docs/index.html">Frontend API</a></li>
+        <li><a href="/maintenance-assistant/backend/coverage/index.html">Backend coverage</a></li>
+        <li><a href="/maintenance-assistant/frontend/coverage/index.html">Frontend coverage</a></li>
+      </ul>
+    </aside>
+    <main class="content" id="main">
+      <article class="doc-body">
+        <h1 id="test-conduct">Test conduct</h1>
+        <p>Part of the <a href="refactor-standards.html">refactor
+        standards</a>. Test-file sizes are on <a
+        href="standards-sizes.html">Size bands</a>.</p>
+        <ul>
+        <li><strong>Zero assertion changes on any spec move</strong>;
+        bodies move verbatim. When a split forces threading (a fixture
+        parameter), prove identity: extract every test body before and
+        after, compare byte for byte, and report the count.</li>
+        <li><strong>New tests need vacuity proofs</strong>: break the
+        mechanism under test and watch the test fail, then restore. One
+        break proving two claims is complete; a probe breaking something
+        nothing claims proves nothing. An absence assertion is paired
+        with proof the intended path ran, or it can pass for the wrong
+        reason.</li>
+        <li>Storage and state isolation is <strong>each test file’s own
+        responsibility</strong>. Accepted mechanisms: a clear registered
+        inside the suite block; a per-test setup helper that clears; a
+        shared fixture whose clear counts for all its consumers. Entry
+        clears defend the file that owns them; exit clears are the only
+        cleanup the next file gets — a file that writes shared state and
+        never clears on exit is a finding even when green. Do NOT trust
+        root-level global hooks under coverage or shared workers.</li>
+        <li>Fixtures modules: shared helpers earn membership at two or
+        more consuming files; a fixtures module may ALSO exist at a
+        single consumer solely to relieve an above-alarm spec of
+        scaffolding (stubs, constants, TestBed config) — but never
+        tests, assertions, or helpers that decide what a case asserts.
+        Fixtures never depend on their consumers. Shared mutable or
+        uniqueness-bearing state (counters, sequences) is mandatory
+        fixtures content when tests commit data.</li>
+        <li>Integration-test splits keep <strong>identical context
+        configuration</strong> across the new files so Spring’s context
+        cache serves them all. On this project that includes the
+        Testcontainers configuration: a differing container definition
+        is a second context and a second startup.</li>
+        <li><strong>Message assertions follow layer ownership.</strong>
+        Service-level tests assert the exception type and its message
+        (where the error handler passes messages through, the sentence
+        IS the wire contract; elsewhere it is the only observable a unit
+        test has). Web-slice tests own the envelope: HTTP status, the
+        message exactly as the wire carries it (including any handler
+        prefix), and the machine code where one exists — on this project
+        the machine codes are real contract
+        (<code>PROTOCOL_IDENTITY_LOCKED</code>, <code>EMPTY_FILE</code>,
+        <code>UNSUPPORTED_TYPE</code>, <code>NOT_TEXT</code>) and a test
+        that pins only the status is under-asserting. Neither “never
+        assert message text” nor “the message is never part of the
+        contract” survives contact with a handler that passes messages
+        through — <strong>read the handler before writing the
+        rule.</strong> Where an exception SUBTYPE carries contract
+        weight, at least one test pins the subtype, not a parent that a
+        type check would also accept.</li>
+        <li>Named or reflective access from tests (helpers reaching
+        members by string) is a SEAM: when members move, rewrite the
+        helper as a routing map so every test body stays untouched; the
+        invariant that matters is that what every case asserts never
+        changes.</li>
+        <li>E2E and visual suites are a <strong>separate ledger</strong>
+        and are deliberately outside the coverage figures. Their
+        promotion condition is <a
+        href="adr/ADR-007-end-to-end-testing-strategy.html">ADR-007</a>‘s,
+        not these standards’.</li>
+        </ul>
+        <p><a href="refactor-standards.html">Back to the refactor
+        standards</a></p>
+      </article>
+    </main>
+
+        <nav class="toc" aria-label="On this page">
+      <p class="toc-title">On this page</p>
+      <ul>
+      <li><a href="#test-conduct" id="toc-test-conduct">Test
+      conduct</a></li>
+      </ul>
+    </nav>
+      </div>
+
+  <footer class="footer">
+    maintenance-assistant · Generated by the docs pipeline
+  </footer>
+
+  <script src="/maintenance-assistant/assets/docs.js"></script>
+</body>
+</html>

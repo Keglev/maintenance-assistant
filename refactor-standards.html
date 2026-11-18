@@ -127,211 +127,150 @@
     </aside>
     <main class="content" id="main">
       <article class="doc-body">
-        <h1 id="refactor-standards">Refactor Standards</h1>
-        <p>What “good” looks like in this repository, and the mechanisms
-        that keep it honest.</p>
-        <p>The normative document is <a
-        href="/maintenance-assistant/REFACTOR-STANDARDS.txt"><code>REFACTOR-STANDARDS.txt</code></a>
-        — it holds the size bands for every file type, the test-conduct
-        rules and the waiver register, and it is the single place any of
-        those is edited. This page does not repeat the tables. It
-        explains the <strong>mechanisms</strong>, which are the
-        transferable part, and records the <strong>measured
-        state</strong> the refactor phase started from.</p>
-        <p>The standards were adapted on 2026-08-20 from a portable
-        template distilled from a sibling project’s standards. The bands
-        were retuned for this project’s stacks; the mechanisms were
-        kept, because the mechanisms are what earned their keep.</p>
-        <h2 id="why-a-standards-file-at-all">Why a standards file at
-        all</h2>
-        <p>A refactor that starts with an edit is a preference. A
-        refactor that starts with a measurement is maintenance. The
-        difference only survives if “what good looks like” is written
-        down somewhere reviewable — otherwise every session re-derives
-        it, and the re-derivation drifts toward whatever the current
-        file happens to look like.</p>
-        <p>So the phase has a ground rule: <strong>the standards file is
-        in the repository before the first fix pull request
-        opens.</strong> This page and its normative sibling are that
-        file.</p>
-        <h2 id="the-mechanisms">The mechanisms</h2>
-        <h3 id="line-count-is-the-last-reason-to-split">Line count is
-        the last reason to split</h3>
-        <p>Bands exist, but a file over its band is not automatically
-        wrong. The split criteria are about <em>reasons</em>, not
-        length: more than one responsibility, more than one abstraction
-        level, unrelated change-reasons, more than about three injected
-        dependencies, three or more repeated patterns.</p>
-        <p>The corollary matters as much: <strong>parallel operations
-        are not a split reason.</strong> A controller with one case per
-        endpoint reads repetitively because the operations genuinely are
-        parallel. Splitting it produces two files that must now be read
-        together.</p>
-        <h3 id="the-watched-band">The watched band</h3>
-        <p>Every band has a target range and an alarm. Between them a
-        file is <strong>watched</strong> — recorded in the survey, no
-        action taken. Only above the alarm does a file become a
-        finding.</p>
-        <p>This is what stops a standards document from generating
-        busywork. Most files that drift past target are fine; the band
-        records the drift without demanding a pull request for it.</p>
-        <h3 id="waivers-are-granted-never-assumed">Waivers are granted,
-        never assumed</h3>
-        <p>An above-alarm file that survives the split criteria is
-        <strong>waived</strong>: an in-file comment saying why the
-        length is the rule working, plus an entry in the waiver register
-        naming the file, the figure, the band, the date, the reason and
-        who granted it.</p>
-        <p>Two properties make this work. A waiver is visible where the
-        code is <em>and</em> collected in one list, so nobody has to
-        grep for the exceptions. And a waiver is granted by the owner —
-        a robot that waives its own finding has simply deleted the
-        finding.</p>
-        <p>The register is created empty on purpose, so the first waiver
-        has somewhere to go rather than becoming a comment nobody
-        collected.</p>
-        <h3 id="counters-are-validated-before-they-are-trusted">Counters
-        are validated before they are trusted</h3>
-        <p>Every measuring script runs first against an anchor whose
-        answer is already known, and the validation is reported next to
-        the figure.</p>
-        <p>This is not ceremony. The classic failures are all silent: a
-        substring grep matching a shorter token inside a longer one,
-        multi-line comments counted as code, a comment marker inside a
-        string literal, a regex read as a string. Each produces a
-        plausible number. For coverage the anchor is the report’s own
-        headline — a recomputation from the CSV or the lcov file is only
-        reported once it matches what <code>index.html</code>
-        states.</p>
-        <p>An empty grep also describes a command that never ran, which
-        is why the command is shown alongside the result.</p>
-        <h3 id="survey-figures-are-provisional">Survey figures are
-        provisional</h3>
-        <p>Surveys are read-only and produce findings tables with
-        evidence and a proposed severity — FIX, WATCH or ACCEPT. Nothing
-        is repaired inside a survey.</p>
-        <p>And the pull request that acts on a survey row
-        <strong>re-measures that row first.</strong> A survey is a
-        snapshot; the code moves.</p>
-        <h3 id="vacuity-proofs">Vacuity proofs</h3>
-        <p>A new test earns its place by failing. Break the mechanism
-        under test, watch the test go red, restore it. One break proving
-        two claims is complete; a break of something no test claims
-        proves nothing.</p>
-        <p>Absence assertions get special treatment — a test asserting
-        that something did <em>not</em> happen is paired with proof that
-        the intended path ran at all, or it passes for the wrong reason
-        forever.</p>
-        <h3 id="message-assertions-follow-layer-ownership">Message
-        assertions follow layer ownership</h3>
-        <p>The rule that took the longest to get right, because both
-        simple versions are wrong.</p>
-        <p>Service-level tests assert the exception type <em>and</em>
-        its message: where the error handler passes messages through,
-        the sentence is the wire contract, and where it does not, the
-        message is still the only observable a unit test has. Web-slice
-        tests own the envelope — the HTTP status, the message exactly as
-        the wire carries it including any handler prefix, and the
-        machine code where one exists.</p>
-        <p>On this project the machine codes are real contract:
-        <code>PROTOCOL_IDENTITY_LOCKED</code>, <code>EMPTY_FILE</code>,
-        <code>UNSUPPORTED_TYPE</code>, <code>NOT_TEXT</code>. A test
-        that pins only the status is under-asserting.</p>
-        <p>Neither “never assert message text” nor “the message is never
-        part of the contract” survives contact with a handler that
-        passes messages through. Read the handler before writing the
-        rule.</p>
-        <h3 id="errors-in-the-record-get-corrected-in-the-record">Errors
-        in the record get corrected in the record</h3>
-        <p>Not silently dropped because the code moved on. The refactor
-        phase opened with an example: its own plan text asserted that
-        the deployed Swagger UI lacked navigation back to the
-        documentation site. It has had that navigation since 2026-08-13.
-        The plan carries a dated correction rather than a quiet
-        edit.</p>
-        <h2 id="coverage-targets">Coverage targets</h2>
-        <p><strong>85% on statements, branches — including missed
-        branches — and functions, on both stacks.</strong></p>
-        <p>Two clarifications the standards insist on, because both are
-        places a figure quietly turns into a claim:</p>
-        <p><em>Statements</em> maps to istanbul statements on the
-        frontend, and on the backend to JaCoCo <strong>instructions and
-        lines, both stated.</strong> JaCoCo has no statement counter,
-        and quoting only the friendlier of the two would be a choice
-        presented as a measurement.</p>
-        <p><em>The figure that counts is the one CI publishes.</em> A
-        local run is a working tool, not evidence. It follows that the
-        <a href="live-provider-tests.html">live provider tests</a> — the
-        ones calling the paid provider, which every CI build excludes —
-        cover nothing as far as this target is concerned. Code whose
-        only tests are those is uncovered, however green it looks on a
-        laptop with the key set.</p>
-        <p>Enforcement is a <strong>ratchet, armed last</strong>: once
-        the targets are met, <code>jacoco:check</code> and Vitest
-        thresholds are set at the achieved numbers so a regression fails
-        the build. Arming it before the targets are met would only break
-        CI.</p>
-        <h2 id="the-measured-starting-point">The measured starting
-        point</h2>
-        <p>Surveyed 2026-08-20 against commit <code>09d8b57</code>, from
-        the reports CI published to gh-pages. The backend report was
-        published for <code>9dc8d4d</code>; the backend tree is
-        unchanged between that commit and <code>09d8b57</code>, so it is
-        current. Both recomputations were validated against their
-        report’s own headline before being used.</p>
+        <h1 id="refactor-standards">Refactor standards</h1>
+        <p>The size, style and refactor standards of
+        maintenance-assistant. These pages are
+        <strong>normative</strong>: where a review, a survey or a pull
+        request disagrees with them, they win until the owner rules
+        otherwise. They are the single place a band, a rule or a waiver
+        is edited.</p>
+        <p>Adapted 2026-08-20 from the portable template distilled from
+        the StockEase standards (rev 14 / template v2). The bands are
+        adjusted to this project’s stacks; the mechanisms are kept in
+        substance, because the mechanisms are the part that earned their
+        keep. Confirmed 2026-11-13 by the owner as the project’s own
+        standards; the workflow rules moved to the claimant model that
+        day. Written as linked pages since 2026-11-18 (<a
+        href="adr/ADR-013-markdown-only-docs.html">ADR-013</a>).</p>
+        <h2 id="the-parts">The parts</h2>
         <table>
+        <colgroup>
+        <col style="width: 50%" />
+        <col style="width: 50%" />
+        </colgroup>
         <thead>
         <tr class="header">
-        <th>Stack</th>
-        <th>Statements</th>
-        <th>Lines</th>
-        <th>Branches</th>
-        <th>Functions / Methods</th>
+        <th>Page</th>
+        <th>Covers</th>
         </tr>
         </thead>
         <tbody>
         <tr class="odd">
-        <td>Frontend (istanbul)</td>
-        <td>94.63%</td>
-        <td>95.52%</td>
-        <td>86.76%</td>
-        <td><strong>84.38%</strong></td>
+        <td>This page</td>
+        <td>Cross-cutting principles, counting methods, coverage
+        targets</td>
         </tr>
         <tr class="even">
-        <td>Backend (JaCoCo)</td>
-        <td>74.95% instr.</td>
-        <td>75.72%</td>
-        <td><strong>54.34%</strong></td>
-        <td>83.21%</td>
+        <td><a href="standards-sizes.html">Size bands</a></td>
+        <td>Backend and frontend bands per file type, documentation and
+        naming rules per stack</td>
+        </tr>
+        <tr class="odd">
+        <td><a href="standards-ci.html">Scripts and workflows</a></td>
+        <td>Script and workflow sizes, the claimant model, image scans,
+        dependency groups</td>
+        </tr>
+        <tr class="even">
+        <td><a href="standards-test-conduct.html">Test conduct</a></td>
+        <td>Spec moves, vacuity proofs, state isolation, fixtures,
+        message assertions</td>
+        </tr>
+        <tr class="odd">
+        <td><a href="standards-docs.html">Docs</a></td>
+        <td>Docs pages, diagrams, decision records, naming</td>
+        </tr>
+        <tr class="even">
+        <td><a href="standards-practices.html">Working
+        practices</a></td>
+        <td>The process rules and the two ops rules that generalise</td>
+        </tr>
+        <tr class="odd">
+        <td><a href="standards-waivers.html">Waivers</a></td>
+        <td>The waiver register and the accept / watch ledger</td>
         </tr>
         </tbody>
         </table>
-        <p>The frontend misses the target on functions alone, by three
-        covered functions, and the gap is concentrated in a single view:
-        the moderation screen and its template hold 32 of the 65
-        uncovered functions.</p>
-        <p>The backend headline is two different problems wearing one
-        number. Five classes cannot be reached by any test CI runs — the
-        two provider clients with their response records, and three
-        flag-gated startup runners. Excluding them, the same report
-        reads 88.52% instructions, 89.19% lines and 93.33% methods, with
-        branches still the outlier at 66.30%.</p>
-        <p>So the real campaign underneath the headline is
-        <strong>branches</strong>: 184 missed in code that tests do
-        reach, 150 of them in fourteen classes. The largest single gap
-        is the protocol chunker at 26 of 42 — the merge, split and
-        overlap rules are the retrieval-critical logic in this project,
-        and half their branches are unexercised.</p>
-        <p>Neither stack enforces any threshold today. The reports are
-        published; nothing fails on them. That is worth stating plainly
-        rather than leaving 85% to read as if it were a gate.</p>
-        <h2 id="where-the-rest-lives">Where the rest lives</h2>
-        <p>Open work is tracked in the repository’s GitHub issues; the
-        refactor phase’s plan, rulings and pull-request order are
-        history, kept in the project handover archived under git tag
-        <code>archive/handover-2026-11</code>. The bands, the full
-        test-conduct rules and the waiver register are in <a
-        href="/maintenance-assistant/REFACTOR-STANDARDS.txt"><code>REFACTOR-STANDARDS.txt</code></a>.</p>
+        <h2 id="cross-cutting-principles">Cross-cutting principles</h2>
+        <ul>
+        <li>Size limits count <strong>code lines only</strong>:
+        comments, doc comments and blanks excluded. A shebang counts as
+        code — it is functional, not explanatory. A file under its
+        code-line target is WITHIN regardless of how much documentation
+        it carries; the counting rule excludes prose precisely so
+        documentation never creates split pressure.</li>
+        <li><strong>Line count is the last reason to split.</strong>
+        Split on: more than one responsibility, more than one
+        abstraction level, unrelated change-reasons, more than ~3
+        injected dependencies, 3+ repeated patterns. Parallel operations
+        (CRUD symmetry, one case per endpoint) are NOT a split reason —
+        cases that read alike because the operations are genuinely
+        parallel belong together.</li>
+        <li>Every band has a target range and an alarm. Above target,
+        below alarm = <strong>WATCHED</strong> (recorded, no action).
+        Above alarm = a finding: split, or waive.</li>
+        <li><strong>Waiver mechanism:</strong> an above-alarm file that
+        survives the split criteria is waived with an in-file comment
+        stating why the length is the rule working, plus an entry in the
+        <a href="standards-waivers.html">waiver register</a> (file,
+        figure, band, date, reason). <strong>Waivers are granted by the
+        owner, never assumed.</strong></li>
+        <li>Comments explain WHY, never WHAT. Never comment self-evident
+        code. A header that restates obvious markup or code is a defect,
+        not documentation.</li>
+        <li>Deferred work: a TODO carries its backlog id at the site,
+        tracked in a backlog; the marker is removed by the PR that
+        closes its entry. Untracked bare TODOs are a finding.</li>
+        <li>Hard cap for NEW code: ~300 code lines per file. Retrofit
+        old files only when a pass already touches them.</li>
+        </ul>
+        <h2 id="counting-methods-load-bearing">Counting methods
+        (load-bearing)</h2>
+        <ul>
+        <li>Counters are <strong>validated before they are
+        trusted</strong>: run every measuring script against a known
+        anchor whose answer is already established, and report the
+        validation next to the figure. Classic false counters: substring
+        greps that match a shorter token inside a longer one, multi-line
+        comments counted as code, comment markers inside strings, regex
+        literals read as strings.</li>
+        <li>Counts use exact tokens, not substrings; every stated total
+        is recomputed from its own parts; an empty grep also describes a
+        command that did not run — show the command.</li>
+        <li>Survey figures are provisional. <strong>The PR that acts on
+        a survey row re-measures that row first.</strong></li>
+        <li>For coverage specifically, the anchor is the report’s own
+        headline: a recomputation from the CSV or the lcov file is
+        reported only after it matches what index.html states.</li>
+        </ul>
+        <h2 id="coverage-targets">Coverage targets</h2>
+        <ul>
+        <li><strong>85% on statements, branches (including missed
+        branches) and functions, both stacks.</strong> Set by Carlos for
+        the refactor phase, 2026-08-20.</li>
+        <li>“Statements” maps to istanbul statements on the frontend and
+        to JaCoCo <strong>instructions and lines</strong> on the
+        backend, both stated — JaCoCo has no statement counter, and
+        quoting only the friendlier of the two is how a figure becomes a
+        claim.</li>
+        <li><strong>The figure that counts is the one CI publishes to
+        gh-pages.</strong> A local run is a working tool, not
+        evidence.</li>
+        <li>Live provider tests (<code>@LiveProviderTest</code>, JUnit
+        tag <code>llm-live</code>) <strong>do not run in CI</strong> and
+        therefore cover nothing as far as this target is concerned. Code
+        whose only tests are those is UNCOVERED, and saying otherwise is
+        the counter lying about what it measured. See <a
+        href="live-provider-tests.html">live provider tests</a>.</li>
+        <li>Enforcement is a <strong>ratchet</strong>, armed only once
+        the targets are met: jacoco check and vitest thresholds, so a
+        regression fails the build. Arming it early would only break CI.
+        The floors are the targets (85%), not the achieved figures, so
+        deleting a covered line that is no longer needed does not turn a
+        refactor red; the margin above them is working headroom
+        (<code>backend/pom.xml</code>,
+        <code>frontend/angular.json</code>).</li>
+        </ul>
+        <p><a href="index.html">Back to the docs home</a></p>
       </article>
     </main>
 
@@ -339,44 +278,17 @@
       <p class="toc-title">On this page</p>
       <ul>
       <li><a href="#refactor-standards"
-      id="toc-refactor-standards">Refactor Standards</a>
+      id="toc-refactor-standards">Refactor standards</a>
       <ul>
-      <li><a href="#why-a-standards-file-at-all"
-      id="toc-why-a-standards-file-at-all">Why a standards file at
-      all</a></li>
-      <li><a href="#the-mechanisms" id="toc-the-mechanisms">The
-      mechanisms</a>
-      <ul>
-      <li><a href="#line-count-is-the-last-reason-to-split"
-      id="toc-line-count-is-the-last-reason-to-split">Line count is the
-      last reason to split</a></li>
-      <li><a href="#the-watched-band" id="toc-the-watched-band">The
-      watched band</a></li>
-      <li><a href="#waivers-are-granted-never-assumed"
-      id="toc-waivers-are-granted-never-assumed">Waivers are granted,
-      never assumed</a></li>
-      <li><a href="#counters-are-validated-before-they-are-trusted"
-      id="toc-counters-are-validated-before-they-are-trusted">Counters
-      are validated before they are trusted</a></li>
-      <li><a href="#survey-figures-are-provisional"
-      id="toc-survey-figures-are-provisional">Survey figures are
-      provisional</a></li>
-      <li><a href="#vacuity-proofs" id="toc-vacuity-proofs">Vacuity
-      proofs</a></li>
-      <li><a href="#message-assertions-follow-layer-ownership"
-      id="toc-message-assertions-follow-layer-ownership">Message
-      assertions follow layer ownership</a></li>
-      <li><a href="#errors-in-the-record-get-corrected-in-the-record"
-      id="toc-errors-in-the-record-get-corrected-in-the-record">Errors
-      in the record get corrected in the record</a></li>
-      </ul></li>
+      <li><a href="#the-parts" id="toc-the-parts">The parts</a></li>
+      <li><a href="#cross-cutting-principles"
+      id="toc-cross-cutting-principles">Cross-cutting
+      principles</a></li>
+      <li><a href="#counting-methods-load-bearing"
+      id="toc-counting-methods-load-bearing">Counting methods
+      (load-bearing)</a></li>
       <li><a href="#coverage-targets" id="toc-coverage-targets">Coverage
       targets</a></li>
-      <li><a href="#the-measured-starting-point"
-      id="toc-the-measured-starting-point">The measured starting
-      point</a></li>
-      <li><a href="#where-the-rest-lives"
-      id="toc-where-the-rest-lives">Where the rest lives</a></li>
       </ul></li>
       </ul>
     </nav>

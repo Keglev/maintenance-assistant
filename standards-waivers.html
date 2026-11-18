@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Docs · standards-waivers · maintenance-assistant Docs</title>
+
+  <!-- Set the theme before the stylesheet paints, otherwise the page flashes
+       the default theme for one frame before the saved choice applies. -->
+  <script>
+    (function () {
+      try {
+        var t = localStorage.getItem("maintenance-assistant-theme") ||
+          (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+        document.documentElement.setAttribute("data-theme", t);
+      } catch (e) {
+        document.documentElement.setAttribute("data-theme", "light");
+      }
+    })();
+  </script>
+
+  <link rel="stylesheet" href="/maintenance-assistant/assets/docs.css" />
+</head>
+
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <header class="topbar">
+    <div class="topbar-inner">
+      <button class="menu-btn" aria-label="Toggle navigation">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="18" x2="21" y2="18" />
+        </svg>
+      </button>
+
+      <a href="/maintenance-assistant/" class="brand">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <path d="M14.7 6.3a5 5 0 0 0-6.6 6.6l-5 5a2 2 0 1 0 2.8 2.8l5-5a5 5 0 0 0 6.6-6.6l-2.9 2.9-2.1-2.1 2.2-3.6z" />
+        </svg>
+        maintenance-assistant Docs
+      </a>
+
+      <div class="topbar-tools">
+        <span class="lang-switch">
+          <a href="/maintenance-assistant/" aria-current="true">EN</a>
+          <a href="/maintenance-assistant/index-de.html">DE</a>
+        </span>
+        <button class="theme-toggle" aria-label="Toggle light or dark theme">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <circle cx="12" cy="12" r="9" /><path d="M12 3a9 9 0 0 0 0 18z" fill="currentColor" stroke="none" />
+          </svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <div class="layout">
+    <!-- Sidebar navigation, included by app-docs.html as a Pandoc partial. One
+         sidebar serves the whole site: this repository has a single arc42 tree and a
+         single decision log, so the per-tier sidebars the sibling repositories need
+         would be three copies of the same list here. The active link is marked at
+         runtime by docs.js. Do not put template syntax in this comment - a partial
+         is itself a template. -->
+    <aside class="sidebar">
+      <p class="nav-title">Docs</p>
+      <ul>
+        <li><a href="/maintenance-assistant/">Docs home</a></li>
+        <li><a href="/maintenance-assistant/overview.html">Overview</a></li>
+        <li><a href="/maintenance-assistant/overview-de.html">&Uuml;berblick (DE)</a></li>
+        <li><a href="/maintenance-assistant/llm-approach.html">AI &amp; LLM approach</a></li>
+        <li><a href="/maintenance-assistant/run-locally.html">Run it locally</a></li>
+      </ul>
+
+      <p class="nav-title">Requirements</p>
+      <ul>
+        <li><a href="/maintenance-assistant/requirements.html">Requirements &amp; NFRs</a></li>
+        <li><a href="/maintenance-assistant/domain-model.html">Domain model</a></li>
+      </ul>
+
+      <details class="nav-group">
+        <summary>Architecture (arc42)</summary>
+        <ul>
+          <li><a href="/maintenance-assistant/architecture/index.html">Architecture index</a></li>
+          <li><a href="/maintenance-assistant/architecture/01-introduction-and-goals.html">1 &middot; Introduction &amp; Goals</a></li>
+          <li><a href="/maintenance-assistant/architecture/02-architecture-constraints.html">2 &middot; Constraints</a></li>
+          <li><a href="/maintenance-assistant/architecture/03-context-and-scope.html">3 &middot; Context &amp; Scope</a></li>
+          <li><a href="/maintenance-assistant/architecture/04-solution-strategy.html">4 &middot; Solution Strategy</a></li>
+          <li><a href="/maintenance-assistant/architecture/05-building-block-view.html">5 &middot; Building Blocks</a></li>
+          <li><a href="/maintenance-assistant/architecture/06-runtime-view.html">6 &middot; Runtime View</a></li>
+          <li><a href="/maintenance-assistant/architecture/07-deployment-view.html">7 &middot; Deployment</a></li>
+          <li><a href="/maintenance-assistant/architecture/07a-ops-rules.html">7a &middot; Ops rules</a></li>
+          <li><a href="/maintenance-assistant/architecture/08-crosscutting-concepts.html">8 &middot; Concepts</a></li>
+          <li><a href="/maintenance-assistant/architecture/09-architecture-decisions.html">9 &middot; Decisions</a></li>
+          <li><a href="/maintenance-assistant/architecture/10-quality-requirements.html">10 &middot; Quality Requirements</a></li>
+          <li><a href="/maintenance-assistant/architecture/11-risks-and-technical-debt.html">11 &middot; Risks &amp; Debt</a></li>
+          <li><a href="/maintenance-assistant/architecture/12-glossary.html">12 &middot; Glossary</a></li>
+        </ul>
+      </details>
+
+      <details class="nav-group">
+        <summary>Decisions (ADRs)</summary>
+        <ul>
+          <li><a href="/maintenance-assistant/adr/index.html">Decision index</a></li>
+          <li><a href="/maintenance-assistant/adr/ADR-001-modular-monolith-first.html">ADR-001 Modular monolith</a></li>
+          <li><a href="/maintenance-assistant/adr/ADR-002-eu-hosted-llm-provider.html">ADR-002 EU LLM provider</a></li>
+          <li><a href="/maintenance-assistant/adr/ADR-003-keycloak-for-iam.html">ADR-003 Keycloak as IdP</a></li>
+          <li><a href="/maintenance-assistant/adr/ADR-004-pgvector-for-vector-search.html">ADR-004 pgvector</a></li>
+          <li><a href="/maintenance-assistant/adr/ADR-010-docs-tree-conventions.html">ADR-010 Docs tree conventions</a></li>
+          <li><a href="/maintenance-assistant/adr/ADR-011-guided-questions.html">ADR-011 Guided questions</a></li>
+          <li><a href="/maintenance-assistant/adr/ADR-013-markdown-only-docs.html">ADR-013 Markdown-only docs</a></li>
+        </ul>
+      </details>
+
+      <p class="nav-title">Frontend</p>
+      <ul>
+        <li><a href="/maintenance-assistant/frontend-architecture.html">Frontend architecture</a></li>
+      </ul>
+
+      <p class="nav-title">Quality</p>
+      <ul>
+        <li><a href="/maintenance-assistant/refactor-standards.html">Refactor standards</a></li>
+        <li><a href="/maintenance-assistant/backend/api-docs/index.html">Backend API</a></li>
+        <li><a href="/maintenance-assistant/frontend/api-docs/index.html">Frontend API</a></li>
+        <li><a href="/maintenance-assistant/backend/coverage/index.html">Backend coverage</a></li>
+        <li><a href="/maintenance-assistant/frontend/coverage/index.html">Frontend coverage</a></li>
+      </ul>
+    </aside>
+    <main class="content" id="main">
+      <article class="doc-body">
+        <h1 id="waivers">Waivers</h1>
+        <p>The waiver register and the accept / watch ledger. Part of
+        the <a href="refactor-standards.html">refactor standards</a>;
+        the waiver mechanism itself is defined there.</p>
+        <p>The register was created empty ON PURPOSE rather than after
+        the first waiver, so that the first one had somewhere to go and
+        could not become a comment nobody collected. First entries
+        below, 2026-08-22.</p>
+        <p><strong>Every waived site also carries a comment at the
+        site</strong> saying why the miss is the rule working. The
+        register says which; the comment says why. A waiver that exists
+        in only one of the two places is half a waiver: the register
+        alone leaves the next reader deleting a guard to win a branch,
+        and the comment alone is the thing this register exists to
+        stop.</p>
+        <h2 id="coverage-waivers-branch-coverage">Coverage waivers
+        (branch coverage)</h2>
+        <table>
+        <colgroup>
+        <col style="width: 20%" />
+        <col style="width: 20%" />
+        <col style="width: 20%" />
+        <col style="width: 20%" />
+        <col style="width: 20%" />
+        </colgroup>
+        <thead>
+        <tr class="header">
+        <th>#</th>
+        <th>Site</th>
+        <th>Figure</th>
+        <th>Date</th>
+        <th>Granted by</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr class="odd">
+        <td>1</td>
+        <td><code>ProtocolChunker.splitOversized</code> (U1)</td>
+        <td>1 branch</td>
+        <td>2026-08-22</td>
+        <td>Carlos</td>
+        </tr>
+        <tr class="even">
+        <td>2</td>
+        <td><code>ProtocolChunker.lastSentenceEnd</code>,
+        <code>i + 1 &lt; text.length()</code> (U2)</td>
+        <td>1 branch</td>
+        <td>2026-08-22</td>
+        <td>Carlos</td>
+        </tr>
+        <tr class="odd">
+        <td>3</td>
+        <td><code>IonosChatClient.preview</code>, null/blank guard (#81
+        F2)</td>
+        <td>2 branches</td>
+        <td>2026-08-22</td>
+        <td>Carlos</td>
+        </tr>
+        <tr class="even">
+        <td>4</td>
+        <td><code>IonosChatClient.firstLine</code> and
+        <code>IonosEmbeddingClient.firstLine</code>, the
+        <code>body == null</code> side (#81 F3)</td>
+        <td>1 branch each, 2 total</td>
+        <td>2026-08-22</td>
+        <td>Carlos</td>
+        </tr>
+        </tbody>
+        </table>
+        <p><strong>1. ProtocolChunker.splitOversized.</strong> The
+        loop’s false exit is unreachable — every iteration leaves
+        <code>from</code> strictly inside the section, so the only way
+        out is the break. Reaching it would need an empty section, which
+        the sole caller prevents by calling this only for sections
+        longer than MAX_CHARS. Verified independently of the class: the
+        two methods were copied into a standalone harness and driven
+        with 60,008 sections honouring the caller’s contract, with the
+        branch never taken; a control run passing an empty section DID
+        take it, proving the harness could observe it.</p>
+        <p><strong>2. ProtocolChunker.lastSentenceEnd.</strong> The sole
+        caller passes a window that stops short of the end, so
+        <code>i</code> can never be the last character. The guard is a
+        bounds check on a method that reads one character past
+        <code>i</code>; the guarantee lives in the caller, and a second
+        caller written without it would read off the end. Same harness
+        and same control as U1.</p>
+        <p><strong>3. IonosChatClient.preview.</strong>
+        <code>complete()</code> throws on null or blank content BEFORE
+        the truncation branch that calls preview, and that ordering is
+        deliberate: an empty answer from a reasoning model is a
+        configuration diagnosis (ADR-002 caveat 3) and must not be
+        reported as a truncation. The guard stays because a formatting
+        helper must not throw while an exception message is being built.
+        The uncovered branch is that ordering working.</p>
+        <p><strong>4. firstLine, <code>body == null</code>.</strong> The
+        only argument ever passed is
+        <code>getResponseBodyAsString()</code>, which builds a String
+        over a byte array that defaults to empty: it returns “” and
+        never null. The BLANK side is covered, by the empty-body
+        rejection tests (#80, #81) — so the guard is half exercised and
+        half unreachable, and the unreachable half is a null-safety
+        check on a helper that runs while a failure_reason is being
+        assembled.</p>
+        <h2 id="coverage-waivers-whole-class-0">Coverage waivers (whole
+        class, 0%)</h2>
+        <table>
+        <colgroup>
+        <col style="width: 20%" />
+        <col style="width: 20%" />
+        <col style="width: 20%" />
+        <col style="width: 20%" />
+        <col style="width: 20%" />
+        </colgroup>
+        <thead>
+        <tr class="header">
+        <th>#</th>
+        <th>Class</th>
+        <th>Figure</th>
+        <th>Date</th>
+        <th>Granted by</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr class="odd">
+        <td>5</td>
+        <td><code>EmbeddingProvenanceRunner</code></td>
+        <td>69 instructions, 4 branches</td>
+        <td>2026-08-22</td>
+        <td>Carlos</td>
+        </tr>
+        <tr class="even">
+        <td>6</td>
+        <td><code>IngestionBacklogRunner</code></td>
+        <td>23 instructions, 0 branches</td>
+        <td>2026-08-22</td>
+        <td>Carlos</td>
+        </tr>
+        </tbody>
+        </table>
+        <p><strong>5. EmbeddingProvenanceRunner.</strong> Flag-gated
+        operational wiring — read a report, log it, choose an exit code.
+        The mechanism it invokes is covered by
+        EmbeddingProvenanceVerifierIT, so the part that can be wrong
+        about vectors IS tested. Covering the runner would mean standing
+        up a context to assert on console output, which tests the
+        harness rather than the tool. Exercised operationally instead:
+        run against production 2026-08-19.</p>
+        <p><strong>6. IngestionBacklogRunner.</strong> A conditional
+        bean that calls enqueue once and logs the count; it carries no
+        branches of its own. The work is covered where the work lives
+        (IngestionBacklogService, IngestionPipelineIT) and the same
+        operation is reachable through the admin endpoint, which is
+        covered as a web slice. A test here could only assert that a
+        startup hook calls a method.</p>
+        <h2 id="accept-watch-ledger-not-waivers">Accept / watch ledger
+        (not waivers)</h2>
+        <p>These are NOT waivers: the code is reachable and testable,
+        the targets are met without it, and the cost of covering it now
+        is judged higher than the risk of leaving it. A ledger row is a
+        decision to revisit, not permission to stop counting. Anything
+        here still counts as uncovered in every published figure.</p>
+        <p><strong>A. The 4a residue — 51 branches needing
+        integration-test harnesses.</strong> Status ACCEPT / WATCH,
+        2026-08-22, decided by Carlos. Classes:
+        EmbeddingProvenanceVerifier, ProtocolUploadController,
+        ProtocolIntakeService, ProtocolIndexer, ProtocolDocumentService,
+        ModerationController, CorpusProtocol, IngestionAdminController,
+        HealthController (full list carried in #79’s pull request body).
+        Each needs an IT harness that does not exist yet rather than a
+        unit seam. Both stacks meet the 85% targets without them, so
+        building nine harnesses now would be coverage work for its own
+        sake. Revisit when one of these classes is next changed for a
+        feature — the harness is then paid for by work that needed it.
+        Tracked as GitHub issue #191.</p>
+        <p><strong>B. ChatBudget.checkHeadroom over-limit branch (#81
+        F4).</strong> CLOSED, covered 2026-08-22 — recorded here because
+        #81 proposed it as a ledger row and it turned out to be cheap:
+        it went into QueryPipelineIT, which already owns a real
+        ChatBudget and the chat_budget table, so it cost no new Spring
+        context.</p>
+        <p><a href="refactor-standards.html">Back to the refactor
+        standards</a></p>
+      </article>
+    </main>
+
+        <nav class="toc" aria-label="On this page">
+      <p class="toc-title">On this page</p>
+      <ul>
+      <li><a href="#waivers" id="toc-waivers">Waivers</a>
+      <ul>
+      <li><a href="#coverage-waivers-branch-coverage"
+      id="toc-coverage-waivers-branch-coverage">Coverage waivers (branch
+      coverage)</a></li>
+      <li><a href="#coverage-waivers-whole-class-0"
+      id="toc-coverage-waivers-whole-class-0">Coverage waivers (whole
+      class, 0%)</a></li>
+      <li><a href="#accept-watch-ledger-not-waivers"
+      id="toc-accept-watch-ledger-not-waivers">Accept / watch ledger
+      (not waivers)</a></li>
+      </ul></li>
+      </ul>
+    </nav>
+      </div>
+
+  <footer class="footer">
+    maintenance-assistant · Generated by the docs pipeline
+  </footer>
+
+  <script src="/maintenance-assistant/assets/docs.js"></script>
+</body>
+</html>

@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Docs · standards-docs · maintenance-assistant Docs</title>
+
+  <!-- Set the theme before the stylesheet paints, otherwise the page flashes
+       the default theme for one frame before the saved choice applies. -->
+  <script>
+    (function () {
+      try {
+        var t = localStorage.getItem("maintenance-assistant-theme") ||
+          (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+        document.documentElement.setAttribute("data-theme", t);
+      } catch (e) {
+        document.documentElement.setAttribute("data-theme", "light");
+      }
+    })();
+  </script>
+
+  <link rel="stylesheet" href="/maintenance-assistant/assets/docs.css" />
+</head>
+
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <header class="topbar">
+    <div class="topbar-inner">
+      <button class="menu-btn" aria-label="Toggle navigation">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="18" x2="21" y2="18" />
+        </svg>
+      </button>
+
+      <a href="/maintenance-assistant/" class="brand">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <path d="M14.7 6.3a5 5 0 0 0-6.6 6.6l-5 5a2 2 0 1 0 2.8 2.8l5-5a5 5 0 0 0 6.6-6.6l-2.9 2.9-2.1-2.1 2.2-3.6z" />
+        </svg>
+        maintenance-assistant Docs
+      </a>
+
+      <div class="topbar-tools">
+        <span class="lang-switch">
+          <a href="/maintenance-assistant/" aria-current="true">EN</a>
+          <a href="/maintenance-assistant/index-de.html">DE</a>
+        </span>
+        <button class="theme-toggle" aria-label="Toggle light or dark theme">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <circle cx="12" cy="12" r="9" /><path d="M12 3a9 9 0 0 0 0 18z" fill="currentColor" stroke="none" />
+          </svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <div class="layout">
+    <!-- Sidebar navigation, included by app-docs.html as a Pandoc partial. One
+         sidebar serves the whole site: this repository has a single arc42 tree and a
+         single decision log, so the per-tier sidebars the sibling repositories need
+         would be three copies of the same list here. The active link is marked at
+         runtime by docs.js. Do not put template syntax in this comment - a partial
+         is itself a template. -->
+    <aside class="sidebar">
+      <p class="nav-title">Docs</p>
+      <ul>
+        <li><a href="/maintenance-assistant/">Docs home</a></li>
+        <li><a href="/maintenance-assistant/overview.html">Overview</a></li>
+        <li><a href="/maintenance-assistant/overview-de.html">&Uuml;berblick (DE)</a></li>
+        <li><a href="/maintenance-assistant/llm-approach.html">AI &amp; LLM approach</a></li>
+        <li><a href="/maintenance-assistant/run-locally.html">Run it locally</a></li>
+      </ul>
+
+      <p class="nav-title">Requirements</p>
+      <ul>
+        <li><a href="/maintenance-assistant/requirements.html">Requirements &amp; NFRs</a></li>
+        <li><a href="/maintenance-assistant/domain-model.html">Domain model</a></li>
+      </ul>
+
+      <details class="nav-group">
+        <summary>Architecture (arc42)</summary>
+        <ul>
+          <li><a href="/maintenance-assistant/architecture/index.html">Architecture index</a></li>
+          <li><a href="/maintenance-assistant/architecture/01-introduction-and-goals.html">1 &middot; Introduction &amp; Goals</a></li>
+          <li><a href="/maintenance-assistant/architecture/02-architecture-constraints.html">2 &middot; Constraints</a></li>
+          <li><a href="/maintenance-assistant/architecture/03-context-and-scope.html">3 &middot; Context &amp; Scope</a></li>
+          <li><a href="/maintenance-assistant/architecture/04-solution-strategy.html">4 &middot; Solution Strategy</a></li>
+          <li><a href="/maintenance-assistant/architecture/05-building-block-view.html">5 &middot; Building Blocks</a></li>
+          <li><a href="/maintenance-assistant/architecture/06-runtime-view.html">6 &middot; Runtime View</a></li>
+          <li><a href="/maintenance-assistant/architecture/07-deployment-view.html">7 &middot; Deployment</a></li>
+          <li><a href="/maintenance-assistant/architecture/07a-ops-rules.html">7a &middot; Ops rules</a></li>
+          <li><a href="/maintenance-assistant/architecture/08-crosscutting-concepts.html">8 &middot; Concepts</a></li>
+          <li><a href="/maintenance-assistant/architecture/09-architecture-decisions.html">9 &middot; Decisions</a></li>
+          <li><a href="/maintenance-assistant/architecture/10-quality-requirements.html">10 &middot; Quality Requirements</a></li>
+          <li><a href="/maintenance-assistant/architecture/11-risks-and-technical-debt.html">11 &middot; Risks &amp; Debt</a></li>
+          <li><a href="/maintenance-assistant/architecture/12-glossary.html">12 &middot; Glossary</a></li>
+        </ul>
+      </details>
+
+      <details class="nav-group">
+        <summary>Decisions (ADRs)</summary>
+        <ul>
+          <li><a href="/maintenance-assistant/adr/index.html">Decision index</a></li>
+          <li><a href="/maintenance-assistant/adr/ADR-001-modular-monolith-first.html">ADR-001 Modular monolith</a></li>
+          <li><a href="/maintenance-assistant/adr/ADR-002-eu-hosted-llm-provider.html">ADR-002 EU LLM provider</a></li>
+          <li><a href="/maintenance-assistant/adr/ADR-003-keycloak-for-iam.html">ADR-003 Keycloak as IdP</a></li>
+          <li><a href="/maintenance-assistant/adr/ADR-004-pgvector-for-vector-search.html">ADR-004 pgvector</a></li>
+          <li><a href="/maintenance-assistant/adr/ADR-010-docs-tree-conventions.html">ADR-010 Docs tree conventions</a></li>
+          <li><a href="/maintenance-assistant/adr/ADR-011-guided-questions.html">ADR-011 Guided questions</a></li>
+          <li><a href="/maintenance-assistant/adr/ADR-013-markdown-only-docs.html">ADR-013 Markdown-only docs</a></li>
+        </ul>
+      </details>
+
+      <p class="nav-title">Frontend</p>
+      <ul>
+        <li><a href="/maintenance-assistant/frontend-architecture.html">Frontend architecture</a></li>
+      </ul>
+
+      <p class="nav-title">Quality</p>
+      <ul>
+        <li><a href="/maintenance-assistant/refactor-standards.html">Refactor standards</a></li>
+        <li><a href="/maintenance-assistant/backend/api-docs/index.html">Backend API</a></li>
+        <li><a href="/maintenance-assistant/frontend/api-docs/index.html">Frontend API</a></li>
+        <li><a href="/maintenance-assistant/backend/coverage/index.html">Backend coverage</a></li>
+        <li><a href="/maintenance-assistant/frontend/coverage/index.html">Frontend coverage</a></li>
+      </ul>
+    </aside>
+    <main class="content" id="main">
+      <article class="doc-body">
+        <h1 id="docs">Docs</h1>
+        <p>Part of the <a href="refactor-standards.html">refactor
+        standards</a>.</p>
+        <ul>
+        <li>150-250 lines max per markdown page; one page, one topic.
+        Short is fine; the rule flags filler, not brevity. A document
+        that would exceed the band becomes an index page plus linked
+        part pages, never one page with a waiver (<a
+        href="adr/ADR-013-markdown-only-docs.html">ADR-013</a>).</li>
+        <li><strong>No <code>.txt</code> documents and no links to
+        them.</strong> Documentation is markdown; data files of the
+        application are not documentation (<a
+        href="adr/ADR-013-markdown-only-docs.html">ADR-013</a>).</li>
+        <li><strong>Every page is reachable through a link from another
+        page.</strong> A new page is linked from its parent (its section
+        index, or the page that introduces its topic) and ends with a
+        link back to it (<a
+        href="adr/ADR-013-markdown-only-docs.html">ADR-013</a>).</li>
+        <li>Mermaid over ASCII art; diagrams at or under 15-20 nodes. A
+        diagram is a <code>.mmd</code> file in a <code>diagrams/</code>
+        directory, rendered to SVG at build time (generate-diagrams.mjs)
+        and embedded as an image; pages load no diagram script and no
+        CDN. build-docs.sh fails on an inline mermaid block.</li>
+        <li><strong>Published prose states only what the checkout
+        shows.</strong> Figures carry provenance. No aspirational
+        content. A claim needing a survey is omitted, not
+        generalised.</li>
+        <li>Cite by stable keys (property names, method names), never by
+        line numbers — line citations break on the next edit.</li>
+        <li>Decision records are <strong>immutable</strong> once merged
+        and their working session closes: corrections go in a new record
+        or a dated amendment block; the decision, status and
+        alternatives are never edited. Number them, index them, and keep
+        the nav in step. AMENDED 2026-11-18 (ruled by the owner):
+        <strong>one exception, for link targets.</strong> When a
+        repository file an ADR links to moves or is removed, the link is
+        re-pointed to a permalink pinned to the last commit before the
+        change (<code>blob/&lt;sha&gt;/...</code> or
+        <code>tree/&lt;sha&gt;/...</code>), so it shows exactly the file
+        the decision rested on and never breaks again. The link text and
+        every word around it stay as they are. check-repo-urls.sh in
+        docs-pr-check fails on a <code>blob/main</code> or
+        <code>tree/main</code> URL whose path is missing from the
+        checkout, so a move cannot leave one behind.</li>
+        <li><strong>Every published surface carries the same anchor
+        home.</strong> A report tree reached from the docs site must
+        offer the way back to it.</li>
+        <li>Explanatory markdown pages under <code>docs/</code> are
+        lowercase-kebab; the ADR files and ADR-TEMPLATE stay SCREAMING,
+        because they are immutable records rather than prose — see <a
+        href="adr/ADR-010-docs-tree-conventions.html">ADR-010</a> and
+        its 2026-11-18 note.</li>
+        <li>A citation inside an applied Flyway migration is
+        <strong>frozen</strong>: it is not updated when the file it
+        names is renamed, because the checksum covers comments and a
+        repair is a production operation — see <a
+        href="adr/ADR-010-docs-tree-conventions.html">ADR-010</a>.</li>
+        <li>Hand-written HTML that belongs to the site theme (the two
+        landing pages) lives in <code>docs/_theme/</code>; markdown
+        content lives in <code>docs/</code> — see <a
+        href="adr/ADR-010-docs-tree-conventions.html">ADR-010</a>.</li>
+        </ul>
+        <p><a href="refactor-standards.html">Back to the refactor
+        standards</a></p>
+      </article>
+    </main>
+
+        <nav class="toc" aria-label="On this page">
+      <p class="toc-title">On this page</p>
+      <ul>
+      <li><a href="#docs" id="toc-docs">Docs</a></li>
+      </ul>
+    </nav>
+      </div>
+
+  <footer class="footer">
+    maintenance-assistant · Generated by the docs pipeline
+  </footer>
+
+  <script src="/maintenance-assistant/assets/docs.js"></script>
+</body>
+</html>

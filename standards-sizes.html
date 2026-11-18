@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Docs · standards-sizes · maintenance-assistant Docs</title>
+
+  <!-- Set the theme before the stylesheet paints, otherwise the page flashes
+       the default theme for one frame before the saved choice applies. -->
+  <script>
+    (function () {
+      try {
+        var t = localStorage.getItem("maintenance-assistant-theme") ||
+          (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+        document.documentElement.setAttribute("data-theme", t);
+      } catch (e) {
+        document.documentElement.setAttribute("data-theme", "light");
+      }
+    })();
+  </script>
+
+  <link rel="stylesheet" href="/maintenance-assistant/assets/docs.css" />
+</head>
+
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <header class="topbar">
+    <div class="topbar-inner">
+      <button class="menu-btn" aria-label="Toggle navigation">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="18" x2="21" y2="18" />
+        </svg>
+      </button>
+
+      <a href="/maintenance-assistant/" class="brand">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <path d="M14.7 6.3a5 5 0 0 0-6.6 6.6l-5 5a2 2 0 1 0 2.8 2.8l5-5a5 5 0 0 0 6.6-6.6l-2.9 2.9-2.1-2.1 2.2-3.6z" />
+        </svg>
+        maintenance-assistant Docs
+      </a>
+
+      <div class="topbar-tools">
+        <span class="lang-switch">
+          <a href="/maintenance-assistant/" aria-current="true">EN</a>
+          <a href="/maintenance-assistant/index-de.html">DE</a>
+        </span>
+        <button class="theme-toggle" aria-label="Toggle light or dark theme">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <circle cx="12" cy="12" r="9" /><path d="M12 3a9 9 0 0 0 0 18z" fill="currentColor" stroke="none" />
+          </svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <div class="layout">
+    <!-- Sidebar navigation, included by app-docs.html as a Pandoc partial. One
+         sidebar serves the whole site: this repository has a single arc42 tree and a
+         single decision log, so the per-tier sidebars the sibling repositories need
+         would be three copies of the same list here. The active link is marked at
+         runtime by docs.js. Do not put template syntax in this comment - a partial
+         is itself a template. -->
+    <aside class="sidebar">
+      <p class="nav-title">Docs</p>
+      <ul>
+        <li><a href="/maintenance-assistant/">Docs home</a></li>
+        <li><a href="/maintenance-assistant/overview.html">Overview</a></li>
+        <li><a href="/maintenance-assistant/overview-de.html">&Uuml;berblick (DE)</a></li>
+        <li><a href="/maintenance-assistant/llm-approach.html">AI &amp; LLM approach</a></li>
+        <li><a href="/maintenance-assistant/run-locally.html">Run it locally</a></li>
+      </ul>
+
+      <p class="nav-title">Requirements</p>
+      <ul>
+        <li><a href="/maintenance-assistant/requirements.html">Requirements &amp; NFRs</a></li>
+        <li><a href="/maintenance-assistant/domain-model.html">Domain model</a></li>
+      </ul>
+
+      <details class="nav-group">
+        <summary>Architecture (arc42)</summary>
+        <ul>
+          <li><a href="/maintenance-assistant/architecture/index.html">Architecture index</a></li>
+          <li><a href="/maintenance-assistant/architecture/01-introduction-and-goals.html">1 &middot; Introduction &amp; Goals</a></li>
+          <li><a href="/maintenance-assistant/architecture/02-architecture-constraints.html">2 &middot; Constraints</a></li>
+          <li><a href="/maintenance-assistant/architecture/03-context-and-scope.html">3 &middot; Context &amp; Scope</a></li>
+          <li><a href="/maintenance-assistant/architecture/04-solution-strategy.html">4 &middot; Solution Strategy</a></li>
+          <li><a href="/maintenance-assistant/architecture/05-building-block-view.html">5 &middot; Building Blocks</a></li>
+          <li><a href="/maintenance-assistant/architecture/06-runtime-view.html">6 &middot; Runtime View</a></li>
+          <li><a href="/maintenance-assistant/architecture/07-deployment-view.html">7 &middot; Deployment</a></li>
+          <li><a href="/maintenance-assistant/architecture/07a-ops-rules.html">7a &middot; Ops rules</a></li>
+          <li><a href="/maintenance-assistant/architecture/08-crosscutting-concepts.html">8 &middot; Concepts</a></li>
+          <li><a href="/maintenance-assistant/architecture/09-architecture-decisions.html">9 &middot; Decisions</a></li>
+          <li><a href="/maintenance-assistant/architecture/10-quality-requirements.html">10 &middot; Quality Requirements</a></li>
+          <li><a href="/maintenance-assistant/architecture/11-risks-and-technical-debt.html">11 &middot; Risks &amp; Debt</a></li>
+          <li><a href="/maintenance-assistant/architecture/12-glossary.html">12 &middot; Glossary</a></li>
+        </ul>
+      </details>
+
+      <details class="nav-group">
+        <summary>Decisions (ADRs)</summary>
+        <ul>
+          <li><a href="/maintenance-assistant/adr/index.html">Decision index</a></li>
+          <li><a href="/maintenance-assistant/adr/ADR-001-modular-monolith-first.html">ADR-001 Modular monolith</a></li>
+          <li><a href="/maintenance-assistant/adr/ADR-002-eu-hosted-llm-provider.html">ADR-002 EU LLM provider</a></li>
+          <li><a href="/maintenance-assistant/adr/ADR-003-keycloak-for-iam.html">ADR-003 Keycloak as IdP</a></li>
+          <li><a href="/maintenance-assistant/adr/ADR-004-pgvector-for-vector-search.html">ADR-004 pgvector</a></li>
+          <li><a href="/maintenance-assistant/adr/ADR-010-docs-tree-conventions.html">ADR-010 Docs tree conventions</a></li>
+          <li><a href="/maintenance-assistant/adr/ADR-011-guided-questions.html">ADR-011 Guided questions</a></li>
+          <li><a href="/maintenance-assistant/adr/ADR-013-markdown-only-docs.html">ADR-013 Markdown-only docs</a></li>
+        </ul>
+      </details>
+
+      <p class="nav-title">Frontend</p>
+      <ul>
+        <li><a href="/maintenance-assistant/frontend-architecture.html">Frontend architecture</a></li>
+      </ul>
+
+      <p class="nav-title">Quality</p>
+      <ul>
+        <li><a href="/maintenance-assistant/refactor-standards.html">Refactor standards</a></li>
+        <li><a href="/maintenance-assistant/backend/api-docs/index.html">Backend API</a></li>
+        <li><a href="/maintenance-assistant/frontend/api-docs/index.html">Frontend API</a></li>
+        <li><a href="/maintenance-assistant/backend/coverage/index.html">Backend coverage</a></li>
+        <li><a href="/maintenance-assistant/frontend/coverage/index.html">Frontend coverage</a></li>
+      </ul>
+    </aside>
+    <main class="content" id="main">
+      <article class="doc-body">
+        <h1 id="size-bands">Size bands</h1>
+        <p>Code-line bands per file type, target (alarm). Counting, the
+        watched band and waivers are defined on the <a
+        href="refactor-standards.html">refactor standards</a> page;
+        waived files are in the <a href="standards-waivers.html">waiver
+        register</a>.</p>
+        <h2 id="backend-java-spring">Backend (Java / Spring)</h2>
+        <table>
+        <colgroup>
+        <col style="width: 25%" />
+        <col style="width: 25%" />
+        <col style="width: 25%" />
+        <col style="width: 25%" />
+        </colgroup>
+        <thead>
+        <tr class="header">
+        <th>File type</th>
+        <th>Target</th>
+        <th>Alarm</th>
+        <th>Note</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr class="odd">
+        <td>Controller</td>
+        <td>50-150</td>
+        <td>&gt;200</td>
+        <td>doc every endpoint past 200</td>
+        </tr>
+        <tr class="even">
+        <td>Service</td>
+        <td>100-250</td>
+        <td>&gt;300</td>
+        <td>service method &lt;=20 (&gt;30)</td>
+        </tr>
+        <tr class="odd">
+        <td>Repository</td>
+        <td>20-80</td>
+        <td>&gt;150</td>
+        <td>native SQL for sanctioned bypasses only; never
+        repo-injects-repo</td>
+        </tr>
+        <tr class="even">
+        <td>Entity</td>
+        <td>30-100</td>
+        <td>&gt;150</td>
+        <td></td>
+        </tr>
+        <tr class="odd">
+        <td>Config</td>
+        <td>50-150</td>
+        <td>&gt;200</td>
+        <td></td>
+        </tr>
+        <tr class="even">
+        <td>Security</td>
+        <td>50-200</td>
+        <td>&gt;300</td>
+        <td></td>
+        </tr>
+        <tr class="odd">
+        <td>DTO / record</td>
+        <td>20-80</td>
+        <td>&gt;120</td>
+        <td>mapping resolves in the service</td>
+        </tr>
+        <tr class="even">
+        <td>Exception advice</td>
+        <td>10-50</td>
+        <td>&gt;100</td>
+        <td>status mapping concentrated in ONE handler</td>
+        </tr>
+        <tr class="odd">
+        <td>Plain exception class</td>
+        <td>5-30</td>
+        <td>&gt;60</td>
+        <td></td>
+        </tr>
+        <tr class="even">
+        <td>Validation</td>
+        <td>20-80</td>
+        <td>&gt;120</td>
+        <td></td>
+        </tr>
+        <tr class="odd">
+        <td>Enum</td>
+        <td>10-40</td>
+        <td>&gt;80</td>
+        <td></td>
+        </tr>
+        <tr class="even">
+        <td>Event listener</td>
+        <td>10-50</td>
+        <td>&gt;80</td>
+        <td></td>
+        </tr>
+        <tr class="odd">
+        <td>Test: controller / integration</td>
+        <td>250</td>
+        <td>&gt;300</td>
+        <td></td>
+        </tr>
+        <tr class="even">
+        <td>Test: others</td>
+        <td>150</td>
+        <td>&gt;200</td>
+        <td>test method &lt;=20 code lines</td>
+        </tr>
+        </tbody>
+        </table>
+        <ul>
+        <li>Doc every public class and method; omit the author and
+        version tags; pick one exemplary file’s prose as the register
+        standard and raise others TO it. AMENDED 2026-08-28 (Part 5
+        ruling, K1): exempt are DI constructors, one-line accessors,
+        <code>@Override</code> implementations of a documented
+        interface, and handlers whose prose is the
+        <code>@Operation</code> text — their doc lives on the interface
+        or in the published contract. Register standards:
+        ModerationController (controllers), ProtocolIndexer
+        (services).</li>
+        <li>Test naming: <code>method_state_expected</code> OR a
+        camelCase sentence naming state and expectation
+        (<code>aNormalTextFileIsAccepted</code>). AMENDED 2026-08-28
+        (Part 5 ruling, K2): mixing both styles within one class is the
+        finding. <strong>The name never buys body</strong> — the
+        test-method band above (&lt;=20 code lines) stands. No doc
+        comments on test methods; the contract sentence goes on the
+        class.</li>
+        <li>Suppressions carry a same-line WHY; zero bare suppressions
+        is the enforced state.</li>
+        </ul>
+        <h2 id="frontend-typescript-angular">Frontend (TypeScript /
+        Angular)</h2>
+        <table>
+        <colgroup>
+        <col style="width: 25%" />
+        <col style="width: 25%" />
+        <col style="width: 25%" />
+        <col style="width: 25%" />
+        </colgroup>
+        <thead>
+        <tr class="header">
+        <th>File type</th>
+        <th>Target</th>
+        <th>Alarm</th>
+        <th>Note</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr class="odd">
+        <td>Component</td>
+        <td>40-100</td>
+        <td>&gt;150</td>
+        <td></td>
+        </tr>
+        <tr class="even">
+        <td>Dialog</td>
+        <td>50-120</td>
+        <td>&gt;160</td>
+        <td></td>
+        </tr>
+        <tr class="odd">
+        <td>Page (routed view)</td>
+        <td>60-140</td>
+        <td>&gt;180</td>
+        <td></td>
+        </tr>
+        <tr class="even">
+        <td>Service</td>
+        <td>40-120</td>
+        <td>&gt;160</td>
+        <td></td>
+        </tr>
+        <tr class="odd">
+        <td>Signal store</td>
+        <td>40-90</td>
+        <td>&gt;120</td>
+        <td></td>
+        </tr>
+        <tr class="even">
+        <td>Pipe / directive</td>
+        <td>10-40</td>
+        <td>&gt;80</td>
+        <td></td>
+        </tr>
+        <tr class="odd">
+        <td>Guard / interceptor</td>
+        <td>10-50</td>
+        <td>&gt;80</td>
+        <td></td>
+        </tr>
+        <tr class="even">
+        <td>Utils</td>
+        <td>20-80</td>
+        <td>&gt;120</td>
+        <td></td>
+        </tr>
+        <tr class="odd">
+        <td>Template (.html)</td>
+        <td>soft 150</td>
+        <td>&gt;200</td>
+        <td>header comment at 40+ code lines</td>
+        </tr>
+        <tr class="even">
+        <td>Function</td>
+        <td>aim &lt;40</td>
+        <td>&gt;75</td>
+        <td></td>
+        </tr>
+        <tr class="odd">
+        <td>Spec: component / page</td>
+        <td>100-350</td>
+        <td>&gt;450</td>
+        <td></td>
+        </tr>
+        <tr class="even">
+        <td>Spec: service</td>
+        <td>40-150</td>
+        <td>&gt;200</td>
+        <td></td>
+        </tr>
+        <tr class="odd">
+        <td>Fixtures modules</td>
+        <td>exempt</td>
+        <td></td>
+        <td></td>
+        </tr>
+        </tbody>
+        </table>
+        <ul>
+        <li>Class and service level doc (summary + WHY remark), not file
+        headers, because Compodoc publishes from the types.</li>
+        <li>Spec files carry a plain block comment naming the contract
+        under test, an out-of-scope note, and their SIBLING files when a
+        suite is split.</li>
+        <li>Shell/card division: the shell owns fetches, derivations and
+        error surfacing; cards take inputs and emit only outputs that
+        map to a shell decision.</li>
+        <li>When a view grows past its band with per-domain state:
+        extract per-domain collaborators (component-provided injectables
+        that die with the view) rather than global stores — same
+        lifecycle, no refresh-semantics change.</li>
+        <li>i18n: one namespace per file per language, with a CI parity
+        gate on membership AND ordering. German is the review reference.
+        NO IN-CODE FALLBACKS.</li>
+        </ul>
+        <p>Script and workflow sizes are on <a
+        href="standards-ci.html">Scripts and workflows</a>; docs page
+        sizes on <a href="standards-docs.html">Docs</a>.</p>
+        <p><a href="refactor-standards.html">Back to the refactor
+        standards</a></p>
+      </article>
+    </main>
+
+        <nav class="toc" aria-label="On this page">
+      <p class="toc-title">On this page</p>
+      <ul>
+      <li><a href="#size-bands" id="toc-size-bands">Size bands</a>
+      <ul>
+      <li><a href="#backend-java-spring"
+      id="toc-backend-java-spring">Backend (Java / Spring)</a></li>
+      <li><a href="#frontend-typescript-angular"
+      id="toc-frontend-typescript-angular">Frontend (TypeScript /
+      Angular)</a></li>
+      </ul></li>
+      </ul>
+    </nav>
+      </div>
+
+  <footer class="footer">
+    maintenance-assistant · Generated by the docs pipeline
+  </footer>
+
+  <script src="/maintenance-assistant/assets/docs.js"></script>
+</body>
+</html>

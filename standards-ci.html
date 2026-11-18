@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Docs · standards-ci · maintenance-assistant Docs</title>
+
+  <!-- Set the theme before the stylesheet paints, otherwise the page flashes
+       the default theme for one frame before the saved choice applies. -->
+  <script>
+    (function () {
+      try {
+        var t = localStorage.getItem("maintenance-assistant-theme") ||
+          (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+        document.documentElement.setAttribute("data-theme", t);
+      } catch (e) {
+        document.documentElement.setAttribute("data-theme", "light");
+      }
+    })();
+  </script>
+
+  <link rel="stylesheet" href="/maintenance-assistant/assets/docs.css" />
+</head>
+
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <header class="topbar">
+    <div class="topbar-inner">
+      <button class="menu-btn" aria-label="Toggle navigation">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="18" x2="21" y2="18" />
+        </svg>
+      </button>
+
+      <a href="/maintenance-assistant/" class="brand">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <path d="M14.7 6.3a5 5 0 0 0-6.6 6.6l-5 5a2 2 0 1 0 2.8 2.8l5-5a5 5 0 0 0 6.6-6.6l-2.9 2.9-2.1-2.1 2.2-3.6z" />
+        </svg>
+        maintenance-assistant Docs
+      </a>
+
+      <div class="topbar-tools">
+        <span class="lang-switch">
+          <a href="/maintenance-assistant/" aria-current="true">EN</a>
+          <a href="/maintenance-assistant/index-de.html">DE</a>
+        </span>
+        <button class="theme-toggle" aria-label="Toggle light or dark theme">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <circle cx="12" cy="12" r="9" /><path d="M12 3a9 9 0 0 0 0 18z" fill="currentColor" stroke="none" />
+          </svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <div class="layout">
+    <!-- Sidebar navigation, included by app-docs.html as a Pandoc partial. One
+         sidebar serves the whole site: this repository has a single arc42 tree and a
+         single decision log, so the per-tier sidebars the sibling repositories need
+         would be three copies of the same list here. The active link is marked at
+         runtime by docs.js. Do not put template syntax in this comment - a partial
+         is itself a template. -->
+    <aside class="sidebar">
+      <p class="nav-title">Docs</p>
+      <ul>
+        <li><a href="/maintenance-assistant/">Docs home</a></li>
+        <li><a href="/maintenance-assistant/overview.html">Overview</a></li>
+        <li><a href="/maintenance-assistant/overview-de.html">&Uuml;berblick (DE)</a></li>
+        <li><a href="/maintenance-assistant/llm-approach.html">AI &amp; LLM approach</a></li>
+        <li><a href="/maintenance-assistant/run-locally.html">Run it locally</a></li>
+      </ul>
+
+      <p class="nav-title">Requirements</p>
+      <ul>
+        <li><a href="/maintenance-assistant/requirements.html">Requirements &amp; NFRs</a></li>
+        <li><a href="/maintenance-assistant/domain-model.html">Domain model</a></li>
+      </ul>
+
+      <details class="nav-group">
+        <summary>Architecture (arc42)</summary>
+        <ul>
+          <li><a href="/maintenance-assistant/architecture/index.html">Architecture index</a></li>
+          <li><a href="/maintenance-assistant/architecture/01-introduction-and-goals.html">1 &middot; Introduction &amp; Goals</a></li>
+          <li><a href="/maintenance-assistant/architecture/02-architecture-constraints.html">2 &middot; Constraints</a></li>
+          <li><a href="/maintenance-assistant/architecture/03-context-and-scope.html">3 &middot; Context &amp; Scope</a></li>
+          <li><a href="/maintenance-assistant/architecture/04-solution-strategy.html">4 &middot; Solution Strategy</a></li>
+          <li><a href="/maintenance-assistant/architecture/05-building-block-view.html">5 &middot; Building Blocks</a></li>
+          <li><a href="/maintenance-assistant/architecture/06-runtime-view.html">6 &middot; Runtime View</a></li>
+          <li><a href="/maintenance-assistant/architecture/07-deployment-view.html">7 &middot; Deployment</a></li>
+          <li><a href="/maintenance-assistant/architecture/07a-ops-rules.html">7a &middot; Ops rules</a></li>
+          <li><a href="/maintenance-assistant/architecture/08-crosscutting-concepts.html">8 &middot; Concepts</a></li>
+          <li><a href="/maintenance-assistant/architecture/09-architecture-decisions.html">9 &middot; Decisions</a></li>
+          <li><a href="/maintenance-assistant/architecture/10-quality-requirements.html">10 &middot; Quality Requirements</a></li>
+          <li><a href="/maintenance-assistant/architecture/11-risks-and-technical-debt.html">11 &middot; Risks &amp; Debt</a></li>
+          <li><a href="/maintenance-assistant/architecture/12-glossary.html">12 &middot; Glossary</a></li>
+        </ul>
+      </details>
+
+      <details class="nav-group">
+        <summary>Decisions (ADRs)</summary>
+        <ul>
+          <li><a href="/maintenance-assistant/adr/index.html">Decision index</a></li>
+          <li><a href="/maintenance-assistant/adr/ADR-001-modular-monolith-first.html">ADR-001 Modular monolith</a></li>
+          <li><a href="/maintenance-assistant/adr/ADR-002-eu-hosted-llm-provider.html">ADR-002 EU LLM provider</a></li>
+          <li><a href="/maintenance-assistant/adr/ADR-003-keycloak-for-iam.html">ADR-003 Keycloak as IdP</a></li>
+          <li><a href="/maintenance-assistant/adr/ADR-004-pgvector-for-vector-search.html">ADR-004 pgvector</a></li>
+          <li><a href="/maintenance-assistant/adr/ADR-010-docs-tree-conventions.html">ADR-010 Docs tree conventions</a></li>
+          <li><a href="/maintenance-assistant/adr/ADR-011-guided-questions.html">ADR-011 Guided questions</a></li>
+          <li><a href="/maintenance-assistant/adr/ADR-013-markdown-only-docs.html">ADR-013 Markdown-only docs</a></li>
+        </ul>
+      </details>
+
+      <p class="nav-title">Frontend</p>
+      <ul>
+        <li><a href="/maintenance-assistant/frontend-architecture.html">Frontend architecture</a></li>
+      </ul>
+
+      <p class="nav-title">Quality</p>
+      <ul>
+        <li><a href="/maintenance-assistant/refactor-standards.html">Refactor standards</a></li>
+        <li><a href="/maintenance-assistant/backend/api-docs/index.html">Backend API</a></li>
+        <li><a href="/maintenance-assistant/frontend/api-docs/index.html">Frontend API</a></li>
+        <li><a href="/maintenance-assistant/backend/coverage/index.html">Backend coverage</a></li>
+        <li><a href="/maintenance-assistant/frontend/coverage/index.html">Frontend coverage</a></li>
+      </ul>
+    </aside>
+    <main class="content" id="main">
+      <article class="doc-body">
+        <h1 id="scripts-and-workflows">Scripts and workflows</h1>
+        <p>Part of the <a href="refactor-standards.html">refactor
+        standards</a>.</p>
+        <h2 id="sizes">Sizes</h2>
+        <ul>
+        <li>Shell scripts ~70 code lines; build-and-gate scripts (Node
+        or shell, invoked by CI, living inside the project they serve)
+        70-150 (&gt;200); the header states what it produces, how CI
+        invokes it, and its failure mode.</li>
+        <li>Workflow YAML ~150 code lines. Inline shell in a workflow
+        longer than five lines becomes a script. WAIVED 2026-08-28 (Part
+        5 ruling, K7) for run blocks whose content is a single remote
+        command over ssh/scp and for e2e invocation blocks: a script
+        file would be a second place to read one command. A block that
+        computes, loops or branches is not covered by the waiver.</li>
+        </ul>
+        <h2
+        id="every-path-is-gated-by-the-workflow-that-exercises-it">Every
+        path is gated by the workflow that exercises it</h2>
+        <p>AMENDED 2026-11-13: the mechanism is
+        <strong>claimants</strong>, not paired path lists.</p>
+        <ul>
+        <li>Three claimant workflows (backend-ci, frontend-ci,
+        docs-pr-check) each own one required check
+        (build-and-test-backend, -frontend, -docs) and run on EVERY pull
+        request with NO pull_request path filter — a workflow skipped by
+        a path filter never reports its required check and the PR can
+        never merge.</li>
+        <li>Each claimant’s first job calls the reusable
+        claimant-gate.yml (claimant-gate.sh), which decides from the
+        PR’s diff whether the family is touched; push triggers on main
+        keep their path filters.</li>
+        <li>The partition lives in claimant-gate.sh alone: no path
+        belongs to two families, and <strong>backend is the
+        catch-all</strong>, so a new path is gated by default rather
+        than stranded.</li>
+        <li><strong>The aggregator</strong> is each claimant’s last job,
+        carries the required check name, and runs under
+        <code>if: always()</code>, because a skipped job reports success
+        to branch protection. Its verdict is a shared script
+        (aggregate-required-check.sh): fail when the claimant gate
+        itself did not succeed, pass when the gate says the family is
+        untouched, otherwise require the family’s build to succeed and
+        every conditional suite (e2e, visual) to succeed or be skipped
+        by its own gate.</li>
+        <li>A check that more than one claimant needs is a
+        <strong>reusable workflow</strong> the claimants call behind a
+        diff gate (frontend-e2e.yml and frontend-e2e-visual.yml behind
+        e2e-relevant.sh), never a copy. A gate’s deny/skip list
+        enumerates only what the check never reads; an unknown path
+        defaults to RUN.</li>
+        </ul>
+        <h2 id="paid-calls-images-failures-and-dependencies">Paid calls,
+        images, failures and dependencies</h2>
+        <ul>
+        <li><strong>A test that calls the paid provider never gates a
+        merge.</strong> It carries <code>@LiveProviderTest</code>:
+        failsafe excludes the <code>llm-live</code> tag by default, the
+        <code>llm-live</code> Maven profile selects only it, and
+        backend-llm-live-it.yml runs it against a freshly indexed corpus
+        monthly and by hand (workflow_dispatch) after a model, prompt or
+        embedding change. See <a href="live-provider-tests.html">live
+        provider tests</a>.</li>
+        <li><strong>Every image is scanned before it can merge or
+        publish.</strong> backend-ci and frontend-ci build their image
+        on every pull request (never pushed), the deploy workflows build
+        it again on main and scan it before the registry login and the
+        push. image-scan.sh writes a CycloneDX SBOM (artifact) and fails
+        on a CRITICAL or HIGH finding that has a fix, unless
+        .trivyignore accepts it with a reason, who and when, and a
+        review date. The image job is REQUIRED in the aggregator: a skip
+        where the family runs is red. Trivy is a pinned release with its
+        SHA-256 in the script, never the trivy-action or setup-trivy
+        (tags hijacked 2026-03-19, CVE-2026-33634). The frontend image
+        also passes its contract (nginx -t, non-root user); its security
+        headers are set by Caddy and checked at the public URL after
+        each deploy.</li>
+        <li><strong>Checks must fail loudly.</strong> A check that
+        passes for the wrong reason (wrong directory, line-ending-blind
+        comparison, a probe that never ran) is discarded, not read as
+        green.</li>
+        <li><strong>Dependency groups admit only minor and patch; a
+        major is one PR, one decision.</strong> A batch is a convenience
+        for changes that need no thought, and a major version is never
+        one of those — it is also the update most likely to be
+        constrained by a peer range nobody remembers. Learned 2026-08-26
+        (#104): one TypeScript major inside thirteen routine npm updates
+        failed all three frontend checks before a test ran.</li>
+        </ul>
+        <p><a href="refactor-standards.html">Back to the refactor
+        standards</a></p>
+      </article>
+    </main>
+
+        <nav class="toc" aria-label="On this page">
+      <p class="toc-title">On this page</p>
+      <ul>
+      <li><a href="#scripts-and-workflows"
+      id="toc-scripts-and-workflows">Scripts and workflows</a>
+      <ul>
+      <li><a href="#sizes" id="toc-sizes">Sizes</a></li>
+      <li><a
+      href="#every-path-is-gated-by-the-workflow-that-exercises-it"
+      id="toc-every-path-is-gated-by-the-workflow-that-exercises-it">Every
+      path is gated by the workflow that exercises it</a></li>
+      <li><a href="#paid-calls-images-failures-and-dependencies"
+      id="toc-paid-calls-images-failures-and-dependencies">Paid calls,
+      images, failures and dependencies</a></li>
+      </ul></li>
+      </ul>
+    </nav>
+      </div>
+
+  <footer class="footer">
+    maintenance-assistant · Generated by the docs pipeline
+  </footer>
+
+  <script src="/maintenance-assistant/assets/docs.js"></script>
+</body>
+</html>

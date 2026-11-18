@@ -16,6 +16,7 @@ implementation phases land — an empty section here is an honest "not built yet
 | 05 | [Building Block View](05-building-block-view.md) | stub — Phase 1 |
 | 06 | [Runtime View](06-runtime-view.md) | stub — Phase 3 |
 | 07 | [Deployment View](07-deployment-view.md) | stub — Phase 1 |
+| 07a | [Ops Rules](07a-ops-rules.md) | written |
 | 08 | [Cross-cutting Concepts](08-crosscutting-concepts.md) | stub — Phase 2/3 |
 | 09 | [Architecture Decisions](09-architecture-decisions.md) | written (links to ADRs) |
 | 10 | [Quality Requirements](10-quality-requirements.md) | stub — Phase 4 |

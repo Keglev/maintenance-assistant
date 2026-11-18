@@ -71,3 +71,5 @@ exercised; the re-index test passes in ~33 s against IONOS and ~11 s against the
   to run them by hand.
 - [Deployment view](architecture/07-deployment-view.html) — the production stack, where all the
   pieces run together in compose.
+
+[Back to the docs home](index.html)

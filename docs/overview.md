@@ -77,3 +77,4 @@ password is on the sign-in page.
 - [Requirements](requirements.html) — user stories and the seven non-functional requirements
 - [Domain model](domain-model.html) — the three entities and the reasoning behind them
 - [Live provider tests](live-provider-tests.html) — the tests that call the paid provider, and why CI leaves them out
+- [Run it locally](run-locally.html) — the whole application on a workstation, with a free provider stub

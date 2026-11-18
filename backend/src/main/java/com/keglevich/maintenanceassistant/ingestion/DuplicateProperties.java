@@ -19,15 +19,40 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  * measured mean over all 1,393 same-machine pairs in the corpus is 0.55, which is where the query
  * path's <em>threshold</em> sits. Carrying 0.55 over would flag roughly half the corpus.
  *
- * @param similarityThreshold at or above this, a protocol is offered to the approver as something
- *                            worth comparing. WARNS, NEVER BLOCKS — no code path refuses an approval
- *                            on this number, and that is the governing rule of the whole feature.
- * @param maxCandidates       how many are shown. Three, because this is a prompt to compare rather
- *                            than a report to read: an approver who is handed ten links reads none
- *                            of them, and the ranking means the three most similar are the three
- *                            worth opening. The count of everything above the threshold is still
- *                            reported, so a long tail is never silently dropped.
+ * <p><b>Two thresholds, chosen by the type of the protocol being checked</b> (ADR-006, revision of
+ * 2026-11-18). Scheduled maintenance protocols on one machine are written from one template and
+ * score higher against each other than any two fault reports do, so a single number had to sit
+ * just above the closest maintenance pair and left the fault side a margin of a few thousandths.
+ * A maintenance protocol is now compared at its own threshold, and a fault report keeps the one
+ * measured against fault reports. {@code DuplicateSimilarityCalibrationIT} measures both windows.
+ *
+ * @param similarityThreshold            at or above this, a fault report ({@code STOERUNG}) is
+ *                                       offered to the approver as something worth comparing.
+ *                                       WARNS, NEVER BLOCKS — no code path refuses an approval on
+ *                                       either threshold, and that is the governing rule of the
+ *                                       whole feature.
+ * @param maintenanceSimilarityThreshold the same for a scheduled maintenance protocol
+ *                                       ({@code WARTUNG}).
+ * @param maxCandidates                  how many are shown. Three, because this is a prompt to
+ *                                       compare rather than a report to read: an approver who is
+ *                                       handed ten links reads none of them, and the ranking means
+ *                                       the three most similar are the three worth opening. The
+ *                                       count of everything above the threshold is still reported,
+ *                                       so a long tail is never silently dropped.
  */
 @ConfigurationProperties(prefix = "maintenance.duplicates")
-public record DuplicateProperties(double similarityThreshold, int maxCandidates) {
+public record DuplicateProperties(double similarityThreshold, double maintenanceSimilarityThreshold,
+                                  int maxCandidates) {
+
+    /**
+     * The threshold a protocol of this type is compared at.
+     *
+     * @param protocolType {@code STOERUNG} or {@code WARTUNG}, as stored on the protocol; anything
+     *                     else, {@code null} included, gets the fault threshold, the more sensitive
+     *                     of the two, because a missed duplicate costs the warning entirely
+     * @return the maintenance threshold for {@code WARTUNG}, the fault threshold otherwise
+     */
+    public double thresholdFor(String protocolType) {
+        return "WARTUNG".equals(protocolType) ? maintenanceSimilarityThreshold : similarityThreshold;
+    }
 }

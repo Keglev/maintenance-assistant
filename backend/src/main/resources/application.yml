@@ -158,43 +158,39 @@ maintenance:
     verify-embeddings-sample: ${MAINTENANCE_OPS_VERIFY_EMBEDDINGS_SAMPLE:0}
 
   duplicates:
-    # DUPLICATE DETECTION ON APPROVAL — a WARNING, never a gate. See ADR-006's
-    # 2026-08-14 revision and DuplicateSimilarityCalibrationIT, which re-takes every
-    # number below against the real provider and the real corpus.
+    # DUPLICATE DETECTION ON APPROVAL — a WARNING, never a gate. Both thresholds come
+    # from DuplicateSimilarityCalibrationIT, which re-takes every number below against
+    # the real provider and the real corpus; the reasoning is in ADR-006 (revisions of
+    # 2026-08-14 and 2026-11-18).
     #
     # NOT the query threshold, and the two are not comparable. ADR-002's 0.55 is
-    # question-to-chunk; this is document-to-document between two texts of the same
-    # genre, on the same machine, from the same template, both carrying the chunker's
-    # "PR-03 · E-47 · …" context prefix. The MEAN over all 1,393 same-machine pairs in
-    # the corpus is 0.5547 — i.e. the average pair already sits at the query path's
-    # threshold. Carrying 0.55 over here would flag half the corpus.
+    # question-to-chunk; these are document-to-document between two texts of the same
+    # genre, on the same machine, both carrying the chunker's "PR-03 · E-47 · …" prefix,
+    # so everything starts high: the mean over all same-machine pairs sits near the
+    # query path's threshold.
     #
-    # MEASURED 2026-08-14, protocol centroids, cosine, bge-m3, 165-protocol corpus:
-    #   mean over all 1,393 same-machine pairs     0.5547
-    #   the E-47 four against each other           0.7594 - 0.8329   all legitimate
-    #   HIGHEST LEGITIMATE PAIR IN THE CORPUS      0.9151            PR-07, the half-
-    #     yearly and the annual service — one template, one technician, different work
-    #     (RE-MEASURED 2026-08-19, ADR-008: unchanged to four decimals. The earlier text
-    #     here named "the 4000 h and 8000 h services"; those are KP-01's and are not the
-    #     top pair.)
-    #   a re-narration of one incident by a
-    #     second person (the REALISTIC duplicate)  0.9305
-    #   a verbatim re-file under a new title       0.9778  (not 1.0: the chunker
-    #     prefixes every chunk with "PR-03 · E-47 · <title>", and the copy has a
-    #     different title — the one thing a re-filer always changes)
+    # TWO THRESHOLDS, CHOSEN BY THE TYPE OF THE PROTOCOL BEING CHECKED. Scheduled
+    # maintenance protocols share one template and score higher against each other than
+    # any two fault reports do (PR-07's half-yearly and annual services: 0.9159, the
+    # closest legitimate pair in the corpus). With one number, that pair left the fault
+    # side a margin of 0.0041. Each type now has a threshold measured against its own
+    # closest legitimate pair and its own re-narrated duplicate.
     #
-    # THE FINDING, AND IT IS NOT WHAT THIS WORK SET OUT TO CONFIRM: the E-47 four are
-    # the tightest FAULT cluster and they are NOT the constraint — they clear this
-    # number by 0.09. The constraint is scheduled maintenance, which shares a template
-    # and a vocabulary and scores higher than any two E-47 protocols do. So the usable
-    # window is 0.9151 .. 0.9305, and it is 0.0154 wide.
+    # MEASURED 2026-11-16, protocol centroids, cosine, bge-m3, 165-protocol corpus:
+    #   fault reports (similarity-threshold)
+    #     closest legitimate pair with a fault report       0.8801
+    #     the E-47 four against each other                  0.7597 - 0.8332
+    #     the same incident re-narrated by a second person  0.9310
+    #     a verbatim re-file under a new title              0.9781
+    #   scheduled maintenance (maintenance-similarity-threshold)
+    #     closest legitimate pair with a maintenance protocol  0.9159
+    #     re-narration and re-file: PROVISIONAL, set by the calibration run of this change
     #
-    # 0.92 sits in it: 0.0049 above the highest legitimate pair, 0.0105 below the
-    # realistic duplicate. Low in the window on purpose — a false positive costs one
-    # card in a dialog an approver dismisses, a false negative costs the warning
-    # entirely, and this feature WARNS AND NEVER BLOCKS, which is exactly what makes a
-    # narrow window survivable. If it blocked, this margin would not be shippable.
+    # Each threshold sits low in its window on purpose: a false positive costs one card
+    # an approver dismisses, a false negative costs the warning entirely, and this
+    # feature WARNS AND NEVER BLOCKS, which is what makes a narrow window survivable.
     similarity-threshold: ${DUPLICATE_SIMILARITY_THRESHOLD:0.92}
+    maintenance-similarity-threshold: ${DUPLICATE_MAINTENANCE_SIMILARITY_THRESHOLD:0.95}
     # Three: a prompt to compare, not a report to read. An approver handed ten links
     # opens none. The COUNT of everything above the threshold is reported separately,
     # so a long tail is visible rather than silently cut to three.

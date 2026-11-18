@@ -1,6 +1,6 @@
 import { Component, signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 import { Dialog } from './dialog';
 
@@ -64,8 +64,8 @@ describe('Dialog', () => {
     opener.focus();
     opener.click();
     await fixture.whenStable();
-    // The component moves focus in a macrotask, because the panel does not exist until the change
-    // detection pass that this click triggered has finished rendering it.
+    // The component moves focus after the next render, because the panel does not exist until the
+    // change detection pass that this click triggered has finished rendering it.
     await new Promise((resolve) => setTimeout(resolve));
     await fixture.whenStable();
     return el(fixture);
@@ -103,14 +103,27 @@ describe('Dialog', () => {
   });
 
   it('focuses the panel itself when nothing inside it can take focus', async () => {
+    // The close button is always in the template, so no real dialog reaches the fallback. The
+    // panel's control query is stubbed to find nothing, the state a dialog without a usable control
+    // would produce; the stub is removed before the assertion so it cannot decide the result.
     const fixture = await render();
-    fixture.componentInstance.withBody.set(false);
-    fixture.componentInstance.withDisabledFirst.set(true);
-    await open(fixture);
+    const query = Element.prototype.querySelectorAll;
+    let panelQueries = 0;
+    const findNothingInPanel = vi
+      .spyOn(Element.prototype, 'querySelectorAll')
+      .mockImplementation(function (this: Element, selectors: string) {
+        if (!this.classList.contains('panel')) return query.call(this, selectors);
+        panelQueries++;
+        return query.call(this, ':not(*)');
+      });
+    try {
+      await open(fixture);
+    } finally {
+      findNothingInPanel.mockRestore();
+    }
 
-    // The close button is always there, so a dialog is never truly empty in this application — but
-    // the fallback is what makes the guarantee unconditional rather than dependent on that.
-    expect(panel(fixture).contains(document.activeElement)).toBe(true);
+    expect(panelQueries).toBeGreaterThan(0);
+    expect(document.activeElement).toBe(panel(fixture));
   });
 
   it('closes on Escape, pressed from wherever focus actually is', async () => {

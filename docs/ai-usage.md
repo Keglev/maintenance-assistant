@@ -158,7 +158,7 @@ One genuinely open decision was settled here, by measurement rather than prefere
 a plain `RestClient` on Boot 4.1**. It is worth being precise, because the convenient story would
 have been "Spring AI does not work on Boot 4". It does. Spring AI 2.0.0 auto-configured and
 returned correct vectors from IONOS. It was declined on proportion — a large transitive surface for
-one POST — and `spike/spring-ai-boot4/RESULTS.md` says so in those terms, including what would
+one POST — and `docs/evidence/spring-ai-boot4/RESULTS.md` says so in those terms, including what would
 change the decision back.
 
 **Three defects were found only by running it against the live provider**, and all three are the

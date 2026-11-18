@@ -3,12 +3,12 @@
 # Points the application at an already-indexed corpus and at the REAL provider, so
 # QueryDemoVerificationIT can measure the three demo cases the way ADR-002 quotes them.
 # The tests skip unless LLM_API_KEY is set, which is also the only way a key ever reaches
-# this profile: locally from spike/adr-002/.env (git-ignored) or the password manager, in
+# this profile: locally from docs/evidence/adr-002/.env (git-ignored) or the password manager, in
 # the backend-llm-live-it workflow from the repository secret. See
 # docs/live-provider-tests.md.
 #
 # Reproduce (PowerShell, from backend/):
-#   $env:LLM_API_KEY = (Select-String -Path ..\spike\adr-002\.env -Pattern '^IONOS_API_KEY=').Line.Split('=')[1]
+#   $env:LLM_API_KEY = (Select-String -Path ..\docs\evidence\adr-002\.env -Pattern '^IONOS_API_KEY=').Line.Split('=')[1]
 #   $env:LLM_CHAT_MODEL = 'meta-llama/Llama-3.3-70B-Instruct'
 #   mvn verify -P llm-live -Dit.test=QueryDemoVerificationIT
 spring:

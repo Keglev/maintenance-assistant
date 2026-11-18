@@ -40,7 +40,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  *
  * <p>The chat provider is a fake and no call leaves the machine: tests must not depend on a provider
  * being up, on a key being present, or spend money to run. What a fake cannot cover — that the real
- * models follow the prompt — is covered by {@code spike/adr-002/} and by the live demo run recorded
+ * models follow the prompt — is covered by {@code docs/evidence/adr-002/} and by the live demo run recorded
  * in the pull request.
  *
  * <p>The embedding fake is topic-based rather than hash-based: text mentioning a topic gets that

@@ -16,7 +16,7 @@ import java.util.UUID;
  * to make it impossible for the citation instructions to reach the other path at all. A flag would
  * have kept them in the same file, one edit away from leaking again.
  *
- * <p>Two things in here are measured rather than designed, both in {@code spike/adr-002/}:
+ * <p>Two things in here are measured rather than designed, both in {@code docs/evidence/adr-002/}:
  *
  * <ul>
  *   <li><b>The few-shot worked example.</b> A <em>rule</em> saying "cite every claim" left one model

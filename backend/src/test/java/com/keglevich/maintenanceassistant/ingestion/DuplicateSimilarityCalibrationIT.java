@@ -45,7 +45,7 @@ import static org.awaitility.Awaitility.await;
  * <p>Reproduce (PowerShell, from backend/), against the local development stack with the corpus
  * already indexed:
  * <pre>
- *   $env:LLM_API_KEY = (Select-String -Path ..\spike\adr-002\.env -Pattern '^IONOS_API_KEY=').Line.Split('=')[1]
+ *   $env:LLM_API_KEY = (Select-String -Path ..\docs\evidence\adr-002\.env -Pattern '^IONOS_API_KEY=').Line.Split('=')[1]
  *   mvn verify -P llm-live -Dit.test=DuplicateSimilarityCalibrationIT
  * </pre>
  */

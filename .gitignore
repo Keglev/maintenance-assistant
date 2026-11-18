@@ -34,7 +34,7 @@ yarn-error.log*
 .npm/
 
 # ---------------------------------------------------------------------------
-# Python (spike/)
+# Python (docs/evidence/)
 # ---------------------------------------------------------------------------
 __pycache__/
 *.py[cod]
@@ -70,8 +70,8 @@ TEST-*.xml
 # not secrets; only the real .env.prod they are copied to stays out.
 !.env.*.example
 !**/.env.*.example
-# The ADR-002 spike keeps provider keys in spike/adr-002/.env, which the bare
-# `.env` above already covers at any depth; spike/adr-002/.env.example is the
+# The ADR-002 spike keeps provider keys in docs/evidence/adr-002/.env, which the
+# bare `.env` above already covers at any depth; its .env.example is the
 # versioned template and is un-ignored by the !**/.env.example line.
 *.pem
 *.key

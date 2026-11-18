@@ -9,7 +9,7 @@ reasoning for not using it is below, along with what it would take to change the
 
 ## What was run
 
-`spike/spring-ai-boot4/` — a throwaway Boot 4.1 project with `spring-ai-starter-model-openai`,
+`docs/evidence/spring-ai-boot4/` — a throwaway Boot 4.1 project with `spring-ai-starter-model-openai`,
 pointed at the IONOS gateway, embedding two strings with `BAAI/bge-m3`.
 
 | | |
@@ -105,7 +105,7 @@ Two things to carry forward if that happens: the base URL must include `/v1`, an
 ## Reproducing
 
 ```bash
-cd spike/spring-ai-boot4
+cd docs/evidence/spring-ai-boot4
 IONOS_API_KEY=… mvn -q spring-boot:run
 ```
 

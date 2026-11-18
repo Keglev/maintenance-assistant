@@ -470,3 +470,28 @@ combination, the two controls, the request times and the completion id, and it a
 combination to work or for a 4xx that names the parameter. IONOS has not issued a reference number
 yet; it is added here when it exists. The rule in section 3 stands: the model is not re-measured
 until IONOS answers, because a deterministic 500 re-run costs money and proves nothing new.
+
+### Note, 2026-11-18 — IONOS answers, and the combination works
+
+IONOS issued the reference number 208027322 for the ticket. On 2026-11-18 their ML inference team
+answered that they could not reproduce the failure with `Qwen/Qwen3.5-397B-A17B`: fourteen requests
+combining `reasoning_effort: "none"` with a strict `json_schema` all returned HTTP 200. They asked
+whether the failure still occurs and, if so, for the request and response bodies, the response
+headers (including the trace identifiers) and the exact time.
+
+The owner re-ran it the same day, 14:38–14:39 UTC, against the application's endpoint: three requests
+with the combination and one control for each parameter alone, using the application's answer schema
+(`grounded_answer`, strict) and its `max_tokens` and `temperature`. **All five returned HTTP 200.**
+The answer to a combined request followed the schema, cited its source, and reported
+`reasoning_tokens: 0`, so the parameter still does what caveat 3 says it is for.
+
+What this changes, and what it does not:
+
+- Caveat 5 (section 6) no longer holds as of 2026-11-18. It stays in the text as the record of what
+  was measured on 2026-08-26.
+- The reason section 3 gave for rejecting `Qwen/Qwen3.5-397B-A17B` is gone. That does not make it a
+  fallback: it has not been measured against the golden questions, NFR-4's 30 s or the token cap, and
+  the gap section 3 states (no tested fallback for a full IONOS outage) is unchanged. Whether to
+  measure it is an open decision, tracked as issue #242.
+- Nothing in the application changes: the production model and the documented fallback stay as this
+  record sets them.

@@ -143,9 +143,14 @@ public class ProtocolSimilarityService {
      * &lt;p&gt;{@code &lt;=&gt;} is pgvector's cosine distance and similarity is {@code 1 - distance}, the same
      * convention {@code ChunkRetriever} and ADR-002's measured figures use — one number to reason
      * about, even though the two thresholds it is compared against are answering different questions.
+     *
+     * &lt;p&gt;The threshold is the one for &lt;em&gt;this&lt;/em&gt; protocol's type ({@link
+     * DuplicateProperties#thresholdFor}), applied to every candidate, so the report carries the one
+     * number that decided it.
      */
     public SimilarityReport findSimilar(UUID protocolId) {
-<span class="fc" id="L148">        List&lt;SimilarProtocol&gt; above = jdbc.sql(&quot;&quot;&quot;</span>
+<span class="fc" id="L152">        double threshold = properties.thresholdFor(protocolType(protocolId));</span>
+<span class="fc" id="L153">        List&lt;SimilarProtocol&gt; above = jdbc.sql(&quot;&quot;&quot;</span>
                         WITH subject AS (
                             SELECT p.machine_id, avg(c.embedding) AS centroid
                             FROM protocol p JOIN chunk c ON c.protocol_id = p.id
@@ -176,28 +181,37 @@ public class ProtocolSimilarityService {
                 // and the count of everything above the threshold is part of what the approver is
                 // told — a query that returned three rows could not distinguish &quot;three similar
                 // protocols&quot; from &quot;eleven, and here are three of them&quot;.
-<span class="fc" id="L179">                .param(&quot;id&quot;, protocolId)</span>
-<span class="fc" id="L180">                .param(&quot;threshold&quot;, properties.similarityThreshold())</span>
-<span class="fc" id="L181">                .query((rs, rowNum) -&gt; new SimilarProtocol(</span>
-<span class="fc" id="L182">                        rs.getObject(&quot;id&quot;, UUID.class),</span>
-<span class="fc" id="L183">                        rs.getString(&quot;title&quot;),</span>
-<span class="fc" id="L184">                        rs.getObject(&quot;incident_date&quot;, LocalDate.class),</span>
-<span class="fc" id="L185">                        rs.getString(&quot;uploaded_by&quot;),</span>
-<span class="fc" id="L186">                        rs.getObject(&quot;created_at&quot;, OffsetDateTime.class),</span>
-<span class="fc" id="L187">                        rs.getDouble(&quot;similarity&quot;),</span>
+<span class="fc" id="L184">                .param(&quot;id&quot;, protocolId)</span>
+<span class="fc" id="L185">                .param(&quot;threshold&quot;, threshold)</span>
+<span class="fc" id="L186">                .query((rs, rowNum) -&gt; new SimilarProtocol(</span>
+<span class="fc" id="L187">                        rs.getObject(&quot;id&quot;, UUID.class),</span>
+<span class="fc" id="L188">                        rs.getString(&quot;title&quot;),</span>
+<span class="fc" id="L189">                        rs.getObject(&quot;incident_date&quot;, LocalDate.class),</span>
+<span class="fc" id="L190">                        rs.getString(&quot;uploaded_by&quot;),</span>
+<span class="fc" id="L191">                        rs.getObject(&quot;created_at&quot;, OffsetDateTime.class),</span>
+<span class="fc" id="L192">                        rs.getDouble(&quot;similarity&quot;),</span>
                         new ProtocolApprovalService.Approval(
-<span class="fc" id="L189">                                rs.getString(&quot;approval_state&quot;),</span>
-<span class="fc" id="L190">                                rs.getString(&quot;approved_by&quot;),</span>
-<span class="fc" id="L191">                                rs.getObject(&quot;approved_at&quot;, OffsetDateTime.class))))</span>
-<span class="fc" id="L192">                .list();</span>
+<span class="fc" id="L194">                                rs.getString(&quot;approval_state&quot;),</span>
+<span class="fc" id="L195">                                rs.getString(&quot;approved_by&quot;),</span>
+<span class="fc" id="L196">                                rs.getObject(&quot;approved_at&quot;, OffsetDateTime.class))))</span>
+<span class="fc" id="L197">                .list();</span>
 
-<span class="fc" id="L194">        boolean comparable = indexed(protocolId);</span>
-<span class="fc" id="L195">        int limit = Math.max(1, properties.maxCandidates());</span>
-<span class="fc" id="L196">        return new SimilarityReport(comparable,</span>
-<span class="fc" id="L197">                List.copyOf(above.subList(0, Math.min(limit, above.size()))),</span>
-<span class="fc" id="L198">                above.size(),</span>
-<span class="fc" id="L199">                above.stream().map(SimilarProtocol::id).toList(),</span>
-<span class="fc" id="L200">                properties.similarityThreshold());</span>
+<span class="fc" id="L199">        boolean comparable = indexed(protocolId);</span>
+<span class="fc" id="L200">        int limit = Math.max(1, properties.maxCandidates());</span>
+<span class="fc" id="L201">        return new SimilarityReport(comparable,</span>
+<span class="fc" id="L202">                List.copyOf(above.subList(0, Math.min(limit, above.size()))),</span>
+<span class="fc" id="L203">                above.size(),</span>
+<span class="fc" id="L204">                above.stream().map(SimilarProtocol::id).toList(),</span>
+                threshold);
+    }
+
+    /** The protocol's type, or {@code null} when no such protocol exists. */
+    private String protocolType(UUID protocolId) {
+<span class="fc" id="L210">        return jdbc.sql(&quot;SELECT protocol_type FROM protocol WHERE id = :id&quot;)</span>
+<span class="fc" id="L211">                .param(&quot;id&quot;, protocolId)</span>
+<span class="fc" id="L212">                .query(String.class)</span>
+<span class="fc" id="L213">                .optional()</span>
+<span class="fc" id="L214">                .orElse(null);</span>
     }
 
     /**
@@ -208,13 +222,13 @@ public class ProtocolSimilarityService {
      * two facts must not arrive as the same empty list.
      */
     private boolean indexed(UUID protocolId) {
-<span class="fc" id="L211">        return jdbc.sql(&quot;&quot;&quot;</span>
+<span class="fc" id="L225">        return jdbc.sql(&quot;&quot;&quot;</span>
                         SELECT count(*) FROM chunk
                         WHERE protocol_id = :id AND embedding IS NOT NULL
                         &quot;&quot;&quot;)
-<span class="fc" id="L215">                .param(&quot;id&quot;, protocolId)</span>
-<span class="fc" id="L216">                .query(Long.class)</span>
-<span class="fc bfc" id="L217" title="All 2 branches covered.">                .single() &gt; 0;</span>
+<span class="fc" id="L229">                .param(&quot;id&quot;, protocolId)</span>
+<span class="fc" id="L230">                .query(Long.class)</span>
+<span class="fc bfc" id="L231" title="All 2 branches covered.">                .single() &gt; 0;</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.16.202610240946</span></div></body></html>

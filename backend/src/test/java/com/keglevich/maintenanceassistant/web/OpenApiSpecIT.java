@@ -62,7 +62,7 @@ class OpenApiSpecIT {
     // alone, so a client integrator has to be told when to expect it. Asserted because the
     // annotation carrying it is deletable without breaking a single other test, and a published
     // document that stops explaining an optional field is the documentation defect this
-    // repository keeps finding in prose (REFACTOR-STANDARDS, DOCS).
+    // repository keeps finding in prose (refactor standards, Docs).
     assertThat(spec)
         .contains("\"degradedFrom\"")
         .contains("\"TRUNCATED\"")

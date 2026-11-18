@@ -310,7 +310,7 @@ class IonosEmbeddingClient implements EmbeddingClient {
     }
 
     private static String firstLine(String body) {
-        // COVERAGE WAIVER (2026-08-22, register in docs/REFACTOR-STANDARDS.txt; raised as F3 in
+        // COVERAGE WAIVER (2026-08-22, register in docs/standards-waivers.md; raised as F3 in
         // #81), identical to the chat client's. The null side never runs: the only argument ever
         // passed is getResponseBodyAsString(), which builds a String over a byte array that
         // defaults to empty, so it returns "" and never null. The blank side IS covered, by the

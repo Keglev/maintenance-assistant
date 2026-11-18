@@ -35,7 +35,7 @@ import org.springframework.stereotype.Component;
  * configuration, and this runs at startup rather than per request, so a normal restart does no
  * provider work.
  *
- * <p><b>COVERAGE WAIVER</b> (2026-08-22, register in docs/REFACTOR-STANDARDS.txt). This class is at
+ * <p><b>COVERAGE WAIVER</b> (2026-08-22, register in docs/standards-waivers.md). This class is at
  * 0% and stays there. What it contains is flag-gated wiring: read a report, log it, choose an exit
  * code. The mechanism it invokes — {@link EmbeddingProvenanceVerifier} — is covered by
  * EmbeddingProvenanceVerifierIT, so the part that can be wrong about vectors IS tested; what is

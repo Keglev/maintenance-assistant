@@ -1,4 +1,4 @@
-/** The two languages the interface is offered in (DECISIONS.txt: bilingual DE/EN). */
+/** The two languages the interface is offered in (docs/decisions.md: bilingual DE/EN). */
 export type UiLanguage = 'de' | 'en';
 
 /**
@@ -485,7 +485,7 @@ export interface Dictionary {
  * German. The plant's language and the default the demo is shown in.
  *
  * Written without an eszett in the answer-mode badge on purpose — it has to match the wording in
- * DECISIONS.txt, which is what the two modes are called throughout the project's documentation.
+ * docs/decisions.md, which is what the two modes are called throughout the project's documentation.
  */
 export const DE: Dictionary = {
   appTitle: 'Wartungsassistent',

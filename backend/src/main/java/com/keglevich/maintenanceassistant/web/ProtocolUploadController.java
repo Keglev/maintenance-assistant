@@ -28,7 +28,7 @@ import java.util.UUID;
 /**
  * Protocol upload. Techniker and Schichtleiter.
  *
- * <p>Write access is restricted by decision, not by oversight, and the decision moved: DECISIONS.txt
+ * <p>Write access is restricted by decision, not by oversight, and the decision moved: docs/decisions.md
  * made the Schichtleiter the sole writer as a quality control — a corpus anyone can add to is a
  * corpus nobody trusts — and decision 3 of 2026-08-11 added the Techniker, because the person who
  * fixed the machine is the person who knows what happened to it. CORRECTING DID NOT MOVE WITH IT

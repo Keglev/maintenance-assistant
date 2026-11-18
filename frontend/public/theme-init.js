@@ -4,7 +4,7 @@
  * WHY THIS IS A FILE AND NOT AN INLINE <script>. The usual anti-flash trick is a few lines inlined
  * in <head>, and it is exactly what the production CSP forbids: script-src is 'self' with no
  * 'unsafe-inline' and no nonce (a statically served bundle behind Caddy cannot produce a per-request
- * nonce — see DECISIONS.txt, browser security). A same-origin file satisfies 'self' and costs one
+ * nonce — see docs/decisions-query-and-ui.md, browser security). A same-origin file satisfies 'self' and costs one
  * request that is already warm in the cache after the first visit. Weakening the CSP to save it
  * would trade a real protection for a cosmetic one.
  *

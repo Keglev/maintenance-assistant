@@ -20,6 +20,9 @@ than an edit to history.
 | [ADR-012](ADR-012-shared-host-two-projects.md) | Run two portfolio projects on one host, and say what that costs | Accepted |
 | [ADR-013](ADR-013-markdown-only-docs.md) | Write every document as linked markdown pages, never as plain text | Accepted |
 
+The short-form decisions these records sit behind, one point each, are the
+[product decisions](../decisions.md).
+
 New records start from [ADR-TEMPLATE.md](ADR-TEMPLATE.md). Numbering is sequential and never
 reused. Planned: the Phase 5 extraction of the ingestion service and Kafka takes the next free
 number — it was pencilled in as ADR-005, then as ADR-006, and has been overtaken twice by work that

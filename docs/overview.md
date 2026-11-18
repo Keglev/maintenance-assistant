@@ -76,5 +76,6 @@ password is on the sign-in page.
 - [Architecture (arc42)](architecture/index.html) — the full documentation
 - [Requirements](requirements.html) — user stories and the seven non-functional requirements
 - [Domain model](domain-model.html) — the three entities and the reasoning behind them
+- [Product decisions](decisions.html) — the decisions that shape the product, in short form
 - [Live provider tests](live-provider-tests.html) — the tests that call the paid provider, and why CI leaves them out
 - [Run it locally](run-locally.html) — the whole application on a workstation, with a free provider stub

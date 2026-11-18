@@ -21,7 +21,7 @@ import java.util.List;
  * The machine list behind the search view's picker.
  *
  * <p>It exists because {@code POST /api/query} takes a machine <em>id</em> and search is scoped to
- * exactly one machine (DECISIONS.txt). Without this, a client would need UUIDs it has no way to
+ * exactly one machine (docs/decisions.md). Without this, a client would need UUIDs it has no way to
  * learn, which is why the previous PR recorded the gap rather than working around it.
  *
  * <p>Open to the same three shop-floor roles as the query itself: knowing which machines the plant

@@ -21,7 +21,7 @@ When a machine stops, the standard escalation applies (e.g. Operator → call Te
 
 **Design decision:** Write access is restricted to Schichtleiter to guarantee protocol consistency and quality (language, structure, correctness) and to prevent a polluted knowledge base. Known limitation: the person who fixed the fault (Techniker) is not the person documenting it — knowledge capture depends on the shift handover.
 
-> **Correction 2026-11-17** — [DECISIONS.txt](DECISIONS.txt), decision 3 of 2026-08-11, widened write
+> **Correction 2026-11-17** — [Product decisions](decisions.md#product), decision 3 of 2026-08-11, widened write
 > access: a Techniker may upload a protocol too, because the person who fixed the machine knows what
 > happened to it. Correcting a protocol stays with the Schichtleiter alone. The role table above and
 > US-5 describe requirements v0.2 as written; the server-side rule is in `ProtocolUploadController`.

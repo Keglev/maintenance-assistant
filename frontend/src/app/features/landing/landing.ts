@@ -7,7 +7,7 @@ import { Dictionary } from '../../core/i18n/dictionary';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { ThemeToggle } from '../../shared/theme/theme-toggle';
 
-/** The demo accounts, exactly as the realm ships them (DECISIONS.txt). */
+/** The demo accounts, exactly as the realm ships them (docs/decisions-architecture.md). */
 const DEMO_PASSWORD = 'demo1234';
 
 /**
@@ -79,7 +79,7 @@ export class Landing {
    *
    * With a username it is the same redirect carrying `login_hint`, so Keycloak prefills the field
    * and the visitor only types the password. It is emphatically not a one-click login: see
-   * DECISIONS.txt on why the password grant and a credential-filling login theme were both rejected.
+   * docs/decisions-architecture.md on why the password grant and a credential-filling login theme were both rejected.
    */
   protected signIn(username?: string): void {
     this.auth.login(username);

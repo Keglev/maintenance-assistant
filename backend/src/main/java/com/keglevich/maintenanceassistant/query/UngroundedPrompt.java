@@ -14,7 +14,7 @@ import java.util.Map;
  * break — it is a shape it cannot emit. See {@link GroundedPrompt} for the other half of that
  * reasoning.
  *
- * <p>Mode B is <em>not</em> a refusal in the sense of saying nothing. DECISIONS.txt defines it as a
+ * <p>Mode B is <em>not</em> a refusal in the sense of saying nothing. docs/decisions.md defines it as a
  * general suggestion that is honest about being one: the night shift with no technician on site is
  * better served by "no protocol covers this, here is what is generally worth checking, and here is
  * who to call" than by a blank page. The visual distinction that keeps that honest is the frontend's

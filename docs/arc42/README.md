@@ -24,7 +24,7 @@ implementation phases land — an empty section here is an honest "not built yet
 | 12 | [Glossary](12-glossary.md) | written |
 
 **Sources of truth:** [requirements.md](../requirements.md), [domain-model.md](../domain-model.md),
-[DECISIONS.txt](../DECISIONS.txt). Where this
+[product decisions](../decisions.md). Where this
 documentation and those files disagree, those files win.
 
 Diagrams are Mermaid sources (`.mmd`) under [`diagrams/`](diagrams/), rendered to SVG by

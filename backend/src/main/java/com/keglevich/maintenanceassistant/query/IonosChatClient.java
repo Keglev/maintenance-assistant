@@ -19,7 +19,7 @@ import java.util.Map;
 /**
  * Chat client for the IONOS AI Model Hub, spoken as plain OpenAI-compatible JSON.
  *
- * <p>A {@link RestClient}, for the reasons recorded in DECISIONS.txt and repeated in
+ * <p>A {@link RestClient}, for the reasons recorded in docs/decisions-architecture.md and repeated in
  * {@link ChatClient}: one POST, a provider that is OpenAI-<em>compatible</em> rather than OpenAI,
  * and typed records for the response because Boot 4.1's message converters are Jackson 3 while
  * Jackson 2 is still on the classpath — asking for a {@code com.fasterxml} tree fails at runtime.

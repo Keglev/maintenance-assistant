@@ -11,16 +11,16 @@ The compose file has no application service: the backend and the frontend run ou
 
 | Piece | How | Port |
 |---|---|---|
-| PostgreSQL + pgvector | `docker compose -f docker/docker-compose.yml up -d postgres` | 5432 by default; 5433 if `POSTGRES_PORT=5433` is set in `docker/.env` |
-| Keycloak, realm `maintenance`, themed | `docker compose -f docker/docker-compose.yml up -d keycloak` | 8081 |
+| PostgreSQL + pgvector | `docker compose -f ops/docker-compose.yml up -d postgres` | 5432 by default; 5433 if `POSTGRES_PORT=5433` is set in `ops/.env` |
+| Keycloak, realm `maintenance`, themed | `docker compose -f ops/docker-compose.yml up -d keycloak` | 8081 |
 | Backend | `cd backend && mvn spring-boot:run` | 8080 |
 | Frontend | `cd frontend && npm start` (the e2e suite starts it itself when none is running) | 4200 |
 
-Before the first start, copy `docker/.env.example` to `docker/.env`. What a healthy start looks
+Before the first start, copy `ops/.env.example` to `ops/.env`. What a healthy start looks
 like, the demo users and how to change the realm are in
-[`docker/README.md`](https://github.com/Keglev/maintenance-assistant/blob/main/docker/README.md).
+[`ops/README.md`](https://github.com/Keglev/maintenance-assistant/blob/main/ops/README.md).
 
-The backend reads nothing from `docker/.env`. Every setting has a working default in
+The backend reads nothing from `ops/.env`. Every setting has a working default in
 `application.yml`; to override one, export it in the shell that starts the backend.
 
 ## No LLM key is required

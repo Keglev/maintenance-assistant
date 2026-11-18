@@ -17,7 +17,7 @@ test.describe('login', () => {
     // NOT just the URL. A broken Keycloak theme falls back to stock SILENTLY — that is the whole
     // reason the deploy runbook greps the log — so the assertion has to name something only this
     // theme puts on the page. `.wa-back-link` and `.wa-demo` exist in exactly one file on earth:
-    // docker/keycloak/themes/wartungsassistent/login/footer.ftl.
+    // ops/keycloak/themes/wartungsassistent/login/footer.ftl.
     await expect(page.locator('.wa-back-link')).toBeVisible();
     await expect(page.locator('[data-testid="wa-demo-accounts"]')).toBeVisible();
 

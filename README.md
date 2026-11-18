@@ -155,7 +155,7 @@ Every pull request runs a required check under one shared job name, so whichever
 
 On merge to `main`, CI builds images, pushes them to GHCR and deploys over ssh, then verifies over the public URL so DNS, TLS and the proxy are exercised too.
 
-**Three files are deployed by hand, deliberately:** `docker/docker-compose.prod.yml`, `docker/caddy/Caddyfile` and the host's `.env.prod`. CI deploys images, never configuration — it runs `compose pull && up -d` against the compose file already on the host. That failure mode is quiet and was met in practice, so it has [its own runbook](https://keglev.github.io/maintenance-assistant/architecture/07-deployment-view.html).
+**Three files are deployed by hand, deliberately:** `ops/docker-compose.prod.yml`, `ops/caddy/Caddyfile` and the host's `.env.prod`. CI deploys images, never configuration — it runs `compose pull && up -d` against the compose file already on the host. That failure mode is quiet and was met in practice, so it has [its own runbook](https://keglev.github.io/maintenance-assistant/architecture/07-deployment-view.html).
 
 ---
 

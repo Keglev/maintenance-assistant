@@ -120,7 +120,7 @@ architecture defends against a compromised endpoint. Cross-site scripting readin
 the SPA **is** in scope, and is what the controls below address.
 
 **Where the controls live.** At the edge, in
-[`docker/caddy/Caddyfile`](https://github.com/Keglev/maintenance-assistant/blob/main/docker/caddy/Caddyfile),
+[`ops/caddy/Caddyfile`](https://github.com/Keglev/maintenance-assistant/blob/main/ops/caddy/Caddyfile),
 not in the frontend image: one place states the policy for every response on the application
 hostname, including the API and the OpenAPI UI, and the frontend image stays environment-agnostic.
 `Content-Security-Policy` (`script-src 'self'`, `connect-src` limited to the origin and the Keycloak

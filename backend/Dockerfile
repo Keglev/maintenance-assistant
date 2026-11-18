@@ -49,7 +49,7 @@ USER app
 EXPOSE 8080
 
 # Container-aware heap sizing; the VPS runs five containers in ~8 GB (NFR-5) —
-# caddy, frontend, backend, keycloak and postgres, per docker/docker-compose.prod.yml.
+# caddy, frontend, backend, keycloak and postgres, per ops/docker-compose.prod.yml.
 ENV JAVA_OPTS="-XX:MaxRAMPercentage=75.0"
 
 ENTRYPOINT ["sh", "-c", "exec java $JAVA_OPTS -jar /app/application.jar"]

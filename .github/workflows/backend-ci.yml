@@ -30,7 +30,7 @@ on:
     # on every pull request; the `changes` job below decides from the diff
     # whether this FAMILY is touched, and the aggregator passes a family the
     # change never touched. The partition lives in claimant-gate.sh — backend is
-    # the catch-all, so README.md, docker/**, .github/** and anything in no
+    # the catch-all, so README.md, ops/**, .github/** and anything in no
     # other family is gated here rather than stranded.
   push:
     branches: [main]

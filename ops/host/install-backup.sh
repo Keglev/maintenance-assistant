@@ -2,7 +2,7 @@
 # =============================================================================
 # install-backup.sh — installs the nightly backup on the host.
 #
-#   scp -r infra root@<host>:/tmp/ && ssh root@<host> 'bash /tmp/infra/install-backup.sh'
+#   scp -r ops/host root@<host>:/tmp/ && ssh root@<host> 'bash /tmp/host/install-backup.sh'
 #
 # Idempotent, like provision.sh: it rewrites the same three files and re-enables
 # the same timer, so running it again is how you deploy a change to the backup

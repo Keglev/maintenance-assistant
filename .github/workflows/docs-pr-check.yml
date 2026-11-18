@@ -118,7 +118,7 @@ jobs:
       #
       # THE TRAP, and why the staging matters: a page linking out of the site with ../.. resolves
       # ABOVE the staged directory, into --root-dir's parent. Check the same tree in place in the
-      # repository instead and that link silently "works", because the real backend/, docker/ and
+      # repository instead and that link silently "works", because the real backend/, ops/ and
       # .github/ directories happen to sit exactly where it points. That is how a broken
       # ../../docker/ link passed locally and failed here. Always reproduce a failure against this
       # staged copy, never against the working tree — and never silence an escaping link with a

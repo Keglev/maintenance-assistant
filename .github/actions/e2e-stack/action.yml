@@ -74,8 +74,8 @@ runs:
           -e KC_HEALTH_ENABLED=true \
           -e WA_HOME_URL=http://localhost:4200 \
           -e WA_SHOW_DEMO_ACCOUNTS=true \
-          -v "${{ github.workspace }}/docker/keycloak/realm-export.json:/opt/keycloak/data/import/realm-export.json:ro" \
-          -v "${{ github.workspace }}/docker/keycloak/themes/wartungsassistent:/opt/keycloak/themes/wartungsassistent:ro" \
+          -v "${{ github.workspace }}/ops/keycloak/realm-export.json:/opt/keycloak/data/import/realm-export.json:ro" \
+          -v "${{ github.workspace }}/ops/keycloak/themes/wartungsassistent:/opt/keycloak/themes/wartungsassistent:ro" \
           quay.io/keycloak/keycloak:26.7 start-dev --import-realm
 
     - name: Wait for Postgres

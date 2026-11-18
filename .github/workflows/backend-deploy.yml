@@ -46,6 +46,16 @@ jobs:
           # A manual dispatch has no such commit and uses the ref it was started on.
           ref: ${{ github.event.workflow_run.head_sha || github.ref }}
 
+      # The runner's Maven repository (same cache as the build job) seeds the image's
+      # build stage through the "m2" build context, so go-offline fetches only the delta.
+      - uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5.1.0
+        with:
+          path: ~/.m2/repository
+          key: maven-${{ runner.os }}-${{ hashFiles('backend/pom.xml') }}
+          restore-keys: maven-${{ runner.os }}-
+      - name: Locate the Maven repository for the build context
+        run: mkdir -p "$HOME/.m2/repository" && echo "M2_REPO=$HOME/.m2/repository" >> "$GITHUB_ENV"
+
       - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4
 
       # The image is scanned BEFORE the registry login below, so no registry
@@ -56,6 +66,7 @@ jobs:
         uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7
         with:
           context: backend
+          build-contexts: m2=${{ env.M2_REPO }}
           build-args: |
             GIT_COMMIT=${{ github.event.workflow_run.head_sha || github.sha }}
           platforms: linux/amd64
@@ -95,6 +106,7 @@ jobs:
       - uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7
         with:
           context: backend
+          build-contexts: m2=${{ env.M2_REPO }}
           # The commit baked into build-info.properties and reported by /api/health,
           # so a deploy can verify WHICH build answers. Same resolution as the
           # checkout ref above: the CI-validated commit, or the dispatch ref's.

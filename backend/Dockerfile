@@ -4,11 +4,18 @@
 # production is a Hetzner CX33 (x86_64) — see docs/arc42/07-deployment-view.md —
 # and backend-deploy.yml's build-push step records why the arm64 leg was dropped.
 
+# --- seed for the local Maven repository ------------------------------------
+# Empty by default. CI replaces it with the runner's cached ~/.m2/repository
+# (build context "m2"), so dependency:go-offline downloads only what that cache
+# lacks instead of everything from Maven Central. A plain local build is unchanged.
+FROM scratch AS m2
+
 # --- build ------------------------------------------------------------------
 # The build JDK stays on the runtime's Temurin 21 LTS line; .github/dependabot.yml
 # says why Dependabot does not propose this image.
 FROM maven:3.9-eclipse-temurin-21 AS build
 WORKDIR /build
+COPY --from=m2 / /root/.m2/repository/
 
 # Dependencies resolve in their own layer, so editing sources does not re-download
 # the world on every image build.

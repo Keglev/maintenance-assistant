@@ -977,3 +977,54 @@ asserts both that the approval succeeds and that the old row is still there afte
 
 Who may write, correct or approve. This is a refactor of how a property is *guarded*, not of the
 property. The three roles and their three jobs are exactly as decision 3 of 2026-08-11 set them.
+
+## Revision — 2026-11-18: a duplicate threshold per protocol type
+
+The 2026-08-14 revision chose one threshold, 0.92, and found that the constraint on it was scheduled
+maintenance, not the E-47 four. The retrieval baseline of 2026-11-16 re-measured that constraint at
+0.9159 (PR-07's half-yearly and annual services), which left a margin of 0.0041. Both protocols are
+`WARTUNG`; the closest legitimate pair that includes a fault report is 0.8801. One number was
+serving two populations and was set by the tighter one.
+
+### The decision: the type of the protocol being checked chooses the threshold
+
+A protocol is compared, against every other protocol on its machine, at the threshold of its own
+type: `maintenance.duplicates.similarity-threshold` for a fault report (`STOERUNG`), unchanged at
+**0.92**, and the new `maintenance.duplicates.maintenance-similarity-threshold` for a maintenance
+protocol (`WARTUNG`), **0.93**. The report still carries the one threshold that decided it, so the
+approval dialog and the API are unchanged. Similarity still warns and never blocks.
+
+### The measurement
+
+`DuplicateSimilarityCalibrationIT`, live provider, `bge-m3`, the 165-protocol corpus. The fault
+side is the run of 2026-11-16, re-taken on 2026-11-18 within 0.0001; the maintenance side is new.
+The maintenance duplicates are a second technician's write-up of the annual service on PR-07 and a
+verbatim re-file under a new title.
+
+| | fault reports | maintenance |
+|---|---|---|
+| closest legitimate pair (at least one protocol of the type) | 0.8801 | 0.9159 |
+| the same event written up by a second person | 0.9310 | 0.9493 |
+| a verbatim re-file under a new title | 0.9781 | 0.9869 |
+| threshold | 0.92 | 0.93 |
+| margin above the closest legitimate pair | 0.0399 | 0.0141 |
+| margin below the re-narration | 0.0110 | 0.0193 |
+
+Both thresholds sit low in their windows for the reason the 2026-08-14 revision gives: a false
+positive costs one card an approver dismisses, a false negative costs the warning entirely. The
+first calibration run used a provisional 0.95 and failed on it by 0.0007, which is how the
+maintenance window was found to end at 0.9493 rather than assumed.
+
+### The asymmetry, accepted
+
+The threshold belongs to the protocol being checked, so one pair of different types is judged at
+0.92 from the fault report's side and at 0.93 from the maintenance protocol's side. No measured
+pair of different types comes near either number (the closest is 0.8618), and `ProtocolDuplicateIT`
+states the behaviour as a test. Judging each pair by both types was the alternative; it would give
+one report several thresholds, which the approval dialog would have to explain.
+
+### What would make this stale
+
+If maintenance stops setting the corpus-wide ceiling, one threshold would do again; the calibration
+test asserts that the maintenance ceiling is above the fault ceiling, so that change fails loudly.
+Re-run the calibration after any change to the embedding model, the chunker or the corpus, as before.

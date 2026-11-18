@@ -121,6 +121,9 @@ class RetrievalBaselineIT {
     @Value("${maintenance.duplicates.similarity-threshold}")
     double duplicateThreshold;
 
+    @Value("${maintenance.duplicates.maintenance-similarity-threshold}")
+    double maintenanceDuplicateThreshold;
+
     private final ObjectMapper json = new ObjectMapper();
 
     // ===========================================================================================
@@ -478,7 +481,8 @@ class RetrievalBaselineIT {
     }
 
     /**
-     * M1.3, the duplicate half — the CEILING only, re-measured on today's corpus.
+     * M1.3, the duplicate half — the CEILINGS only, re-measured on today's corpus: one per
+     * threshold, because each protocol type is checked at its own (ADR-006, revision of 2026-11-18).
      *
      * <p>The floor of the window (what a real duplicate scores) is not re-implemented here:
      * {@code DuplicateSimilarityCalibrationIT} already files a re-narration and a verbatim re-file
@@ -503,6 +507,8 @@ class RetrievalBaselineIT {
                 .query((rs, i) -> new Pair(rs.getString("machine_no"), rs.getString("ta"),
                         rs.getString("tb"), rs.getDouble("similarity")))
                 .list();
+        double faultCeiling = ceilingIncluding("STOERUNG");
+        double maintenanceCeiling = ceilingIncluding("WARTUNG");
 
         Double mean = jdbc.sql("""
                         WITH cent AS (
@@ -537,19 +543,42 @@ class RetrievalBaselineIT {
                 |---|---|
                 | Same-machine pairs | %d |
                 | Mean over all pairs | %.4f |
-                | Configured threshold | %.3f |
-                | **Highest legitimate pair** | **%.4f** |
-                | Margin, threshold - ceiling | %.4f |
+
+                A protocol is checked at the threshold of its own type, against every protocol on its
+                machine, so each ceiling is the closest pair with at least one protocol of that type.
+
+                | | threshold | **closest legitimate pair** | margin |
+                |---|---|---|---|
+                | Fault report (STOERUNG) | %.3f | **%.4f** | %.4f |
+                | Scheduled maintenance (WARTUNG) | %.3f | **%.4f** | %.4f |
 
                 Top pairs:
 
                 | similarity | machine | a | b |
                 |---|---|---|---|
-                """, pairCount, mean, duplicateThreshold, top.get(0).similarity(),
-                duplicateThreshold - top.get(0).similarity()));
+                """, pairCount, mean,
+                duplicateThreshold, faultCeiling, duplicateThreshold - faultCeiling,
+                maintenanceDuplicateThreshold, maintenanceCeiling,
+                maintenanceDuplicateThreshold - maintenanceCeiling));
         top.forEach(p -> out.append(fmt("| %.4f | %s | %s | %s |\n",
                 p.similarity(), p.machineNo(), p.a(), p.b())));
         return out.append('\n').toString();
+    }
+
+    /** The closest same-machine pair in which at least one protocol has this type. */
+    private double ceilingIncluding(String type) {
+        return jdbc.sql("""
+                        WITH cent AS (
+                            SELECT p.id, p.machine_id, p.protocol_type, avg(c.embedding) v
+                            FROM protocol p JOIN chunk c ON c.protocol_id = p.id
+                            WHERE p.deleted_at IS NULL
+                            GROUP BY p.id
+                        )
+                        SELECT max(1 - (a.v <=> b.v))
+                        FROM cent a JOIN cent b ON b.machine_id = a.machine_id AND b.id > a.id
+                        WHERE a.protocol_type = :type OR b.protocol_type = :type
+                        """)
+                .param("type", type).query(Double.class).single();
     }
 
     private String costAndRuntime(Duration elapsed, long embeddingCalls, long embeddingTokens,

@@ -37,8 +37,9 @@ import static org.assertj.core.api.Assertions.assertThat;
  * that archived protocols are gone, that the ledger records what happened, and that a pair scoring
  * what the E-47 four actually score is <em>not</em> reported. It runs on every push and needs no key.
  *
- * <p>The angles are taken from the calibration run of 2026-08-14, so if the measurement changes the
- * two suites disagree loudly instead of drifting apart quietly.
+ * <p>The angles are taken from the calibration runs of 2026-11-16 (fault reports) and 2026-11-18
+ * (maintenance), so if the measurement changes the two suites disagree loudly instead of drifting
+ * apart quietly.
  */
 @SpringBootTest
 @ActiveProfiles("it")
@@ -51,7 +52,7 @@ class ProtocolDuplicateIT {
             DockerImageName.parse("pgvector/pgvector:0.8.6-pg17").asCompatibleSubstituteFor("postgres"));
 
     /**
-     * The highest measured similarity between any two of the four E-47 protocols (2026-08-14).
+     * The highest measured similarity between any two of the four E-47 protocols.
      *
      * <p><b>The feature's whole premise lives in this constant.</b> Four protocols, one fault code,
      * four different root causes — a worn piston seal, a sticking pressure-relief valve, a programme
@@ -60,18 +61,30 @@ class ProtocolDuplicateIT {
      * the threshold ever drops below it, this test fails, and it should: that would be the system
      * telling an administrator that the best-answered question in the corpus is a pile of copies.
      */
-    private static final double E47_WORST_LEGITIMATE_PAIR = 0.8329;
+    private static final double E47_WORST_LEGITIMATE_PAIR = 0.8332;
 
     /**
-     * The highest measured similarity between any two legitimate protocols anywhere in the corpus:
-     * PR-07's 4000-hour and 8000-hour services. Not an E-47 pair — scheduled maintenance shares a
-     * template, a technician and a vocabulary, and runs closer than any two fault reports do. This
-     * is the number that actually set the threshold.
+     * The closest legitimate pair that includes a maintenance protocol: PR-07's 4000-hour and
+     * 8000-hour services. Scheduled maintenance shares a template, a technician and a vocabulary,
+     * and runs closer than any two fault reports do. This is the number the maintenance threshold
+     * has to clear.
      */
-    private static final double LEGITIMATE_CEILING = 0.9151;
+    private static final double MAINTENANCE_CEILING = 0.9159;
+
+    /** The closest legitimate pair that includes a fault report; the fault threshold clears it. */
+    private static final double FAULT_CEILING = 0.8801;
+
+    /**
+     * Between the two thresholds: reported when a fault report is checked, not when a maintenance
+     * protocol is. Chosen, not measured — it exists to show which threshold applies.
+     */
+    private static final double BETWEEN_THE_THRESHOLDS = 0.925;
 
     /** A re-narration of one incident by a second person — what a real duplicate scores. */
-    private static final double REALISTIC_DUPLICATE = 0.9305;
+    private static final double REALISTIC_DUPLICATE = 0.9310;
+
+    /** One planned service written up by a second technician — a real maintenance duplicate. */
+    private static final double REALISTIC_MAINTENANCE_DUPLICATE = 0.9493;
 
     /** The protocol every other one is positioned against: itself, so an angle of zero. */
     private static final double SUBJECT = 1.0;
@@ -119,13 +132,61 @@ class ProtocolDuplicateIT {
     }
 
     @Test
-    @DisplayName("the threshold clears the whole corpus's legitimate ceiling, not only the E-47 four")
-    void theThresholdClearsScheduledMaintenanceToo() {
-        UUID subject = protocol(pressA, "Jahreswartung", SUBJECT);
-        protocol(pressA, "Halbjahreswartung", LEGITIMATE_CEILING);
+    @DisplayName("two maintenance protocols as close as PR-07's two services are NOT reported")
+    void theMaintenanceThresholdClearsScheduledMaintenance() {
+        UUID subject = maintenance(pressA, "Jahreswartung", SUBJECT);
+        maintenance(pressA, "Halbjahreswartung", MAINTENANCE_CEILING);
 
-        assertThat(properties.similarityThreshold()).isGreaterThan(LEGITIMATE_CEILING);
-        assertThat(similarity.findSimilar(subject).any()).isFalse();
+        ProtocolSimilarityService.SimilarityReport report = similarity.findSimilar(subject);
+
+        assertThat(properties.maintenanceSimilarityThreshold()).isGreaterThan(MAINTENANCE_CEILING);
+        assertThat(report.threshold()).isEqualTo(properties.maintenanceSimilarityThreshold());
+        assertThat(report.any()).isFalse();
+    }
+
+    @Test
+    @DisplayName("a maintenance protocol written up twice IS reported, at the maintenance threshold")
+    void aMaintenanceDuplicateIsReported() {
+        UUID subject = maintenance(pressB, "Jährliche Wartung Presse 7", SUBJECT);
+        UUID original = maintenance(pressB, "Jahreswartung Presse 7", REALISTIC_MAINTENANCE_DUPLICATE);
+
+        ProtocolSimilarityService.SimilarityReport report = similarity.findSimilar(subject);
+
+        assertThat(report.threshold()).isEqualTo(properties.maintenanceSimilarityThreshold());
+        assertThat(report.candidates()).singleElement().satisfies(candidate -> {
+            assertThat(candidate.id()).isEqualTo(original);
+            assertThat(candidate.similarity()).isCloseTo(REALISTIC_MAINTENANCE_DUPLICATE, within(0.0005));
+        });
+    }
+
+    @Test
+    @DisplayName("the fault threshold clears the closest legitimate pair of fault reports")
+    void theFaultThresholdClearsTheFaultCeiling() {
+        UUID subject = protocol(pressA, "Sensor defekt an der Einlaufkontrolle", SUBJECT);
+        protocol(pressA, "Sensor erneut, diesmal wirklich defekt", FAULT_CEILING);
+
+        ProtocolSimilarityService.SimilarityReport report = similarity.findSimilar(subject);
+
+        assertThat(properties.similarityThreshold()).isGreaterThan(FAULT_CEILING);
+        assertThat(report.threshold()).isEqualTo(properties.similarityThreshold());
+        assertThat(report.any()).isFalse();
+    }
+
+    @Test
+    @DisplayName("the type of the protocol being checked decides which threshold applies")
+    void theCheckedProtocolsTypeChoosesTheThreshold() {
+        UUID fault = protocol(pressA, "Druckabfall im Presshub", SUBJECT);
+        UUID service = maintenance(pressA, "Jahreswartung", BETWEEN_THE_THRESHOLDS);
+
+        // The same pair, checked from both ends. A fault report is compared at the fault threshold
+        // and sees the maintenance protocol; the maintenance protocol is compared at its own, higher
+        // threshold and does not see the fault report. ADR-006's 2026-11-18 revision accepts this
+        // asymmetry: no measured pair of different types comes near either threshold.
+        assertThat(properties.similarityThreshold()).isLessThan(BETWEEN_THE_THRESHOLDS);
+        assertThat(properties.maintenanceSimilarityThreshold()).isGreaterThan(BETWEEN_THE_THRESHOLDS);
+        assertThat(similarity.findSimilar(fault).candidates())
+                .extracting(ProtocolSimilarityService.SimilarProtocol::id).containsExactly(service);
+        assertThat(similarity.findSimilar(service).any()).isFalse();
     }
 
     @Test
@@ -311,9 +372,18 @@ class ProtocolDuplicateIT {
                 .param("no", machineNo).query(UUID.class).single();
     }
 
-    /** A protocol with one chunk at the given cosine similarity to the {@link #SUBJECT}. */
+    /** A fault report with one chunk at the given cosine similarity to the {@link #SUBJECT}. */
     private UUID protocol(UUID machineId, String title, double cosineToReference) {
-        UUID id = protocolWithoutChunks(machineId, title);
+        return protocol(machineId, "STOERUNG", title, cosineToReference);
+    }
+
+    /** A scheduled maintenance protocol, otherwise as {@link #protocol(UUID, String, double)}. */
+    private UUID maintenance(UUID machineId, String title, double cosineToReference) {
+        return protocol(machineId, "WARTUNG", title, cosineToReference);
+    }
+
+    private UUID protocol(UUID machineId, String type, String title, double cosineToReference) {
+        UUID id = protocolWithoutChunks(machineId, type, title);
         jdbc.sql("""
                         INSERT INTO chunk (id, protocol_id, chunk_index, content, embedding,
                                            language, machine_id)
@@ -330,15 +400,20 @@ class ProtocolDuplicateIT {
     }
 
     private UUID protocolWithoutChunks(UUID machineId, String title) {
+        return protocolWithoutChunks(machineId, "STOERUNG", title);
+    }
+
+    private UUID protocolWithoutChunks(UUID machineId, String type, String title) {
         UUID id = UUID.randomUUID();
         jdbc.sql("""
                         INSERT INTO protocol (id, machine_id, incident_date, protocol_type, title,
                                               language, status, uploaded_by, source_file)
-                        VALUES (:id, :machineId, :incidentDate, 'STOERUNG', :title, 'de', 'INDEXED',
+                        VALUES (:id, :machineId, :incidentDate, :type, :title, 'de', 'INDEXED',
                                 'schichtleiter', :sourceFile)
                         """)
                 .param("id", id)
                 .param("machineId", machineId)
+                .param("type", type)
                 .param("incidentDate", LocalDate.of(2026, 8, 14))
                 .param("title", title)
                 .param("sourceFile", "PR-03/" + id + ".txt")

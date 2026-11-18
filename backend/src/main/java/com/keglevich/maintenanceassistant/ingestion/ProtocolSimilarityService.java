@@ -143,8 +143,13 @@ public class ProtocolSimilarityService {
      * <p>{@code <=>} is pgvector's cosine distance and similarity is {@code 1 - distance}, the same
      * convention {@code ChunkRetriever} and ADR-002's measured figures use — one number to reason
      * about, even though the two thresholds it is compared against are answering different questions.
+     *
+     * <p>The threshold is the one for <em>this</em> protocol's type ({@link
+     * DuplicateProperties#thresholdFor}), applied to every candidate, so the report carries the one
+     * number that decided it.
      */
     public SimilarityReport findSimilar(UUID protocolId) {
+        double threshold = properties.thresholdFor(protocolType(protocolId));
         List<SimilarProtocol> above = jdbc.sql("""
                         WITH subject AS (
                             SELECT p.machine_id, avg(c.embedding) AS centroid
@@ -177,7 +182,7 @@ public class ProtocolSimilarityService {
                 // told — a query that returned three rows could not distinguish "three similar
                 // protocols" from "eleven, and here are three of them".
                 .param("id", protocolId)
-                .param("threshold", properties.similarityThreshold())
+                .param("threshold", threshold)
                 .query((rs, rowNum) -> new SimilarProtocol(
                         rs.getObject("id", UUID.class),
                         rs.getString("title"),
@@ -197,7 +202,16 @@ public class ProtocolSimilarityService {
                 List.copyOf(above.subList(0, Math.min(limit, above.size()))),
                 above.size(),
                 above.stream().map(SimilarProtocol::id).toList(),
-                properties.similarityThreshold());
+                threshold);
+    }
+
+    /** The protocol's type, or {@code null} when no such protocol exists. */
+    private String protocolType(UUID protocolId) {
+        return jdbc.sql("SELECT protocol_type FROM protocol WHERE id = :id")
+                .param("id", protocolId)
+                .query(String.class)
+                .optional()
+                .orElse(null);
     }
 
     /**

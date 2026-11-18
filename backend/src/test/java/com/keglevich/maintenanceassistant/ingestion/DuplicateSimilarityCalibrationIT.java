@@ -19,7 +19,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 
 /**
- * Where {@code maintenance.duplicates.similarity-threshold} comes from — measured, not chosen.
+ * Where {@code maintenance.duplicates.similarity-threshold} and {@code
+ * maintenance.duplicates.maintenance-similarity-threshold} come from — measured, not chosen.
  *
  * <p>A {@link LiveProviderTest}, exactly like {@link
  * com.keglevich.maintenanceassistant.query.QueryDemoVerificationIT}: no normal build runs it, so it
@@ -27,19 +28,22 @@ import static org.awaitility.Awaitility.await;
  * project quotes are measurements, and a measurement that cannot be re-taken is a claim. Re-run it
  * after any change to the embedding model, to the chunker, or to the corpus.
  *
- * <p><b>It measures four things and prints all of them:</b>
+ * <p><b>It measures two windows, one per protocol type, and prints every number:</b>
  *
  * <ol>
  *   <li>the four E-47 protocols against each other — the proof case, four different root causes
  *       behind one fault code, every one of them legitimate;</li>
- *   <li>the highest-scoring legitimate pair anywhere in the corpus, which is <em>not</em> an E-47
- *       pair and is the finding that actually sets the threshold;</li>
- *   <li>a genuine near-duplicate: the same incident written up a second time by a second person, in
- *       their own words — what a real duplicate looks like in a plant;</li>
- *   <li>a verbatim re-file under a different title — the naive duplicate, the upper bound.</li>
+ *   <li>the closest legitimate pair that includes a fault report, which the fault threshold has to
+ *       clear, and the closest one that includes a maintenance protocol, which the maintenance
+ *       threshold has to clear. The second is the corpus-wide ceiling and the reason there are two
+ *       thresholds (ADR-006, revision of 2026-11-18);</li>
+ *   <li>per type, a genuine near-duplicate: the same event written up a second time by a second
+ *       person, in their own words — what a real duplicate looks like in a plant;</li>
+ *   <li>per type, a verbatim re-file under a different title — the naive duplicate, the upper
+ *       bound.</li>
  * </ol>
  *
- * <p>Both synthetic protocols are filed through the real intake and the real indexer, measured, and
+ * <p>The synthetic protocols are filed through the real intake and the real indexer, measured, and
  * <b>removed row, chunks and file</b> in a finally block. Nothing it creates survives the run.
  *
  * <p>Reproduce (PowerShell, from backend/), against the local development stack with the corpus
@@ -57,6 +61,10 @@ class DuplicateSimilarityCalibrationIT {
     /** E-47 Druckabfall im Presshub — the incident both synthetic protocols are about. */
     private static final UUID E47_SEAL_FAILURE = UUID.fromString("0f9c5b02-0000-4000-8000-000000000001");
     private static final String MACHINE = "PR-03";
+
+    /** Jahreswartung Presse 7 — the closest legitimate pair's annual half, and the service re-told. */
+    private static final UUID PR07_ANNUAL_SERVICE = UUID.fromString("0f9c5b02-0000-4000-8000-000000000038");
+    private static final String MAINTENANCE_MACHINE = "PR-07";
 
     /**
      * The same incident as {@link #E47_SEAL_FAILURE}, written up independently by a second person.
@@ -97,6 +105,38 @@ class DuplicateSimilarityCalibrationIT {
             Dichtsatz Hauptzylinder 200/140, Hydrauliköl HLP 46 ca. 15 l
             """;
 
+    /**
+     * The same annual service as {@link #PR07_ANNUAL_SERVICE}, written up by a second technician.
+     *
+     * <p>The maintenance counterpart of {@link #RE_NARRATION}: one service, two write-ups, the work
+     * listed in different words and a different order. Two people documenting one planned service
+     * is the duplicate a maintenance protocol can actually have.
+     */
+    private static final String MAINTENANCE_RE_NARRATION = """
+            WARTUNGSPROTOKOLL
+            =================
+
+            Maschine: PR-07
+            Datum: 21.04.2026
+            Art: WARTUNG
+            Techniker: MK
+            Stillstand: 540 Minuten
+
+            Jährliche Wartung Presse 7
+
+            Symptom:
+            Planmäßige Wartung nach Herstellervorgabe bei 8000 Betriebsstunden.
+
+            Massnahme:
+            Hydrauliköl komplett abgelassen und neu befüllt, sämtliche Filter getauscht. Vorspanndruck \
+            der Speicher kontrolliert und Stickstoff nachgefüllt. Jede Sicherheitsfunktion einzeln \
+            getestet und ins Prüfprotokoll eingetragen. Lager der Antriebe abgehört, keine \
+            Auffälligkeiten. Schaltschrank gereinigt, Filtermatten erneuert. Parameter neu gesichert.
+
+            Ersatzteile:
+            HLP 46 ca. 220 l, kompletter Filtersatz, zwei Filtermatten für den Schaltschrank
+            """;
+
     @Autowired
     JdbcClient jdbc;
     @Autowired
@@ -135,28 +175,39 @@ class DuplicateSimilarityCalibrationIT {
     }
 
     @Test
-    @DisplayName("the highest legitimate pair in the corpus is NOT an E-47 pair — and it sets the threshold")
-    void theCeilingIsScheduledMaintenance() {
-        List<Pair> top = topLegitimatePairs(12);
+    @DisplayName("the corpus ceiling is a maintenance pair, and each threshold clears its own ceiling")
+    void eachThresholdClearsItsOwnCeiling() {
+        List<Pair> fault = topLegitimatePairs(8, "STOERUNG");
+        List<Pair> maintenance = topLegitimatePairs(8, "WARTUNG");
 
-        System.out.printf("%n=== the most similar LEGITIMATE pairs in the corpus, same machine%n");
-        top.forEach(p -> System.out.printf("  %.4f  [%s] %-32s  %-32s%n",
+        System.out.printf("%n=== closest LEGITIMATE pairs including a fault report, same machine%n");
+        fault.forEach(p -> System.out.printf("  %.4f  [%s] %-32s  %-32s%n",
+                p.similarity(), p.machineNo(), p.a(), p.b()));
+        System.out.printf("%n=== closest LEGITIMATE pairs including a maintenance protocol, same machine%n");
+        maintenance.forEach(p -> System.out.printf("  %.4f  [%s] %-32s  %-32s%n",
                 p.similarity(), p.machineNo(), p.a(), p.b()));
 
-        double ceiling = top.get(0).similarity();
-        System.out.printf("  legitimate ceiling: %.4f%n", ceiling);
+        double faultCeiling = fault.get(0).similarity();
+        double maintenanceCeiling = maintenance.get(0).similarity();
+        System.out.printf("  fault ceiling %.4f | threshold %.3f | margin %.4f%n", faultCeiling,
+                properties.similarityThreshold(), properties.similarityThreshold() - faultCeiling);
+        System.out.printf("  maintenance ceiling %.4f | threshold %.3f | margin %.4f%n",
+                maintenanceCeiling, properties.maintenanceSimilarityThreshold(),
+                properties.maintenanceSimilarityThreshold() - maintenanceCeiling);
 
-        // THE FINDING. The prompt for this work assumed the E-47 four were the tight cluster to
-        // clear. They are the tightest FAULT cluster, and they are not the corpus's ceiling:
-        // scheduled-maintenance protocols on one machine share a template, a technician and a
-        // vocabulary, and two different services score higher against each other than any two E-47
-        // protocols do. A threshold set just above the E-47 spread would flag them every time.
-        assertThat(ceiling)
-                .as("if this drops below the E-47 spread the finding has changed and the ADR is stale")
-                .isGreaterThan(0.83);
-        assertThat(ceiling)
-                .as("the threshold must clear every legitimate pair, not merely the E-47 ones")
+        // THE FINDING behind two thresholds. The E-47 four are the tightest FAULT cluster and not
+        // the corpus's ceiling: scheduled-maintenance protocols on one machine share a template, a
+        // technician and a vocabulary, and two different services score higher against each other
+        // than any two fault reports do. If that stops being true, one threshold would do again.
+        assertThat(maintenanceCeiling)
+                .as("if maintenance no longer sets the ceiling, ADR-006's two-threshold revision is stale")
+                .isGreaterThan(faultCeiling);
+        assertThat(faultCeiling)
+                .as("the fault threshold must clear every legitimate pair with a fault report in it")
                 .isLessThan(properties.similarityThreshold());
+        assertThat(maintenanceCeiling)
+                .as("the maintenance threshold must clear every legitimate pair with a maintenance protocol")
+                .isLessThan(properties.maintenanceSimilarityThreshold());
     }
 
     // -------------------------------------------------------------------------------------------
@@ -170,8 +221,10 @@ class DuplicateSimilarityCalibrationIT {
         UUID reNarration = null;
         UUID verbatim = null;
         try {
-            reNarration = fileAndIndex("Presse baut keinen Druck auf, E-47", RE_NARRATION);
-            verbatim = fileAndIndex("Kein Druck im Presshub, Fehler E-47", original);
+            reNarration = fileAndIndex(MACHINE, "STOERUNG", "E-47",
+                    "Presse baut keinen Druck auf, E-47", RE_NARRATION);
+            verbatim = fileAndIndex(MACHINE, "STOERUNG", "E-47",
+                    "Kein Druck im Presshub, Fehler E-47", original);
 
             double reNarrated = similarityBetween(reNarration, E47_SEAL_FAILURE);
             double copied = similarityBetween(verbatim, E47_SEAL_FAILURE);
@@ -180,9 +233,8 @@ class DuplicateSimilarityCalibrationIT {
             System.out.printf("  %.4f  re-narration by a second person (the realistic duplicate)%n",
                     reNarrated);
             System.out.printf("  %.4f  verbatim re-file under a new title (the upper bound)%n", copied);
-            System.out.printf("  threshold %.3f | margin to the legitimate ceiling %.4f%n",
-                    properties.similarityThreshold(),
-                    properties.similarityThreshold() - topLegitimatePairs(1).get(0).similarity());
+            System.out.printf("  threshold %.3f | margin below the re-narration %.4f%n",
+                    properties.similarityThreshold(), reNarrated - properties.similarityThreshold());
 
             assertThat(reNarrated)
                     .as("the same incident written twice is what this feature exists to catch")
@@ -204,13 +256,55 @@ class DuplicateSimilarityCalibrationIT {
         }
     }
 
+    @Test
+    @DisplayName("a re-narrated and a verbatim maintenance protocol both clear the maintenance threshold")
+    void aGenuineMaintenanceDuplicateIsFlagged() {
+        String original = documentOf(PR07_ANNUAL_SERVICE);
+        UUID reNarration = null;
+        UUID verbatim = null;
+        try {
+            reNarration = fileAndIndex(MAINTENANCE_MACHINE, "WARTUNG", null,
+                    "Jährliche Wartung Presse 7", MAINTENANCE_RE_NARRATION);
+            verbatim = fileAndIndex(MAINTENANCE_MACHINE, "WARTUNG", null,
+                    "Wartung 8000 h Presse 7", original);
+
+            double reNarrated = similarityBetween(reNarration, PR07_ANNUAL_SERVICE);
+            double copied = similarityBetween(verbatim, PR07_ANNUAL_SERVICE);
+
+            // Printed before any assertion: the run that sets the maintenance threshold is the
+            // first one, and its numbers are needed even when the provisional value misses.
+            System.out.printf("%n=== synthetic near-duplicates of '%s'%n", titleOf(PR07_ANNUAL_SERVICE));
+            System.out.printf("  %.4f  re-narration by a second technician (the realistic duplicate)%n",
+                    reNarrated);
+            System.out.printf("  %.4f  verbatim re-file under a new title (the upper bound)%n", copied);
+            System.out.printf("  maintenance threshold %.3f | margin below the re-narration %.4f%n",
+                    properties.maintenanceSimilarityThreshold(),
+                    reNarrated - properties.maintenanceSimilarityThreshold());
+
+            assertThat(reNarrated)
+                    .as("one service written up twice is what the maintenance threshold exists to catch")
+                    .isGreaterThanOrEqualTo(properties.maintenanceSimilarityThreshold());
+            assertThat(copied).isGreaterThanOrEqualTo(reNarrated);
+
+            ProtocolSimilarityService.SimilarityReport report = similarity.findSimilar(reNarration);
+            assertThat(report.threshold()).isEqualTo(properties.maintenanceSimilarityThreshold());
+            assertThat(report.candidates())
+                    .extracting(ProtocolSimilarityService.SimilarProtocol::id)
+                    .contains(PR07_ANNUAL_SERVICE);
+        } finally {
+            purge(verbatim);
+            purge(reNarration);
+        }
+    }
+
     // -------------------------------------------------------------------------------------------
     // Fixtures
     // -------------------------------------------------------------------------------------------
 
-    private UUID fileAndIndex(String title, String content) {
+    private UUID fileAndIndex(String machineNo, String type, String errorCode, String title,
+                              String content) {
         UUID id = intake.accept(new ProtocolIntakeService.NewProtocol(
-                MACHINE, "STOERUNG", "E-47", title, "de", content, "calibration"));
+                machineNo, type, errorCode, title, "de", content, "calibration"));
         await().atMost(Duration.ofSeconds(60)).untilAsserted(() -> assertThat(
                 jdbc.sql("SELECT status FROM protocol WHERE id = :id")
                         .param("id", id).query(String.class).single()).isEqualTo("INDEXED"));
@@ -244,10 +338,17 @@ class DuplicateSimilarityCalibrationIT {
                 .list();
     }
 
-    private List<Pair> topLegitimatePairs(int limit) {
+    /**
+     * The closest legitimate same-machine pairs in which at least one protocol has this type.
+     *
+     * <p>"At least one", because a protocol of that type is checked against every other protocol on
+     * its machine at its type's threshold, whatever the other one's type is.
+     */
+    private List<Pair> topLegitimatePairs(int limit, String includingType) {
         return jdbc.sql("""
                         WITH cent AS (
-                            SELECT p.id, p.machine_id, m.machine_no, p.title, avg(c.embedding) v
+                            SELECT p.id, p.machine_id, m.machine_no, p.title, p.protocol_type,
+                                   avg(c.embedding) v
                             FROM protocol p
                             JOIN machine m ON m.id = p.machine_id
                             JOIN chunk c ON c.protocol_id = p.id
@@ -256,9 +357,11 @@ class DuplicateSimilarityCalibrationIT {
                         )
                         SELECT a.machine_no, a.title AS ta, b.title AS tb, 1 - (a.v <=> b.v) AS similarity
                         FROM cent a JOIN cent b ON b.machine_id = a.machine_id AND b.id > a.id
+                        WHERE a.protocol_type = :type OR b.protocol_type = :type
                         ORDER BY similarity DESC
                         LIMIT :limit
                         """)
+                .param("type", includingType)
                 .param("limit", limit)
                 .query((rs, i) -> new Pair(rs.getString("machine_no"), abbreviate(rs.getString("ta")),
                         abbreviate(rs.getString("tb")), rs.getDouble("similarity")))

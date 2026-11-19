@@ -11,13 +11,9 @@ Part of the [refactor standards](refactor-standards.md).
   waiver request.
 - **The size alarm forces a script, not the length of one run block.** A run block stays inline
   while its workflow is within the band; a workflow above the alarm moves blocks into scripts
-  until it is back under it. AMENDED 2026-11-19 (ruled by the
-  owner): replaces the earlier five-line rule and its waiver for remote commands and e2e
-  invocations, which the workflows no longer followed.
+  until it is back under it.
 
 ## Banners on CI assets
-
-AMENDED 2026-11-19 (ruled by the owner).
 
 - Every workflow, the composite action, every script, both Dockerfiles and every docs-build helper
   opens with one banner: a rule line, the file name and its purpose, Usage (how it is started or
@@ -71,7 +67,7 @@ AMENDED 2026-11-13: the mechanism is **claimants**, not paired path lists.
   `github.event.workflow_run.event == 'push'` and
   `github.event.workflow_run.head_repository.full_name == github.repository`. The `branches:`
   filter matches a branch NAME, which a fork can share; and the commit it acts on is
-  `workflow_run.head_sha`, never `github.sha`. AMENDED 2026-11-19 (ruled by the owner).
+  `workflow_run.head_sha`, never `github.sha`.
 - **Checks must fail loudly.** A check that passes for the wrong reason (wrong directory,
   line-ending-blind comparison, a probe that never ran) is discarded, not read as green.
 - **Dependency groups admit only minor and patch; a major is one PR, one decision.** A batch is a

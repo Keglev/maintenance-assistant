@@ -135,14 +135,33 @@
         <ul>
         <li>Shell scripts ~70 code lines; build-and-gate scripts (Node
         or shell, invoked by CI, living inside the project they serve)
-        70-150 (&gt;200); the header states what it produces, how CI
-        invokes it, and its failure mode.</li>
-        <li>Workflow YAML ~150 code lines. Inline shell in a workflow
-        longer than five lines becomes a script. WAIVED 2026-08-28 (Part
-        5 ruling, K7) for run blocks whose content is a single remote
-        command over ssh/scp and for e2e invocation blocks: a script
-        file would be a second place to read one command. A block that
-        computes, loops or branches is not covered by the waiver.</li>
+        70-150 (&gt;200).</li>
+        <li>Workflow YAML and the composite action: target 150, alarm
+        180 code lines. Above the target and below the alarm a file is
+        WATCHED: its next addition moves logic into a script or comes
+        with a waiver request.</li>
+        <li><strong>The size alarm forces a script, not the length of
+        one run block.</strong> A run block stays inline while its
+        workflow is within the band; a workflow above the alarm moves
+        blocks into scripts until it is back under it.</li>
+        </ul>
+        <h2 id="banners-on-ci-assets">Banners on CI assets</h2>
+        <ul>
+        <li>Every workflow, the composite action, every script, both
+        Dockerfiles and every docs-build helper opens with one banner: a
+        rule line, the file name and its purpose, Usage (how it is
+        started or called), what it produces, and its FAILURE MODE. A
+        workflow banner starts with the workflow’s file name. The
+        scripts under <code>.github/scripts/</code> are the exemplars
+        (<code>claimant-gate.sh</code>).</li>
+        <li>A gate’s comment states all three outcomes: pass, fail, and
+        skip.</li>
+        <li>A file whose edit redeploys a tier (the deploy workflows,
+        both Dockerfiles, the nginx and Caddy configuration) gets its
+        banner when a change touches it anyway, never in a change of its
+        own.</li>
+        <li>The banner follows the comment rules: the contract and the
+        reason, no history, no restated code.</li>
         </ul>
         <h2
         id="every-path-is-gated-by-the-workflow-that-exercises-it">Every
@@ -205,6 +224,16 @@
         also passes its contract (nginx -t, non-root user); its security
         headers are set by Caddy and checked at the public URL after
         each deploy.</li>
+        <li><strong>A workflow_run consumer trusts only main’s own
+        pushes.</strong> Every workflow started by
+        <code>workflow_run</code> that builds, deploys or publishes
+        requires, besides <code>conclusion == 'success'</code>,
+        <code>github.event.workflow_run.event == 'push'</code> and
+        <code>github.event.workflow_run.head_repository.full_name == github.repository</code>.
+        The <code>branches:</code> filter matches a branch NAME, which a
+        fork can share; and the commit it acts on is
+        <code>workflow_run.head_sha</code>, never
+        <code>github.sha</code>.</li>
         <li><strong>Checks must fail loudly.</strong> A check that
         passes for the wrong reason (wrong directory, line-ending-blind
         comparison, a probe that never ran) is discarded, not read as
@@ -229,6 +258,8 @@
       id="toc-scripts-and-workflows">Scripts and workflows</a>
       <ul>
       <li><a href="#sizes" id="toc-sizes">Sizes</a></li>
+      <li><a href="#banners-on-ci-assets"
+      id="toc-banners-on-ci-assets">Banners on CI assets</a></li>
       <li><a
       href="#every-path-is-gated-by-the-workflow-that-exercises-it"
       id="toc-every-path-is-gated-by-the-workflow-that-exercises-it">Every

@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Docs · standards-comments · maintenance-assistant Docs</title>
+
+  <!-- Set the theme before the stylesheet paints, otherwise the page flashes
+       the default theme for one frame before the saved choice applies. -->
+  <script>
+    (function () {
+      try {
+        var t = localStorage.getItem("maintenance-assistant-theme") ||
+          (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+        document.documentElement.setAttribute("data-theme", t);
+      } catch (e) {
+        document.documentElement.setAttribute("data-theme", "light");
+      }
+    })();
+  </script>
+
+  <link rel="stylesheet" href="/maintenance-assistant/assets/docs.css" />
+</head>
+
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <header class="topbar">
+    <div class="topbar-inner">
+      <button class="menu-btn" aria-label="Toggle navigation">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="18" x2="21" y2="18" />
+        </svg>
+      </button>
+
+      <a href="/maintenance-assistant/" class="brand">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <path d="M14.7 6.3a5 5 0 0 0-6.6 6.6l-5 5a2 2 0 1 0 2.8 2.8l5-5a5 5 0 0 0 6.6-6.6l-2.9 2.9-2.1-2.1 2.2-3.6z" />
+        </svg>
+        maintenance-assistant Docs
+      </a>
+
+      <div class="topbar-tools">
+        <span class="lang-switch">
+          <a href="/maintenance-assistant/" aria-current="true">EN</a>
+          <a href="/maintenance-assistant/index-de.html">DE</a>
+        </span>
+        <button class="theme-toggle" aria-label="Toggle light or dark theme">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <circle cx="12" cy="12" r="9" /><path d="M12 3a9 9 0 0 0 0 18z" fill="currentColor" stroke="none" />
+          </svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <div class="layout">
+    <!-- Sidebar navigation, included by app-docs.html as a Pandoc partial. One
+         sidebar serves the whole site: this repository has a single arc42 tree and a
+         single decision log, so the per-tier sidebars the sibling repositories need
+         would be three copies of the same list here. The active link is marked at
+         runtime by docs.js. Do not put template syntax in this comment - a partial
+         is itself a template. -->
+    <aside class="sidebar">
+      <p class="nav-title">Docs</p>
+      <ul>
+        <li><a href="/maintenance-assistant/">Docs home</a></li>
+        <li><a href="/maintenance-assistant/overview.html">Overview</a></li>
+        <li><a href="/maintenance-assistant/overview-de.html">&Uuml;berblick (DE)</a></li>
+        <li><a href="/maintenance-assistant/llm-approach.html">AI &amp; LLM approach</a></li>
+        <li><a href="/maintenance-assistant/run-locally.html">Run it locally</a></li>
+      </ul>
+
+      <p class="nav-title">Requirements</p>
+      <ul>
+        <li><a href="/maintenance-assistant/requirements.html">Requirements &amp; NFRs</a></li>
+        <li><a href="/maintenance-assistant/domain-model.html">Domain model</a></li>
+        <li><a href="/maintenance-assistant/decisions.html">Product decisions</a></li>
+      </ul>
+
+      <details class="nav-group">
+        <summary>Architecture (arc42)</summary>
+        <ul>
+          <li><a href="/maintenance-assistant/architecture/index.html">Architecture index</a></li>
+          <li><a href="/maintenance-assistant/architecture/01-introduction-and-goals.html">1 &middot; Introduction &amp; Goals</a></li>
+          <li><a href="/maintenance-assistant/architecture/02-architecture-constraints.html">2 &middot; Constraints</a></li>
+          <li><a href="/maintenance-assistant/architecture/03-context-and-scope.html">3 &middot; Context &amp; Scope</a></li>
+          <li><a href="/maintenance-assistant/architecture/04-solution-strategy.html">4 &middot; Solution Strategy</a></li>
+          <li><a href="/maintenance-assistant/architecture/05-building-block-view.html">5 &middot; Building Blocks</a></li>
+          <li><a href="/maintenance-assistant/architecture/06-runtime-view.html">6 &middot; Runtime View</a></li>
+          <li><a href="/maintenance-assistant/architecture/07-deployment-view.html">7 &middot; Deployment</a></li>
+          <li><a href="/maintenance-assistant/architecture/07a-ops-rules.html">7a &middot; Ops rules</a></li>
+          <li><a href="/maintenance-assistant/architecture/08-crosscutting-concepts.html">8 &middot; Concepts</a></li>
+          <li><a href="/maintenance-assistant/architecture/09-architecture-decisions.html">9 &middot; Decisions</a></li>
+          <li><a href="/maintenance-assistant/architecture/10-quality-requirements.html">10 &middot; Quality Requirements</a></li>
+          <li><a href="/maintenance-assistant/architecture/11-risks-and-technical-debt.html">11 &middot; Risks &amp; Debt</a></li>
+          <li><a href="/maintenance-assistant/architecture/12-glossary.html">12 &middot; Glossary</a></li>
+        </ul>
+      </details>
+
+      <details class="nav-group">
+        <summary>Decisions (ADRs)</summary>
+        <ul>
+          <li><a href="/maintenance-assistant/adr/index.html">Decision index</a></li>
+          <li><a href="/maintenance-assistant/adr/ADR-001-modular-monolith-first.html">ADR-001 Modular monolith</a></li>
+          <li><a href="/maintenance-assistant/adr/ADR-002-eu-hosted-llm-provider.html">ADR-002 EU LLM provider</a></li>
+          <li><a href="/maintenance-assistant/adr/ADR-003-keycloak-for-iam.html">ADR-003 Keycloak as IdP</a></li>
+          <li><a href="/maintenance-assistant/adr/ADR-004-pgvector-for-vector-search.html">ADR-004 pgvector</a></li>
+          <li><a href="/maintenance-assistant/adr/ADR-010-docs-tree-conventions.html">ADR-010 Docs tree conventions</a></li>
+          <li><a href="/maintenance-assistant/adr/ADR-011-guided-questions.html">ADR-011 Guided questions</a></li>
+          <li><a href="/maintenance-assistant/adr/ADR-013-markdown-only-docs.html">ADR-013 Markdown-only docs</a></li>
+        </ul>
+      </details>
+
+      <p class="nav-title">Frontend</p>
+      <ul>
+        <li><a href="/maintenance-assistant/frontend-architecture.html">Frontend architecture</a></li>
+      </ul>
+
+      <p class="nav-title">Quality</p>
+      <ul>
+        <li><a href="/maintenance-assistant/refactor-standards.html">Refactor standards</a></li>
+        <li><a href="/maintenance-assistant/backend/api-docs/index.html">Backend API</a></li>
+        <li><a href="/maintenance-assistant/frontend/api-docs/index.html">Frontend API</a></li>
+        <li><a href="/maintenance-assistant/backend/coverage/index.html">Backend coverage</a></li>
+        <li><a href="/maintenance-assistant/frontend/coverage/index.html">Frontend coverage</a></li>
+      </ul>
+    </aside>
+    <main class="content" id="main">
+      <article class="doc-body">
+        <h1 id="comments-in-code">Comments in code</h1>
+        <p>What a comment in source code may contain, and in which
+        characters. Part of the <a
+        href="refactor-standards.html">refactor standards</a>. They
+        apply to every language in the repository: Java, TypeScript,
+        HTML and CSS, YAML, shell, Dockerfiles and SQL. Documentation
+        pages follow <a href="standards-docs.html">Docs</a> instead.</p>
+        <p>The rules are language- and project-neutral. Sources:
+        Ousterhout, <em>A Philosophy of Software Design</em>, chapter
+        13; Martin, <em>Clean Code</em>, chapter 4; Spertus, “Best
+        practices for writing code comments” (Stack Overflow blog);
+        Google Java Style, section 7, and Google’s engineering
+        practices.</p>
+        <h2 id="what-a-comment-contains">What a comment contains</h2>
+        <ul>
+        <li><strong>C1</strong> A comment states what the code cannot
+        show: the reason for a decision, a constraint, an invariant, a
+        unit, a boundary (inclusive or exclusive), a side effect, an
+        ordering dependency.</li>
+        <li><strong>C2</strong> A comment a reader could write from the
+        code next to it is deleted (Ousterhout’s test). So is one that
+        the name of the thing already says.</li>
+        <li><strong>C3</strong> Interface comments (file and class
+        headers, Javadoc, TSDoc, the banner of a CI asset) describe the
+        contract and how to use the unit, never its implementation.</li>
+        <li><strong>C4</strong> Implementation comments sit above the
+        block they explain. A long method may carry one line per major
+        block, saying what the block achieves at a higher level than the
+        code.</li>
+        <li><strong>C5</strong> A workaround or a library quirk names
+        the library and version, the source that shows the behaviour
+        (release note, issue, source file) and the condition under which
+        it can be dropped.</li>
+        <li><strong>C6</strong> Code that looks redundant, unidiomatic
+        or simplifiable carries a comment, so nobody simplifies it away.
+        A bug fix whose reason is not visible in the code says what it
+        guards against.</li>
+        <li><strong>C7</strong> No history narrative (“was X”, “added
+        in”, “changed because the old version…”): version control holds
+        history. A reference is allowed when it points to the reason: an
+        ADR, a section of these standards, a decision record, an
+        external issue or document. Pull-request numbers and the
+        internal ids of surveys and session records are not used: a
+        reader of the repository cannot resolve them, so the reason is
+        written out or the ADR is cited instead.</li>
+        <li><strong>C8</strong> No commented-out code, no closing-brace
+        comments, no position or section-marker banners inside code, no
+        bylines or authors. In list-type files (.gitignore,
+        .dockerignore, a pom dependency list, nginx location blocks) a
+        one-line label that sorts the entries below it is allowed;
+        decorative rule lines are not.</li>
+        <li><strong>C9</strong> An inline comment is at most three
+        lines. A longer explanation belongs in the header, the Javadoc,
+        or an ADR or docs page the comment cites. Configuration files
+        follow the same limit.</li>
+        <li><strong>C10</strong> A wrong or stale comment is a defect:
+        fixed in the change that touches the code, or recorded as a
+        finding by a survey.</li>
+        <li><strong>C11</strong> Tests: the test name carries the what.
+        A comment explains only a non-obvious arrange step, why a value
+        or a fixture is chosen, or why an assertion pair (absence plus
+        presence) exists.</li>
+        </ul>
+        <p><strong>Deciding whether a line needs a comment.</strong> It
+        needs one when C1, C5 or C6 applies, that is when a reader would
+        ask “why is this here, why this way, why this value”. Otherwise
+        no comment is the correct state, and a missing comment is not a
+        finding. A survey records the trigger (C1, C5 or C6) for every
+        comment it proposes to add, and the rule (C2, C7, C8 or C9) for
+        every comment it proposes to delete.</p>
+        <h2 id="characters-ascii-only">Characters: ASCII only</h2>
+        <ul>
+        <li>Comments in code are written in English and in ASCII only.
+        Arrows become <code>-&gt;</code>, the multiplication sign
+        <code>*</code>, em and en dashes <code>-</code>, ellipses
+        <code>...</code>.</li>
+        <li>Not affected: string literals, user-visible text (templates,
+        i18n files), test data, console output that a script prints, and
+        the documentation pages.</li>
+        <li>Measured per file with a classifier that separates comments
+        from strings and template text; a plain grep for non-ASCII bytes
+        also counts the German product texts and is no measurement.</li>
+        <li>Existing files are brought in line by the comment survey of
+        the refactor wave, not by unrelated changes.</li>
+        </ul>
+        <p><a href="refactor-standards.html">Back to the refactor
+        standards</a></p>
+      </article>
+    </main>
+
+        <nav class="toc" aria-label="On this page">
+      <p class="toc-title">On this page</p>
+      <ul>
+      <li><a href="#comments-in-code" id="toc-comments-in-code">Comments
+      in code</a>
+      <ul>
+      <li><a href="#what-a-comment-contains"
+      id="toc-what-a-comment-contains">What a comment contains</a></li>
+      <li><a href="#characters-ascii-only"
+      id="toc-characters-ascii-only">Characters: ASCII only</a></li>
+      </ul></li>
+      </ul>
+    </nav>
+      </div>
+
+  <footer class="footer">
+    maintenance-assistant · Generated by the docs pipeline
+  </footer>
+
+  <script src="/maintenance-assistant/assets/docs.js"></script>
+</body>
+</html>

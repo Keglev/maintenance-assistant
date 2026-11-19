@@ -1,8 +1,8 @@
 # Comments in code
 
 What a comment in source code may contain, and in which characters. Part of the
-[refactor standards](refactor-standards.md). Adopted by the owner on 2026-11-19 for every language
-in the repository: Java, TypeScript, HTML and CSS, YAML, shell, Dockerfiles and SQL. Documentation
+[refactor standards](refactor-standards.md). They apply to every language in the repository:
+Java, TypeScript, HTML and CSS, YAML, shell, Dockerfiles and SQL. Documentation
 pages follow [Docs](standards-docs.md) instead.
 
 The rules are language- and project-neutral. Sources: Ousterhout, *A Philosophy of Software Design*,

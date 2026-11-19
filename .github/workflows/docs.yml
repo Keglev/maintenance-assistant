@@ -196,13 +196,16 @@ jobs:
         with:
           fetch-depth: 0
 
+      # The event value reaches the script through env, never as an expression inside it.
       - name: Identify the source project
         id: project
+        env:
+          SOURCE_WORKFLOW: ${{ github.event.workflow_run.name }}
         run: |
-          case "${{ github.event.workflow_run.name }}" in
+          case "$SOURCE_WORKFLOW" in
             frontend-ci) echo "name=frontend" >> "$GITHUB_OUTPUT" ;;
             backend-ci)  echo "name=backend"  >> "$GITHUB_OUTPUT" ;;
-            *) echo "Unexpected workflow: ${{ github.event.workflow_run.name }}" >&2; exit 1 ;;
+            *) echo "Unexpected workflow: $SOURCE_WORKFLOW" >&2; exit 1 ;;
           esac
 
       # Artifacts live on the CI run, not on this one, so the run id is explicit.

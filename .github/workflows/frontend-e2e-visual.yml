@@ -1,28 +1,26 @@
 name: frontend-e2e-visual
 
-# VISUAL REGRESSION — baseline screenshots compared per run (ADR-007, dated section 2026-08-13).
+# =============================================================================
+# frontend-e2e-visual.yml - Visual regression: screenshots compared with the
+# committed baselines (ADR-007).
 #
-# A REUSABLE WORKFLOW SINCE 2026-11-13, run as the `visual` job inside backend-ci and frontend-ci
-# behind the same relevance gate as the functional suite (.github/scripts/e2e-relevant.sh), and a
-# GATE: each CI's aggregator — the required check — fails when this fails. ADR-007's dated revision
-# records the promotion, by decision despite the shorter green streak.
+# Usage: a reusable workflow, run as the `visual` job of backend-ci and
+# frontend-ci behind the same relevance gate as the functional suite. Each CI's
+# aggregator, the required check, fails when this fails.
 #
-# ITS OWN JOB, AND ITS OWN CHECK LINE, and that is the point rather than an accident of layout. A
-# pixel diff and a broken flow are different news for different people: "the source list moved four
-# pixels" wants a designer's eye, "the citation click 401s" wants a fix before anything else ships.
-# Folded into the functional job, a red baseline would hide a green suite behind one amber word, and
-# — worse — the first instinct on a noisy visual check is to disable the job it lives in, which would
-# take the functional tests with it. Separate, a red `visual` beside a green `e2e` says exactly what
-# it means: it works, and it looks different.
+# Produces: the diff images as an artifact when a screenshot differs.
 #
-# The cost is one more stack provision (~2 min). Worth it for a signal that stays readable.
+# FAILURE MODE: red when a screenshot differs from its baseline or the stack
+# cannot be provisioned. Its own job and check line on purpose: a pixel diff and
+# a broken flow are different news, and folded together the first instinct on a
+# noisy visual check, disabling its job, would take the functional tests along.
 #
-# PLAYWRIGHT RUNS INSIDE THE CONTAINER, not on the runner, and that is what makes the baselines
-# stable. Font rendering is a property of the machine: the same page screenshotted on Windows and on
-# a GitHub runner differs on nearly every glyph edge, which would make a committed baseline
-# permanently red. Baselines are generated locally with `npm run e2e:visual:update` — the same
-# `mcr.microsoft.com/playwright:v1.65.1-noble` image this job uses — so the only environment that
-# ever produces or checks a baseline is that one image. See frontend/e2e/README.md.
+# Playwright runs INSIDE mcr.microsoft.com/playwright:v1.65.1-noble, not on the
+# runner: font rendering is a property of the machine, so baselines are made
+# (`npm run e2e:visual:update`) and checked in that one image only. Regenerating
+# them is an explicit act (ADR-007); see frontend/e2e/README.md.
+# =============================================================================
+
 on:
   workflow_call:
 

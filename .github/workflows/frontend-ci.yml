@@ -1,15 +1,24 @@
 name: frontend-ci
 
-# Runs on every pull request touching the frontend, and on main after merge.
-# Coverage and Compodoc are uploaded only from main, because docs.yml publishes
-# those artifacts to gh-pages and a pull request must not be able to publish.
+# =============================================================================
+# frontend-ci.yml - The frontend claimant: builds and tests the frontend, its
+# image and, behind a relevance gate, the rendered suites.
 #
-# SINCE 2026-11-13 IT CAN ALSO FAIL ON THE E2E SUITE. frontend-e2e.yml runs as a
-# job of this workflow behind a relevance gate (.github/scripts/e2e-relevant.sh),
-# and the aggregator at the bottom — the job that carries the required check name —
-# fails when the suite fails and passes when the gate skipped it. That is also what
-# gates the deploy: frontend-deploy triggers on this workflow's conclusion, which
-# now includes the suite. ADR-007's dated revision records the promotion.
+# Usage: runs on every pull request (no path filter; the `changes` job decides
+# from the diff whether the frontend family is touched) and on a push to main
+# that changes the frontend. frontend-deploy.yml starts on its conclusion, so
+# everything this workflow checks also gates the deploy.
+#
+# Produces: the required check build-and-test-frontend (the aggregator job at
+# the bottom); on main only, coverage and Compodoc as artifacts that docs.yml
+# publishes, so a pull request can never publish.
+#
+# FAILURE MODE: red when the formatting check, the unit tests and their coverage
+# thresholds, the build or the API documentation fail; when the image build, contract or scan fails; or when the e2e or visual
+# suite fails (frontend-e2e.yml, frontend-e2e-visual.yml, ADR-007). A skipped
+# suite passes.
+# =============================================================================
+
 on:
   pull_request:
     branches: [main]

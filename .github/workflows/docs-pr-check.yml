@@ -1,26 +1,24 @@
 name: docs-pr-check
 
-# Gives documentation pull requests a check of their own.
+# =============================================================================
+# docs-pr-check.yml - The docs claimant: builds the documentation site and
+# checks its links for pull requests.
 #
-# A required branch-protection check is a *name*, not a workflow: a PR with no job
-# reporting under it can never merge. This workflow owns the docs family's name,
-# `build-and-test-docs`. Without it, the only way to gate a docs PR would be to let
-# the backend test suite run on it — so changing a Markdown file would build and
-# test a Spring Boot application, which proves nothing about the change and fails
-# for reasons that have nothing to do with it. This runs the docs checks instead,
-# so a docs PR is gated by something that can actually be wrong about it.
+# Usage: runs on every pull request (no path filter; the `changes` job decides
+# whether the docs family is touched: docs/**, docs.yml, this file,
+# .github/scripts/docs/**, as partitioned in claimant-gate.sh), and by hand.
 #
-# NO PATH FILTER on the pull_request trigger, deliberately: a workflow skipped by
-# a path filter never reports its required check and the PR can never merge. Every
-# claimant runs on every pull request; the `changes` job decides from the diff
-# whether the docs family is touched (docs/**, docs.yml, this file,
-# .github/scripts/docs/** — the partition lives in claimant-gate.sh), and the
-# aggregator passes a family the change never touched.
+# Produces: the required check build-and-test-docs. A required check is a NAME,
+# not a workflow: without this one, a docs pull request could only be gated by
+# the backend suite, which proves nothing about a Markdown change and fails for
+# reasons unrelated to it.
 #
-# `.github/scripts/docs/**` joined the docs family because it was once gated by
-# `mvn verify` — a check that never executes a single one of those scripts. It
-# could not fail on a broken docs build, so it passed for reasons that had
-# nothing to do with the change.
+# FAILURE MODE: red when the rendered diagrams are out of date, the site build
+# fails, an internal link is broken, or a repository URL points at a path missing
+# from the checkout; green and skipped when the change does not touch the docs
+# family. The scripts under
+# .github/scripts/docs/ are in this family because only this build executes them.
+# =============================================================================
 
 on:
   pull_request:

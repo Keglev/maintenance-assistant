@@ -1,18 +1,26 @@
+# =============================================================================
+# action.yml (e2e-stack) - Provisions the full stack the rendered suites need.
+#
+# Usage: `uses: ./.github/actions/e2e-stack` in frontend-e2e.yml and
+# frontend-e2e-visual.yml. Shared rather than copied on purpose: a helper
+# duplicated between two suites drifts, and the copy that drifts is the one
+# nobody watches. Each calling job has its own runner, so its own database
+# (the isolation ADR-007 asks for in CI).
+#
+# Produces: Postgres, Keycloak with the real realm export and login theme, the
+# LLM provider stub, and the backend with the corpus seeded and indexed, each
+# waited for on a condition, never a sleep.
+#
+# FAILURE MODE: red when a service does not become ready in time or the seeded
+# corpus does not reach the count of the corpus file; the suite then never runs.
+# =============================================================================
+
 name: e2e stack
 description: >
   Provisions everything the rendered test suites need — Postgres, Keycloak with the real realm export
   and the real login theme, the LLM provider stub, and the backend with a seeded and indexed corpus —
   and waits for each of them on a condition rather than a sleep.
 
-# SHARED BY THE FUNCTIONAL AND THE VISUAL JOB, and shared rather than copied on purpose. PR #51
-# closed two defects that were the same bug twice, both caused by a helper being duplicated instead
-# of extracted: a machine picker fixed in one file and left broken in the other, and a cleanup sweep
-# that silently did nothing in both. Ninety lines of stack setup in two jobs is that mistake waiting
-# to happen at a larger size — the two would drift, and the job that drifted would be the one nobody
-# was looking at.
-#
-# Each job that uses this gets its OWN runner and therefore its own database, which is the isolation
-# ADR-007 asks for in CI.
 runs:
   using: composite
   steps:

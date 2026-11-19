@@ -1,10 +1,19 @@
 name: release
 
-# Tags are created manually; robots never create them. This workflow only turns
-# an existing v* tag into a GitHub Release with auto-generated notes, and only
-# when the tag equals the version in frontend/package.json and backend/pom.xml
-# (release-version-check.sh). A refused tag stays in place without a release:
-# delete it, align the versions in a pull request, and tag the merge commit.
+# =============================================================================
+# release.yml - Turns an existing v* tag into a GitHub Release with
+# auto-generated notes.
+#
+# Usage: runs when a v* tag is pushed. Tags are created by hand; robots never
+# create them.
+#
+# Produces: the GitHub Release for the tag.
+#
+# FAILURE MODE: red, and no release, when the tag differs from the version in
+# frontend/package.json and backend/pom.xml (release-version-check.sh). The tag
+# stays: delete it, align the versions in a pull request, tag the merge commit.
+# =============================================================================
+
 on:
   push:
     tags:

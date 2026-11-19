@@ -56,6 +56,10 @@ Written as linked pages since 2026-11-18 ([ADR-013](adr/ADR-013-markdown-only-do
   strings.
 - Counts use exact tokens, not substrings; every stated total is recomputed from its own parts; an
   empty grep also describes a command that did not run — show the command.
+- **Method and function length** is the number of code lines between the opening and the closing
+  brace of the body; neither brace line counts, so a brace sharing the signature line changes
+  nothing. Blank and comment lines are excluded; an expression-bodied arrow function counts its
+  expression.
 - Survey figures are provisional. **The PR that acts on a survey row re-measures that row first.**
 - For coverage specifically, the anchor is the report's own headline: a recomputation from the CSV
   or the lcov file is reported only after it matches what index.html states.

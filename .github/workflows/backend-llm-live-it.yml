@@ -11,7 +11,8 @@ name: backend-llm-live-it
 # merge. See docs/live-provider-tests.md.
 #
 # WHEN. Monthly, and by hand after a change to the model, the prompt or the
-# embedding model. The first measured run (2026-11-16) put one run at roughly
+# embedding model, and by hand with the input chat-model to measure a candidate
+# model without changing the configuration. The first measured run (2026-11-16) put one run at roughly
 # EUR 0.03, so a monthly re-measurement costs nothing worth weighing, while a
 # per-push run would still make the provider a merge dependency.
 #
@@ -36,6 +37,13 @@ on:
     # full hour, where GitHub's scheduler queues heavily.
     - cron: "40 3 2 * *"
   workflow_dispatch:
+    inputs:
+      chat-model:
+        description: >-
+          Chat model to measure instead of the configured one (LLM_CHAT_MODEL),
+          for example a fallback candidate. Empty keeps the application default.
+        required: false
+        default: ''
 
 permissions:
   contents: read
@@ -86,6 +94,18 @@ jobs:
           if [ -z "$LLM_API_KEY" ]; then
             echo "LLM_API_KEY is not set: every llm-live test would skip and measure nothing" >&2
             exit 1
+          fi
+      # A candidate model replaces the default for this run only. The input reaches
+      # the shell through env, never interpolated; the character check keeps a newline
+      # from writing a second variable into GITHUB_ENV. A scheduled run has no input.
+      - name: Select the chat model
+        env:
+          CHAT_MODEL_INPUT: ${{ inputs.chat-model }}
+        run: |
+          [[ "$CHAT_MODEL_INPUT" =~ ^[A-Za-z0-9._/-]*$ ]] || { echo "::error::chat-model has characters no model id uses"; exit 1; }
+          if [ -n "$CHAT_MODEL_INPUT" ]; then
+            echo "LLM_CHAT_MODEL=$CHAT_MODEL_INPUT" >> "$GITHUB_ENV"
+            echo "Measuring chat model: $CHAT_MODEL_INPUT" >> "$GITHUB_STEP_SUMMARY"
           fi
       - uses: actions/setup-java@77dd5b2ce225ea11469928ac317850245a74ae78 # v6.2.0
         with:

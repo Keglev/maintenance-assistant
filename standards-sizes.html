@@ -161,7 +161,7 @@
         <td>Service</td>
         <td>100-250</td>
         <td>&gt;300</td>
-        <td>service method &lt;=20 (&gt;30)</td>
+        <td></td>
         </tr>
         <tr class="odd">
         <td>Repository</td>
@@ -239,6 +239,13 @@
         </tbody>
         </table>
         <ul>
+        <li><strong>Methods of every kind</strong> (controller, service,
+        repository, configuration, client, record, advice): target 20,
+        alarm 30, hard cap 50 code lines. A file type exempt from its
+        file band (framework integration) is not exempt from the method
+        band: a long builder or DSL chain takes a written waiver.
+        Counted as defined under counting methods on the <a
+        href="refactor-standards.html">refactor standards</a> page.</li>
         <li>Doc every public class and method; omit the author and
         version tags; pick one exemplary file’s prose as the register
         standard and raise others TO it. AMENDED 2026-08-28 (Part 5

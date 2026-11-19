@@ -243,6 +243,12 @@
         <li>Counts use exact tokens, not substrings; every stated total
         is recomputed from its own parts; an empty grep also describes a
         command that did not run — show the command.</li>
+        <li><strong>Method and function length</strong> is the number of
+        code lines between the opening and the closing brace of the
+        body; neither brace line counts, so a brace sharing the
+        signature line changes nothing. Blank and comment lines are
+        excluded; an expression-bodied arrow function counts its
+        expression.</li>
         <li>Survey figures are provisional. <strong>The PR that acts on
         a survey row re-measures that row first.</strong></li>
         <li>For coverage specifically, the anchor is the report’s own

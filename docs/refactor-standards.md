@@ -57,7 +57,7 @@ Written as linked pages since 2026-11-18 ([ADR-013](adr/ADR-013-markdown-only-do
 - **Method and function length** is the number of code lines between the opening and the closing
   brace of the body; neither brace line counts, so a brace sharing the signature line changes
   nothing. Blank and comment lines are excluded; an expression-bodied arrow function counts its
-  expression. Adopted 2026-11-19 by the owner.
+  expression.
 - Survey figures are provisional. **The PR that acts on a survey row re-measures that row first.**
 - For coverage specifically, the anchor is the report's own headline: a recomputation from the CSV
   or the lcov file is reported only after it matches what index.html states.

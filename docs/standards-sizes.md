@@ -27,8 +27,7 @@ on the [refactor standards](refactor-standards.md) page; waived files are in the
   advice): target 20, alarm 30, hard cap 50 code lines. A file type exempt from its file band
   (framework integration) is not exempt from the method band: a long builder or DSL chain takes a
   written waiver. Counted as defined under counting methods on the
-  [refactor standards](refactor-standards.md) page. AMENDED 2026-11-19 (ruled by the owner):
-  extends the earlier service-only method band to every method.
+  [refactor standards](refactor-standards.md) page.
 - Doc every public class and method; omit the author and version tags; pick one exemplary file's
   prose as the register standard and raise others TO it. AMENDED 2026-08-28 (Part 5 ruling, K1):
   exempt are DI constructors, one-line accessors, `@Override` implementations of a documented

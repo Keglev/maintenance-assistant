@@ -20,6 +20,7 @@ Part of the [refactor standards](refactor-standards.md).
   pull request and the ADRs.
 - **No test counts or coverage percentages in prose.** A page says what is tested and links the
   coverage reports CI publishes; a coverage target is a rule, not a figure, and may be stated.
+  ADRs keep their measurements, test results included: they are the evidence the decision rests on.
 - **Version tables name the major version only** ("Spring Boot 4", never "4.1"); the build files
   hold the exact versions.
 - **No internal tracking ids in docs.** Survey, session, ruling or finding ids (and pull-request

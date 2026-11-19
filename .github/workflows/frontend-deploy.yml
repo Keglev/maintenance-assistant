@@ -29,11 +29,14 @@ permissions:
 
 jobs:
   deploy:
-    # A manual dispatch has no workflow_run to inspect, so it is admitted on the
-    # event name.
+    # Only a successful CI run on a push to main of this repository deploys: the
+    # branches filter matches a branch NAME, which a fork can share. A manual
+    # dispatch has no workflow_run to inspect and is admitted on the event name.
     if: >-
       github.event_name == 'workflow_dispatch' ||
-      github.event.workflow_run.conclusion == 'success'
+      (github.event.workflow_run.conclusion == 'success' &&
+       github.event.workflow_run.event == 'push' &&
+       github.event.workflow_run.head_repository.full_name == github.repository)
     uses: ./.github/workflows/deploy-tier.yml
     with:
       tier: frontend

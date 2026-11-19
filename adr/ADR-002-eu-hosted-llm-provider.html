@@ -1041,6 +1041,17 @@ into Go struct field Embedding.data.embedding of type []float32</code></pre>
         is a configuration change (<code>LLM_CHAT_MODEL</code>) that
         needs its own decision.</li>
         </ul>
+        <h3 id="note-2026-11-19-the-ticket-is-closed">Note, 2026-11-19 —
+        the ticket is closed</h3>
+        <p>IONOS closed ticket 208027322 on 2026-11-19 after the owner
+        reported the passing re-test of 2026-11-18. They could not say
+        what changed on their side or when it was deployed, and will
+        check internally. The record therefore has a fixed behaviour
+        without a known cause: should the HTTP 500 on
+        <code>reasoning_effort</code> with a strict
+        <code>json_schema</code> return, the measurement of 2026-08-26
+        (section 3) and the re-test of 2026-11-18 are the evidence to
+        send with a new ticket.</p>
       </article>
     </main>
 
@@ -1108,6 +1119,9 @@ into Go struct field Embedding.data.embedding of type []float32</code></pre>
       id="toc-note-2026-11-19-qwenqwen3.5-397b-a17b-measured-against-the-golden-questions">Note,
       2026-11-19 — <code>Qwen/Qwen3.5-397B-A17B</code> measured against
       the golden questions</a></li>
+      <li><a href="#note-2026-11-19-the-ticket-is-closed"
+      id="toc-note-2026-11-19-the-ticket-is-closed">Note, 2026-11-19 —
+      the ticket is closed</a></li>
       </ul></li>
       </ul></li>
       </ul>

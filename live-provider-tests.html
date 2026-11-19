@@ -216,6 +216,13 @@
         repository secret <code>LLM_API_KEY</code> and fails at once if
         the secret is missing, so a run can never be green while
         measuring nothing.</p>
+        <p>A run started by hand can measure another chat model: the
+        input <code>chat-model</code> (for example a fallback candidate
+        under <a
+        href="adr/ADR-002-eu-hosted-llm-provider.html">ADR-002</a>)
+        replaces <code>LLM_CHAT_MODEL</code> for that run only. Left
+        empty, and always on the monthly schedule, the run measures the
+        configured model.</p>
         <p>Each run uploads the artifact
         <code>llm-live-report-&lt;run&gt;</code>: the retrieval baseline
         report (also shown on the run summary page, including its cost

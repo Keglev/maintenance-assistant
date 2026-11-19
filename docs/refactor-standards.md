@@ -17,6 +17,7 @@ Written as linked pages since 2026-11-18 ([ADR-013](adr/ADR-013-markdown-only-do
 | This page | Cross-cutting principles, counting methods, coverage targets |
 | [Size bands](standards-sizes.md) | Backend and frontend bands per file type, documentation and naming rules per stack |
 | [Scripts and workflows](standards-ci.md) | Script and workflow sizes, the claimant model, image scans, dependency groups |
+| [Comments in code](standards-comments.md) | What a comment may contain (C1-C11), ASCII-only comments |
 | [Test conduct](standards-test-conduct.md) | Spec moves, vacuity proofs, state isolation, fixtures, message assertions |
 | [Docs](standards-docs.md) | Docs pages, diagrams, decision records, naming |
 | [Working practices](standards-practices.md) | The process rules and the two ops rules that generalise |
@@ -39,7 +40,8 @@ Written as linked pages since 2026-11-18 ([ADR-013](adr/ADR-013-markdown-only-do
   [waiver register](standards-waivers.md) (file, figure, band, date, reason). **Waivers are granted
   by the owner, never assumed.**
 - Comments explain WHY, never WHAT. Never comment self-evident code. A header that restates obvious
-  markup or code is a defect, not documentation.
+  markup or code is a defect, not documentation. The full rules are on
+  [Comments in code](standards-comments.md).
 - Deferred work: a TODO carries its backlog id at the site, tracked in a backlog; the marker is
   removed by the PR that closes its entry. Untracked bare TODOs are a finding.
 - Hard cap for NEW code: ~300 code lines per file. Retrofit old files only when a pass already

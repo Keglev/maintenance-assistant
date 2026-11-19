@@ -1,12 +1,13 @@
 name: catalogue-watch
 
-# catalogue-watch.yml - checks that the IONOS AI Model Hub still lists the three model
+# =============================================================================
+# catalogue-watch.yml - checks that the IONOS AI Model Hub still lists the four model
 # ids this project depends on, and turns a disappearance into a red run instead of an
 # incident. ADR-002, revision 2026-08-27, section 5 records the decision.
 #
 # Usage: runs by itself monthly; workflow_dispatch for the day somebody wants to know now.
-# Produces: the served catalogue in the log, with its size and the count of *-migration
-# aliases (a change in that count hints that the catalogue moved).
+# Produces: the catalogue size and the count of *-migration aliases (a change in that
+# count hints that the catalogue moved); the full served catalogue only on a red run.
 #
 # WHY ABSENCE IS THE SIGNAL. /v1/models entries carry only created, id, object and
 # owned_by: no lifecycle field, no deprecation flag, no retirement date, and `created`
@@ -15,7 +16,8 @@ name: catalogue-watch
 #
 # WHY THE FALLBACK IS CHECKED HERE. The monthly live provider tests call only the
 # configured chat and embedding models. openai/gpt-oss-120b, ADR-002's documented
-# fallback, is watched by this job alone.
+# fallback, and Qwen/Qwen3.5-397B-A17B, the second model ADR-002 records as measured
+# (note of 2026-11-19), are watched by this job alone.
 #
 # WHY MONTHLY. Retirements are announced weeks ahead, by email or on the provider's
 # models page ("Scheduled to Retire On" / "Retired On" / "Alternative"). Monthly is
@@ -25,11 +27,12 @@ name: catalogue-watch
 # https://docs.ionos.com/cloud/ai/ai-model-hub/models and open a ledger row; production
 # is not down, the backend keeps calling its configured model until that call fails.
 # Red with "HTTP <code>": the catalogue could not be read, so nothing was checked.
-# Green: all three ids are listed. Nothing pages anyone.
+# Green: all four ids are listed. Nothing pages anyone.
 #
 # SECRET: LLM_API_KEY, shared with the backend. It reaches curl through the step
 # environment, never interpolated into the command line, so it cannot appear in the
 # rendered script; `set +x` keeps the shell from echoing the request.
+# =============================================================================
 
 on:
   schedule:
@@ -47,7 +50,7 @@ concurrency:
 
 jobs:
   models:
-    name: the three ids this project depends on
+    name: the four ids this project depends on
     runs-on: ubuntu-24.04
 
     # No checkout: the ids are written into the script below, so the repository is
@@ -83,7 +86,8 @@ jobs:
           for id in \
             "meta-llama/Llama-3.3-70B-Instruct" \
             "BAAI/bge-m3" \
-            "openai/gpt-oss-120b"
+            "openai/gpt-oss-120b" \
+            "Qwen/Qwen3.5-397B-A17B"
           do
             if ! grep -qxF "$id" ids.txt; then
               missing="${missing}${id}\n"
@@ -99,10 +103,9 @@ jobs:
             exit 1
           fi
 
-          echo "All three ids are listed."
+          echo "All four ids are listed."
           echo "  meta-llama/Llama-3.3-70B-Instruct  (chat, application.yml default)"
           echo "  BAAI/bge-m3                        (embedding, vector(1024))"
           echo "  openai/gpt-oss-120b                (documented fallback, ADR-002 revision 2026-08-27)"
+          echo "  Qwen/Qwen3.5-397B-A17B             (measured second model, ADR-002 note 2026-11-19)"
           echo "catalogue size: ${total} ids, of which ${migration} are *-migration aliases (caveat 2)"
-          echo "--- the catalogue as served ---"
-          cat ids.txt

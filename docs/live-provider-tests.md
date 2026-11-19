@@ -47,6 +47,11 @@ indexes it through the provider (`.github/scripts/index-live-corpus.sh`) and the
 `mvn verify -P llm-live`. It reads the repository secret `LLM_API_KEY` and fails at once if the
 secret is missing, so a run can never be green while measuring nothing.
 
+A run started by hand can measure another chat model: the input `chat-model` (for example a
+fallback candidate under [ADR-002](adr/ADR-002-eu-hosted-llm-provider.html)) replaces
+`LLM_CHAT_MODEL` for that run only. Left empty, and always on the monthly schedule, the run
+measures the configured model.
+
 Each run uploads the artifact `llm-live-report-<run>`: the retrieval baseline report (also shown on
 the run summary page, including its cost line), the failsafe reports and the application logs of
 the indexing phases.

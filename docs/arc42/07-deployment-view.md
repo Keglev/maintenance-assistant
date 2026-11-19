@@ -22,7 +22,8 @@ The host was planned as a CAX21 (arm64) and is a CX33 (x86_64); the reasoning an
 in the [product decisions](../decisions.md#costs). That revision changed a purchase order and nothing else — but the follow-on did
 cost something, and the record says so: on 2026-08-10 the arm64 build leg was removed because it
 had no consumer and was crashing under QEMU. Moving back to an arm64 host is now a purchase
-order PLUS restoring one line in each deploy workflow, or adding a native arm64 runner.
+order PLUS restoring one line in the shared deploy workflow (`deploy-tier.yml`), or adding a native
+arm64 runner.
 
 ### Shared host
 

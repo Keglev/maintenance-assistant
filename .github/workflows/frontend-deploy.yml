@@ -1,11 +1,21 @@
 name: frontend-deploy
 
-# Publishes the frontend image to GHCR after frontend-ci succeeded on main, then
-# rolls it out to the Hetzner host. See backend-deploy.yml for why this uses
-# workflow_run rather than `on: push`.
+# =============================================================================
+# frontend-deploy.yml - Deploys the frontend after frontend-ci succeeded on main.
 #
-# workflow_dispatch redeploys whatever tag .env.prod currently names, without a
-# code change.
+# Usage: starts by itself when frontend-ci completes on main (workflow_run), or by
+# hand (workflow_dispatch) to redeploy whatever tag .env.prod names, without a
+# code change. backend-deploy.yml says why the trigger is workflow_run.
+#
+# Produces: what deploy-tier.yml produces for the frontend; this file decides only
+# when.
+#
+# FAILURE MODE: skipped when frontend-ci failed or was cancelled; otherwise red or
+# green as deploy-tier.yml describes. The live commit is read from
+# /build-info.json; the application shell and the security headers set by Caddy
+# are checked at the public URL as well.
+# =============================================================================
+
 on:
   workflow_run:
     workflows: [frontend-ci]
@@ -17,195 +27,20 @@ permissions:
   contents: read
   packages: write
 
-# No workflow-level concurrency group on purpose: builds of different commits
-# may run side by side, and cancelling a superseded run would also cancel the
-# rollout waiting inside it. Only the deploy job below is serialised.
-
 jobs:
-  image:
-    name: build and push image
+  deploy:
+    # A manual dispatch has no workflow_run to inspect, so it is admitted on the
+    # event name.
     if: >-
       github.event_name == 'workflow_dispatch' ||
       github.event.workflow_run.conclusion == 'success'
-    runs-on: ubuntu-24.04
-
-    steps:
-      # See backend-deploy.yml: checkout v7 blocks fork-PR code under workflow_run,
-      # which is the behaviour this job wants before it pushes an image.
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-        with:
-          ref: ${{ github.event.workflow_run.head_sha || github.ref }}
-
-      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4
-
-      # The image is scanned BEFORE the registry login below, so no registry
-      # credential exists in the job while the scanner runs (image-scan.sh says
-      # why that matters). The push build further down reuses these layers
-      # from the cache.
-      - name: Build the image for the scan
-        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7
-        with:
-          context: frontend
-          platforms: linux/amd64
-          load: true
-          push: false
-          tags: frontend:scan
-          cache-from: type=gha
-      - name: Scan the image
-        run: bash .github/scripts/image-scan.sh frontend:scan "$RUNNER_TEMP/frontend-sbom.cdx.json"
-      - name: Upload the SBOM
-        if: always()
-        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
-        with:
-          name: frontend-sbom-${{ github.run_id }}-${{ github.run_attempt }}
-          path: ${{ runner.temp }}/frontend-sbom.cdx.json
-          if-no-files-found: warn
-          retention-days: 90
-
-
-      - uses: docker/login-action@8aa5831fb8d48d8f76594c7ddde61ae58019f550 # v4
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - id: meta
-        uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6
-        with:
-          images: ghcr.io/${{ github.repository }}/frontend
-          # Tagged with the CI-validated commit that was built. type=sha reads github.sha,
-          # which under workflow_run is main's head when the run starts: after two quick
-          # merges a newer commit, so the deploy job asked for a tag never pushed.
-          tags: |
-            type=raw,value=latest
-            type=raw,value=sha-${{ github.event.workflow_run.head_sha || github.sha }}
-
-      - uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7
-        with:
-          context: frontend
-          # Written into /build-info.json, which the deploy job reads back to
-          # verify which build is live. The CI-validated commit, or the dispatch
-          # ref's.
-          build-args: |
-            GIT_COMMIT=${{ github.event.workflow_run.head_sha || github.sha }}
-          # amd64 only, as in backend-deploy.yml. Emulation is no way back to arm64 here: `npm ci`
-          # under qemu-emulated arm64 dies with "Illegal instruction", so an arm64 image needs a
-          # native arm64 runner. See docs/decisions.md, Costs.
-          platforms: linux/amd64
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-
-  # ---------------------------------------------------------------------------
-  # Rollout. Separate from the build so the serialisation below covers only the
-  # part that touches the server.
-  # ---------------------------------------------------------------------------
-  deploy:
-    name: deploy to Hetzner
-    needs: image
-    runs-on: ubuntu-24.04
-
-    # Shared with backend-deploy on purpose: both run `docker compose up` against
-    # the same host, and two of those at once race over the same containers and
-    # the same Docker daemon. cancel-in-progress is false because a cancelled
-    # rollout leaves the stack half-updated — a queued deploy is always better
-    # than an interrupted one.
-    concurrency:
-      group: hetzner-deploy
-      cancel-in-progress: false
-      # Every deploy waits its turn; without it a newer pending deploy replaces
-      # an older one. GitHub does not promise the start order of waiting runs,
-      # which is why the rollout checks the served commit before and after.
-      queue: max
-
-    env:
-      # Public URL, so it is not a secret and stays readable in the log.
-      APP_URL: https://maintenance.smartsupply.com.de/
-      # The commit CI validated, deployed by its own image tag. Empty on a manual
-      # redeploy, which rolls out whatever image .env.prod already names.
-      COMMIT: ${{ github.event.workflow_run.head_sha }}
-
-    steps:
-      # The scripts below, and the history the order check reads.
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-        with:
-          ref: ${{ github.event.workflow_run.head_sha || github.ref }}
-          fetch-depth: 0
-
-      # Skips the rollout, green, when the live commit already contains this one
-      # (an older deploy that started late); deploys in every other case.
-      - name: Check the deploy order against the live commit
-        id: order
-        if: env.COMMIT != ''
-        run: bash .github/scripts/deploy-commit-check.sh stale "${APP_URL}build-info.json" "$COMMIT"
-
-      # The key is written from a secret through the environment rather than
-      # interpolated into the script, so it never becomes part of the command
-      # line. `set -x` is deliberately absent from every step in this job.
-      - name: Install the deploy key
-        if: steps.order.outputs.stale != 'true'
-        env:
-          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
-          DEPLOY_HOST_KEY: ${{ secrets.DEPLOY_HOST_KEY }}
-        run: |
-          set -eu
-          mkdir -p ~/.ssh
-          chmod 700 ~/.ssh
-          printf '%s\n' "$DEPLOY_SSH_KEY" > ~/.ssh/deploy_key
-          chmod 600 ~/.ssh/deploy_key
-          # The host key is pinned: the known_hosts line comes from a secret, read
-          # on the server itself, never fetched over the network at deploy time.
-          [ -n "$DEPLOY_HOST_KEY" ] || { echo "::error::DEPLOY_HOST_KEY is not set"; exit 1; }
-          printf '%s\n' "$DEPLOY_HOST_KEY" > ~/.ssh/known_hosts
-          chmod 600 ~/.ssh/known_hosts
-
-      # deploy-rollout.sh runs on the host: it records the image in .env.prod
-      # (guarded edit, .bak kept), pulls, recreates the service and reports the
-      # image now configured. The commit is read back from that report, so a
-      # manual redeploy is verified against what .env.prod actually names.
-      - name: Roll out the frontend service
-        id: rollout
-        if: steps.order.outputs.stale != 'true'
-        env:
-          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
-          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
-        run: |
-          set -euo pipefail
-          image=${COMMIT:+ghcr.io/${GITHUB_REPOSITORY,,}/frontend:sha-$COMMIT}
-          ssh -i ~/.ssh/deploy_key -o IdentitiesOnly=yes -o BatchMode=yes -o StrictHostKeyChecking=yes \
-            "${DEPLOY_USER}@${DEPLOY_HOST}" \
-            "bash -s -- frontend FRONTEND_IMAGE $image" < .github/scripts/deploy-rollout.sh | tee "$RUNNER_TEMP/rollout.log"
-          deployed=$(sed -n 's/^deployed-image=//p' "$RUNNER_TEMP/rollout.log")
-          if [[ "$deployed" == *:sha-* ]]; then echo "commit=${deployed##*:sha-}" >> "$GITHUB_OUTPUT"; fi
-
-      # From the runner over the public internet, so DNS, TLS and the reverse
-      # proxy are part of what passes. Only an image tagged by commit can be
-      # checked by commit; an image named :latest gets a notice instead.
-      - name: Verify the live frontend serves the deployed commit
-        if: steps.order.outputs.stale != 'true'
-        env:
-          DEPLOYED: ${{ steps.rollout.outputs.commit }}
-        run: |
-          if [ -z "$DEPLOYED" ]; then echo "::notice::.env.prod names no commit tag; commit not verified"; exit 0; fi
-          bash .github/scripts/deploy-commit-check.sh served "${APP_URL}build-info.json" "$DEPLOYED"
-
-      # The build id proves which bundle nginx serves; the application shell in
-      # the root page proves that the bundle actually loads behind the proxy.
-      - name: Verify the live frontend serves the application shell
-        if: steps.order.outputs.stale != 'true'
-        run: |
-          curl -fsS --max-time 10 --retry 5 --retry-delay 6 --retry-all-errors -o "$RUNNER_TEMP/index.html" "$APP_URL"
-          grep -q '<app-root' "$RUNNER_TEMP/index.html" || { echo "::error::no application shell at $APP_URL"; exit 1; }
-
-      # Set by Caddy at the edge, so checked where a visitor receives them.
-      - name: Verify the public security headers
-        if: steps.order.outputs.stale != 'true'
-        run: bash .github/scripts/check-security-headers.sh "$APP_URL"
-
-      - name: Remove the deploy key
-        # Runs even when a step above failed: the key must not survive the job on
-        # a self-hosted or reused runner.
-        if: always()
-        run: rm -f ~/.ssh/deploy_key
+    uses: ./.github/workflows/deploy-tier.yml
+    with:
+      tier: frontend
+      commit-url: https://maintenance.smartsupply.com.de/build-info.json
+      app-url: https://maintenance.smartsupply.com.de/
+    secrets:
+      DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+      DEPLOY_HOST_KEY: ${{ secrets.DEPLOY_HOST_KEY }}
+      DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+      DEPLOY_USER: ${{ secrets.DEPLOY_USER }}

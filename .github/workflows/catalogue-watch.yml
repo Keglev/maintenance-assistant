@@ -1,5 +1,6 @@
 name: catalogue-watch
 
+# =============================================================================
 # catalogue-watch.yml - checks that the IONOS AI Model Hub still lists the four model
 # ids this project depends on, and turns a disappearance into a red run instead of an
 # incident. ADR-002, revision 2026-08-27, section 5 records the decision.
@@ -31,6 +32,7 @@ name: catalogue-watch
 # SECRET: LLM_API_KEY, shared with the backend. It reaches curl through the step
 # environment, never interpolated into the command line, so it cannot appear in the
 # rendered script; `set +x` keeps the shell from echoing the request.
+# =============================================================================
 
 on:
   schedule:

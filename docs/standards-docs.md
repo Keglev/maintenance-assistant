@@ -15,6 +15,17 @@ Part of the [refactor standards](refactor-standards.md).
   image; pages load no diagram script and no CDN. build-docs.sh fails on an inline mermaid block.
 - **Published prose states only what the checkout shows.** Figures carry provenance. No
   aspirational content. A claim needing a survey is omitted, not generalised.
+- **Docs state the current state only.** No "was X until", no amendment or adoption dates, no
+  withdrawn rules or waivers, no "previously" notes: when and why something changed is in git, the
+  pull request and the ADRs.
+- **No test counts or coverage percentages in prose.** A page says what is tested and links the
+  coverage reports CI publishes; a coverage target is a rule, not a figure, and may be stated.
+- **Version tables name the major version only** ("Spring Boot 4", never "4.1"); the build files
+  hold the exact versions.
+- **No internal tracking ids in docs.** Survey, session, ruling or finding ids (and pull-request
+  numbers used as a reason) cannot be resolved by a reader: an open item is described in words
+  with a pointer to the file it concerns. Ids already written inside an ADR stay, because ADRs are
+  immutable.
 - Cite by stable keys (property names, method names), never by line numbers — line citations break
   on the next edit.
 - Decision records are **immutable** once merged and their working session closes: corrections go

@@ -959,6 +959,88 @@ into Go struct field Embedding.data.embedding of type []float32</code></pre>
         <li>Nothing in the application changes: the production model and
         the documented fallback stay as this record sets them.</li>
         </ul>
+        <h3
+        id="note-2026-11-19-qwenqwen3.5-397b-a17b-measured-against-the-golden-questions">Note,
+        2026-11-19 — <code>Qwen/Qwen3.5-397B-A17B</code> measured
+        against the golden questions</h3>
+        <p>The owner ruled on 2026-11-19 to measure it. The workflow
+        backend-llm-live-it ran with its <code>chat-model</code> input
+        set to this model (run 44484655289, 2026-11-19 08:05 UTC): a
+        fresh database, the corpus of the checked-out commit indexed
+        through the provider, the golden questions of ADR-008, and the
+        application’s own request (<code>reasoning_effort: "none"</code>
+        with the strict <code>grounded_answer</code> schema). The
+        comparison is the run of the configured model on 2026-11-18 (run
+        44327878742). Retrieval is the same in both, because the
+        embedding model and the corpus are; only the chat model
+        differs.</p>
+        <table>
+        <colgroup>
+        <col style="width: 33%" />
+        <col style="width: 33%" />
+        <col style="width: 33%" />
+        </colgroup>
+        <thead>
+        <tr class="header">
+        <th></th>
+        <th><code>Qwen/Qwen3.5-397B-A17B</code></th>
+        <th><code>meta-llama/Llama-3.3-70B-Instruct</code></th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr class="odd">
+        <td>Golden questions answered fully correctly</td>
+        <td>19 of 19</td>
+        <td>18 of 19 (G13 fell to Mode B)</td>
+        </tr>
+        <tr class="even">
+        <td>Answer time, median / slowest</td>
+        <td>5.8 s / 34.1 s</td>
+        <td>12.9 s / 34.1 s</td>
+        </tr>
+        <tr class="odd">
+        <td>Answers over NFR-4’s 30 s</td>
+        <td>1, the four-protocol E-47 answer</td>
+        <td>1, the same answer</td>
+        </tr>
+        <tr class="even">
+        <td>Completion tokens, average</td>
+        <td>285</td>
+        <td>188</td>
+        </tr>
+        <tr class="odd">
+        <td>List price per million tokens, in / out</td>
+        <td>USD 0.67 / 4.00</td>
+        <td>USD 0.71 / 0.71</td>
+        </tr>
+        <tr class="even">
+        <td>Chat cost per answer in this run</td>
+        <td>about USD 0.0019</td>
+        <td>about USD 0.0009</td>
+        </tr>
+        </tbody>
+        </table>
+        <p>The figures come from the <code>Chat answer:</code> log line
+        of each answer (tokens and milliseconds) and the run’s baseline
+        report; the prices from the IONOS AI Model Hub page on
+        2026-11-19. One run per model, on different days, and the run of
+        2026-11-18 met a slow provider.</p>
+        <p>What this changes, and what it does not:</p>
+        <ul>
+        <li><code>Qwen/Qwen3.5-397B-A17B</code> is a <strong>measured
+        second IONOS model</strong>: it passes the golden questions with
+        the request this application sends, within the token cap, at
+        about twice the cost per answer. The one NFR-4 breach is the
+        longest answer of the set, and the configured model breaches it
+        on the same question.</li>
+        <li>The gap section 3 states is unchanged. This model is served
+        by the same provider and gateway as the primary, so it is no
+        fallback for a full IONOS outage.</li>
+        <li>Nothing in the application changes. The production model and
+        the documented fallback stay as this record sets them; switching
+        is a configuration change (<code>LLM_CHAT_MODEL</code>) that
+        needs its own decision.</li>
+        </ul>
       </article>
     </main>
 
@@ -1021,6 +1103,11 @@ into Go struct field Embedding.data.embedding of type []float32</code></pre>
       href="#note-2026-11-18-ionos-answers-and-the-combination-works"
       id="toc-note-2026-11-18-ionos-answers-and-the-combination-works">Note,
       2026-11-18 — IONOS answers, and the combination works</a></li>
+      <li><a
+      href="#note-2026-11-19-qwenqwen3.5-397b-a17b-measured-against-the-golden-questions"
+      id="toc-note-2026-11-19-qwenqwen3.5-397b-a17b-measured-against-the-golden-questions">Note,
+      2026-11-19 — <code>Qwen/Qwen3.5-397B-A17B</code> measured against
+      the golden questions</a></li>
       </ul></li>
       </ul></li>
       </ul>

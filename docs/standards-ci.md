@@ -5,12 +5,24 @@ Part of the [refactor standards](refactor-standards.md).
 ## Sizes
 
 - Shell scripts ~70 code lines; build-and-gate scripts (Node or shell, invoked by CI, living inside
-  the project they serve) 70-150 (>200); the header states what it produces, how CI invokes it,
-  and its failure mode.
-- Workflow YAML ~150 code lines. Inline shell in a workflow longer than five lines becomes a
-  script. WAIVED 2026-08-28 (Part 5 ruling, K7) for run blocks whose content is a single remote
-  command over ssh/scp and for e2e invocation blocks: a script file would be a second place to read
-  one command. A block that computes, loops or branches is not covered by the waiver.
+  the project they serve) 70-150 (>200).
+- Workflow YAML and the composite action: target 150, alarm 180 code lines. Above the target and
+  below the alarm a file is WATCHED: its next addition moves logic into a script or comes with a
+  waiver request.
+- **The size alarm forces a script, not the length of one run block.** A run block stays inline
+  while its workflow is within the band; a workflow above the alarm moves blocks into scripts
+  until it is back under it.
+
+## Banners on CI assets
+
+- Every workflow, the composite action, every script, both Dockerfiles and every docs-build helper
+  opens with one banner: a rule line, the file name and its purpose, Usage (how it is started or
+  called), what it produces, and its FAILURE MODE. A workflow banner starts with the workflow's
+  file name. The scripts under `.github/scripts/` are the exemplars (`claimant-gate.sh`).
+- A gate's comment states all three outcomes: pass, fail, and skip.
+- A file whose edit redeploys a tier (the deploy workflows, both Dockerfiles, the nginx and Caddy
+  configuration) gets its banner when a change touches it anyway, never in a change of its own.
+- The banner follows the comment rules: the contract and the reason, no history, no restated code.
 
 ## Every path is gated by the workflow that exercises it
 
@@ -50,6 +62,12 @@ AMENDED 2026-11-13: the mechanism is **claimants**, not paired path lists.
   trivy-action or setup-trivy (tags hijacked 2026-03-19, CVE-2026-33634). The frontend image also
   passes its contract (nginx -t, non-root user); its security headers are set by Caddy and checked
   at the public URL after each deploy.
+- **A workflow_run consumer trusts only main's own pushes.** Every workflow started by
+  `workflow_run` that builds, deploys or publishes requires, besides `conclusion == 'success'`,
+  `github.event.workflow_run.event == 'push'` and
+  `github.event.workflow_run.head_repository.full_name == github.repository`. The `branches:`
+  filter matches a branch NAME, which a fork can share; and the commit it acts on is
+  `workflow_run.head_sha`, never `github.sha`.
 - **Checks must fail loudly.** A check that passes for the wrong reason (wrong directory,
   line-ending-blind comparison, a probe that never ran) is discarded, not read as green.
 - **Dependency groups admit only minor and patch; a major is one PR, one decision.** A batch is a

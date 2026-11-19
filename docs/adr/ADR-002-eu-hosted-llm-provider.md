@@ -495,3 +495,37 @@ What this changes, and what it does not:
   measure it is an open decision, tracked as issue #242.
 - Nothing in the application changes: the production model and the documented fallback stay as this
   record sets them.
+
+### Note, 2026-11-19 — `Qwen/Qwen3.5-397B-A17B` measured against the golden questions
+
+The owner ruled on 2026-11-19 to measure it. The workflow backend-llm-live-it ran with its
+`chat-model` input set to this model (run 44484655289, 2026-11-19 08:05 UTC): a fresh database, the
+corpus of the checked-out commit indexed through the provider, the golden questions of ADR-008, and
+the application's own request (`reasoning_effort: "none"` with the strict `grounded_answer` schema).
+The comparison is the run of the configured model on 2026-11-18 (run 44327878742). Retrieval is the
+same in both, because the embedding model and the corpus are; only the chat model differs.
+
+| | `Qwen/Qwen3.5-397B-A17B` | `meta-llama/Llama-3.3-70B-Instruct` |
+|---|---|---|
+| Golden questions answered fully correctly | 19 of 19 | 18 of 19 (G13 fell to Mode B) |
+| Answer time, median / slowest | 5.8 s / 34.1 s | 12.9 s / 34.1 s |
+| Answers over NFR-4's 30 s | 1, the four-protocol E-47 answer | 1, the same answer |
+| Completion tokens, average | 285 | 188 |
+| List price per million tokens, in / out | USD 0.67 / 4.00 | USD 0.71 / 0.71 |
+| Chat cost per answer in this run | about USD 0.0019 | about USD 0.0009 |
+
+The figures come from the `Chat answer:` log line of each answer (tokens and milliseconds) and the
+run's baseline report; the prices from the IONOS AI Model Hub page on 2026-11-19. One run per model,
+on different days, and the run of 2026-11-18 met a slow provider.
+
+What this changes, and what it does not:
+
+- `Qwen/Qwen3.5-397B-A17B` is a **measured second IONOS model**: it passes the golden questions with
+  the request this application sends, within the token cap, at about twice the cost per answer. The
+  one NFR-4 breach is the longest answer of the set, and the configured model breaches it on the
+  same question.
+- The gap section 3 states is unchanged. This model is served by the same provider and gateway as
+  the primary, so it is no fallback for a full IONOS outage.
+- Nothing in the application changes. The production model and the documented fallback stay as this
+  record sets them; switching is a configuration change (`LLM_CHAT_MODEL`) that needs its own
+  decision.

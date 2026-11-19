@@ -62,6 +62,7 @@ jobs:
   image:
     name: build and push image
     runs-on: ubuntu-24.04
+    timeout-minutes: 20
 
     steps:
       # checkout v7 refuses to check out fork pull-request code under workflow_run
@@ -156,6 +157,7 @@ jobs:
     name: deploy to Hetzner
     needs: image
     runs-on: ubuntu-24.04
+    timeout-minutes: 15
 
     # One group for both tiers on purpose: both run `docker compose up` against
     # the same host, and two of those at once race over the same containers and

@@ -529,3 +529,11 @@ What this changes, and what it does not:
 - Nothing in the application changes. The production model and the documented fallback stay as this
   record sets them; switching is a configuration change (`LLM_CHAT_MODEL`) that needs its own
   decision.
+
+### Note, 2026-11-19 — the ticket is closed
+
+IONOS closed ticket 208027322 on 2026-11-19 after the owner reported the passing re-test of
+2026-11-18. They could not say what changed on their side or when it was deployed, and will check
+internally. The record therefore has a fixed behaviour without a known cause: should the HTTP 500
+on `reasoning_effort` with a strict `json_schema` return, the measurement of 2026-08-26 (section 3)
+and the re-test of 2026-11-18 are the evidence to send with a new ticket.

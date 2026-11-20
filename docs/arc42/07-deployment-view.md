@@ -338,6 +338,12 @@ running stack, there is no second host to compare against, and `git` on the work
 you what the server had a minute ago. Combine this with the recreate rule in §7.4 — a compose change
 that alters `environment:` needs the recreate for the same reason an `.env.prod` change does.
 
+The third-party images of this file (caddy, keycloak, pgvector) are not watched by Dependabot,
+because the same tags are pinned in the integration tests and the e2e stack. The monthly
+[image-watch](https://github.com/keglev/maintenance-assistant/blob/main/.github/workflows/image-watch.yml)
+job turns red when one of them is behind the newest release of its line, or when the copies
+disagree. Its run lists every file to bump; the new compose file then reaches the host as above.
+
 CI authenticates with a dedicated ed25519 key that exists only for this purpose, held in the
 `DEPLOY_SSH_KEY` repository secret alongside `DEPLOY_HOST` and `DEPLOY_USER`. It is written from the
 step environment rather than interpolated into a command line, and deleted in a step that runs even

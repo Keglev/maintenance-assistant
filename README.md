@@ -1,6 +1,6 @@
 # Maintenance Assistant
 
-**Retrieval-augmented answers from a plant's own maintenance protocols — Java 21 / Spring Boot 4.1 backend, Angular 22 frontend, PostgreSQL + pgvector**
+**Retrieval-augmented answers from a plant's own maintenance protocols — Java 21 / Spring Boot 4 backend, Angular 22 frontend, PostgreSQL + pgvector**
 
 [![Backend CI](https://github.com/Keglev/maintenance-assistant/actions/workflows/backend-ci.yml/badge.svg)](https://github.com/Keglev/maintenance-assistant/actions/workflows/backend-ci.yml)
 [![Frontend CI](https://github.com/Keglev/maintenance-assistant/actions/workflows/frontend-ci.yml/badge.svg)](https://github.com/Keglev/maintenance-assistant/actions/workflows/frontend-ci.yml)
@@ -62,12 +62,12 @@ It is not a ticketing or CMMS system, and it does not replace a technician.
 ```mermaid
 flowchart LR
     Q["Question<br/><i>plus one machine</i>"] --> E["Embed<br/><i>bge-m3</i>"]
-    E --> R["Rank in Postgres<br/><i>machine filter + vector, one query</i>"]
+    E --> R["Rank in Postgres<br/><i>machine filter + vector + exact terms, one query</i>"]
     R -->|"above threshold"| A["<b>Mode A</b><br/>answer with citations"]
     R -->|"below threshold"| B["<b>Mode B</b><br/>labelled, no sources"]
 ```
 
-Protocols are chunked, embedded and stored in PostgreSQL with pgvector, so one SQL statement applies the machine filter and the vector ranking together — the result is always the best matches *of that machine*, never a global ranking filtered afterwards. Above the threshold the retrieved chunks go to the language model under a citation contract, and every marker it emits is validated against what was actually retrieved before the answer is returned. The threshold is a configuration property, measured against the real corpus rather than guessed ([ADR-002](docs/adr/ADR-002-eu-hosted-llm-provider.md)).
+Protocols are chunked, embedded and stored in PostgreSQL with pgvector, so one SQL statement applies the machine filter and the vector ranking together — the result is always the best matches *of that machine*, never a global ranking filtered afterwards. A term a technician reads off a display, such as a fault code, also counts when the chunk contains it literally; that signal changes the order only, never the threshold ([ADR-009](docs/adr/ADR-009-hybrid-retrieval.md)). Above the threshold the retrieved chunks go to the language model under a citation contract, and every marker it emits is validated against what was actually retrieved before the answer is returned. The threshold is a configuration property, measured against the real corpus rather than guessed ([ADR-002](docs/adr/ADR-002-eu-hosted-llm-provider.md)).
 
 ---
 
@@ -104,7 +104,7 @@ An answer is only as trustworthy as the protocol under it, so the corpus has a r
 
 - **[Documentation site](https://keglev.github.io/maintenance-assistant/)** — everything below, published by CI.
 - **[Architecture (arc42)](https://keglev.github.io/maintenance-assistant/architecture/)** — context, building blocks, runtime views, deployment topology, crosscutting concepts.
-- **[Decision records](https://keglev.github.io/maintenance-assistant/adr/)** — seven ADRs, several with dated revisions recording where a decision was later reversed and why.
+- **[Decision records](https://keglev.github.io/maintenance-assistant/adr/)** — the ADRs, several with dated revisions recording where a decision was later reversed and why.
 - **[API reference](https://keglev.github.io/maintenance-assistant/backend/api-docs/)** — the REST API rendered from the OpenAPI specification: endpoints, schemas and the bearer-token security scheme.
 - **[Live API (Swagger UI)](https://maintenance.smartsupply.com.de/swagger-ui)** — the same API on the running deployment, interactive and public: expand an endpoint and send a request.
 - **Coverage** — [backend](https://keglev.github.io/maintenance-assistant/backend/coverage/) (JaCoCo) and [frontend](https://keglev.github.io/maintenance-assistant/frontend/coverage/) (vitest).
@@ -114,11 +114,11 @@ An answer is only as trustworthy as the protocol under it, so the corpus has a r
 
 ## Tech stack
 
-**Backend** — Java 21, Spring Boot 4.1, Spring Security (OAuth2 resource server), Flyway, springdoc-openapi, Bucket4j, JUnit 5, Testcontainers.
+**Backend** — Java 21, Spring Boot 4, Spring Security (OAuth2 resource server), Flyway, springdoc-openapi, Bucket4j, JUnit 5, Testcontainers.
 
 **Frontend** — Angular 22 (standalone, signals), `angular-oauth2-oidc` (Authorization Code + PKCE), vitest in jsdom, Playwright, Compodoc.
 
-**Data and AI** — PostgreSQL 17 with pgvector and an HNSW index, 1024-dimension embeddings; `BAAI/bge-m3` for embeddings and `Llama-3.3-70B-Instruct` for answers via the IONOS AI Model Hub, with Nebius documented as the fallback.
+**Data and AI** — PostgreSQL 17 with pgvector and an HNSW index, 1024-dimension embeddings; `BAAI/bge-m3` for embeddings and `Llama-3.3-70B-Instruct` for answers via the IONOS AI Model Hub, with `openai/gpt-oss-120b` on the same provider documented as the fallback.
 
 **Identity** — Keycloak, realm `maintenance`, four roles, public client with PKCE and a custom login theme.
 
@@ -128,10 +128,12 @@ An answer is only as trustworthy as the protocol under it, so the corpus has a r
 
 ## Testing
 
-- **Backend** — 220 tests: unit tests, Spring slices, and integration tests against a real PostgreSQL with pgvector through Testcontainers rather than an in-memory substitute.
-- **Frontend** — 269 vitest specs in jsdom, asserting on rendered output.
-- **Rendered end-to-end** — 35 Playwright cases against a real browser, a real Keycloak and a real backend: the login round trip, a citation click-through, role gating, the moderation and approval workflows, and a re-index proving an edited protocol changes the answer that cites it.
-- **Visual regression** — 18 baselines over nine surfaces in both palettes, generated and compared in one pinned container, because font rendering is a property of the machine.
+- **Backend** — unit tests, Spring slices, and integration tests against a real PostgreSQL with pgvector through Testcontainers rather than an in-memory substitute.
+- **Frontend** — vitest specs in jsdom, asserting on rendered output.
+- **Rendered end-to-end** — Playwright cases against a real browser, a real Keycloak and a real backend: the login round trip, a citation click-through, role gating, the moderation and approval workflows, and a re-index proving an edited protocol changes the answer that cites it.
+- **Visual regression** — baselines of the main surfaces in both palettes, generated and compared in one pinned container, because font rendering is a property of the machine.
+
+What the suites cover is published as coverage reports, linked under [Documentation](#documentation).
 
 The rendered layers exist because the two best-caught defects of v1.0–v1.1 were invisible to jsdom and to API checks: a source link that answered 401 on a real click while `curl` with a token passed, and a login heading that measured 1.09:1 while every token in the stylesheet was correct.
 
@@ -141,7 +143,7 @@ The rendered layers exist because the two best-caught defects of v1.0–v1.1 wer
 
 This project is built with AI assistance, and says so plainly (NFR-6).
 
-The division of labour is the point. The design documents, the seven decision records and the reasoning in them are mine, as are the problem statement, the role model and the operator-safety rule — those come from my own experience with maintenance documentation in US and German manufacturing. AI assisted with the repository scaffold, implementation, test scaffolding, documentation prose and the synthetic corpus. The rule of thumb is that AI writes prose and boilerplate and humans make decisions; where a model proposed a decision, it is recorded as an ADR and I own it.
+The division of labour is the point. The design documents, the decision records and the reasoning in them are mine, as are the problem statement, the role model and the operator-safety rule — those come from my own experience with maintenance documentation in US and German manufacturing. AI assisted with the repository scaffold, implementation, test scaffolding, documentation prose and the synthetic corpus. The rule of thumb is that AI writes prose and boilerplate and humans make decisions; where a model proposed a decision, it is recorded as an ADR and I own it.
 
 The controls are what make that checkable rather than a claim. Every pull request is read before merge and merged by hand, so nothing lands on `main` unread. CI gates both suites on every push. Anything the browser performs itself is verified in a browser, which is why the rendered and visual layers above exist rather than jsdom alone. Each pull request states what was verified and what was left unverified.
 
@@ -161,7 +163,6 @@ On merge to `main`, CI builds images, pushes them to GHCR and deploys over ssh, 
 
 ## Roadmap
 
-- **v1.3 — retrieval quality.** Hybrid keyword and semantic search, a reranker already served by the provider, and revalidation of the similarity threshold against the grown corpus — all three measured rather than assumed.
 - **Refactor phase.** A structure, code and documentation review of both tiers with explicit metrics, and no behaviour change.
 - **v2.0 — architecture evolution, gate first.** The first task is a written verification of whether extracting the ingestion module is warranted at this corpus size and load. "Decided against, with reasons" is an acceptable outcome and is recorded either way.
 

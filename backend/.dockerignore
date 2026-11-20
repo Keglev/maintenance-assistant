@@ -1,6 +1,8 @@
 # Keep the build context small and the dependency layer cacheable.
 # The jar is built inside the image, so a local target/ is never needed in the context.
 target/
+# Local stand-in for the protocol-document volume (maintenance.files.base-path).
+data/
 *.iml
 .idea/
 .vscode/

@@ -689,6 +689,15 @@ drwxr-xr-x 2 0 0 …            touch: Permission denied</code></pre>
         §7.4 — a compose change that alters <code>environment:</code>
         needs the recreate for the same reason an <code>.env.prod</code>
         change does.</p>
+        <p>The third-party images of this file (caddy, keycloak,
+        pgvector) are not watched by Dependabot, because the same tags
+        are pinned in the integration tests and the e2e stack. The
+        monthly <a
+        href="https://github.com/keglev/maintenance-assistant/blob/main/.github/workflows/image-watch.yml">image-watch</a>
+        job turns red when one of them is behind the newest release of
+        its line, or when the copies disagree. Its run lists every file
+        to bump; the new compose file then reaches the host as
+        above.</p>
         <p>CI authenticates with a dedicated ed25519 key that exists
         only for this purpose, held in the <code>DEPLOY_SSH_KEY</code>
         repository secret alongside <code>DEPLOY_HOST</code> and

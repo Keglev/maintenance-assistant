@@ -120,11 +120,11 @@ updates:
           - patch
     ignore:
       # TypeScript is pinned by Angular's peer range; it moves with the Angular
-      # major, never alone. `npm view @angular/compiler-cli@22.1.3
-      # peerDependencies` -> typescript ">=6.0 <6.1". A TypeScript major on its
-      # own cannot install, so a pull request proposing one is a red build and a
-      # closed tab, every month, until Angular itself moves. Minors and patches
-      # still flow.
+      # major, never alone. `npm view @angular/compiler-cli@22
+      # peerDependencies.typescript` -> ">=6.0 <6.1" for every 22.x release. A
+      # TypeScript major on its own cannot install, so a pull request proposing one
+      # is a red build and a closed tab, every month, until Angular itself moves.
+      # Minors and patches still flow.
       - dependency-name: typescript
         update-types:
           - 'version-update:semver-major'

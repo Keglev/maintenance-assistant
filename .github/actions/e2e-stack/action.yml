@@ -63,7 +63,7 @@ runs:
           -e POSTGRES_USER=maintenance \
           -e POSTGRES_PASSWORD="$PG_SECRET" \
           -e POSTGRES_INITDB_ARGS="--locale=C --encoding=UTF8" \
-          pgvector/pgvector:0.8.6-pg17
+          pgvector/pgvector:0.8.7-pg17
 
         # The same image and the same realm export the developer stack uses, so the users, roles
         # and the login theme under test are the ones that ship.

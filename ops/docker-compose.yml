@@ -38,7 +38,7 @@ services:
       start_period: 20s
 
   keycloak:
-    image: quay.io/keycloak/keycloak:26.7
+    image: quay.io/keycloak/keycloak:26.8
     container_name: maintenance-keycloak
     restart: unless-stopped
     # Dev mode: HTTP without TLS and an in-memory database. Development only —

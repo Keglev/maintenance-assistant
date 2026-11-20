@@ -245,7 +245,7 @@ test.describe('the approve workflow', () => {
     // NEEDS AN EMBEDDING, so it runs only with E2E_LLM set, like the re-index test: a protocol with
     // no vectors has nothing to compare and the check correctly reports "not comparable". Free
     // against the provider stub — see docs/run-locally.md.
-    test.skip(!process.env.E2E_LLM, 'needs indexed vectors; set E2E_LLM=1 (the stub is free)');
+    test.skip(!process.env['E2E_LLM'], 'needs indexed vectors; set E2E_LLM=1 (the stub is free)');
 
     const first = `${throwawayTitle()} A`;
     const second = `${throwawayTitle()} B`;
@@ -326,7 +326,7 @@ test.describe('the approve workflow', () => {
     // dialog awareness, and it is what lets that fix be verified rather than hoped about.
     //
     // It guards the product rule at the same time: duplicate detection WARNS, it never blocks.
-    test.skip(!process.env.E2E_LLM, 'needs indexed vectors; set E2E_LLM=1 (the stub is free)');
+    test.skip(!process.env['E2E_LLM'], 'needs indexed vectors; set E2E_LLM=1 (the stub is free)');
 
     const original = `${throwawayTitle()} original`;
     const reFiled = `${throwawayTitle()} verbatim`;

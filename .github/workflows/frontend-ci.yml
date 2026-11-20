@@ -72,6 +72,11 @@ jobs:
       - name: Check formatting
         run: npm run format:check
 
+      # Playwright transpiles the e2e sources without type-checking them; this is
+      # the only place their types are checked.
+      - name: Type-check the e2e sources
+        run: npm run e2e:typecheck
+
       # vitest in jsdom — no browser, so the runner needs no Chrome and no setup step.
       - name: Test with coverage
         run: npm run test:ci

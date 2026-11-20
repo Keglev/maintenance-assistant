@@ -21,6 +21,7 @@ jobs:
   release:
     name: create GitHub Release
     runs-on: ubuntu-24.04
+    timeout-minutes: 5
 
     steps:
       # Full history so the generated notes can diff against the previous tag.

@@ -76,7 +76,7 @@ runs:
           -e WA_SHOW_DEMO_ACCOUNTS=true \
           -v "${{ github.workspace }}/ops/keycloak/realm-export.json:/opt/keycloak/data/import/realm-export.json:ro" \
           -v "${{ github.workspace }}/ops/keycloak/themes/wartungsassistent:/opt/keycloak/themes/wartungsassistent:ro" \
-          quay.io/keycloak/keycloak:26.7 start-dev --import-realm
+          quay.io/keycloak/keycloak:26.8 start-dev --import-realm
 
     - name: Wait for Postgres
       shell: bash

@@ -22,8 +22,9 @@
 
 # Keycloak themes
 
-One theme lives here: **`wartungsassistent`**, a login theme for Keycloak **26.7**
-(image `quay.io/keycloak/keycloak:26.7`, built-in themes from `org.keycloak.keycloak-themes-26.7.1.jar`).
+One theme lives here: **`wartungsassistent`**, a login theme for Keycloak **26.8**
+(image `quay.io/keycloak/keycloak:26.8`). Its template was written against the built-in themes of
+`org.keycloak.keycloak-themes-26.7.1.jar`.
 
 It exists because the login page was the last surface still wearing stock Keycloak: the demo flow
 took a visitor from a designed landing page to a foreign-looking one, mid-login.

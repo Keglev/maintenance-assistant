@@ -1,0 +1,50 @@
+name: image-watch
+
+# =============================================================================
+# image-watch.yml - checks monthly that the third-party images of the production
+# stack (caddy, keycloak, pgvector) are on the newest release of their line, and
+# that every tracked file pins the same tag as ops/docker-compose.prod.yml.
+#
+# Usage: runs by itself monthly; workflow_dispatch for the day somebody wants to
+# know now. The work is .github/scripts/image-watch.sh, which says what a line is
+# for each image.
+# Produces: one line per image with its pinned tag, its last rebuild and the
+# newest tag of its line; a notice when a newer major exists.
+#
+# WHY A JOB AND NOT DEPENDABOT. The tags of ops/ are also pinned in the
+# integration tests and the e2e stack, and the compose file reaches the host by
+# hand (docs/arc42/07-deployment-view.md). A Dependabot pull request would move
+# one copy of three; this job raises the alarm and the bump moves all of them.
+#
+# FAILURE MODE. Red with "behind its line": bump the tag in every copy the run
+# lists, then deploy the compose file to the host per the runbook. Red with
+# "pinned as ... but also as": the copies disagree. Red with "could not read":
+# a registry did not answer, so that image was not checked. Green: every image
+# is current. Nothing pages anyone, and production is unchanged either way.
+# =============================================================================
+
+on:
+  schedule:
+    # 06:43 UTC on the 1st, off the hour and apart from catalogue-watch.
+    - cron: "43 6 1 * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: image-watch
+  cancel-in-progress: true
+
+jobs:
+  images:
+    name: production images against their lines
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      - name: Compare the pinned images with their registries
+        run: .github/scripts/image-watch.sh ops/docker-compose.prod.yml

@@ -50,13 +50,21 @@ pinned() {
   grep -oE "image: *$1:[A-Za-z0-9._-]+" "$compose" | head -1 | sed -E 's/.*://'
 }
 
-# Every tracked copy of the tag must equal the compose file's.
+# Every tracked pin of the tag must equal the compose file's. A pin is a code or
+# config line: markdown and comment lines may quote the tag a measurement was
+# taken against, and that record is not a pin.
+pins() {
+  git grep -nE "${1//./\\.}:[A-Za-z0-9._-]*[A-Za-z0-9]" -- . ':!*.md' \
+    | grep -vE '^[^:]+:[0-9]+:[[:space:]]*(#|//|\*|<!--)' || true
+}
+
 copies() {
   local repo="$1" tag="$2" others
-  others=$(git grep -hoE "${repo//./\\.}:[A-Za-z0-9._-]*[A-Za-z0-9]" -- . | sed "s#^${repo}:##" | sort -u | grep -vxF "$tag" || true)
+  others=$(pins "$repo" | grep -oE "${repo//./\\.}:[A-Za-z0-9._-]*[A-Za-z0-9]" \
+    | sed "s#^${repo}:##" | sort -u | grep -vxF "$tag" || true)
   if [ -n "$others" ]; then
     echo "::error::$repo is pinned as $tag in $compose but also as: $(echo "$others" | tr '\n' ' ')"
-    git grep -lE "${repo//./\\.}:" -- . | sed 's/^/    /'
+    pins "$repo" | cut -d: -f1 | sort -u | sed 's/^/    /'
     status=1
   fi
 }

@@ -77,13 +77,7 @@ maintenance:
     backlog-batch-size: ${INGESTION_BACKLOG_BATCH_SIZE:200}
 
   embedding:
-    # IONOS AI Model Hub, primary provider per ADR-002. THE DOCUMENTED FALLBACK IS NO
-    # LONGER NEBIUS — see ADR-002 REVISION 2026-08-27: Nebius retires the chat model that
-    # ADR named on 2026-08-31, and the fallback is now a second IONOS model,
-    # openai/gpt-oss-120b, chosen by measurement against this application's answer
-    # contract. That makes the switch LLM_CHAT_MODEL alone, not a base-url change, and
-    # it leaves this project on one provider: there is no tested fallback for a full
-    # IONOS outage, which the revision says in those words.
+    # IONOS AI Model Hub, the provider ADR-002 chose.
     base-url: ${LLM_BASE_URL:https://openai.inference.de-txl.ionos.com/v1}
     api-key: ${LLM_API_KEY:}
     # Ignore the *-migration aliases in the IONOS catalogue (ADR-002).
@@ -108,23 +102,25 @@ maintenance:
     # other. base-url includes /v1 for the reason ADR-002 records.
     base-url: ${LLM_BASE_URL:https://openai.inference.de-txl.ionos.com/v1}
     api-key: ${LLM_API_KEY:}
-    # Llama-3.3-70B for every role — measured, see the ADR-002 note of 2026-08-07.
+    # Llama-3.3-70B for every role (measured, ADR-002 note of 2026-08-07). The documented
+    # fallback is openai/gpt-oss-120b on the same gateway, a switch of LLM_CHAT_MODEL alone;
+    # no fallback is tested for a full IONOS outage (ADR-002, revision 2026-08-27).
     # Qwen/Qwen3.5-9B stays a config swap; the client then sends reasoning_effort
     # "none" on its own, or the model spends its whole output budget thinking and
     # returns empty content (ADR-002 caveat 3).
     model: ${LLM_CHAT_MODEL:meta-llama/Llama-3.3-70B-Instruct}
-    # NFR-7, and RE-MEASURED 2026-08-26 (diagnostics wave A3 and ruling R1, in the handover
-    # archived under git tag archive/handover-2026-11). The arithmetic, which was the rule
+    # NFR-7, and RE-MEASURED 2026-08-26 (the measurement is in the handover archived under
+    # git tag archive/handover-2026-11). The arithmetic, which was the rule
     # stated before the measurement rather than a number chosen after it — the 95th
     # percentile of the longest QUALIFYING model, times 1.25, rounded to 100:
     #     1642 x 1.25 = 2052.5 -> 2100
-    # SIZED FOR THE DOCUMENTED FALLBACK MODEL; THE INCUMBENT'S p95 IS 575 (A3). Llama-3.3
+    # SIZED FOR THE DOCUMENTED FALLBACK MODEL; THE INCUMBENT'S p95 IS 575. Llama-3.3
     # measured a maximum of 586 completion tokens over 21 samples and did not move when
     # the cap was lifted to 3000, so this is not headroom the deployed model asked for. It
     # is headroom openai/gpt-oss-120b needs: that model qualified as the fallback at 3000
     # and FAILED at 1200, and a fallback nobody can switch to is not a fallback.
     # The note that stood here quoted a longest-observed-answer figure measured on
-    # 2026-08-07 against a ten-protocol corpus. A3's tables supersede it and it is not
+    # 2026-08-07 against a ten-protocol corpus. The re-measurement supersedes it and it is not
     # repeated here; the original number stays where the record of it belongs, in the
     # decision log archived under git tag archive/decisions-log-2026-11 and in ADR-002.
     # THIS IS NOT THE FIX FOR THE 2026-08-26 INCIDENT and must not be recorded as one —

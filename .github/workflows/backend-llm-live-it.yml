@@ -1,7 +1,8 @@
 name: backend-llm-live-it
 
-# backend-llm-live-it.yml — Runs the llm-live integration tests against the real
-# provider, on demand.
+# =============================================================================
+# backend-llm-live-it.yml - Runs the llm-live integration tests against the real
+# provider.
 #
 # WHY A SEPARATE WORKFLOW. These tests measure retrieval and the demo answers
 # against the paid provider (ADR-002, ADR-008), so every run costs money and
@@ -10,11 +11,11 @@ name: backend-llm-live-it
 # runs them, and an outage or rate limit at the provider can never block a
 # merge. See docs/live-provider-tests.md.
 #
-# WHEN. Monthly, and by hand after a change to the model, the prompt or the
+# Usage: monthly, and by hand after a change to the model, the prompt or the
 # embedding model, and by hand with the input chat-model to measure a candidate
-# model without changing the configuration. The first measured run (2026-11-16) put one run at roughly
-# EUR 0.03, so a monthly re-measurement costs nothing worth weighing, while a
-# per-push run would still make the provider a merge dependency.
+# model without changing the configuration. One run costs roughly EUR 0.03
+# (measured 2026-11-16), so a monthly re-measurement costs nothing worth
+# weighing, while a per-push run would make the provider a merge dependency.
 #
 # WHAT A RUN DOES. A fresh pgvector database; index-live-corpus.sh seeds the
 # corpus from the repository and indexes it through the provider; then
@@ -30,6 +31,7 @@ name: backend-llm-live-it
 # test would skip and the run would be green while measuring nothing.
 #
 # SECRET: LLM_API_KEY, the repository secret catalogue-watch also reads.
+# =============================================================================
 
 on:
   schedule:

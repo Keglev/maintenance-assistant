@@ -4,7 +4,7 @@
 # Usage: .github/scripts/deploy-commit-check.sh stale  <url> <candidate-sha>
 #        .github/scripts/deploy-commit-check.sh served <url> <expected-sha>
 #
-# Called by backend-deploy.yml and frontend-deploy.yml. <url> returns JSON with
+# Called by deploy-tier.yml for either tier. <url> returns JSON with
 # a "commit" field: /api/health for the backend, /build-info.json for the
 # frontend. Read from the runner over the public internet, so DNS, TLS and the
 # reverse proxy are part of what is checked.

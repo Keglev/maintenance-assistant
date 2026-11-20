@@ -1,8 +1,15 @@
-# Multi-stage build for the maintenance-assistant backend.
-# Both base images are published for linux/amd64 and linux/arm64, so the same file
-# builds on a laptop of either architecture. The image CI publishes is amd64 only:
-# production is a Hetzner CX33 (x86_64) — see docs/arc42/07-deployment-view.md —
-# and backend-deploy.yml's build-push step records why the arm64 leg was dropped.
+# =============================================================================
+# backend/Dockerfile - Multi-stage build of the backend image (Spring Boot jar on
+# a Temurin JRE).
+# Usage: `docker build backend` locally; in CI, backend-ci builds it for the scan
+# and deploy-tier.yml builds, scans and pushes it, passing GIT_COMMIT and the
+# runner's Maven repository as the "m2" build context.
+# Produces: an image whose /api/health reports the commit it was built from.
+# FAILURE MODE: the build fails on a dependency that cannot be resolved or a
+# compile error; tests do not run here (CI runs them). Both base images exist for
+# amd64 and arm64, so a laptop of either kind builds it; CI publishes amd64 only
+# (production is x86_64, docs/arc42/07-deployment-view.md; deploy-tier.yml says why).
+# =============================================================================
 
 # --- seed for the local Maven repository ------------------------------------
 # Empty by default. CI replaces it with the runner's cached ~/.m2/repository
@@ -27,7 +34,7 @@ RUN mvn -B -ntp dependency:go-offline
 
 COPY src ./src
 # The commit this image is built from, reported by /api/health so a deploy can
-# verify WHICH build is live rather than only that one is up. backend-deploy.yml
+# verify WHICH build is live rather than only that one is up. deploy-tier.yml
 # passes it; a local build without it reads "local" — never a stale sha.
 ARG GIT_COMMIT=local
 # Tests run in CI against the full stack; the image build only produces the artifact.

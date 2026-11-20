@@ -52,6 +52,7 @@ jobs:
   models:
     name: the four ids this project depends on
     runs-on: ubuntu-24.04
+    timeout-minutes: 5
 
     # No checkout: the ids are written into the script below, so the repository is
     # never read, and the workflow pins no third-party action at all.

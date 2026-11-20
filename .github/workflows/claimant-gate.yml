@@ -1,11 +1,21 @@
 name: claimant-gate
 
-# The first job of every claimant workflow (backend-ci, frontend-ci,
-# docs-pr-check): answers whether the pull request touches the caller's family,
-# so the claimant can run on EVERY pull request — which is what makes its
-# required check always report — while spending a full suite only on changes
-# that can affect it. The partition itself lives in claimant-gate.sh, in one
+# =============================================================================
+# claimant-gate.yml - Decides whether a pull request touches the calling
+# claimant's family.
+#
+# Usage: a reusable workflow, the first job (`changes`) of backend-ci, frontend-ci
+# and docs-pr-check. It lets every claimant run on EVERY pull request, which is
+# what makes its required check always report, while spending a full suite only
+# on changes that can affect it. The partition lives in claimant-gate.sh, in one
 # place instead of three hand-paired path lists.
+#
+# Produces: the output `run` (true or false) for the caller's jobs and aggregator.
+#
+# FAILURE MODE: red when the diff cannot be computed; the caller's aggregator then
+# fails too, so an undecided pull request never passes.
+# =============================================================================
+
 on:
   workflow_call:
     inputs:
@@ -24,6 +34,7 @@ permissions:
 jobs:
   changes:
     runs-on: ubuntu-24.04
+    timeout-minutes: 5
     outputs:
       run: ${{ steps.decide.outputs.run }}
     steps:

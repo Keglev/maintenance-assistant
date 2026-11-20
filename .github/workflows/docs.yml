@@ -1,45 +1,42 @@
 name: docs
 
-# Publishes everything that lives on gh-pages, from two independent triggers:
+# =============================================================================
+# docs.yml - Publishes everything on gh-pages: the documentation site and the
+# coverage and API reports of both tiers.
 #
-#   a) push to main under docs/**  -> regenerate mermaid diagrams, build the
-#      site with Pandoc, publish it at the root of gh-pages
-#   b) frontend-ci / backend-ci succeeded on main -> publish their coverage and
-#      API documentation into subfolders
+# Usage: two independent triggers. a) A push to main under docs/** (or this
+# file): renders the diagrams, builds the site with Pandoc and publishes it at
+# the root. b) frontend-ci or backend-ci succeeded on a push to main: publishes
+# that tier's coverage and API documentation into its subfolder.
 #
-# TWO publish steps are declared below and AT MOST ONE RUNS PER RUN (I4), because
-# the two jobs are mutually exclusive on event name. NEITHER SETS keep_files.
+# Produces: the gh-pages branch, one commit per area that changed, each area
+# recording its commit in published-commit.txt.
 #
-# keep_files WAS THE OLD ANSWER AND IT MADE THE SITE APPEND-ONLY. Four publish
-# steps each preserved what the others wrote, which also preserved everything
-# nobody wrote any more: a rename added a page and never removed the old one. By
-# 2026-08-26 the branch was still serving a complete 2026-08-05 Jekyll build —
-# 33 arc42 pages, six ADR sources and a just-the-docs theme — three weeks after
-# the Pandoc site replaced it, all of it answering 200 and reachable from nothing.
+# FAILURE MODE: red when the build fails or the report subtrees cannot be carried
+# over (I5); green without a commit when the publish guard skips a stale or
+# unchanged area (I6).
 #
-# THE SITE JOB CARRIES THE REPORT SUBTREES OVER FROM gh-pages INSTEAD. That is
-# what makes keep_files unnecessary: the published site is assembled in full
-# before it is published, so "replace everything" is safe and deletion works.
+# keep_files is not used: it made the site append-only, so a renamed page stayed
+# published and reachable from nowhere. The site job carries the report subtrees
+# over instead, so "replace everything" is safe and deletion works.
 #
 # THE INVARIANTS, in the order they are enforced below:
-#   I1  The site publish never deletes a report subtree — it checks gh-pages out
+#   I1  The site publish never deletes a report subtree: it checks gh-pages out
 #       and copies backend/ and frontend/ into the build output first.
 #   I2  A report publish never touches the site or the other project. It sets
-#       destination_dir, and the action deletes only inside it: "existing files
-#       in the publish branch (or only in `destination_dir` if given) will be
-#       removed" — peaceiris/actions-gh-pages README, at the pinned commit.
+#       destination_dir, and the action deletes only inside it (peaceiris/
+#       actions-gh-pages README, at the pinned commit).
 #   I3  Anything at the root the site build did not produce is deleted on the
-#       next site publish. This is the point of the change, not a side effect;
-#       .nojekyll therefore comes from build-docs.sh now.
+#       next site publish; .nojekyll therefore comes from build-docs.sh.
 #   I4  At most one publish step runs per workflow run; none when I6 skips it.
 #   I5  A run that cannot find the report subtrees to carry over FAILS rather
 #       than publishing a site without them. The one exception is a first-ever
-#       publish, where gh-pages does not exist at all — see that step.
-#   I6  A run never replaces a newer publish of its area: each area records its
-#       commit in published-commit.txt, and publish-guard.sh skips a run whose
-#       commit the recorded one already contains (queued runs start in any order).
-#       It also skips a run whose output equals the published area, so an
-#       unchanged area gets no commit and keeps its marker.
+#       publish, where gh-pages does not exist at all; see that step.
+#   I6  A run never replaces a newer publish of its area: publish-guard.sh skips
+#       a run whose commit the recorded one already contains (queued runs start
+#       in any order), and a run whose output equals the published area.
+# =============================================================================
+
 on:
   push:
     branches: [main]
@@ -79,6 +76,7 @@ jobs:
     name: build and publish site
     if: github.event_name == 'push'
     runs-on: ubuntu-24.04
+    timeout-minutes: 10
 
     steps:
       # Full history: the publish guard tests whether the published commit
@@ -184,10 +182,15 @@ jobs:
   # ---------------------------------------------------------------------------
   reports:
     name: publish ${{ github.event.workflow_run.name }} reports
+    # Only reports of a CI run on a push to main of this repository are published;
+    # the branches filter matches a branch NAME, which a fork can share.
     if: >-
       github.event_name == 'workflow_run' &&
-      github.event.workflow_run.conclusion == 'success'
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.event == 'push' &&
+      github.event.workflow_run.head_repository.full_name == github.repository
     runs-on: ubuntu-24.04
+    timeout-minutes: 10
 
     steps:
       # The OpenAPI render needs the build script, and the publish guard the full

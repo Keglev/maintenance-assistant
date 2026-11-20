@@ -1,26 +1,23 @@
 name: frontend-e2e
 
-# The rendered half of the test stack (ADR-007, revised 2026-11-13). A REUSABLE WORKFLOW: it has no
-# triggers of its own and runs only as the `e2e` job inside backend-ci and frontend-ci, behind a
-# relevance gate (.github/scripts/e2e-relevant.sh). That is what makes it a merge gate — the required
-# check is each CI's aggregator job, which fails when this fails and passes when the gate skipped it —
-# and what makes it a deploy gate, because the deploys trigger on the CI runs that now contain it.
+# =============================================================================
+# frontend-e2e.yml - The functional end-to-end suite (Playwright) against the
+# full stack.
 #
-# It lived here as a standalone workflow with its own pull_request/push triggers until 2026-11-13,
-# reporting under an advisory check named `e2e` that gated nothing: the deploys waited only for the
-# CI workflows, and on one main commit the frontend deploy finished three minutes before this suite
-# did. ADR-007's promotion bar (ten consecutive green non-Dependabot pull-request runs) was measured
-# met at eleven on 2026-11-12, so the advisory era ended by decision, not drift — the dated revision
-# in ADR-007 records it.
+# Usage: a reusable workflow, run as the `e2e` job of backend-ci and frontend-ci
+# behind a relevance gate (.github/scripts/e2e-relevant.sh). Each CI's
+# aggregator, the required check, fails when this fails, and the deploys start
+# on those CI runs, so the suite gates both merge and deploy (ADR-007).
+# Concurrency is the caller's: a reusable workflow runs inside the calling run.
 #
-# Concurrency is the caller's: a reusable workflow runs inside the calling run, so backend-ci's and
-# frontend-ci's groups already serialise it per ref.
+# Produces: the Playwright report as an artifact when a test fails.
 #
-# NO CREDENTIALS ARE WRITTEN DOWN IN THIS FILE. The database and the Keycloak admin get a random
-# value generated at run time, masked in the log and passed through the environment. The containers
-# live for one job and are reachable from nothing else, so any value would have been harmless — but
-# a literal password in a versioned file is a pattern a reader cannot distinguish from a real leak at
-# a glance, and neither can a secret scanner. This costs one `openssl rand` and removes the question.
+# FAILURE MODE: red when the stack cannot be provisioned (e2e-stack action) or a
+# test fails. No credential is written in this file: the database and the
+# Keycloak admin get a random value at run time, masked and passed through the
+# environment, so a reader or a secret scanner never meets a literal password.
+# =============================================================================
+
 on:
   workflow_call:
 

@@ -5,7 +5,7 @@
 #   ssh <host> 'bash -s -- <service> <env-key> [<image>]' < deploy-rollout.sh
 #   e.g. backend BACKEND_IMAGE ghcr.io/keglev/maintenance-assistant/backend:sha-<commit>
 #
-# Run by backend-deploy.yml and frontend-deploy.yml. With <image>, first records
+# Run by deploy-tier.yml for either tier. With <image>, first records
 # it in .env.prod as <env-key>=<image>, so the file always names the image that
 # runs and every later manual `docker compose ... --env-file .env.prod` keeps
 # it. The edit is guarded: written to a temporary file, accepted only when the

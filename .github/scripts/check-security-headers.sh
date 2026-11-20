@@ -3,7 +3,7 @@
 # check-security-headers.sh — Confirms the public site sends its security headers
 # Usage: .github/scripts/check-security-headers.sh <url>
 #
-# Called by frontend-deploy.yml after each rollout. The headers are set by Caddy
+# Called by deploy-tier.yml after each frontend rollout. The headers are set by Caddy
 # at the edge (ops/caddy/Caddyfile), not by the frontend container's nginx,
 # so they are checked where a visitor receives them: the public URL, through
 # DNS, TLS and the proxy. Each header below must be present; its value is

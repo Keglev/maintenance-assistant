@@ -184,9 +184,13 @@ jobs:
   # ---------------------------------------------------------------------------
   reports:
     name: publish ${{ github.event.workflow_run.name }} reports
+    # Only reports of a CI run on a push to main of this repository are published;
+    # the branches filter matches a branch NAME, which a fork can share.
     if: >-
       github.event_name == 'workflow_run' &&
-      github.event.workflow_run.conclusion == 'success'
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.event == 'push' &&
+      github.event.workflow_run.head_repository.full_name == github.repository
     runs-on: ubuntu-24.04
 
     steps:

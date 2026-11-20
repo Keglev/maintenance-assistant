@@ -49,6 +49,7 @@ while IFS= read -r f; do
     .github/workflows/catalogue-watch.yml|.github/workflows/release.yml) ;;
     .github/workflows/image-watch.yml|.github/scripts/image-watch.sh) ;;
     .github/workflows/backend-deploy.yml|.github/workflows/frontend-deploy.yml) ;;
+    .github/workflows/deploy-tier.yml) ;;
     *)
       echo "relevant: $f"
       run=true

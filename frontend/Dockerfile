@@ -1,8 +1,15 @@
-# Multi-stage build for the maintenance-assistant frontend.
-# Both base images are published for linux/amd64 and linux/arm64, so the same file
-# builds on a laptop of either architecture. The image CI publishes is amd64 only:
-# production is a Hetzner CX33 (x86_64) — see docs/arc42/07-deployment-view.md —
-# and frontend-deploy.yml's build-push step records why the arm64 leg was dropped.
+# =============================================================================
+# frontend/Dockerfile - Multi-stage build of the frontend image (Angular bundle
+# served by unprivileged nginx).
+# Usage: `docker build frontend` locally; in CI, frontend-ci builds it for the scan
+# and the image contract, and deploy-tier.yml builds, scans and pushes it, passing
+# GIT_COMMIT.
+# Produces: an image serving the bundle and /build-info.json with the commit.
+# FAILURE MODE: the build fails on `npm ci` or the bundle build; tests do not run
+# here (CI runs them). Both base images exist for amd64 and arm64; CI publishes
+# amd64 only (production is x86_64, docs/arc42/07-deployment-view.md; deploy-tier.yml
+# says why).
+# =============================================================================
 
 # --- build ------------------------------------------------------------------
 FROM node:22-alpine AS build
@@ -18,7 +25,7 @@ COPY . .
 RUN npm run build
 
 # The commit this image was built from, served as /build-info.json so a deploy can
-# check which build answers (frontend-deploy.yml sets it; a local build says
+# check which build answers (deploy-tier.yml sets it; a local build says
 # "local"). Declared after the bundle build so a new commit does not invalidate the
 # cached npm layers above.
 ARG GIT_COMMIT=local

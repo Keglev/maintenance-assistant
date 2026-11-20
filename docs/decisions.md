@@ -62,7 +62,7 @@ the details.
   advantage disappeared in Hetzner's 2026-06 restructuring and CAX was out of stock. The deploy
   workflows build `linux/amd64` only: an arm64 image built under emulation crashed a deploy
   (`qemu: uncaught target signal 4` during `npm ci`) and had no consumer. Moving to ARM is a server
-  swap plus one line per deploy workflow, better with a native arm64 runner.
+  swap plus one line in the shared deploy workflow, better with a native arm64 runner.
 - **Not shrinking to 4 GB:** about EUR 5 a month saved against an out-of-memory risk during
   indexing, which is a broken-demo risk.
 - **Pausing** means snapshot, then delete the server (a stopped server still bills in full);

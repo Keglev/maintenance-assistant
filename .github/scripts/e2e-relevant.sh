@@ -47,6 +47,7 @@ while IFS= read -r f; do
     # NOT here: changing how a suite runs is a reason to run it.
     .github/workflows/docs.yml|.github/workflows/docs-pr-check.yml) ;;
     .github/workflows/catalogue-watch.yml|.github/workflows/release.yml) ;;
+    .github/workflows/image-watch.yml|.github/scripts/image-watch.sh) ;;
     .github/workflows/backend-deploy.yml|.github/workflows/frontend-deploy.yml) ;;
     *)
       echo "relevant: $f"

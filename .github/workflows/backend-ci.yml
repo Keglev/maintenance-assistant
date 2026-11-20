@@ -41,6 +41,9 @@ on:
     paths:
       - 'backend/**'
       - '.github/workflows/backend-ci.yml'
+      # No markdown file is built, tested or shipped, so a README edit must not
+      # publish and roll out a new image. Pull requests still run every check.
+      - '!**/*.md'
 
 permissions:
   contents: read

@@ -3,10 +3,6 @@
 # ---------------------------------------------------------------------------
 target/
 build/
-# KEPT DELIBERATELY THOUGH NOTHING MATCHES IT TODAY: this negation is the only
-# thing that would let a maven wrapper past `*.jar` below, and `mvn wrapper:wrapper`
-# is one command away. A guard is not dead code because it has not fired yet.
-!.mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/
 *.class
@@ -84,10 +80,8 @@ TEST-*.xml
 *.ipr
 *.iws
 .vscode/*
-# Nothing matches this today either, and it stays for the same reason as the maven
-# wrapper above: the identical file is tracked at frontend/.vscode/extensions.json,
-# so a shared recommendation list at the root is a pattern this repository already
-# uses, and this line is what would let one be committed.
+# Nothing matches this today; it lets a shared recommendation list at the root be
+# committed, as frontend/.vscode/extensions.json already is.
 !.vscode/extensions.json
 # The shared Java setting for the Eclipse null analysis in VS Code.
 !.vscode/settings.json
